@@ -1,7 +1,7 @@
 const { app, Menu } = require('electron');
 const minimist = require('minimist');
 const { perf } = require('src/base/common/performance');
-const { parseCLIArgv } = require('src/code/platform/environment/common/argument');
+const { parseCLIArgv } = require('src/platform/environment/common/argument');
 
 /**
  * The real first entry of the main process. It does not responsible for any 
@@ -14,7 +14,7 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
 
 
 (function main() {
-    
+
     /** 
      * Parse command arguments.
      * @type ICLIArguments 
@@ -39,12 +39,12 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
      * Runs the program when ready.
      */
     app.whenReady()
-    .then(() => (function run() 
-        {
-            perf('main bundle loading start');
-            const application = require('./code/electron/main');
-            perf('main bundle loading end');
-            application.default.start(CLIArgv);
-        }
-    )());
+        .then(
+            function run() {
+                perf('main bundle loading start');
+                const application = require('./code/electron/main');
+                perf('main bundle loading end');
+                application.default.start(CLIArgv);
+            } ()
+        );
 })();

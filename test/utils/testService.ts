@@ -7,14 +7,14 @@ import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
-import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
-import { ContextService } from "src/code/platform/context/common/contextService";
-import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
-import { IBrowserEnvironmentService, IEnvironmentService } from "src/code/platform/environment/common/environment";
-import { ClientBase, ClientConnectEvent, ServerBase } from "src/code/platform/ipc/common/net";
-import { IProtocol } from "src/code/platform/ipc/common/protocol";
-import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
-import { IWindowConfiguration } from "src/code/platform/window/common/window";
+import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
+import { ContextService } from "src/platform/context/common/contextService";
+import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
+import { IBrowserEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
+import { ClientBase, ClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
+import { IProtocol } from "src/platform/ipc/common/protocol";
+import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
+import { IWindowConfiguration } from "src/platform/window/common/window";
 import { nullObject } from "test/utils/helpers";
 
 export const NotaName = 'nota';
@@ -25,50 +25,50 @@ export const TestURI = URI.fromFile(TestPath);
 export namespace TestIPC {
 
     export class IpcServer extends ServerBase {
-    
+
         private readonly _onDidClientConnect: Emitter<ClientConnectEvent>;
-    
+
         constructor() {
             const onDidClientConnect = new Emitter<ClientConnectEvent>();
             super(onDidClientConnect.registerListener, new NullLogger());
             this._onDidClientConnect = onDidClientConnect;
             this.__register(onDidClientConnect);
         }
-    
+
         public createConnection(id: string): ClientBase {
             const [pc, ps] = __createProtocolPair();
             const client = new IpcClient(pc, id);
-    
+
             this._onDidClientConnect.fire({
                 clientID: id,
                 protocol: ps,
                 onClientDisconnect: client.onDidDisconnect
             });
-    
+
             return client;
         }
     }
 
     class IpcClient extends ClientBase {
-    
+
         private readonly _onDidDisconnect = new Emitter<void>();
         readonly onDidDisconnect = this._onDidDisconnect.registerListener;
-    
+
         constructor(protocol: IProtocol, id: string) {
-            super(protocol, id, () => {});
+            super(protocol, id, () => { });
         }
-    
+
         public override dispose(): void {
-            
+
             this._onDidDisconnect.fire();
             super.dispose();
         }
     }
-    
+
     class QueueProtocol implements IProtocol {
 
         // [event]
-    
+
         private readonly _onMessage = new Emitter<DataBuffer>({
             onFirstListenerDidAdd: () => {
                 for (const buffer of this._buffers) {
@@ -82,19 +82,19 @@ export namespace TestIPC {
             }
         });
         readonly onData = this._onMessage.registerListener;
-    
+
         // [fields]
-    
+
         private _buffering = true;
         private _buffers: DataBuffer[] = [];
         other!: QueueProtocol;
-    
+
         // [methods]
-    
+
         public send(buffer: DataBuffer): void {
             this.other.receive(buffer);
         }
-    
+
         protected receive(buffer: DataBuffer): void {
             if (this._buffering) {
                 this._buffers.push(buffer);
@@ -103,7 +103,7 @@ export namespace TestIPC {
             }
         }
     }
-    
+
     /**
      * @internal
      */
@@ -124,21 +124,21 @@ export class NullLifecycleService extends AbstractLifecycleService<number, numbe
 
     public override async quit(): Promise<void> {
         this._onBeforeQuit.fire();
-        this._onWillQuit.fire({reason: 1, join: () => {}});
+        this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
 }
 
 export class NullEnvironmentService extends DiskEnvironmentService implements IEnvironmentService {
     constructor() {
         super({
-                _: [],
-            }, {
+            _: [],
+        }, {
             appRootPath: 'temp/',
             isPackaged: false,
             tmpDirPath: 'temp/',
             userDataPath: 'temp/',
             userHomePath: 'temp/',
-            },
+        },
         );
     }
 }
@@ -156,7 +156,7 @@ export class NullBrowserEnvironmentService extends DiskEnvironmentService implem
             userHomePath: 'temp/',
         });
     }
-    
+
     get machineID(): string {
         return 'unknown';
     }
@@ -174,16 +174,16 @@ export class NullLogger extends AbstractLogger implements ILogService {
     constructor() {
         super();
     }
-    public trace(message: string, ...args: any[]): void {}
-    public debug(message: string, ...args: any[]): void {}
-    public info(message: string, ...args: any[]): void {}
-    public warn(message: string, ...args: any[]): void {}
-    public error(message: string | Error, ...args: any[]): void {}
-    public fatal(message: string | Error, ...args: any[]): void {}
-    public async flush(): Promise<void> {}
+    public trace(message: string, ...args: any[]): void { }
+    public debug(message: string, ...args: any[]): void { }
+    public info(message: string, ...args: any[]): void { }
+    public warn(message: string, ...args: any[]): void { }
+    public error(message: string | Error, ...args: any[]): void { }
+    public fatal(message: string | Error, ...args: any[]): void { }
+    public async flush(): Promise<void> { }
 }
 
-export class NullContextService extends ContextService {}
+export class NullContextService extends ContextService { }
 
 export class TestKeyboardService implements IKeyboardService {
 
@@ -191,7 +191,7 @@ export class TestKeyboardService implements IKeyboardService {
 
     private readonly _emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
 
-    constructor() {}
+    constructor() { }
 
     public fire(event: IStandardKeyboardEvent): void {
         this._emitter.fire(event);
@@ -200,7 +200,7 @@ export class TestKeyboardService implements IKeyboardService {
     get onKeydown(): Register<IStandardKeyboardEvent> {
         return this._emitter.registerListener;
     }
-    
+
     get onKeyup(): Register<IStandardKeyboardEvent> {
         return this._emitter.registerListener;
     }

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { ConfigurationStorage } from 'src/code/platform/configuration/common/configurationStorage';
+import { ConfigurationStorage } from 'src/platform/configuration/common/configurationStorage';
 
 suite('configStorage-test', () => {
 
@@ -63,78 +63,78 @@ suite('configStorage-test', () => {
     test('get - throws error when the section is invalid', () => {
         const emptyStorage = new ConfigurationStorage();
         assert.throws(() => emptyStorage.get('path1'), 'should throws an error since the section is invalid.');
-        
+
         const storage = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
         assert.strictEqual(storage.get('a.b'), 1);
     });
 
     test('set - for a key that has no sections and not defined', () => {
-		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
+        const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
 
-		testObject.set('f', 1);
+        testObject.set('f', 1);
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1 }, 'f': 1 });
-		assert.deepStrictEqual(testObject.sections, ['a.b', 'f']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1 }, 'f': 1 });
+        assert.deepStrictEqual(testObject.sections, ['a.b', 'f']);
+    });
 
-	test('set - for a key that has no sections and defined', () => {
-		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
+    test('set - for a key that has no sections and defined', () => {
+        const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
 
-		testObject.set('f', 3);
+        testObject.set('f', 3);
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1 }, 'f': 3 });
-		assert.deepStrictEqual(testObject.sections, ['a.b', 'f']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1 }, 'f': 3 });
+        assert.deepStrictEqual(testObject.sections, ['a.b', 'f']);
+    });
 
-	test('set - for a key that has sections and not defined', () => {
-		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
+    test('set - for a key that has sections and not defined', () => {
+        const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
 
-		testObject.set('b.c', 1);
+        testObject.set('b.c', 1);
 
-		const expected: any = {};
-		expected['a'] = { 'b': 1 };
-		expected['f'] = 1;
-		expected['b'] = Object.create(null);
-		expected['b']['c'] = 1;
-		assert.notDeepStrictEqual(testObject.model, expected);
-		assert.deepStrictEqual(testObject.sections, ['a.b', 'f', 'b.c']);
-	});
+        const expected: any = {};
+        expected['a'] = { 'b': 1 };
+        expected['f'] = 1;
+        expected['b'] = Object.create(null);
+        expected['b']['c'] = 1;
+        assert.notDeepStrictEqual(testObject.model, expected);
+        assert.deepStrictEqual(testObject.sections, ['a.b', 'f', 'b.c']);
+    });
 
-	test('set - for a key that has sections and defined', () => {
-		const testObject = new ConfigurationStorage(['a.b', 'b.c', 'f'], { 'a': { 'b': 1 }, 'b': { 'c': 1 }, 'f': 1 });
+    test('set - for a key that has sections and defined', () => {
+        const testObject = new ConfigurationStorage(['a.b', 'b.c', 'f'], { 'a': { 'b': 1 }, 'b': { 'c': 1 }, 'f': 1 });
 
-		testObject.set('b.c', 3);
+        testObject.set('b.c', 3);
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1 }, 'b': { 'c': 3 }, 'f': 1 });
-		assert.deepStrictEqual(testObject.sections, ['a.b', 'b.c', 'f']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1 }, 'b': { 'c': 3 }, 'f': 1 });
+        assert.deepStrictEqual(testObject.sections, ['a.b', 'b.c', 'f']);
+    });
 
-	test('set - for a key that has sections and sub section not defined', () => {
-		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
+    test('set - for a key that has sections and sub section not defined', () => {
+        const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
 
-		testObject.set('a.c', 1);
+        testObject.set('a.c', 1);
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1, 'c': 1 }, 'f': 1 });
-		assert.deepStrictEqual(testObject.sections, ['a.b', 'f', 'a.c']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1, 'c': 1 }, 'f': 1 });
+        assert.deepStrictEqual(testObject.sections, ['a.b', 'f', 'a.c']);
+    });
 
-	test('set - for a key that has sections and sub section defined', () => {
-		const testObject = new ConfigurationStorage(['a.b', 'a.c', 'f'], { 'a': { 'b': 1, 'c': 1 }, 'f': 1 });
+    test('set - for a key that has sections and sub section defined', () => {
+        const testObject = new ConfigurationStorage(['a.b', 'a.c', 'f'], { 'a': { 'b': 1, 'c': 1 }, 'f': 1 });
 
-		testObject.set('a.c', 3);
+        testObject.set('a.c', 3);
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1, 'c': 3 }, 'f': 1 });
-		assert.deepStrictEqual(testObject.sections, ['a.b', 'a.c', 'f']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 1, 'c': 3 }, 'f': 1 });
+        assert.deepStrictEqual(testObject.sections, ['a.b', 'a.c', 'f']);
+    });
 
-	test('set - for a key that has sections and last section is added', () => {
-		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': {} }, 'f': 1 });
+    test('set - for a key that has sections and last section is added', () => {
+        const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': {} }, 'f': 1 });
 
-		testObject.set('a.b.c', 1);
+        testObject.set('a.b.c', 1);
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': { 'c': 1 } }, 'f': 1 });
-		assert.deepStrictEqual(testObject.sections.sort(), ['f', 'a.b.c'].sort());
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': { 'c': 1 } }, 'f': 1 });
+        assert.deepStrictEqual(testObject.sections.sort(), ['f', 'a.b.c'].sort());
+    });
 
     test('delete - basics', () => {
         const storage = new ConfigurationStorage(['path1.path2'], {
@@ -207,31 +207,31 @@ suite('configStorage-test', () => {
     });
 
     test('delete - remove a non existing key', () => {
-		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 2 } });
+        const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 2 } });
 
-		testObject.delete('a.b.c');
+        testObject.delete('a.b.c');
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 2 } });
-		assert.deepStrictEqual(testObject.sections, ['a.b']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': { 'b': 2 } });
+        assert.deepStrictEqual(testObject.sections, ['a.b']);
+    });
 
-	test('delete - remove a single segmented key', () => {
-		const testObject = new ConfigurationStorage(['a'], { 'a': 1 });
+    test('delete - remove a single segmented key', () => {
+        const testObject = new ConfigurationStorage(['a'], { 'a': 1 });
 
-		testObject.delete('a');
+        testObject.delete('a');
 
-		assert.notDeepStrictEqual(testObject.model, {});
-		assert.deepStrictEqual(testObject.sections, []);
-	});
+        assert.notDeepStrictEqual(testObject.model, {});
+        assert.deepStrictEqual(testObject.sections, []);
+    });
 
-	test('delete - remove a multi segmented key', () => {
-		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
+    test('delete - remove a multi segmented key', () => {
+        const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
 
-		testObject.delete('a.b');
+        testObject.delete('a.b');
 
-		assert.notDeepStrictEqual(testObject.model, { 'a': {} });
-		assert.deepStrictEqual(testObject.sections, ['a']);
-	});
+        assert.notDeepStrictEqual(testObject.model, { 'a': {} });
+        assert.deepStrictEqual(testObject.sections, ['a']);
+    });
 
     test('merge', () => {
         const storage = new ConfigurationStorage(['path1'], {
@@ -271,25 +271,25 @@ suite('configStorage-test', () => {
     });
 
     test('simple merge', () => {
-		const base = new ConfigurationStorage(['a', 'b'], { 'a': 1, 'b': 2 });
-		const add = new ConfigurationStorage(['a', 'c'], { 'a': 3, 'c': 4 });
-		const result = base.clone();
+        const base = new ConfigurationStorage(['a', 'b'], { 'a': 1, 'b': 2 });
+        const add = new ConfigurationStorage(['a', 'c'], { 'a': 3, 'c': 4 });
+        const result = base.clone();
         result.merge(add);
 
-		assert.notDeepStrictEqual(result.model, { 'a': 3, 'b': 2, 'c': 4 });
-		assert.deepStrictEqual(result.sections, ['a', 'b', 'c']);
-	});
+        assert.notDeepStrictEqual(result.model, { 'a': 3, 'b': 2, 'c': 4 });
+        assert.deepStrictEqual(result.sections, ['a', 'b', 'c']);
+    });
 
-	test('recursive merge', () => {
-		const base = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
-		const add = new ConfigurationStorage(['a.b'], { 'a': { 'b': 2 } });
-		const result = base.clone();
+    test('recursive merge', () => {
+        const base = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
+        const add = new ConfigurationStorage(['a.b'], { 'a': { 'b': 2 } });
+        const result = base.clone();
         result.merge(add);
 
-		assert.notDeepStrictEqual(result.model, { 'a': { 'b': 2 } });
-		assert.deepStrictEqual(result.get('a'), { 'b': 2 });
-		assert.deepStrictEqual(result.sections, ['a.b']);
-	});
+        assert.notDeepStrictEqual(result.model, { 'a': { 'b': 2 } });
+        assert.deepStrictEqual(result.get('a'), { 'b': 2 });
+        assert.deepStrictEqual(result.sections, ['a.b']);
+    });
 
     test('onDidChange', () => {
         const storage = new ConfigurationStorage(['path1'], {

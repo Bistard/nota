@@ -1,7 +1,25 @@
 import * as assert from 'assert';
 import { Disposable, DisposableManager, disposeAll, MultiDisposeError, AutoDisposableWrapper, toDisposable } from 'src/base/common/dispose';
 
+/**
+ * Two suites:
+ * 1. dispose-test
+ * 2. DisposableManager-test
+ */
+
 suite('dispose-test', () => {
+
+	test('toDisposable', () => {
+		let disposed: boolean = false;
+
+		const disposable = toDisposable(() => {
+			disposed = true;
+		});
+
+		assert.ok(!disposed);
+		disposable.dispose();
+		assert.ok(disposed);
+	});
 
     test('dispose single disposable', () => {
 		const disposable = new Disposable();
@@ -13,7 +31,7 @@ suite('dispose-test', () => {
 		assert.ok(disposable.isDisposed());
 	});
 
-	test('dispose disposable array', () => {
+	test('disposeAll', () => {
 		const disposable = new Disposable();
 		const disposable2 = new Disposable();
 
@@ -26,7 +44,7 @@ suite('dispose-test', () => {
 		assert.ok(disposable2.isDisposed());
 	});
 
-	test('dispose disposables', () => {
+	test('dispose multiple disposables', () => {
 		const disposable = new Disposable();
 		const disposable2 = new Disposable();
 
@@ -41,20 +59,20 @@ suite('dispose-test', () => {
 	});
 
 	test('dispose recursively', () => {
-		const disposable = new DisposableManager();
+		const mainDisposable = new DisposableManager();
 		
 		const disposable2 = new Disposable();
 		const disposable3 = new DisposableManager();
 
-		disposable.register(disposable2);
-		disposable.register(disposable3);
+		mainDisposable.register(disposable2);
+		mainDisposable.register(disposable3);
 
 		const disposable4 = new Disposable();
 		disposable3.register(disposable4);
 
-		disposable.dispose();
+		mainDisposable.dispose();
 
-		assert.ok(disposable.disposed);
+		assert.ok(mainDisposable.disposed);
 		assert.ok(disposable2.isDisposed());
 		assert.ok(disposable3.disposed);
 		assert.ok(disposable4.isDisposed());
@@ -85,6 +103,7 @@ suite('dispose-test', () => {
 });
 
 suite('DisposableManager-test', () => {
+	
 	test('dispose should call all child disposes even if a child throws on dispose', () => {
 		const disposedValues = new Set<number>();
 
@@ -124,13 +143,12 @@ suite('DisposableManager-test', () => {
 		assert.ok(disposedValues.has(1));
 		assert.ok(disposedValues.has(4));
 		assert.ok(thrownError instanceof MultiDisposeError);
-		assert.strictEqual((thrownError as MultiDisposeError).errors.length, 2);
-		assert.strictEqual((thrownError as MultiDisposeError).errors[0].message, 'I am error 1');
-		assert.strictEqual((thrownError as MultiDisposeError).errors[1].message, 'I am error 2');
+		assert.strictEqual(thrownError.errors.length, 2);
+		assert.strictEqual(thrownError.errors[0].message, 'I am error 1');
+		assert.strictEqual(thrownError.errors[1].message, 'I am error 2');
 	});
 
-	test('AutoDisposableWrapper', () => {
-
+	test('AutoDisposableWrapper - baiscs', () => {
 		const obj1 = new Disposable();
 		const obj2 = new Disposable();
 		const obj3 = new Disposable();

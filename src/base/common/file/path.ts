@@ -32,7 +32,7 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
- import { SafeProcess } from 'src/base/common/process';
+import { SafeProcess } from 'src/base/common/process';
 
 export interface ParsedPath {
     root: string;

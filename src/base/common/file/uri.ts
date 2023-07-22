@@ -6,8 +6,8 @@
 import { CharCode } from "src/base/common/util/char";
 import * as paths from "src/base/common/file/path";
 import { IS_WINDOWS } from "src/base/common/platform";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
+import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -26,7 +26,7 @@ import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
  * ```
  */
 export interface IURI {
-    
+
 	/**
 	 * scheme is the 'http' part of 'http://www.msft.com/some/path?query#fragment'.
 	 * The part before the first colon.
@@ -66,11 +66,11 @@ const _slash = '/';
 const _regexp = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
 
 export class URI implements IURI {
-    
+
 	// [field]
 
-    public readonly scheme!: string;
-    public readonly authority!: string;
+	public readonly scheme!: string;
+	public readonly authority!: string;
 	public readonly path!: string;
 	public readonly query!: string;
 	public readonly fragment!: string;
@@ -78,16 +78,16 @@ export class URI implements IURI {
 	// [constructor]
 
 	constructor(scheme: string, authority?: string, path?: string, query?: string, fragment?: string, strict = false) {
-        this.scheme = __schemeFix(scheme, strict);
+		this.scheme = __schemeFix(scheme, strict);
 		this.authority = authority || _empty;
 		this.path = __referenceResolution(this.scheme, path || _empty);
 		this.query = query || _empty;
 		this.fragment = fragment || _empty;
 
 		__validateUri(this, strict);
-    }
+	}
 
-    /**
+	/**
 	 * @description Creates a new URI from a string, e.g. `http://www.msft.com/some/path`,
 	 * `file:///usr/home`, or `scheme:with/path`.
 	 * @param value A string which represents an URI (see `URI#toString`).
@@ -109,11 +109,11 @@ export class URI implements IURI {
 	/**
 	 * @description Check if a given object is an instance of `URI`.
 	 */
-    public static isURI(obj: any): obj is URI {
+	public static isURI(obj: any): obj is URI {
 		if (obj instanceof URI) {
 			return true;
 		}
-		
+
 		if (!obj) {
 			return false;
 		}
@@ -130,13 +130,13 @@ export class URI implements IURI {
 	 */
 	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = false): string {
 		let path: string;
-		
+
 		// file path
 		if (uri.authority && uri.path.length > 1 && uri.scheme === Schemas.FILE) {
 			// unc path: file://shares/c$/far/boo
 			path = `//${uri.authority}${uri.path}`;
-		} 
-		
+		}
+
 		else if (
 			uri.path.charCodeAt(0) === CharCode.Slash
 			&& (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)
@@ -148,8 +148,8 @@ export class URI implements IURI {
 			} else {
 				path = uri.path.substr(1);
 			}
-		} 
-		
+		}
+
 		// other path
 		else {
 			path = uri.path;
@@ -158,7 +158,7 @@ export class URI implements IURI {
 		if (IS_WINDOWS) {
 			path = path.replace(/\//g, '\\');
 		}
-		
+
 		return path;
 	}
 
@@ -217,7 +217,7 @@ export class URI implements IURI {
 		if (!uri.path) {
 			throw new Error(`[UriError]: cannot call joinPath on URI without path`);
 		}
-		
+
 		if (path.length === 0) {
 			return uri;
 		}
@@ -267,12 +267,12 @@ export class URI implements IURI {
 		if (uri.path.length === 0) {
 			return uri;
 		}
-		
+
 		let dirname: string;
-		
+
 		if (uri.scheme === Schemas.FILE) {
 			dirname = URI.fromFile(paths.dirname(URI.toFsPath(uri, true))).path;
-		} 
+		}
 		else {
 			dirname = paths.posix.dirname(uri.path);
 			if (uri.authority && dirname.length && dirname.charCodeAt(0) !== CharCode.Slash) {
@@ -284,7 +284,7 @@ export class URI implements IURI {
 		return URI.with(uri, { path: dirname });
 	}
 
-	public static from(components: Partial<IURI> & { scheme: string }, strict?: boolean): URI {
+	public static from(components: Partial<IURI> & { scheme: string; }, strict?: boolean): URI {
 		return new URI(
 			components.scheme,
 			components.authority,
@@ -298,7 +298,7 @@ export class URI implements IURI {
 	/**
 	 * @description Creates a new URI by merging the given changes into the given URI.
 	 */
-	public static with(uri: IURI, change: { scheme?: string; authority?: string | null; path?: string | null; query?: string | null; fragment?: string | null }): URI {
+	public static with(uri: IURI, change: { scheme?: string; authority?: string | null; path?: string | null; query?: string | null; fragment?: string | null; }): URI {
 
 		if (!change) {
 			return uri;
@@ -341,10 +341,10 @@ export class URI implements IURI {
 
 const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
 reviverRegistrant.registerPrototype(URI, (obj: unknown) => {
-	if (Object.prototype.hasOwnProperty.call(obj, 'scheme') && 
-		Object.prototype.hasOwnProperty.call(obj, 'authority') && 
-		Object.prototype.hasOwnProperty.call(obj, 'path') && 
-		Object.prototype.hasOwnProperty.call(obj, 'query') && 
+	if (Object.prototype.hasOwnProperty.call(obj, 'scheme') &&
+		Object.prototype.hasOwnProperty.call(obj, 'authority') &&
+		Object.prototype.hasOwnProperty.call(obj, 'path') &&
+		Object.prototype.hasOwnProperty.call(obj, 'query') &&
 		Object.prototype.hasOwnProperty.call(obj, 'fragment')
 	) {
 		return true;
@@ -378,7 +378,7 @@ function percentDecode(str: string): string {
 }
 
 // reserved characters: https://tools.ietf.org/html/rfc3986#section-2.2
-const encodeTable: { [ch: number]: string } = {
+const encodeTable: { [ch: number]: string; } = {
 	[CharCode.Colon]: '%3A', // gen-delims
 	[CharCode.Slash]: '%2F',
 	[CharCode.QuestionMark]: '%3F',
@@ -491,7 +491,7 @@ function __toString(uri: URI, skipEncoding: boolean): string {
 	let res = '';
 	let { authority, path } = uri;
 	const { scheme, query, fragment } = uri;
-	
+
 	if (scheme) {
 		res += scheme;
 		res += ':';

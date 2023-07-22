@@ -2,7 +2,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
-import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
+import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 
 export const enum ByteSize {
 	KB = 1024,
@@ -12,7 +12,7 @@ export const enum ByteSize {
 }
 
 export const enum FileType {
-    UNKNOWN,
+	UNKNOWN,
 	FILE,
 	DIRECTORY
 }
@@ -28,7 +28,7 @@ export interface IFileStat {
 	 * The creation date in milliseconds.
 	 */
 	readonly createTime: number;
-    
+
 	/**
 	 * The last modified date in milliseconds.
 	 */
@@ -74,7 +74,7 @@ export interface IFileSystemProvider {
 	readonly capabilities: FileSystemProviderCapability;
 	readonly onDidResourceChange: Register<IRawResourceChangeEvents>;
 	readonly onDidResourceClose: Register<URI>;
-	
+
 	watch(uri: URI, opts?: IWatchOptions): IDisposable;
 
 	stat(uri: URI): Promise<IFileStat>;
@@ -125,7 +125,7 @@ export const enum FileSystemProviderCapability {
  ******************************************************************************/
 
 /** @readonly Corressponds to FileSystemProviderCapability.FileReadWrite */
- export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
+export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
 	readFile(uri: URI): Promise<Uint8Array>;
 	writeFile(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 }
@@ -147,8 +147,8 @@ export interface IFileSystemProviderWithReadFileStream extends IFileSystemProvid
 	readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
 }
 
-export type FileSystemProviderAbleToRead = 
-	IFileSystemProviderWithFileReadWrite | 
+export type FileSystemProviderAbleToRead =
+	IFileSystemProviderWithFileReadWrite |
 	IFileSystemProviderWithOpenReadWriteClose;
 
 /*******************************************************************************
@@ -220,7 +220,7 @@ export interface IOverwriteFileOptions {
 	readonly overwrite?: boolean;
 }
 
-export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {}
+export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> { }
 
 export interface IWriteFileOptions extends IOverwriteFileOptions {
 	/**
@@ -265,7 +265,7 @@ export interface IWatchOptions {
 	 * Watch the target recursively if it is a directory.
 	 */
 	readonly recursive?: boolean;
-	
+
 	/**
 	 * A set of glob patterns or paths to exclude from watching.
 	 */

@@ -2,8 +2,8 @@ import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { ByteSize, FileType } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
-import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { FileService } from 'src/code/platform/files/common/fileService';
+import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
+import { FileService } from 'src/platform/files/common/fileService';
 import { NullLogger, TestURI } from 'test/utils/testService';
 import { Random } from 'src/base/common/util/random';
 import { Arrays } from 'src/base/common/util/array';
@@ -15,7 +15,7 @@ suite('FileService-disk-test', () => {
     const service = new FileService(new NullLogger());
 
     async function createFileWithSize(resource: URI, size: number, defaultChar?: number): Promise<void> {
-        
+
         const arr: string[] = [];
 
         if (!defaultChar) {
@@ -27,7 +27,7 @@ suite('FileService-disk-test', () => {
                 arr[i] = String(defaultChar);
             }
         }
-        
+
         const buffer = DataBuffer.fromString(arr.join());
         return service.writeFile(resource, buffer, { create: true, overwrite: true, unlock: true });
     }
@@ -55,7 +55,7 @@ suite('FileService-disk-test', () => {
         assert.strictEqual(stat.readonly, false);
         assert.strictEqual(stat.children, undefined);
     });
-    
+
     test('stat - resolve children', async () => {
         const filebaseURI = URI.join(baseURI, 'files');
         const stat = await service.stat(filebaseURI, { resolveChildren: true });
@@ -67,7 +67,7 @@ suite('FileService-disk-test', () => {
 
     test('stat - resolve children recursive', async () => {
         const stat = await service.stat(baseURI, { resolveChildrenRecursive: true });
-        
+
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'file-service-test');
         assert.strictEqual(stat.readonly, false);
@@ -108,13 +108,13 @@ suite('FileService-disk-test', () => {
     test('createDir', async () => {
         const root = URI.join(baseURI, 'dir-1');
         const uri = URI.join(root, 'dir-2');
-        
+
         await service.createDir(uri);
         const dir1 = await service.readDir(root);
         assert.strictEqual(dir1.length, 1);
         assert.strictEqual(dir1[0]![0], 'dir-2');
         assert.strictEqual(dir1[0]![1], FileType.DIRECTORY);
-        
+
         await service.delete(root, { recursive: true, useTrash: false });
     });
 
@@ -153,7 +153,7 @@ suite('FileService-disk-test', () => {
 
     test('delete - non recursive', async () => {
         const base = URI.join(baseURI, 'delete-non-recursive');
-        try {    
+        try {
             const uri = URI.join(base, 'dir1', 'dir2', 'file1.txt');
             await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
             await service.delete(base, { useTrash: true, recursive: false });
@@ -181,7 +181,7 @@ suite('FileService-disk-test', () => {
 
     test('writeFile - create', async () => {
         const uri = URI.join(baseURI, 'writefile-create', 'create.txt');
-        
+
         // create: false
         const write1 = DataBuffer.fromString('create new file1');
         try {
@@ -207,7 +207,7 @@ suite('FileService-disk-test', () => {
         const read1 = await service.readFile(uri);
         assert.strictEqual(read1.toString(), 'Hello World');
     });
-   
+
     test('readFile - 256kb', async () => {
         const uri = URI.join(baseURI, 'files', `file-${256 * ByteSize.KB}.txt`);
         await service.readFile(uri);
@@ -248,7 +248,7 @@ suite('FileService-disk-test', () => {
         const uri = URI.join(baseURI, 'files', `file-${totalSize}.txt`);
         const stream = await service.readFileStream(uri);
         const end = new Blocker<void>();
-        
+
         stream.on('data', (data) => {
             cnt++;
         });
@@ -258,7 +258,7 @@ suite('FileService-disk-test', () => {
         });
         stream.on('error', (err) => {
             assert.fail();
-        }); 
+        });
 
         await end.waiting();
         stream.destroy();
@@ -291,7 +291,7 @@ suite('FileService-disk-test', () => {
         const uri = URI.join(dir1Uri, 'file.txt');
         const dir2Uri = URI.join(baseURI, 'copy', 'dir2');
         const newUri = URI.join(dir2Uri, 'file.txt');
-        
+
         await service.createFile(uri, DataBuffer.fromString('copy content'));
         await service.copyTo(dir1Uri, dir2Uri);
 
@@ -386,7 +386,7 @@ suite('FileService-disk-test', () => {
 
     // FIX: idk why this doesn't work
     // test('watch - directory', async () => {
-        
+
     //     const base = URI.join(baseURI, 'watch1');
     //     const dir = URI.join(base, 'watch-directory');
     //     await service.createDir(dir);
@@ -405,7 +405,7 @@ suite('FileService-disk-test', () => {
     //     .then(() => assert.fail('should not be watching'))
     //     .catch(() => { /** success (not watching for this) */ });
     // });
-    
+
     after(async () => {
         await service.delete(baseURI, { recursive: true });
     });

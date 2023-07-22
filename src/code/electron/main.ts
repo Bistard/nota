@@ -7,25 +7,25 @@ import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/util/string';
-import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
-import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
-import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
-import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
+import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
+import { FileService, IFileService } from 'src/platform/files/common/fileService';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
+import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
+import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
+import { FileLoggerService } from 'src/platform/logger/common/fileLoggerService';
 import { ApplicationInstance } from 'src/code/electron/app';
-import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
-import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
-import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
-import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
-import { ICLIArguments } from 'src/code/platform/environment/common/argument';
+import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/platform/environment/common/environment';
+import { MainEnvironmentService } from 'src/platform/environment/electron/mainEnvironmentService';
+import { IMainLifecycleService, MainLifecycleService } from 'src/platform/lifecycle/electron/mainLifecycleService';
+import { IMainStatusService, MainStatusService } from 'src/platform/status/electron/mainStatusService';
+import { ICLIArguments } from 'src/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
-import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
-import { IProductService, ProductService } from 'src/code/platform/product/common/productService';
-import { MainConfigurationService } from 'src/code/platform/configuration/electron/mainConfigurationService';
+import { IConfigurationService } from 'src/platform/configuration/common/configuration';
+import { IProductService, ProductService } from 'src/platform/product/common/productService';
+import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -36,6 +36,8 @@ interface IMainProcess {
  * two things:
  *      1. Initializations on core microservices of the application.
  *      2. Important disk directory preparation.
+ *      3. Ensuring that this process is the only one running. If not, it 
+ *         terminates as expected.
  */
 const main = new class extends class MainProcess implements IMainProcess {
 
@@ -53,7 +55,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
     // [constructor]
 
-    constructor() {}
+    constructor() { }
 
     // [public methods]
 
@@ -63,7 +65,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             await this.run();
         } catch (unexpectedError: any) {
-            console.error(unexpectedError.message ?? 'unknown error message');
+            console.error(unexpectedError, unexpectedError.message ?? 'unknown error message');
             electron.app.exit(1);
         }
     }
@@ -71,7 +73,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     // [private methods]
 
     private async run(): Promise<void> {
-        
+
         /**
          * No error tolerance at this stage since all the work here is 
          * necessary for future works.
@@ -79,9 +81,9 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         // core service construction / registration
         this.createCoreServices();
-        
+
         try {
-            
+
             // initialization
             try {
                 await this.initServices();
@@ -96,17 +98,17 @@ const main = new class extends class MainProcess implements IMainProcess {
                     // release all the watching resources
                     e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
                     this.fileService.dispose();
-                    
+
                     // flush all the logging messages before we quit
                     e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
-                
+
                 await this.resolveSingleApplication();
-    
+
                 const instance = this.instantiationService.createInstance(ApplicationInstance);
                 await instance.run();
             }
-        } 
+        }
         catch (error: any) {
             this.kill(error);
         }
@@ -121,7 +123,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         // dependency injection (DI)
         const instantiationService = new InstantiationService(new ServiceCollection(), undefined);
         instantiationService.register(IInstantiationService, instantiationService);
-        
+
         // log-service
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
@@ -138,7 +140,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         // logger-service
         const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
         instantiationService.register(ILoggerService, fileLoggerService);
-        
+
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
             // console-logger
@@ -173,13 +175,13 @@ const main = new class extends class MainProcess implements IMainProcess {
         (<any>this.lifecycleService) = lifecycleService;
         (<any>this.statusService) = statusService;
     }
-    
+
     /**
      * @description Some services need to be initialized asynchronously once the 
      * services are created.
      */
     private async initServices(): Promise<any> {
-        
+
         return Promise.all([
             /**
              * At the very beginning state of the program, we need to initialize
@@ -187,14 +189,14 @@ const main = new class extends class MainProcess implements IMainProcess {
              * is created successfully.
              */
             Promise.all(
-            [
-                this.environmentService.logPath,
-                this.environmentService.appConfigurationPath,
-                this.environmentService.userDataPath,
-            ]
-            .map(path => {
-                return mkdir(URI.toFsPath(path), { recursive: true });
-            })),
+                [
+                    this.environmentService.logPath,
+                    this.environmentService.appConfigurationPath,
+                    this.environmentService.userDataPath,
+                ]
+                    .map(path => {
+                        return mkdir(URI.toFsPath(path), { recursive: true });
+                    })),
 
             this.productService.init(this.environmentService.productProfilePath),
             this.statusService.init(),
@@ -220,7 +222,7 @@ const main = new class extends class MainProcess implements IMainProcess {
                 });
             });
             Event.once(this.lifecycleService.onWillQuit)(() => server.close());
-        } 
+        }
         catch (error: any) {
             // unexpected errors
             if (error.code !== 'EADDRINUSE') {
@@ -240,7 +242,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
     private kill(error: Error): void {
         let code = 0;
-        
+
         if (isExpectedError(error)) {
             if (error.message) {
                 this.logService.trace(`${error.message}`);
@@ -261,9 +263,9 @@ const main = new class extends class MainProcess implements IMainProcess {
     // [private helper methods]
 
     private __showDirectoryErrorDialog(error: any): void {
-        
+
         const dir = [
-            URI.toFsPath(this.environmentService.appRootPath), 
+            URI.toFsPath(this.environmentService.appRootPath),
             URI.toFsPath(this.environmentService.logPath),
         ];
 
@@ -285,6 +287,6 @@ const main = new class extends class MainProcess implements IMainProcess {
             userDataPath: electron.app.getPath('userData'),
         };
     }
-} {}; /** @readonly ❤hello, world!❤ */
+} { }; /** @readonly ❤hello, world!❤ */
 
 export default main;

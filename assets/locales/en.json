@@ -1,8 +1,8 @@
 {
-    "src/code/browser/workbench/sideView": {
+    "src/workbench/sideView": {
         
     },
-    "src/code/browser/workbench/sideView/explorer": {
+    "src/workbench/sideView/explorer": {
         "file": "FILE",
         "openDirectory": "OPEN A FOLDER"
     }

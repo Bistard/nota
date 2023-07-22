@@ -8,9 +8,9 @@ import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
 import { isNonNullable } from "src/base/common/util/type";
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
@@ -20,16 +20,16 @@ import { IEditorExtensionRegistrant } from "src/editor/common/extension/editorEx
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
-import { IContextService } from "src/code/platform/context/common/contextService";
-import { IContextKey } from "src/code/platform/context/common/contextKey";
+import { IContextService } from "src/platform/context/common/contextService";
+import { IContextKey } from "src/platform/context/common/contextKey";
 import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
-import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 
 /**
  * An interface only for {@link EditorWidget}.
  */
 export interface IEditorWidget extends IEditorEventBroadcaster {
-    
+
     /**
      * The current rendering mode of the view.
      */
@@ -113,7 +113,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
     private readonly _onKeypress = this.__register(new Emitter<IOnKeypressEvent>());
     public readonly onKeypress = this._onKeypress.registerListener;
-    
+
     private readonly _onTextInput = this.__register(new Emitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
@@ -193,7 +193,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     // [private helper methods]
 
     private __attachModel(model?: IEditorModel): void {
-        
+
         if (!model) {
             this._model = null;
             return;
@@ -202,23 +202,23 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         if (this._model === model) {
             return;
         }
-        
+
         this.logService.trace(`[EditorWidget] Reading file '${basename(URI.toString(model.source))}'`);
-        
+
         this._model = model;
         this._viewModel = this.instantiationService.createInstance(
-            EditorViewModel, 
-            model, 
-            this._extensionManager.getExtensions(), 
+            EditorViewModel,
+            model,
+            this._extensionManager.getExtensions(),
             this._options,
         );
         this._view = this.instantiationService.createInstance(
-            EditorView, 
-            this._container.element, 
-            this._viewModel, 
+            EditorView,
+            this._container.element,
+            this._viewModel,
             this._options,
         );
-        
+
         const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
         this._model.build();
 
@@ -252,7 +252,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
     private __updateOptions(option: EditorOptionsType, newOption: Partial<IEditorWidgetOptions>): void {
         for (const [key, value] of Object.entries(newOption)) {
-            
+
             // only updates the option if they both have the same key
             if (isNonNullable(option[key])) {
                 const opt = <IEditorOption<any, any>>option[key];
@@ -303,13 +303,13 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 }
 
 class EditorData implements IDisposable {
-    
+
     constructor(
-        public readonly model: IEditorModel, 
-        public readonly viewModel: IEditorViewModel, 
-        public readonly view: IEditorView, 
+        public readonly model: IEditorModel,
+        public readonly viewModel: IEditorViewModel,
+        public readonly view: IEditorView,
         public readonly listeners: IDisposable,
-    ) {}
+    ) { }
 
     public dispose(): void {
         this.listeners.dispose();

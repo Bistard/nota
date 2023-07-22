@@ -4,7 +4,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Blocker } from "src/base/common/util/async";
-import { IFileService } from "src/code/platform/files/common/fileService";
+import { IFileService } from "src/platform/files/common/fileService";
 import { EditorToken, IEditorModel, IEditorModelOptions, IPieceTableModel } from "src/editor/common/model";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
@@ -22,7 +22,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private readonly _onDidContentChange = this.__register(new Emitter<void>());
     public readonly onDidContentChange = this._onDidContentChange.registerListener;
-    
+
     // [field]
 
     private readonly _source: URI;
@@ -69,7 +69,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         if (this.isDisposed()) {
             throw new Error('editor model is already disposed.');
         }
-        
+
         this.__detachModel();
 
         return this.__buildModel(source);
@@ -121,7 +121,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         if (this.isDisposed()) {
             throw new Error('editor model is already disposed.');
         }
-        
+
         if (!this._textModel) {
             throw new Error('model is not built yet.');
         }
@@ -139,7 +139,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     private async __buildModel(source: URI): Promise<void> {
-        
+
         // building plain text into piece-table
         const builderOrError = await this.__createTextBufferBuilder(source);
         if (builderOrError instanceof Error) {
@@ -193,7 +193,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
-        return { 
+        return {
             baseURI: options.baseURI.value,
         };
     }

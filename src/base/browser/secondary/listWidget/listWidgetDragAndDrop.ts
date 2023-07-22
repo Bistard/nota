@@ -2,7 +2,7 @@ import { IListDragEvent, IListWidget } from "src/base/browser/secondary/listWidg
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
-import { requestAnimate } from "src/base/common/animation";
+import { requestAnimate } from "src/base/browser/basic/animation";
 
 /**
  * An interface that provides drag and drop support (dnd).

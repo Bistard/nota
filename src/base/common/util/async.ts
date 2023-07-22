@@ -17,6 +17,7 @@ import { isNullable, isNumber } from "src/base/common/util/type";
  * {@link Throttler}
  * {@link Debouncer}
  * {@link ThrottleDebouncer}
+ * {@link IntervalTimer}
  */
 
 export interface ITask<T> {
@@ -24,6 +25,19 @@ export interface ITask<T> {
 }
 
 export type IAsyncTask<T> = ITask<Promise<T>>;
+
+/**
+ * @description Runs the given callback a certain number of times.
+ * @param round The number of times to run the callback.
+ * @param fn The callback function to run, provided with the current iteration 
+ * 			 index.
+ */
+export function repeat(round: number, fn: (index: number) => void): void {
+    let i: number;
+    for (i = 0; i < round; i++) {
+        fn(i);
+    }
+}
 
 /**
  * @description Delays for given milliseconds. It will immediately create a 
@@ -866,4 +880,41 @@ export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
 	public dispose(): void {
 		this.debouncer.dispose();
 	}
+}
+
+/**
+ * @description A timer that runs at a set interval, and can be cancelled or 
+ * disposed of.
+ */
+export class IntervalTimer implements IDisposable {
+
+    private _handle?: any = undefined;
+
+    constructor() {}
+
+	/**
+     * @description Sets the timer with a new callback and interval duration. If 
+	 * 				the timer is currently active, it will be cancelled before 
+	 * 				being set.
+	 * @param ms The interval duration in milliseconds.
+     * @param callback The callback function to be run at each interval.
+     */
+    public set(ms: number, callback: () => void): void {
+        this.cancel();
+        this._handle = setInterval(() => callback(), ms);
+    }
+
+	/**
+     * @description Cancels the timer if it is currently active.
+     */
+    public cancel(): void {
+        if (this._handle) {
+            clearInterval(this._handle);
+            this._handle = undefined;
+        }
+    }
+
+    public dispose(): void {
+        this.cancel();
+    }
 }

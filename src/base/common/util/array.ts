@@ -680,6 +680,17 @@ export interface IPriorityQueue<T> extends IIterable<T>, IDisposable {
 	 */
 	dequeue(): T | undefined;
 
+    /**
+     * @description Removes the specified element from the priority queue. This 
+     * method finds all occurrences of the given element in the heap, replaces 
+     * them with the last element in the heap, and then sifts up or down as 
+     * necessary to maintain the heap properties. 
+     * @param element - The element to be removed from the priority queue.
+     * @complexity O(n) - where n is the number of elements in the heap.
+     * @throws If the element is not found.
+     */
+    remove(element: T): void;
+
 	/**
 	 * @description Returns the highest-priority element without removing it.
 	 * @returns The highest-priority element or undefined if the queue is empty.
@@ -703,14 +714,14 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
 	
 	// [fields]
 
-    private readonly _heap: T[] = [];
+    private _heap: T[] = [];
     private _count: number = 0;
-    private readonly comparator: CompareFn<T>;
+    private readonly __comparator: CompareFn<T>;
 
 	// [constructor]
 
     constructor(comparator: CompareFn<T>) {
-        this.comparator = comparator;
+        this.__comparator = comparator;
     }
 
 	// [public methods]
@@ -718,7 +729,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     public enqueue(element: T): void {
         this._heap[this._count] = element;
         this._count++;
-        this.shiftUp();
+        this.bubbleUp();
     }
     
     public dequeue(): T | undefined {
@@ -726,14 +737,34 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
             return undefined;
         }
         
-		const item = this._heap[0];
+        const item = this._heap[0];
         this._heap[0] = this._heap[this._count - 1]!;
         this._heap.pop();
         
-		this._count--;
-        this.shiftDown();
+        this._count--;
+        this.sinkDown();
 
         return item;
+    }
+
+    public remove(element: T): void {
+        for (let i = 0; i < this._count; i++) {
+            if (this._heap[i] !== element) {
+                continue;
+            }
+            
+            this._heap[i] = this._heap[this._count - 1]!;
+            this._heap.pop();
+            this._count--;
+    
+            if (i !== this._count && this.__comparator(this._heap[i]!, this._heap[(i - 1) >> 1]!) < 0) {
+                this.bubbleUp(i);
+            } else {
+                this.sinkDown(i);
+            }
+
+            i--;
+        }
     }
     
     public peek(): T | undefined {
@@ -751,25 +782,23 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         return this._count === 0;
     }
     
-    private shiftUp(): void {
-        let index = this._count - 1;
+    private bubbleUp(index: number = this._count - 1): void {
         while (index > 0) {
             const item = this._heap[index]!;
             const parentIdx = Math.floor((index - 1) / 2);
             const parent = this._heap[parentIdx]!;
             
-			if (this.comparator(item, parent) >= 0) {
+            if (this.__comparator(item, parent) >= 0) {
                 break;
             }
             
-			this._heap[index] = parent;
+            this._heap[index] = parent;
             this._heap[parentIdx] = item;
             index = parentIdx;
         }
     }
 
-    private shiftDown(): void {
-        let index = 0;
+    private sinkDown(index: number = 0): void {
         const length = this.size();
         const element = this._heap[0]!;
 
@@ -781,17 +810,17 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
 
             if (leftChildIdx < length) {
                 const leftChild = this._heap[leftChildIdx]!;
-                if (this.comparator(leftChild, element) < 0) {
+                if (this.__comparator(leftChild, element) < 0) {
                     swapIdx = leftChildIdx;
                 }
             }
             
-			if (rightChildIdx < length) {
-				const leftChild = this._heap[leftChildIdx]!;
+            if (rightChildIdx < length) {
+                const leftChild = this._heap[leftChildIdx]!;
                 const rightChild = this._heap[rightChildIdx]!;
                 if (
-                    (swapIdx === null && this.comparator(rightChild, element) < 0) || 
-                    (swapIdx !== null && this.comparator(rightChild, leftChild) < 0)
+                    (swapIdx === null && this.__comparator(rightChild, element) < 0) || 
+                    (swapIdx !== null && this.__comparator(rightChild, leftChild) < 0)
                 ) {
                     swapIdx = rightChildIdx;
                 }
@@ -813,8 +842,16 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     }
 
 	*[Symbol.iterator](): Iterator<T> {
-		while (!this.isEmpty()) {
-			yield this.dequeue()!;
-		}
-	}
+        const copy = [...this._heap];
+        const copyCount = this._count;
+        const copyComparator = this.__comparator;
+
+        const copyQueue = new PriorityQueue<T>(copyComparator);
+        copyQueue._heap = copy;
+        copyQueue._count = copyCount;
+        
+        while (!copyQueue.isEmpty()) {
+            yield copyQueue.dequeue()!;
+        }
+    }
 }
