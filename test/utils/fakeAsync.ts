@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/dispose";
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { PriorityQueue } from "src/base/common/util/array";
 import { isString } from "src/base/common/util/type";
@@ -61,7 +61,15 @@ export namespace FakeAsync {
          */
         const fakeExecutor = new FakeAsyncExecutor();
         FakeGlobalAsync.onTask(task => {
-            fakeExecutor.schedule(task);
+            const internalTask = fakeExecutor.schedule(task);
+            task.setID(internalTask.id);
+            
+            const disposable = FakeGlobalAsync.onTaskDisposed(id => {
+                if (id === internalTask.id) {
+                    fakeExecutor.unschedule(internalTask);
+                    disposable.dispose();
+                }
+            });
         });
     
         try {
@@ -117,6 +125,9 @@ interface ITask {
         readonly stackTrace: string | undefined;
     };
 	run(): void;
+
+    // @internal (for potential dispose usage)
+    setID(id: number): void;
 }
 
 namespace FakeGlobalAsync {
@@ -132,91 +143,132 @@ namespace FakeGlobalAsync {
     const _onTask = new Emitter<ITask>();
     export const onTask = _onTask.registerListener;
 
+    const _onTaskDisposed = new Emitter<number>();
+    export const onTaskDisposed = _onTaskDisposed.registerListener;
+
     // [public methods]
 
+    /**
+     * @description Replaces the global `setTimeout`, `clearTimeout`, 
+     * `setInterval`, `clearInterval` functions and `Date` object with custom 
+     * implementations.
+     * 
+     * This function is typically used in testing environments to control and 
+     * manipulate time-related operations. This makes it possible to test 
+     * asynchronous code in a synchronous manner by allowing control over when 
+     * time advances.
+     * 
+     * The replaced functions are:
+     * - `setTimeout` with {@link __customizedSetTimeout}
+     * - `clearTimeout` with {@link __customizedClearTimeout}
+     * - `setInterval` with {@link __customizedSetInterval}
+     * - `clearInterval` with {@link __customizedClearInterval}
+     * - `Date` object is replaced by invoking {@link __setCustomizedDate}.
+     */
     export function enableFakeAsync(): void {
-        __setCustomizedTimeout();
-        __setCustomizedInterval();
+        
+        // replace with customized timeout
+        {
+            globalThis.setTimeout = <any>__customizedSetTimeout;
+            globalThis.clearTimeout = <any>__customizedClearTimeout;
+        }
+
+        // replace with customized interval
+        {
+            globalThis.setInterval = <any>__customizedSetInterval;
+            globalThis.clearInterval = <any>__customizedClearInterval;
+        }
+
+        // replace with customized `Date`
         __setCustomizedDate();
     }
 
+    /**
+     * @description Undo the side effect of {@link enableFakeAsync}.
+     */
     export function disableFakeAsync(): void {
         Object.assign(globalThis, trueGlobalAsync);
     }
 
     // [private helper methods]
 
-    const __setCustomizedTimeout = function (): void {
-        globalThis.setTimeout = <any>((handler: TimerHandler, timeout: number = 0) => {
-            if (isString(handler)) {
-                throw new Error('String handler args should not be used and are not supported');
-            }
-            
-            _onTask.fire(<ITask>{
-                time: _now + timeout,
-                run: () => handler(),
-                source: {
-                    toString() { return 'setTimeout'; },
-                    stackTrace: new Error().stack,
-                },
-            });
+    const __customizedSetTimeout = (handler: TimerHandler, timeout: number = 0) => {
+        if (isString(handler)) {
+            throw new Error('String handler args should not be used and are not supported');
+        }
+        
+        let taskID: number;
+        _onTask.fire({
+            time: _now + timeout,
+            run: () => handler(),
+            source: {
+                toString() { return 'setTimeout'; },
+                stackTrace: new Error().stack,
+            },
+            setID: (id) => { taskID = id; }
         });
 
-        globalThis.clearTimeout = (timeoutId?: any) => {
-            if (typeof timeoutId === 'object' && timeoutId && 'dispose' in timeoutId) {
-                timeoutId.dispose(); // this is our dispose objet
-            } else {
-                trueGlobalAsync.clearTimeout(timeoutId);
+        return toDisposable(() => {
+            _onTaskDisposed.fire(taskID);
+        });
+    };
+
+    const __customizedClearTimeout = (timeoutId?: any) => {
+        if (typeof timeoutId === 'object' && timeoutId && 'dispose' in timeoutId) {
+            timeoutId.dispose(); // this is our customized dispose objet
+        } else {
+            trueGlobalAsync.clearTimeout(timeoutId);
+        }
+    };
+
+    const __customizedSetInterval = (handler: TimerHandler, interval: number) => {
+        if (isString(handler)) {
+            throw new Error('String handler args should not be used and are not supported');
+        }
+
+        let iterCount = 0;
+        const stackTrace = new Error().stack;
+        
+        let disposed = false;
+        let taskID: number;
+
+        const onSchedule = function () {
+            const thisIterCount = iterCount++;
+            
+            _onTask.fire({
+                time: _now + interval,
+                run: () => {
+                    if (!disposed) {
+                        handler();
+                        onSchedule();
+                    }
+                },
+                source: {
+                    toString() { return `setInterval (iteration ${thisIterCount})`; },
+                    stackTrace,
+                },
+                setID: (id) => { taskID = id; }
+            });
+        };
+        onSchedule();
+    
+        return {
+            dispose: () => {
+                if (disposed) { 
+                    return; 
+                }
+                disposed = true;
+                _onTaskDisposed.fire(taskID);
             }
         };
     };
 
-    const __setCustomizedInterval = function (): void {
-        globalThis.setInterval = <any>((handler: TimerHandler, interval: number) => {
-            if (isString(handler)) {
-                throw new Error('String handler args should not be used and are not supported');
-            }
-
-            let iterCount = 0;
-            const stackTrace = new Error().stack;
-        
-            let disposed = false;
-        
-            const onSchedule = function () {
-                const thisIterCount = iterCount++;
-                
-                _onTask.fire({
-                    time: _now + interval,
-                    run: () => {
-                        if (!disposed) {
-                            onSchedule();
-                            handler();
-                        }
-                    },
-                    source: {
-                        toString() { return `setInterval (iteration ${thisIterCount})`; },
-                        stackTrace,
-                    },
-                });
-            };
-        
-            onSchedule();
-        
-            return {
-                dispose: () => {
-                    if (disposed) { return; }
-                    disposed = true;
-                }
-            };
-        });
-
-        globalThis.clearInterval = (timeoutId: any) => {
-            if (typeof timeoutId === 'object' && timeoutId && 'dispose' in timeoutId) {
-                timeoutId.dispose(); // this is our dispose objet
-            } else {
-                trueGlobalAsync.clearInterval(timeoutId);
-            }
-        };
+    const __customizedClearInterval = (timeoutId: any) => {
+        if (typeof timeoutId === 'object' && timeoutId && 'dispose' in timeoutId) {
+            timeoutId.dispose(); // this is our customized dispose objet
+        } else {
+            trueGlobalAsync.clearInterval(timeoutId);
+        }
     };
 
     const __setCustomizedDate = function (): void {
@@ -287,17 +339,23 @@ class FakeAsyncExecutor implements IDisposable {
 
     // [public methods]
 
-    public schedule(task: ITask): void {
+    public schedule(task: ITask): ITaskWithID {
         if (task.time < FakeGlobalAsync.now()) {
 			throw new Error(`Scheduled time (${task.time}) must be equal to or greater than the current time (${FakeGlobalAsync.now()}).`);
 		}
 
-        this._pqueue.enqueue({
+        const internalTask = {
             ...task,
             id: this._uuid++,
-        });
+        };
+        this._pqueue.enqueue(internalTask);
 
         this.__trySchedule();
+        return internalTask;
+    }
+
+    public unschedule(task: ITaskWithID): void {
+        this._pqueue.remove(task);
     }
 
     public cleanup(): Promise<void> {
@@ -312,9 +370,10 @@ class FakeAsyncExecutor implements IDisposable {
     // [private helper methods]
 
     private __trySchedule(): void {
-        if (this._executing) { return; } 
+        if (this._executing) { 
+            return; 
+        } 
         this._executing = true;
-
         this.__schedule();
     }
 
@@ -326,14 +385,14 @@ class FakeAsyncExecutor implements IDisposable {
     }
 
     private __consume(): void {
-        this.__executeTask();
-
-        if (!this._pqueue.isEmpty()) {
-            this.__consume();
-        } else {
+        if (this._pqueue.isEmpty()) {
             this._executing = false;
             this._onEmptyQueue.fire();
-        }
+            return;
+        } 
+
+        this.__executeTask();
+        this.__consume();
     }
 
     private __executeTask(): void {
