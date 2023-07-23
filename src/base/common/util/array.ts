@@ -779,11 +779,11 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     }
     
     public isEmpty(): boolean {
-        return this._count === 0;
+        return this._heap.length === 0;
     }
 
     public dispose(): void {
-        (<Mutable<T[]>>this._heap) = [];
+        this._heap = [];
         this._count = 0;
     }
 
