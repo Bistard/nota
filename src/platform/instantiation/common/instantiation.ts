@@ -28,7 +28,7 @@ export interface IServiceProvider {
  * Given a list of arguments as a tuple, attempt to extract the leading, 
  * non-service arguments to their own tuple.
  */
-type NonServiceArguments<TArgs extends any[]> =
+export type NonServiceArguments<TArgs extends any[]> =
     TArgs extends []
     ? []
     : TArgs extends [...infer TFirst, IService]
@@ -149,7 +149,7 @@ export class InstantiationService implements IInstantiationService {
     public createInstance<TCtor extends Constructor<any>>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         let res: any;
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            res = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.arguments.concat(rest));
+            res = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args.concat(rest));
         } else {
             res = this._createInstance(ctorOrDescriptor, rest);
         }
@@ -252,7 +252,7 @@ export class InstantiationService implements IInstantiationService {
                     const instance = this._createServiceInstanceWithOwner(
                         data.id,
                         data.desc.ctor,
-                        data.desc.arguments,
+                        data.desc.args,
                         data.desc.supportsDelayedInstantiation
                     );
                     this._setServiceInstance(data.id, instance);
