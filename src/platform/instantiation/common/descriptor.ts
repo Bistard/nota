@@ -1,10 +1,11 @@
-import { Constructor } from "src/base/common/util/type";
+import { AnyConstructor } from "src/base/common/util/type";
+import { NonServiceArguments } from "src/platform/instantiation/common/instantiation";
 
-export class ServiceDescriptor<T> {
+export class ServiceDescriptor<T extends AnyConstructor> {
 
 	constructor(
-        public readonly ctor: Constructor<T>, 
-        public readonly args: any[] = [], 
+        public readonly ctor: T, 
+        public readonly args: NonServiceArguments<ConstructorParameters<T>>, 
         public readonly supportsDelayedInstantiation: boolean = false
     ) {
         this.ctor = ctor;

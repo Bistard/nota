@@ -1,3 +1,4 @@
+import { MainHostService } from "src/platform/host/electron/mainHostService";
 
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
@@ -29,17 +30,74 @@ export type NumberDictionary<V> = Record<number, V>;
 export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
 
 /**
- * Represents a constructor of a class with type T.
+ * `Constructor` is a generic type that represents the constructor function of 
+ * any class. This type allows specifying the types of arguments that the 
+ * constructor function takes.
+ *
+ * @template TInstance The instance type that the constructor returns.
+ * @template TArgs The types of the arguments that the constructor function takes. Default is any[] if not provided.
+ * 
+ * @example
+ * // Here is an example of using `Constructor` with a class `MyClass`.
+ * class MyClass {
+ *   constructor(arg1: number, arg2: string) {
+ *     // ...
+ *   }
+ * }
+ * 
+ * let instanceCreator: Constructor<MyClass, [number, string]>;
+ * instanceCreator = MyClass;
+ * let instance = new instanceCreator(10, 'hello');
  */
-export type Constructor<T> = new (...args: any[]) => T;
+export type Constructor<TInstance, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
 
 /**
- * A general compare function template. Returns a number to indicate the result.
+ * `AnyConstructor` is a type that represents the constructor function of any 
+ * abstract class. It doesn't impose any restrictions on the arguments that the 
+ * constructor function takes, nor on the type of the instance that the 
+ * constructor returns.
+ * @note It is useful to extend this type instead of using it directly.
+ * 
+ * @example
+ * // Here is an example of using `AnyConstructor` with an abstract class `MyAbstractClass`.
+ * abstract class MyAbstractClass {
+ *   constructor(arg1: any, arg2: any) {
+ *     // ...
+ *   }
+ * }
+ * 
+ * let myAbstractClassConstructor: AnyConstructor;
+ * myAbstractClassConstructor = MyAbstractClass;
+ * // Note: You can't create an instance of an abstract class.
+ * // let instance = new myAbstractClassConstructor('arg1', 'arg2');
+ */
+export type AnyConstructor = abstract new (...args: any) => any;
+
+/**
+ * `CompareFn` is a type representing a generic comparison function.
+ * This function takes two arguments of the same type and returns a number.
+ * Typically, this function is used for sorting or comparing values in data 
+ * structures.
+ * 
+ * The function should return:
+ * - A negative number if `a` should be sorted/comes before `b`
+ * - Zero if `a` and `b` are equal
+ * - A positive number if `a` should be sorted/comes after `b`
+ *
+ * @template T The type of the arguments to compare.
+ *
+ * @example
+ * // Here is an example of using `CompareFn` with numbers.
+ * let compareNumbers: CompareFn<number>;
+ * compareNumbers = (a, b) => a - b;
+ * let numbers = [3, 1, 4, 1, 5, 9];
+ * numbers.sort(compareNumbers);
  */
 export type CompareFn<T> = (a: T, b: T) => number;
 
 /**
- * More narrows than {@link NonNullable}, it only removes `undefined`.
+ * This type only removes `undefined`, which s more narrows than {@link NonNullable}.
+ * @note {@link NonNullable} removes `undefined` and `null`.
  */
 export type NonUndefined = {} | null;
 
@@ -137,11 +195,9 @@ export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
 export type NestedArray<T> = (T | NestedArray<T>)[];
 
 /**
- * built-in type: {@link Readonly}.
- */
-
-/**
  * make every parameter of an object and its sub-objects recursively as readonly.
+ * 
+ * @note related built-in type: {@link Readonly}.
  */
 export type DeepReadonly<Mutable> =
     Mutable extends Callable<any[], any>
