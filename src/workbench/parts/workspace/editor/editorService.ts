@@ -1,11 +1,11 @@
 import { URI } from "src/base/common/file/uri";
 import { IComponent } from "src/workbench/services/component/component";
-import { createService } from "src/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IEditorWidget } from "src/editor/editorWidget";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
-export interface IEditorService extends IComponent {
+export interface IEditorService extends IComponent, IService {
 
     /**
      * The actual editor widget.

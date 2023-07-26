@@ -200,7 +200,7 @@ suite('instantiationService-test', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
 		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService));
+		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
 
 		service.createInstance(DependentServiceTarget);
 		service.createInstance(DependentServiceTarget2);
@@ -210,7 +210,7 @@ suite('instantiationService-test', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
 		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService));
+		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
 
 		service.createInstance(DependentServiceTarget3);
 	});
@@ -219,8 +219,8 @@ suite('instantiationService-test', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
 		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService));
-		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3));
+		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3, []));
 
 		service.createInstance(DependentServiceTarget4);
 	});
@@ -229,7 +229,7 @@ suite('instantiationService-test', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
 		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService));
+		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
 
 		const dependentServiceTarget3 = service.createInstance(DependentServiceTarget3);
 		service.register(IDependentServiceTarget3, dependentServiceTarget3);
@@ -241,9 +241,9 @@ suite('instantiationService-test', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
 		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService));
-		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3));
-		service.register(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4));
+		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3, []));
+		service.register(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4, []));
 
 		service.createInstance(DependentServiceTarget5);
 	});
@@ -268,7 +268,7 @@ suite('instantiationService-test', () => {
 
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
 		service.createInstance(CreateOnlyOnceClass);
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 		service.createInstance(CreateOnlyOnceClass);
@@ -280,7 +280,7 @@ suite('instantiationService-test', () => {
 
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
 
 		service.getOrCreateService(ICreateOnlyOnceClass);
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
@@ -294,15 +294,15 @@ suite('instantiationService-test', () => {
 
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
 
 		service.getOrCreateService1((provider) => {
-			provider.getOrCreateService(ICreateOnlyOnceClass);
+			return provider.getOrCreateService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 
 		service.getOrCreateService1((provider) => {
-			provider.getOrCreateService(ICreateOnlyOnceClass);
+			return provider.getOrCreateService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 	});
@@ -311,7 +311,7 @@ suite('instantiationService-test', () => {
 		const parent = new InstantiationService(new ServiceCollection());
 		const child = new InstantiationService(new ServiceCollection(), parent);
 
-		parent.register(IService1, new ServiceDescriptor(Service1));
+		parent.register(IService1, new ServiceDescriptor(Service1, []));
 
 		const childService = child.createInstance(DependentService) as DependentService;
 		assert.strictEqual(childService.name, 'farboo');

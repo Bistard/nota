@@ -19,6 +19,8 @@ import { IConfigurationService } from 'src/platform/configuration/common/configu
 
 export class Editor extends Component implements IEditorService {
 
+    _serviceMarker: undefined;
+
     // [field]
 
     private _editorWidget: IEditorWidget | null;
@@ -99,4 +101,4 @@ export class Editor extends Component implements IEditorService {
 
 }
 
-registerSingleton(IEditorService, new ServiceDescriptor(Editor));
+registerSingleton(IEditorService, new ServiceDescriptor(Editor, []));

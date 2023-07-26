@@ -120,15 +120,15 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-sevice
-        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService));
+        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
-        appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService));
+        appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
         // TODO: notebook-group-service
 
         // lookup-service
-        appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService));
+        appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService, []));
 
         return appInstantiationService;
     }

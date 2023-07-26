@@ -1,12 +1,12 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { createService } from "src/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
 /**
  * An interface only for {@link NotificationService}.
  */
-export interface INotificationService extends IDisposable {
+export interface INotificationService extends IDisposable, IService {
 
     error(error: string | Error): void;
 }
@@ -20,6 +20,8 @@ export interface INotificationService extends IDisposable {
 export class NotificationService extends Disposable implements INotificationService {
 
     // [fields]
+
+    _serviceMarker: undefined;
 
     // [cosntructor]
 
