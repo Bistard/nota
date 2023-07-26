@@ -1,4 +1,4 @@
-import { AnyConstructor, Constructor } from "src/base/common/util/type";
+import { Constructor } from "src/base/common/util/type";
 import { createService, ServiceIdentifier, _ServiceUtil, IService } from "src/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -48,7 +48,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * @param serviceIdentifier decorator to the service which is created by `createService()`.
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
-    register<T extends IService, TCtor extends AnyConstructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
+    register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
 
     /**
      * @description Passing into a constructor or a ServiceDescriptor<any> to 
@@ -56,7 +56,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
      * @param rest all the arguments for that service.
      */
-    createInstance<TCtor extends Constructor<any>>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -100,7 +100,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [public methods]
 
-    public register<T extends IService, TCtor extends AnyConstructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void {
+    public register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void {
         this.serviceCollections.set(serviceIdentifier, instanceOrDescriptor);
     }
 
@@ -146,7 +146,7 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance<TCtor extends Constructor<any>>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
+    public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         let res: any;
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
             res = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args.concat(rest));
@@ -187,7 +187,7 @@ export class InstantiationService implements IInstantiationService {
         }
     }
 
-    private _safeCreateAndCacheServiceInstance<T extends IService, TCtor extends AnyConstructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
+    private _safeCreateAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
         if (this._activeInstantiations.has(id)) {
             throw new Error(`DI illegal operation: recursively instantiating service '${id}'`);
         }
@@ -200,7 +200,7 @@ export class InstantiationService implements IInstantiationService {
         }
     }
 
-    private _createAndCacheServiceInstance<T extends IService, TCtor extends AnyConstructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
+    private _createAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
         type dependencyNode = {
             id: ServiceIdentifier<T>,
             desc: ServiceDescriptor<TCtor>,
@@ -265,7 +265,7 @@ export class InstantiationService implements IInstantiationService {
         return <T>this._getServiceInstanceOrDescriptor(id);
     }
 
-    private _getServiceInstanceOrDescriptor<T extends IService, TCtor extends AnyConstructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
+    private _getServiceInstanceOrDescriptor<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
         const instanceOrDesc = this.serviceCollections.get<T, TCtor>(id);
 
         // if the current service does not have it, we try to get it from the parent

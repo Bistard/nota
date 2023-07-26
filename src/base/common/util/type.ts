@@ -49,29 +49,7 @@ export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['l
  * instanceCreator = MyClass;
  * let instance = new instanceCreator(10, 'hello');
  */
-export type Constructor<TInstance, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
-
-/**
- * `AnyConstructor` is a type that represents the constructor function of any 
- * abstract class. It doesn't impose any restrictions on the arguments that the 
- * constructor function takes, nor on the type of the instance that the 
- * constructor returns.
- * @note It is useful to extend this type instead of using it directly.
- * 
- * @example
- * // Here is an example of using `AnyConstructor` with an abstract class `MyAbstractClass`.
- * abstract class MyAbstractClass {
- *   constructor(arg1: any, arg2: any) {
- *     // ...
- *   }
- * }
- * 
- * let myAbstractClassConstructor: AnyConstructor;
- * myAbstractClassConstructor = MyAbstractClass;
- * // Note: You can't create an instance of an abstract class.
- * // let instance = new myAbstractClassConstructor('arg1', 'arg2');
- */
-export type AnyConstructor = abstract new (...args: any) => any;
+export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
 
 /**
  * `CompareFn` is a type representing a generic comparison function.
