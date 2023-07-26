@@ -13,8 +13,8 @@ export namespace _ServiceUtil {
 /**
  * @readonly a template function interface for functions with any parameters which does not return value.
  * 
- * @note (...args: any[]): any; - functions with any parameters which can return type
- *       (): any;               - functions with no parameters which can return type
+ * @note (...args: any[]): any; - functions with any parameters which returns `any` type
+ *       (): any;               - functions with no parameters which returns `any` type
  */
 export interface ServiceIdentifier<T> {
 	(...args: any[]): void;

@@ -126,7 +126,7 @@ interface ITask {
     };
 	run(): void;
 
-    // @internal (for potential dispose usage)
+    // @internal (for potential dispose usage, it is a hacky way i know)
     setID(id: number): void;
 }
 
@@ -252,15 +252,13 @@ namespace FakeGlobalAsync {
         };
         onSchedule();
     
-        return {
-            dispose: () => {
-                if (disposed) { 
-                    return; 
-                }
-                disposed = true;
-                _onTaskDisposed.fire(taskID);
+        return toDisposable(() => {
+            if (disposed) { 
+                return; 
             }
-        };
+            disposed = true;
+            _onTaskDisposed.fire(taskID);
+        });
     };
 
     const __customizedClearInterval = (timeoutId: any) => {
@@ -313,7 +311,7 @@ namespace FakeGlobalAsync {
         FakeDateConstructor.UTC = OriginalDate.UTC;
         FakeDateConstructor.prototype.toUTCString = OriginalDate.prototype.toUTCString;
     
-        // set
+        // replace the real one
         globalThis.Date = <DateConstructor>FakeDateConstructor;
     };
     
