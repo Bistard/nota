@@ -1,6 +1,7 @@
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IService, ServiceIdentifier } from "src/platform/instantiation/common/decorator";
 import { Constructor } from "src/base/common/util/type";
+import { NonServiceArguments } from "src/platform/instantiation/common/instantiation";
 
 export class ServiceCollection {
 
@@ -26,7 +27,6 @@ export class ServiceCollection {
 	public get<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
 		return this._services.get(id);
 	}
-
 }
 
 /*******************************************************************************
@@ -35,14 +35,14 @@ export class ServiceCollection {
 
 const _singletonDependencies = new Map<ServiceIdentifier<any>, ServiceDescriptor<any>>();
 
-export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctor: TCtor, args: ConstructorParameters<TCtor>, supportsDelayedInstantiation?: boolean): void;
 export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, descriptor: ServiceDescriptor<any>): void;
-export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: ConstructorParameters<TCtor>, supportsDelayedInstantiation?: boolean): void {
+export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctor: TCtor,                                        args: NonServiceArguments<ConstructorParameters<TCtor>>,  supportsDelayedInstantiation?: boolean): void;
+export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: NonServiceArguments<ConstructorParameters<TCtor>>, supportsDelayedInstantiation?: boolean): void {
 	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
 		if (!args) {
 			throw new Error('Arguments parameter must be provided when a constructor is registered.');
 		}
-		ctorOrDescriptor = new ServiceDescriptor(ctorOrDescriptor, <any>args, supportsDelayedInstantiation);
+		ctorOrDescriptor = new ServiceDescriptor(ctorOrDescriptor, args, supportsDelayedInstantiation);
 	}
 
 	const registered = _singletonDependencies.get(id);
