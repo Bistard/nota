@@ -108,7 +108,7 @@ export class InstantiationService implements IInstantiationService {
         let service = this.serviceCollections.get(serviceIdentifier);
 
         if (!service && this.parent) {
-            service = this.parent._getServiceInstanceOrDescriptor(serviceIdentifier);
+            service = this.parent.__getServiceInstanceOrDescriptor(serviceIdentifier);
         }
 
         if (service === undefined || service instanceof ServiceDescriptor) {
@@ -118,7 +118,7 @@ export class InstantiationService implements IInstantiationService {
     }
 
     public getOrCreateService<T extends IService>(serviceIdentifier: ServiceIdentifier<T>): T {
-        const service = this._getOrCreateDependencyInstance(serviceIdentifier);
+        const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
         if (!service) {
             throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
         }
@@ -135,7 +135,7 @@ export class InstantiationService implements IInstantiationService {
                 return service;
             },
             getOrCreateService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
-                const service = this._getOrCreateDependencyInstance(serviceIdentifier);
+                const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
                 if (!service) {
                     throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
                 }
@@ -149,9 +149,9 @@ export class InstantiationService implements IInstantiationService {
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         let res: any;
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            res = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args.concat(rest));
+            res = this.__createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args.concat(rest));
         } else {
-            res = this._createInstance(ctorOrDescriptor, rest);
+            res = this.__createInstance(ctorOrDescriptor, rest);
         }
         return res;
     }
@@ -162,11 +162,11 @@ export class InstantiationService implements IInstantiationService {
 
     // [private helper methods]
 
-    private _createInstance<T>(ctor: any, args: any[] = []): T {
+    private __createInstance<T>(ctor: any, args: any[] = []): T {
         const serviceDependencies = _ServiceUtil.getServiceDependencies(ctor).sort((a, b) => a.index - b.index);
         const servicesArgs: any[] = [];
         for (const dependency of serviceDependencies) {
-            const service: any = this._getOrCreateDependencyInstance(dependency.id);
+            const service: any = this.__getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
                 throw new Error(`[createInstance] ${ctor.name} depends on UNKNOWN service ${dependency.id}.`);
             }
@@ -178,29 +178,29 @@ export class InstantiationService implements IInstantiationService {
         return <T>new ctor(...[...args, ...servicesArgs]);
     }
 
-    private _getOrCreateDependencyInstance<T extends IService>(id: ServiceIdentifier<T>): T {
-        const instanceOrDesc = this._getServiceInstanceOrDescriptor(id);
+    private __getOrCreateDependencyInstance<T extends IService>(id: ServiceIdentifier<T>): T {
+        const instanceOrDesc = this.__getServiceInstanceOrDescriptor(id);
         if (instanceOrDesc instanceof ServiceDescriptor) {
-            return this._safeCreateAndCacheServiceInstance(id, instanceOrDesc);
+            return this.__safeCreateAndCacheServiceInstance(id, instanceOrDesc);
         } else {
             return instanceOrDesc;
         }
     }
 
-    private _safeCreateAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
+    private __safeCreateAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
         if (this._activeInstantiations.has(id)) {
             throw new Error(`DI illegal operation: recursively instantiating service '${id}'`);
         }
         this._activeInstantiations.add(id);
 
         try {
-            return this._createAndCacheServiceInstance(id, desc);
+            return this.__createAndCacheServiceInstance(id, desc);
         } finally {
             this._activeInstantiations.delete(id);
         }
     }
 
-    private _createAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
+    private __createAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
         type dependencyNode = {
             id: ServiceIdentifier<T>,
             desc: ServiceDescriptor<TCtor>,
@@ -217,7 +217,7 @@ export class InstantiationService implements IInstantiationService {
             const dependencies = _ServiceUtil.getServiceDependencies(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
 
-                const instanceOrDesc = this._getServiceInstanceOrDescriptor(subDependency.id);
+                const instanceOrDesc = this.__getServiceInstanceOrDescriptor(subDependency.id);
 
                 if (instanceOrDesc instanceof ServiceDescriptor) {
                     const uninstantiatedDependency = { id: subDependency.id, desc: instanceOrDesc };
@@ -246,44 +246,44 @@ export class InstantiationService implements IInstantiationService {
                  * the current dependency is an instance or not to avoid 
                  * duplicate construction.
                  */
-                const instanceOrDesc = this._getServiceInstanceOrDescriptor(data.id);
+                const instanceOrDesc = this.__getServiceInstanceOrDescriptor(data.id);
                 if (instanceOrDesc instanceof ServiceDescriptor) {
                     // create instance and overwrite the service collections
-                    const instance = this._createServiceInstanceWithOwner(
+                    const instance = this.__createServiceInstanceWithOwner(
                         data.id,
                         data.desc.ctor,
                         data.desc.args,
                         data.desc.supportsDelayedInstantiation
                     );
-                    this._setServiceInstance(data.id, instance);
+                    this.__setServiceInstance(data.id, instance);
                 }
 
                 dependencyGraph.removeNode(data);
             }
         }
 
-        return <T>this._getServiceInstanceOrDescriptor(id);
+        return <T>this.__getServiceInstanceOrDescriptor(id);
     }
 
-    private _getServiceInstanceOrDescriptor<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
+    private __getServiceInstanceOrDescriptor<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
         const instanceOrDesc = this.serviceCollections.get<T, TCtor>(id);
 
         // if the current service does not have it, we try to get it from the parent
         if (!instanceOrDesc && this.parent) {
-            return this.parent._getServiceInstanceOrDescriptor(id);
+            return this.parent.__getServiceInstanceOrDescriptor(id);
         }
 
         return instanceOrDesc;
     }
 
-    private _setServiceInstance<T extends IService>(id: ServiceIdentifier<T>, instance: T): void {
+    private __setServiceInstance<T extends IService>(id: ServiceIdentifier<T>, instance: T): void {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
             this.serviceCollections.set(id, instance);
         }
 
         // try to set the service into the parent DI
         else if (this.parent) {
-            this.parent._setServiceInstance(id, instance);
+            this.parent.__setServiceInstance(id, instance);
         }
 
         else {
@@ -291,18 +291,18 @@ export class InstantiationService implements IInstantiationService {
         }
     }
 
-    private _createServiceInstanceWithOwner<T extends IService>(
+    private __createServiceInstanceWithOwner<T extends IService>(
         id: ServiceIdentifier<T>,
         ctor: any,
         args: any[] = [],
         supportsDelayedInstantiation: boolean,
     ): T {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
-            return this._createServiceInstance(ctor, args, supportsDelayedInstantiation);
+            return this.___createServiceInstance(ctor, args, supportsDelayedInstantiation);
         }
 
         else if (this.parent) {
-            return this.parent._createServiceInstanceWithOwner(id, ctor, args, supportsDelayedInstantiation);
+            return this.parent.__createServiceInstanceWithOwner(id, ctor, args, supportsDelayedInstantiation);
         }
 
         else {
@@ -310,19 +310,19 @@ export class InstantiationService implements IInstantiationService {
         }
     }
 
-    private _createServiceInstance<T extends IService>(
+    private ___createServiceInstance<T extends IService>(
         ctor: any, 
         args: any[] = [], 
         _supportsDelayedInstantiation: boolean,
     ): T {
         if (!_supportsDelayedInstantiation) {
-            return this._createInstance(ctor, args);
+            return this.__createInstance(ctor, args);
 
         } else {
             // Return a proxy object that's backed by an idle value. That
             // strategy is to instantiate services in our idle time or when actually
             // needed but not when injected into a consumer
-            const idle = new IdleValue<any>(() => this._createInstance<T>(ctor, args));
+            const idle = new IdleValue<any>(() => this.__createInstance<T>(ctor, args));
             return <T>new Proxy(Object.create(null), {
                 get(target: any, key: PropertyKey): any {
                     if (key in target) {
