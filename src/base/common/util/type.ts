@@ -1,5 +1,3 @@
-import { MainHostService } from "src/platform/host/electron/mainHostService";
-
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
@@ -96,6 +94,49 @@ export type NonUndefined = {} | null;
  * add("1", "2");  // Type Error: string is not assignable to number
  */
 export type Callable<TArguments extends unknown[] = void[], TReturnType = void> = (...args: TArguments) => TReturnType;
+
+/**
+ * Type for class decorators. A class decorator takes the constructor function of 
+ * the class being decorated, and optionally returns a new constructor function.
+ *
+ * @template TFunction The type of the class constructor function.
+ * @param {TFunction} target The class constructor function.
+ * @returns {TFunction | void} Optionally a new constructor function.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ClassDecorator = <TFunction extends Function>(target: TFunction) => TFunction | void;
+
+/**
+ * Type for property decorators. A property decorator takes the target object 
+ * and the property key of the property being decorated.
+ *
+ * @param {object} target The target object.
+ * @param {string | symbol} propertyKey The key of the property.
+ */
+export type PropertyDecorator = (target: object, propertyKey: string | symbol) => void;
+
+/**
+ * Type for method decorators. A method decorator takes the target object, 
+ * the property key of the method, and the property descriptor of the method,
+ * and optionally returns a new property descriptor.
+ *
+ * @template T The type of the method.
+ * @param {object} target The target object.
+ * @param {string | symbol} propertyKey The key of the method.
+ * @param {TypedPropertyDescriptor<T>} descriptor The descriptor of the method.
+ * @returns {TypedPropertyDescriptor<T> | void} Optionally a new descriptor.
+ */
+export type MethodDecorator = <T>(target: object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
+
+/**
+ * Type for parameter decorators. A parameter decorator takes the target object, 
+ * the property key of the method, and the index of the parameter being decorated.
+ *
+ * @param {object} target The target object.
+ * @param {string | undefined} propertyKey The key of the method.
+ * @param {number} parameterIndex The index of the parameter.
+ */
+export type ParameterDecorator = (target: object, propertyKey: string | undefined, parameterIndex: number) => void;
 
 /**
  * Accepts condition C, a truthy return type T, and a falsy return type F.
