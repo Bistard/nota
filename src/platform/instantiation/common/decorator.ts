@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import { ParameterDecorator } from "src/base/common/util/type";
 
 export namespace _ServiceUtil {
     export const serviceIdentifiers = new Map<string, ServiceIdentifier<any>>();
@@ -8,37 +9,37 @@ export namespace _ServiceUtil {
     export function getServiceDependencies(ctor: any): { id: ServiceIdentifier<any>, index: number, optional: boolean }[] {
         return ctor[DI_DEPENDENCIES] || [];
     }
+
+    export function markDependencyAt(target: object, id: Function, index: number, optional: boolean): void {
+       
+       // initialization
+       {
+           if (!target[_ServiceUtil.DI_TARGET]) {
+               target[_ServiceUtil.DI_TARGET] = target;
+           }
+       
+           if (!target[_ServiceUtil.DI_DEPENDENCIES]) {
+               target[_ServiceUtil.DI_DEPENDENCIES] = [];
+           }
+       }
+       
+       // unexpected behaviour, we throw an error.
+       if (target[_ServiceUtil.DI_TARGET] !== target) {
+           throw new Error(`[__storeServiceDependency] '${target}[${_ServiceUtil.DI_TARGET}]' is already used`);
+       }
+   
+       // mark the dependency on the target
+       target[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
+   }
 }
 
 /**
- * @readonly a template function interface for functions with any parameters which does not return value.
+ * Represents a decorator, as an identifier, for each unique microservice.
  * 
- * @note (...args: any[]): any; - functions with any parameters which returns `any` type
- *       (): any;               - functions with no parameters which returns `any` type
+ * @warn The usage of `& { _: T}` is necessary for type inferring. But should not
+ * be used in runtime usage.
  */
-export interface ServiceIdentifier<T> {
-	(...args: any[]): void;
-	type: T;
-}
-
-/**
- * @description TODO: complete comments
- * 
- * @param target decorated target
- * @param id serviceIdentifier<T>
- * @param index index of the parameter
- * @param optional // TODO:
- */
-function __storeServiceDependency(target: Function, id: Function, index: number, optional: boolean): void {
-    // mark the dependencies on the target (the class which to be decorated)
-	if (target[_ServiceUtil.DI_TARGET] === target) {
-		target[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
-	} 
-    else {
-		target[_ServiceUtil.DI_DEPENDENCIES] = [{ id, index, optional }];
-		target[_ServiceUtil.DI_TARGET] = target;
-	}
-}
+export type ServiceIdentifier<T> = ParameterDecorator & { _: T };
 
 /**
  * @description The 'ONLY' valid way to create a {@link ServiceIdentifier<T>}.
@@ -47,27 +48,31 @@ function __storeServiceDependency(target: Function, id: Function, index: number,
  */
 export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
-    // decorator could be cached
-    const returnedServiceIdentifier = _ServiceUtil.serviceIdentifiers.get(serviceId);
-    if (returnedServiceIdentifier !== undefined) {
-        return returnedServiceIdentifier;
+    // retrive the decorator from the cache
+    const cachedServiceIdentifier = _ServiceUtil.serviceIdentifiers.get(serviceId);
+    if (cachedServiceIdentifier) {
+        return cachedServiceIdentifier;
     }
 
-    // decorator (will be applied when the 'target' class has been DECLEARED, not when INSTANTIATED)
     /**
+     * @description The decorator to be returned. It will be executed when the 
+     * 'target' class has been DECLEARED, not when INSTANTIATED.
      * @param target the class
      * @param index the index of the parameter
      */
-    const serviceIdentifier = <any>function (target: Function, key: string, index: number): any {
+    const serviceIdentifier: ServiceIdentifier<T> = function (target: object, propertyKey: string | undefined, parameterIndex: number): any {
         if (arguments.length !== 3) {
-            throw new Error(`[createService] decorator can only be used to decorate a parameter: ${target}`);
+            throw new Error(`[createService] decorator can only be used to decorate a class parameter: ${target}`);
         }
-        __storeServiceDependency(target, serviceIdentifier, index, false);
+        _ServiceUtil.markDependencyAt(target, serviceIdentifier, parameterIndex, false);        
     };
-
+    serviceIdentifier._ = undefined!;
     serviceIdentifier.toString = () => serviceId;
 
+    // cache the decorator
     _ServiceUtil.serviceIdentifiers.set(serviceId, serviceIdentifier);
+
+    // return the decorator
 	return serviceIdentifier;
 }
 
