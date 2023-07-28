@@ -73,6 +73,17 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
  * @note Since handler idealy should handling unexpected errors, thus those 
  * errors should be very important and even be fatal to some functionalities of 
  * the application. In that case, use these functions CAREFULLY.
+ * 
+ * @implements
+ * The {@link ErrorHandler} is designed using the singleton pattern to ensure 
+ * consistent and reliable operation of the system.
+ * 
+ * If we were to design an ErrorHandlerService as a microservice, we would 
+ * introduce a dependency on our InstantiationService. This would potentially 
+ * create a point of failure because any issues in the InstantiationService 
+ * could impact the ErrorHandlerService. We aim to avoid such dependencies to 
+ * ensure that our ErrorHandler remains fully functional regardless of the state 
+ * of the InstantiationService.
  */
 export namespace ErrorHandler {
     
