@@ -6,9 +6,10 @@ import { NonServiceArguments } from "src/platform/instantiation/common/instantia
 export class ServiceCollection {
 
 	// stores either T | ServiceDescriptor<T>
-	private readonly _services: Map<ServiceIdentifier<any>, any> = new Map();
+	private readonly _services: Map<ServiceIdentifier<any>, any | ServiceDescriptor<any>>;
 
 	constructor(...services: [ServiceIdentifier<any>, any][]) {
+		this._services = new Map();
 		for (const [id, service] of services) {
 			this.set(id, service);
 		}
