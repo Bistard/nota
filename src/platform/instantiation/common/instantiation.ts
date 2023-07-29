@@ -53,12 +53,27 @@ export interface IInstantiationService extends IServiceProvider, IService {
     register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
 
     /**
-     * @description Passing into a constructor or a ServiceDescriptor<any> to 
-     * create an instance.
-     * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
-     * @param rest all the arguments for that service.
+     * @description Creates an instance of the given class described by the 
+     * given constructor.
+     *
+     * @template TCtor The type of the class constructor.
+     * @param constructor The class constructor.
+     * @param rest Additional parameters.
+     * @returns An instance of the class.
      */
-    createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    createInstance<TCtor extends Constructor>(constructor: TCtor, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    
+    /**
+     * @description Creates an instance of the class described by the given 
+     * descriptor.
+     *
+     * @template TCtor The type of the class constructor.
+     * @param descriptor The descriptor of the class.
+     * @param rest Additional parameters that will be concatenated after the 
+     *             descriptor's arguments.
+     * @returns An instance of the class.
+     */
+    createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -151,6 +166,8 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
+    public createInstance<TCtor extends Constructor>(constructor: TCtor, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         let instance: InstanceType<TCtor>;
 
