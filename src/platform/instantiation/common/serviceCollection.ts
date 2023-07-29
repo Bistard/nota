@@ -1,31 +1,33 @@
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
-import { ServiceIdentifier } from "src/platform/instantiation/common/decorator";
+import { IService, ServiceIdentifier } from "src/platform/instantiation/common/decorator";
+import { Constructor } from "src/base/common/util/type";
+import { NonServiceParameters } from "src/platform/instantiation/common/instantiation";
 
 export class ServiceCollection {
 
 	// stores either T | ServiceDescriptor<T>
-	private readonly _services: Map<ServiceIdentifier<any>, any> = new Map();
+	private readonly _services: Map<ServiceIdentifier<any>, any | ServiceDescriptor<any>>;
 
 	constructor(...services: [ServiceIdentifier<any>, any][]) {
+		this._services = new Map();
 		for (const [id, service] of services) {
 			this.set(id, service);
 		}
 	}
 
-	set<T>(id: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): T | ServiceDescriptor<T> | undefined {
+	public set<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): T | ServiceDescriptor<TCtor> | undefined {
 		const result = this._services.get(id);
 		this._services.set(id, instanceOrDescriptor);
 		return result;
 	}
 
-	has(id: ServiceIdentifier<any>): boolean {
+	public has<T extends IService>(id: ServiceIdentifier<T>): boolean {
 		return this._services.has(id);
 	}
 
-	get<T>(id: ServiceIdentifier<T>): T | ServiceDescriptor<T> {
+	public get<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
 		return this._services.get(id);
 	}
-
 }
 
 /*******************************************************************************
@@ -34,12 +36,16 @@ export class ServiceCollection {
 
 const _singletonDependencies = new Map<ServiceIdentifier<any>, ServiceDescriptor<any>>();
 
-export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, ctor: new (...services: Services[]) => T, supportsDelayedInstantiation?: boolean): void;
-export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, descriptor: ServiceDescriptor<any>): void;
-export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, ctorOrDescriptor: { new(...services: Services[]): T; } | ServiceDescriptor<any>, supportsDelayedInstantiation?: boolean): void {
+export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, descriptor: ServiceDescriptor<any>): void;
+export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctor: TCtor,                                        args: NonServiceParameters<ConstructorParameters<TCtor>>,  supportsDelayedInstantiation?: boolean): void;
+export function registerSingleton<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: NonServiceParameters<ConstructorParameters<TCtor>>, supportsDelayedInstantiation?: boolean): void {
 	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
-		ctorOrDescriptor = new ServiceDescriptor<T>(ctorOrDescriptor as new (...args: any[]) => T, [], supportsDelayedInstantiation);
+		if (!args) {
+			throw new Error('Arguments parameter must be provided when a constructor is registered.');
+		}
+		ctorOrDescriptor = new ServiceDescriptor(ctorOrDescriptor, args, supportsDelayedInstantiation);
 	}
+
 	const registered = _singletonDependencies.get(id);
 	if (!registered) {
 		_singletonDependencies.set(id, ctorOrDescriptor);

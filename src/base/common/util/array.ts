@@ -729,7 +729,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     public enqueue(element: T): void {
         this._heap[this._count] = element;
         this._count++;
-        this.bubbleUp();
+        this.__bubbleUp();
     }
     
     public dequeue(): T | undefined {
@@ -742,7 +742,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         this._heap.pop();
         
         this._count--;
-        this.sinkDown();
+        this.__sinkDown();
 
         return item;
     }
@@ -758,9 +758,9 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
             this._count--;
     
             if (i !== this._count && this.__comparator(this._heap[i]!, this._heap[(i - 1) >> 1]!) < 0) {
-                this.bubbleUp(i);
+                this.__bubbleUp(i);
             } else {
-                this.sinkDown(i);
+                this.__sinkDown(i);
             }
 
             i--;
@@ -779,10 +779,31 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     }
     
     public isEmpty(): boolean {
-        return this._count === 0;
+        return this._heap.length === 0;
+    }
+
+    public dispose(): void {
+        this._heap = [];
+        this._count = 0;
+    }
+
+	*[Symbol.iterator](): Iterator<T> {
+        const copy = [...this._heap];
+        const copyCount = this._count;
+        const copyComparator = this.__comparator;
+
+        const copyQueue = new PriorityQueue<T>(copyComparator);
+        copyQueue._heap = copy;
+        copyQueue._count = copyCount;
+        
+        while (!copyQueue.isEmpty()) {
+            yield copyQueue.dequeue()!;
+        }
     }
     
-    private bubbleUp(index: number = this._count - 1): void {
+    // [private helper methods]
+
+    private __bubbleUp(index: number = this._count - 1): void {
         while (index > 0) {
             const item = this._heap[index]!;
             const parentIdx = Math.floor((index - 1) / 2);
@@ -798,7 +819,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         }
     }
 
-    private sinkDown(index: number = 0): void {
+    private __sinkDown(index: number = 0): void {
         const length = this.size();
         const element = this._heap[0]!;
 
@@ -833,25 +854,6 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
             this._heap[index] = this._heap[swapIdx]!;
             this._heap[swapIdx] = element;
             index = swapIdx;
-        }
-    }
-
-    public dispose(): void {
-        (<Mutable<T[]>>this._heap) = [];
-        this._count = 0;
-    }
-
-	*[Symbol.iterator](): Iterator<T> {
-        const copy = [...this._heap];
-        const copyCount = this._count;
-        const copyComparator = this.__comparator;
-
-        const copyQueue = new PriorityQueue<T>(copyComparator);
-        copyQueue._heap = copy;
-        copyQueue._count = copyCount;
-        
-        while (!copyQueue.isEmpty()) {
-            yield copyQueue.dequeue()!;
         }
     }
 }

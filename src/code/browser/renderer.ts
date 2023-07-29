@@ -148,7 +148,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IConfigurationService, configuraionService);
 
         // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
         // REVIEW: try late initialization

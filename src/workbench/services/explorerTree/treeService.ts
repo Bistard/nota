@@ -1,6 +1,7 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { IService } from "src/platform/instantiation/common/decorator";
 
 export const enum TreeMode {
     Classic = 'classic',
@@ -10,7 +11,7 @@ export const enum TreeMode {
 /**
  * The base interface for any tree services.
  */
-export interface ITreeService<T> extends IDisposable {
+export interface ITreeService<T> extends IDisposable, IService {
     /**
      * The parent container of the current tree view. `undefined` if the tree is 
      * not opened yet.

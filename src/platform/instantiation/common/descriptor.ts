@@ -1,17 +1,14 @@
 import { Constructor } from "src/base/common/util/type";
+import { NonServiceParameters } from "src/platform/instantiation/common/instantiation";
 
-export class ServiceDescriptor<T> {
-    public readonly ctor: any;
-	public readonly arguments: any[];
-    public readonly supportsDelayedInstantiation: boolean;
-    
+export class ServiceDescriptor<T extends Constructor> {
+
 	constructor(
-        ctor: Constructor<T>, 
-        args: any[] = [], 
-        supportsDelayedInstantiation: boolean = false
+        public readonly ctor: T, 
+        public readonly args: NonServiceParameters<ConstructorParameters<T>>, 
+        public readonly supportsDelayedInstantiation: boolean = false
     ) {
         this.ctor = ctor;
-		this.arguments = args;
         this.supportsDelayedInstantiation = supportsDelayedInstantiation;
     }
 }

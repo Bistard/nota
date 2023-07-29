@@ -34,6 +34,8 @@ export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent<Clas
  */
 export class ExplorerTreeService extends Disposable implements IExplorerTreeService {
 
+    _serviceMarker: undefined;
+
     // [event]
 
     private readonly _onSelect = this.__register(new RelayEmitter<unknown>());

@@ -3,7 +3,7 @@ import { BrowserWindow, dialog } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { AsyncQueue } from "src/base/common/util/async";
-import { mockType, NulltoUndefined } from "src/base/common/util/type";
+import { mockType, nullToUndefined } from "src/base/common/util/type";
 import { IDialogService, InternalOpenDialogOptions, OpenDialogOptions } from "src/platform/dialog/common/dialog";
 import { createService } from "src/platform/instantiation/common/decorator";
 
@@ -129,7 +129,7 @@ export class MainDialogService implements IMainDialogService {
             dialogOption.properties.push('treatPackageAsDirectory');
         }
 
-        const win = NulltoUndefined(window ?? BrowserWindow.getFocusedWindow());
+        const win = nullToUndefined(window ?? BrowserWindow.getFocusedWindow());
         const openedResult = await this.showOpenDialog(dialogOption, win);
         return openedResult.filePaths;
     }

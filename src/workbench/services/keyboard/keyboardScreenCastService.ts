@@ -4,7 +4,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
-import { createService } from "src/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { IntervalTimer, Scheduler } from 'src/base/common/util/async';
 
@@ -13,7 +13,7 @@ export const IKeyboardScreenCastService = createService<IKeyboardScreenCastServi
 /**
  * An interface only for {@link KeyboardScreenCastService}.
  */
-export interface IKeyboardScreenCastService extends IDisposable {
+export interface IKeyboardScreenCastService extends IDisposable, IService {
 
     /**
      * @description Start listening to user's keypress.
@@ -31,6 +31,8 @@ export interface IKeyboardScreenCastService extends IDisposable {
  * keyboard input.
  */
 export class KeyboardScreenCastService implements IKeyboardScreenCastService {
+
+    _serviceMarker: undefined;
 
     // [field]
 

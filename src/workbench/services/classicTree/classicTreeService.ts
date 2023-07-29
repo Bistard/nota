@@ -22,6 +22,8 @@ export interface IClassicTreeService extends ITreeService<ClassicItem> {
  */
 export class ClassicTreeService extends Disposable implements IClassicTreeService {
 
+    _serviceMarker: undefined;
+
     // [event]
 
     get onSelect(): Register<ClassicOpenEvent<ClassicItem>> {

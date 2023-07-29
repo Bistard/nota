@@ -4,10 +4,6 @@ export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' 
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
 export type AlphabetInString = AlphabetInStringCap | AlphabetInStringLow;
 
-export type Single<T> = Tuple<1, [T]>;
-export type Pair<T, R> = Tuple<2, [T, R]>;
-export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
-
 /**
  * A dictionary (alias for `Record<K, V>`).
  */
@@ -27,19 +23,57 @@ export type NumberDictionary<V> = Record<number, V>;
  * Represents a tuple.
  */
 export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
+export type Single<T> = Tuple<1, [T]>;
+export type Pair<T, R> = Tuple<2, [T, R]>;
+export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
- * Represents a constructor of a class with type T.
+ * `Constructor` is a generic type that represents the constructor function of 
+ * any class. This type allows specifying the types of arguments that the 
+ * constructor function takes.
+ *
+ * @template TInstance The instance type that the constructor returns.
+ * @template TArgs The types of the arguments that the constructor function takes. Default is any[] if not provided.
+ * 
+ * @example
+ * // Here is an example of using `Constructor` with a class `MyClass`.
+ * class MyClass {
+ *   constructor(arg1: number, arg2: string) {
+ *     // ...
+ *   }
+ * }
+ * 
+ * let instanceCreator: Constructor<MyClass, [number, string]>;
+ * instanceCreator = MyClass;
+ * let instance = new instanceCreator(10, 'hello');
  */
-export type Constructor<T> = new (...args: any[]) => T;
+export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
 
 /**
- * A general compare function template. Returns a number to indicate the result.
+ * `CompareFn` is a type representing a generic comparison function.
+ * This function takes two arguments of the same type and returns a number.
+ * Typically, this function is used for sorting or comparing values in data 
+ * structures.
+ * 
+ * The function should return:
+ * - A negative number if `a` should be sorted/comes before `b`
+ * - Zero if `a` and `b` are equal
+ * - A positive number if `a` should be sorted/comes after `b`
+ *
+ * @template T The type of the arguments to compare.
+ *
+ * @example
+ * // Here is an example of using `CompareFn` with numbers.
+ * let compareNumbers: CompareFn<number>;
+ * compareNumbers = (a, b) => a - b;
+ * let numbers = [3, 1, 4, 1, 5, 9];
+ * numbers.sort(compareNumbers);
  */
 export type CompareFn<T> = (a: T, b: T) => number;
 
 /**
- * More narrows than {@link NonNullable}, it only removes `undefined`.
+ * This type only removes `undefined`, which s more narrows than {@link NonNullable}.
+ * @note {@link NonNullable} removes `undefined` and `null`.
  */
 export type NonUndefined = {} | null;
 
@@ -60,6 +94,50 @@ export type NonUndefined = {} | null;
  * add("1", "2");  // Type Error: string is not assignable to number
  */
 export type Callable<TArguments extends unknown[] = void[], TReturnType = void> = (...args: TArguments) => TReturnType;
+
+/**
+ * Type for class decorators. A class decorator takes the constructor function of 
+ * the class being decorated, and optionally returns a new constructor function.
+ *
+ * @template TFunction The type of the class constructor function.
+ * @param {TFunction} target The class constructor function.
+ * @returns {TFunction | void} Optionally a new constructor function.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ClassDecorator = <TFunction extends Function>(target: TFunction) => TFunction | void;
+
+/**
+ * Type for property decorators. A property decorator takes the target object 
+ * and the property key of the property being decorated.
+ *
+ * @param {object} target The target object.
+ * @param {string | symbol} propertyKey The key of the property.
+ */
+export type PropertyDecorator = (target: object, propertyKey: string | symbol) => void;
+
+/**
+ * Type for method decorators. A method decorator takes the target object, 
+ * the property key of the method, and the property descriptor of the method,
+ * and optionally returns a new property descriptor.
+ *
+ * @template T The type of the method.
+ * @param {object} target The target object.
+ * @param {string | symbol} propertyKey The key of the method.
+ * @param {TypedPropertyDescriptor<T>} descriptor The descriptor of the method.
+ * @returns {TypedPropertyDescriptor<T> | void} Optionally a new descriptor.
+ */
+export type MethodDecorator = <T>(target: object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
+
+/**
+ * Type for parameter decorators. A parameter decorator takes the target object, 
+ * the property key of the method, and the index of the parameter being decorated.
+ *
+ * @param {object} target The target object.
+ * @param {string | undefined} propertyKey The key of the method.
+ * @param {number} parameterIndex The index of the parameter.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ParameterDecorator<T extends Function | object> = (target: T, propertyKey: string | undefined, parameterIndex: number) => void;
 
 /**
  * Accepts condition C, a truthy return type T, and a falsy return type F.
@@ -137,11 +215,9 @@ export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
 export type NestedArray<T> = (T | NestedArray<T>)[];
 
 /**
- * built-in type: {@link Readonly}.
- */
-
-/**
  * make every parameter of an object and its sub-objects recursively as readonly.
+ * 
+ * @note related built-in type: {@link Readonly}.
  */
 export type DeepReadonly<Mutable> =
     Mutable extends Callable<any[], any>
@@ -285,7 +361,7 @@ export function isNonNullable<T>(value: T): value is NonNullable<T> {
     return !isNullable(value);
 }
 
-export function NulltoUndefined<T>(obj: T | null): T | undefined {
+export function nullToUndefined<T>(obj: T | null): T | undefined {
     return obj === null ? undefined : obj;
 }
 
@@ -322,8 +398,8 @@ export function isPromise(obj: any): obj is Promise<any> {
  * @deprecated Alternatively, you may use `(value ?? defaultValue)` instead.
  */
 export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
-    if (typeof value === 'undefined' || value === null) {
+    if (value === undefined || value === null) {
         return defaultValue;
     }
-    return value as NonNullable<T>;
+    return value;
 }
