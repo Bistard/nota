@@ -137,7 +137,7 @@ export type MethodDecorator = <T>(target: object, propertyKey: string | symbol, 
  * @param {number} parameterIndex The index of the parameter.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type ParameterDecorator = (target: Function, propertyKey: string | undefined, parameterIndex: number) => void;
+export type ParameterDecorator<T extends Function | object> = (target: T, propertyKey: string | undefined, parameterIndex: number) => void;
 
 /**
  * Accepts condition C, a truthy return type T, and a falsy return type F.

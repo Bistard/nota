@@ -7,7 +7,7 @@ import { Constructor, ParameterDecorator } from "src/base/common/util/type";
  * @warn The usage of `& { _: T}` is necessary for type inferring. But should not
  * be used in runtime usage.
  */
-export type ServiceIdentifier<T> = ParameterDecorator & { _: T; };
+export type ServiceIdentifier<T> = ParameterDecorator<Function> & { _: T; };
 
 /**
  * @description The 'ONLY' valid way to create a {@link ServiceIdentifier<T>}.
