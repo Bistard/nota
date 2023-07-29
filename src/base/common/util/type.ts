@@ -1,11 +1,8 @@
+
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
 export type AlphabetInString = AlphabetInStringCap | AlphabetInStringLow;
-
-export type Single<T> = Tuple<1, [T]>;
-export type Pair<T, R> = Tuple<2, [T, R]>;
-export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
  * A dictionary (alias for `Record<K, V>`).
@@ -26,6 +23,9 @@ export type NumberDictionary<V> = Record<number, V>;
  * Represents a tuple.
  */
 export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
+export type Single<T> = Tuple<1, [T]>;
+export type Pair<T, R> = Tuple<2, [T, R]>;
+export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
  * `Constructor` is a generic type that represents the constructor function of 
@@ -361,7 +361,7 @@ export function isNonNullable<T>(value: T): value is NonNullable<T> {
     return !isNullable(value);
 }
 
-export function NulltoUndefined<T>(obj: T | null): T | undefined {
+export function nullToUndefined<T>(obj: T | null): T | undefined {
     return obj === null ? undefined : obj;
 }
 
@@ -398,8 +398,8 @@ export function isPromise(obj: any): obj is Promise<any> {
  * @deprecated Alternatively, you may use `(value ?? defaultValue)` instead.
  */
 export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
-    if (typeof value === 'undefined' || value === null) {
+    if (value === undefined || value === null) {
         return defaultValue;
     }
-    return value as NonNullable<T>;
+    return value;
 }
