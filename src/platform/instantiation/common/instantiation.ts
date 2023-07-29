@@ -1,5 +1,5 @@
 import { Constructor } from "src/base/common/util/type";
-import { createService, ServiceIdentifier, _ServiceUtil, IService } from "src/platform/instantiation/common/decorator";
+import { createService, ServiceIdentifier, IService, getServiceDependencies } from "src/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/platform/instantiation/common/idle";
@@ -69,7 +69,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * existing services in the parent instantiation service without actual 
      * replacing the services in the parent.
      */
-    createChild(collection: ServiceCollection): IInstantiationService;
+    createChild(collection?: ServiceCollection): IInstantiationService;
 
     /**
      * @description Invokes a callback function with a {@link IServiceProvider}
@@ -147,26 +147,30 @@ export class InstantiationService implements IInstantiationService {
     }
 
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
-        let res: any;
+        let res: InstanceType<TCtor>;
+
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            res = this.__createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args.concat(rest));
+            const args = <NonServiceArguments<ConstructorParameters<TCtor>>>ctorOrDescriptor.args.concat(rest);
+            res = this.__createInstance(ctorOrDescriptor.ctor, args);
         } else {
             res = this.__createInstance(ctorOrDescriptor, rest);
         }
+        
         return res;
     }
 
-    public createChild(collection: ServiceCollection): IInstantiationService {
+    public createChild(collection?: ServiceCollection): IInstantiationService {
         return new InstantiationService(collection, this);
     }
 
     // [private helper methods]
 
-    private __createInstance<T>(ctor: any, args: any[] = []): T {
-        const serviceDependencies = _ServiceUtil.getServiceDependencies(ctor).sort((a, b) => a.index - b.index);
-        const servicesArgs: any[] = [];
+    private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
+        const serviceDependencies = getServiceDependencies(ctor).sort((a, b) => a.index - b.index);
+        const servicesArgs: unknown[] = [];
+        
         for (const dependency of serviceDependencies) {
-            const service: any = this.__getOrCreateDependencyInstance(dependency.id);
+            const service = this.__getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
                 throw new Error(`[createInstance] ${ctor.name} depends on UNKNOWN service ${dependency.id}.`);
             }
@@ -175,7 +179,7 @@ export class InstantiationService implements IInstantiationService {
 
         // ...
 
-        return <T>new ctor(...[...args, ...servicesArgs]);
+        return new ctor(...[...args, ...servicesArgs]);
     }
 
     private __getOrCreateDependencyInstance<T extends IService>(id: ServiceIdentifier<T>): T {
@@ -214,7 +218,7 @@ export class InstantiationService implements IInstantiationService {
             const currDependency: dependencyNode = stack.pop()!;
             dependencyGraph.getOrInsertNode(currDependency);
 
-            const dependencies = _ServiceUtil.getServiceDependencies(currDependency.desc.ctor);
+            const dependencies = getServiceDependencies(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
 
                 const instanceOrDesc = this.__getServiceInstanceOrDescriptor(subDependency.id);
@@ -265,17 +269,6 @@ export class InstantiationService implements IInstantiationService {
         return <T>this.__getServiceInstanceOrDescriptor(id);
     }
 
-    private __getServiceInstanceOrDescriptor<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
-        const instanceOrDesc = this.serviceCollections.get<T, TCtor>(id);
-
-        // if the current service does not have it, we try to get it from the parent
-        if (!instanceOrDesc && this.parent) {
-            return this.parent.__getServiceInstanceOrDescriptor(id);
-        }
-
-        return instanceOrDesc;
-    }
-
     private __setServiceInstance<T extends IService>(id: ServiceIdentifier<T>, instance: T): void {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
             this.serviceCollections.set(id, instance);
@@ -291,10 +284,21 @@ export class InstantiationService implements IInstantiationService {
         }
     }
 
-    private __createServiceInstanceWithOwner<T extends IService>(
+    private __getServiceInstanceOrDescriptor<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>): T | ServiceDescriptor<TCtor> {
+        const instanceOrDesc = this.serviceCollections.get<T, TCtor>(id);
+
+        // if the current service does not have it, we try to get it from the parent
+        if (!instanceOrDesc && this.parent) {
+            return this.parent.__getServiceInstanceOrDescriptor(id);
+        }
+
+        return instanceOrDesc;
+    }
+
+    private __createServiceInstanceWithOwner<T extends IService, TCtor extends Constructor>(
         id: ServiceIdentifier<T>,
-        ctor: any,
-        args: any[] = [],
+        ctor: TCtor,
+        args: NonServiceArguments<ConstructorParameters<TCtor>>,
         supportsDelayedInstantiation: boolean,
     ): T {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
@@ -310,20 +314,20 @@ export class InstantiationService implements IInstantiationService {
         }
     }
 
-    private ___createServiceInstance<T extends IService>(
-        ctor: any, 
-        args: any[] = [], 
-        _supportsDelayedInstantiation: boolean,
+    private ___createServiceInstance<T extends IService, TCtor extends Constructor>(
+        ctor: TCtor, 
+        args: NonServiceArguments<ConstructorParameters<TCtor>>, 
+        supportsDelayedInstantiation: boolean,
     ): T {
-        if (!_supportsDelayedInstantiation) {
+        if (!supportsDelayedInstantiation) {
             return this.__createInstance(ctor, args);
-
-        } else {
+        } 
+        else {
             // Return a proxy object that's backed by an idle value. That
             // strategy is to instantiate services in our idle time or when actually
             // needed but not when injected into a consumer
-            const idle = new IdleValue<any>(() => this.__createInstance<T>(ctor, args));
-            return <T>new Proxy(Object.create(null), {
+            const idle = new IdleValue(() => this.__createInstance(ctor, args));
+            return new Proxy(Object.create(null), {
                 get(target: any, key: PropertyKey): any {
                     if (key in target) {
                         return target[key];
