@@ -26,8 +26,8 @@ export interface IServiceProvider {
 }
 
 /**
- * Given a list of arguments as a tuple, attempt to extract the leading, 
- * non-service arguments to their own tuple.
+ * Given a list of parameters as a tuple, attempt to extract the leading, 
+ * non-service parameters to their own tuple.
  */
 export type NonServiceParameters<TArgs extends any[]> =
     TArgs extends []
