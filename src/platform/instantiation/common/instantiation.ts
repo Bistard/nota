@@ -1,5 +1,5 @@
 import { Constructor } from "src/base/common/util/type";
-import { createService, ServiceIdentifier, IService, getServiceDependencies } from "src/platform/instantiation/common/decorator";
+import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/platform/instantiation/common/idle";
@@ -166,7 +166,7 @@ export class InstantiationService implements IInstantiationService {
     // [private helper methods]
 
     private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
-        const serviceDependencies = getServiceDependencies(ctor).sort((a, b) => a.index - b.index);
+        const serviceDependencies = getDependencyTreeFor(ctor).sort((a, b) => a.index - b.index);
         const servicesArgs: unknown[] = [];
         
         for (const dependency of serviceDependencies) {
@@ -215,13 +215,13 @@ export class InstantiationService implements IInstantiationService {
         // use DFS 
         const stack = [{ id, desc }];
         while (stack.length) {
-            const currDependency: dependencyNode = stack.pop()!;
+            const currDependency = stack.pop()!;
             dependencyGraph.getOrInsertNode(currDependency);
 
-            const dependencies = getServiceDependencies(currDependency.desc.ctor);
+            const dependencies = getDependencyTreeFor<T, TCtor>(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
 
-                const instanceOrDesc = this.__getServiceInstanceOrDescriptor(subDependency.id);
+                const instanceOrDesc = this.__getServiceInstanceOrDescriptor<T, TCtor>(subDependency.id);
 
                 if (instanceOrDesc instanceof ServiceDescriptor) {
                     const uninstantiatedDependency = { id: subDependency.id, desc: instanceOrDesc };
@@ -232,7 +232,7 @@ export class InstantiationService implements IInstantiationService {
         }
 
         while (true) {
-            const roots: Node<dependencyNode>[] = dependencyGraph.roots();
+            const roots = dependencyGraph.roots();
 
             if (roots.length === 0) {
                 if (!dependencyGraph.isEmpty()) {

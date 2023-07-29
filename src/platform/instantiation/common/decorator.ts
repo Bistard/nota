@@ -1,41 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Constructor, ParameterDecorator } from "src/base/common/util/type";
 
-namespace __ServiceUtil {
-    
-    export const serviceIdentifierMap = new Map<string, ServiceIdentifier<any>>();
-
-    export const DI_TARGET = '$DI$tartget';
-    export const DI_DEPENDENCIES = '$DI$dependencies';
-
-    export function markDependencyAt(target: Function, id: Function, index: number, optional: boolean): void {
-
-        // initialization
-        if (!target[__ServiceUtil.DI_TARGET]) {
-            target[__ServiceUtil.DI_TARGET] = target;
-            target[__ServiceUtil.DI_DEPENDENCIES] = [];
-        }
-        
-        /**
-         * When applying a decorator to a child and parent class, since the 
-         * child class extends the parent ones, it also inherits the parent 
-         * dependency tree. We need to manually remove the inherited dependency 
-         * tree.
-         */
-        if (target[__ServiceUtil.DI_TARGET] !== target) {
-            target[__ServiceUtil.DI_TARGET] = target;
-            target[__ServiceUtil.DI_DEPENDENCIES] = [];
-        }
-
-        // mark the dependency on the target
-        target[__ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
-    }
-}
-
-export function getServiceDependencies<TCtor extends Constructor>(ctor: TCtor): { id: ServiceIdentifier<any>, index: number, optional: boolean; }[] {
-    return ctor[__ServiceUtil.DI_DEPENDENCIES] || [];
-}
-
 /**
  * Represents a decorator, as an identifier, for each unique microservice.
  * 
@@ -83,6 +48,16 @@ export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIden
     return <ServiceIdentifier<T>>serviceIdentifier;
 }
 
+export type ServiceDependency<T extends IService> = {
+    readonly id: ServiceIdentifier<T>;
+    readonly index: number;
+    readonly optional: boolean;
+};
+
+export function getDependencyTreeFor<T extends IService, TCtor extends Constructor>(ctor: TCtor): ServiceDependency<T>[] {
+    return ctor[__ServiceUtil.DI_DEPENDENCIES] ?? [];
+}
+
 /**
  * The purpose of this field can be to identify whether the class is used within 
  * a microservice architecture at compile time. 
@@ -91,4 +66,35 @@ export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIden
  */
 export interface IService {
     _serviceMarker: undefined;
+}
+
+namespace __ServiceUtil {
+    
+    export const serviceIdentifierMap = new Map<string, ServiceIdentifier<any>>();
+
+    export const DI_TARGET = '$DI$tartget';
+    export const DI_DEPENDENCIES = '$DI$dependencies';
+
+    export function markDependencyAt(target: Function, id: Function, index: number, optional: boolean): void {
+
+        // initialization
+        if (!target[__ServiceUtil.DI_TARGET]) {
+            target[__ServiceUtil.DI_TARGET] = target;
+            target[__ServiceUtil.DI_DEPENDENCIES] = [];
+        }
+        
+        /**
+         * When applying a decorator to a child and parent class, since the 
+         * child class extends the parent ones, it also inherits the parent 
+         * dependency tree. We need to manually remove the inherited dependency 
+         * tree.
+         */
+        if (target[__ServiceUtil.DI_TARGET] !== target) {
+            target[__ServiceUtil.DI_TARGET] = target;
+            target[__ServiceUtil.DI_DEPENDENCIES] = [];
+        }
+
+        // mark the dependency on the target
+        target[__ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
+    }
 }
