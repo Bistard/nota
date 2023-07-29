@@ -1,23 +1,19 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { ParameterDecorator } from "src/base/common/util/type";
+import { Constructor, ParameterDecorator } from "src/base/common/util/type";
 
-export namespace _ServiceUtil {
+namespace __ServiceUtil {
     
     export const serviceIdentifierMap = new Map<string, ServiceIdentifier<any>>();
 
     export const DI_TARGET = '$DI$tartget';
     export const DI_DEPENDENCIES = '$DI$dependencies';
 
-    export function getServiceDependencies(ctor: any): { id: ServiceIdentifier<any>, index: number, optional: boolean; }[] {
-        return ctor[DI_DEPENDENCIES] || [];
-    }
-
     export function markDependencyAt(target: Function, id: Function, index: number, optional: boolean): void {
 
         // initialization
-        if (!target[_ServiceUtil.DI_TARGET]) {
-            target[_ServiceUtil.DI_TARGET] = target;
-            target[_ServiceUtil.DI_DEPENDENCIES] = [];
+        if (!target[__ServiceUtil.DI_TARGET]) {
+            target[__ServiceUtil.DI_TARGET] = target;
+            target[__ServiceUtil.DI_DEPENDENCIES] = [];
         }
         
         /**
@@ -26,14 +22,18 @@ export namespace _ServiceUtil {
          * dependency tree. We need to manually remove the inherited dependency 
          * tree.
          */
-        if (target[_ServiceUtil.DI_TARGET] !== target) {
-            target[_ServiceUtil.DI_TARGET] = target;
-            target[_ServiceUtil.DI_DEPENDENCIES] = [];
+        if (target[__ServiceUtil.DI_TARGET] !== target) {
+            target[__ServiceUtil.DI_TARGET] = target;
+            target[__ServiceUtil.DI_DEPENDENCIES] = [];
         }
 
         // mark the dependency on the target
-        target[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
+        target[__ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
     }
+}
+
+export function getServiceDependencies<TCtor extends Constructor>(ctor: TCtor): { id: ServiceIdentifier<any>, index: number, optional: boolean; }[] {
+    return ctor[__ServiceUtil.DI_DEPENDENCIES] || [];
 }
 
 /**
@@ -52,7 +52,7 @@ export type ServiceIdentifier<T> = ParameterDecorator & { _: T; };
 export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
     // retrive the decorator from the cache
-    const cachedServiceIdentifier = _ServiceUtil.serviceIdentifierMap.get(serviceId);
+    const cachedServiceIdentifier = __ServiceUtil.serviceIdentifierMap.get(serviceId);
     if (cachedServiceIdentifier) {
         return cachedServiceIdentifier;
     }
@@ -67,13 +67,13 @@ export function createService<T>(serviceId: string): ServiceIdentifier<T> {
         if (arguments.length !== 3) {
             throw new Error(`[createService] decorator can only be used to decorate a class parameter: ${target}`);
         }
-        _ServiceUtil.markDependencyAt(target, serviceIdentifier, parameterIndex, false);
+        __ServiceUtil.markDependencyAt(target, serviceIdentifier, parameterIndex, false);
     };
     serviceIdentifier._ = undefined!;
     serviceIdentifier.toString = () => serviceId;
 
     // cache the decorator
-    _ServiceUtil.serviceIdentifierMap.set(serviceId, serviceIdentifier);
+    __ServiceUtil.serviceIdentifierMap.set(serviceId, serviceIdentifier);
 
     // return the decorator
     return serviceIdentifier;
