@@ -1,5 +1,5 @@
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
-import { registerSingleton } from "src/platform/instantiation/common/serviceCollection";
+import { registerService } from "src/platform/instantiation/common/serviceCollection";
 import { CommandService, ICommandService } from "src/platform/command/common/commandService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -14,6 +14,8 @@ import { ContextMenuService, IContextMenuService } from "src/workbench/services/
 import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
 import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
+import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
+import { Editor } from "src/workbench/parts/workspace/editor/editor";
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
@@ -22,26 +24,27 @@ import { IThemeService, ThemeService } from "src/workbench/services/theme/themeS
 export function rendererServiceRegistrations(): void {
 
     // communication
-    registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService, []));
+    registerService(IDialogService, new ServiceDescriptor(BrowserDialogService, []));
 
     // registration
-    registerSingleton(IKeyboardService, new ServiceDescriptor(KeyboardService, []));
-    registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService, []));
-    registerSingleton(ICommandService, new ServiceDescriptor(CommandService, []));
+    registerService(IKeyboardService, new ServiceDescriptor(KeyboardService, []));
+    registerService(IShortcutService, new ServiceDescriptor(ShortcutService, []));
+    registerService(ICommandService, new ServiceDescriptor(CommandService, []));
 
     // User Interface
-    registerSingleton(ILayoutService, new ServiceDescriptor(LayoutService, []));
-    registerSingleton(ISideBarService, new ServiceDescriptor(SideBar, []));
-    registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent, []));
-    registerSingleton(ISideViewService, new ServiceDescriptor(SideViewService, []));
-    registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
-    registerSingleton(IThemeService, new ServiceDescriptor(ThemeService, []));
-    registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService, []));
-    registerSingleton(IContextMenuService, new ServiceDescriptor(ContextMenuService, []));
+    registerService(ILayoutService, new ServiceDescriptor(LayoutService, []));
+    registerService(ISideBarService, new ServiceDescriptor(SideBar, []));
+    registerService(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent, []));
+    registerService(IEditorService, new ServiceDescriptor(Editor, []));
+    registerService(ISideViewService, new ServiceDescriptor(SideViewService, []));
+    registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
+    registerService(IThemeService, new ServiceDescriptor(ThemeService, []));
+    registerService(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService, []));
+    registerService(IContextMenuService, new ServiceDescriptor(ContextMenuService, []));
 
     // utilities && tools
-    registerSingleton(IContextService, new ServiceDescriptor(ContextService, []));
-    registerSingleton(INotificationService, new ServiceDescriptor(NotificationService, [])); // TODO: notificationService
+    registerService(IContextService, new ServiceDescriptor(ContextService, []));
+    registerService(INotificationService, new ServiceDescriptor(NotificationService, [])); // TODO: notificationService
     // TODO: performanceService
     // TODO: folderTreeService
     // TODO: notebookTreeService

@@ -3,9 +3,7 @@ import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
-import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { registerSingleton } from "src/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { ISideViewService } from "src/workbench/parts/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
@@ -100,5 +98,3 @@ export class Editor extends Component implements IEditorService {
     // [private helper methods]
 
 }
-
-registerSingleton(IEditorService, new ServiceDescriptor(Editor, []));

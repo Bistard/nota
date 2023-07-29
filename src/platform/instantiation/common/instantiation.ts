@@ -94,7 +94,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * @param callback The callback function.
      * @param args The arguments for creating the requesting service.
      */
-    getOrCreateService1<T extends IService, R extends any[]>(callback: (provider: IServiceProvider, ...args: R) => T, ...args: R): T;
+    getOrCreateService1<T extends IService, TArgs extends any[]>(callback: (provider: IServiceProvider, ...args: TArgs) => T, ...args: TArgs): T;
 }
 
 export class InstantiationService implements IInstantiationService {
@@ -166,8 +166,8 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance<TCtor extends Constructor>(constructor: TCtor, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
-    public createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(constructor: TCtor,                                 ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>,               ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         let instance: InstanceType<TCtor>;
 
