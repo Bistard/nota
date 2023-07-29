@@ -29,11 +29,11 @@ export interface IServiceProvider {
  * Given a list of arguments as a tuple, attempt to extract the leading, 
  * non-service arguments to their own tuple.
  */
-export type NonServiceArguments<TArgs extends any[]> =
+export type NonServiceParameters<TArgs extends any[]> =
     TArgs extends []
         ? []
         : TArgs extends [...infer TFirst, IService]
-            ? NonServiceArguments<TFirst>
+            ? NonServiceParameters<TFirst>
             : TArgs;
 
 /**
@@ -58,7 +58,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
      * @param rest all the arguments for that service.
      */
-    createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -151,11 +151,11 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
+    public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         let instance: InstanceType<TCtor>;
 
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            const args = <NonServiceArguments<ConstructorParameters<TCtor>>>ctorOrDescriptor.args.concat(rest);
+            const args = <NonServiceParameters<ConstructorParameters<TCtor>>>ctorOrDescriptor.args.concat(rest);
             instance = this.__createInstance(ctorOrDescriptor.ctor, args);
         } else {
             instance = this.__createInstance(ctorOrDescriptor, rest);
@@ -170,7 +170,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [private helper methods]
 
-    private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
+    private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
         const constructor = ctor;
         
         const serviceDependencies = getDependencyTreeFor(constructor).sort((a, b) => a.index - b.index);
@@ -305,7 +305,7 @@ export class InstantiationService implements IInstantiationService {
     private __createServiceInstanceWithOwner<T extends IService, TCtor extends Constructor>(
         id: ServiceIdentifier<T>,
         ctor: TCtor,
-        args: NonServiceArguments<ConstructorParameters<TCtor>>,
+        args: NonServiceParameters<ConstructorParameters<TCtor>>,
         supportsDelayedInstantiation: boolean,
     ): T {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
@@ -323,7 +323,7 @@ export class InstantiationService implements IInstantiationService {
 
     private ___createServiceInstance<T extends IService, TCtor extends Constructor>(
         ctor: TCtor, 
-        args: NonServiceArguments<ConstructorParameters<TCtor>>, 
+        args: NonServiceParameters<ConstructorParameters<TCtor>>, 
         supportsDelayedInstantiation: boolean,
     ): T {
         if (!supportsDelayedInstantiation) {
