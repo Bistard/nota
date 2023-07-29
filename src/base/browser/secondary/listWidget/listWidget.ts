@@ -13,7 +13,7 @@ import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "sr
 import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { isNumber, NulltoUndefined } from "src/base/common/util/type";
+import { isNumber, nullToUndefined } from "src/base/common/util/type";
 
 /**
  * The index changed in {@link ListTrait}.
@@ -623,7 +623,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return {
             ...event,
             position: { x: e.pageX + 1, y: e.pageY },
-            target: isNumber(event.actualIndex) ? NulltoUndefined(this.view.getHTMLElement(event.actualIndex)) : undefined,
+            target: isNumber(event.actualIndex) ? nullToUndefined(this.view.getHTMLElement(event.actualIndex)) : undefined,
         };
     }
 
