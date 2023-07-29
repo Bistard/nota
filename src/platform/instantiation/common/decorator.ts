@@ -2,35 +2,38 @@
 import { ParameterDecorator } from "src/base/common/util/type";
 
 export namespace _ServiceUtil {
-    export const serviceIdentifiers = new Map<string, ServiceIdentifier<any>>();
+    
+    export const serviceIdentifierMap = new Map<string, ServiceIdentifier<any>>();
+
     export const DI_TARGET = '$DI$tartget';
     export const DI_DEPENDENCIES = '$DI$dependencies';
 
-    export function getServiceDependencies(ctor: any): { id: ServiceIdentifier<any>, index: number, optional: boolean }[] {
+    export function getServiceDependencies(ctor: any): { id: ServiceIdentifier<any>, index: number, optional: boolean; }[] {
         return ctor[DI_DEPENDENCIES] || [];
     }
 
-    export function markDependencyAt(target: object, id: Function, index: number, optional: boolean): void {
-       
-       // initialization
-       {
-           if (!target[_ServiceUtil.DI_TARGET]) {
-               target[_ServiceUtil.DI_TARGET] = target;
-           }
-       
-           if (!target[_ServiceUtil.DI_DEPENDENCIES]) {
-               target[_ServiceUtil.DI_DEPENDENCIES] = [];
-           }
-       }
-       
-       // unexpected behaviour, we throw an error.
-       if (target[_ServiceUtil.DI_TARGET] !== target) {
-           throw new Error(`[__storeServiceDependency] '${target}[${_ServiceUtil.DI_TARGET}]' is already used`);
-       }
-   
-       // mark the dependency on the target
-       target[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
-   }
+    export function markDependencyAt(target: Function, id: Function, index: number, optional: boolean): void {
+
+        // initialization
+        if (!target[_ServiceUtil.DI_TARGET]) {
+            target[_ServiceUtil.DI_TARGET] = target;
+            target[_ServiceUtil.DI_DEPENDENCIES] = [];
+        }
+        
+        /**
+         * When applying a decorator to a child and parent class, since the 
+         * child class extends the parent ones, it also inherits the parent 
+         * dependency tree. We need to manually remove the inherited dependency 
+         * tree.
+         */
+        if (target[_ServiceUtil.DI_TARGET] !== target) {
+            target[_ServiceUtil.DI_TARGET] = target;
+            target[_ServiceUtil.DI_DEPENDENCIES] = [];
+        }
+
+        // mark the dependency on the target
+        target[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
+    }
 }
 
 /**
@@ -39,7 +42,7 @@ export namespace _ServiceUtil {
  * @warn The usage of `& { _: T}` is necessary for type inferring. But should not
  * be used in runtime usage.
  */
-export type ServiceIdentifier<T> = ParameterDecorator & { _: T };
+export type ServiceIdentifier<T> = ParameterDecorator & { _: T; };
 
 /**
  * @description The 'ONLY' valid way to create a {@link ServiceIdentifier<T>}.
@@ -49,7 +52,7 @@ export type ServiceIdentifier<T> = ParameterDecorator & { _: T };
 export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
     // retrive the decorator from the cache
-    const cachedServiceIdentifier = _ServiceUtil.serviceIdentifiers.get(serviceId);
+    const cachedServiceIdentifier = _ServiceUtil.serviceIdentifierMap.get(serviceId);
     if (cachedServiceIdentifier) {
         return cachedServiceIdentifier;
     }
@@ -60,24 +63,24 @@ export function createService<T>(serviceId: string): ServiceIdentifier<T> {
      * @param target the class
      * @param index the index of the parameter
      */
-    const serviceIdentifier: ServiceIdentifier<T> = function (target: object, propertyKey: string | undefined, parameterIndex: number): any {
+    const serviceIdentifier: ServiceIdentifier<T> = function (target: Function, propertyKey: string | undefined, parameterIndex: number): any {
         if (arguments.length !== 3) {
             throw new Error(`[createService] decorator can only be used to decorate a class parameter: ${target}`);
         }
-        _ServiceUtil.markDependencyAt(target, serviceIdentifier, parameterIndex, false);        
+        _ServiceUtil.markDependencyAt(target, serviceIdentifier, parameterIndex, false);
     };
     serviceIdentifier._ = undefined!;
     serviceIdentifier.toString = () => serviceId;
 
     // cache the decorator
-    _ServiceUtil.serviceIdentifiers.set(serviceId, serviceIdentifier);
+    _ServiceUtil.serviceIdentifierMap.set(serviceId, serviceIdentifier);
 
     // return the decorator
-	return serviceIdentifier;
+    return serviceIdentifier;
 }
 
 export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIdentifier<T1>): ServiceIdentifier<T> {
-	return <ServiceIdentifier<T>>serviceIdentifier;
+    return <ServiceIdentifier<T>>serviceIdentifier;
 }
 
 /**
