@@ -1,6 +1,6 @@
 import { Constructor } from "src/base/common/util/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
-import { Graph, Node } from "src/platform/instantiation/common/dependencyGraph";
+import { Graph } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/platform/instantiation/common/idle";
 import { ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
@@ -8,6 +8,7 @@ import { ServiceCollection } from "src/platform/instantiation/common/serviceColl
 export const IInstantiationService = createService<IInstantiationService>('instantiation-service');
 
 export interface IServiceProvider {
+    
     /**
      * @description try to get the instance of the service (if not, this will 
      * not automatically create one for you YET).
@@ -39,8 +40,9 @@ export type NonServiceArguments<TArgs extends any[]> =
  * An interface only for {@link InstantiationService}.
  */
 export interface IInstantiationService extends IServiceProvider, IService {
-
+    
     readonly serviceCollections: ServiceCollection;
+    readonly parent?: InstantiationService;
 
     /**
      * @description Register a service either using an instance or the 
@@ -93,7 +95,10 @@ export class InstantiationService implements IInstantiationService {
 
     // [constructor]
 
-    constructor(serviceCollections: ServiceCollection = new ServiceCollection(), parent?: InstantiationService) {
+    constructor(
+        serviceCollections: ServiceCollection = new ServiceCollection(), 
+        parent?: InstantiationService,
+    ) {
         this.serviceCollections = serviceCollections;
         this.parent = parent;
     }
@@ -112,7 +117,7 @@ export class InstantiationService implements IInstantiationService {
         }
 
         if (service === undefined || service instanceof ServiceDescriptor) {
-            throw new Error(`cannot get service with identifier ${serviceIdentifier}`);
+            throw new Error(`cannot get service with identifier '${serviceIdentifier.name}'`);
         }
         return service;
     }
@@ -120,7 +125,7 @@ export class InstantiationService implements IInstantiationService {
     public getOrCreateService<T extends IService>(serviceIdentifier: ServiceIdentifier<T>): T {
         const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
         if (!service) {
-            throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
+            throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
         }
         return service;
     }
@@ -130,14 +135,14 @@ export class InstantiationService implements IInstantiationService {
             getService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.serviceCollections.get(serviceIdentifier);
                 if (!service || service instanceof ServiceDescriptor) {
-                    throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
+                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
                 }
                 return service;
             },
             getOrCreateService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
                 if (!service) {
-                    throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
+                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
                 }
                 return service;
             }
@@ -147,16 +152,16 @@ export class InstantiationService implements IInstantiationService {
     }
 
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
-        let res: InstanceType<TCtor>;
+        let instance: InstanceType<TCtor>;
 
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
             const args = <NonServiceArguments<ConstructorParameters<TCtor>>>ctorOrDescriptor.args.concat(rest);
-            res = this.__createInstance(ctorOrDescriptor.ctor, args);
+            instance = this.__createInstance(ctorOrDescriptor.ctor, args);
         } else {
-            res = this.__createInstance(ctorOrDescriptor, rest);
+            instance = this.__createInstance(ctorOrDescriptor, rest);
         }
         
-        return res;
+        return instance;
     }
 
     public createChild(collection?: ServiceCollection): IInstantiationService {
@@ -166,20 +171,22 @@ export class InstantiationService implements IInstantiationService {
     // [private helper methods]
 
     private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: NonServiceArguments<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
-        const serviceDependencies = getDependencyTreeFor(ctor).sort((a, b) => a.index - b.index);
+        const constructor = ctor;
+        
+        const serviceDependencies = getDependencyTreeFor(constructor).sort((a, b) => a.index - b.index);
         const servicesArgs: unknown[] = [];
         
         for (const dependency of serviceDependencies) {
             const service = this.__getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
-                throw new Error(`[createInstance] ${ctor.name} depends on UNKNOWN service ${dependency.id}.`);
+                throw new Error(`[createInstance] '${constructor.name}' depends on UNKNOWN service '${dependency.id}'.`);
             }
             servicesArgs.push(service);
         }
 
         // ...
 
-        return new ctor(...[...args, ...servicesArgs]);
+        return new constructor(...[...args, ...servicesArgs]);
     }
 
     private __getOrCreateDependencyInstance<T extends IService>(id: ServiceIdentifier<T>): T {
@@ -310,7 +317,7 @@ export class InstantiationService implements IInstantiationService {
         }
 
         else {
-            throw new Error(`creating UNKNOWN service instance ${ctor.name}`);
+            throw new Error(`creating UNKNOWN service instance '${ctor.name}'`);
         }
     }
 

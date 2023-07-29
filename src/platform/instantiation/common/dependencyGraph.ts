@@ -1,17 +1,13 @@
-import { Callable, isEmptyObject } from "src/base/common/util/type";
+import { Callable, StringDictionary, isEmptyObject } from "src/base/common/util/type";
 
-export interface IStringDictionary<T> {
-    [key: string]: T;
-}
-
-export function forEach<T>(
-    target: IStringDictionary<T>, 
+function forEach<T>(
+    target: StringDictionary<T>, 
     callback: Callable<[{ key: string, value: T }, Callable], any>): void 
 {
     for (const key in target) {
         if (Object.prototype.hasOwnProperty.call(target, key)) {
             const result = callback(
-                { key: key, value: target[key] as T }, function() {
+                { key: key, value: <T>target[key] }, function() {
                     delete target[key];
                 }
             );
@@ -22,7 +18,7 @@ export function forEach<T>(
     }
 }
 
-export class Node<T> {
+class Node<T> {
     constructor(
         public data: T, 
         public from: { [key: string]: Node<T> } = Object.create(null), 
@@ -34,12 +30,18 @@ export class Node<T> {
 
 export class Graph<T> {
 
+    // [fields]
+
     private _nodes: { [key: string]: Node<T> } = Object.create(null);
     private _getName: (data: T) => string;
     
+    // [constructor]
+
     constructor(_fn: (data: T) => string) {
         this._getName = _fn;
     }
+
+    // [public methods]
 
     public isEmpty(): boolean {
         for (const _key in this._nodes) {
@@ -97,5 +99,4 @@ export class Graph<T> {
 		});
 		return data.join('\n');
 	}
-
 }
