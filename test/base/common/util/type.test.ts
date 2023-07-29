@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/util/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, NulltoUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/util/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/util/type';
 
 suite('type-test', () => {
 
@@ -94,9 +94,14 @@ suite('type-test', () => {
         assert.strictEqual(isNonNullable(0), true);
     });
 
-    test('NulltoUndefined', () => {
-        assert.strictEqual(NulltoUndefined(null), undefined);
-        assert.strictEqual(NulltoUndefined('null'), 'null');
+    test('nullToUndefined', () => {
+        assert.strictEqual(nullToUndefined(null), undefined);
+        assert.strictEqual(nullToUndefined(undefined), undefined);
+        assert.strictEqual(nullToUndefined(0), 0);
+        assert.strictEqual(nullToUndefined(''), '');
+        assert.strictEqual(nullToUndefined(-1), -1);
+        assert.strictEqual(nullToUndefined(false), false);
+        assert.strictEqual(nullToUndefined('null'), 'null');
     });
 
     test('ifOrDefault', () => {
