@@ -60,7 +60,8 @@
         "@typescript-eslint/no-empty-interface": "off", // could be 'warn'
         "@typescript-eslint/no-empty-function": "off", // could be 'warn'
 
-        "local/code-no-plain-enum": "error"
+        "local/code-no-plain-enum": "error",
+        "local/code-interface-check": "error"
     },
 
     "overrides": [
