@@ -144,7 +144,7 @@ export function isExpectedError(error: any): error is ExpectedError {
     return error.type === ErrorType.Expected;
 }
 
-const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for more detaileds.';
+const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for more details.';
 
 /**
  * @description Try to convert an error to a human readable message in string.
