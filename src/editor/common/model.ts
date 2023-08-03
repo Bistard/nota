@@ -430,7 +430,7 @@ export interface IEditorModelOptions {
 
 export namespace IModelEvent {
 
-    export interface ContentChange {
+    export interface IContentChange {
 
     }
 

@@ -696,9 +696,9 @@ export class Throttler implements IThrottler {
 	}
 }
 
-interface __Scheduler extends IDisposable {
+type __Scheduler = IDisposable & {
 	onSchedule(): boolean;
-}
+};
 
 /** 
  * Can be passed into the {@link Debouncer.queue} to schedule using a microtask.

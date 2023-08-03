@@ -2,7 +2,7 @@ import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/workbench/services/component/componentService';
-import { Ii18nService } from 'src/platform/i18n/common/i18n';
+import { II18nService } from 'src/platform/i18n/common/i18n';
 import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
@@ -23,7 +23,7 @@ import { VisibilityController } from 'src/base/browser/basic/visibilityControlle
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
+import { IClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { errorToMessage } from 'src/base/common/error';
@@ -51,7 +51,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
     // [event]
 
-    private readonly _onDidOpen = this.__register(new Emitter<ClassicOpenEvent>());
+    private readonly _onDidOpen = this.__register(new Emitter<IClassicOpenEvent>());
     public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]
@@ -61,7 +61,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @IDialogService private readonly dialogService: IBrowserDialogService,
-        @Ii18nService private readonly i18nService: Ii18nService,
+        @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
         @ILogService private readonly logService: ILogService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
@@ -371,7 +371,7 @@ export class Toolbar {
 export class ExplorerTitlePart extends SideViewTitlePart {
 
     constructor(
-        private readonly i18nService: Ii18nService,
+        private readonly i18nService: II18nService,
     ) {
         super();
     }

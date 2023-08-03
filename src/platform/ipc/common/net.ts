@@ -594,7 +594,7 @@ export interface IConnection {
     readonly channelClient: ChannelClient;
 }
 
-export interface ClientConnectEvent {
+export interface IClientConnectEvent {
     readonly clientID: number | string;
     readonly protocol: IProtocol;
     onClientDisconnect: Register<void>;
@@ -618,14 +618,14 @@ export class ServerBase extends Disposable implements IChannelServer {
 
     // [constructor]
 
-    constructor(onClientConnect: Register<ClientConnectEvent>, protected readonly logService?: ILogService) {
+    constructor(onClientConnect: Register<IClientConnectEvent>, protected readonly logService?: ILogService) {
         super();
         /**
          * When client connect to the server and recieve its first request, we 
          * register all the current channels to it and register its onDisconnect
          * event.
          */
-        this.__register(onClientConnect((event: ClientConnectEvent) => {
+        this.__register(onClientConnect((event: IClientConnectEvent) => {
             this.logService?.debug(`[ServerBase] client on connection with ID: ${event.clientID}`);
             const protocol = event.protocol;
 

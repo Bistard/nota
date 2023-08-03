@@ -3,7 +3,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, NodeEventEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { memoize } from "src/base/common/memoization";
-import { OpenDialogOptions } from "src/platform/dialog/common/dialog";
+import { IOpenDialogOptions } from "src/platform/dialog/common/dialog";
 import { IMainDialogService } from "src/platform/dialog/electron/mainDialogService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { IpcChannel } from "src/platform/ipc/common/channel";
@@ -115,7 +115,7 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.close();
     }
 
-    public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
+    public async showOpenDialog(opts: Electron.IOpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         return this.dialogService.showOpenDialog(opts, browserWindow);
     }
@@ -130,15 +130,15 @@ export class MainHostService extends Disposable implements IMainHostService {
         return this.dialogService.showMessageBox(opts, browserWindow);
     }
 
-    public async openFileDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
+    public async openFileDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         return this.__openDialogAndOpen(opts, windowID);
     }
 
-    public async openDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
+    public async openDirectoryDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         return this.__openDialogAndOpen(opts, windowID);
     }
 
-    public async openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
+    public async openFileOrDirectoryDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         return this.__openDialogAndOpen(opts, windowID);
     }
 
@@ -183,14 +183,14 @@ export class MainHostService extends Disposable implements IMainHostService {
         return this.windowService.getWindowByID(id);
     }
 
-    private async __openDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
+    private async __openDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
         const uriToOpen = picked.map(path => URI.fromFile(path));
         this.__openPicked(uriToOpen, windowID, opts);
     }
 
-    private __openPicked(uriToOpen: URI[], windowID: number | undefined, opts: OpenDialogOptions): void {
+    private __openPicked(uriToOpen: URI[], windowID: number | undefined, opts: IOpenDialogOptions): void {
         this.windowService.open({
             uriToOpen: uriToOpen,
             forceNewWindow: opts.forceNewWindow,

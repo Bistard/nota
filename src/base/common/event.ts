@@ -34,13 +34,13 @@ export type AsyncListener<E> = (e: E) => Promise<any>;
  * disposables after registrations.
  * @param thisObject The object to be used as the `this` object.
  */
-export interface Register<T> {
+export type Register<T> = {
 	(listener: Listener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
-}
+};
 
-export interface AsyncRegister<T> {
+export type AsyncRegister<T> = {
     (listener: AsyncListener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
-}
+};
 
 export interface IEmitter<T> {
     /**

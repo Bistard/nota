@@ -27,12 +27,12 @@ export interface IHostService extends IService {
     closeWindow(id?: number): Promise<void>;
 
     // dialog-service
-    showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue>;
+    showOpenDialog(opts: Electron.IOpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue>;
     showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue>;
     showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue>;
-    openFileDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void>;
-    openDirectoryDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void>;
-    openFileOrDirectoryDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void>;
+    openFileDialogAndOpen(opts: Electron.IOpenDialogOptions, id?: number): Promise<void>;
+    openDirectoryDialogAndOpen(opts: Electron.IOpenDialogOptions, id?: number): Promise<void>;
+    openFileOrDirectoryDialogAndOpen(opts: Electron.IOpenDialogOptions, id?: number): Promise<void>;
 
     // dev-tools
     openDevTools(options?: Electron.OpenDevToolsOptions, id?: number): Promise<void>;

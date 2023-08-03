@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 
-export interface IdleDeadline {
+export interface IIdleDeadline {
 	readonly didTimeout: boolean;
 	timeRemaining(): number;
 }
@@ -8,14 +8,14 @@ export interface IdleDeadline {
 /**
  * Function for executing the callback when the next time the browser is idle
  */
-export let runWhenIdle: (callback: (idle: IdleDeadline) => void, timeout?: number) => IDisposable;
+export let runWhenIdle: (callback: (idle: IIdleDeadline) => void, timeout?: number) => IDisposable;
 
-declare function requestIdleCallback(callback: (args: IdleDeadline) => void, options?: { timeout: number }): number;
+declare function requestIdleCallback(callback: (args: IIdleDeadline) => void, options?: { timeout: number }): number;
 declare function cancelIdleCallback(handle: number): void;
 
 (function () {
 	if (typeof requestIdleCallback !== 'function' || typeof cancelIdleCallback !== 'function') {
-		const dummyIdle: IdleDeadline = Object.freeze({
+		const dummyIdle: IIdleDeadline = Object.freeze({
 			didTimeout: true,
 			timeRemaining() { return 15; }
 		});

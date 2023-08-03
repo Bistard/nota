@@ -11,12 +11,12 @@ import { Callable } from "src/base/common/util/type";
 /**
  * @link https://electronjs.org/docs/api/structures/ipc-renderer-event
  */
-export interface IpcRendererEvent extends Event {
+export interface IIpcRendererEvent extends Event {
 
 	/**
-	 * The IpcRenderer instance that emitted the event originally.
+	 * The IIpcRenderer instance that emitted the event originally.
 	 */
-	readonly sender: IpcRenderer;
+	readonly sender: IIpcRenderer;
 
 	/**
 	 * The webContents.id that sent the message, you can call 
@@ -31,19 +31,19 @@ export interface IpcRendererEvent extends Event {
 /**
  * @link https://www.electronjs.org/docs/latest/api/ipc-renderer
  */
-export interface IpcRenderer {
+export interface IIpcRenderer {
 
 	/**
 	 * Listens to the channel, when a new message arrives listener would be 
 	 * called with `listener(event, args...)`.
 	 */
-	on(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): this;
+	on(channel: string, listener: (event: IIpcRendererEvent, ...args: any[]) => void): this;
 
 	/**
 	 * Adds a one time `listener` function for the event. This `listener` is invoked
 	 * only the next time a message is sent to `channel`, after which it is removed.
 	 */
-	once(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): this;
+	once(channel: string, listener: (event: IIpcRendererEvent, ...args: any[]) => void): this;
 
 	/**
 	 * Removes the specified `listener` from the listener array for the specified

@@ -5,7 +5,7 @@ import { Stack } from "src/base/common/util/array";
 import { isNullable } from "src/base/common/util/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
-import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/proseMirror";
+import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
@@ -111,7 +111,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     }
 }
 
-interface ParsingNodeState {
+interface IParsingNodeState {
     readonly ctor: ProseNodeType;
     children: ProseNode[];
     marks: readonly ProseMark[];
@@ -202,12 +202,12 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
      * itself does not control the process, the {@link IDocumentNode} has full
      * control over it.
      */
-    private readonly _actives: Stack<ParsingNodeState>;
+    private readonly _actives: Stack<IParsingNodeState>;
     private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _parser: DocumentParser;
 
     private readonly _defaultNodeType: ProseNodeType;
-    private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => ProseTextNode;
+    private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => IProseTextNode;
 
     // [event]
 
@@ -327,7 +327,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         }
         
         const newText = previous.text + textNode.text;
-        const mergedNode = (<ProseTextNode>previous).withText(newText);
+        const mergedNode = (<IProseTextNode>previous).withText(newText);
         
         active.children[lastIdx] = mergedNode;
     }
@@ -363,14 +363,14 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [private helper methods]
 
-    private __getActive(): ParsingNodeState {
+    private __getActive(): IParsingNodeState {
         if (this._actives.empty()) {
             throw new Error('Current document parsing state has no active tokens.');
         }
         return this._actives.top();
     }
 
-    private __popActive(): ParsingNodeState {
+    private __popActive(): IParsingNodeState {
         if (this._actives.empty()) {
             throw new Error('Current document parsing state has no active tokens.');
         }

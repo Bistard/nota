@@ -1,4 +1,4 @@
-import { IpcRenderer } from "electron";
+import { IIpcRenderer } from "electron";
 import { executeOnce } from "src/base/common/util/function";
 import { Mutable } from "src/base/common/util/type";
 import { ISandboxProcess } from "src/platform/electron/common/electronType";
@@ -37,7 +37,7 @@ export const GLOBAL: any = (
         )
 );
 
-export const ipcRenderer: IpcRenderer = <any>{};
+export const ipcRenderer: IIpcRenderer = <any>{};
 export const process: Mutable<ISandboxProcess> = <any>{};
 export const windowConfiguration: IWindowConfiguration = <any>{};
 
@@ -47,7 +47,7 @@ export const windowConfiguration: IWindowConfiguration = <any>{};
  */
 export const initExposedElectronAPIs = executeOnce(function () {
     if (typeof GLOBAL === 'object') {
-        (<Mutable<IpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
+        (<Mutable<IIpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
         (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
         (<Mutable<IWindowConfiguration>>windowConfiguration) = GLOBAL.nota.windowConfiguration;
     } else {

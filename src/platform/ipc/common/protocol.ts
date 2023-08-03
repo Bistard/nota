@@ -27,7 +27,7 @@ export interface IProtocol {
 
 /**
  * @class Used here for communication between different electron processes such
- * as IpcRenderer and IpcMain.
+ * as IIpcRenderer and IpcMain.
  * 
  * @note The only valid data for transfering is {@link DataBuffer}. 
  * @note The actual data type being transfered using IPC is {@link Uint8Array}.

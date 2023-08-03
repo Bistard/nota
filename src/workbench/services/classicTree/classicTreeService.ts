@@ -1,6 +1,6 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
-import { ClassicOpenEvent, ClassicTree, IClassicTree } from "src/workbench/services/classicTree/classicTree";
+import { IClassicOpenEvent, ClassicTree, IClassicTree } from "src/workbench/services/classicTree/classicTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ClassicChildrenProvider, ClassicItem } from "src/workbench/services/classicTree/classicItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
@@ -26,7 +26,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
 
     // [event]
 
-    get onSelect(): Register<ClassicOpenEvent<ClassicItem>> {
+    get onSelect(): Register<IClassicOpenEvent<ClassicItem>> {
         return this._tree!.onSelect;
     }
 

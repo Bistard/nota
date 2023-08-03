@@ -1,5 +1,5 @@
 import "src/base/browser/secondary/scrollableWidget/scrollableWidget.scss";
-import { AbstractScrollbar, ScrollBarHost } from "src/base/browser/basic/scrollbar/abstractScrollbar";
+import { AbstractScrollbar, IScrollBarHost } from "src/base/browser/basic/scrollbar/abstractScrollbar";
 import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontalScrollbar";
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
@@ -54,7 +54,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         this._isMouseOver = false;
 
         // scrollbar creation
-        const host: ScrollBarHost = {
+        const host: IScrollBarHost = {
             onSliderDragStart: () => this._onSliderDragStart(),
             onSliderDragStop: () => this._onSliderDragStop()
         };

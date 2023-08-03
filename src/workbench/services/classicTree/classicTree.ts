@@ -7,7 +7,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
 
-export interface ClassicOpenEvent<T extends ClassicItem> {
+export interface IClassicOpenEvent<T extends ClassicItem> {
     readonly item: T;
 }
 
@@ -79,7 +79,7 @@ export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onSelect: Register<ClassicOpenEvent<T>>;
+    readonly onSelect: Register<IClassicOpenEvent<T>>;
 
     /**
      * @description
@@ -100,7 +100,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _onSelect = new Emitter<ClassicOpenEvent<T>>();
+    private readonly _onSelect = new Emitter<IClassicOpenEvent<T>>();
     public readonly onSelect = this._onSelect.registerListener;
 
     // [constructor]

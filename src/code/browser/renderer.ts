@@ -28,7 +28,7 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IHostService } from "src/platform/host/common/hostService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/platform/i18n/common/i18n";
+import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
@@ -153,7 +153,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // i18n-service
         // REVIEW: try late initialization
         const i18nService = new i18n(
-            <Ii18nOpts>{
+            <II18nOpts>{
                 language: configuraionService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
                 localeOpts: {},
             },
@@ -161,7 +161,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             logService,
             environmentService,
         );
-        instantiationService.register(Ii18nService, i18nService);
+        instantiationService.register(II18nService, i18nService);
 
         // singleton initializations
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
@@ -174,7 +174,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
         const configuraionService = instantiaionService.getService(IConfigurationService);
         const environmentService = instantiaionService.getService(IBrowserEnvironmentService);
-        const i18nService = instantiaionService.getService(Ii18nService);
+        const i18nService = instantiaionService.getService(II18nService);
         const productService = instantiaionService.getService(IProductService);
 
         return Promise.all<any>([

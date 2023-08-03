@@ -3,7 +3,7 @@ import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IScheduler, Scheduler } from "src/base/common/util/async";
 import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
-import { ClassicOpenEvent } from "src/workbench/services/classicTree/classicTree";
+import { IClassicOpenEvent } from "src/workbench/services/classicTree/classicTree";
 import { ClassicTreeService, IClassicTreeService } from "src/workbench/services/classicTree/classicTreeService";
 import { ITreeService, TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { INotebookTreeService, NotebookTreeService } from "src/workbench/services/notebookTree/notebookTreeService";
@@ -16,7 +16,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
-export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent<ClassicItem> | any> {
+export interface IExplorerTreeService extends ITreeService<IClassicOpenEvent<ClassicItem> | any> {
 
     /**
      * The displaying tree mode.

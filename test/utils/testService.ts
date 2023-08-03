@@ -11,7 +11,7 @@ import { IKeyboardService } from "src/workbench/services/keyboard/keyboardServic
 import { ContextService } from "src/platform/context/common/contextService";
 import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
 import { IBrowserEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
-import { ClientBase, ClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
+import { ClientBase, IClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
 import { IProtocol } from "src/platform/ipc/common/protocol";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { IWindowConfiguration } from "src/platform/window/common/window";
@@ -26,10 +26,10 @@ export namespace TestIPC {
 
     export class IpcServer extends ServerBase {
 
-        private readonly _onDidClientConnect: Emitter<ClientConnectEvent>;
+        private readonly _onDidClientConnect: Emitter<IClientConnectEvent>;
 
         constructor() {
-            const onDidClientConnect = new Emitter<ClientConnectEvent>();
+            const onDidClientConnect = new Emitter<IClientConnectEvent>();
             super(onDidClientConnect.registerListener, new NullLogger());
             this._onDidClientConnect = onDidClientConnect;
             this.__register(onDidClientConnect);

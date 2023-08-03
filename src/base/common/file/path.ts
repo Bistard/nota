@@ -34,7 +34,7 @@
 
 import { SafeProcess } from 'src/base/common/process';
 
-export interface ParsedPath {
+export interface IParsedPath {
     root: string;
     dir: string;
     base: string;
@@ -108,13 +108,13 @@ export interface IPath {
      * Returns a path string from an object - the opposite of parse().
      * @param pathString path to evaluate.
      */
-    format(pathObject: ParsedPath): string;
+    format(pathObject: IParsedPath): string;
     
     /**
      * Returns an object from a path string - the opposite of format().
      * @param pathString path to evaluate.
      */
-    parse(path: string): ParsedPath;
+    parse(path: string): IParsedPath;
     
     /**
      * On Windows systems only, returns an equivalent namespace-prefixed path for the given path.
@@ -250,7 +250,7 @@ function normalizeString(path: string, allowAboveRoot: boolean, separator: strin
     return res;
 }
 
-function _format(sep: string, pathObject: ParsedPath) {
+function _format(sep: string, pathObject: IParsedPath) {
     if (pathObject === null || typeof pathObject !== 'object') {
         throw new ErrorInvalidArgType('pathObject', 'Object', pathObject);
     }
@@ -1467,7 +1467,7 @@ export const posix: IPath = {
 
     format: _format.bind(null, '/'),
 
-    parse(path: string): ParsedPath {
+    parse(path: string): IParsedPath {
         validateString(path, 'path');
 
         const ret = { root: '', dir: '', base: '', ext: '', name: '' };

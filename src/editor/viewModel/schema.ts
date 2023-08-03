@@ -1,5 +1,5 @@
 import { Dictionary } from "src/base/common/util/type";
-import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, ProseTextNode } from "src/editor/common/proseMirror";
+import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, IProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 
 /**
@@ -17,8 +17,8 @@ export class EditorSchema extends ProseSchema<string, string> {
 		return this.marks[name];
 	}
 
-	public override text(text: string, marks?: readonly ProseMark[]): ProseTextNode {
-		return <ProseTextNode>super.text(text, marks);
+	public override text(text: string, marks?: readonly ProseMark[]): IProseTextNode {
+		return <IProseTextNode>super.text(text, marks);
 	}
 }
 

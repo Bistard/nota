@@ -922,14 +922,14 @@ export class BaseElement extends Disposable implements IBaseElement {
 	}
 }
 
-export interface DomEventLike {
+export interface IDomEventLike {
 	preventDefault(): void;
 	stopPropagation(): void;
 }
 
 export namespace DomEventHandler {
 
-	export function stop<T extends DomEventLike>(event: T, stopBubble: boolean = false): T {
+	export function stop<T extends IDomEventLike>(event: T, stopBubble: boolean = false): T {
 		event.preventDefault();
 		if (stopBubble) {
 			event.stopPropagation();

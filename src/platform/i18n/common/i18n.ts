@@ -7,7 +7,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 
-export const Ii18nService = createService<Ii18nService>('i18n-service');
+export const II18nService = createService<II18nService>('i18n-service');
 
 /* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';
@@ -24,7 +24,7 @@ export const enum LanguageType {
 
 type Ii18nSection = { [key: string]: string; };
 
-export interface Ii18nOpts {
+export interface II18nOpts {
 
     /**
      * The display language for initialization. If not provided, english is 
@@ -72,7 +72,7 @@ export interface ILocaleOpts {
 
 }
 
-export interface Ii18nService extends IService {
+export interface II18nService extends IService {
 
     readonly language: LanguageType;
 
@@ -126,7 +126,7 @@ export interface Ii18nService extends IService {
  * @class Internationalization (i18n) is the process that it can support local 
  * languages and cultural settings.
  */
-export class i18n implements Ii18nService {
+export class i18n implements II18nService {
 
     _serviceMarker: undefined;
 
@@ -161,7 +161,7 @@ export class i18n implements Ii18nService {
     // [Constructor]
 
     constructor(
-        opts: Ii18nOpts,
+        opts: II18nOpts,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,

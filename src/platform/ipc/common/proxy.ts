@@ -16,7 +16,7 @@ export namespace ProxyChannel {
 
     const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
 
-    export function wrapService(service: unknown, opts?: WrapServiceOpt): IServerChannel {
+    export function wrapService(service: unknown, opts?: IWrapServiceOpt): IServerChannel {
         const object = <Dictionary<string, unknown>>service;
         const eventRegisters = new Map<string, Register<unknown>>();
         const enableRevivier = opts?.enableRevivier ?? true;
@@ -53,7 +53,7 @@ export namespace ProxyChannel {
         };
     }
 
-    export function unwrapChannel<T extends object>(channel: IChannel, opt?: UnwrapChannelOpt): T {
+    export function unwrapChannel<T extends object>(channel: IChannel, opt?: IUnwrapChannelOpt): T {
         const enableRevivier = opt?.enableRevivier ?? true;
 
         return <T>(new Proxy(
@@ -99,7 +99,7 @@ export namespace ProxyChannel {
         );
     };
 
-    export interface WrapServiceOpt {
+    export interface IWrapServiceOpt {
         /**
          * @see `revive.ts`.
          * @default true
@@ -110,7 +110,7 @@ export namespace ProxyChannel {
         readonly enableRevivier?: boolean;
     }
 
-    export interface UnwrapChannelOpt {
+    export interface IUnwrapChannelOpt {
 
         /**
          * In our case, it will be window ID.

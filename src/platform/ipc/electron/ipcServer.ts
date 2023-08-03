@@ -4,7 +4,7 @@ import { Emitter, Event, NodeEventEmitter, Register, SignalEmitter } from "src/b
 import { DataBuffer } from "src/base/common/file/buffer";
 import { ILogService } from "src/base/common/logger";
 import { IpcChannel } from "src/platform/ipc/common/channel";
-import { ClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
+import { IClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
 import { IpcProtocol } from "src/platform/ipc/common/protocol";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
 
@@ -38,11 +38,11 @@ export class IpcServer extends ServerBase {
 
     // [private helper methods]
 
-    private static __createOnClientConnect(): Register<ClientConnectEvent> {
+    private static __createOnClientConnect(): Register<IClientConnectEvent> {
         const onRawConnect = new NodeEventEmitter<IpcMainEvent>(SafeIpcMain.instance, IpcChannel.Connect);
         IpcServer._disposable.register(onRawConnect);
 
-        return Event.map<IpcMainEvent, ClientConnectEvent>(onRawConnect.registerListener, (event) => {
+        return Event.map<IpcMainEvent, IClientConnectEvent>(onRawConnect.registerListener, (event) => {
             const client = event.sender;
             const clientID = client.id;
 

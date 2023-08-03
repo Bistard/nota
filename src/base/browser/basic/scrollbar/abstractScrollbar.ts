@@ -7,10 +7,10 @@ import { MouseClick } from "src/base/common/keyboard";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 /**
- * @readonly A {@link ScrollBarHost} is the parent host who actually contains 
+ * @readonly A {@link IScrollBarHost} is the parent host who actually contains 
  * the scrollbar.
  */
-export interface ScrollBarHost {
+export interface IScrollBarHost {
     /**
      * callback when slider dragging start. Provided by the host.
      */
@@ -27,7 +27,7 @@ export interface ScrollBarHost {
  */
 export interface IAbstractScrollbarOptions {
     scrollable: Scrollable,
-    host: ScrollBarHost,
+    host: IScrollBarHost,
 }
 
 /**
@@ -66,7 +66,7 @@ export abstract class AbstractScrollbar extends Widget {
     // [fields]
 
     protected readonly _slider: HTMLElement;
-    protected _host: ScrollBarHost;
+    protected _host: IScrollBarHost;
     protected _scrollable: Scrollable;
     private _visibilityController: VisibilityController;
 

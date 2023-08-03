@@ -178,7 +178,7 @@ export interface IMenuItem extends IActionListItem, IDisposable {
     /**
      * Fires when the {@link IMenuItem} is mouse-hovered or not.
      */
-    readonly onDidHover: Register<HoverEvent>;
+    readonly onDidHover: Register<IHoverEvent>;
 
     /**
      * The callback function when the item is about to run. Should be set by the
@@ -212,7 +212,7 @@ type RenderObject = {
     readonly rightPart: HTMLElement;
 };
 
-export interface HoverEvent {
+export interface IHoverEvent {
     readonly event: MouseEvent;
     readonly hovering: boolean;
 }
@@ -234,7 +234,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     // [event]
 
-    private readonly _onDidHover = this.__register(new Emitter<HoverEvent>());
+    private readonly _onDidHover = this.__register(new Emitter<IHoverEvent>());
     public readonly onDidHover = this._onDidHover.registerListener;
 
     // [internal event]

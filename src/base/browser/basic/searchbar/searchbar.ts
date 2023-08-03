@@ -6,7 +6,7 @@ import { RGBA } from "src/base/common/color";
 import { Emitter, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
 
-export interface TypeEvent {
+export interface ITypeEvent {
     /**
      * The current text on the search bar.
      */
@@ -42,7 +42,7 @@ export interface ISearchBar extends IWidget {
     /**
      * Fires when the search bar is being typed.
      */
-    readonly onDidType: Register<TypeEvent>;
+    readonly onDidType: Register<ITypeEvent>;
 
     /**
      * @description Set the given text that displaying in the middle of the bar.
@@ -62,7 +62,7 @@ export class SearchBar extends Widget implements ISearchBar {
 
     // [event]
 
-    private readonly _onDidType = this.__register(new Emitter<TypeEvent>());
+    private readonly _onDidType = this.__register(new Emitter<ITypeEvent>());
     public readonly onDidType = this._onDidType.registerListener;
 
     // [constructor]

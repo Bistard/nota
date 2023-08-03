@@ -1,5 +1,5 @@
 
-export interface PerfMark {
+export interface IPerfMark {
     readonly stage: string;
     readonly time: number;
 }
@@ -29,8 +29,8 @@ export function perf(stage: string): void {
  *   { stage: 'main end', time: 1659968897769 }
  * ]
  */
-export function getPerf(): PerfMark[] {
-    const marks: PerfMark[] = [];
+export function getPerf(): IPerfMark[] {
+    const marks: IPerfMark[] = [];
     let i = 0;
     for (i = 0; i < _perfRecord.length; i += 2) {
         marks.push({

@@ -18,7 +18,7 @@ import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyEx
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
 
-export interface ShortcutTriggerEvent {
+export interface IShortcutTriggerEvent {
 
     /**
      * The command that binds to the shortcut.
@@ -50,7 +50,7 @@ export interface IShortcutService extends Disposable, IShortcutRegistrant, IServ
     /**
      * Fires when one of the registered shortcut is pressed.
      */
-    readonly onDidTrigger: Register<ShortcutTriggerEvent>;
+    readonly onDidTrigger: Register<IShortcutTriggerEvent>;
 
     /**
      * // TODO
@@ -64,7 +64,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
     // [event]
 
-    private readonly _onDidTrigger = this.__register(new Emitter<ShortcutTriggerEvent>());
+    private readonly _onDidTrigger = this.__register(new Emitter<IShortcutTriggerEvent>());
     public readonly onDidTrigger = this._onDidTrigger.registerListener;
 
     // [field]
