@@ -58,7 +58,9 @@
         
         "@typescript-eslint/no-unused-vars": "off", // could be 'warn'
         "@typescript-eslint/no-empty-interface": "off", // could be 'warn'
-        "@typescript-eslint/no-empty-function": "off" // could be 'warn'
+        "@typescript-eslint/no-empty-function": "off", // could be 'warn'
+
+        "local/code-no-plain-enum": "error"
     },
 
     "overrides": [
@@ -67,6 +69,8 @@
                 "**/test/**/*.test.ts"
             ],
             "rules": {
+                "local/code-no-plain-enum": "warn",
+
                 "local/test-code-detect-skip": "warn",
                 "local/test-code-no-only": "error",
 
