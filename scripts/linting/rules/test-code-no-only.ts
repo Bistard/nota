@@ -9,7 +9,7 @@ export = new class TestCodeNoOnly implements eslint.Rule.RuleModule {
         }
     };
     
-    create(context: eslint.Rule.RuleContext): eslint.Rule.RuleListener {
+    public create(context: eslint.Rule.RuleContext): eslint.Rule.RuleListener {
         return {
             ['MemberExpression[object.name=/^(test|suite)$/][property.name="only"]']: (node: any) => {
                 return context.report({
