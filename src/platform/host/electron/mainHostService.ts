@@ -115,7 +115,7 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.close();
     }
 
-    public async showOpenDialog(opts: Electron.IOpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
+    public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         return this.dialogService.showOpenDialog(opts, browserWindow);
     }

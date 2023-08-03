@@ -55,7 +55,7 @@ export class MainDialogService implements IMainDialogService {
         return this.__open({ ...opts, openDirectory: true, openFile: false }, window);
     }
 
-    public async showOpenDialog(opts: Electron.IOpenDialogOptions, window?: BrowserWindow): Promise<Electron.OpenDialogReturnValue> {
+    public async showOpenDialog(opts: Electron.OpenDialogOptions, window?: BrowserWindow): Promise<Electron.OpenDialogReturnValue> {
         this.__resolveDefaultPath(opts);
 
         return this.__getDialogQueue<Electron.OpenDialogReturnValue>(window).queue(async () => {
@@ -106,7 +106,7 @@ export class MainDialogService implements IMainDialogService {
     private async __open(opts: IInternalOpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
 
         // building up the actual dialog option
-        const dialogOption: Electron.IOpenDialogOptions = {
+        const dialogOption: Electron.OpenDialogOptions = {
             title: opts.title,
             buttonLabel: opts.buttonLabel,
             defaultPath: opts.defaultPath,
