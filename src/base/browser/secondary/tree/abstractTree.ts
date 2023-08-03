@@ -21,7 +21,7 @@ class __TreeIdentityProvider<T, TFilter> implements IIdentiityProivder<ITreeNode
 
     constructor(private readonly identityProvider: IIdentiityProivder<T>) {}
 
-    getID(node: ITreeNode<T, TFilter>): string {
+    public getID(node: ITreeNode<T, TFilter>): string {
         return this.identityProvider.getID(node.data);
     }
 }
