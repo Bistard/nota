@@ -5,13 +5,13 @@ export = new class CodeInterfaceCheck implements eslint.Rule.RuleModule {
     public readonly meta: eslint.Rule.RuleMetaData = {
         type: 'suggestion',
         docs: {
-            description: 'Interface names must start with a capital I.',
+            description: 'Interface name must start with a capital "I", followed by another uppercase letter.',
             category: 'Stylistic Issues',
             recommended: true,
         },
         schema: [],  // no options
         messages: {
-            incorrectInterfaceName: 'Interface name must start with a capital "I".',
+            incorrectInterfaceName: 'Interface name must start with a capital "I", followed by another uppercase letter.',
         },
     };
 
