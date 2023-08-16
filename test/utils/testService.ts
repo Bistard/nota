@@ -188,7 +188,7 @@ export class NullContextService extends ContextService { }
 
 export class TestKeyboardService implements IKeyboardService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     private readonly _emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
 

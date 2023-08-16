@@ -16,7 +16,7 @@ export interface IThemeService extends IService {
 
 export class ThemeService extends Disposable implements IThemeService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 

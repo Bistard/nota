@@ -38,7 +38,7 @@ export interface ILoggerService extends Disposable, IService {
  */
 export abstract class AbstractLoggerService<TLogger extends ILogger> extends Disposable implements ILoggerService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

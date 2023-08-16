@@ -17,7 +17,7 @@ export interface IIpcService extends IDisposable, IService {
  */
 export class IpcService implements IIpcService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     private readonly connection: IpcClient;
 

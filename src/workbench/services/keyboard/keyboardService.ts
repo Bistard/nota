@@ -36,7 +36,7 @@ export interface IKeyboardService extends IService {
  */
 export class KeyboardService implements IDisposable, IKeyboardService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

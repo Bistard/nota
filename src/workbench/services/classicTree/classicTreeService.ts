@@ -22,7 +22,7 @@ export interface IClassicTreeService extends ITreeService<ClassicItem> {
  */
 export class ClassicTreeService extends Disposable implements IClassicTreeService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 

@@ -99,7 +99,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
 
 export class InstantiationService implements IInstantiationService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [fields]
 

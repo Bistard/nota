@@ -15,7 +15,7 @@ export interface ILayoutService extends IService {
 
 export class LayoutService implements ILayoutService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

@@ -36,7 +36,7 @@ export interface ICommandService extends IService {
  */
 export class CommandService extends Disposable implements ICommandService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

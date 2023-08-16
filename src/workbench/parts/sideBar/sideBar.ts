@@ -94,7 +94,7 @@ export interface ISideBarService extends IComponent, IService {
  */
 export class SideBar extends Component implements ISideBarService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

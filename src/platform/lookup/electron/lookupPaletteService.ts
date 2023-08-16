@@ -21,7 +21,7 @@ export interface ILookupPaletteService extends IService {
  */
 export class LookupPaletteService implements ILookupPaletteService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

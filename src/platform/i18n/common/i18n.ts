@@ -128,7 +128,7 @@ export interface II18nService extends IService {
  */
 export class i18n implements II18nService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [Fields]
 

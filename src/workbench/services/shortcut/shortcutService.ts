@@ -60,7 +60,7 @@ export interface IShortcutService extends Disposable, IShortcutRegistrant, IServ
 
 export class ShortcutService extends Disposable implements IShortcutService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 

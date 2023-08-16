@@ -115,7 +115,7 @@ export interface IFileService extends IDisposable, IService {
  */
 export class FileService extends Disposable implements IFileService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 

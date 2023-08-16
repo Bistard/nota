@@ -14,7 +14,7 @@ interface ITestService extends IService {
 
 class TestService implements ITestService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
     public num = 1;
 
     public foo(arg: number): number {

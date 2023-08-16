@@ -14,7 +14,7 @@ export interface IProductService extends IService {
 
 export class ProductService implements IProductService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [fields]
 

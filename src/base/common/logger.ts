@@ -98,7 +98,7 @@ export interface IAbstractLogger extends Disposable {
  */
 export abstract class AbstractLogger extends Disposable implements IAbstractLogger {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
     private _level!: LogLevel;
 
     private readonly _emitter = this.__register(new Emitter<LogLevel>());

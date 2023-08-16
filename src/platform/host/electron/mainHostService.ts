@@ -43,7 +43,7 @@ export interface IMainHostService extends IHostService, IDisposable {
  */
 export class MainHostService extends Disposable implements IMainHostService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 

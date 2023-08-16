@@ -64,7 +64,7 @@ export interface IContextMenuService extends IService {
  */
 export class ContextMenuService extends Disposable implements IContextMenuService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [fields]
 

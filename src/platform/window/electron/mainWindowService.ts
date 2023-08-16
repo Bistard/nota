@@ -48,7 +48,7 @@ export interface IMainWindowService extends Disposable, IService {
  */
 export class MainWindowService extends Disposable implements IMainWindowService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [fields]
 

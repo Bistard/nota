@@ -79,7 +79,7 @@ export interface ISideViewService extends IComponent, IService {
  */
 export class SideViewService extends Component implements ISideViewService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

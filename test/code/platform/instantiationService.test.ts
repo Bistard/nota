@@ -11,7 +11,7 @@ interface IService1 extends IService {
 }
 
 class Service1 implements IService1 {
-	_serviceMarker: undefined;
+	declare _serviceMarker: undefined;
 	c = 1;
 }
 
@@ -22,7 +22,7 @@ interface IService2 extends IService {
 }
 
 class Service2 implements IService2 {
-	_serviceMarker: undefined;
+	declare _serviceMarker: undefined;
 	d = true;
 }
 
@@ -33,7 +33,7 @@ interface IService3 extends IService {
 }
 
 class Service3 implements IService3 {
-	_serviceMarker: undefined;
+	declare _serviceMarker: undefined;
 	s = 'farboo';
 }
 
@@ -44,7 +44,7 @@ interface IDependentService extends IService {
 }
 
 class DependentService implements IDependentService {
-	_serviceMarker: undefined;
+	declare _serviceMarker: undefined;
 	constructor(@IService1 service: IService1) {
 		assert.strictEqual(service.c, 1);
 	}
@@ -116,7 +116,7 @@ interface IDependentServiceTarget3 extends IService {
 
 // workbench
 class DependentServiceTarget3 extends DependentBaseService implements IDependentServiceTarget3 {
-	_serviceMarker: undefined;
+	declare _serviceMarker: undefined;
 	constructor(@IDependentService d: IDependentService, @IService1 s: IService1) {
 		super(d, s, true);
 		assert.ok(d);
@@ -133,7 +133,7 @@ interface IDependentServiceTarget4 extends IService { }
 
 // shortcutService
 class DependentServiceTarget4 implements IDependentServiceTarget4 {
-	_serviceMarker: undefined;
+	declare _serviceMarker: undefined;
 	constructor(@IDependentServiceTarget3 d: IDependentServiceTarget3) {
 		assert.ok(d);
 		assert.strictEqual(d.base, true);
@@ -252,7 +252,7 @@ suite('instantiationService-test', () => {
 
 	class CreateOnlyOnceClass implements ICreateOnlyOnceClass {
 
-		_serviceMarker: undefined;
+		declare _serviceMarker: undefined;
 		public static cnt = 0;
 
 		constructor() {

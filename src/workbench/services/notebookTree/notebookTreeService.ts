@@ -12,7 +12,7 @@ export interface INotebookTreeService extends ITreeService<any> {
  */
 export class NotebookTreeService extends Disposable implements INotebookTreeService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 

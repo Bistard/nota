@@ -10,7 +10,7 @@ import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironm
 
 export class DiskEnvironmentService implements IDiskEnvironmentService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [fields]
 

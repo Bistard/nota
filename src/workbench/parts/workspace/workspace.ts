@@ -18,7 +18,7 @@ export interface IWorkspaceService extends IComponent, IService {
  */
 export class WorkspaceComponent extends Component implements IWorkspaceService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

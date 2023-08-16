@@ -12,7 +12,7 @@ import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToStri
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [fields]
 

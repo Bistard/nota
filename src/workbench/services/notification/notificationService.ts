@@ -21,7 +21,7 @@ export class NotificationService extends Disposable implements INotificationServ
 
     // [fields]
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [cosntructor]
 

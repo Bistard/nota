@@ -17,7 +17,7 @@ import { IConfigurationService } from 'src/platform/configuration/common/configu
 
 export class Editor extends Component implements IEditorService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

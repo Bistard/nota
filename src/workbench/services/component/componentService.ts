@@ -15,7 +15,7 @@ export interface IComponentService extends IService {
  */
 export class ComponentService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     private readonly _componentMap: Map<string, IComponent>;
 

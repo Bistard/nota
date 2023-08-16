@@ -32,7 +32,7 @@ export interface IKeyboardScreenCastService extends IDisposable, IService {
  */
 export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

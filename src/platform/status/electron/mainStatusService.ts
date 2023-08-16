@@ -50,7 +50,7 @@ export interface IMainStatusService extends Disposable, IService {
  */
 export class MainStatusService extends Disposable implements IMainStatusService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

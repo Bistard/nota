@@ -68,7 +68,7 @@ export interface IContextChangeEvent {
 
 export class ContextService extends Disposable implements IContextServiceFriendship {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [field]
 

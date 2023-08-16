@@ -34,7 +34,7 @@ export interface IExplorerTreeService extends ITreeService<IClassicOpenEvent<Cla
  */
 export class ExplorerTreeService extends Disposable implements IExplorerTreeService {
 
-    _serviceMarker: undefined;
+    declare _serviceMarker: undefined;
 
     // [event]
 
