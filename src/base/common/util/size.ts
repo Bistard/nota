@@ -19,7 +19,7 @@ export interface IDomBox extends IDimension, IPosition {
 
 export class Dimension implements IDimension {
 
-	static readonly None = new Dimension(0, 0);
+	public static readonly None = new Dimension(0, 0);
 
 	constructor(
 		public width: number,

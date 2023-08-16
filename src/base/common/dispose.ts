@@ -25,7 +25,7 @@ export interface IDisposable {
  */
 export class Disposable implements IDisposable {
 
-	static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
+	public static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
 
 	private readonly _disposableManager = new DisposableManager();
 

@@ -69,7 +69,7 @@
                     "accessors": "off",
                     "constructors": "off",
                     "methods": "explicit",
-                    "properties": "off",
+                    "properties": "explicit",
                     "parameterProperties": "explicit"
                 }
             }

@@ -52,7 +52,7 @@ export namespace TestIPC {
     class IpcClient extends ClientBase {
 
         private readonly _onDidDisconnect = new Emitter<void>();
-        readonly onDidDisconnect = this._onDidDisconnect.registerListener;
+        public readonly onDidDisconnect = this._onDidDisconnect.registerListener;
 
         constructor(protocol: IProtocol, id: string) {
             super(protocol, id, () => { });
@@ -81,13 +81,14 @@ export namespace TestIPC {
                 this._buffering = true;
             }
         });
-        readonly onData = this._onMessage.registerListener;
+        
+        public readonly onData = this._onMessage.registerListener;
 
         // [fields]
 
         private _buffering = true;
         private _buffers: DataBuffer[] = [];
-        other!: QueueProtocol;
+        public other!: QueueProtocol;
 
         // [methods]
 

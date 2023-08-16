@@ -155,7 +155,7 @@ export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
 
     // [fields]
 
-    readonly properties = new Set<Section>();
+    public readonly properties = new Set<Section>();
 
     // [constructor]
 
