@@ -106,18 +106,15 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 
 		/**
 		 * Checks if a method declaration has an accessibility modifier.
-		 * @param methodDefinition The node representing a MethodDefinition.
 		 */
-		const checkMethodAccessibilityModifier = (
-			methodDefinition: any,
-		): void => {
-			if (methodDefinition.key.type === AST_NODE_TYPES.PrivateIdentifier) {
+		const checkMethodAccessibilityModifier = (node: any): void => {
+			if (node.key.type === AST_NODE_TYPES.PrivateIdentifier) {
 				return;
 			}
 
 			let nodeType = 'method definition';
 			let check = baseCheck;
-			switch (methodDefinition.kind) {
+			switch (node.kind) {
 				case 'method':
 					check = methodCheck;
 					break;
@@ -127,12 +124,12 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				case 'get':
 				case 'set':
 					check = accessorCheck;
-					nodeType = `${methodDefinition.kind} property accessor`;
+					nodeType = `${node.kind} property accessor`;
 					break;
 			}
 
 			const { name: methodName } = getNameFromMember(
-				methodDefinition,
+				node,
 				sourceCode,
 			);
 
@@ -142,26 +139,26 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 
 			if (
 				check === 'no-public' &&
-				methodDefinition.accessibility === 'public'
+				node.accessibility === 'public'
 			) {
 				context.report({
-					node: methodDefinition,
+					node: node,
 					messageId: 'unwantedPublicAccessibility',
 					data: {
 						type: nodeType,
 						name: methodName,
 					},
-					fix: getUnwantedPublicAccessibilityFixer(methodDefinition),
+					fix: getUnwantedPublicAccessibilityFixer(node),
 				});
-			} else if (check === 'explicit' && !methodDefinition.accessibility) {
+			} else if (check === 'explicit' && !node.accessibility) {
 				context.report({
-					node: methodDefinition,
+					node: node,
 					messageId: 'missingAccessibility',
 					data: {
 						type: nodeType,
 						name: methodName,
 					},
-					suggest: getMissingAccessibilitySuggestions(methodDefinition),
+					suggest: getMissingAccessibilitySuggestions(node),
 				});
 			}
 		};
@@ -234,48 +231,47 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 
 		/**
 		 * Checks if property has an accessibility modifier.
-		 * @param propertyDefinition The node representing a PropertyDefinition.
 		 */
-		const checkPropertyAccessibilityModifier = (propertyDefinition: any): void => {
-			if (propertyDefinition.key.type === AST_NODE_TYPES.PrivateIdentifier) {
+		const checkPropertyAccessibilityModifier = (node: any): void => {
+			if (node.key.type === AST_NODE_TYPES.PrivateIdentifier) {
 				return;
 			}
 
 			const nodeType = 'class property';
 			const { name: propertyName } = getNameFromMember(
-				propertyDefinition,
+				node,
 				sourceCode,
 			);
 
 			// no-public check
 			if (
 				propCheck === 'no-public' &&
-				propertyDefinition.accessibility === 'public'
+				node.accessibility === 'public'
 			) {
 				context.report({
-					node: propertyDefinition,
+					node: node,
 					messageId: 'unwantedPublicAccessibility',
 					data: {
 						type: nodeType,
 						name: propertyName,
 					},
-					fix: getUnwantedPublicAccessibilityFixer(propertyDefinition),
+					fix: getUnwantedPublicAccessibilityFixer(node),
 				});
 			} 
 			
 			// explicit check
 			else if (
 				propCheck === 'explicit' &&
-				!propertyDefinition.accessibility
+				!node.accessibility
 			) {
 				context.report({
-					node: propertyDefinition,
+					node: node,
 					messageId: 'missingAccessibility',
 					data: {
 						type: nodeType,
 						name: propertyName,
 					},
-					suggest: getMissingAccessibilitySuggestions(propertyDefinition),
+					suggest: getMissingAccessibilitySuggestions(node),
 				});
 			}
 		};
