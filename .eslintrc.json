@@ -65,6 +65,7 @@
             "error",
             {
                 "accessibility": "explicit",
+                "ignoredMethodNames": ["Symbol.iterator"],
                 "overrides": {
                     "accessors": "off",
                     "constructors": "off",
