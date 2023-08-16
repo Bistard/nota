@@ -70,7 +70,7 @@
                     "constructors": "off",
                     "methods": "explicit",
                     "properties": "explicit",
-                    "properties-_serviceMarker": "off", // ignore '_serviceMarker'
+                    "propertiesServiceMarker": "off", // ignore '_serviceMarker'
                     "parameterProperties": "explicit"
                 }
             }

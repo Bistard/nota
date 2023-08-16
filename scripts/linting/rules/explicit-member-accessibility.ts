@@ -16,7 +16,7 @@ interface IConfig {
 		constructors?: AccessibilityLevel;
 		methods?: AccessibilityLevel;
 		properties?: AccessibilityLevel;
-		['properties-_serviceMarker']?: AccessibilityLevel;
+		propertiesServiceMarker?: AccessibilityLevel;
 		parameterProperties?: AccessibilityLevel;
 	};
 }
@@ -72,7 +72,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 							constructors: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							methods: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							properties: { $ref: '#/items/0/$defs/accessibilityLevel' },
-							['properties-_serviceMarker']: { $ref: '#/items/0/$defs/accessibilityLevel' },
+							propertiesServiceMarker: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							parameterProperties: {
 								$ref: '#/items/0/$defs/accessibilityLevel',
 							},
@@ -265,10 +265,10 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				propCheck === 'explicit' &&
 				!node.accessibility
 			) {
-				if (propertyName === '_serviceMarker' && options.overrides?.['properties-_serviceMarker'] === 'off') {
+				if (options.overrides?.propertiesServiceMarker === 'off' && propertyName === '_serviceMarker') {
 					return;
 				}
-				
+
 				context.report({
 					node: node,
 					messageId: 'missingAccessibility',
