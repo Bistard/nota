@@ -61,7 +61,7 @@
         "@typescript-eslint/no-empty-function": "off", // could be 'warn'
 
         "eqeqeq": "error",
-        "@typescript-eslint/explicit-member-accessibility": [
+        "local/explicit-member-accessibility": [
             "error",
             {
                 "accessibility": "explicit",
@@ -85,16 +85,14 @@
                 "**/test/**/*.test.ts"
             ],
             "rules": {
-                "local/code-no-plain-enum": "warn",
-
-                "local/test-code-detect-skip": "warn",
-                "local/test-code-no-only": "error",
-
                 "@typescript-eslint/no-unused-vars": "off",
                 "@typescript-eslint/no-empty-interface": "off",
                 "@typescript-eslint/no-empty-function": "off",
-
-                "@typescript-eslint/explicit-member-accessibility": "off"
+                
+                "local/code-no-plain-enum": "warn",
+                "local/test-code-detect-skip": "warn",
+                "local/test-code-no-only": "error",
+                "local/explicit-member-accessibility": "off"
             }
         }
     ]
