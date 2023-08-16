@@ -225,7 +225,7 @@ class TouchController implements IDisposable {
         const element = widget.element;
 
         const onTouchStart = widget.onTouchstart(element, (event: TouchEvent) => {
-            if (!element || event.changedTouches.length == 0) {
+            if (!element || event.changedTouches.length === 0) {
                 return;
             }
 
@@ -251,7 +251,7 @@ class TouchController implements IDisposable {
     // [private helper methods]
 
     private __onTouchmove(event: TouchEvent): void {
-        if (event.changedTouches.length == 0) {
+        if (event.changedTouches.length === 0) {
             return;
         }
         

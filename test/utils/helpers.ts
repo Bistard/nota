@@ -190,7 +190,7 @@ export function printNaryTreeLike<TNode>(
         for (let i = 0; i < len; i++) {
             const child = children[i]!;
 
-            if (i + 1 != len) {
+            if (i + 1 !== len) {
                 __print(child, prefix + '├─', false);
             } else {
                 __print(child, prefix + '└─', true);

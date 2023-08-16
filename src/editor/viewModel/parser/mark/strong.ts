@@ -25,7 +25,7 @@ export class Strong extends DocumentMark<EditorTokens.Strong> {
                  */
                 { 
                     tag: 'b', 
-                    getAttrs: (node: HTMLElement) => (node.style.fontWeight != 'normal') && null 
+                    getAttrs: (node: HTMLElement) => (node.style.fontWeight !== 'normal') && null 
                 },
                 { 
                     style: 'font-weight', 

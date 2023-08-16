@@ -84,8 +84,8 @@ suite('context-key-expression-test', () => {
 			testExpression(expr + ' != true', !value);
 			testExpression(expr + ' == false', !value);
 			testExpression(expr + ' != false', !!value);
-			testExpression(expr + ' == 5', value == <any>'5');
-			testExpression(expr + ' != 5', value != <any>'5');
+			testExpression(expr + ' == 5', value === <any>'5');
+			testExpression(expr + ' != 5', value !== <any>'5');
 			testExpression('!' + expr, !value);
 			testExpression(expr + ' =~ /d.*/', /d.*/.test(value));
 			testExpression(expr + ' =~ /D/i', /D/i.test(value));
