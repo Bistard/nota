@@ -11,12 +11,12 @@ type AccessibilityLevel =
 interface IConfig {
 	accessibility?: AccessibilityLevel;
 	ignoredMethodNames?: string[];
+	ignoredPropertyNames?: string[];
 	overrides?: {
 		accessors?: AccessibilityLevel;
 		constructors?: AccessibilityLevel;
 		methods?: AccessibilityLevel;
 		properties?: AccessibilityLevel;
-		propertiesServiceMarker?: AccessibilityLevel;
 		parameterProperties?: AccessibilityLevel;
 	};
 }
@@ -72,7 +72,6 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 							constructors: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							methods: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							properties: { $ref: '#/items/0/$defs/accessibilityLevel' },
-							propertiesServiceMarker: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							parameterProperties: {
 								$ref: '#/items/0/$defs/accessibilityLevel',
 							},
@@ -81,6 +80,12 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 						additionalProperties: false,
 					},
 					ignoredMethodNames: {
+						type: 'array',
+						items: {
+							type: 'string',
+						},
+					},
+					ignoredPropertyNames: {
 						type: 'array',
 						items: {
 							type: 'string',
@@ -104,6 +109,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 		const propCheck = overrides.properties ?? baseCheck;
 		const paramPropCheck = overrides.parameterProperties ?? baseCheck;
 		const ignoredMethodNames = new Set(options.ignoredMethodNames ?? []);
+		const ignoredPropertyNames = new Set(options.ignoredPropertyNames ?? []);
 
 		/**
 		 * Checks if a method declaration has an accessibility modifier.
@@ -238,12 +244,13 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				return;
 			}
 
-			const nodeType = 'class property';
-			const { name: propertyName } = getNameFromMember(
-				node,
-				sourceCode,
-			);
+			const { name: propertyName } = getNameFromMember(node, sourceCode);
+			if (ignoredPropertyNames.has(propertyName)) {
+				return;
+			}
 
+			const nodeType = 'class property';
+			
 			// no-public check
 			if (
 				propCheck === 'no-public' &&
@@ -261,14 +268,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 			} 
 			
 			// explicit check
-			else if (
-				propCheck === 'explicit' &&
-				!node.accessibility
-			) {
-				if (options.overrides?.propertiesServiceMarker === 'off' && propertyName === '_serviceMarker') {
-					return;
-				}
-
+			else if (propCheck === 'explicit' && !node.accessibility) {
 				context.report({
 					node: node,
 					messageId: 'missingAccessibility',

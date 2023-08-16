@@ -66,12 +66,12 @@
             {
                 "accessibility": "explicit",
                 "ignoredMethodNames": ["Symbol.iterator"],
+                "ignoredPropertyNames": ["_serviceMarker"],
                 "overrides": {
                     "accessors": "off",
                     "constructors": "off",
                     "methods": "explicit",
                     "properties": "explicit",
-                    "propertiesServiceMarker": "off", // ignore '_serviceMarker'
                     "parameterProperties": "explicit"
                 }
             }
