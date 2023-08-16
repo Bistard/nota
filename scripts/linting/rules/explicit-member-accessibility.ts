@@ -4,9 +4,9 @@ import { AST_NODE_TYPES } from './utils/astNodeType';
 import { getNameFromMember } from './utils/common';
 
 type AccessibilityLevel =
-	| 'explicit' // require an accessor (including public)
+	| 'explicit'  // require an accessor (including public)
 	| 'no-public' // don't require public
-	| 'off'; // don't check
+	| 'off';      // don't check
 
 interface IConfig {
 	accessibility?: AccessibilityLevel;
