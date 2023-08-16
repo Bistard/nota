@@ -347,7 +347,7 @@ export class LinkedList<T> {
     /**
      * @readonly Mark the class as iterable.
      */
-    public *[Symbol.iterator](): Iterator<T> {
+    *[Symbol.iterator](): Iterator<T> {
 		let node = this._first;
 		while (node !== undefined) {
 			yield node.data;

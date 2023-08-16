@@ -538,7 +538,7 @@ export class Deque<T> implements IDeque<T> {
         this.clear();
     }
 
-    public *[Symbol.iterator](): Iterator<T> {
+    *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
 			yield this._arr[idx]!;
@@ -595,7 +595,7 @@ export class Stack<T> implements IStack<T> {
         this.clear();
     }
 
-    public *[Symbol.iterator](): Iterator<T> {
+    *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
 			yield this._deque.at(idx);
@@ -657,7 +657,7 @@ export class Queue<T> implements IQueue<T> {
         this.clear();
     }
 
-    public *[Symbol.iterator](): Iterator<T> {
+    *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
 			yield this._deque.at(idx);
@@ -787,7 +787,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         this._count = 0;
     }
 
-	public *[Symbol.iterator](): Iterator<T> {
+	*[Symbol.iterator](): Iterator<T> {
         const copy = [...this._heap];
         const copyCount = this._count;
         const copyComparator = this.__comparator;
