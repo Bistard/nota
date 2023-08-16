@@ -1,3 +1,7 @@
+/**
+ * @description This is a simple ESLint formatter for pretty log message usage. 
+ */
+
 module.exports = function (results) {
 
     // sort results by the presence of errors (files with errors stay at the bottom)
