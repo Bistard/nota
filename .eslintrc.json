@@ -78,7 +78,8 @@
         ],
 
         "local/code-no-plain-enum": "error",
-        "local/code-interface-check": "error"
+        "local/code-interface-check": "error",
+        "local/code-service-marker": "error"
     },
 
     "overrides": [
