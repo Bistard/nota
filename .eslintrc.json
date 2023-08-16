@@ -61,6 +61,19 @@
         "@typescript-eslint/no-empty-function": "off", // could be 'warn'
 
         "eqeqeq": "error",
+        "@typescript-eslint/explicit-member-accessibility": [
+            "error",
+            {
+                "accessibility": "explicit",
+                "overrides": {
+                    "accessors": "off",
+                    "constructors": "off",
+                    "methods": "explicit",
+                    "properties": "off",
+                    "parameterProperties": "explicit"
+                }
+            }
+        ],
 
         "local/code-no-plain-enum": "error",
         "local/code-interface-check": "error"

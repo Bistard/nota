@@ -209,7 +209,7 @@ export class TestKeyboardService implements IKeyboardService {
         return this._emitter.registerListener;
     }
 
-    dispose(): void {
+    public dispose(): void {
         this._emitter.dispose();
     }
 }

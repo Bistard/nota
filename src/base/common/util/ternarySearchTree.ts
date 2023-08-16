@@ -618,16 +618,16 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         }
     }
  
-    *[Symbol.iterator](): IterableIterator<[K, V]> {
-        yield* this._nodeIter(this._root);
-    }
-    
     public getRoot(): TernarySearchTreeNode<K, V> | undefined {
         return this._root;
     }
 
     public size(): number {
         return this._size;
+    }
+
+    public *[Symbol.iterator](): IterableIterator<[K, V]> {
+        yield* this._nodeIter(this._root);
     }
 
     // [private methods]
