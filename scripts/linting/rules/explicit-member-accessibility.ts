@@ -148,7 +148,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				check === 'no-public' &&
 				node.accessibility === 'public'
 			) {
-				context.report({
+				return context.report({
 					node: node,
 					messageId: 'unwantedPublicAccessibility',
 					data: {
@@ -158,7 +158,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 					fix: getUnwantedPublicAccessibilityFixer(node),
 				});
 			} else if (check === 'explicit' && !node.accessibility) {
-				context.report({
+				return context.report({
 					node: node,
 					messageId: 'missingAccessibility',
 					data: {
@@ -256,7 +256,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				propCheck === 'no-public' &&
 				node.accessibility === 'public'
 			) {
-				context.report({
+				return context.report({
 					node: node,
 					messageId: 'unwantedPublicAccessibility',
 					data: {
@@ -269,7 +269,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 			
 			// explicit check
 			else if (propCheck === 'explicit' && !node.accessibility) {
-				context.report({
+				return context.report({
 					node: node,
 					messageId: 'missingAccessibility',
 					data: {
@@ -304,7 +304,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 			switch (paramPropCheck) {
 				case 'explicit': {
 					if (!node.accessibility) {
-						context.report({
+						return context.report({
 							node,
 							messageId: 'missingAccessibility',
 							data: {
@@ -318,7 +318,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				}
 				case 'no-public': {
 					if (node.accessibility === 'public' && node.readonly) {
-						context.report({
+						return context.report({
 							node,
 							messageId: 'unwantedPublicAccessibility',
 							data: {
