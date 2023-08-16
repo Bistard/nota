@@ -72,6 +72,7 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 							constructors: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							methods: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							properties: { $ref: '#/items/0/$defs/accessibilityLevel' },
+							['properties-_serviceMarker']: { $ref: '#/items/0/$defs/accessibilityLevel' },
 							parameterProperties: {
 								$ref: '#/items/0/$defs/accessibilityLevel',
 							},
@@ -264,6 +265,10 @@ export = new class ExplicitMemberAccessibility implements eslint.Rule.RuleModule
 				propCheck === 'explicit' &&
 				!node.accessibility
 			) {
+				if (propertyName === '_serviceMarker' && options.overrides?.['properties-_serviceMarker'] === 'off') {
+					return;
+				}
+				
 				context.report({
 					node: node,
 					messageId: 'missingAccessibility',
