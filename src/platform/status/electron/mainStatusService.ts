@@ -68,7 +68,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         super();
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), NOTA_DIR_NAME, MainStatusService.FILE_NAME));
         this._storage = new DiskStorage(path, true, this.fileService);
-        this.registerListeners();
+        this.__registerListeners();
     }
 
     // [public methods]
@@ -129,8 +129,8 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         }
     }
 
-    private registerListeners(): void {
-        this.logService.trace(`[MainStatusService] registerListeners()`);
+    private __registerListeners(): void {
+        this.logService.trace(`[MainStatusService] __registerListeners()`);
         this.lifecycleService.onWillQuit((e) => e.join(this.close()));
     }
 }
