@@ -1,5 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { Emitter, Event } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
@@ -33,7 +33,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
     public readonly type = ConfigurationModuleType.Default;
 
     private _storage: IConfigurationStorage;
-    private _initialized: boolean;
+    private readonly _initProtector: InitProtector;
 
     // [events]
 
@@ -45,7 +45,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
     constructor() {
         super();
         this._storage = this.__register(new ConfigurationStorage());
-        this._initialized = false;
+        this._initProtector = new InitProtector();
     }
 
     // [public methods]
@@ -55,10 +55,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
     }
 
     public init(): void {
-        if (this._initialized) {
-            throw new Error('Cannot initialize DefaultConfiguration twice.');
-        }
-        this._initialized = true;
+        this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
         this.__resetDefaultConfigurations();
         this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
     }
@@ -115,7 +112,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     public readonly type = ConfigurationModuleType.User;
 
-    private _initialized: boolean;
+    private readonly _initProtector: InitProtector;
 
     private readonly _userResource: URI;
     private readonly _validator: UserConfigurationValidator;
@@ -135,7 +132,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         private readonly logService: ILogService,
     ) {
         super();
-        this._initialized = false;
+        this._initProtector = new InitProtector();
 
         this._userResource = userResource;
         this._configuration = new ConfigurationStorage();
@@ -167,10 +164,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 
     public async init(): Promise<void> {
-        if (this._initialized) {
-            throw new Error('Cannot initialize DefaultConfiguration twice.');
-        }
-        this._initialized = true;
+        this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
         return this.__loadConfiguration();
     }
 

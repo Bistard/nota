@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
@@ -18,7 +18,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     protected readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
-    protected _initialized: boolean;
+    protected readonly _initProtector: InitProtector;
     protected readonly _configurationPath: URI;
 
     protected readonly _defaultConfiguration: DefaultConfiguration;
@@ -42,7 +42,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
         // initialization
         {
-            this._initialized = false;
+            this._initProtector = new InitProtector();
             this._configurationPath = appConfigurationPath;
 
             this._defaultConfiguration = new DefaultConfiguration();
@@ -68,10 +68,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     // [public methods]
 
     public async init(): Promise<void> {
-        if (this._initialized) {
-            throw new Error(`[AbstractConfigurationService] cannot be initialized twice.`);
-        }
-        this._initialized = true;
+        this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
 
         this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
 
