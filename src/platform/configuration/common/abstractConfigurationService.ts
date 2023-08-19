@@ -53,14 +53,15 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
         // register listeners
         {
-            // default configuration reload
+            // default configuration self reload
             this.__register(this._defaultConfiguration.onDidConfigurationChange(e => this.__onDefaultConfigurationChange(e)));
-
-            // user configuration reload
-            this.__register(this._userConfiguration.onDidConfigurationChange(() => this.__onUserConfigurationChange()));
-
+            
             // catch configuration registration errors and log out
             this.__register(this._registrant.onErrorRegistration(e => logService.warn(`The configuration registration fails: ${JSON.stringify(e)}.`)));
+            
+            // user configuration self reload
+            this.__register(this._userConfiguration.onDidConfigurationChange(() => this.__onUserConfigurationChange()));
+
         }
     }
 
@@ -68,16 +69,16 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public async init(): Promise<void> {
         if (this._initialized) {
-            throw new Error(`[ConfigurationService] cannot be initialized twice.`);
+            throw new Error(`[AbstractConfigurationService] cannot be initialized twice.`);
         }
         this._initialized = true;
 
-        this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
+        this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
         (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
 
-        this.logService.trace(`[ConfigurationService] initialized.`);
+        this.logService.trace(`[AbstractConfigurationService] initialized.`);
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
@@ -108,7 +109,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[ConfigurationService] [onConfigurationChange] [type-${ConfigurationModuleTypeToString(type)}]`);
+        this.logService.trace(`[AbstractConfigurationService] [onConfigurationChange] [type-${ConfigurationModuleTypeToString(type)}]`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

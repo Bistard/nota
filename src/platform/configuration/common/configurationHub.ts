@@ -106,8 +106,8 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
  * 
  * @note Has type {@link ConfigurationModuleType.User}.
  * @note After the initialization of the module, it will automatically keep 
- * itself updated in response to any changes in the schema registrations of 
- * {@link IConfigurationRegistrant}. 
+ * itself updated in response to any changes in the corresponding files from the
+ * disk.
  */
 export class UserConfiguration extends Disposable implements IUserConfigurationModule {
 
