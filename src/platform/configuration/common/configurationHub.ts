@@ -10,7 +10,7 @@ import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationS
 import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/platform/files/common/fileService";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, Section } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, IDefaultConfigurationModule, IUserConfigurationModule, Section } from "src/platform/configuration/common/configuration";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { errorToMessage } from "src/base/common/error";
 
@@ -26,7 +26,7 @@ const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
  * itself updated in response to any changes in the schema registrations of 
  * {@link IConfigurationRegistrant}. 
  */
-export class DefaultConfiguration extends Disposable implements IConfigurationModule<ConfigurationModuleType.Default, IRawConfigurationChangeEvent> {
+export class DefaultConfiguration extends Disposable implements IDefaultConfigurationModule {
 
     // [fields]
 
@@ -109,7 +109,7 @@ export class DefaultConfiguration extends Disposable implements IConfigurationMo
  * itself updated in response to any changes in the schema registrations of 
  * {@link IConfigurationRegistrant}. 
  */
-export class UserConfiguration extends Disposable implements IConfigurationModule<ConfigurationModuleType.User, void> {
+export class UserConfiguration extends Disposable implements IUserConfigurationModule {
 
     // [fields]
 
