@@ -2,6 +2,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { IJsonSchema } from "src/base/common/json";
 import { Arrays } from "src/base/common/util/array";
 import { Dictionary, isObject } from "src/base/common/util/type";
+import { Section } from "src/platform/configuration/common/configuration";
 import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export const IConfigurationRegistrant = createRegistrant<IConfigurationRegistrant>(RegistrantType.Configuration);
@@ -52,7 +53,7 @@ export interface IRawSetConfigurationChangeEvent {
     /**
      * Unique names of the configurations that are changed.
      */
-    readonly properties: ReadonlySet<string>;
+    readonly properties: ReadonlySet<Section>;
 }
 
 export interface IRawConfigurationChangeEvent {
@@ -60,7 +61,7 @@ export interface IRawConfigurationChangeEvent {
     /**
      * Names of the configurations that are changed.
      */
-    readonly properties: string[];
+    readonly properties: Section[];
 }
 
 export interface IConfigurationRegisterErrorEvent {
