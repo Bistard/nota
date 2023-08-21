@@ -43,7 +43,7 @@ const trueGlobalAsync = {
  */
 export namespace FakeAsync {
 
-    export async function run(fn: () => Promise<any>, options?: IFakeSyncOptions): Promise<void> {
+    export async function run(fn: () => Promise<any>, options?: IFakeAsyncOptions): Promise<void> {
     
         const enable = options?.enable ?? true;
         if (!enable) {
@@ -102,18 +102,27 @@ export namespace FakeAsync {
         }
 
         function onAnyError(err: any): void {
-            if (options?.onError === true) {
+            if ((options?.onError ?? true) === true) {
                 console.log(err);
             } 
-            else if (options?.onError) {
+            else if (typeof options?.onError === 'function') {
                 options.onError(err);
             }
         }
     }
 }
 
-export interface IFakeSyncOptions {
+export interface IFakeAsyncOptions {
+    /**
+     * If enable fake async. 
+     * @default true
+     */
     readonly enable?: boolean;
+
+    /**
+     * If enable error handling.
+     * @default true
+     */
     readonly onError?: boolean | ((err: any) => void);
 }
 
