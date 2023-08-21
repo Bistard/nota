@@ -23,7 +23,8 @@ const trueGlobalAsync = {
  * functions.
  *
  * @param fn The function that will be executed with the fake timers.
- * @param {boolean} [enable=true] A boolean value indicating whether to enable fake timers. By default, this is true.
+ * @param {boolean} [enable=true] A boolean value indicating whether to enable 
+ *        fake timers. By default, this is true.
  * @returns A promise that resolves when the function has finished executing.
  *
  * @throws {Error} If a string is used as a handler in the setTimeout or 
@@ -62,7 +63,6 @@ export namespace FakeAsync {
         const fakeExecutor = new FakeAsyncExecutor();
         FakeGlobalAsync.onTask(task => {
             const internalTask = fakeExecutor.schedule(task);
-            task.setID(internalTask.id);
             
             const disposable = FakeGlobalAsync.onTaskDisposed(id => {
                 if (id === internalTask.id) {
@@ -342,10 +342,13 @@ class FakeAsyncExecutor implements IDisposable {
 			throw new Error(`Scheduled time (${task.time}) must be equal to or greater than the current time (${FakeGlobalAsync.now()}).`);
 		}
 
+        const ID = this._uuid++;
+        task.setID(ID);
         const internalTask = {
             ...task,
-            id: this._uuid++,
+            id: ID,
         };
+
         this._pqueue.enqueue(internalTask);
 
         this.__trySchedule();
