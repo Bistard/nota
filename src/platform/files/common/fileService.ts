@@ -217,7 +217,7 @@ export class FileService extends Disposable implements IFileService {
         }
 
         catch (error) {
-            throw new FileOperationError(`unable to write file to ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN, error);
+            throw new FileOperationError(`unable to write file to '${URI.toFsPath(uri)}'`, FileOperationErrorType.UNKNOWN, error);
         }
 
     }
