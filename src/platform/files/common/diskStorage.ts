@@ -228,13 +228,7 @@ export class DiskStorage implements IDiskStorage {
         }
 
         // file does not exist, try to create one and re-initialize.
-        try {
-            await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
-        }
-        catch (err) {
-            throw err;
-        }
-
+        await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
         return this.__init();
     }
 
@@ -255,13 +249,8 @@ export class DiskStorage implements IDiskStorage {
         }
 
         // writing work
-        try {
-            this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
-            this._lastSaveStorage = serialized;
-        }
-        catch (err) {
-            throw err;
-        }
+        this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
+        this._lastSaveStorage = serialized;
 
         return this._operating;
     }
