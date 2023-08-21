@@ -162,8 +162,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         const configurationService = new MainConfigurationService(
             { 
                 appConfiguration: { 
-                    path: environmentService.appConfigurationPath, 
-                    fileName: APP_CONFIG_NAME 
+                    path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
                 } 
             },
             fileService, 

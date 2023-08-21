@@ -19,7 +19,6 @@ export abstract class AbstractConfigurationService extends Disposable implements
     protected readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
     protected readonly _initProtector: InitProtector;
-    protected readonly _configurationPath: URI;
 
     protected readonly _defaultConfiguration: DefaultConfiguration;
     protected readonly _userConfiguration: UserConfiguration;
@@ -34,7 +33,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     // [constructor]
 
     constructor(
-        options: IConfigurationServiceOptions,
+        protected readonly options: IConfigurationServiceOptions,
         @IFileService fileService: IFileService,
         @ILogService protected readonly logService: ILogService,
     ) {
@@ -43,10 +42,9 @@ export abstract class AbstractConfigurationService extends Disposable implements
         // initialization
         {
             this._initProtector = new InitProtector();
-            this._configurationPath = options.appConfiguration.path;
 
             this._defaultConfiguration = new DefaultConfiguration();
-            this._userConfiguration = new UserConfiguration(URI.join(options.appConfiguration.path, options.appConfiguration.fileName), fileService, logService);
+            this._userConfiguration = new UserConfiguration(options.appConfiguration.path, fileService, logService);
 
             this._configurationHub = this.__reloadConfigurationHub();
         }
@@ -67,10 +65,14 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     // [public methods]
 
+    get appConfigurationPath(): URI {
+        return this.options.appConfiguration.path;
+    }
+
     public async init(): Promise<void> {
         this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
 
-        this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
+        this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
         (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();

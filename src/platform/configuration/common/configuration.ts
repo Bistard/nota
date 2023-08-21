@@ -22,6 +22,11 @@ export const IConfigurationService = createService<IConfigurationService>('confi
 export interface IConfigurationService extends IDisposable, IService {
 
     /**
+     * The path to the application configuration path.
+     */
+    readonly appConfigurationPath: URI;
+
+    /**
      * Fires whenever the configuraion has changed.
      */
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
@@ -71,7 +76,6 @@ export interface IConfigurationServiceOptions {
 
     readonly appConfiguration: {
         readonly path: URI;
-        readonly fileName: string;
     };
 }
 

@@ -30,10 +30,11 @@ import { IBrowserHostService } from "src/platform/host/browser/browserHostServic
 import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
-import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
+import { URI } from "src/base/common/file/uri";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -144,8 +145,16 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IProductService, productService);
 
         // configuration-service
-        const configuraionService = new BrowserConfigurationService(environmentService.appConfigurationPath, fileService, logService);
-        instantiationService.register(IConfigurationService, configuraionService);
+        const configurationService = new BrowserConfigurationService(
+            { 
+                appConfiguration: { 
+                    path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
+                } 
+            },
+            fileService, 
+            logService,
+        );
+        instantiationService.register(IConfigurationService, configurationService);
 
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
@@ -154,7 +163,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // REVIEW: try late initialization
         const i18nService = new i18n(
             <II18nOpts>{
-                language: configuraionService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
+                language: configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
                 localeOpts: {},
             },
             fileService,
