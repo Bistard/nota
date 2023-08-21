@@ -22,7 +22,7 @@ export namespace FakeConsole {
             }
 
             // callback
-            options.onLog(message);
+            options.onLog(message, ...optionalParams);
         };
     }
 
@@ -41,9 +41,11 @@ export interface IFakeConsoleOptions {
 
     /**
      * Callback to recieve the log message.
-     * @param message the log message.
+     * @param message The primary message to log. This could be any data type.
+     * @param optionalParams Additional parameters that may accompany the 
+     *                       primary message, often used for formatting.
      */
-    readonly onLog?: (message: string) => void;
+    readonly onLog?: (message: any, ...optionalParams: any[]) => void;
 }
 
 const trueConsole = {

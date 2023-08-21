@@ -1,8 +1,9 @@
 import * as assert from 'assert';
 import { delayFor } from 'src/base/common/util/async';
 import { FakeAsync, IFakeAsyncOptions } from 'test/utils/fakeAsync';
+import { FakeConsole } from 'test/utils/fakeConsole';
 
-suite.only('FakeAsync-test', () => {
+suite('FakeAsync-test', () => {
 		
     test('fake the function execution when fake timers are enabled', async () => {
         let fakeElapsedTime: number = undefined!;
@@ -58,10 +59,16 @@ suite.only('FakeAsync-test', () => {
     });
 
     test('run function with default error handling', async () => {
+        let errorMessage: any;
+        FakeConsole.enable({ 
+            onLog: (message) => errorMessage = message
+        });
+        
         const errorFunction = () => { throw new Error('Test error'); };
-        let caughtError: any;
         await FakeAsync.run(errorFunction);
-        assert.strictEqual(caughtError.message, 'Test error');
+        assert.strictEqual(errorMessage.message, 'Test error');
+
+        FakeConsole.disable();
     });
 
     test('run function with custom error handling', async () => {
