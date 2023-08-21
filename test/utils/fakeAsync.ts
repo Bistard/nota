@@ -62,6 +62,7 @@ export namespace FakeAsync {
          */
         const fakeExecutor = new FakeAsyncExecutor();
         FakeGlobalAsync.onTask(task => {
+            console.log('onFakeTask'); // FIX
             const internalTask = fakeExecutor.schedule(task);
             
             const disposable = FakeGlobalAsync.onTaskDisposed(id => {
@@ -323,9 +324,9 @@ class FakeAsyncExecutor implements IDisposable {
 
     // [fields]
 
-    private readonly _pqueue = new PriorityQueue<ITaskWithID>(this.__compareTasks);
-    private _uuid = 0;
-    private _executing = false;
+    private readonly _pqueue: PriorityQueue<ITaskWithID>;
+    private _uuid: number;
+    private _executing: boolean;
 
     // [event]
 
@@ -333,7 +334,11 @@ class FakeAsyncExecutor implements IDisposable {
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+       this._pqueue = new PriorityQueue(this.__compareTasks); 
+        this._uuid = 0;
+        this._executing = false;
+    }
 
     // [public methods]
 
