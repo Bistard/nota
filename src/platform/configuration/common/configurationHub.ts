@@ -416,10 +416,8 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
     }
 
     public setInMemory(section: Section, value: any): void {
-        if (value === undefined) {
-            this._memoryConfiguration.delete(section);
-        } else {
-            this._memoryConfiguration.set(section, value);
+        value = (value ?? null); // turn 'undefined' to 'null'
+        this._memoryConfiguration.set(section, value);
         }
         this.__dropComposedConfiguration();
     }

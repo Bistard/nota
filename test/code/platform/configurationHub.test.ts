@@ -286,7 +286,7 @@ suite('ConfigurationHub-test (common)', () => {
             assert.strictEqual(hub.get('testKey'), 'newValue');
 
             hub.deleteInMemory('testKey');
-            assert.strictEqual(hub.get('testKey'), 'defaultValue');
+            assert.strictEqual(hub.get('testKey'), null);
         });
 
         test('updateConfiguration() method should update configuration', () => {
