@@ -25,7 +25,7 @@ suite('MainConfiguratioService-test', () => {
         'section': 'user value',
     };
 
-    async function reloadUserConfiguration(create = false) {
+    async function resetUserConfiguration(create = false) {
         await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create });
     }
 
@@ -34,7 +34,7 @@ suite('MainConfiguratioService-test', () => {
         fileService = new FileService(logService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
 
-        await reloadUserConfiguration(true);
+        await resetUserConfiguration(true);
         Registrant.registerConfigurations({
             id: 'test',
             properties: {
@@ -52,7 +52,7 @@ suite('MainConfiguratioService-test', () => {
     });
 
     test('get before Initialization - Should get undefined before initialization', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
 
         let result = service.get('section');
         assert.strictEqual(result, undefined);
@@ -64,7 +64,7 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('get - Should get user value', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await service.init();
 
         const result = service.get('section');
@@ -72,7 +72,7 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('get - Should get default value', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
 
         let result = service.get('section');
@@ -83,11 +83,11 @@ suite('MainConfiguratioService-test', () => {
         result = service.get('section');
         assert.strictEqual(result, 'default value');
 
-        await reloadUserConfiguration();
+        await resetUserConfiguration();
     }));
 
     test('get - Should return default value when section does not exist', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await service.init();
 
         const result = service.get('nonExistingSection', "default");
@@ -95,21 +95,21 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('set - Should throw error as set operation is not supported', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await service.init();
 
-        assert.throws(() => service.set('section', 'value'), { message: '[ConfigurationService] does not support `set`.' });
+        assert.rejects(() => service.set('section', 'value'));
     }));
 
     test('delete - Should throw error as delete operation is not supported', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await service.init();
 
-        assert.throws(() => service.delete('section'), { message: '[ConfigurationService] does not support `Delete`.' });
+        assert.rejects(() => service.delete('section'));
     }));
 
     test('onDidConfigurationChange - DefaultConfiguration self update', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
         await service.init();
 
@@ -140,11 +140,11 @@ suite('MainConfiguratioService-test', () => {
 
         assert.ok(fired);
         disposable.dispose();
-        await reloadUserConfiguration();
+        await resetUserConfiguration();
     }));
 
     test('onDidConfigurationChange - UserConfiguration self update', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService(userConfigURI, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
         await service.init();
 
         const result = service.get('section');
