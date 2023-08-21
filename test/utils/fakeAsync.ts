@@ -102,11 +102,14 @@ export namespace FakeAsync {
         }
 
         function onAnyError(err: any): void {
-            if ((options?.onError ?? true) === true) {
+            if (options?.onError === true) {
                 console.log(err);
             } 
             else if (typeof options?.onError === 'function') {
                 options.onError(err);
+            }
+            else if (!options?.onError) {
+                throw err;
             }
         }
     }
@@ -120,8 +123,11 @@ export interface IFakeAsyncOptions {
     readonly enable?: boolean;
 
     /**
-     * If enable error handling.
-     * @default true
+     * If enable error handling:
+     * - If true is given, the error will be printed by `console.log`.
+     * - If false or undefined is given, the error will be thrown.
+     * - If callback is given, it will be invoked when the error happens.
+     * @default undefined
      */
     readonly onError?: boolean | ((err: any) => void);
 }

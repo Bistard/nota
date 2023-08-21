@@ -59,13 +59,31 @@ suite('FakeAsync-test', () => {
     });
 
     test('run function with default error handling', async () => {
+        const errorFunction = () => { throw new Error('Test error'); };
+        
+        // default 
+        try {
+            await FakeAsync.run(errorFunction);
+        } catch (err: any) {
+            assert.strictEqual(err.message, 'Test error');
+        }
+
+        // false
+        try {
+            await FakeAsync.run(errorFunction, { onError: false });
+        } catch (err: any) {
+            assert.strictEqual(err.message, 'Test error');
+        }
+    });
+
+    test('run function with true error handling', async () => {
         let errorMessage: any;
         FakeConsole.enable({ 
             onLog: (message) => errorMessage = message
         });
         
         const errorFunction = () => { throw new Error('Test error'); };
-        await FakeAsync.run(errorFunction);
+        await FakeAsync.run(errorFunction, { onError: true });
         assert.strictEqual(errorMessage.message, 'Test error');
 
         FakeConsole.disable();
