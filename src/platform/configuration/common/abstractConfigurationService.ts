@@ -8,7 +8,7 @@ import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/p
 import { IFileService } from "src/platform/files/common/fileService";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { DeepReadonly, Mutable } from "src/base/common/util/type";
-import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
@@ -34,7 +34,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     // [constructor]
 
     constructor(
-        appConfigurationPath: URI,
+        options: IConfigurationServiceOptions,
         @IFileService fileService: IFileService,
         @ILogService protected readonly logService: ILogService,
     ) {
@@ -43,10 +43,10 @@ export abstract class AbstractConfigurationService extends Disposable implements
         // initialization
         {
             this._initProtector = new InitProtector();
-            this._configurationPath = appConfigurationPath;
+            this._configurationPath = options.appConfiguration.path;
 
             this._defaultConfiguration = new DefaultConfiguration();
-            this._userConfiguration = new UserConfiguration(URI.join(appConfigurationPath, APP_CONFIG_NAME), fileService, logService);
+            this._userConfiguration = new UserConfiguration(URI.join(options.appConfiguration.path, options.appConfiguration.fileName), fileService, logService);
 
             this._configurationHub = this.__reloadConfigurationHub();
         }
@@ -84,11 +84,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     // [public abstract methods]
 
-    public abstract set(section: Section, value: any): Promise<void>;
-    public abstract set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
-
-    public abstract delete(section: Section): Promise<void>;
     public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
 
     // [private helper methods]

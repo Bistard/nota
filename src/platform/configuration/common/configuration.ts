@@ -5,6 +5,7 @@ import { IConfigurationStorage } from "src/platform/configuration/common/configu
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { URI } from "src/base/common/file/uri";
 
 /**
  * A {@link Section} refers to a string composed of multiple substrings linked 
@@ -54,8 +55,7 @@ export interface IConfigurationService extends IDisposable, IService {
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is null, it overries the entire configuration.
      */
-    set(section: Section, value: any): Promise<void>;
-    set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
+    set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Delete the configuration under the provided section.
@@ -64,8 +64,15 @@ export interface IConfigurationService extends IDisposable, IService {
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
-    delete(section: Section): Promise<void>;
-    delete(section: Section, options: IConfigurationUpdateOptions): Promise<void>;
+    delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+}
+
+export interface IConfigurationServiceOptions {
+
+    readonly appConfiguration: {
+        readonly path: URI;
+        readonly fileName: string;
+    };
 }
 
 export interface IConfigurationUpdateOptions {

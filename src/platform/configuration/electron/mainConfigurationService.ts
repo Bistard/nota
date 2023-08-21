@@ -1,7 +1,19 @@
-import { IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
+import { IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
+import { IFileService } from "src/platform/files/common/fileService";
+import { ILogService } from "src/base/common/logger";
 
 export class MainConfigurationService extends AbstractConfigurationService {
+
+    // [constructor]
+
+    constructor(
+        options: IConfigurationServiceOptions,
+        @IFileService fileService: IFileService,
+        @ILogService logService: ILogService,
+    ) {
+        super(options, fileService, logService);
+    }
 
     // [public methods]
 
