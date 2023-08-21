@@ -8,7 +8,7 @@
 export namespace FakeConsole {
 
     export function enable(options: IFakeConsoleOptions): void {
-        if (!options.enable) {
+        if (!(options.enable ?? true)) {
             return;
         }
 

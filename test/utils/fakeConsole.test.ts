@@ -28,6 +28,13 @@ suite('FakeConsole-test', () => {
             FakeConsole.disable();
         });
 
+        test('should replace console.log when enable is not provided (default behaviour)', () => {
+            const originalLog = console.log;
+            FakeConsole.enable({ enable: false });
+            assert.strictEqual(console.log, originalLog);
+            FakeConsole.disable();
+        });
+
         test('should call onLog callback when logging', () => {
             let receivedMessage = '';
             const onLog = (message: string) => {
