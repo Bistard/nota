@@ -62,9 +62,7 @@ export namespace FakeAsync {
          */
         const fakeExecutor = new FakeAsyncExecutor();
         FakeGlobalAsync.onTask(task => {
-            console.log('onFakeTask'); // FIX
             const internalTask = fakeExecutor.schedule(task);
-            
             const disposable = FakeGlobalAsync.onTaskDisposed(id => {
                 if (id === internalTask.id) {
                     fakeExecutor.unschedule(internalTask);
@@ -141,11 +139,11 @@ namespace FakeGlobalAsync {
 
     // [event]
 
-    const _onTask = new Emitter<ITask>();
-    export const onTask = _onTask.registerListener;
+    let _onTask = new Emitter<ITask>();
+    export let onTask = _onTask.registerListener;
 
-    const _onTaskDisposed = new Emitter<number>();
-    export const onTaskDisposed = _onTaskDisposed.registerListener;
+    let _onTaskDisposed = new Emitter<number>();
+    export let onTaskDisposed = _onTaskDisposed.registerListener;
 
     // [public methods]
 
@@ -189,6 +187,15 @@ namespace FakeGlobalAsync {
      */
     export function disableFakeAsync(): void {
         Object.assign(globalThis, trueGlobalAsync);
+        
+        _now = 0;
+        _onTask.dispose();
+        _onTask = new Emitter();
+        onTask = _onTask.registerListener;
+
+        _onTaskDisposed.dispose();
+        _onTaskDisposed = new Emitter();
+        onTaskDisposed = _onTaskDisposed.registerListener;
     }
 
     // [private helper methods]
@@ -228,8 +235,6 @@ namespace FakeGlobalAsync {
         }
 
         let iterCount = 0;
-        const stackTrace = new Error().stack;
-        
         let disposed = false;
         let taskID: number;
 
@@ -246,7 +251,7 @@ namespace FakeGlobalAsync {
                 },
                 source: {
                     toString() { return `setInterval (iteration ${thisIterCount})`; },
-                    stackTrace,
+                    stackTrace: new Error().stack,
                 },
                 setID: (id) => { taskID = id; }
             });
@@ -264,7 +269,7 @@ namespace FakeGlobalAsync {
 
     const __customizedClearInterval = (timeoutId: any) => {
         if (typeof timeoutId === 'object' && timeoutId && 'dispose' in timeoutId) {
-            timeoutId.dispose(); // this is our customized dispose objet
+            timeoutId.dispose(); // this is our customized dispose object
         } else {
             trueGlobalAsync.clearInterval(timeoutId);
         }
@@ -355,8 +360,8 @@ class FakeAsyncExecutor implements IDisposable {
         };
 
         this._pqueue.enqueue(internalTask);
-
         this.__trySchedule();
+
         return internalTask;
     }
 

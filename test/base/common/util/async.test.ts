@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter } from 'src/base/common/event';
-import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, MicrotaskDelay, PromiseTimeout, repeat, retry, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, MicrotaskDelay, PromiseTimeout, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/util/async';
 import { FakeAsync, IFakeSyncOptions } from 'test/utils/fakeAsync';
 
 suite('async-test', () => {
@@ -520,7 +520,7 @@ suite('async-test', () => {
     }));
 });
 
-suite.skip('async-test (helpers)', () => {
+suite('async-test (helpers)', () => {
 
 	suite('FakeAsync', () => {
 		
@@ -553,7 +553,7 @@ suite.skip('async-test (helpers)', () => {
 			assert.ok((realEndTime - realStartTime) < 20, "Function was not called immediately with fake timer.");
 		});
 
-		test('clearTimeout before executed', async () => { // FIX
+		test('clearTimeout before executed', async () => {
 			let counter = 0;
 			const handler = async () => {
 				const token = setTimeout(() => counter++, 0);
@@ -565,17 +565,15 @@ suite.skip('async-test (helpers)', () => {
 
 		test('run function with enable option false', async () => {
 			let counter = 0;
-			const incrementCounter = () => delayFor(0, () => counter++);
-			const options: IFakeSyncOptions = { enable: false };
-			await FakeAsync.run(incrementCounter, options);
+			const incrementCounter = async () => delayFor(0, () => counter++);
+			await FakeAsync.run(incrementCounter, { enable: false });
 			assert.strictEqual(counter, 1);
 		});
 	
-		test('run function with enable option true', async () => { // FIX
+		test('run function with enable option true', async () => {
 			let counter = 0;
-			const incrementCounter = () => delayFor(0, () => counter++);
-			const options: IFakeSyncOptions = { enable: true };
-			await FakeAsync.run(incrementCounter, options);
+			const incrementCounter = async () => delayFor(0, () => counter++);
+			await FakeAsync.run(incrementCounter, { enable: true });
 			assert.strictEqual(counter, 1);
 		});
 	
