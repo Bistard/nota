@@ -217,6 +217,7 @@ export class FileService extends Disposable implements IFileService {
         }
 
         catch (error) {
+            console.log(error);
             throw new FileOperationError(`unable to write file to '${URI.toFsPath(uri)}'`, FileOperationErrorType.UNKNOWN, error);
         }
 
@@ -458,6 +459,7 @@ export class FileService extends Disposable implements IFileService {
         }
 
         catch (error) {
+            // FIX: irresponsible: should not be unknown
             throw new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN, error);
         }
 
