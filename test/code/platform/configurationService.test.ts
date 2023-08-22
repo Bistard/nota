@@ -13,6 +13,8 @@ import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFi
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger } from "test/utils/testService";
+import { BrowserConfigurationService } from 'src/platform/configuration/browser/browserConfigurationService';
+import { delayFor } from 'src/base/common/util/async';
 
 suite('MainConfiguratioService-test', () => {
 
@@ -175,4 +177,179 @@ suite('MainConfiguratioService-test', () => {
             assert.strictEqual(changeEvent.match("section1.section2.section3"), false);
         });
     });
+});
+
+suite('BrowserConfigurationService', () => {
+
+    const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
+
+    let logService: ILogService;
+    let fileService: FileService;
+    const userConfigURI = URI.parse('file:///testFile');
+    const userConfig = {
+        'section': 'user value',
+    };
+
+    async function resetUserConfiguration(create = false) {
+        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create });
+    }
+
+    before(() => FakeAsync.run(async () => {
+        logService = new NullLogger();
+        fileService = new FileService(logService);
+        fileService.registerProvider('file', new InMemoryFileSystemProvider());
+
+        await resetUserConfiguration(true);
+        Registrant.registerConfigurations({
+            id: 'test',
+            properties: {
+                'section': {
+                    type: 'string',
+                    default: 'default value',
+                }
+            }
+        });
+    }));
+
+    after(() => {
+        // cleanup
+        Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
+    });
+
+    test('get - should get user value', () => FakeAsync.run(async () => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        await service.init();
+        
+        const result = service.get('section');
+        assert.strictEqual(result, 'user value');
+    }));
+
+    test('set - in memory changes but file did not change', () => FakeAsync.run(async () => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        await service.init();
+        
+        await service.set('section', 'update user value', { type: ConfigurationModuleType.Memory });
+
+        // in-memory is updated
+        assert.strictEqual(service.get('section'), 'update user value');
+
+        // file is not updated
+        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.strictEqual(configuration['section'], 'user value');
+    }));
+
+    test('set - user configuration changes', () => FakeAsync.run(async () => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        await service.init();
+        
+        await service.set('section', 'update user value', { type: ConfigurationModuleType.User });
+
+        // in-memory is updated
+        assert.strictEqual(service.get('section'), 'update user value');
+
+        // file is also updated
+        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.strictEqual(configuration['section'], 'update user value');
+
+        await resetUserConfiguration();
+    }));
+
+    test('set - user configuration changes, the main browser service also got notified.', () => FakeAsync.run(async () => {
+        const browserService = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const mainService = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        
+        // init two sides
+        await browserService.init();
+        await mainService.init();
+        
+        // before change
+        assert.strictEqual(browserService.get('section'), 'user value');
+        assert.strictEqual(mainService.get('section'), 'user value');
+
+        // change made
+        await browserService.set('section', 'update user value', { type: ConfigurationModuleType.User });
+
+        // in-memory is updated (browser-side)
+        assert.strictEqual(browserService.get('section'), 'update user value');
+
+        // file is also updated (browser-side)
+        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.strictEqual(configuration['section'], 'update user value');
+
+        // in-memory is updated (main-side)
+        await delayFor(0);
+        assert.strictEqual(mainService.get('section'), 'update user value');
+
+        await resetUserConfiguration();
+    }));
+
+    test('delete - in memory changes but file did not change', () => FakeAsync.run(async() => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        await service.init();
+        
+        await service.delete('section', { type: ConfigurationModuleType.Memory });
+
+        // in-memory is updated
+        assert.strictEqual(service.get('section'), 'default value');
+
+        // file is not updated
+        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.strictEqual(configuration['section'], 'user value');
+
+        await resetUserConfiguration();
+    }));
+
+    test('delete - user configuration changes', () => FakeAsync.run(async () => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        await service.init();
+        
+        await service.delete('section', { type: ConfigurationModuleType.User });
+
+        // in-memory is updated
+        assert.strictEqual(service.get('section'), 'default value');
+
+        // file is also updated
+        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.strictEqual(configuration['section'], undefined);
+
+        await resetUserConfiguration();
+    }));
+
+    test('delete - user configuration changes, the main browser service also got notified.', () => FakeAsync.run(async () => {
+        const browserService = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const mainService = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        
+        // init two sides
+        await browserService.init();
+        await mainService.init();
+        
+        // before change
+        assert.strictEqual(browserService.get('section'), 'user value');
+        assert.strictEqual(mainService.get('section'), 'user value');
+
+        // change made
+        await browserService.delete('section', { type: ConfigurationModuleType.User });
+
+        // in-memory is updated (browser-side)
+        assert.strictEqual(browserService.get('section'), 'default value');
+
+        // file is also updated (browser-side)
+        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.strictEqual(configuration['section'], undefined);
+
+        // in-memory is updated (main-side)
+        await delayFor(0);
+        assert.strictEqual(mainService.get('section'), 'default value');
+
+        await resetUserConfiguration();
+    }));
+
+    test('set / delete - does not support set to default module type', () => FakeAsync.run(async () => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        await service.init();
+        
+        // does not support set to 'default' module
+        assert.rejects(() => service.set('section', 'update user value', { type: ConfigurationModuleType.Default }));
+        assert.rejects(() => service.delete('section', { type: ConfigurationModuleType.Default }));
+    }));
 });
