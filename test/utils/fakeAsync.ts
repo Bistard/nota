@@ -422,13 +422,15 @@ class FakeAsyncExecutor implements IDisposable {
     }
 
     private __executeTask(): void {
-        const task = this._pqueue.dequeue();
+        const task = this._pqueue.peek();
 		if (!task) {
 			return;
 		}
 
         FakeGlobalAsync.updateNow(task.time);
         task.run();
+
+        this._pqueue.dequeue();
     }
 
     private __compareTasks(a: ITaskWithID, b: ITaskWithID): number {
