@@ -6,9 +6,9 @@ import { ILogService } from "src/base/common/logger";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/platform/configuration/common/configurationHub";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { Constructor, DeepReadonly, Mutable } from "src/base/common/util/type";
+import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
-import { IInstantiationService, InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
@@ -44,7 +44,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
             this._initProtector = new InitProtector();
 
             this._defaultConfiguration = new DefaultConfiguration();
-            this._userConfiguration = this.__createUserConfiguration(this.appConfigurationPath);
+            this._userConfiguration = this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath);
 
             this._configurationHub = this.__reloadConfigurationHub();
         }
@@ -88,8 +88,6 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
     public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
-
-    protected abstract __createUserConfiguration(...args: InstantiationRequiredParameters<typeof UserConfiguration>): UserConfiguration;
 
     // [private helper methods]
 

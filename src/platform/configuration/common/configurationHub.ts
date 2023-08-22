@@ -5,7 +5,7 @@ import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { mixin, strictEquals } from "src/base/common/util/object";
-import { DeepReadonly, Dictionary, If } from "src/base/common/util/type";
+import { DeepReadonly, Dictionary } from "src/base/common/util/type";
 import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -112,7 +112,7 @@ type SetupConfigurationResult =
 /**
  * @class A {@link UserConfiguration} represents the user configuration that 
  * will be treated as overrides to {@link DefaultConfiguration}. It obtains the
- * configuration by reading files from the disk.
+ * configuration by reading from the corresponding file.
  * 
  * @note Has type {@link ConfigurationModuleType.User}.
  * @note After the initialization of the module, it will automatically keep 
@@ -137,7 +137,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     private readonly _onDidConfigurationChange = this.__register(new Emitter<void>());
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
 
-    private readonly _onDidConfigurationLoaded = this.__register(new Emitter<IConfigurationStorage>());
+    protected readonly _onDidConfigurationLoaded = this.__register(new Emitter<IConfigurationStorage>());
     public readonly onDidConfigurationLoaded = this._onDidConfigurationLoaded.registerListener;
 
     get onLatestConfigurationDiskChange(): Promise<void> {
@@ -153,7 +153,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     ) {
         super();
         this._initProtector = new InitProtector();
-
+        
         this._userResource = userResource;
         this._configuration = new ConfigurationStorage();
         this._validator = this.__register(new UserConfigurationValidator());
@@ -183,8 +183,11 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
         this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
 
-        // configuration updation from the disk
+        // configuration updation from the file
         this.__syncConfigurationFromFileOnChange();
+
+        // configuration update into the file
+        this.__syncConfigurationToFileOnChange(this._configuration);
 
         // fires the event when the configuration is constructed too
         this._onDidConfigurationLoaded.fire(this._configuration);
@@ -195,16 +198,18 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         
         if (result.ifLoaded) {
             /**
-             * Since the configuration is loaded correctly, we need to validate
-             * the loaded configuration.
+             * The configuration is loaded correctly, we need to validate the 
+             * loaded configuration.
              */
             const validated = this.__validateConfiguration(result.raw);
             this.__setupConfiguration({ ifLoaded: true, validated });
+
+            this._onDidConfigurationChange.fire();
         } 
         else {
             /**
-             * Since we are creating a new user configuration, there is no need 
-             * to validate.
+             * We are creating a new user configuration, there is no need to 
+             * validate.
              */
             this.__setupConfiguration({ ifLoaded: false, validated: result.raw });
         }
@@ -265,6 +270,8 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         }
 
         this._configuration = configuration;
+        this.__syncConfigurationToFileOnChange(configuration);
+
         this._onDidConfigurationLoaded.fire(configuration);
     }
 
@@ -273,11 +280,28 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this.__register(Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(this._userResource))(() => reloadScheduler.schedule()));
         const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
             100, // wait for a moment to avoid excessive reloading
-            async () => {
-                await this.reload();
-                this._onDidConfigurationChange.fire();
-            },
+            async () => await this.reload()
         ));
+    }
+
+    private __syncConfigurationToFileOnChange(configuration: IConfigurationStorage): void {
+        /**
+         * Following a file write, an additional configuration reload 
+         * from the file occurs. This step is redundant as the in-memory 
+         * configuration already matches the file content.
+         * 
+         * This is hacky and a little slow, but it makes sure the job is done.
+         */ 
+        this.__register(configuration.onDidChange(async () => {
+            await this.fileService.writeFile(
+                this._userResource, 
+                DataBuffer.fromString(JSON.stringify(configuration.model, null, 4)), 
+                { create: true, overwrite: true },
+            )
+            .catch(err => {
+                throw err;
+            });
+        }));
     }
 }
 

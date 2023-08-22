@@ -1,8 +1,7 @@
 import { IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
 import { ILogService } from "src/base/common/logger";
-import { IInstantiationService, InstantiationRequiredParameters } from "src/platform/instantiation/common/instantiation";
-import { MainUserConfiguration } from "src/platform/configuration/electron/userConfiguration";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export class MainConfigurationService extends AbstractConfigurationService {
 
@@ -14,12 +13,6 @@ export class MainConfigurationService extends AbstractConfigurationService {
         @ILogService logService: ILogService,
     ) {
         super(options, instantiationService, logService);
-    }
-
-    // [protected methods]
-
-    protected override __createUserConfiguration(...args: InstantiationRequiredParameters<typeof MainUserConfiguration>): MainUserConfiguration {
-        return this.instantiationService.createInstance(MainUserConfiguration, ...args);
     }
 
     // [public methods]
