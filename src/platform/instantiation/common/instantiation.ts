@@ -1,4 +1,4 @@
-import { Constructor } from "src/base/common/util/type";
+import { AbstractConstructor, Constructor } from "src/base/common/util/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -36,7 +36,7 @@ export type NonServiceParameters<TArgs extends any[]> =
             ? NonServiceParameters<TFirst>
             : TArgs;
 
-export type InstantiationRequiredParameters<T extends Constructor> = NonServiceParameters<ConstructorParameters<T>>;
+export type InstantiationRequiredParameters<T extends AbstractConstructor> = NonServiceParameters<ConstructorParameters<T>>;
 
 /**
  * An interface only for {@link InstantiationService}.
