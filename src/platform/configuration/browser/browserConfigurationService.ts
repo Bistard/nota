@@ -68,6 +68,6 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         configuration.set(section, value);
 
         // make sure the changes are applied to the file
-        return this._userConfiguration.onLatestConfigurationDiskChange;
+        return this._userConfiguration.onLatestConfigurationFileChange;
     }
 }

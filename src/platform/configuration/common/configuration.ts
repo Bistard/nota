@@ -179,5 +179,5 @@ export interface IUserConfigurationModule extends IConfigurationModule<Configura
      * configuration file.
      * @note This only resolves once.
      */
-    readonly onLatestConfigurationDiskChange: Promise<void>;
+    readonly onLatestConfigurationFileChange: Promise<void>;
 }

@@ -140,7 +140,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     protected readonly _onDidConfigurationLoaded = this.__register(new Emitter<IConfigurationStorage>());
     public readonly onDidConfigurationLoaded = this._onDidConfigurationLoaded.registerListener;
 
-    get onLatestConfigurationDiskChange(): Promise<void> {
+    get onLatestConfigurationFileChange(): Promise<void> {
         return Event.toPromise(this._onDidConfigurationChange.registerListener);
     }
 
