@@ -98,4 +98,17 @@ suite('FakeAsync-test', () => {
         await FakeAsync.run(errorFunction, options);
         assert.strictEqual(caughtError.message, 'Test error');
     });
+
+    test('make sure all tasks are executed',async () => {
+        let cn = 0;
+        const fn = async () => {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => cn++, 100000 + i);
+            }
+        };
+
+        await FakeAsync.run(fn);
+
+        assert.strictEqual(cn, 10);
+    });
 });
