@@ -115,7 +115,7 @@ export const enum ConfigurationModuleType {
     Memory,
 }
 
-export function ConfigurationModuleTypeToString(type: ConfigurationModuleType): string {
+export function ConfigurationModuleTypeToString(type: any): string {
     switch (type) {
         case ConfigurationModuleType.Default: return 'Default';
         case ConfigurationModuleType.User: return 'User';
@@ -173,4 +173,11 @@ export interface IUserConfigurationModule extends IConfigurationModule<Configura
      * @note This fires when the the user configuration changes in disk.
      */
     readonly onDidConfigurationChange: Register<void>;
+
+    /**
+     * Resolves when the latest configuration changes is applied to the 
+     * configuration file.
+     * @note This only resolves once.
+     */
+    readonly onLatestConfigurationDiskChange: Promise<void>;
 }

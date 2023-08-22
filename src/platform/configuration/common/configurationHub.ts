@@ -13,6 +13,7 @@ import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, IDefaultConfigurationModule, IUserConfigurationModule, Section } from "src/platform/configuration/common/configuration";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { errorToMessage } from "src/base/common/error";
+import { DataBuffer } from "src/base/common/file/buffer";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -124,6 +125,10 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     private readonly _onDidConfigurationChange = this.__register(new Emitter<void>());
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
 
+    get onLatestConfigurationDiskChange(): Promise<void> {
+        return Event.toPromise(this._onDidConfigurationChange.registerListener);
+    }
+
     // [constructor]
 
     constructor(
@@ -143,17 +148,11 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
             this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
 
-            // configuration updation
-            this.__register(this.fileService.watch(userResource));
-            Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(userResource))(() => reloadScheduler.schedule());
+            // configuration updation applies to the disk
+            this.__syncConfigurationToFileOnChange(this._configuration);
 
-            const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
-                100, // wait for a moment to avoid excessive reloading
-                async () => {
-                    await this.reload();
-                    this._onDidConfigurationChange.fire();
-                },
-            ));
+            // configuration updation from the disk
+            this.__syncConfigurationFromFileOnChange();
         }
     }
 
@@ -188,9 +187,45 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             () => JSON.parse(raw),
             () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'`),
         );
-
         const validated = this._validator.validate(unvalidated);
+        
+        this._configuration.dispose();
         this._configuration = new ConfigurationStorage(Object.keys(validated), validated);
+
+        this.__syncConfigurationToFileOnChange(this._configuration);
+    }
+
+    private __syncConfigurationToFileOnChange(configuration: IConfigurationStorage): void {
+        
+        /**
+         * Following a file write, an additional configuration reload 
+         * from the file occurs. This step is redundant as the in-memory 
+         * configuration already matches the file content.
+         * 
+         * This is hacky and a little slow, but it makes sure the job is done.
+         */ 
+        this.__register(configuration.onDidChange(async () => {
+            await this.fileService.writeFile(
+                this._userResource, 
+                DataBuffer.fromString(JSON.stringify(configuration.model, null, 4)), 
+                { create: true, overwrite: true },
+            )
+            .catch(err => {
+                throw err;
+            });
+        }));
+    }
+
+    private __syncConfigurationFromFileOnChange(): void {
+        this.__register(this.fileService.watch(this._userResource));
+        this.__register(Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(this._userResource))(() => reloadScheduler.schedule()));
+        const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
+            100, // wait for a moment to avoid excessive reloading
+            async () => {
+                await this.reload();
+                this._onDidConfigurationChange.fire();
+            },
+        ));
     }
 }
 
@@ -421,9 +456,7 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
     }
 
     public setInMemory(section: Section, value: any): void {
-        value = (value ?? null); // turn 'undefined' to 'null'
         this._memoryConfiguration.set(section, value);
-        }
         this.__dropComposedConfiguration();
     }
 

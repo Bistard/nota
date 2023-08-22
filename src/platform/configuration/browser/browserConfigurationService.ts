@@ -1,81 +1,73 @@
-import { ConfigurationModuleType, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
-import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { Disposable } from "src/base/common/dispose";
-import { Queue } from "src/base/common/util/array";
+import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
     // [fields]
 
-    private readonly _configurationEditing: ConfigurationEditing;
-
     // [constructor]
 
     constructor(
-        appConfigurationPath: URI,
+        options: IConfigurationServiceOptions,
         @IFileService fileService: IFileService,
         @ILogService logService: ILogService,
     ) {
-        super(appConfigurationPath, fileService, logService);
-        this._configurationEditing = new ConfigurationEditing();
+        super(options, fileService, logService);
     }
 
     // [public methods]
 
-    public async set(section: Section, value: any): Promise<void>;
-    public async set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
     public async set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void> {
-        this.__updateConfiguration(section, value, options);
+        await this.__updateConfiguration(section, value, options);
     }
 
-    public async delete(section: Section): Promise<void>;
     public async delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void> {
-        this.__updateConfiguration(section, undefined, options);
+        await this.__updateConfiguration(section, undefined, options);
     }
 
     // [private helper methods]
 
-    private __updateConfiguration(section: Section, value: any, options?: IConfigurationUpdateOptions): void {
+    private async __updateConfiguration(section: Section, value: unknown, options?: IConfigurationUpdateOptions): Promise<void> {
         const module = options?.type;
 
         if (module === ConfigurationModuleType.Default) {
-            throw new Error(`[BrowserConfigurationService] Invalid configuration module for updation: ${module}`);
+            throw new Error(`[BrowserConfigurationService] cannot update configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
 
         if (module === ConfigurationModuleType.Memory) {
-            this._configurationHub.setInMemory(section, value);
-            // TODO: trigger configuration change event
-            return;
+            this.__updateInMemoryConfiguration(section, value);
         }
-
-        if (module === ConfigurationModuleType.User) {
-
-            // TODO: trigger configuration change event
-            return;
+        else if (module === ConfigurationModuleType.User) {
+            await this.__updateUserConfiguration(section, value);
+        }
+        else {
+            throw new Error(`[BrowserConfigurationService] cannot update configuration with unknown module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
     }
 
-    private __onConfigurationPartialChange(): void {
-
-    }
-}
-
-class ConfigurationEditing extends Disposable {
-
-    // [fields]
-
-    private readonly _queue: Queue<void>;
-
-    // [constructor]
-
-    constructor() {
-        super();
-        this._queue = new Queue();
+    /**
+     * @description Since we are modifying only in memory, the modules inside 
+     * the {@link ConfigurationHub} are not able to notify the on configuration
+     * change event, we must fire it manually.
+     */
+    private __updateInMemoryConfiguration(section: Section, value: unknown): void {
+        this._configurationHub.setInMemory(section, value);
+        const rawEvent: IRawConfigurationChangeEvent = { properties: [section] };
+        this.__onConfigurationChange(rawEvent, ConfigurationModuleType.Memory);
     }
 
-    // [public methods]
+    /**
+     * @description The base class already handles the on configuration change 
+     * event.
+     */
+    private async __updateUserConfiguration(section: Section, value: unknown): Promise<void> {
+        const configuration = this._userConfiguration.getConfiguration();
+        configuration.set(section, value);
 
+        // make sure the changes are applied to the file
+        return this._userConfiguration.onLatestConfigurationDiskChange;
+    }
 }
