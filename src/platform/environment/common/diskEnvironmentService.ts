@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { MapTypes, isString } from "src/base/common/util/type";
-import { NOTA_DIR_NAME } from "src/platform/configuration/common/configuration";
+import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts } from "src/platform/environment/common/environment";
 
@@ -55,11 +55,11 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     @memoize
     get logPath(): URI {
         const date = getCurrTimeStamp().split(' ')[0]!;
-        return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME, 'log', date));
+        return URI.fromFile(join(this.opts.appRootPath, APP_DIR_NAME, 'log', date));
     }
 
     @memoize
-    get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME)); }
+    get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath, APP_DIR_NAME)); }
 
     @memoize
     get userDataPath(): URI { return URI.fromFile(this.opts.userDataPath); }

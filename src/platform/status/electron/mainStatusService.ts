@@ -8,7 +8,7 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/platform/envir
 import { DiskStorage, IDiskStorage } from "src/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { StatusKey } from "src/platform/status/common/status";
-import { NOTA_DIR_NAME } from "src/platform/configuration/common/configuration";
+import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
@@ -66,7 +66,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
-        const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), NOTA_DIR_NAME, MainStatusService.FILE_NAME));
+        const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), APP_DIR_NAME, MainStatusService.FILE_NAME));
         this._storage = new DiskStorage(path, true, this.fileService);
         this.__registerListeners();
     }

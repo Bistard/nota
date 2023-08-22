@@ -87,13 +87,14 @@ export interface IConfigurationUpdateOptions {
     readonly type: ConfigurationModuleType;
 }
 
-export const NOTA_DIR_NAME = '.nota';
+export const APP_DIR_NAME = '.wisp';
+export const APP_CONFIG_NAME = 'app.config.json';
 
 /** @deprecated */
 export const DEFAULT_CONFIG_NAME = 'user.config.json';
 /** @deprecated */
 export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
-export const APP_CONFIG_NAME = 'nota.config.json';
+
 
 export interface IComposedConfiguration {
     default: IConfigurationStorage;
