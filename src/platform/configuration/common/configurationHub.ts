@@ -10,7 +10,7 @@ import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationS
 import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/platform/files/common/fileService";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, IDefaultConfigurationModule, IUserConfigurationModule, Section } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IDefaultConfigurationModule, IUserConfigurationModule, Section } from "src/platform/configuration/common/configuration";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { errorToMessage } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/file/buffer";

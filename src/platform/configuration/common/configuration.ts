@@ -7,6 +7,9 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { URI } from "src/base/common/file/uri";
 
+export const APP_DIR_NAME = '.wisp';
+export const APP_CONFIG_NAME = 'app.config.json';
+
 /**
  * A {@link Section} refers to a string composed of multiple substrings linked 
  * together by the period ('.') symbol.
@@ -87,24 +90,15 @@ export interface IConfigurationUpdateOptions {
     readonly type: ConfigurationModuleType;
 }
 
-export const APP_DIR_NAME = '.wisp';
-export const APP_CONFIG_NAME = 'app.config.json';
-
-/** @deprecated */
-export const DEFAULT_CONFIG_NAME = 'user.config.json';
-/** @deprecated */
-export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
-
-
 export interface IComposedConfiguration {
-    default: IConfigurationStorage;
-    user: IConfigurationStorage;
+    readonly default: IConfigurationStorage;
+    readonly user: IConfigurationStorage;
 }
 
 export interface IConfigurationCompareResult {
-    added: Section[];
-    deleted: Section[];
-    changed: Section[];
+    readonly added: Section[];
+    readonly deleted: Section[];
+    readonly changed: Section[];
 }
 
 /**
