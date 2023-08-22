@@ -34,7 +34,7 @@ export class ProductService implements IProductService {
 
     get profile(): IProductProfile {
         if (!this._profile) {
-            throw new Error('[ProductService] not initialized.');
+            throw new Error('[ProductService] cannot get profile because the product service is not initialized.');
         }
         return this._profile;
     }

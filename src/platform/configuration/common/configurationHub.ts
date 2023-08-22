@@ -178,7 +178,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         let raw: string;
         try {
             raw = (await this.fileService.readFile(this._userResource)).toString();
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'.\nThe cause is: ${errorToMessage(err)}`);
         }
 
