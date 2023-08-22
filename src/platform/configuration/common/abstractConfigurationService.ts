@@ -6,9 +6,9 @@ import { ILogService } from "src/base/common/logger";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/platform/configuration/common/configurationHub";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { DeepReadonly, Mutable } from "src/base/common/util/type";
+import { Constructor, DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
-import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IInstantiationService, InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
@@ -34,7 +34,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     constructor(
         protected readonly options: IConfigurationServiceOptions,
-        @IInstantiationService instantiationService: IInstantiationService,
+        @IInstantiationService protected readonly instantiationService: IInstantiationService,
         @ILogService protected readonly logService: ILogService,
     ) {
         super();
@@ -44,7 +44,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
             this._initProtector = new InitProtector();
 
             this._defaultConfiguration = new DefaultConfiguration();
-            this._userConfiguration = instantiationService.createInstance(UserConfiguration, options.appConfiguration.path);
+            this._userConfiguration = this.__createUserConfiguration(this.appConfigurationPath);
 
             this._configurationHub = this.__reloadConfigurationHub();
         }
@@ -84,10 +84,12 @@ export abstract class AbstractConfigurationService extends Disposable implements
         return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
-    // [public abstract methods]
+    // [abstract methods]
 
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
     public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+
+    protected abstract __createUserConfiguration(...args: InstantiationRequiredParameters<typeof UserConfiguration>): UserConfiguration;
 
     // [private helper methods]
 

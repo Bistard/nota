@@ -2,7 +2,9 @@ import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfiguratio
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
 import { ILogService } from "src/base/common/logger";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
-import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IInstantiationService, InstantiationRequiredParameters } from "src/platform/instantiation/common/instantiation";
+import { UserConfiguration } from "src/platform/configuration/common/configurationHub";
+import { BrowserUserConfiguration } from "src/platform/configuration/browser/userConfiguration";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -16,6 +18,12 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @ILogService logService: ILogService,
     ) {
         super(options, instantiationService, logService);
+    }
+
+    // [protected methods]
+
+    protected override __createUserConfiguration(...args: InstantiationRequiredParameters<typeof BrowserUserConfiguration>): UserConfiguration {
+        return this.instantiationService.createInstance(BrowserUserConfiguration, ...args);
     }
 
     // [public methods]

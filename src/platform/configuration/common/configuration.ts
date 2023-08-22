@@ -170,6 +170,11 @@ export interface IUserConfigurationModule extends IConfigurationModule<Configura
     readonly onDidConfigurationChange: Register<void>;
 
     /**
+     * Fires whenever the configuration is reloaded completely.
+     */
+    readonly onDidConfigurationLoaded: Register<IConfigurationStorage>;
+
+    /**
      * Resolves when the latest configuration changes is applied to the 
      * configuration file.
      * @note This only resolves once.

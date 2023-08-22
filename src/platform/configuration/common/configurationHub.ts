@@ -5,7 +5,7 @@ import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { mixin, strictEquals } from "src/base/common/util/object";
-import { DeepReadonly, Dictionary } from "src/base/common/util/type";
+import { DeepReadonly, Dictionary, If } from "src/base/common/util/type";
 import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -14,6 +14,7 @@ import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareR
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { errorToMessage } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/file/buffer";
+import { FileOperationErrorType, FileSystemProviderError } from "src/base/common/file/file";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -57,45 +58,56 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
 
     public init(): void {
         this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
-        this.__resetDefaultConfigurations();
+        this._storage = DefaultConfiguration.resetDefaultConfigurations();
         this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
     }
 
     public reload(): void {
-        this.__resetDefaultConfigurations();
+        this._storage = DefaultConfiguration.resetDefaultConfigurations();
     }
 
-    // [private helper methods]
-
-    private __resetDefaultConfigurations(): void {
-        this._storage = new ConfigurationStorage();
-        const schemas = Registrant.getConfigurationSchemas();
-        this.__updateDefaultConfigurations(Object.keys(schemas), schemas);
-    }
+    // [private methods]
 
     private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
         const properties = Array.from(e.properties);
-        this.__updateDefaultConfigurations(properties, Registrant.getConfigurationSchemas());
+        DefaultConfiguration.__updateDefaultConfigurations(this._storage, properties, Registrant.getConfigurationSchemas());
         this._onDidConfigurationChange.fire({ properties: properties });
     }
 
-    private __updateDefaultConfigurations(keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
+    // [static methods]
+
+    public static resetDefaultConfigurations(): IConfigurationStorage {
+        const storage = new ConfigurationStorage();
+        const schemas = Registrant.getConfigurationSchemas();
+        this.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
+        return storage;
+    }
+
+    private static __updateDefaultConfigurations(storage: IConfigurationStorage, keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
         for (const key of keys) {
             const schema = schemas[key];
 
             if (schema) {
                 /** Make sure do not override the original value. */
-                const originalValue = tryOrDefault(undefined, () => this._storage.get(key));
+                const originalValue = tryOrDefault(undefined, () => storage.get(key));
 
                 /** Set default value for 'null'. */
                 const newValue = mixin(originalValue, schema.type === 'null' ? null : schema.default, true);
-                this._storage.set(key, newValue);
+                storage.set(key, newValue);
             } else {
-                this._storage.delete(key);
+                storage.delete(key);
             }
         }
     }
 }
+
+type LoadConfigurationResult = 
+  | { readonly ifLoaded: false, readonly raw: IConfigurationStorage }
+  | { readonly ifLoaded: true, readonly raw: string };
+
+type SetupConfigurationResult = 
+  | { readonly ifLoaded: false, readonly validated: IConfigurationStorage }
+  | { readonly ifLoaded: true, readonly validated: object };
 
 /**
  * @class A {@link UserConfiguration} represents the user configuration that 
@@ -104,26 +116,29 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
  * 
  * @note Has type {@link ConfigurationModuleType.User}.
  * @note After the initialization of the module, it will automatically keep 
- * itself updated in response to any changes in the corresponding files from the
- * disk.
+ * itself updated in response to any changes from the corresponding file.
+ * @note However, the synchronous behavior of updating from configuration to 
+ * file has been abstracted away.
  */
 export class UserConfiguration extends Disposable implements IUserConfigurationModule {
-
+    
     // [fields]
 
     public readonly type = ConfigurationModuleType.User;
+    
+    protected readonly _userResource: URI;
+    protected _configuration: IConfigurationStorage;
 
     private readonly _initProtector: InitProtector;
-
-    private readonly _userResource: URI;
     private readonly _validator: UserConfigurationValidator;
-
-    private _configuration: IConfigurationStorage;
 
     // [event]
 
     private readonly _onDidConfigurationChange = this.__register(new Emitter<void>());
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
+
+    private readonly _onDidConfigurationLoaded = this.__register(new Emitter<IConfigurationStorage>());
+    public readonly onDidConfigurationLoaded = this._onDidConfigurationLoaded.registerListener;
 
     get onLatestConfigurationDiskChange(): Promise<void> {
         return Event.toPromise(this._onDidConfigurationChange.registerListener);
@@ -133,8 +148,8 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     constructor(
         userResource: URI,
-        @IFileService private readonly fileService: IFileService,
-        @ILogService private readonly logService: ILogService,
+        @IFileService protected readonly fileService: IFileService,
+        @ILogService protected readonly logService: ILogService,
     ) {
         super();
         this._initProtector = new InitProtector();
@@ -144,16 +159,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this._validator = this.__register(new UserConfigurationValidator());
 
         // register listeners
-        {
-            this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
-            this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
-
-            // configuration updation applies to the disk
-            this.__syncConfigurationToFileOnChange(this._configuration);
-
-            // configuration updation from the disk
-            this.__syncConfigurationFromFileOnChange();
-        }
+        this.__registerListeners();
     }
 
     // [public methods]
@@ -164,56 +170,102 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     public async init(): Promise<void> {
         this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
-        return this.__loadConfiguration();
+        return this.__reloadConfiguration();
     }
 
     public async reload(): Promise<void> {
-        return this.__loadConfiguration();
+        return this.__reloadConfiguration();
     }
 
     // [private helper methods]
 
-    private async __loadConfiguration(): Promise<void> {
+    private __registerListeners(): void {
+        this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
+        this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
 
-        let raw: string;
+        // configuration updation from the disk
+        this.__syncConfigurationFromFileOnChange();
+
+        // fires the event when the configuration is constructed too
+        this._onDidConfigurationLoaded.fire(this._configuration);
+    }
+
+    private async __reloadConfiguration(): Promise<void> {
+        const result = await this.__loadConfiguration();
+        
+        if (result.ifLoaded) {
+            /**
+             * Since the configuration is loaded correctly, we need to validate
+             * the loaded configuration.
+             */
+            const validated = this.__validateConfiguration(result.raw);
+            this.__setupConfiguration({ ifLoaded: true, validated });
+        } 
+        else {
+            /**
+             * Since we are creating a new user configuration, there is no need 
+             * to validate.
+             */
+            this.__setupConfiguration({ ifLoaded: false, validated: result.raw });
+        }
+    }
+
+    private async __loadConfiguration(): Promise<LoadConfigurationResult> {
+        let raw: string | IConfigurationStorage;
+
+        // try to read the user configuration
         try {
             raw = (await this.fileService.readFile(this._userResource)).toString();
-        } catch (err: any) {
-            throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'.\nThe cause is: ${errorToMessage(err)}`);
+            return { ifLoaded: true, raw };
+        } 
+        catch (err: any) {
+            // throw any errors that we are not expecting
+            if (!(err instanceof FileSystemProviderError && err.code === FileOperationErrorType.FILE_NOT_FOUND)) {
+                throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'.\nThe cause is: ${errorToMessage(err)}`);
+            }
+            
+            // expecting file not found, we create a new user configuration.
+            await this.fileService.writeFile(this._userResource, DataBuffer.alloc(0), { create: true, overwrite: true });
+            raw = await this.__createNewConfiguration();
+            return { ifLoaded: false, raw };
         }
 
+        // should not be reached
+    }
+
+    private async __createNewConfiguration(): Promise<IConfigurationStorage> {
+        const defaultConfiguration = DefaultConfiguration.resetDefaultConfigurations();
+        const raw = JSON.stringify(defaultConfiguration.model, null, 4);
+
+        // keep update to the file
+        await this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true });        
+        return defaultConfiguration;
+    }
+
+    private __validateConfiguration(raw: string): object {
         const unvalidated = tryOrDefault<object>(
             {},
             () => JSON.parse(raw),
             () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'`),
         );
         const validated = this._validator.validate(unvalidated);
-        
-        this._configuration.dispose();
-        this._configuration = new ConfigurationStorage(Object.keys(validated), validated);
-
-        this.__syncConfigurationToFileOnChange(this._configuration);
+        return validated;
     }
 
-    private __syncConfigurationToFileOnChange(configuration: IConfigurationStorage): void {
-        
-        /**
-         * Following a file write, an additional configuration reload 
-         * from the file occurs. This step is redundant as the in-memory 
-         * configuration already matches the file content.
-         * 
-         * This is hacky and a little slow, but it makes sure the job is done.
-         */ 
-        this.__register(configuration.onDidChange(async () => {
-            await this.fileService.writeFile(
-                this._userResource, 
-                DataBuffer.fromString(JSON.stringify(configuration.model, null, 4)), 
-                { create: true, overwrite: true },
-            )
-            .catch(err => {
-                throw err;
-            });
-        }));
+    private __setupConfiguration(result: SetupConfigurationResult): void {
+        // dispose the old configuration
+        this._configuration.dispose();
+
+        // fill into the new configuration
+        let configuration: IConfigurationStorage;
+        if (result.ifLoaded) {
+            configuration = new ConfigurationStorage(Object.keys(result.validated), result.validated);
+        } else {
+            configuration = result.validated;
+        }
+
+        this._configuration = configuration;
+        this._onDidConfigurationLoaded.fire(configuration);
     }
 
     private __syncConfigurationFromFileOnChange(): void {
