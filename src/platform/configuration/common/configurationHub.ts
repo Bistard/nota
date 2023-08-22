@@ -327,7 +327,12 @@ class ConfigurationHubBase implements IConfigurationHubBase {
 
     protected __getComposedConfiguration(): IConfigurationStorage {
         if (!this._composedConfiguration) {
-            (this._composedConfiguration = this._defaultConfiguration.clone()).merge([this._userConfiguration, this._memoryConfiguration]);
+            this._composedConfiguration = this._defaultConfiguration.clone();
+            
+            const userConfigurationWithMemory = this._userConfiguration.clone();
+            userConfigurationWithMemory.merge(this._memoryConfiguration, false);
+            
+            this._composedConfiguration.merge(userConfigurationWithMemory, true);
         }
         return this._composedConfiguration;
     }
