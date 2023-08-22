@@ -1,8 +1,8 @@
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
-import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -12,10 +12,10 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
     constructor(
         options: IConfigurationServiceOptions,
-        @IFileService fileService: IFileService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @ILogService logService: ILogService,
     ) {
-        super(options, fileService, logService);
+        super(options, instantiationService, logService);
     }
 
     // [public methods]

@@ -165,7 +165,7 @@ const main = new class extends class MainProcess implements IMainProcess {
                     path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
                 } 
             },
-            fileService, 
+            instantiationService, 
             logService,
         );
         instantiationService.register(IConfigurationService, configurationService);

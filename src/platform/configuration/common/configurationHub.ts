@@ -133,8 +133,8 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     constructor(
         userResource: URI,
-        private readonly fileService: IFileService,
-        private readonly logService: ILogService,
+        @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._initProtector = new InitProtector();

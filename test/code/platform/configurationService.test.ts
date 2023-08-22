@@ -8,18 +8,20 @@ import { ConfigurationModuleType } from 'src/platform/configuration/common/confi
 import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
-import { FileService } from "src/platform/files/common/fileService";
+import { FileService, IFileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger } from "test/utils/testService";
 import { BrowserConfigurationService } from 'src/platform/configuration/browser/browserConfigurationService';
 import { delayFor } from 'src/base/common/util/async';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 suite('MainConfiguratioService-test', () => {
 
     const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
+    let instantiationService: IInstantiationService;
     let logService: ILogService;
     let fileService: FileService;
     const userConfigURI = URI.parse('file:///testFile');
@@ -32,9 +34,14 @@ suite('MainConfiguratioService-test', () => {
     }
 
     before(() => FakeAsync.run(async () => {
+        instantiationService = new InstantiationService();
+
         logService = new NullLogger();
         fileService = new FileService(logService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
+
+        instantiationService.register(IFileService, fileService);
+        instantiationService.register(ILogService, logService);
 
         await resetUserConfiguration(true);
         Registrant.registerConfigurations({
@@ -54,7 +61,7 @@ suite('MainConfiguratioService-test', () => {
     });
 
     test('get before Initialization - Should get undefined before initialization', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
 
         let result = service.get('section');
         assert.strictEqual(result, undefined);
@@ -66,7 +73,7 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('get - Should get user value', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
         const result = service.get('section');
@@ -74,7 +81,7 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('get - Should get default value', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
 
         let result = service.get('section');
@@ -89,7 +96,7 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('get - Should return default value when section does not exist', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
         const result = service.get('nonExistingSection', "default");
@@ -97,21 +104,21 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('set - Should throw error as set operation is not supported', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
         assert.rejects(() => service.set('section', 'value'));
     }));
 
     test('delete - Should throw error as delete operation is not supported', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
         assert.rejects(() => service.delete('section'));
     }));
 
     test('onDidConfigurationChange - DefaultConfiguration self update', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
         await service.init();
 
@@ -146,7 +153,7 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     test('onDidConfigurationChange - UserConfiguration self update', () => FakeAsync.run(async () => {
-        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
         const result = service.get('section');
@@ -183,6 +190,7 @@ suite('BrowserConfigurationService', () => {
 
     const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
+    let instantiationService: IInstantiationService;
     let logService: ILogService;
     let fileService: FileService;
     const userConfigURI = URI.parse('file:///testFile');
@@ -195,9 +203,14 @@ suite('BrowserConfigurationService', () => {
     }
 
     before(() => FakeAsync.run(async () => {
+        instantiationService = new InstantiationService();
+
         logService = new NullLogger();
         fileService = new FileService(logService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
+
+        instantiationService.register(IFileService, fileService);
+        instantiationService.register(ILogService, logService);
 
         await resetUserConfiguration(true);
         Registrant.registerConfigurations({
@@ -217,7 +230,7 @@ suite('BrowserConfigurationService', () => {
     });
 
     test('get - should get user value', () => FakeAsync.run(async () => {
-        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
         
         const result = service.get('section');
@@ -225,7 +238,7 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('set - in memory changes but file did not change', () => FakeAsync.run(async () => {
-        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
         
         await service.set('section', 'update user value', { type: ConfigurationModuleType.Memory });
@@ -239,7 +252,7 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('set - user configuration changes', () => FakeAsync.run(async () => {
-        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
         
         await service.set('section', 'update user value', { type: ConfigurationModuleType.User });
@@ -255,8 +268,8 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('set - user configuration changes, the main browser service also got notified.', () => FakeAsync.run(async () => {
-        const browserService = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
-        const mainService = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const browserService = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
+        const mainService = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         
         // init two sides
         await browserService.init();
@@ -284,7 +297,7 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('delete - in memory changes but file did not change', () => FakeAsync.run(async() => {
-        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
         
         await service.delete('section', { type: ConfigurationModuleType.Memory });
@@ -300,7 +313,7 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('delete - user configuration changes', () => FakeAsync.run(async () => {
-        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
         
         await service.delete('section', { type: ConfigurationModuleType.User });
@@ -316,8 +329,8 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('delete - user configuration changes, the main browser service also got notified.', () => FakeAsync.run(async () => {
-        const browserService = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
-        const mainService = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const browserService = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
+        const mainService = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         
         // init two sides
         await browserService.init();
@@ -345,7 +358,7 @@ suite('BrowserConfigurationService', () => {
     }));
 
     test('set / delete - does not support set to default module type', () => FakeAsync.run(async () => {
-        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, fileService, logService);
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
         
         // does not support set to 'default' module

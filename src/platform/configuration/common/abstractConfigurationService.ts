@@ -5,10 +5,10 @@ import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/platform/configuration/common/configurationHub";
-import { IFileService } from "src/platform/files/common/fileService";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
@@ -34,7 +34,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     constructor(
         protected readonly options: IConfigurationServiceOptions,
-        @IFileService fileService: IFileService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @ILogService protected readonly logService: ILogService,
     ) {
         super();
@@ -44,7 +44,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
             this._initProtector = new InitProtector();
 
             this._defaultConfiguration = new DefaultConfiguration();
-            this._userConfiguration = new UserConfiguration(options.appConfiguration.path, fileService, logService);
+            this._userConfiguration = instantiationService.createInstance(UserConfiguration, options.appConfiguration.path);
 
             this._configurationHub = this.__reloadConfigurationHub();
         }

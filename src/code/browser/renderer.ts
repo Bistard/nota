@@ -151,7 +151,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                     path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
                 } 
             },
-            fileService, 
+            instantiationService, 
             logService,
         );
         instantiationService.register(IConfigurationService, configurationService);
