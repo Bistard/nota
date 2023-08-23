@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { after, before } from "mocha";
+import { after, before, beforeEach } from "mocha";
 import { Event } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from "src/base/common/file/uri";
@@ -30,7 +30,7 @@ suite('MainConfiguratioService-test', () => {
     };
 
     async function resetUserConfiguration(create = false) {
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create });
+        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true });
     }
 
     before(() => FakeAsync.run(async () => {
@@ -42,8 +42,14 @@ suite('MainConfiguratioService-test', () => {
 
         instantiationService.register(IFileService, fileService);
         instantiationService.register(ILogService, logService);
+    }));
 
+    beforeEach(() => FakeAsync.run(async () => {
+        // clean the user configuration file
         await resetUserConfiguration(true);
+
+        // reset the default registrant
+        Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
         Registrant.registerConfigurations({
             id: 'test',
             properties: {
@@ -91,8 +97,6 @@ suite('MainConfiguratioService-test', () => {
 
         result = service.get('section');
         assert.strictEqual(result, 'default value');
-
-        await resetUserConfiguration();
     }));
 
     test('get - Should return default value when section does not exist', () => FakeAsync.run(async () => {
@@ -107,14 +111,14 @@ suite('MainConfiguratioService-test', () => {
         const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
-        assert.rejects(() => service.set('section', 'value'));
+        await assert.rejects(() => service.set('section', 'value'));
     }));
 
     test('delete - Should throw error as delete operation is not supported', () => FakeAsync.run(async () => {
         const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
         await service.init();
 
-        assert.rejects(() => service.delete('section'));
+        await assert.rejects(() => service.delete('section'));
     }));
 
     test('onDidConfigurationChange - DefaultConfiguration self update', () => FakeAsync.run(async () => {
@@ -149,7 +153,6 @@ suite('MainConfiguratioService-test', () => {
 
         assert.ok(fired);
         disposable.dispose();
-        await resetUserConfiguration();
     }));
 
     test('onDidConfigurationChange - UserConfiguration self update', () => FakeAsync.run(async () => {
@@ -167,6 +170,18 @@ suite('MainConfiguratioService-test', () => {
             assert.ok(e.match('section'));
             assert.strictEqual(service.get('section'), 'default value');
         });
+    }));
+
+    test('init - create a new file when not exists', () => FakeAsync.run(async () => {
+        const service = new MainConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
+        
+        await fileService.delete(userConfigURI);
+        await assert.rejects(() => fileService.readFile(userConfigURI)); // file does not exist
+        
+        await service.init();
+        
+        const content = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.deepStrictEqual(content, { 'section': 'default value' });
     }));
 
     suite('ConfigurationChangeEvent', () => {
@@ -199,7 +214,7 @@ suite('BrowserConfigurationService', () => {
     };
 
     async function resetUserConfiguration(create = false) {
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create });
+        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true });
     }
 
     before(() => FakeAsync.run(async () => {
@@ -211,8 +226,14 @@ suite('BrowserConfigurationService', () => {
 
         instantiationService.register(IFileService, fileService);
         instantiationService.register(ILogService, logService);
+    }));
 
+    beforeEach(() => FakeAsync.run(async () => {
+        // clean the user configuration file
         await resetUserConfiguration(true);
+
+        // reset the default registrant
+        Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
         Registrant.registerConfigurations({
             id: 'test',
             properties: {
@@ -362,7 +383,19 @@ suite('BrowserConfigurationService', () => {
         await service.init();
         
         // does not support set to 'default' module
-        assert.rejects(() => service.set('section', 'update user value', { type: ConfigurationModuleType.Default }));
-        assert.rejects(() => service.delete('section', { type: ConfigurationModuleType.Default }));
+        await assert.rejects(() => service.set('section', 'update user value', { type: ConfigurationModuleType.Default }));
+        await assert.rejects(() => service.delete('section', { type: ConfigurationModuleType.Default }));
+    }));
+
+    test('init - create a new file when not exists', () => FakeAsync.run(async () => {
+        const service = new BrowserConfigurationService({ appConfiguration: { path: userConfigURI } }, instantiationService, logService);
+        
+        await fileService.delete(userConfigURI);
+        await assert.rejects(() => fileService.readFile(userConfigURI)); // file does not exist
+        
+        await service.init();
+        
+        const content = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        assert.deepStrictEqual(content, { 'section': 'default value' });
     }));
 });
