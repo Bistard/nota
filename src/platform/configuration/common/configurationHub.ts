@@ -155,11 +155,8 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this._initProtector = new InitProtector();
         
         this._userResource = userResource;
-        this._configuration = new ConfigurationStorage();
+        this._configuration = this.__register(new ConfigurationStorage());
         this._validator = this.__register(new UserConfigurationValidator());
-
-        // register listeners
-        this.__registerListeners();
     }
 
     // [public methods]
@@ -170,6 +167,9 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     public async init(): Promise<void> {
         this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
+
+        this.__registerListeners();
+
         return this.__reloadConfiguration();
     }
 
@@ -223,10 +223,10 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             raw = (await this.fileService.readFile(this._userResource)).toString();
             return { ifLoaded: true, raw };
         } 
-        catch (err: any) {
+        catch (err) {
             // throw any errors that we are not expecting
             if (!(err instanceof FileSystemProviderError && err.code === FileOperationErrorType.FILE_NOT_FOUND)) {
-                throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'.\nThe cause is: ${errorToMessage(err)}`);
+                throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'. The cause is: ${errorToMessage(err)}`);
             }
             
             // expecting file not found, we create a new user configuration.
