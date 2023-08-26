@@ -153,7 +153,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 
     private async __createNewConfiguration(): Promise<IConfigurationStorage> {
-        const defaultConfiguration = DefaultConfiguration.resetDefaultConfigurations();
+        const defaultConfiguration = DefaultConfiguration.createDefaultConfigurationStorage();
         const raw = JSON.stringify(defaultConfiguration.model, null, 4);
 
         // keep update to the file
