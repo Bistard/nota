@@ -9,8 +9,8 @@ import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { DefaultConfiguration } from "src/platform/configuration/common/defaultConfiguration";
-import { UserConfiguration } from "src/platform/configuration/common/userConfiguration";
+import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
+import { UserConfiguration } from "src/platform/configuration/common/configurationModules/userConfiguration";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 

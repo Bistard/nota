@@ -11,7 +11,7 @@ import { Dictionary } from "src/base/common/util/type";
 import { IUserConfigurationModule, ConfigurationModuleType } from "src/platform/configuration/common/configuration";
 import { IConfigurationRegistrant, IConfigurationSchema } from "src/platform/configuration/common/configurationRegistrant";
 import { IConfigurationStorage, ConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
-import { DefaultConfiguration } from "src/platform/configuration/common/defaultConfiguration";
+import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
 import { IFileService } from "src/platform/files/common/fileService";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 

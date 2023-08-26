@@ -15,8 +15,8 @@ import { NullLogger } from 'test/utils/testService';
 import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { Event } from 'src/base/common/event';
-import { DefaultConfiguration } from 'src/platform/configuration/common/defaultConfiguration';
-import { UserConfiguration } from 'src/platform/configuration/common/userConfiguration';
+import { DefaultConfiguration } from 'src/platform/configuration/common/configurationModules/defaultConfiguration';
+import { UserConfiguration } from 'src/platform/configuration/common/configurationModules/userConfiguration';
 
 suite('ConfigurationHub-test (common)', () => {
     const enum TestConfiguration {
