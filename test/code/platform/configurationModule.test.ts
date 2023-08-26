@@ -8,7 +8,7 @@ import { Arrays } from "src/base/common/util/array";
 import { deepCopy } from "src/base/common/util/object";
 import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
 import { UserConfiguration } from "src/platform/configuration/common/configurationModules/userConfiguration";
-import { IConfigurationRegistrant, IConfigurationUnit } from "src/platform/configuration/common/configurationRegistrant";
+import { IConfigurationRegistrant, IConfigurationSchema, IConfigurationUnit } from "src/platform/configuration/common/configurationRegistrant";
 import { IFileService, FileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
@@ -153,7 +153,7 @@ suite('ConfigurationModule-test', () => {
     
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Three), true);
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Four1), null);
-            assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Four2));
+            assert.deepEqual(configuration.getConfiguration().get(TestConfiguration.Four2), { 'name': 'Chris Li', 'age': undefined, 'height': undefined, });
             // assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Five), undefined);
     
             assert.strictEqual(fired, 1);
@@ -181,6 +181,67 @@ suite('ConfigurationModule-test', () => {
     
             assert.deepEqual(newModel, newReloadModel);
             assert.deepEqual(newSections, newReloadSections);
+        });
+
+        test('__extractDefaultValueFromObjectSchema', () => {
+            class TestDefaultConfiguration extends DefaultConfiguration {
+                public static extractDefaultValueFromObjectSchema(schema: IConfigurationSchema & { type: 'object' }): object | undefined {
+                    return this.__extractDefaultValueFromObjectSchema(schema);
+                }
+            }
+
+            const extractDefault = TestDefaultConfiguration.extractDefaultValueFromObjectSchema({
+                id: 'configuration1',
+                type: 'object',
+                properties: {
+                    'one': { type: 'number', default: 10, },
+                    'two': { type: 'string', default: 'hello', },
+                    'three': { type: 'null' },
+                    'four': { type: 'boolean', default: false },
+                    'five': { type: 'array', default: undefined, },
+                }
+            });
+
+            assert.deepEqual(extractDefault, {
+                'one': 10,
+                'two': 'hello',
+                'three': null,
+                'four': false,
+                'five': undefined,
+            });
+
+            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
+        });
+
+        test('createDefaultConfigurationStorage', () => {
+            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
+
+            Registrant.registerConfigurations({
+                id: 'configuration1',
+                properties: {
+                    'workbench': {
+                        type: 'object',
+                        properties: {
+                            'one': { type: 'number', default: 10, },
+                            'two': { type: 'string', default: 'hello', },
+                            'three': { type: 'null' },
+                            'four': { type: 'boolean', default: false },
+                            'five': { type: 'array', default: undefined, },
+                        }
+                    }
+                }
+            });
+
+            const storage = DefaultConfiguration.createDefaultConfigurationStorage();
+            assert.deepEqual(storage.model, {
+                'workbench': {
+                    'one': 10,
+                    'two': 'hello',
+                    'three': null,
+                    'four': false,
+                    'five': undefined,
+                }
+            });
         });
     });
     
@@ -274,19 +335,19 @@ suite('ConfigurationModule-test', () => {
             stopWatch.dispose();
         }));
         
-        // FIX
-        // test.only('init test - read configurations that are nested-section instead plain-section', () => FakeAsync.run(async () => {
-        //     const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
-        //         'configuration': {
-        //             'test': {
-        //                 'one': 10
-        //             }
-        //         },
-        //     }));
-        //     await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+        test('init test - read configurations that are nested-section instead plain-section SHOULD NOT WORK', () => FakeAsync.run(async () => {
+            const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
+                'configuration': {
+                    'test': {
+                        'one': 10,
+                        'two': 'hello world',
+                    }
+                },
+            }));
+            await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
     
-        //     // await configuration.init();
-        //     // console.log('model (after init):', configuration.getConfiguration().model);
-        // }));
+            await configuration.init();
+            assert.deepEqual(configuration.getConfiguration().model, {});
+        }));
     });
 });

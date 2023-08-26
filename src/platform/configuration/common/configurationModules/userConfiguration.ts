@@ -252,16 +252,11 @@ class UserConfigurationValidator implements IDisposable {
     private __validate(rawConfiguration: object, schemas: Dictionary<string, IConfigurationSchema>): object {
         const validated: object = {};
 
-        // console.log('[UserConfigurationValidator]');
-        // console.log('schemas:', schemas);
-        // console.log('rawConfiguration:', rawConfiguration);
-
         for (const key in rawConfiguration) {
             const value = rawConfiguration[key];
             const schema = schemas[key];
 
             if (!schema) {
-                // console.log('on unknown configuration:', { key, value }); // review
                 this._onUnknownConfiguration.fire(key);
                 continue;
             }

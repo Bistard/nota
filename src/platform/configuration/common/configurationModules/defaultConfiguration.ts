@@ -79,20 +79,65 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
         return storage;
     }
 
-    private static __updateDefaultConfigurations(storage: IConfigurationStorage, keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
-        for (const key of keys) {
+    private static __updateDefaultConfigurations(storage: IConfigurationStorage, keysForUpdate: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
+        for (const key of keysForUpdate) {
             const schema = schemas[key];
 
+            // make sure the new key has corresponding schema
             if (schema) {
-                /** Make sure do not override the original value. */
+                // Make sure do not override the original value
                 const originalValue = tryOrDefault(undefined, () => storage.get(key));
 
-                /** Set default value for 'null'. */
-                const newValue = mixin(originalValue, schema.type === 'null' ? null : schema.default, true);
+                const newValue = mixin(originalValue, this.__getDefaultValueFromSchema(schema), true);
                 storage.set(key, newValue);
             } else {
                 storage.delete(key);
             }
         }
+    }
+
+    private static __getDefaultValueFromSchema(schema: IConfigurationSchema): (typeof schema.default | null) {
+        if (schema.type === 'null') {
+            return null;
+        }
+        
+        if (schema.type !== 'object') {
+            return schema.default;
+        }
+
+        // schema type is 'object'
+        // if the default value of the schema is provided, we simply return it.
+        if (schema.default) {
+            return schema.default;
+        }
+
+        /**
+         * If default is not provided, we try to build a corresponding default 
+         * value from its schema.
+         */
+        return this.__extractDefaultValueFromObjectSchema(schema);
+    }
+
+    protected static __extractDefaultValueFromObjectSchema(schema: IConfigurationSchema & { type: 'object' }): object | undefined {
+        const result: any = {};
+
+        if (!schema || typeof schema !== 'object') {
+            return result;
+        }
+
+        for (const key in schema.properties) {
+            const value = schema.properties[key]!;
+
+            // Handle the nested case
+            if (value.type === 'object') {
+                result[key] = this.__extractDefaultValueFromObjectSchema(value);
+            } 
+            // make sure `null` type is sets to `null`
+            else {
+                result[key] = value.type === 'null' ? null : value.default;
+            }
+        }
+
+        return result;
     }
 }
