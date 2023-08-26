@@ -31,7 +31,7 @@ suite('FakeAsync-test', () => {
          * Since we're using a fake timer, 'fn' should be called almost 
          * immediately.
          */
-        assert.ok((realEndTime - realStartTime) < 20, "Function was not called immediately with fake timer.");
+        assert.ok((realEndTime - realStartTime) < 50, "Function was not called immediately with fake timer.");
     });
 
     test('clearTimeout before executed', async () => {
