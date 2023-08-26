@@ -95,7 +95,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     private __registerListeners(): void {
         this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
-        this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
+        this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${JSON.stringify(result)}.`)));
 
         // configuration updation from the file
         this.__syncConfigurationFromFileOnChange();
