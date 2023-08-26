@@ -4,11 +4,12 @@ import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
-import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/platform/configuration/common/configurationHub";
+import { ConfigurationHub, UserConfiguration } from "src/platform/configuration/common/configurationHub";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { DefaultConfiguration } from "src/platform/configuration/common/defaultConfiguration";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 

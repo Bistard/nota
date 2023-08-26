@@ -6,7 +6,7 @@ import { URI } from 'src/base/common/file/uri';
 import { Arrays } from 'src/base/common/util/array';
 import { deepCopy } from 'src/base/common/util/object';
 import { ConfigurationStorage } from 'src/platform/configuration/common/configurationStorage';
-import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from 'src/platform/configuration/common/configurationHub';
+import { ConfigurationHub, UserConfiguration } from 'src/platform/configuration/common/configurationHub';
 import { IConfigurationRegistrant, IConfigurationUnit } from 'src/platform/configuration/common/configurationRegistrant';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
@@ -15,6 +15,7 @@ import { NullLogger } from 'test/utils/testService';
 import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { Event } from 'src/base/common/event';
+import { DefaultConfiguration } from 'src/platform/configuration/common/defaultConfiguration';
 
 suite('ConfigurationHub-test (common)', () => {
     const enum TestConfiguration {

@@ -4,102 +4,18 @@ import { Emitter, Event } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
-import { mixin, strictEquals } from "src/base/common/util/object";
+import { strictEquals } from "src/base/common/util/object";
 import { DeepReadonly, Dictionary } from "src/base/common/util/type";
-import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { IRawConfigurationChangeEvent, IConfigurationSchema, IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/platform/files/common/fileService";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IDefaultConfigurationModule, IUserConfigurationModule, Section } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IUserConfigurationModule, Section } from "src/platform/configuration/common/configuration";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { errorToMessage } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationErrorType, FileSystemProviderError } from "src/base/common/file/file";
-
-const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
-
-/**
- * @class A {@link DefaultConfiguration} is a class representing the default 
- * configuration of the application. It derives the default configurations from
- * the {@link IConfigurationRegistrant}.
- * 
- * @note Has type {@link ConfigurationModuleType.Default}.
- * @note After the initialization of the module, it will automatically keep 
- * itself updated in response to any changes in the schema registrations of 
- * {@link IConfigurationRegistrant}. 
- */
-export class DefaultConfiguration extends Disposable implements IDefaultConfigurationModule {
-
-    // [fields]
-
-    public readonly type = ConfigurationModuleType.Default;
-
-    private _storage: IConfigurationStorage;
-    private readonly _initProtector: InitProtector;
-
-    // [events]
-
-    private readonly _onDidConfigurationChange = this.__register(new Emitter<IRawConfigurationChangeEvent>());
-    public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
-
-    // [constructor]
-
-    constructor() {
-        super();
-        this._storage = this.__register(new ConfigurationStorage());
-        this._initProtector = new InitProtector();
-    }
-
-    // [public methods]
-
-    public getConfiguration(): IConfigurationStorage {
-        return this._storage;
-    }
-
-    public init(): void {
-        this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
-        this._storage = DefaultConfiguration.resetDefaultConfigurations();
-        this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
-    }
-
-    public reload(): void {
-        this._storage = DefaultConfiguration.resetDefaultConfigurations();
-    }
-
-    // [private methods]
-
-    private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
-        const properties = Array.from(e.properties);
-        DefaultConfiguration.__updateDefaultConfigurations(this._storage, properties, Registrant.getConfigurationSchemas());
-        this._onDidConfigurationChange.fire({ properties: properties });
-    }
-
-    // [static methods]
-
-    public static resetDefaultConfigurations(): IConfigurationStorage {
-        const storage = new ConfigurationStorage();
-        const schemas = Registrant.getConfigurationSchemas();
-        this.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
-        return storage;
-    }
-
-    private static __updateDefaultConfigurations(storage: IConfigurationStorage, keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
-        for (const key of keys) {
-            const schema = schemas[key];
-
-            if (schema) {
-                /** Make sure do not override the original value. */
-                const originalValue = tryOrDefault(undefined, () => storage.get(key));
-
-                /** Set default value for 'null'. */
-                const newValue = mixin(originalValue, schema.type === 'null' ? null : schema.default, true);
-                storage.set(key, newValue);
-            } else {
-                storage.delete(key);
-            }
-        }
-    }
-}
+import { DefaultConfiguration } from "src/platform/configuration/common/defaultConfiguration";
+import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 
 type LoadConfigurationResult = 
   | { readonly ifLoaded: false, readonly raw: IConfigurationStorage }
@@ -315,6 +231,8 @@ class UserConfigurationValidator implements IDisposable {
     private readonly _onInvalidConfiguration = new Emitter<IJsonSchemaValidateResult>();
     public readonly onInvalidConfiguration = this._onInvalidConfiguration.registerListener;
 
+    private readonly _Registrant = REGISTRANTS.get(IConfigurationRegistrant);
+
     // [constructor]
 
     constructor() { }
@@ -322,7 +240,7 @@ class UserConfigurationValidator implements IDisposable {
     // [public methods]
 
     public validate(rawConfiguration: object): object {
-        const schemas = Registrant.getConfigurationSchemas();
+        const schemas = this._Registrant.getConfigurationSchemas();
         const validatedConfiguration = this.__validate(rawConfiguration, schemas);
         return validatedConfiguration;
     }
@@ -336,11 +254,16 @@ class UserConfigurationValidator implements IDisposable {
     private __validate(rawConfiguration: object, schemas: Dictionary<string, IConfigurationSchema>): object {
         const validated: object = {};
 
+        // console.log('[UserConfigurationValidator]');
+        // console.log('schemas:', schemas);
+        // console.log('rawConfiguration:', rawConfiguration);
+
         for (const key in rawConfiguration) {
             const value = rawConfiguration[key];
             const schema = schemas[key];
 
             if (!schema) {
+                // console.log('on unknown configuration:', { key, value }); // review
                 this._onUnknownConfiguration.fire(key);
                 continue;
             }
