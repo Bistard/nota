@@ -9,7 +9,7 @@ import { ASNIForegroundColor, setANSIColor } from 'src/base/common/color';
  * The file will be attached before mocha runs the unit tests.
  */
 
-(() => {
+(function main () {
     console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Green }), `Global hooks are attached on the environment '${os.platform()}'`);
 
     /**
