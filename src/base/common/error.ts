@@ -236,3 +236,9 @@ export class InitProtector {
         throw new Error(`${errorMessage}`);
     }
 }
+
+// Result
+
+export type Result = any;
+
+// 
