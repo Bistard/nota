@@ -166,45 +166,40 @@ export class WatchInstance implements IWatchInstance {
          * @see https://nodejs.org/api/fs.html#filename-argument
          * @see https://github.com/paulmillr/chokidar
          */
-        try {
-            const watcher = chokidar.watch(resource, {
-                alwaysStat: true,
-                atomic: WatchInstance.FILE_CHANGE_DELAY,
-                ignored: this._request.exclude,
-                ignorePermissionErrors: false,
-                ignoreInitial: true,
-                depth: this._request.recursive ? undefined : 1,
-                usePolling: true, // issue: https://github.com/Bistard/nota/issues/149
+        const watcher = chokidar.watch(resource, {
+            alwaysStat: true,
+            atomic: WatchInstance.FILE_CHANGE_DELAY,
+            ignored: this._request.exclude,
+            ignorePermissionErrors: false,
+            ignoreInitial: true,
+            depth: this._request.recursive ? undefined : 1,
+            usePolling: true, // issue: https://github.com/Bistard/nota/issues/149
+        });
+
+        watcher
+            .on('add', (path: string, stat?: fs.Stats) => {
+                this.__onEventFire({ type: ResourceChangeType.ADDED, resource: path, isDirectory: stat?.isDirectory() });
+            })
+            .on('unlink', (path: string, stat?: fs.Stats) => {
+                this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
+            })
+            .on('addDir', (path: string, stat?: fs.Stats) => {
+                this.__onEventFire({ type: ResourceChangeType.ADDED, resource: path, isDirectory: stat?.isDirectory() });
+            })
+            .on('unlinkDir', (path: string, stat?: fs.Stats) => {
+                this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
+            })
+            .on('change', (path: string, stat?: fs.Stats) => {
+                this.__onEventFire({ type: ResourceChangeType.UPDATED, resource: path, isDirectory: stat?.isDirectory() });
+            })
+            .on('error', (error: Error) => {
+                throw error;
+            })
+            .on('ready', () => {
+                this.logService?.trace(`[WatchInstance] filesystem watcher is ready on: '${resource}'`);
             });
 
-            watcher
-                .on('add', (path: string, stat?: fs.Stats) => {
-                    this.__onEventFire({ type: ResourceChangeType.ADDED, resource: path, isDirectory: stat?.isDirectory() });
-                })
-                .on('unlink', (path: string, stat?: fs.Stats) => {
-                    this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
-                })
-                .on('addDir', (path: string, stat?: fs.Stats) => {
-                    this.__onEventFire({ type: ResourceChangeType.ADDED, resource: path, isDirectory: stat?.isDirectory() });
-                })
-                .on('unlinkDir', (path: string, stat?: fs.Stats) => {
-                    this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
-                })
-                .on('change', (path: string, stat?: fs.Stats) => {
-                    this.__onEventFire({ type: ResourceChangeType.UPDATED, resource: path, isDirectory: stat?.isDirectory() });
-                })
-                .on('error', (error: Error) => {
-                    throw error;
-                })
-                .on('ready', () => {
-                    this.logService?.trace(`[WatchInstance] filesystem watcher is ready on: '${resource}'`);
-                });
-
-            return watcher;
-        }
-        catch (error) {
-            throw error;
-        }
+        return watcher;
     }
 
     private __onEventFire(event: IRawResourceChangeEvent): void {
