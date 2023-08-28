@@ -36,6 +36,14 @@ export class BrowserInstance implements IBrowser {
         // when the window is ready
         this.lifecycleService.when(LifecyclePhase.Ready)
         .then(() => {
+            
+            // FIX: will be erased after save, weird.
+            this.configurationService.set('hello', 'world', { type: ConfigurationModuleType.User })
+            .then(() => {
+                console.log((<any>this.configurationService)._configurationHub.inspect().toJSON());
+                console.log((<any>this.configurationService)._userConfiguration.getConfiguration().toJSON());
+            });
+
             // save user configurations on quite
             this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save()));
         });
