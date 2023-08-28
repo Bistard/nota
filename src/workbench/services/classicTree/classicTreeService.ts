@@ -61,42 +61,37 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI): Promise<void> {
-        try {
-            const filterOpts: IFilterOpts = {
-                exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
-                include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
-            };
+        const filterOpts: IFilterOpts = {
+            exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
+            include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
+        };
 
-            // resolve the root of the directory first
-            const rootStat = await this.fileService.stat(root, { resolveChildren: true });
-            const rootItem = new ClassicItem(rootStat, null, filterOpts);
+        // resolve the root of the directory first
+        const rootStat = await this.fileService.stat(root, { resolveChildren: true });
+        const rootItem = new ClassicItem(rootStat, null, filterOpts);
 
-            // construct the file system hierarchy
-            const dndProvider = new ClassicDragAndDropProvider(this.fileService);
-            this._tree = this.__register(
-                new ClassicTree<ClassicItem, FuzzyScore>(
-                    container,
-                    rootItem,
-                    {
-                        itemProvider: new ClassicItemProvider(),
-                        renderers: [new ClassicRenderer()],
-                        childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filterOpts),
-                        identityProvider: { getID: (data: ClassicItem) => URI.toString(data.uri) },
+        // construct the file system hierarchy
+        const dndProvider = new ClassicDragAndDropProvider(this.fileService);
+        this._tree = this.__register(
+            new ClassicTree<ClassicItem, FuzzyScore>(
+                container,
+                rootItem,
+                {
+                    itemProvider: new ClassicItemProvider(),
+                    renderers: [new ClassicRenderer()],
+                    childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filterOpts),
+                    identityProvider: { getID: (data: ClassicItem) => URI.toString(data.uri) },
 
-                        // optional
-                        collapsedByDefault: true,
-                        filter: new ClassicFilter(),
-                        dnd: dndProvider,
-                    },
-                )
-            );
-            dndProvider.bindWithTree(this._tree);
+                    // optional
+                    collapsedByDefault: true,
+                    filter: new ClassicFilter(),
+                    dnd: dndProvider,
+                },
+            )
+        );
+        dndProvider.bindWithTree(this._tree);
 
-            await this._tree.refresh();
-        }
-        catch (error) {
-            throw error;
-        }
+        await this._tree.refresh();
     }
 
     public layout(height?: number | undefined): void {
