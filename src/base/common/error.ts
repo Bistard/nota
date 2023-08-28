@@ -243,6 +243,6 @@ export class InitProtector {
 
 // Result
 
-export type Result = any;
+export type Result<T, E> = Ok<T> | Err<E>;
 
 // 
