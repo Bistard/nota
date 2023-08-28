@@ -137,7 +137,8 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             raw = (await this.fileService.readFile(this._userResource)).toString();
             return { ifLoaded: true, raw };
         } 
-        catch (err) {
+        catch (err: unknown) {
+
             // throw any errors that we are not expecting
             if (!(err instanceof FileSystemProviderError && err.code === FileOperationErrorType.FILE_NOT_FOUND)) {
                 throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'. The cause is: ${errorToMessage(err)}`);

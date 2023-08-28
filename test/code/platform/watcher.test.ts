@@ -10,7 +10,7 @@ import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemPr
 import { Watcher } from 'src/platform/files/node/watcher';
 import { NullLogger, TestURI } from 'test/utils/testService';
 
-suite.only('watcher-test', () => {
+suite('watcher-test', () => {
 
     let fileService: IFileService;
     const baseURI = URI.join(TestURI, 'watcher');
