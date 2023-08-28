@@ -19,7 +19,7 @@ import { nullObject } from "test/utils/helpers";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
-export const TestPath = join(tmpdir(), NotaName, TestDirName);
+export const TestPath = URI.toFsPath(URI.fromFile(join(tmpdir(), NotaName, TestDirName))); // make sure the disk schema is lowercase.
 export const TestURI = URI.fromFile(TestPath);
 
 export namespace TestIPC {
