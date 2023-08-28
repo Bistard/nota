@@ -187,11 +187,8 @@ interface IJsonSchemaForObject extends IJsonSchemaBase<'object'> {
     /** The maximum number of properties required. */
     maxProperties?: number;
 
-    /** The required properties. */
+    /** The required properties which must be provided. */
     required?: string[];
-
-    /** If allow the schema node to have extra properties that are not listed in the required. */
-    additionalProperties?: boolean;
 }
 
 export interface IJsonSchemaValidateResult {
@@ -317,8 +314,8 @@ export class JsonSchemaValidator {
                 }
 
                 // Ensuring no additional properties are present if 'additionalProperties' is not set
-                const additionalKeys = Arrays.relativeComplement(schema.required ?? [], propertyKeys);
-                if (!schema.additionalProperties && additionalKeys.length > 0) {
+                const missingKeys = Arrays.relativeComplement(propertyKeys, schema.required ?? []);
+                if (missingKeys.length > 0) {
                     return this.__setValid(false, result, schema);
                 }
 

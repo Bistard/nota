@@ -12,11 +12,7 @@ export interface IConfigurationStorageChangeEvent {
     readonly sections: Section[];
 }
 
-/**
- * An interface only for {@link ConfigurationStorage}.
- */
-export interface IConfigurationStorage extends IDisposable {
-
+export interface IReadonlyConfigurationStorage extends IDisposable {
     /** 
      * Get all the sections of the storage. Section are seperated by (`.`). 
      */
@@ -45,6 +41,27 @@ export interface IConfigurationStorage extends IDisposable {
     get<T>(section: Section | undefined): DeepReadonly<T>;
 
     /**
+     * @description Check if the current storage contains any configurations.
+     */
+    isEmpty(): boolean;
+
+    /**
+     * @description Returns a deep copy of the current storage.
+     */
+    clone(): ConfigurationStorage;
+
+    /**
+     * @description Conver the model into the JSON format.
+     */
+    toJSON(): string;
+}
+
+/**
+ * An interface only for {@link ConfigurationStorage}.
+ */
+export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
+    
+    /**
      * @description Set configuration at given section.
      * @param section see {@link ConfigurationStorage}. 
      * 
@@ -63,18 +80,11 @@ export interface IConfigurationStorage extends IDisposable {
     /**
      * @description Merge the provided storages data into the current storage.
      * The overlapped sections will be override by the incoming ones.
+     * @param ignoreNullity The incoming nullity value will be ignored (not 
+     *                      merged) into the current configuration if turned on.
+     *                      The default is true.
      */
-    merge(others: IConfigurationStorage | IConfigurationStorage[]): void;
-
-    /**
-     * @description Check if the current storage contains any configurations.
-     */
-    isEmpty(): boolean;
-
-    /**
-     * @description Returns a deep copy of the current storage.
-     */
-    clone(): ConfigurationStorage;
+    merge(others: IConfigurationStorage | IConfigurationStorage[], ignoreNullity?: boolean): void;
 }
 
 /**
@@ -174,7 +184,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return this._sections.length === 0 && Object.keys(this._model).length === 0;
     }
 
-    public merge(others: IConfigurationStorage | IConfigurationStorage[]): void {
+    public merge(others: IConfigurationStorage | IConfigurationStorage[], ignoreNullity: boolean = true): void {
         const sections: Section[] = [];
         if (!Array.isArray(others)) {
             others = [others];
@@ -192,7 +202,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
             }
 
             // merge model
-            this.__mergeModelFrom(this._model, other.model);
+            this.__mergeModelFrom(this._model, other.model, ignoreNullity);
         }
 
         this._onDidChange.fire({
@@ -202,6 +212,10 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     public clone(): ConfigurationStorage {
         return new ConfigurationStorage([...this._sections], deepCopy(this._model));
+    }
+
+    public toJSON(): string {
+        return JSON.stringify(this.model, null, 4);
     }
 
     // [private helper methods]
@@ -288,15 +302,19 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return false;
     }
 
-    private __mergeModelFrom(destination: any, source: any): void {
+    private __mergeModelFrom(destination: any, source: any, ignoreNullity: boolean): void {
         for (const key of Object.keys(source)) {
             if (key in destination) {
                 if (isObject(destination[key]) && isObject(source[key])) {
-                    this.__mergeModelFrom(destination[key], source[key]);
+                    this.__mergeModelFrom(destination[key], source[key], ignoreNullity);
                     continue;
                 }
             }
-            destination[key] = deepCopy(source[key]);
+            if (ignoreNullity) {
+                destination[key] = deepCopy(source[key]) ?? destination[key];
+            } else {
+                destination[key] = deepCopy(source[key]);
+            }
         }
     }
 }

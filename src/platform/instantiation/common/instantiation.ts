@@ -1,4 +1,4 @@
-import { Constructor } from "src/base/common/util/type";
+import { AbstractConstructor, Constructor } from "src/base/common/util/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -36,6 +36,8 @@ export type NonServiceParameters<TArgs extends any[]> =
             ? NonServiceParameters<TFirst>
             : TArgs;
 
+export type InstantiationRequiredParameters<T extends AbstractConstructor> = NonServiceParameters<ConstructorParameters<T>>;
+
 /**
  * An interface only for {@link InstantiationService}.
  */
@@ -61,7 +63,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * @param rest Additional parameters.
      * @returns An instance of the class.
      */
-    createInstance<TCtor extends Constructor>(constructor: TCtor, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    createInstance<TCtor extends Constructor>(constructor: TCtor, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
     
     /**
      * @description Creates an instance of the class described by the given 
@@ -73,7 +75,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
      *             descriptor's arguments.
      * @returns An instance of the class.
      */
-    createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
+    createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -166,13 +168,13 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance<TCtor extends Constructor>(constructor: TCtor,                                 ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
-    public createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>,               ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor>;
-    public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
+    public createInstance<TCtor extends Constructor>(constructor: TCtor,                                 ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>,               ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor> {
         let instance: InstanceType<TCtor>;
 
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            const args = <NonServiceParameters<ConstructorParameters<TCtor>>>ctorOrDescriptor.args.concat(rest);
+            const args = <InstantiationRequiredParameters<TCtor>>ctorOrDescriptor.args.concat(rest);
             instance = this.__createInstance(ctorOrDescriptor.ctor, args);
         } else {
             instance = this.__createInstance(ctorOrDescriptor, rest);
@@ -187,7 +189,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [private helper methods]
 
-    private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: NonServiceParameters<ConstructorParameters<TCtor>>): InstanceType<TCtor> {
+    private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor> {
         const constructor = ctor;
         
         const serviceDependencies = getDependencyTreeFor(constructor).sort((a, b) => a.index - b.index);
@@ -322,7 +324,7 @@ export class InstantiationService implements IInstantiationService {
     private __createServiceInstanceWithOwner<T extends IService, TCtor extends Constructor>(
         id: ServiceIdentifier<T>,
         ctor: TCtor,
-        args: NonServiceParameters<ConstructorParameters<TCtor>>,
+        args: InstantiationRequiredParameters<TCtor>,
         supportsDelayedInstantiation: boolean,
     ): T {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
@@ -340,7 +342,7 @@ export class InstantiationService implements IInstantiationService {
 
     private ___createServiceInstance<T extends IService, TCtor extends Constructor>(
         ctor: TCtor, 
-        args: NonServiceParameters<ConstructorParameters<TCtor>>, 
+        args: InstantiationRequiredParameters<TCtor>, 
         supportsDelayedInstantiation: boolean,
     ): T {
         if (!supportsDelayedInstantiation) {

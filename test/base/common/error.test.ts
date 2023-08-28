@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { ErrorHandler, tryOrDefault } from 'src/base/common/error';
+import { ErrorHandler, InitProtector, tryOrDefault } from 'src/base/common/error';
+import { shouldThrow } from 'test/utils/helpers';
 
 suite('error-test', () => {
     
@@ -43,5 +44,13 @@ suite('error-test', () => {
     test('tryOrDefault', () => {
         assert.strictEqual(tryOrDefault('bad world', () => 'hello world'), 'hello world');
         assert.strictEqual(tryOrDefault('bad world', () => { throw new Error(); }), 'bad world');
+    });
+
+    test('InitProtector', () => {
+        const initProtector = new InitProtector();
+
+        initProtector.init('first init');
+        shouldThrow(() => initProtector.init('second init'));
+        shouldThrow(() => initProtector.init('thrid init'));
     });
 });

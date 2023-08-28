@@ -382,19 +382,101 @@ suite('priority-queue-test', () => {
         assert.strictEqual(pq.isEmpty(), true);
     });
 
-    test('remove', () => {
+    test('remove - primitive 1', () => {
         const queue = new PriorityQueue<number>((a, b) => a - b);
         queue.enqueue(1);
         queue.enqueue(2);
         queue.enqueue(2);
         queue.enqueue(3);
-
         assert.equal(queue.size(), 4);
+        
+        queue.remove(2);
+        assert.equal(queue.size(), 3);
+
         queue.remove(2);
         assert.equal(queue.size(), 2);
         
         assert.strictEqual(queue.dequeue(), 1);
         assert.strictEqual(queue.dequeue(), 3);
+
+        assert.equal(queue.size(), 0);
+    });
+    
+    test('remove - primitive 2', () => {
+        const queue = new PriorityQueue<number>((a, b) => a - b);
+        queue.enqueue(1);
+        queue.enqueue(1);
+        queue.enqueue(1);
+        queue.enqueue(1);
+        assert.equal(queue.size(), 4);
+        
+        queue.remove(1);
+        assert.equal(queue.size(), 3);
+
+        queue.remove(1);
+        assert.equal(queue.size(), 2);
+
+        queue.remove(1);
+        assert.equal(queue.size(), 1);
+
+        queue.remove(1);
+        assert.equal(queue.size(), 0);
+    });
+
+    test('remove - reference', () => {
+        const queue = new PriorityQueue<{ num: number }>((a, b) => a.num - b.num);
+        
+        const obj1 = { num: 1 };
+        const obj2 = { num: 2 };
+        const obj3 = { num: 3 };
+        const obj4 = { num: 4 };
+        
+        queue.enqueue(obj1);
+        queue.enqueue(obj2);
+        queue.enqueue(obj3);
+        queue.enqueue(obj4);
+        
+        assert.equal(queue.size(), 4);
+        
+        queue.remove(obj1);
+        assert.equal(queue.size(), 3);
+
+        queue.remove(obj2);
+        assert.equal(queue.size(), 2);
+
+        queue.remove(obj3);
+        assert.equal(queue.size(), 1);
+
+        queue.remove(obj4);
+        assert.equal(queue.size(), 0);
+    });
+    
+    test('remove - reference 2', () => {
+        const queue = new PriorityQueue<{ num: number }>((a, b) => a.num - b.num);
+        
+        const obj1 = { num: 1 };
+        const obj2 = { num: 1 };
+        const obj3 = { num: 1 };
+        const obj4 = { num: 1 };
+        
+        queue.enqueue(obj1);
+        queue.enqueue(obj2);
+        queue.enqueue(obj3);
+        queue.enqueue(obj4);
+        
+        assert.equal(queue.size(), 4);
+        
+        queue.remove(obj1);
+        assert.equal(queue.size(), 3);
+
+        queue.remove(obj2);
+        assert.equal(queue.size(), 2);
+
+        queue.remove(obj3);
+        assert.equal(queue.size(), 1);
+
+        queue.remove(obj4);
+        assert.equal(queue.size(), 0);
     });
 
     test('customized compare', () => {

@@ -4,6 +4,7 @@ import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProvide
 import { IFileSystemProviderWithFileReadWrite } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { Scheduler } from "src/base/common/util/async";
+import { ResourceMap } from "src/base/common/util/map";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/platform/files/common/watcher";
 import { createRawResourceChangeEvents } from "src/platform/files/node/watcher";
 
@@ -51,7 +52,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	public readonly capabilities: FileSystemProviderCapability = FileSystemProviderCapability.FileReadWrite;
 
 	private readonly _root = new Directory('');
-	private readonly _watchers = new Map<string, IDisposable>();
+	private readonly _watchers = new ResourceMap<IDisposable>();
 
 	// [event]
 
@@ -100,16 +101,14 @@ export class InMemoryFileSystemProvider extends Disposable implements
 			throw new Error('[InMemoryFileSystemProvider] does not provide options for `watch`.');
 		}
 
-		const path = URI.toString(uri);
-
-		if (this._watchers.has(path)) {
-			throw new Error(`Already watching path ${path}`);
+		if (this._watchers.has(uri)) {
+			throw new Error(`Already watching URI: '${URI.toString(uri)}'`);
 		}
 
 		const watcher = toDisposable(() => {
-			this._watchers.delete(path);
+			this._watchers.delete(uri);
 		});
-		this._watchers.set(path, watcher);
+		this._watchers.set(uri, watcher);
 
 		return watcher;
 	}
@@ -202,7 +201,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		}
 
 		if (entry && opts.create && !opts.overwrite) {
-			throw new FileSystemProviderError('file exists already', FileOperationErrorType.FILE_EXISTS);
+			throw new FileSystemProviderError('file already exists', FileOperationErrorType.FILE_EXISTS);
 		}
 
 		if (!entry) {
@@ -273,8 +272,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	}
 
 	private __triggerWatchers(uri: URI, types: ResourceChangeType | ResourceChangeType[], isFile: boolean): void {
-		const path = URI.toString(uri);
-		if (!this._watchers.has(path)) {
+		if (!this._watchers.has(uri)) {
 			return;
 		}
 
@@ -285,7 +283,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		const rawEvents: IRawResourceChangeEvent[] = [];
 		for (const type of types) {
 			rawEvents.push({
-				resource: path,
+				resource: URI.toString(uri),
 				type: type,
 				isDirectory: !isFile,
 			});

@@ -65,6 +65,7 @@ export interface IRawResourceChangeEvents {
     /**
      * @description Wraps the current raw events into {@link IResourceChangeEvent}
      * which can provide more functionalities.
+     * @param ignoreCase If ignore cases when checking URI, default is false.
      * 
      * @note Since building into {@link IResourceChangeEvent} is time consuming,
      * thus the client decide wether to wrap or not based on their needs.

@@ -1,7 +1,7 @@
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IService, ServiceIdentifier } from "src/platform/instantiation/common/decorator";
 import { Constructor } from "src/base/common/util/type";
-import { NonServiceParameters } from "src/platform/instantiation/common/instantiation";
+import { InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
 
 export class ServiceCollection {
 
@@ -37,8 +37,8 @@ export class ServiceCollection {
 const _singletonDependencies = new Map<ServiceIdentifier<any>, ServiceDescriptor<any>>();
 
 export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, descriptor: ServiceDescriptor<any>): void;
-export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctor: TCtor,                                        args: NonServiceParameters<ConstructorParameters<TCtor>>,  supportsDelayedInstantiation?: boolean): void;
-export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: NonServiceParameters<ConstructorParameters<TCtor>>, supportsDelayedInstantiation?: boolean): void {
+export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctor: TCtor,                                        args: InstantiationRequiredParameters<TCtor>,  supportsDelayedInstantiation?: boolean): void;
+export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: InstantiationRequiredParameters<TCtor>, supportsDelayedInstantiation?: boolean): void {
 	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
 		if (!args) {
 			throw new Error(`[registerService] Arguments parameter must be provided when a service (${id.name}) is registered.`);

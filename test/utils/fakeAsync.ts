@@ -23,7 +23,8 @@ const trueGlobalAsync = {
  * functions.
  *
  * @param fn The function that will be executed with the fake timers.
- * @param {boolean} [enable=true] A boolean value indicating whether to enable fake timers. By default, this is true.
+ * @param {boolean} [enable=true] A boolean value indicating whether to enable 
+ *        fake timers. By default, this is true.
  * @returns A promise that resolves when the function has finished executing.
  *
  * @throws {Error} If a string is used as a handler in the setTimeout or 
@@ -42,7 +43,7 @@ const trueGlobalAsync = {
  */
 export namespace FakeAsync {
 
-    export async function run(fn: () => Promise<any>, options?: IFakeSyncOptions): Promise<void> {
+    export async function run(fn: () => Promise<any>, options?: IFakeAsyncOptions): Promise<void> {
     
         const enable = options?.enable ?? true;
         if (!enable) {
@@ -62,8 +63,6 @@ export namespace FakeAsync {
         const fakeExecutor = new FakeAsyncExecutor();
         FakeGlobalAsync.onTask(task => {
             const internalTask = fakeExecutor.schedule(task);
-            task.setID(internalTask.id);
-            
             const disposable = FakeGlobalAsync.onTaskDisposed(id => {
                 if (id === internalTask.id) {
                     fakeExecutor.unschedule(internalTask);
@@ -106,15 +105,30 @@ export namespace FakeAsync {
             if (options?.onError === true) {
                 console.log(err);
             } 
-            else if (options?.onError) {
+            else if (typeof options?.onError === 'function') {
                 options.onError(err);
+            }
+            else if (!options?.onError) {
+                throw err;
             }
         }
     }
 }
 
-export interface IFakeSyncOptions {
+export interface IFakeAsyncOptions {
+    /**
+     * If enable fake async. 
+     * @default true
+     */
     readonly enable?: boolean;
+
+    /**
+     * If enable error handling:
+     * - If true is given, the error will be printed by `console.log`.
+     * - If false or undefined is given, the error will be thrown.
+     * - If callback is given, it will be invoked when the error happens.
+     * @default undefined
+     */
     readonly onError?: boolean | ((err: any) => void);
 }
 
@@ -140,11 +154,11 @@ namespace FakeGlobalAsync {
 
     // [event]
 
-    const _onTask = new Emitter<ITask>();
-    export const onTask = _onTask.registerListener;
+    let _onTask = new Emitter<ITask>();
+    export let onTask = _onTask.registerListener;
 
-    const _onTaskDisposed = new Emitter<number>();
-    export const onTaskDisposed = _onTaskDisposed.registerListener;
+    let _onTaskDisposed = new Emitter<number>();
+    export let onTaskDisposed = _onTaskDisposed.registerListener;
 
     // [public methods]
 
@@ -188,6 +202,15 @@ namespace FakeGlobalAsync {
      */
     export function disableFakeAsync(): void {
         Object.assign(globalThis, trueGlobalAsync);
+        
+        _now = 0;
+        _onTask.dispose();
+        _onTask = new Emitter();
+        onTask = _onTask.registerListener;
+
+        _onTaskDisposed.dispose();
+        _onTaskDisposed = new Emitter();
+        onTaskDisposed = _onTaskDisposed.registerListener;
     }
 
     // [private helper methods]
@@ -227,8 +250,6 @@ namespace FakeGlobalAsync {
         }
 
         let iterCount = 0;
-        const stackTrace = new Error().stack;
-        
         let disposed = false;
         let taskID: number;
 
@@ -245,7 +266,7 @@ namespace FakeGlobalAsync {
                 },
                 source: {
                     toString() { return `setInterval (iteration ${thisIterCount})`; },
-                    stackTrace,
+                    stackTrace: new Error().stack,
                 },
                 setID: (id) => { taskID = id; }
             });
@@ -263,7 +284,7 @@ namespace FakeGlobalAsync {
 
     const __customizedClearInterval = (timeoutId: any) => {
         if (typeof timeoutId === 'object' && timeoutId && 'dispose' in timeoutId) {
-            timeoutId.dispose(); // this is our customized dispose objet
+            timeoutId.dispose(); // this is our customized dispose object
         } else {
             trueGlobalAsync.clearInterval(timeoutId);
         }
@@ -323,9 +344,9 @@ class FakeAsyncExecutor implements IDisposable {
 
     // [fields]
 
-    private readonly _pqueue = new PriorityQueue<ITaskWithID>(this.__compareTasks);
-    private _uuid = 0;
-    private _executing = false;
+    private readonly _pqueue: PriorityQueue<ITaskWithID>;
+    private _uuid: number;
+    private _executing: boolean;
 
     // [event]
 
@@ -333,7 +354,11 @@ class FakeAsyncExecutor implements IDisposable {
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+       this._pqueue = new PriorityQueue(this.__compareTasks); 
+        this._uuid = 0;
+        this._executing = false;
+    }
 
     // [public methods]
 
@@ -342,13 +367,16 @@ class FakeAsyncExecutor implements IDisposable {
 			throw new Error(`Scheduled time (${task.time}) must be equal to or greater than the current time (${FakeGlobalAsync.now()}).`);
 		}
 
+        const ID = this._uuid++;
+        task.setID(ID);
         const internalTask = {
             ...task,
-            id: this._uuid++,
+            id: ID,
         };
-        this._pqueue.enqueue(internalTask);
 
+        this._pqueue.enqueue(internalTask);
         this.__trySchedule();
+
         return internalTask;
     }
 
@@ -394,13 +422,15 @@ class FakeAsyncExecutor implements IDisposable {
     }
 
     private __executeTask(): void {
-        const task = this._pqueue.dequeue();
+        const task = this._pqueue.peek();
 		if (!task) {
 			return;
 		}
 
         FakeGlobalAsync.updateNow(task.time);
         task.run();
+
+        this._pqueue.dequeue();
     }
 
     private __compareTasks(a: ITaskWithID, b: ITaskWithID): number {

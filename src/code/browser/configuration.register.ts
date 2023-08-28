@@ -14,19 +14,25 @@ const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 Registrant.registerConfigurations({
     id: 'workbench',
     properties: {
-        [WorkbenchConfiguration.DisplayLanguage]: {
-            type: 'string',
-            enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
-            default: LanguageType.en,
-        },
-        [WorkbenchConfiguration.ColorTheme]: {
-            type: 'string',
-            enum: [ColorThemeType.Light, ColorThemeType.Dark],
-            default: ColorThemeType.Light,
-        },
-        [WorkbenchConfiguration.KeyboardScreenCast]: {
-            type: 'boolean',
-            default: true,
+        ['workbench']: {
+            type: 'object',
+            required: [],
+            properties: {
+                ['language']: {
+                    type: 'string',
+                    enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
+                    default: LanguageType.en,
+                },
+                ['colorTheme']: {
+                    type: 'string',
+                    enum: [ColorThemeType.Light, ColorThemeType.Dark],
+                    default: ColorThemeType.Light,
+                },
+                ['keyboardScreenCast']: {
+                    type: 'boolean',
+                    default: true,
+                }
+            }
         },
     },
 });

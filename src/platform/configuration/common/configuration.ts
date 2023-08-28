@@ -4,6 +4,11 @@ import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { URI } from "src/base/common/file/uri";
+
+export const APP_DIR_NAME = '.wisp';
+export const APP_CONFIG_NAME = 'app.config.json';
 
 /**
  * A {@link Section} refers to a string composed of multiple substrings linked 
@@ -18,6 +23,11 @@ export type Section = string;
 export const IConfigurationService = createService<IConfigurationService>('configuration-service');
 
 export interface IConfigurationService extends IDisposable, IService {
+
+    /**
+     * The path to the application configuration path.
+     */
+    readonly appConfigurationPath: URI;
 
     /**
      * Fires whenever the configuraion has changed.
@@ -53,8 +63,7 @@ export interface IConfigurationService extends IDisposable, IService {
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is null, it overries the entire configuration.
      */
-    set(section: Section, value: any): Promise<void>;
-    set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
+    set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Delete the configuration under the provided section.
@@ -63,8 +72,19 @@ export interface IConfigurationService extends IDisposable, IService {
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
-    delete(section: Section): Promise<void>;
-    delete(section: Section, options: IConfigurationUpdateOptions): Promise<void>;
+    delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+
+    /**
+     * @description Saves the configuration.
+     */
+    save(): Promise<void>;
+}
+
+export interface IConfigurationServiceOptions {
+
+    readonly appConfiguration: {
+        readonly path: URI;
+    };
 }
 
 export interface IConfigurationUpdateOptions {
@@ -75,23 +95,10 @@ export interface IConfigurationUpdateOptions {
     readonly type: ConfigurationModuleType;
 }
 
-export const NOTA_DIR_NAME = '.nota';
-
-/** @deprecated */
-export const DEFAULT_CONFIG_NAME = 'user.config.json';
-/** @deprecated */
-export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
-export const APP_CONFIG_NAME = 'nota.config.json';
-
-export interface IComposedConfiguration {
-    default: IConfigurationStorage;
-    user: IConfigurationStorage;
-}
-
 export interface IConfigurationCompareResult {
-    added: Section[];
-    deleted: Section[];
-    changed: Section[];
+    readonly added: Section[];
+    readonly deleted: Section[];
+    readonly changed: Section[];
 }
 
 /**
@@ -103,7 +110,7 @@ export const enum ConfigurationModuleType {
     Memory,
 }
 
-export function ConfigurationModuleTypeToString(type: ConfigurationModuleType): string {
+export function ConfigurationModuleTypeToString(type: any): string {
     switch (type) {
         case ConfigurationModuleType.Default: return 'Default';
         case ConfigurationModuleType.User: return 'User';
@@ -119,14 +126,14 @@ export function ConfigurationModuleTypeToString(type: ConfigurationModuleType): 
  * @note Double initialization will throw an exception.
  * @note The model does not support direct configuraiton modifications.
  */
-export interface IConfigurationModule<TType extends ConfigurationModuleType, TOnChangeEvent> extends IDisposable {
+export interface IConfigurationModule<TType extends ConfigurationModuleType, TOnDidChangeEvent> extends IDisposable {
 
     readonly type: TType;
 
     /**
      * Fires when the configuration chanages.
      */
-    readonly onDidConfigurationChange: Register<TOnChangeEvent>;
+    readonly onDidConfigurationChange: Register<TOnDidChangeEvent>;
 
     /**
      * @description Returns the configuration.
@@ -143,4 +150,34 @@ export interface IConfigurationModule<TType extends ConfigurationModuleType, TOn
      * @description Reloads the configuration.
      */
     reload(): void | Promise<void>;
+}
+
+export interface IDefaultConfigurationModule extends IConfigurationModule<ConfigurationModuleType.Default, IRawConfigurationChangeEvent> {
+
+    /**
+     * Fires when the configuration chanages.
+     * @note This fires when the default configuration changes in memory.
+     */
+    readonly onDidConfigurationChange: Register<IRawConfigurationChangeEvent>;
+}
+
+export interface IUserConfigurationModule extends IConfigurationModule<ConfigurationModuleType.User, void> {
+    
+    /**
+     * Fires when the configuration chanages.
+     * @note This fires when the the user configuration changes in disk.
+     */
+    readonly onDidConfigurationChange: Register<void>;
+
+    /**
+     * Fires whenever the configuration is reloaded completely.
+     */
+    readonly onDidConfigurationLoaded: Register<IConfigurationStorage>;
+
+    /**
+     * Resolves when the latest configuration changes is applied to the 
+     * configuration file.
+     * @note This only resolves once.
+     */
+    readonly onLatestConfigurationFileChange: Promise<void>;
 }

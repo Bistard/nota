@@ -208,16 +208,16 @@ suite('json-test', function () {
         
                 let result: IJsonSchemaValidateResult;
         
-                result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com' }, schema);
+                result = JsonSchemaValidator.validate({ name: 'John' }, schema);
                 assert.ok(!result.valid);
-        
+                
                 result = JsonSchemaValidator.validate({ name: 'John', age: 25 }, schema);
                 assert.ok(result.valid);
-        
+                
+                result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com' }, schema);
+                assert.ok(result.valid);
+                
                 result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com', extra: 'extra' }, schema);
-                assert.ok(!result.valid);
-        
-                result = JsonSchemaValidator.validate({ name: 'John' }, schema);
                 assert.ok(!result.valid);
             });
 
@@ -228,19 +228,21 @@ suite('json-test', function () {
                     age: { type: 'number' },
                     email: { type: 'string' },
                 },
-                additionalProperties: false,
                 required: ['name'],
             };
             
             const schema2: IJsonSchema = deepCopy(schema1);
-            schema2.additionalProperties = true;
-
             const schema3: IJsonSchema = deepCopy(schema2);
             schema3.maxProperties = 5;
     
             test('Object with null value in nullable field', function () {
-                const result = JsonSchemaValidator.validate({ name: 'John', age: null }, schema1);
-                assert.ok(!result.valid);
+                let result: IJsonSchemaValidateResult;
+                
+                result = JsonSchemaValidator.validate({ name: 'John', age: 25 }, schema1);
+                assert.ok(result.valid);
+                
+                result = JsonSchemaValidator.validate({ name: 'John', age: null }, schema1);
+                assert.ok(result.valid);
             });
     
             test('Object with missing non-required field', function () {
@@ -250,7 +252,7 @@ suite('json-test', function () {
     
             test('Object with additional property', function () {
                 let result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com', extra: 'extra' }, schema1);
-                assert.ok(!result.valid);
+                assert.ok(result.valid);
 
                 result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com', extra: 'extra' }, schema2);
                 assert.ok(result.valid);
@@ -273,48 +275,44 @@ suite('json-test', function () {
                 },
             };
 
-            test('Object with no required and no additional properties', function () {
+            test('Object with no required', function () {
                 const schema = deepCopy(baseSchema);
-                schema.additionalProperties = false;
 
                 let result = JsonSchemaValidator.validate({ name: 'John', age: 25 }, schema);
-                assert.ok(!result.valid);
+                assert.ok(result.valid);
+
+                result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com' }, schema);
+                assert.ok(result.valid);
             
                 result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com', extra: 'extra' }, schema);
-                assert.ok(!result.valid);
+                assert.ok(result.valid);
+
+                result = JsonSchemaValidator.validate({}, schema);
+                assert.ok(result.valid);
             });
             
-            test('Object with required and no additional properties', function () {
+            test('Object with required', function () {
                 const schema = deepCopy(baseSchema);
-                schema.additionalProperties = false;
                 schema.required = ['name', 'age'];
                 
 
-                let result = JsonSchemaValidator.validate({ name: 'John', age: 25 }, schema);
-                assert.ok(result.valid);
-            
+                let result = JsonSchemaValidator.validate({}, schema);
+                assert.ok(!result.valid);
+
                 result = JsonSchemaValidator.validate({ name: 'John' }, schema);
                 assert.ok(!result.valid);
-            });
-            
-            test('Object with no required and additional properties', function () {
-                const schema = deepCopy(baseSchema);
-                schema.additionalProperties = true;
-
-                const result = JsonSchemaValidator.validate({ name: 'John', age: 25, extra: 'extra' }, schema);
-                assert.ok(result.valid);
-            });
-            
-            test('Object with required and additional properties', function () {
-                const schema = deepCopy(baseSchema);
-                schema.additionalProperties = true;
-                schema.required = ['name', 'age'];
-
-                let result = JsonSchemaValidator.validate({ name: 'John', age: 25, extra: 'extra' }, schema);
-                assert.ok(result.valid);
-            
-                result = JsonSchemaValidator.validate({ name: 'John', extra: 'extra' }, schema);
+                
+                result = JsonSchemaValidator.validate({ age: 25 }, schema);
                 assert.ok(!result.valid);
+                
+                result = JsonSchemaValidator.validate({ name: 'John', age: 25 }, schema);
+                assert.ok(result.valid);
+
+                result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com' }, schema);
+                assert.ok(result.valid);
+            
+                result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com', extra: 'extra' }, schema);
+                assert.ok(result.valid);
             });
         });
     });

@@ -1,9 +1,9 @@
+import type * as assert from 'assert';
 import { repeat } from "src/base/common/util/async";
 import { Random } from "src/base/common/util/random";
 import { NestedArray } from "src/base/common/util/type";
 
 let _hitCount = 0;
-const _context = new Set<number>();
 
 /**
  * @description Simple printing debug strategy.
@@ -12,18 +12,27 @@ export function hit(): void {
     console.log(_hitCount++);
 }
 
-export function toggleContext(id: number): void {
-    const exist = _context.has(id);
-    if (exist) {
-        _context.delete(id);
-    } else {
-        _context.add(id);
-    }
-}
+export namespace Context {
 
-export function print(id: number, message: any): void {
-    if (_context.has(id)) {
-        console.log(message);
+    const _context = new Set<number>();
+
+    export function toggleContext(id: number): void {
+        const exist = _context.has(id);
+        if (exist) {
+            _context.delete(id);
+        } else {
+            _context.add(id);
+        }
+    }
+
+    export function ifExist(id: number): boolean {
+        return _context.has(id);
+    }
+    
+    export function print(id: number, message: any): void {
+        if (_context.has(id)) {
+            console.log(message);
+        }
     }
 }
 
@@ -43,6 +52,8 @@ export function nullObject(): any {
  * throw an exception.
  * @param fn - The function to be tested for exception throwing.
  * @throws Will throw an error if the function does not throw an exception.
+ * 
+ * @deprecated Use {@link assert.throws} instead.
  */
 export function shouldThrow(fn: () => void): void {
     let noThrow = false;

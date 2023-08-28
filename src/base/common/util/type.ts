@@ -48,6 +48,7 @@ export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
  * let instance = new instanceCreator(10, 'hello');
  */
 export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
+export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => TInstance;
 
 /**
  * `CompareFn` is a type representing a generic comparison function.

@@ -214,3 +214,29 @@ export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: an
         onFinally?.();
     }
 }
+
+/**
+ * @class A simple utility that make sure {@link InitProtector.init()} can only 
+ * be invoked once.
+ */
+export class InitProtector {
+
+    private _initialized: boolean;
+
+    constructor() {
+        this._initialized = false;
+    }
+
+    get isInit(): boolean {
+        return this._initialized;
+    }
+
+    public init(errorMessage: string): void {
+        if (!this._initialized) {
+            this._initialized = true;
+            return;
+        }
+
+        throw new Error(`${errorMessage}`);
+    }
+}

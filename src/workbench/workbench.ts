@@ -85,11 +85,16 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description register renderer process global listeners.
      */
     protected override _registerListeners(): void {
+        
+        // listen to layout changes
         this.__registerLayoutListeners();
-        this.__registerConfigurationChange();
+        
+        // listen to configuration changes
+        this.__registerConfigurationListeners();
 
         // initialize all the context keys only when the application is ready
-        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+        this.lifecycleService.when(LifecyclePhase.Ready)
+        .then(() => {
             this._contextHub = this.instantiationService.createInstance(WorkbenchContextHub);
             this.__register(this._contextHub);
         });
@@ -100,30 +105,28 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     /**
      * @description Responses to configuration change.
      */
-    private __registerConfigurationChange(): void {
-        this.__registerGlobalConfigurationChange();
-    }
+    private __registerConfigurationListeners(): void {
+        
+        // KeyboardScreenCastService
+        {
+            const screenCastService = this.instantiationService.getOrCreateService(IKeyboardScreenCastService);
+            
+            // init
+            const ifEnable = this.configurationService.get<boolean>(WorkbenchConfiguration.KeyboardScreenCast);
+            ifEnable && screenCastService.start();
 
-    private __registerGlobalConfigurationChange(): void {
-        const ifEnabled = this.configurationService.get<boolean>(WorkbenchConfiguration.KeyboardScreenCast);
-
-        let screenCastService: IKeyboardScreenCastService;
-
-        if (ifEnabled) {
-            screenCastService = this.instantiationService.getOrCreateService(IKeyboardScreenCastService);
-            screenCastService.start();
-        }
-
-        this.configurationService.onDidConfigurationChange(e => {
-            if (e.affect(WorkbenchConfiguration.KeyboardScreenCast)) {
-                const ifEnabled = this.configurationService.get(WorkbenchConfiguration.KeyboardScreenCast);
-                if (ifEnabled) {
-                    screenCastService.start();
-                } else {
-                    screenCastService.dispose();
+            // on configuraiton change
+            this.__register(this.configurationService.onDidConfigurationChange(e => {
+                if (e.affect(WorkbenchConfiguration.KeyboardScreenCast)) {
+                    const ifEnable = this.configurationService.get(WorkbenchConfiguration.KeyboardScreenCast);
+                    if (ifEnable) {
+                        screenCastService.start();
+                    } else {
+                        screenCastService.dispose();
+                    }
                 }
-            }
-        });
+            }));
+        }
     }
 }
 

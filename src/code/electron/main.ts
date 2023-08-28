@@ -2,7 +2,7 @@ import 'src/code/common/common.register';
 import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir } from 'fs/promises';
-import { ErrorHandler, ExpectedError, isExpectedError } from 'src/base/common/error';
+import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
@@ -23,7 +23,7 @@ import { ICLIArguments } from 'src/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
-import { IConfigurationService } from 'src/platform/configuration/common/configuration';
+import { APP_CONFIG_NAME, IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/platform/product/common/productService';
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
 
@@ -159,7 +159,14 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const configurationService = new MainConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        const configurationService = instantiationService.createInstance(
+            MainConfigurationService,
+            { 
+                appConfiguration: { 
+                    path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
+                } 
+            },
+        );
         instantiationService.register(IConfigurationService, configurationService);
 
         // status-service
@@ -194,10 +201,10 @@ const main = new class extends class MainProcess implements IMainProcess {
                     this.environmentService.appConfigurationPath,
                     this.environmentService.userDataPath,
                 ]
-                    .map(path => {
-                        return mkdir(URI.toFsPath(path), { recursive: true });
-                    })),
-
+                .map(path => {
+                    return mkdir(URI.toFsPath(path), { recursive: true });
+                })
+            ),
             this.productService.init(this.environmentService.productProfilePath),
             this.statusService.init(),
             this.configurationService.init(),
@@ -270,7 +277,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         ];
 
         electron.dialog.showMessageBoxSync({
-            title: this.productService.profile.applicationName,
+            title: tryOrDefault('Untitled', () => this.productService.profile.applicationName),
             message: 'Unable to write to directories',
             detail: Strings.format('{0}\n\nPlease make sure the following directories are writeable: \n\n{1}', [error.toString?.() ?? error, dir.join('\n')]),
             type: 'warning',

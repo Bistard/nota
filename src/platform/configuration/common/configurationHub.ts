@@ -1,261 +1,15 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
-import { tryOrDefault } from "src/base/common/error";
-import { Emitter, Event } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
-import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
-import { ILogService } from "src/base/common/logger";
-import { mixin, strictEquals } from "src/base/common/util/object";
+import { strictEquals } from "src/base/common/util/object";
 import { DeepReadonly, Dictionary } from "src/base/common/util/type";
-import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
-import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
-import { IFileService } from "src/platform/files/common/fileService";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, Section } from "src/platform/configuration/common/configuration";
-import { UnbufferedScheduler } from "src/base/common/util/async";
-import { errorToMessage } from "src/base/common/error";
-
-const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
-
-/**
- * @class A {@link DefaultConfiguration} is a class representing the default 
- * configuration of the application. It derives the default configurations from
- * the {@link IConfigurationRegistrant}.
- * 
- * @note Has type {@link ConfigurationModuleType.Default}.
- * @note After the initialization of the module, it will automatically keep 
- * itself updated in response to any changes in the schema registrations of 
- * {@link IConfigurationRegistrant}. 
- */
-export class DefaultConfiguration extends Disposable implements IConfigurationModule<ConfigurationModuleType.Default, IRawConfigurationChangeEvent> {
-
-    // [fields]
-
-    public readonly type = ConfigurationModuleType.Default;
-
-    private _storage: IConfigurationStorage;
-    private _initialized: boolean;
-
-    // [events]
-
-    private readonly _onDidConfigurationChange = this.__register(new Emitter<IRawConfigurationChangeEvent>());
-    public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
-
-    // [constructor]
-
-    constructor() {
-        super();
-        this._storage = this.__register(new ConfigurationStorage());
-        this._initialized = false;
-    }
-
-    // [public methods]
-
-    public getConfiguration(): IConfigurationStorage {
-        return this._storage;
-    }
-
-    public init(): void {
-        if (this._initialized) {
-            throw new Error('Cannot initialize DefaultConfiguration twice.');
-        }
-        this._initialized = true;
-        this.__resetDefaultConfigurations();
-        this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
-    }
-
-    public reload(): void {
-        this.__resetDefaultConfigurations();
-    }
-
-    // [private helper methods]
-
-    private __resetDefaultConfigurations(): void {
-        this._storage = new ConfigurationStorage();
-        const schemas = Registrant.getConfigurationSchemas();
-        this.__updateDefaultConfigurations(Object.keys(schemas), schemas);
-    }
-
-    private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
-        const properties = Array.from(e.properties);
-        this.__updateDefaultConfigurations(properties, Registrant.getConfigurationSchemas());
-        this._onDidConfigurationChange.fire({ properties: properties });
-    }
-
-    private __updateDefaultConfigurations(keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
-        for (const key of keys) {
-            const schema = schemas[key];
-
-            if (schema) {
-                /** Make sure do not override the original value. */
-                const originalValue = tryOrDefault(undefined, () => this._storage.get(key));
-
-                /** Set default value for 'null'. */
-                const newValue = mixin(originalValue, schema.type === 'null' ? null : schema.default, true);
-                this._storage.set(key, newValue);
-            } else {
-                this._storage.delete(key);
-            }
-        }
-    }
-}
-
-/**
- * @class A {@link UserConfiguration} represents the user configuration that 
- * will be treated as overrides to {@link DefaultConfiguration}. It obtains the
- * configuration by reading files from the disk.
- * 
- * @note Has type {@link ConfigurationModuleType.User}.
- * @note After the initialization of the module, it will automatically keep 
- * itself updated in response to any changes in the schema registrations of 
- * {@link IConfigurationRegistrant}. 
- */
-export class UserConfiguration extends Disposable implements IConfigurationModule<ConfigurationModuleType.User, void> {
-
-    // [fields]
-
-    public readonly type = ConfigurationModuleType.User;
-
-    private _initialized: boolean;
-
-    private readonly _userResource: URI;
-    private readonly _validator: UserConfigurationValidator;
-
-    private _configuration: IConfigurationStorage;
-
-    // [event]
-
-    private readonly _onDidConfigurationChange = this.__register(new Emitter<void>());
-    public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
-
-    // [constructor]
-
-    constructor(
-        userResource: URI,
-        private readonly fileService: IFileService,
-        private readonly logService: ILogService,
-    ) {
-        super();
-        this._initialized = false;
-
-        this._userResource = userResource;
-        this._configuration = new ConfigurationStorage();
-        this._validator = this.__register(new UserConfigurationValidator());
-
-        // register listeners
-        {
-            this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
-            this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
-
-            // configuration updation
-            this.__register(this.fileService.watch(userResource));
-            Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(userResource))(() => reloadScheduler.schedule());
-
-            const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
-                100, // wait for a moment to avoid excessive reloading
-                async () => {
-                    await this.reload();
-                    this._onDidConfigurationChange.fire();
-                },
-            ));
-        }
-    }
-
-    // [public methods]
-
-    public getConfiguration(): IConfigurationStorage {
-        return this._configuration;
-    }
-
-    public async init(): Promise<void> {
-        if (this._initialized) {
-            throw new Error('Cannot initialize DefaultConfiguration twice.');
-        }
-        this._initialized = true;
-        return this.__loadConfiguration();
-    }
-
-    public async reload(): Promise<void> {
-        return this.__loadConfiguration();
-    }
-
-    // [private helper methods]
-
-    private async __loadConfiguration(): Promise<void> {
-
-        let raw: string;
-        try {
-            raw = (await this.fileService.readFile(this._userResource)).toString();
-        } catch (err) {
-            throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'.\nThe cause is: ${errorToMessage(err)}`);
-        }
-
-        const unvalidated = tryOrDefault<object>(
-            {},
-            () => JSON.parse(raw),
-            () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'`),
-        );
-
-        const validated = this._validator.validate(unvalidated);
-        this._configuration = new ConfigurationStorage(Object.keys(validated), validated);
-    }
-}
-
-class UserConfigurationValidator implements IDisposable {
-
-    // [fields]
-
-    private readonly _onUnknownConfiguration = new Emitter<string>();
-    public readonly onUnknownConfiguration = this._onUnknownConfiguration.registerListener;
-
-    private readonly _onInvalidConfiguration = new Emitter<IJsonSchemaValidateResult>();
-    public readonly onInvalidConfiguration = this._onInvalidConfiguration.registerListener;
-
-    // [constructor]
-
-    constructor() { }
-
-    // [public methods]
-
-    public validate(rawConfiguration: object): object {
-        const schemas = Registrant.getConfigurationSchemas();
-        const validatedConfiguration = this.__validate(rawConfiguration, schemas);
-        return validatedConfiguration;
-    }
-
-    public dispose(): void {
-        this._onUnknownConfiguration.dispose();
-    }
-
-    // [private helper methods]
-
-    private __validate(rawConfiguration: object, schemas: Dictionary<string, IConfigurationSchema>): object {
-        const validated: object = {};
-
-        for (const key in rawConfiguration) {
-            const value = rawConfiguration[key];
-            const schema = schemas[key];
-
-            if (!schema) {
-                this._onUnknownConfiguration.fire(key);
-                continue;
-            }
-
-            const result = JsonSchemaValidator.validate(value, schema);
-            if (!result.valid) {
-                this._onInvalidConfiguration.fire(result);
-                continue;
-            }
-
-            validated[key] = value;
-        }
-
-        return validated;
-    }
-}
+import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { ConfigurationStorage, IConfigurationStorage, IReadonlyConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
+import { ConfigurationModuleType, IConfigurationCompareResult, Section } from "src/platform/configuration/common/configuration";
 
 interface IConfigurationHubBase {
 
-    inspect(): IComposedConfiguration;
+    /**
+     * @description Returns the internal configuration storage.
+     */
+    inspect(): IReadonlyConfigurationStorage;
 
     /**
      * @description Replace the reference to a {@link IConfigurationStorage} 
@@ -301,11 +55,8 @@ class ConfigurationHubBase implements IConfigurationHubBase {
 
     // [public methods]
 
-    public inspect(): IComposedConfiguration {
-        return {
-            default: this._defaultConfiguration,
-            user: this._userConfiguration,
-        };
+    public inspect(): IConfigurationStorage {
+        return this.__getComposedConfiguration();
     }
 
     // [public update methods]
@@ -333,7 +84,12 @@ class ConfigurationHubBase implements IConfigurationHubBase {
 
     protected __getComposedConfiguration(): IConfigurationStorage {
         if (!this._composedConfiguration) {
-            (this._composedConfiguration = this._defaultConfiguration.clone()).merge([this._userConfiguration, this._memoryConfiguration]);
+            this._composedConfiguration = this._defaultConfiguration.clone();
+            
+            const userConfigurationWithMemory = this._userConfiguration.clone();
+            userConfigurationWithMemory.merge(this._memoryConfiguration, false);
+            
+            this._composedConfiguration.merge(userConfigurationWithMemory, true);
         }
         return this._composedConfiguration;
     }
@@ -422,11 +178,7 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
     }
 
     public setInMemory(section: Section, value: any): void {
-        if (value === undefined) {
-            this._memoryConfiguration.delete(section);
-        } else {
-            this._memoryConfiguration.set(section, value);
-        }
+        this._memoryConfiguration.set(section, value);
         this.__dropComposedConfiguration();
     }
 

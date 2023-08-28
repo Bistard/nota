@@ -748,22 +748,27 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     }
 
     public remove(element: T): void {
-        for (let i = 0; i < this._count; i++) {
-            if (this._heap[i] !== element) {
-                continue;
-            }
-            
-            this._heap[i] = this._heap[this._count - 1]!;
-            this._heap.pop();
-            this._count--;
+        const index = this._heap.findIndex(e => e === element);
     
-            if (i !== this._count && this.__comparator(this._heap[i]!, this._heap[(i - 1) >> 1]!) < 0) {
-                this.__bubbleUp(i);
-            } else {
-                this.__sinkDown(i);
-            }
-
-            i--;
+        if (index === -1) {
+            return;
+        }
+    
+        this._heap[index] = this._heap[this._count - 1]!;
+        this._heap.pop();
+        this._count--;
+    
+        // If the element was the last or only element, no reordering is necessary.
+        if (index === this._count) {
+            return;
+        }
+    
+        // Decide whether to bubble up or sink down
+        const parentIdx = Math.floor((index - 1) / 2);
+        if (index > 0 && this.__comparator(this._heap[index]!, this._heap[parentIdx]!) < 0) {
+            this.__bubbleUp(index);
+        } else {
+            this.__sinkDown(index);
         }
     }
     

@@ -95,12 +95,12 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
     private __search(resource: URI, searchChildren: boolean, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
 
         // look up for directory but no directories changes
-        if (isDirectory === true && !this.rawEvent.anyDirectory) {
+        if (isDirectory === true && this.rawEvent.anyDirectory === false) {
             return false;
         }
 
         // look up for file but no files changes
-        if (isDirectory === false && !this.rawEvent.anyFile) {
+        if (isDirectory === false && this.rawEvent.anyFile === false) {
             return false;
         }
 
