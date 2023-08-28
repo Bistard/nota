@@ -79,11 +79,11 @@ export abstract class WorkbenchLayout extends Component {
          * Listens to each SideBar button click events and notifies the 
          * sideView to swtich the view.
          */
-        this.sideBarService.onDidClick(e => {
+        this.__register(this.sideBarService.onDidClick(e => {
             if (e.isPrimary) {
                 this.sideViewService.switchView(e.ID);
             }
-        });
+        }));
     }
 
     // [private helper functions]

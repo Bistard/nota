@@ -145,14 +145,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IProductService, productService);
 
         // configuration-service
-        const configurationService = new BrowserConfigurationService(
+        const configurationService = instantiationService.createInstance(
+            BrowserConfigurationService,
             { 
                 appConfiguration: { 
                     path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
                 } 
             },
-            instantiationService, 
-            logService,
         );
         instantiationService.register(IConfigurationService, configurationService);
 

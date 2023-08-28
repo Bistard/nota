@@ -227,6 +227,10 @@ export class InitProtector {
         this._initialized = false;
     }
 
+    get isInit(): boolean {
+        return this._initialized;
+    }
+
     public init(errorMessage: string): void {
         if (!this._initialized) {
             this._initialized = true;
