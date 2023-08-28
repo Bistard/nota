@@ -12,11 +12,7 @@ export interface IConfigurationStorageChangeEvent {
     readonly sections: Section[];
 }
 
-/**
- * An interface only for {@link ConfigurationStorage}.
- */
-export interface IConfigurationStorage extends IDisposable {
-
+export interface IReadonlyConfigurationStorage extends IDisposable {
     /** 
      * Get all the sections of the storage. Section are seperated by (`.`). 
      */
@@ -45,6 +41,27 @@ export interface IConfigurationStorage extends IDisposable {
     get<T>(section: Section | undefined): DeepReadonly<T>;
 
     /**
+     * @description Check if the current storage contains any configurations.
+     */
+    isEmpty(): boolean;
+
+    /**
+     * @description Returns a deep copy of the current storage.
+     */
+    clone(): ConfigurationStorage;
+
+    /**
+     * @description Conver the model into the JSON format.
+     */
+    toJSON(): string;
+}
+
+/**
+ * An interface only for {@link ConfigurationStorage}.
+ */
+export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
+    
+    /**
      * @description Set configuration at given section.
      * @param section see {@link ConfigurationStorage}. 
      * 
@@ -68,16 +85,6 @@ export interface IConfigurationStorage extends IDisposable {
      *                      The default is true.
      */
     merge(others: IConfigurationStorage | IConfigurationStorage[], ignoreNullity?: boolean): void;
-
-    /**
-     * @description Check if the current storage contains any configurations.
-     */
-    isEmpty(): boolean;
-
-    /**
-     * @description Returns a deep copy of the current storage.
-     */
-    clone(): ConfigurationStorage;
 }
 
 /**
@@ -205,6 +212,10 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     public clone(): ConfigurationStorage {
         return new ConfigurationStorage([...this._sections], deepCopy(this._model));
+    }
+
+    public toJSON(): string {
+        return JSON.stringify(this.model, null, 4);
     }
 
     // [private helper methods]
