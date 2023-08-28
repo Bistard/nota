@@ -12,7 +12,7 @@ suite('URI-test', () => {
 
     const testStr1 = 'foo://example.com:8042/over/there?name=ferret#nose';
     const testStr2 = 'urn:example:animal:ferret:nose';
-    const testStr3 = 'file://d:/dev/nota/src/code/common/service/test/file.test.txt';
+    const testStr3 = 'file://d:/dev/program/src/code/common/service/test/file.test.txt';
 
     test('toString (decoding)', () => {
         assert.strictEqual(URI.toString(URI.parse(testStr1), true), testStr1);

@@ -15,7 +15,7 @@ const path = require('path');
         [], 
         {
             env: process.env,
-            cwd: process.cwd(), // redirect the cwd to the root of nota
+            cwd: process.cwd(), // redirect the cwd to the root of the program
             shell: true,
 
             // inherits the stdin / stdout / stderr

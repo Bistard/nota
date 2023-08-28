@@ -32,7 +32,7 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
 }
 
 /**
- * Using {@link version} so that running different versions of nota will not
+ * Using {@link version} so that running different versions of programs will not
  * affect each other.
  */
 function createMainIpcHandle(userDir: string, type: string, version: string): string {

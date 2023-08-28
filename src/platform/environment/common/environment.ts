@@ -81,7 +81,7 @@ export interface IEnvironmentService extends IService {
 
     /**
      * The configuration directory of the application.
-     * @example .../nota/.nota
+     * @example ./root/.config
      */
     readonly appConfigurationPath: URI;
 
@@ -126,7 +126,7 @@ export interface IDiskEnvironmentService extends IEnvironmentService {
 
     /**
      * The user data directory.
-     * @example C:/Users/user_name/AppData/Roaming/nota
+     * @example C:/Users/user_name/AppData/Roaming/user_data
      */
     readonly userDataPath: URI;
 

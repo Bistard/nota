@@ -4,9 +4,9 @@ import { Strings } from 'src/base/common/util/string';
 suite('string-test', () => {
 
     test('regExp', () => {
-        assert.strictEqual(Strings.anyRegExp('.nota', []), true);
-        assert.strictEqual(Strings.anyRegExp('.nota', [new RegExp('^.x')]), false);
-        assert.strictEqual(Strings.anyRegExp('.nota', [new RegExp('^.x'), new RegExp('^.*')]), true);
+        assert.strictEqual(Strings.anyRegExp('.program', []), true);
+        assert.strictEqual(Strings.anyRegExp('.program', [new RegExp('^.x')]), false);
+        assert.strictEqual(Strings.anyRegExp('.program', [new RegExp('^.x'), new RegExp('^.*')]), true);
         assert.strictEqual(Strings.anyRegExp('user.config.json', [new RegExp('.config.')]), true);
         assert.strictEqual(Strings.anyRegExp('user.config.json', [new RegExp('^global')]), false);
         assert.strictEqual(Strings.anyRegExp('user.config.json', [new RegExp('^global'), new RegExp('.config.')]), true);

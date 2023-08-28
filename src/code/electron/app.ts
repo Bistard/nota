@@ -31,7 +31,7 @@ import { IpcServer } from "src/platform/ipc/electron/ipcServer";
 /**
  * An interface only for {@link ApplicationInstance}
  */
-export interface INotaInstance {
+export interface IApplicationInstance {
     run(): Promise<void>;
 }
 
@@ -39,7 +39,7 @@ export interface INotaInstance {
  * @class The main class of the application. It handles the core business of the 
  * application.
  */
-export class ApplicationInstance extends Disposable implements INotaInstance {
+export class ApplicationInstance extends Disposable implements IApplicationInstance {
 
     // [fields]
 
