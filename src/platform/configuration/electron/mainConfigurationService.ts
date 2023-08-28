@@ -24,4 +24,8 @@ export class MainConfigurationService extends AbstractConfigurationService {
     public delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void> {
         return Promise.reject(new Error('[ConfigurationService] does not support `Delete`'));
     }
+
+    public async save(): Promise<void> {
+        return Promise.reject(new Error('[ConfigurationService] does not support `save`'));
+    }
 }

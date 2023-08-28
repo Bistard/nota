@@ -1,12 +1,15 @@
 import { strictEquals } from "src/base/common/util/object";
 import { DeepReadonly, Dictionary } from "src/base/common/util/type";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
-import { ConfigurationStorage, IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
-import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, Section } from "src/platform/configuration/common/configuration";
+import { ConfigurationStorage, IConfigurationStorage, IReadonlyConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
+import { ConfigurationModuleType, IConfigurationCompareResult, Section } from "src/platform/configuration/common/configuration";
 
 interface IConfigurationHubBase {
 
-    inspect(): IComposedConfiguration;
+    /**
+     * @description Returns the internal configuration storage.
+     */
+    inspect(): IReadonlyConfigurationStorage;
 
     /**
      * @description Replace the reference to a {@link IConfigurationStorage} 
@@ -52,11 +55,8 @@ class ConfigurationHubBase implements IConfigurationHubBase {
 
     // [public methods]
 
-    public inspect(): IComposedConfiguration {
-        return {
-            default: this._defaultConfiguration,
-            user: this._userConfiguration,
-        };
+    public inspect(): IConfigurationStorage {
+        return this.__getComposedConfiguration();
     }
 
     // [public update methods]

@@ -3,6 +3,9 @@ import { AbstractConfigurationService } from "src/platform/configuration/common/
 import { ILogService } from "src/base/common/logger";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IFileService } from "src/platform/files/common/fileService";
+import { DataBuffer } from "src/base/common/file/buffer";
+import { URI } from "src/base/common/file/uri";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -13,6 +16,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
     constructor(
         options: IConfigurationServiceOptions,
         @IInstantiationService instantiationService: IInstantiationService,
+        @IFileService private readonly fileService: IFileService,
         @ILogService logService: ILogService,
     ) {
         super(options, instantiationService, logService);
@@ -26,6 +30,20 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
     public async delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void> {
         await this.__updateConfiguration(section, undefined, options);
+    }
+
+    public async save(): Promise<void> {
+        if (!this.isInit) {
+            return;
+        }
+
+        const jsonData = this._configurationHub.inspect().toJSON();
+        try {
+            await this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true });
+            this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
+        } catch (error: unknown) {
+            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
+        }
     }
 
     // [private helper methods]

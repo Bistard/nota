@@ -67,6 +67,10 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     // [public methods]
 
+    get isInit(): boolean {
+        return this._initProtector.isInit;
+    }
+
     get appConfigurationPath(): URI {
         return this.options.appConfiguration.path;
     }
@@ -90,6 +94,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
     public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+    public abstract save(): Promise<void>;
 
     // [private helper methods]
 

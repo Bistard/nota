@@ -159,14 +159,13 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const configurationService = new MainConfigurationService(
+        const configurationService = instantiationService.createInstance(
+            MainConfigurationService,
             { 
                 appConfiguration: { 
                     path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME), 
                 } 
             },
-            instantiationService, 
-            logService,
         );
         instantiationService.register(IConfigurationService, configurationService);
 

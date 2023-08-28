@@ -3,6 +3,7 @@ import { IShortcutService } from "src/workbench/services/shortcut/shortcutServic
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 
 export interface IBrowser {
     init(): void;
@@ -18,6 +19,7 @@ export class BrowserInstance implements IBrowser {
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IShortcutService private readonly shortcutService: IShortcutService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) { }
 
     // [public methods]
@@ -32,8 +34,10 @@ export class BrowserInstance implements IBrowser {
     private registerListeners(): void {
 
         // when the window is ready
-        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
-            // noop
+        this.lifecycleService.when(LifecyclePhase.Ready)
+        .then(() => {
+            // save user configurations on quite
+            this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save()));
         });
 
         // when the window is about to quit

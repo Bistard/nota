@@ -73,6 +73,11 @@ export interface IConfigurationService extends IDisposable, IService {
      * @throws An exception will be thrown if the section is invalid.
      */
     delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+
+    /**
+     * @description Saves the configuration.
+     */
+    save(): Promise<void>;
 }
 
 export interface IConfigurationServiceOptions {
@@ -88,11 +93,6 @@ export interface IConfigurationUpdateOptions {
      * Your target module for updation.
      */
     readonly type: ConfigurationModuleType;
-}
-
-export interface IComposedConfiguration {
-    readonly default: IConfigurationStorage;
-    readonly user: IConfigurationStorage;
 }
 
 export interface IConfigurationCompareResult {
