@@ -287,7 +287,7 @@ export type Result<T, E> = Ok<T> | Err<E>;
 /**
  * An interface for {@link Ok} and {@link Err}.
  */
-export interface IResult<T, E> {
+interface IResult<T, E> {
     
     /**
      * @description Represents the inner data value or error value of the 
@@ -347,8 +347,7 @@ export interface IResult<T, E> {
      * instance. Throws an {@link Error} if the {@link Result} is an {@link Err} 
      * instance.
      * 
-     * @throws Will throw an error if the {@link Result} is an {@link Err} 
-     *         instance.
+     * @throws Will throw an error if the {@link Result} is an {@link Err} instance.
      * 
      * @example
      * ```
@@ -369,8 +368,7 @@ export interface IResult<T, E> {
      * instance. If the {@link Result} is an {@link Err} instance, it will 
      * return the provided default value `data`.
      * 
-     * @param data Default value to return if the {@link Result} is an 
-     *             {@link Err} instance.
+     * @param data Default value to return if the {@link Result} is an {@link Err} instance.
      * 
      * @example
      * ```
@@ -390,10 +388,8 @@ export interface IResult<T, E> {
      * functions based on whether it is an {@link Ok} or an {@link Err} instance. 
      * Returns a value of type `U` resulting from the applied function.
      * 
-     * @param onOk Function to apply if the {@link Result} is an {@link Ok} 
-     *             instance.
-     * @param onError Function to apply if the {@link Result} is an {@link Err} 
-     *             instance.
+     * @param onOk Function to apply if the {@link Result} is an {@link Ok} instance.
+     * @param onError Function to apply if the {@link Result} is an {@link Err} instance.
      * @returns Result of applying either `onOk` or `onError` function of type `U`.
      * 
      * @example
