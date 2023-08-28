@@ -248,33 +248,131 @@ export type Result<T, E> = Ok<T> | Err<E>;
 export interface IResult<T, E> {
     
     /**
-     * @description Is the {@link Result} an {@link Ok} instance.
+     * @description Represents the inner data value or error value of the 
+     * {@link IResult} instance. 
+     * - In case of a successful outcome, the data is of type `T`. 
+     * - If there's an error, it's of type `E`.
+     * 
+     * Users should utilize the {@link isOk} and {@link isErr} methods to 
+     * ascertain the type of data before accessing it.
+     * - Force the user to handle the potential error.
+     * 
+     * @example
+     * ```
+     * // Successful outcome:
+     * const success: IResult<number, string> = new Ok(42);
+     * if (success.isOk()) {
+     *     console.log(success.data); // 42
+     * }
+     * 
+     * // Error outcome:
+     * const error: IResult<number, string> = new Err("Some error");
+     * if (error.isErr()) {
+     *     console.error(error.data); // "Some error"
+     * }
+     * ```
+     */
+    readonly data: T | E;
+
+    /**
+     * @description Returns `true` if the {@link Result} is an {@link Ok} 
+     * instance, and `false` otherwise.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = new Ok(42);
+     * console.log(result.isOk()); // true
+     * console.log(result.isErr()); // false
+     * ```
      */
     isOk(): this is Ok<T>;
     
     /**
-     * @description Returns a boolean Is the {@link Result} an {@link Err} instance.
+     * @description Returns `true` if the {@link Result} is an {@link Err} 
+     * instance, and `false` otherwise.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = new Err("Some error");
+     * console.log(result.isErr()); // true
+     * console.log(result.isOk()); // false
+     * ```
      */
     isErr(): this is Err<E>;
 
     /**
-     * @description // TODO
+     * @description Returns the inner value if the {@link Result} is an {@link Ok}
+     * instance. Throws an {@link Error} if the {@link Result} is an {@link Err} 
+     * instance.
+     * 
+     * @throws Will throw an error if the {@link Result} is an {@link Err} 
+     *         instance.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = new Ok(42);
+     * console.log(result.unwrap()); // 42
+     * ```
+     * @example
+     * ```
+     * const result: Result<number, string> = new Err('Some error');
+     * console.log(result.unwrap()); // throws an error
+     * console.log('reached');       // cannot be reached
+     * ```
      */
-    unwrap(): T | Err<E>;
+    unwrap(): T | never;
     
     /**
-     * @description // TODO
-     * @param data 
+     * @description Returns the inner value if the {@link Result} is an {@link Ok}
+     * instance. If the {@link Result} is an {@link Err} instance, it will 
+     * return the provided default value `data`.
+     * 
+     * @param data Default value to return if the {@link Result} is an 
+     *             {@link Err} instance.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = new Ok(42);
+     * console.log(result.unwrapOr(0)); // 42
+     * ```
+     * @example
+     * ```
+     * const result: Result<number, string> = new Err("Some error");
+     * console.log(result.unwrapOr(0)); // 0
+     * ```
      */
     unwrapOr(data: T): T;
 
     /**
-     * @description // TODO
-     * @param onOk 
-     * @param onError 
+     * @description Matches the current {@link Result} and applies the provided 
+     * functions based on whether it is an {@link Ok} or an {@link Err} instance. 
+     * Returns a value of type `U` resulting from the applied function.
+     * 
+     * @param onOk Function to apply if the {@link Result} is an {@link Ok} 
+     *             instance.
+     * @param onError Function to apply if the {@link Result} is an {@link Err} 
+     *             instance.
+     * @returns Result of applying either `onOk` or `onError` function of type `U`.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = Ok(42);
+     * const output = result.match(data => data * 2, error => 0);
+     * console.log(output); // 84
+     * ```
+     * @example
+     * ```
+     * const result: Result<number, string> = Err('Some error');
+     * const output = result.match(data => data * 2, error => 0);
+     * console.log(output); // 0
+     * ```
      */
     match<U>(onOk: (data: T) =>  U, onError: (error: E) =>  U): U;
 
+
+
+    
+    // REVIEW: discussion on whether to bring those API into TypeScript.
     // map<T2>(onOk: (data: T) => T2): Result<T2, E>;
     // mapErr<E2>(onErr: (err: E) => E2): Result<T, E2>;
 
