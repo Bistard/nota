@@ -243,6 +243,45 @@ export class InitProtector {
 
 // Result
 
-export type Result = any;
+export type Result<T, E> = Ok<T> | Err<E>;
 
-// 
+export interface IResult<T, E> {
+    
+    /**
+     * @description Is the {@link Result} an {@link Ok} instance.
+     */
+    isOk(): this is Ok<T>;
+    
+    /**
+     * @description Returns a boolean Is the {@link Result} an {@link Err} instance.
+     */
+    isErr(): this is Err<E>;
+
+    /**
+     * @description // TODO
+     */
+    unwrap(): T | Err<E>;
+    
+    /**
+     * @description // TODO
+     * @param data 
+     */
+    unwrapOr(data: T): T;
+
+    /**
+     * @description // TODO
+     * @param onOk 
+     * @param onError 
+     */
+    match<U>(onOk: (data: T) =>  U, onError: (error: E) =>  U): U;
+
+    // map<T2>(onOk: (data: T) => T2): Result<T2, E>;
+    // mapErr<E2>(onErr: (err: E) => E2): Result<T, E2>;
+
+    // then<T2, E2>(onOk: (data: T) => Result<T2, E2>): Result<T2, E | E2>;
+    // else<E2>(onErr: (err: E) => Result<T, E2>): Result<T, E2>;
+}
+
+// TODO: class Ok
+
+// TODO: class Err
