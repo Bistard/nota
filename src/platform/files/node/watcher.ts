@@ -202,7 +202,13 @@ export class WatchInstance implements IWatchInstance {
         return watcher;
     }
 
-    private __onEventFire(event: IRawResourceChangeEvent): void {
+    private __onEventFire(event: Mutable<IRawResourceChangeEvent>): void {
+        /**
+         * fix: A node.js watcher will produce the raw path which schema will be 
+         * the disk name (C:/, D:/, etc), we need to convert it to the correct 
+         * schema (file://).
+         */
+        event.resource = URI.toString(URI.fromFile(event.resource));
 
         this._eventBuffer.push(event);
 
