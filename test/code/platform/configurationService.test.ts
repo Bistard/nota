@@ -224,6 +224,7 @@ suite('BrowserConfigurationService', () => {
         fileService = new FileService(logService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
 
+        instantiationService.register(IInstantiationService, instantiationService);
         instantiationService.register(IFileService, fileService);
         instantiationService.register(ILogService, logService);
     }));
