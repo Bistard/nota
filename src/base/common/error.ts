@@ -241,10 +241,52 @@ export class InitProtector {
     }
 }
 
-// Result
-
+/**
+ * @type {Result}
+ * 
+ * @description Represents a type that encapsulates a successful value of type 
+ * `T` (using the {@link Ok} variant) or an error of type `E` (using the 
+ * {@link Err} variant). 
+ * 
+ * @note This type is useful for representing operations that might fail, 
+ * allowing for explicit error handling without relying on exceptions.
+ * 
+ * @template T The type of the value for successful outcomes.
+ * @template E The type of the error for failed outcomes.
+ * 
+ * @example
+ * // Handling successful outcomes:
+ * function divide(a: number, b: number): Result<number, string> {
+ *     if (b === 0) {
+ *         return new Err("Division by zero");
+ *     }
+ *     return new Ok(a / b);
+ * }
+ * 
+ * const result = divide(4, 2);
+ * if (result.isOk()) {
+ *     console.log("Division result:", result.value);
+ * } else {
+ *     console.error("Error:", result.error);
+ * }
+ * 
+ * @example
+ * // Handling error outcomes:
+ * const anotherResult = divide(4, 0);
+ * if (anotherResult.isOk()) {
+ *     console.log("Division result:", anotherResult.value);
+ * } else {
+ *     console.error("Error:", anotherResult.error);
+ * }
+ * 
+ * @see {@link Ok}
+ * @see {@link Err}
+ */
 export type Result<T, E> = Ok<T> | Err<E>;
 
+/**
+ * An interface for {@link Ok} and {@link Err}.
+ */
 export interface IResult<T, E> {
     
     /**
@@ -371,7 +413,7 @@ export interface IResult<T, E> {
 
 
 
-    
+
     // REVIEW: discussion on whether to bring those API into TypeScript.
     // map<T2>(onOk: (data: T) => T2): Result<T2, E>;
     // mapErr<E2>(onErr: (err: E) => E2): Result<T, E2>;
