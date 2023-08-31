@@ -3,6 +3,7 @@ import { Constructor } from "src/base/common/util/type";
 
 /**
  * The type of built-in registrants.
+ * @deprecated
  */
 export const enum RegistrantType {
     Test = 'test',
@@ -14,6 +15,9 @@ export const enum RegistrantType {
     EditorExtension = 'editor-extension',
 }
 
+/**
+ * @deprecated
+ */
 export interface IRegistrantIdentifier<T> {
     (...args: any[]): void;
 	type: T;
@@ -32,6 +36,7 @@ const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
  * {@link REGISTRANTS}.
  * 
  * @note `Registrant` can only be accessed through {@link REGISTRANTS}.
+ * @deprecated
  */
 export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]): IRegistrantIdentifier<T> {
     const registrantIdentifier = _identifiers.get(registrantID);
@@ -58,6 +63,7 @@ export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]
  * This is a universal registrant. It is the only way to get all the other
  * registrants which are registered into this universal registrant through the
  * decorator that are created by {@link createRegistrant}.
+ * @deprecated
  */
 export const REGISTRANTS = new class {
 
