@@ -5,6 +5,14 @@ import { ConfigurationRegistrant } from "src/platform/configuration/common/confi
 import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 
+/**
+ * An enumeration representing the different types of registrants.
+ * 
+ * @remarks
+ * This is used to categorize (during runtime) and differentiate various 
+ * services or functionalities within an application, such as configurations, 
+ * commands, shortcuts, and revivers, and so on.
+ */
 export const enum RegistrantType {
     Configuration = 'Configuration',
     Shortcut = 'Shortcut',
@@ -12,21 +20,58 @@ export const enum RegistrantType {
     Reviver = 'Reviver',
 }
 
+/**
+ * Describes the basic structure of a {@link IRegistrant}.
+ * @template TType - A specific registrant type from the `RegistrantType` enum.
+ * 
+ * @remarks Registrants are key components in the system and they are 
+ * responsible for initializing specific functionalities or services.
+ */
 export interface IRegistrant<TType extends RegistrantType> {
+    
+    /** 
+     * Specifies the type of the registrant. 
+     */
     readonly type: TType;
+    
+    /**
+     * @description Initializes the registrations associated with the registrant.
+     * @remarks Implementations should handle the logic required to set up the 
+     * specific service or functionality.
+     */
     initRegistrations(): void;
 }
 
+/**
+ * A mapping between `RegistrantType` and the actual registrant implementations.
+ * 
+ * @remarks This type is useful for looking up the specific class or type 
+ * associated with a given registrant type.
+ */
 type RegistrantTypeMapping = {
     [RegistrantType.Configuration]: ConfigurationRegistrant;
     [RegistrantType.Command]: CommandRegistrant;
     [RegistrantType.Shortcut]: ShortcutRegistrant;
     [RegistrantType.Reviver]: ReviverRegistrant;
 };
-
+/**
+ * Represents a union of all possible registrant types.
+ * 
+ * @remarks This type is especially useful when dealing with a function or 
+ * method that can accept any kind of registrant without needing to specify its 
+ * exact type.
+ */
 export type Registrants = RegistrantTypeMapping[keyof RegistrantTypeMapping];
 
-export type GetRegistrantByType<T extends RegistrantType> = T extends keyof RegistrantTypeMapping ? RegistrantTypeMapping[T] : never;
+/**
+ * Fetches the specific registrant type based on the provided {@link RegistrantType}.
+ * 
+ * @template T - A specific registrant type from the `RegistrantType` enum.
+ * 
+ * @remarks This type provides a mechanism to dynamically look up the 
+ * corresponding registrant type based on the provided `RegistrantType` value.
+ */
+export type GetRegistrantByType<T extends RegistrantType> = T extends (keyof RegistrantTypeMapping) ? RegistrantTypeMapping[T] : never;
 
 
 
