@@ -1,9 +1,9 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Mutable } from "src/base/common/util/type";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { createRegistrant, RegistrantTypeDeprecated } from "src/platform/registrant/common/registrant";
 
-export const ICommandRegistrant = createRegistrant<ICommandRegistrant>(RegistrantType.Command);
+export const ICommandRegistrant = createRegistrant<ICommandRegistrant>(RegistrantTypeDeprecated.Command);
 
 export interface ICommandExecutor<T = any> {
     (provider: IServiceProvider, ...args: any[]): T;

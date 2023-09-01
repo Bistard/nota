@@ -4,9 +4,9 @@ import { isNumber } from "src/base/common/util/type";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { createRegistrant, REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
+import { createRegistrant, REGISTRANTS, RegistrantTypeDeprecated } from "src/platform/registrant/common/registrant";
 
-export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(RegistrantType.Shortcut);
+export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(RegistrantTypeDeprecated.Shortcut);
 
 /**
  * The less the number is, the higher the priority of the shortcut is.

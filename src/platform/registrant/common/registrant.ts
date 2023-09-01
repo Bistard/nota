@@ -1,11 +1,44 @@
 import { ErrorHandler } from "src/base/common/error";
 import { Constructor } from "src/base/common/util/type";
+import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+
+export const enum RegistrantType {
+    Configuration = 'Configuration',
+    Shortcut = 'Shortcut',
+    Command = 'Command',
+    Extension = 'Extension',
+    Reviver = 'Reviver',
+}
+
+export type Registrants = ConfigurationRegistrant;
+
+export interface IRegistrant<TType extends RegistrantType> {
+    readonly type: TType;
+    initRegistrations(): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * The type of built-in registrants.
  * @deprecated
  */
-export const enum RegistrantType {
+export const enum RegistrantTypeDeprecated {
     Test = 'test',
     Command = 'command',
     Configuration = 'configuration',
@@ -23,7 +56,7 @@ export interface IRegistrantIdentifier<T> {
 	type: T;
 }
 
-const _identifiers = new Map<RegistrantType, IRegistrantIdentifier<any>>();
+const _identifiers = new Map<RegistrantTypeDeprecated, IRegistrantIdentifier<any>>();
 const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
 
 /**
@@ -38,7 +71,7 @@ const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
  * @note `Registrant` can only be accessed through {@link REGISTRANTS}.
  * @deprecated
  */
-export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]): IRegistrantIdentifier<T> {
+export function createRegistrant<T>(registrantID: RegistrantTypeDeprecated, ...args: any[]): IRegistrantIdentifier<T> {
     const registrantIdentifier = _identifiers.get(registrantID);
     
     if (registrantIdentifier) {
