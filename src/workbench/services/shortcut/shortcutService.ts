@@ -1,19 +1,20 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
-import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
+import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { IShortcutItem, IShortcutRegistrant, IShortcutRegistration, IShortcutWithCommandRegistration, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { IShortcutItem, IShortcutRegistrant, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { Emitter, Register } from "src/base/common/event";
 import { IContextService } from "src/platform/context/common/contextService";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyExpr";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -45,7 +46,7 @@ interface IShortcutConfiguration {
 /**
  * An interface only for {@link ShortcutService}.
  */
-export interface IShortcutService extends Disposable, IShortcutRegistrant, IService {
+export interface IShortcutService extends IDisposable, IService {
 
     /**
      * Fires when one of the registered shortcut is pressed.
@@ -69,10 +70,9 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
     // [field]
 
-    private readonly _shortcutRegistrant = REGISTRANTS.get(IShortcutRegistrant);
-
     /** The resource of the shortcut configuration. */
     private readonly _resource: URI;
+    private readonly _shortcutRegistrant: IShortcutRegistrant;
 
     // [constructor]
 
@@ -84,8 +84,11 @@ export class ShortcutService extends Disposable implements IShortcutService {
         @ILogService private readonly logService: ILogService,
         @IContextService private readonly contextService: IContextService,
         @ICommandService private readonly commandService: ICommandService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
+        this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
+
         this._resource = URI.join(environmentService.appConfigurationPath, SHORTCUT_CONFIG_NAME);
 
         // listen to keyboard events
@@ -125,26 +128,6 @@ export class ShortcutService extends Disposable implements IShortcutService {
     }
 
     // [public methods]
-
-    public register(registration: IShortcutRegistration): IDisposable {
-        return this._shortcutRegistrant.register(registration);
-    }
-
-    public isRegistered(shortcut: number | Shortcut, commandID: string): boolean {
-        return this._shortcutRegistrant.isRegistered(shortcut, commandID);
-    }
-
-    public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
-        return this._shortcutRegistrant.registerWithCommand(registration);
-    }
-
-    public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutItem[] {
-        return this._shortcutRegistrant.findShortcut(shortcut);
-    }
-
-    public getAllShortcutRegistrations(): Map<number, IShortcutItem[]> {
-        return this._shortcutRegistrant.getAllShortcutRegistrations();
-    }
 
     public async reloadConfiguration(): Promise<void> {
 

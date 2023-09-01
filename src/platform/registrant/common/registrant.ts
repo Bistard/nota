@@ -2,6 +2,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Constructor } from "src/base/common/util/type";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 
 export const enum RegistrantType {
     Configuration = 'Configuration',
@@ -21,7 +22,7 @@ export interface IRegistrant<TType extends RegistrantType> {
 type RegistrantTypeMapping = {
     [RegistrantType.Configuration]: ConfigurationRegistrant,
     [RegistrantType.Command]: CommandRegistrant,
-    [RegistrantType.Shortcut]: ConfigurationRegistrant, // TODO
+    [RegistrantType.Shortcut]: ShortcutRegistrant,
     [RegistrantType.Reviver]: ConfigurationRegistrant, // TODO
     [RegistrantType.Extension]: ConfigurationRegistrant, // TODO
 };
