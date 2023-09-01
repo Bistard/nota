@@ -182,7 +182,7 @@ export function errorToMessage(error: any, verbose: boolean = false): string {
 		return error.message;
 	}
 
-    return UNKNOWN_MESSAGE;
+    return `${UNKNOWN_MESSAGE}: ${JSON.stringify(error)}`;
 }
 
 function stackToMessage(stack: any): string {
