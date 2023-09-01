@@ -3,7 +3,7 @@ import { ILogService } from "src/base/common/logger";
 import { executeOnce } from "src/base/common/util/function";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { RegistrantType, Registrants } from "src/platform/registrant/common/registrant";
+import { GetRegistrantByType, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export const IRegistrantService = createService<IRegistrantService>('registrant-service');
 
@@ -11,8 +11,8 @@ export const IRegistrantService = createService<IRegistrantService>('registrant-
  * An interface only for {@link RegistrantService}.
  */
 export interface IRegistrantService extends IService {
-    registerRegistrant(registrant: Registrants): void;
-    getRegistrant(type: RegistrantType): Registrants;
+    registerRegistrant<T extends RegistrantType>(registrant: GetRegistrantByType<T>): void;
+    getRegistrant<T extends RegistrantType>(type: T): GetRegistrantByType<T>;
     init(): void;
     isInit(): boolean;
 }
@@ -24,7 +24,7 @@ export class RegistrantService implements IRegistrantService {
     // [fields]
 
     private readonly _initProtector: InitProtector;
-    private readonly _registrants: Map<RegistrantType, Registrants>;
+    private readonly _registrants: Map<RegistrantType, GetRegistrantByType<any>>;
 
     // [constructor]
 
@@ -39,8 +39,8 @@ export class RegistrantService implements IRegistrantService {
 
     public static createRegister(
         type: RegistrantType, 
-        description: string,
-        callback: (registrant: Registrants) => void,
+        description: string, // TODO
+        callback: <T extends RegistrantType>(registrant: GetRegistrantByType<T>) => void,
     ): (provider: IServiceProvider) => void 
     {
         return executeOnce(function (provider: IServiceProvider): void {
@@ -50,7 +50,7 @@ export class RegistrantService implements IRegistrantService {
         });
     }
 
-    public registerRegistrant(registrant: Registrants): void {
+    public registerRegistrant<T extends RegistrantType>(registrant: GetRegistrantByType<T>): void {
         if (this.isInit()) {
             throw new Error(`Cannot register registrant with type '${registrant.type}' after initialization.`);
         }
@@ -63,11 +63,12 @@ export class RegistrantService implements IRegistrantService {
         this._registrants.set(registrant.type, registrant);
     }
 
-    public getRegistrant(type: RegistrantType): Registrants {
+    public getRegistrant<T extends RegistrantType>(type: T): GetRegistrantByType<T> {
         const result = this._registrants.get(type);
         if (!result) {
             throw new Error(`[RegistrantService] Cannot get registrant with type: '${type}'`);
         }
+        
         return result;
     }
 
