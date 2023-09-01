@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { CommandRegistrant, ICommandRegistrant } from 'src/platform/command/common/commandRegistrant';
 import { ConfigurationRegistrant, IConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
+import { IReviverRegistrant, ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { IRegistrant, RegistrantType } from 'src/platform/registrant/common/registrant';
 import { RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { IShortcutRegistrant, ShortcutRegistrant } from 'src/workbench/services/shortcut/shortcutRegistrant';
@@ -55,11 +56,13 @@ suite('registrant-service', () => {
         service.registerRegistrant(new ConfigurationRegistrant());
         service.registerRegistrant(new CommandRegistrant());
         service.registerRegistrant(new ShortcutRegistrant(new CommandRegistrant()));
+        service.registerRegistrant(new ReviverRegistrant());
 
         // type check
         service.getRegistrant(RegistrantType.Configuration) satisfies IConfigurationRegistrant;
         service.getRegistrant(RegistrantType.Command) satisfies ICommandRegistrant;
         service.getRegistrant(RegistrantType.Shortcut) satisfies IShortcutRegistrant;
+        service.getRegistrant(RegistrantType.Reviver) satisfies IReviverRegistrant;
         // TODO
     });
 });
