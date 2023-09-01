@@ -13,7 +13,8 @@ import { IConfigurationRegistrant, IConfigurationSchema } from "src/platform/con
 import { IConfigurationStorage, ConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
 import { IFileService } from "src/platform/files/common/fileService";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 type LoadConfigurationResult = 
   | { readonly ifLoaded: false, readonly raw: IConfigurationStorage }
@@ -43,6 +44,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     protected readonly _userResource: URI;
     protected _configuration: IConfigurationStorage;
 
+    private readonly _registrant: IConfigurationRegistrant;
     private readonly _initProtector: InitProtector;
     private readonly _validator: UserConfigurationValidator;
 
@@ -64,13 +66,15 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         userResource: URI,
         @IFileService protected readonly fileService: IFileService,
         @ILogService protected readonly logService: ILogService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
         this._initProtector = new InitProtector();
+        this._registrant = registrantService.getRegistrant(RegistrantType.Configuration);
         
         this._userResource = userResource;
         this._configuration = this.__register(new ConfigurationStorage());
-        this._validator = this.__register(new UserConfigurationValidator());
+        this._validator = this.__register(new UserConfigurationValidator(this._registrant));
     }
 
     // [public methods]
@@ -154,7 +158,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 
     private async __createNewConfiguration(): Promise<IConfigurationStorage> {
-        const defaultConfiguration = DefaultConfiguration.createDefaultConfigurationStorage();
+        const defaultConfiguration = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
         const raw = defaultConfiguration.toJSON();
 
         // keep update to the file
@@ -230,11 +234,13 @@ class UserConfigurationValidator implements IDisposable {
     private readonly _onInvalidConfiguration = new Emitter<IJsonSchemaValidateResult>();
     public readonly onInvalidConfiguration = this._onInvalidConfiguration.registerListener;
 
-    private readonly _Registrant = REGISTRANTS.get(IConfigurationRegistrant);
+    private readonly _Registrant: IConfigurationRegistrant;
 
     // [constructor]
 
-    constructor() { }
+    constructor(registrant: IConfigurationRegistrant) {
+        this._Registrant = registrant;
+    }
 
     // [public methods]
 

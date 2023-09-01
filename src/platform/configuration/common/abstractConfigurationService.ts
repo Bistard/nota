@@ -1,16 +1,17 @@
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { ErrorHandler, InitProtector, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub } from "src/platform/configuration/common/configurationHub";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
 import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
 import { UserConfiguration } from "src/platform/configuration/common/configurationModules/userConfiguration";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
@@ -18,7 +19,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     // [fields]
 
-    protected readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
+    protected readonly _registrant: IConfigurationRegistrant;
 
     protected readonly _initProtector: InitProtector;
 
@@ -38,14 +39,17 @@ export abstract class AbstractConfigurationService extends Disposable implements
         protected readonly options: IConfigurationServiceOptions,
         @IInstantiationService protected readonly instantiationService: IInstantiationService,
         @ILogService protected readonly logService: ILogService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
 
         // initialization
         {
+            this._registrant = this.registrantService.getRegistrant(RegistrantType.Configuration);
+
             this._initProtector = new InitProtector();
 
-            this._defaultConfiguration = new DefaultConfiguration();
+            this._defaultConfiguration = this.instantiationService.createInstance(DefaultConfiguration);
             this._userConfiguration = this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath);
 
             this._configurationHub = this.__reloadConfigurationHub();

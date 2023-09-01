@@ -3,9 +3,7 @@ import { IJsonSchema } from "src/base/common/json";
 import { Arrays } from "src/base/common/util/array";
 import { Dictionary, isObject } from "src/base/common/util/type";
 import { Section } from "src/platform/configuration/common/configuration";
-import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
-
-export const IConfigurationRegistrant = createRegistrant<IConfigurationRegistrant>(RegistrantType.Configuration);
+import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export type IConfigurationSchema = IJsonSchema & {
 
@@ -80,7 +78,7 @@ export interface IConfigurationRegisterErrorEvent {
 /**
  * An interface only for {@link ConfigurationRegistrant}.
  */
-export interface IConfigurationRegistrant {
+export interface IConfigurationRegistrant extends IRegistrant<RegistrantType.Configuration> {
 
     /**
      * This event fires whenever a set of configurations has changed.
@@ -143,8 +141,9 @@ export interface IConfigurationRegistrant {
  * 
  * The actual values of configurations are managed by {@link ConfigurationService}.
  */
-@IConfigurationRegistrant
-class ConfigurationRegistrant implements IConfigurationRegistrant {
+export class ConfigurationRegistrant implements IConfigurationRegistrant {
+
+    public readonly type = RegistrantType.Configuration;
 
     // [event]
 
@@ -174,6 +173,10 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
     }
 
     // [public methods]
+
+    public initRegistrations(): void {
+        // Common registrations goes here
+    }
 
     public registerConfigurations(configurations: IConfigurationUnit | IConfigurationUnit[]): void {
         const registered = new Set<string>();
