@@ -1,7 +1,7 @@
 import { Constructor, isObject } from "src/base/common/util/type";
-import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { createRegistrant, RegistrantTypeDeprecated } from "src/platform/registrant/common/registrant";
 
-export const IReviverRegistrant = createRegistrant<IReviverRegistrant>(RegistrantType.Reviver);
+export const IReviverRegistrant = createRegistrant<IReviverRegistrant>(RegistrantTypeDeprecated.Reviver);
 
 export type PrototypeMatcher = (obj: object) => boolean;
 

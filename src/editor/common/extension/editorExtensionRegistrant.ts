@@ -1,7 +1,7 @@
-import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { createRegistrant, RegistrantTypeDeprecated } from "src/platform/registrant/common/registrant";
 import { IEditorExtensionCtor } from "src/editor/common/extension/editorExtension";
 
-export const IEditorExtensionRegistrant = createRegistrant<IEditorExtensionRegistrant>(RegistrantType.EditorExtension);
+export const IEditorExtensionRegistrant = createRegistrant<IEditorExtensionRegistrant>(RegistrantTypeDeprecated.EditorExtension);
 
 /**
  * An interface only for {@link EditorExtensionRegistrant}.
