@@ -118,7 +118,7 @@ export function createRegister<T extends RegistrantType>(
 
 /**
  * The type of built-in registrants.
- * @deprecated
+ * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
  */
 export const enum RegistrantTypeDeprecated {
     Test = 'test',
@@ -131,7 +131,7 @@ export const enum RegistrantTypeDeprecated {
 }
 
 /**
- * @deprecated
+ * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
  */
 export interface IRegistrantIdentifier<T> {
     (...args: any[]): void;
@@ -151,7 +151,7 @@ const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
  * {@link REGISTRANTS}.
  * 
  * @note `Registrant` can only be accessed through {@link REGISTRANTS}.
- * @deprecated
+ * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
  */
 export function createRegistrant<T>(registrantID: RegistrantTypeDeprecated, ...args: any[]): IRegistrantIdentifier<T> {
     const registrantIdentifier = _identifiers.get(registrantID);
@@ -178,7 +178,7 @@ export function createRegistrant<T>(registrantID: RegistrantTypeDeprecated, ...a
  * This is a universal registrant. It is the only way to get all the other
  * registrants which are registered into this universal registrant through the
  * decorator that are created by {@link createRegistrant}.
- * @deprecated
+ * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
  */
 export const REGISTRANTS = new class {
 
