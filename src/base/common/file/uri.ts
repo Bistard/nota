@@ -6,7 +6,6 @@
 import { CharCode } from "src/base/common/util/char";
 import * as paths from "src/base/common/file/path";
 import { IS_WINDOWS } from "src/base/common/platform";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 
 /**
