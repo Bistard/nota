@@ -325,7 +325,7 @@ export class URI implements IURI {
 	/**
 	 * @description Revive a serialized URI.
 	 */
-	public static revive(obj: any): URI {
+	public static revive(obj: any, registrant: IReviverRegistrant): URI {
 		if (!obj) {
 			return obj;
 		}
@@ -334,23 +334,10 @@ export class URI implements IURI {
 			return obj;
 		}
 
-		const uri = reviverRegistrant.revive<URI>(obj);
+		const uri = registrant.revive<URI>(obj);
 		return uri;
 	}
 }
-
-const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(URI, (obj: unknown) => {
-	if (Object.prototype.hasOwnProperty.call(obj, 'scheme') &&
-		Object.prototype.hasOwnProperty.call(obj, 'authority') &&
-		Object.prototype.hasOwnProperty.call(obj, 'path') &&
-		Object.prototype.hasOwnProperty.call(obj, 'query') &&
-		Object.prototype.hasOwnProperty.call(obj, 'fragment')
-	) {
-		return true;
-	}
-	return false;
-});
 
 /*******************************************************************************
  * decoding URI

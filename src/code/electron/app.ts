@@ -27,6 +27,7 @@ import { URI } from "src/base/common/file/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/util/string";
 import { IpcServer } from "src/platform/ipc/electron/ipcServer";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -54,6 +55,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IMainStatusService private readonly statusService: IMainStatusService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
         this.registerListeners();
@@ -136,7 +138,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
 
         // file-service-channel
-        const diskFileChannel = new MainFileChannel(this.logService, this.fileService);
+        const diskFileChannel = new MainFileChannel(this.logService, this.fileService, this.registrantService);
         server.registerChannel(IpcChannel.DiskFile, diskFileChannel);
 
         // logger-service-channel

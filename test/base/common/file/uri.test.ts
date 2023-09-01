@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
+import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 
 
 suite('URI-test', () => {
@@ -470,8 +471,11 @@ suite('URI-test', () => {
 	});
 
     test('revive', () => {
-        const obj = { scheme: 'http', authority: 'host', path: '/parts', query: 'query', fragment: 'fragment' };
-        const uri = URI.revive(obj);
+        const reviver = new ReviverRegistrant();
+		reviver.initRegistrations();
+		
+		const obj = { scheme: 'http', authority: 'host', path: '/parts', query: 'query', fragment: 'fragment' };
+        const uri = URI.revive(obj, reviver);
         assert.ok(uri instanceof URI);
         assert.strictEqual(uri.scheme, obj.scheme);
         assert.strictEqual(uri.authority, obj.authority);
@@ -490,7 +494,7 @@ suite('URI-test', () => {
 
 		for (const value of values) {
 			const data = JSON.stringify(value);
-			const clone = URI.revive(JSON.parse(data));
+			const clone = URI.revive(JSON.parse(data), reviver);
 
 			assert.strictEqual(clone.scheme, value.scheme);
 			assert.strictEqual(clone.authority, value.authority);
