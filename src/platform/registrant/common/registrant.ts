@@ -1,5 +1,6 @@
 import { ErrorHandler } from "src/base/common/error";
 import { Constructor } from "src/base/common/util/type";
+import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 
 export const enum RegistrantType {
@@ -10,12 +11,22 @@ export const enum RegistrantType {
     Reviver = 'Reviver',
 }
 
-export type Registrants = ConfigurationRegistrant;
+export type Registrants = ConfigurationRegistrant | CommandRegistrant;
 
 export interface IRegistrant<TType extends RegistrantType> {
     readonly type: TType;
     initRegistrations(): void;
 }
+
+type RegistrantTypeMapping = {
+    [RegistrantType.Configuration]: ConfigurationRegistrant,
+    [RegistrantType.Command]: CommandRegistrant,
+    [RegistrantType.Shortcut]: ConfigurationRegistrant, // TODO
+    [RegistrantType.Reviver]: ConfigurationRegistrant, // TODO
+    [RegistrantType.Extension]: ConfigurationRegistrant, // TODO
+};
+
+export type GetRegistrantByType<T extends RegistrantType> = T extends keyof RegistrantTypeMapping ? RegistrantTypeMapping[T] : never;
 
 
 
