@@ -1,7 +1,7 @@
 import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
-import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { LanguageType } from "src/platform/i18n/common/i18n";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { RegistrantService } from "src/platform/registrant/common/registrantService";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export const enum WorkbenchConfiguration {
     DisplayLanguage = 'workbench.language',
@@ -9,30 +9,34 @@ export const enum WorkbenchConfiguration {
     KeyboardScreenCast = 'workbench.keyboardScreenCast',
 }
 
-const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
-
-Registrant.registerConfigurations({
-    id: 'workbench',
-    properties: {
-        ['workbench']: {
-            type: 'object',
-            required: [],
+export const rendererWorkbenchConfigurationRegister = RegistrantService.createRegister(
+    RegistrantType.Configuration, 
+    'rendererWorkbenchConfiguration',
+    (registrant) => {
+        registrant.registerConfigurations({
+            id: 'workbench',
             properties: {
-                ['language']: {
-                    type: 'string',
-                    enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
-                    default: LanguageType.en,
+                ['workbench']: {
+                    type: 'object',
+                    required: [],
+                    properties: {
+                        ['language']: {
+                            type: 'string',
+                            enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
+                            default: LanguageType.en,
+                        },
+                        ['colorTheme']: {
+                            type: 'string',
+                            enum: [ColorThemeType.Light, ColorThemeType.Dark],
+                            default: ColorThemeType.Light,
+                        },
+                        ['keyboardScreenCast']: {
+                            type: 'boolean',
+                            default: true,
+                        }
+                    }
                 },
-                ['colorTheme']: {
-                    type: 'string',
-                    enum: [ColorThemeType.Light, ColorThemeType.Dark],
-                    default: ColorThemeType.Light,
-                },
-                ['keyboardScreenCast']: {
-                    type: 'boolean',
-                    default: true,
-                }
-            }
-        },
+            },
+        });
     },
-});
+);

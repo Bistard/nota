@@ -5,7 +5,7 @@ import { Workbench } from "src/workbench/workbench";
 import { workbenchShortcutRegistrations } from "src/workbench/services/workbench/shortcut.register";
 import { workbenchCommandRegistrations } from "src/workbench/services/workbench/command.register";
 import { rendererServiceRegistrations } from "src/code/browser/service.register";
-import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
@@ -31,10 +31,13 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
+import { WorkbenchConfiguration, rendererWorkbenchConfigurationRegister } from "src/code/browser/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/file/uri";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
+import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { rendererSideViewConfigurationRegister } from "src/workbench/parts/sideView/configuration.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -94,15 +97,17 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private createCoreServices(): IInstantiationService {
 
         // instantiation-service (Dependency Injection)
-        const serviceCollection = new ServiceCollection();
-        const instantiationService = new InstantiationService(serviceCollection);
-
-        // instantiation-service (itself)
+        const instantiationService = new InstantiationService(new ServiceCollection());
         instantiationService.register(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
+
+        // registrant-service
+        const registrantService = instantiationService.createInstance(RegistrantService);
+        instantiationService.register(IRegistrantService, registrantService);
+        this.registrantRegistrations(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
@@ -192,6 +197,33 @@ const renderer = new class extends class RendererInstance extends Disposable {
         ]);
     }
 
+    private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
+        
+        // configuration
+        service.registerRegistrant(new class extends ConfigurationRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                [
+                    rendererWorkbenchConfigurationRegister,
+                    rendererSideViewConfigurationRegister,
+                ]
+                .forEach((register) => {
+                    register(provider);
+                });
+            }
+        }());
+
+        // TODO
+
+
+        // initialize all the registrations
+        service.init();
+    }
+
+    /**
+     * @deprecated
+     * // TODO: remove
+     */
     private initRegistrations(): void {
         rendererServiceRegistrations();
         workbenchShortcutRegistrations();

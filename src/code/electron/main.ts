@@ -9,7 +9,7 @@ import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/co
 import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IInstantiationService, IServiceProvider, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
 import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
@@ -26,6 +26,8 @@ import { EventBlocker } from 'src/base/common/util/async';
 import { APP_CONFIG_NAME, IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/platform/product/common/productService';
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
+import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
+import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -128,6 +130,11 @@ const main = new class extends class MainProcess implements IMainProcess {
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
 
+        // registrant-service
+        const registrantService = instantiationService.createInstance(RegistrantService);
+        instantiationService.register(IRegistrantService, registrantService);
+        this.registrantRegistrations(instantiationService, registrantService);
+
         // environment-service
         const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService);
         instantiationService.register(IEnvironmentService, environmentService);
@@ -209,6 +216,27 @@ const main = new class extends class MainProcess implements IMainProcess {
             this.statusService.init(),
             this.configurationService.init(),
         ]);
+    }
+
+    private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
+        
+        // configuration
+        service.registerRegistrant(new class extends ConfigurationRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                // [
+                    
+                // ]
+                // .forEach((register) => {
+                //     register(provider);
+                // });
+            }
+        }());
+
+        // TODO: others
+
+        // initialize registrations
+        service.init();
     }
 
     private async resolveSingleApplication(): Promise<void> {
