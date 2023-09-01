@@ -1,7 +1,6 @@
 import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
 import { LanguageType } from "src/platform/i18n/common/i18n";
-import { RegistrantService } from "src/platform/registrant/common/registrantService";
-import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 
 export const enum WorkbenchConfiguration {
     DisplayLanguage = 'workbench.language',
@@ -9,7 +8,7 @@ export const enum WorkbenchConfiguration {
     KeyboardScreenCast = 'workbench.keyboardScreenCast',
 }
 
-export const rendererWorkbenchConfigurationRegister = RegistrantService.createRegister(
+export const rendererWorkbenchConfigurationRegister = createRegister(
     RegistrantType.Configuration, 
     'rendererWorkbenchConfiguration',
     (registrant) => {

@@ -1,6 +1,5 @@
 import { TreeMode } from "src/workbench/services/explorerTree/treeService";
-import { RegistrantType } from "src/platform/registrant/common/registrant";
-import { RegistrantService } from "src/platform/registrant/common/registrantService";
+import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 
 export const enum SideViewConfiguration {
     DefaultSideView = 'sideView.defaultView',
@@ -10,7 +9,7 @@ export const enum SideViewConfiguration {
     ExplorerViewExclude = 'sideView.explorer.exclude',
 }
 
-export const rendererSideViewConfigurationRegister = RegistrantService.createRegister(
+export const rendererSideViewConfigurationRegister = createRegister(
     RegistrantType.Configuration, 
     'rendererSideView',
     (registrant) => {

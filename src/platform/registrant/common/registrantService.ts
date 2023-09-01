@@ -1,8 +1,6 @@
 import { InitProtector, errorToMessage } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
-import { executeOnce } from "src/base/common/util/function";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
-import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { GetRegistrantByType, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export const IRegistrantService = createService<IRegistrantService>('registrant-service');
@@ -70,29 +68,6 @@ export class RegistrantService implements IRegistrantService {
     }
 
     // [public methods]
-
-    /**
-     * @description Creates a registration function for a specific registrant type.
-     * 
-     * @template T - The type of the registrant.
-     * @param type - The type of the registrant to register.
-     * @param description - A descriptive text for the registrant.
-     * @param callback - Function to execute once the registrant is retrieved.
-     * 
-     * @returns A function that takes a service provider and handles the registration process.
-     */
-    public static createRegister<T extends RegistrantType>(
-        type: T, 
-        description: string, // TODO
-        callback: (registrant: GetRegistrantByType<T>) => void,
-    ): (provider: IServiceProvider) => void 
-    {
-        return executeOnce(function (provider: IServiceProvider): void {
-            const service = provider.getOrCreateService(IRegistrantService);
-            const registrant = service.getRegistrant(type);
-            callback(registrant);
-        });
-    }
 
     public registerRegistrant<T extends RegistrantType>(registrant: GetRegistrantByType<T>): void {
         if (this.isInit()) {
