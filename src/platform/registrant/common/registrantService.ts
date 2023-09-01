@@ -37,10 +37,10 @@ export class RegistrantService implements IRegistrantService {
 
     // [public methods]
 
-    public static createRegister(
-        type: RegistrantType, 
+    public static createRegister<T extends RegistrantType>(
+        type: T, 
         description: string, // TODO
-        callback: <T extends RegistrantType>(registrant: GetRegistrantByType<T>) => void,
+        callback: (registrant: GetRegistrantByType<T>) => void,
     ): (provider: IServiceProvider) => void 
     {
         return executeOnce(function (provider: IServiceProvider): void {
