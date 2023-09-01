@@ -1,8 +1,7 @@
 import * as assert from 'assert';
 import { afterEach } from 'mocha';
 import { Event } from 'src/base/common/event';
-import { IConfigurationRegistrant, IConfigurationUnit } from 'src/platform/configuration/common/configurationRegistrant';
-import { REGISTRANTS } from 'src/platform/registrant/common/registrant';
+import { ConfigurationRegistrant, IConfigurationUnit } from 'src/platform/configuration/common/configurationRegistrant';
 
 const enum TestConfiguration {
     One = 'configuration.test.one',
@@ -12,7 +11,7 @@ const enum TestConfiguration {
 
 suite('configurationRegistrant-test', () => {
 
-    const registrant: IConfigurationRegistrant = REGISTRANTS.get(IConfigurationRegistrant);
+    const registrant = new ConfigurationRegistrant();
 
     const unit1: IConfigurationUnit = {
         id: 'configuration.test',
