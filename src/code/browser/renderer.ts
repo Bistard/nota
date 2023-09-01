@@ -40,6 +40,7 @@ import { rendererWorkbenchCommandRegister } from "src/workbench/services/workben
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -144,7 +145,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         logService.setLogger(logger);
 
         // file-service
-        const fileService = new BrowserFileChannel(ipcService);
+        const fileService = instantiationService.createInstance(BrowserFileChannel);
         instantiationService.register(IFileService, fileService);
 
         // product-service
@@ -234,6 +235,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 .forEach((register) => register(provider));
             }
         }(service.getRegistrant(RegistrantType.Command)));
+
+        // reviver
+        service.registerRegistrant(new ReviverRegistrant());
 
         // TODO
 

@@ -3,7 +3,6 @@ import { CharCode } from "src/base/common/util/char";
 import { Dictionary } from "src/base/common/util/type";
 import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 
 /**
  * A namespace that provide functionalities to proxy microservices into different
@@ -14,16 +13,13 @@ import { REGISTRANTS } from "src/platform/registrant/common/registrant";
  */
 export namespace ProxyChannel {
 
-    const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-
     export function wrapService(service: unknown, opts?: IWrapServiceOpt): IServerChannel {
         const object = <Dictionary<string, unknown>>service;
         const eventRegisters = new Map<string, Register<unknown>>();
-        const enableRevivier = opts?.enableRevivier ?? true;
-
+        
         for (const propName in object) {
             if (__guessIfEventRegister(propName)) {
-                eventRegisters.set(propName, object[propName]! as Register<unknown>);
+                eventRegisters.set(propName, object[propName] as Register<unknown>);
             }
         }
 
@@ -34,9 +30,9 @@ export namespace ProxyChannel {
                     throw new Error(`Command not found: ${command}`);
                 }
 
-                if (enableRevivier && Array.isArray(args)) {
+                if (opts?.revivers?.enableRevivier && Array.isArray(args)) {
                     for (let i = 0; i < args.length; i++) {
-                        args[i] = reviverRegistrant.revive(args[i]);
+                        args[i] = opts.revivers.reviverRegistrant.revive(args[i]);
                     }
                 }
 
@@ -54,8 +50,6 @@ export namespace ProxyChannel {
     }
 
     export function unwrapChannel<T extends object>(channel: IChannel, opt?: IUnwrapChannelOpt): T {
-        const enableRevivier = opt?.enableRevivier ?? true;
-
         return <T>(new Proxy(
             {}, {
             get: (_target: T, propName: string | symbol): unknown => {
@@ -81,8 +75,8 @@ export namespace ProxyChannel {
 
                     let result: any = await channel.callCommand(propName, methodsArgs);
 
-                    if (enableRevivier) {
-                        result = reviverRegistrant.revive(result);
+                    if (opt?.revivers?.enableRevivier) {
+                        result = opt.revivers.reviverRegistrant.revive(result);
                     }
 
                     return result;
@@ -92,7 +86,8 @@ export namespace ProxyChannel {
     }
 
     const __guessIfEventRegister = function (proName: string): boolean {
-        return (proName[0] === 'o'
+        return (
+            proName[0] === 'o'
             && proName[1] === 'n'
             && CharCode.A <= proName.charCodeAt(2)
             && proName.charCodeAt(2) <= CharCode.Z
@@ -100,14 +95,7 @@ export namespace ProxyChannel {
     };
 
     export interface IWrapServiceOpt {
-        /**
-         * @see `revive.ts`.
-         * @default true
-         * @note If you ensure the data structure passed between IPC will not be
-         * accessed about their prototype then you may disable this manually so
-         * that it may increases the performance to some extent.
-         */
-        readonly enableRevivier?: boolean;
+        readonly revivers?: IEnableReviverOptions | IDisableReviverOptions;
     }
 
     export interface IUnwrapChannelOpt {
@@ -124,13 +112,28 @@ export namespace ProxyChannel {
          */
         readonly propValues?: Map<string, unknown>;
 
+        readonly revivers?: IEnableReviverOptions | IDisableReviverOptions;
+    }
+
+    interface IReviverOptions {
         /**
          * @see `revive.ts`.
-         * @default true
+         * @default false
          * @note If you ensure the data structure passed between IPC will not be
          * accessed about their prototype then you may disable this manually so
          * that it may increases the performance to some extent.
          */
-        readonly enableRevivier?: boolean;
+        readonly enableRevivier: boolean;
+        readonly reviverRegistrant?: IReviverRegistrant;
+    }
+
+    interface IEnableReviverOptions extends IReviverOptions {
+        readonly enableRevivier: true;
+        readonly reviverRegistrant: IReviverRegistrant;
+    }
+    
+    interface IDisableReviverOptions extends IReviverOptions {
+        readonly enableRevivier: false;
+        readonly reviverRegistrant?: undefined;
     }
 }

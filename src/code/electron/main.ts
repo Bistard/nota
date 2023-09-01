@@ -27,6 +27,7 @@ import { IProductService, ProductService } from 'src/platform/product/common/pro
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
+import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -231,6 +232,9 @@ const main = new class extends class MainProcess implements IMainProcess {
                 // });
             }
         }());
+
+        // reviver
+        service.registerRegistrant(new ReviverRegistrant());
 
         // TODO: others
 
