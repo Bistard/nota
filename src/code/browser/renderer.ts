@@ -1,8 +1,6 @@
 import "src/styles/index.scss";
 import "src/workbench/parts/workspace/editor/editor";
 import { Workbench } from "src/workbench/workbench";
-import { workbenchShortcutRegistrations } from "src/workbench/services/workbench/shortcut.register";
-import { workbenchCommandRegistrations } from "src/workbench/services/workbench/command.register";
 import { rendererServiceRegistrations } from "src/code/browser/service.register";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
@@ -37,6 +35,11 @@ import { URI } from "src/base/common/file/uri";
 import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { rendererSideViewConfigurationRegister } from "src/workbench/parts/sideView/configuration.register";
+import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
+import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
+import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -198,7 +201,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
     private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
         
-        // configuration
+        // configuration registrations
         service.registerRegistrant(new class extends ConfigurationRegistrant {
             public override initRegistrations(): void {
                 super.initRegistrations();
@@ -206,11 +209,31 @@ const renderer = new class extends class RendererInstance extends Disposable {
                     rendererWorkbenchConfigurationRegister,
                     rendererSideViewConfigurationRegister,
                 ]
-                .forEach((register) => {
-                    register(provider);
-                });
+                .forEach((register) => register(provider));
             }
         }());
+
+        // command registrations
+        service.registerRegistrant(new class extends CommandRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                [
+                    rendererWorkbenchCommandRegister,
+                ]
+                .forEach((register) => register(provider));
+            }
+        }());
+
+        // shortcut registrations
+        service.registerRegistrant(new class extends ShortcutRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                [
+                    rendererWorkbenchShortcutRegister,
+                ]
+                .forEach((register) => register(provider));
+            }
+        }(service.getRegistrant(RegistrantType.Command)));
 
         // TODO
 
@@ -225,8 +248,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
      */
     private initRegistrations(): void {
         rendererServiceRegistrations();
-        workbenchShortcutRegistrations();
-        workbenchCommandRegistrations();
     }
 }
 { };
