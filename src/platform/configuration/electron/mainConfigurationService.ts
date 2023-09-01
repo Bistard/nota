@@ -2,6 +2,7 @@ import { IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } fr
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
 import { ILogService } from "src/base/common/logger";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export class MainConfigurationService extends AbstractConfigurationService {
 
@@ -11,8 +12,9 @@ export class MainConfigurationService extends AbstractConfigurationService {
         options: IConfigurationServiceOptions,
         @IInstantiationService instantiationService: IInstantiationService,
         @ILogService logService: ILogService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
-        super(options, instantiationService, logService);
+        super(options, instantiationService, logService, registrantService);
     }
 
     // [public methods]

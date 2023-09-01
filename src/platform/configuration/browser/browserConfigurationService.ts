@@ -6,6 +6,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IFileService } from "src/platform/files/common/fileService";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -18,8 +19,9 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @IInstantiationService instantiationService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @ILogService logService: ILogService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
-        super(options, instantiationService, logService);
+        super(options, instantiationService, logService, registrantService);
     }
 
     // [public methods]
