@@ -13,7 +13,7 @@ import { IConfigurationRegistrant, IConfigurationSchema } from "src/platform/con
 import { IConfigurationStorage, ConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
 import { IFileService } from "src/platform/files/common/fileService";
-import { REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 type LoadConfigurationResult = 

@@ -10,10 +10,7 @@ export const enum RegistrantType {
     Shortcut = 'Shortcut',
     Command = 'Command',
     Reviver = 'Reviver',
-    Extension = 'Extension',
 }
-
-export type Registrants = ConfigurationRegistrant | CommandRegistrant;
 
 export interface IRegistrant<TType extends RegistrantType> {
     readonly type: TType;
@@ -21,12 +18,13 @@ export interface IRegistrant<TType extends RegistrantType> {
 }
 
 type RegistrantTypeMapping = {
-    [RegistrantType.Configuration]: ConfigurationRegistrant,
-    [RegistrantType.Command]: CommandRegistrant,
-    [RegistrantType.Shortcut]: ShortcutRegistrant,
-    [RegistrantType.Reviver]: ReviverRegistrant,
-    [RegistrantType.Extension]: ConfigurationRegistrant, // TODO
+    [RegistrantType.Configuration]: ConfigurationRegistrant;
+    [RegistrantType.Command]: CommandRegistrant;
+    [RegistrantType.Shortcut]: ShortcutRegistrant;
+    [RegistrantType.Reviver]: ReviverRegistrant;
 };
+
+export type Registrants = RegistrantTypeMapping[keyof RegistrantTypeMapping];
 
 export type GetRegistrantByType<T extends RegistrantType> = T extends keyof RegistrantTypeMapping ? RegistrantTypeMapping[T] : never;
 

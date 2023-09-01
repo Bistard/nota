@@ -63,6 +63,5 @@ suite('registrant-service', () => {
         service.getRegistrant(RegistrantType.Command) satisfies ICommandRegistrant;
         service.getRegistrant(RegistrantType.Shortcut) satisfies IShortcutRegistrant;
         service.getRegistrant(RegistrantType.Reviver) satisfies IReviverRegistrant;
-        // TODO
     });
 });

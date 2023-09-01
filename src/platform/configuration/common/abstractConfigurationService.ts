@@ -1,11 +1,11 @@
 import { Disposable } from "src/base/common/dispose";
-import { ErrorHandler, InitProtector, tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub } from "src/platform/configuration/common/configurationHub";
-import { REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
