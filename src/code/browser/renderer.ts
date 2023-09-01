@@ -1,5 +1,4 @@
 import "src/styles/index.scss";
-import "src/code/common/common.register";
 import "src/workbench/parts/workspace/editor/editor";
 import { Workbench } from "src/workbench/workbench";
 import { workbenchShortcutRegistrations } from "src/workbench/services/workbench/shortcut.register";
