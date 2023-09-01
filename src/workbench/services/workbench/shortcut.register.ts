@@ -6,7 +6,7 @@ import { RegistrantType, createRegister } from "src/platform/registrant/common/r
 
 export const rendererWorkbenchShortcutRegister = createRegister(
     RegistrantType.Shortcut,
-    'rendererWorkbenchShortcutRegister',
+    'rendererWorkbench',
     (registrant) => {
         registrant.register({
             commandID: WorkbenchCommands.toggleDevTool,

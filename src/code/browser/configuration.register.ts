@@ -10,7 +10,7 @@ export const enum WorkbenchConfiguration {
 
 export const rendererWorkbenchConfigurationRegister = createRegister(
     RegistrantType.Configuration, 
-    'rendererWorkbenchConfiguration',
+    'rendererWorkbench',
     (registrant) => {
         registrant.registerConfigurations({
             id: 'workbench',
