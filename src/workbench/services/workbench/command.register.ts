@@ -1,7 +1,6 @@
 import { IHostService } from "src/platform/host/common/hostService";
 import { ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { RegistrantType } from "src/platform/registrant/common/registrant";
-import { RegistrantService } from "src/platform/registrant/common/registrantService";
+import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 
 export const enum WorkbenchCommands {
     toggleDevTool = 'toggle-develop-tool',
@@ -9,7 +8,7 @@ export const enum WorkbenchCommands {
     closeApplication = 'close-application',
 }
 
-export const rendererWorkbenchCommandRegister = RegistrantService.createRegister(
+export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
     'rendererWorkbenchCommandRegister',
     (registrant) => {
