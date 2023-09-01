@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { setup } from 'mocha';
+import { before } from 'mocha';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { LogLevel, parseToLogLevel } from 'src/base/common/logger';
 import { delayFor } from 'src/base/common/util/async';
@@ -63,7 +63,7 @@ suite('LoggerService', () => {
         let loggerService: FileLoggerService;
         let assertLastLineLogMessage: (actualLogLevel: LogLevel, message: string) => Promise<void>;
 
-        setup(async () => {
+        before(async () => {
             instantiationService = new InstantiationService();
 
             fileService = new FileService(new NullLogger());
@@ -108,7 +108,7 @@ suite('LoggerService', () => {
 
         let server: IpcServer;
 
-        setup(async () => {
+        before(async () => {
             instantiationService = new InstantiationService();
 
             fileService = new FileService(new NullLogger());
