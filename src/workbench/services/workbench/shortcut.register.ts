@@ -2,10 +2,9 @@ import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { WorkbenchCommands } from "src/workbench/services/workbench/command.register";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
-import { RegistrantType } from "src/platform/registrant/common/registrant";
-import { RegistrantService } from "src/platform/registrant/common/registrantService";
+import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 
-export const rendererWorkbenchShortcutRegister = RegistrantService.createRegister(
+export const rendererWorkbenchShortcutRegister = createRegister(
     RegistrantType.Shortcut,
     'rendererWorkbenchShortcutRegister',
     (registrant) => {
