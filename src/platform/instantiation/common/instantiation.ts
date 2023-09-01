@@ -134,7 +134,7 @@ export class InstantiationService implements IInstantiationService {
         }
 
         if (service === undefined || service instanceof ServiceDescriptor) {
-            throw new Error(`cannot get service with identifier '${serviceIdentifier.name}'`);
+            throw new Error(`cannot get service with identifier '${serviceIdentifier.toString()}'`);
         }
         return service;
     }
@@ -142,7 +142,7 @@ export class InstantiationService implements IInstantiationService {
     public getOrCreateService<T extends IService>(serviceIdentifier: ServiceIdentifier<T>): T {
         const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
         if (!service) {
-            throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
+            throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
         }
         return service;
     }
@@ -152,14 +152,14 @@ export class InstantiationService implements IInstantiationService {
             getService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.serviceCollections.get(serviceIdentifier);
                 if (!service || service instanceof ServiceDescriptor) {
-                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
+                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
                 }
                 return service;
             },
             getOrCreateService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
                 if (!service) {
-                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
+                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
                 }
                 return service;
             }
