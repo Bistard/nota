@@ -1,4 +1,3 @@
-import 'src/code/common/common.register';
 import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir } from 'fs/promises';

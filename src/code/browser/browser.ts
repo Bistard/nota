@@ -40,6 +40,7 @@ export class BrowserInstance implements IBrowser {
             // FIX: will be erased after save, weird.
             this.configurationService.set('hello', 'world', { type: ConfigurationModuleType.User })
             .then(() => {
+                // REVIEW
                 console.log((<any>this.configurationService)._configurationHub.inspect().toJSON());
                 console.log((<any>this.configurationService)._userConfiguration.getConfiguration().toJSON());
             });
