@@ -1,4 +1,5 @@
 import { ErrorHandler } from "src/base/common/error";
+import { ILogService } from "src/base/common/logger";
 import { executeOnce } from "src/base/common/util/function";
 import { Constructor } from "src/base/common/util/type";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
@@ -89,12 +90,15 @@ export type GetRegistrantByType<T extends RegistrantType> = T extends (keyof Reg
  */
 export function createRegister<T extends RegistrantType>(
     type: T, 
-    description: string, // TODO
+    description: string,
     register: (registrant: GetRegistrantByType<T>) => void,
 ): (provider: IServiceProvider) => void 
 {
     return executeOnce(
         (provider: IServiceProvider) => {
+            const logService = provider.getOrCreateService(ILogService);
+            logService.trace(`[createRegister] [${type}] registering '${description}'`);
+
             const service = provider.getOrCreateService(IRegistrantService);
             const registrant = service.getRegistrant(type);
             register(registrant);

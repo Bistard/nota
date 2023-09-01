@@ -10,7 +10,7 @@ export const enum WorkbenchCommands {
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
-    'rendererWorkbenchCommandRegister',
+    'rendererWorkbench',
     (registrant) => {
         registrant.registerCommand(
             {
