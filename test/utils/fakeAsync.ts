@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { PriorityQueue } from "src/base/common/structures/priorityQueue";
-import { isString } from "src/base/common/util/type";
+import { isString } from "src/base/common/utilities/type";
 
 const trueGlobalAsync = {
 	setTimeout: globalThis.setTimeout.bind(globalThis),

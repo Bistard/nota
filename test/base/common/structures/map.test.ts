@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { ResourceMap } from 'src/base/common/structures/map';
-import { URI } from 'src/base/common/file/uri';
+import { URI } from 'src/base/common/files/uri';
 
 suite('ResourceMap', () => {
 

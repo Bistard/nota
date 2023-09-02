@@ -30,7 +30,7 @@ import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configurati
 import { WorkbenchConfiguration, rendererWorkbenchConfigurationRegister } from "src/code/browser/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { rendererSideViewConfigurationRegister } from "src/workbench/parts/sideView/configuration.register";

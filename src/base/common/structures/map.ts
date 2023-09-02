@@ -1,5 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 
 /**
  * @class {@link ResourceMap} is a utility class that provides Map-like 

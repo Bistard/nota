@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "src/base/common/util/char";
-import * as paths from "src/base/common/file/path";
+import { CharCode } from "src/base/common/utilities/char";
+import * as paths from "src/base/common/files/path";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 

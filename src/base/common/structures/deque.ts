@@ -1,5 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { IIterable } from "src/base/common/util/iterable";
+import { IIterable } from "src/base/common/utilities/iterable";
 
 /**
  * Interface for {@link IDeque}.

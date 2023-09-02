@@ -1,4 +1,4 @@
-import { Strings } from "src/base/common/util/string";
+import { Strings } from "src/base/common/utilities/string";
 
 export interface IFilterOpts {
     readonly include: readonly RegExp[];

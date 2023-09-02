@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
-import { IIterable } from "src/base/common/util/iterable";
-import { CompareFn } from "src/base/common/util/type";
+import { IIterable } from "src/base/common/utilities/iterable";
+import { CompareFn } from "src/base/common/utilities/type";
 
 export interface IPriorityQueue<T> extends IIterable<T>, IDisposable {
 	

@@ -1,11 +1,11 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IReadableStream, listenStream } from "src/base/common/file/stream";
-import { Schemas, URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { IReadableStream, listenStream } from "src/base/common/files/stream";
+import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
-import { CancellationToken } from "src/base/common/util/cacellation";
+import { CancellationToken } from "src/base/common/utilities/cacellation";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IServerChannel } from "src/platform/ipc/common/channel";

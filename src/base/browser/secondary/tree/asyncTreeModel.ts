@@ -2,7 +2,7 @@ import { IAsyncNode, IChildrenProvider, IIdentiityProivder } from "src/base/brow
 import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/structures/range";
-import { Blocker } from "src/base/common/util/async";
+import { Blocker } from "src/base/common/utilities/async";
 
 /**
  * An interface only for {@link AsyncTreeModel}.

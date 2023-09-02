@@ -1,11 +1,11 @@
 import * as fs from "fs";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { join } from "src/base/common/file/path";
-import { IReadableStreamEvent, newWriteableStream, readFileIntoStream } from "src/base/common/file/stream";
-import { URI } from "src/base/common/file/uri";
-import { retry } from "src/base/common/util/async";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { join } from "src/base/common/files/path";
+import { IReadableStreamEvent, newWriteableStream, readFileIntoStream } from "src/base/common/files/stream";
+import { URI } from "src/base/common/files/uri";
+import { retry } from "src/base/common/utilities/async";
 import { FileService } from "src/platform/files/common/fileService";
 import { fileExists, FileMode } from "src/base/node/io";
 import { Watcher } from "src/platform/files/node/watcher";

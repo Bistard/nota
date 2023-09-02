@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { URI } from 'src/base/common/file/uri';
+import { URI } from 'src/base/common/files/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 

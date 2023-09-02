@@ -1,4 +1,4 @@
-import { Callable } from "src/base/common/util/type";
+import { Callable } from "src/base/common/utilities/type";
 
 /**
  * @description Wraps the input function to ensure it can only be executed once. 

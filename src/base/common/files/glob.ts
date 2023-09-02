@@ -1,5 +1,5 @@
-import { sep } from "src/base/common/file/path";
-import { Character } from "src/base/common/util/char";
+import { sep } from "src/base/common/files/path";
+import { Character } from "src/base/common/utilities/char";
 
 /**
  * @description If the candidate is the parent of the given path.

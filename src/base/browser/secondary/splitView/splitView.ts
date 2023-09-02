@@ -4,8 +4,8 @@ import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/brow
 import { Disposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
-import { IDimension } from "src/base/common/util/size";
-import { Pair } from "src/base/common/util/type";
+import { IDimension } from "src/base/common/utilities/size";
+import { Pair } from "src/base/common/utilities/type";
 
 /**
  * An interface only for {@link SplitView}.

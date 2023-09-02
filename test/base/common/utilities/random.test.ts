@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Random } from 'src/base/common/util/random';
+import { Random } from 'src/base/common/utilities/random';
 
 
 suite('random-test', () => {

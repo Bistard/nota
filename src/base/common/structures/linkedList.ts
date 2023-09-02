@@ -1,4 +1,4 @@
-import { IIterable } from "src/base/common/util/iterable";
+import { IIterable } from "src/base/common/utilities/iterable";
 
 export interface ILinkedList<T> extends IIterable<T> {
 

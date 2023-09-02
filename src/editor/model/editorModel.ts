@@ -1,9 +1,9 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { URI } from "src/base/common/files/uri";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
-import { Blocker } from "src/base/common/util/async";
+import { Blocker } from "src/base/common/utilities/async";
 import { IFileService } from "src/platform/files/common/fileService";
 import { EditorToken, IEditorModel, IEditorModelOptions, IPieceTableModel } from "src/editor/common/model";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";

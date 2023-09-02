@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { DEFAULT_LOG_LEVEL, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
 import { ResourceMap } from "src/base/common/structures/map";
 import { IService, createService } from "src/platform/instantiation/common/decorator";

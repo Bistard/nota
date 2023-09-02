@@ -1,6 +1,6 @@
 import { Register } from "src/base/common/event";
-import { CharCode } from "src/base/common/util/char";
-import { Dictionary } from "src/base/common/util/type";
+import { CharCode } from "src/base/common/utilities/char";
+import { Dictionary } from "src/base/common/utilities/type";
 import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import type { ServerBase } from "src/platform/ipc/common/net";

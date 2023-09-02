@@ -1,7 +1,7 @@
 import * as assert from 'assert';
-import { Arrays } from 'src/base/common/util/array';
+import { Arrays } from 'src/base/common/utilities/array';
 import { Deque } from "src/base/common/structures/deque";
-import { isNumber } from 'src/base/common/util/type';
+import { isNumber } from 'src/base/common/utilities/type';
 
 suite('array-test', () => {
 

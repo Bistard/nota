@@ -1,4 +1,4 @@
-import { CharCode } from "src/base/common/util/char";
+import { CharCode } from "src/base/common/utilities/char";
 import { ITextBuffer } from "src/editor/common/model";
 
 export class TextBuffer implements ITextBuffer {

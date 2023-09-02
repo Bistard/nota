@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { after, before, beforeEach } from "mocha";
 import { Event } from 'src/base/common/event';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
 import { ConfigurationRegistrant, IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
@@ -13,7 +13,7 @@ import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFi
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger } from "test/utils/testService";
 import { BrowserConfigurationService } from 'src/platform/configuration/browser/browserConfigurationService';
-import { delayFor } from 'src/base/common/util/async';
+import { delayFor } from 'src/base/common/utilities/async';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 

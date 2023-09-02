@@ -1,6 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { URI } from "src/base/common/files/uri";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { IFileService } from "src/platform/files/common/fileService";

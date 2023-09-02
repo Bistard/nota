@@ -1,5 +1,5 @@
 import { BaseElement, IBaseElement } from "src/base/browser/basic/dom";
-import { Mutable } from "src/base/common/util/type";
+import { Mutable } from "src/base/common/utilities/type";
 
 export interface IWidget extends IBaseElement {
     

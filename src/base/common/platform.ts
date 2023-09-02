@@ -1,5 +1,5 @@
 import { INodeProcess } from "src/base/common/process";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 import { GLOBAL } from "src/platform/electron/browser/global";
 
 interface INavigator {

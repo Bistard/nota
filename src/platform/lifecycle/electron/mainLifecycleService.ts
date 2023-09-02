@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { Blocker, delayFor } from "src/base/common/util/async";
+import { Blocker, delayFor } from "src/base/common/utilities/async";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";

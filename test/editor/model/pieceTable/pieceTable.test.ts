@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { Random } from 'src/base/common/util/random';
-import { Pair } from 'src/base/common/util/type';
+import { Random } from 'src/base/common/utilities/random';
+import { Pair } from 'src/base/common/utilities/type';
 import { EndOfLineType, IPieceNode, IPieceTable, RBColor } from 'src/editor/common/model';
 import { EditorPosition } from 'src/editor/common/position';
 import { PieceTableInternal } from 'src/editor/model/pieceTable/pieceTable';

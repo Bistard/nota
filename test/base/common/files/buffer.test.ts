@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { streamToBuffer } from 'src/base/common/file/stream';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { streamToBuffer } from 'src/base/common/files/stream';
 
 suite('buffer-test', () => {
 

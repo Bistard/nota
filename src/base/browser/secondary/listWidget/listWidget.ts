@@ -13,7 +13,7 @@ import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "sr
 import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { isNumber, nullToUndefined } from "src/base/common/util/type";
+import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
 
 /**
  * The index changed in {@link ListTrait}.

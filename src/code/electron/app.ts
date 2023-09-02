@@ -23,9 +23,9 @@ import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { DEFAULT_HTML } from "src/platform/window/common/window";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
-import { UUID } from "src/base/common/util/string";
+import { UUID } from "src/base/common/utilities/string";
 import { IpcServer } from "src/platform/ipc/electron/ipcServer";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 

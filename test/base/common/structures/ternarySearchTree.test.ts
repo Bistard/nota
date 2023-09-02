@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { URI } from 'src/base/common/file/uri';
+import { URI } from 'src/base/common/files/uri';
 import { CreateTernarySearchTree, ITernarySearchTree, StringIterator, TernarySearchTree, TernarySearchTreeNode, UriIterator } from 'src/base/common/structures/ternarySearchTree';
 
 suite('ternarySearchTree-test', () => {

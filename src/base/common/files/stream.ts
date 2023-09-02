@@ -1,8 +1,8 @@
 import { ErrorHandler } from "src/base/common/error";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { ICreateReadStreamOptions, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IReadFileOptions } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
-import { Callable } from "src/base/common/util/type";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { ICreateReadStreamOptions, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IReadFileOptions } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
+import { Callable } from "src/base/common/utilities/type";
 
 export interface IReadable<T> {
 	read(): T | undefined;

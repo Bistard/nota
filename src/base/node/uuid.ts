@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { UUID } from 'src/base/common/util/string';
+import { UUID } from 'src/base/common/utilities/string';
 
 /*******************************************************************************
  * A universally unique identifier ({@link UUID}) is a 128-bit label used for 

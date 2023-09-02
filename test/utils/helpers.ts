@@ -1,7 +1,7 @@
 import type * as assert from 'assert';
-import { repeat } from "src/base/common/util/async";
-import { Random } from "src/base/common/util/random";
-import { NestedArray } from "src/base/common/util/type";
+import { repeat } from "src/base/common/utilities/async";
+import { Random } from "src/base/common/utilities/random";
+import { NestedArray } from "src/base/common/utilities/type";
 
 let _hitCount = 0;
 

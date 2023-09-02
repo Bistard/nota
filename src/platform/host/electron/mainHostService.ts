@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, NodeEventEmitter } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { memoize } from "src/base/common/memoization";
 import { IOpenDialogOptions } from "src/platform/dialog/common/dialog";
 import { IMainDialogService } from "src/platform/dialog/electron/mainDialogService";

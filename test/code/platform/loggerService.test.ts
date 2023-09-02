@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { before } from 'mocha';
-import { Schemas, URI } from 'src/base/common/file/uri';
+import { Schemas, URI } from 'src/base/common/files/uri';
 import { LogLevel, parseToLogLevel } from 'src/base/common/logger';
-import { delayFor } from 'src/base/common/util/async';
+import { delayFor } from 'src/base/common/utilities/async';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';

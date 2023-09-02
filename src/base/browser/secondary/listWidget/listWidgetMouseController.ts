@@ -2,7 +2,7 @@ import { DomEventHandler, DomUtility } from "src/base/browser/basic/dom";
 import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts } from "src/base/browser/secondary/listWidget/listWidget";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IS_MAC } from "src/base/common/platform";
-import { Arrays } from "src/base/common/util/array";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * @internal

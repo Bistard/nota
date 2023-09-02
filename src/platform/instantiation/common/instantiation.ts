@@ -1,4 +1,4 @@
-import { AbstractConstructor, Constructor } from "src/base/common/util/type";
+import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";

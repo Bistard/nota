@@ -1,7 +1,7 @@
 import { IpcMainEvent, WebContents } from "electron";
 import { DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event, NodeEventEmitter, Register, SignalEmitter } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
+import { DataBuffer } from "src/base/common/files/buffer";
 import { ILogService } from "src/base/common/logger";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";

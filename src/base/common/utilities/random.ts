@@ -1,4 +1,4 @@
-import { Character } from "src/base/common/util/char";
+import { Character } from "src/base/common/utilities/char";
 
 /**
  * @namespace Random Provides a series of helper functions that relates to 

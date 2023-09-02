@@ -1,7 +1,7 @@
 import { memoize } from "src/base/common/memoization";
-import { CharCode } from "src/base/common/util/char";
-import { Numbers } from "src/base/common/util/number";
-import { DightInString } from "src/base/common/util/type";
+import { CharCode } from "src/base/common/utilities/char";
+import { Numbers } from "src/base/common/utilities/number";
+import { DightInString } from "src/base/common/utilities/type";
 
 /**
  * ANSI escape color codes for foreground color.

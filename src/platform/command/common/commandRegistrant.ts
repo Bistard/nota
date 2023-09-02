@@ -1,5 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Mutable } from "src/base/common/util/type";
+import { Mutable } from "src/base/common/utilities/type";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 

@@ -1,9 +1,9 @@
-import { compareSubstring, compareSubstringIgnoreCase } from "src/base/common/file/glob";
-import { URI } from "src/base/common/file/uri";
-import { CharCode } from "src/base/common/util/char";
-import { IIterable } from "src/base/common/util/iterable";
-import { Random } from "src/base/common/util/random";
-import { isNonNullable } from "src/base/common/util/type";
+import { compareSubstring, compareSubstringIgnoreCase } from "src/base/common/files/glob";
+import { URI } from "src/base/common/files/uri";
+import { CharCode } from "src/base/common/utilities/char";
+import { IIterable } from "src/base/common/utilities/iterable";
+import { Random } from "src/base/common/utilities/random";
+import { isNonNullable } from "src/base/common/utilities/type";
 
 const enum Dir {
     Left = -1,

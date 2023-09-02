@@ -1,8 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
-import { mixin } from "src/base/common/util/object";
-import { Dictionary } from "src/base/common/util/type";
+import { mixin } from "src/base/common/utilities/object";
+import { Dictionary } from "src/base/common/utilities/type";
 import { IDefaultConfigurationModule, ConfigurationModuleType } from "src/platform/configuration/common/configuration";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent, IRawSetConfigurationChangeEvent, IConfigurationSchema } from "src/platform/configuration/common/configurationRegistrant";
 import { IConfigurationStorage, ConfigurationStorage } from "src/platform/configuration/common/configurationStorage";

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { join } from 'src/base/common/file/path';
-import { URI } from 'src/base/common/file/uri';
+import { join } from 'src/base/common/files/path';
+import { URI } from 'src/base/common/files/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
 import { IRawResourceChangeEvents, ResourceChangeType } from 'src/platform/files/common/watcher';
 import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';

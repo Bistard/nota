@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { deepCopy } from "src/base/common/util/object";
-import { DeepReadonly, Dictionary, isObject } from "src/base/common/util/type";
+import { deepCopy } from "src/base/common/utilities/object";
+import { DeepReadonly, Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
 
 export interface IConfigurationStorageChangeEvent {

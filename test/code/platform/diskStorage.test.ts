@@ -1,12 +1,12 @@
 import * as assert from 'assert';
 import { after, afterEach, before } from 'mocha';
-import { join } from 'src/base/common/file/path';
-import { Schemas, URI } from 'src/base/common/file/uri';
+import { join } from 'src/base/common/files/path';
+import { Schemas, URI } from 'src/base/common/files/uri';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { DiskStorage } from 'src/platform/files/common/diskStorage';
 import { NullLogger } from 'test/utils/testService';
 import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
-import { DataBuffer } from 'src/base/common/file/buffer';
+import { DataBuffer } from 'src/base/common/files/buffer';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('storage-test', () => {

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { bufferToStream, consumeStream, listenStream, newWriteableBufferStream, newWriteableStream, streamToBuffer, toStream } from 'src/base/common/file/stream';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { bufferToStream, consumeStream, listenStream, newWriteableBufferStream, newWriteableStream, streamToBuffer, toStream } from 'src/base/common/files/stream';
 
 suite('stream-test', () => {
 

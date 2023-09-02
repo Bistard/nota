@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Numbers } from 'src/base/common/util/number';
+import { Numbers } from 'src/base/common/utilities/number';
 
 suite('number-test', () => {
 

@@ -4,8 +4,8 @@ import { ILogService } from "src/base/common/logger";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileService } from "src/platform/files/common/fileService";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {

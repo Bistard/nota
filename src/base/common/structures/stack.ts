@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Deque } from "src/base/common/structures/deque";
-import { IIterable } from "src/base/common/util/iterable";
+import { IIterable } from "src/base/common/utilities/iterable";
 
 /**
  * Interface for {@link Stack}.

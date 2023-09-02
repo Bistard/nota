@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { tmpdir } from "os";
 import { Emitter, Register } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { join } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { join } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";

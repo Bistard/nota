@@ -1,11 +1,11 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { DeepReadonly } from "src/base/common/util/type";
+import { DeepReadonly } from "src/base/common/utilities/type";
 import { IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 
 export const APP_DIR_NAME = '.wisp';
 export const APP_CONFIG_NAME = 'app.config.json';

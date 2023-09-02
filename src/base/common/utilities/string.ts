@@ -1,5 +1,5 @@
-import { Iterable } from "src/base/common/util/iterable";
-import { isObject } from "src/base/common/util/type";
+import { Iterable } from "src/base/common/utilities/iterable";
+import { isObject } from "src/base/common/utilities/type";
 
 /**
  * @namespace Strings A collection of functions that relates to string types.

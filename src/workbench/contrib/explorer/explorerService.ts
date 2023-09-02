@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { ISideView } from "src/workbench/parts/sideView/sideView";
 
 export const ExplorerViewID = 'explorer-view';

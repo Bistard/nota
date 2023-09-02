@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import { after, before } from 'mocha';
 import { Emitter, Event, Register } from 'src/base/common/event';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { URI } from 'src/base/common/file/uri';
-import { delayFor } from 'src/base/common/util/async';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { URI } from 'src/base/common/files/uri';
+import { delayFor } from 'src/base/common/utilities/async';
 import { IService } from 'src/platform/instantiation/common/decorator';
 import { IChannel, IServerChannel } from 'src/platform/ipc/common/channel';
 import { ClientBase, ServerBase } from 'src/platform/ipc/common/net';

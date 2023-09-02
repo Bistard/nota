@@ -1,6 +1,6 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
-import { isNumber } from "src/base/common/util/type";
+import { isNumber } from "src/base/common/utilities/type";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";

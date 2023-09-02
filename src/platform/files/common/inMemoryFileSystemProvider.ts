@@ -1,9 +1,9 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IOverwriteFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IFileSystemProviderWithFileReadWrite } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
-import { Scheduler } from "src/base/common/util/async";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IOverwriteFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { IFileSystemProviderWithFileReadWrite } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
+import { Scheduler } from "src/base/common/utilities/async";
 import { ResourceMap } from "src/base/common/structures/map";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/platform/files/common/watcher";
 import { createRawResourceChangeEvents } from "src/platform/files/node/watcher";

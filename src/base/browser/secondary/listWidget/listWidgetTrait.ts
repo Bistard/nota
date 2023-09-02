@@ -2,9 +2,9 @@ import { IListViewRenderer, RendererType } from "src/base/browser/secondary/list
 import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { Arrays } from "src/base/common/util/array";
-import { hash } from "src/base/common/util/hash";
-import { Numbers } from "src/base/common/util/number";
+import { Arrays } from "src/base/common/utilities/array";
+import { hash } from "src/base/common/utilities/hash";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * @internal

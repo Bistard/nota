@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import * as chokidar from 'chokidar';
 import { Emitter } from 'src/base/common/event';
-import { URI } from 'src/base/common/file/uri';
+import { URI } from 'src/base/common/files/uri';
 import { ILogService } from 'src/base/common/logger';
-import { ThrottleDebouncer } from 'src/base/common/util/async';
-import { ifOrDefault, Mutable } from 'src/base/common/util/type';
+import { ThrottleDebouncer } from 'src/base/common/utilities/async';
+import { ifOrDefault, Mutable } from 'src/base/common/utilities/type';
 import { IS_LINUX } from 'src/base/common/platform';
-import { isParentOf } from 'src/base/common/file/glob';
+import { isParentOf } from 'src/base/common/files/glob';
 import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInstance, IWatchRequest, ResourceChangeType } from 'src/platform/files/common/watcher';
 import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';

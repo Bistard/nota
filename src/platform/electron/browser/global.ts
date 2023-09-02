@@ -1,6 +1,6 @@
 import { IpcRenderer } from "electron";
-import { executeOnce } from "src/base/common/util/function";
-import { Mutable } from "src/base/common/util/type";
+import { executeOnce } from "src/base/common/utilities/function";
+import { Mutable } from "src/base/common/utilities/type";
 import { ISandboxProcess } from "src/platform/electron/common/electronType";
 import { IWindowConfiguration } from "src/platform/window/common/window";
 

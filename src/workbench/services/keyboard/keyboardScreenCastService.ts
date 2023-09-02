@@ -6,7 +6,7 @@ import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
-import { Scheduler } from 'src/base/common/util/async';
+import { Scheduler } from 'src/base/common/utilities/async';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 

@@ -1,13 +1,13 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { InitProtector, errorToMessage, tryOrDefault } from "src/base/common/error";
 import { Emitter, Event } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderError, FileOperationErrorType } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileSystemProviderError, FileOperationErrorType } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
-import { UnbufferedScheduler } from "src/base/common/util/async";
-import { Dictionary } from "src/base/common/util/type";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
+import { Dictionary } from "src/base/common/utilities/type";
 import { IUserConfigurationModule, ConfigurationModuleType } from "src/platform/configuration/common/configuration";
 import { IConfigurationRegistrant, IConfigurationSchema } from "src/platform/configuration/common/configurationRegistrant";
 import { IConfigurationStorage, ConfigurationStorage } from "src/platform/configuration/common/configurationStorage";

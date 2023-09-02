@@ -1,11 +1,11 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { errorToMessage } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
-import { URI } from "src/base/common/file/uri";
-import { Mutable } from "src/base/common/util/type";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { IReadableStream, newWriteableBufferStream } from "src/base/common/files/stream";
+import { URI } from "src/base/common/files/uri";
+import { Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { delayFor } from 'src/base/common/util/async';
+import { delayFor } from 'src/base/common/utilities/async';
 import { FakeAsync, IFakeAsyncOptions } from 'test/utils/fakeAsync';
 import { FakeConsole } from 'test/utils/fakeConsole';
 

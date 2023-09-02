@@ -1,6 +1,6 @@
 import { tryOrDefault } from "src/base/common/error";
-import { Arrays } from "src/base/common/util/array";
-import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString } from "src/base/common/util/type";
+import { Arrays } from "src/base/common/utilities/array";
+import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString } from "src/base/common/utilities/type";
 
 /**
  * {@link IJsonSchema} is a type used to represent a schema of JSON data. It 

@@ -1,7 +1,7 @@
 import { ErrorHandler } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
-import { executeOnce } from "src/base/common/util/function";
-import { Constructor } from "src/base/common/util/type";
+import { executeOnce } from "src/base/common/utilities/function";
+import { Constructor } from "src/base/common/utilities/type";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";

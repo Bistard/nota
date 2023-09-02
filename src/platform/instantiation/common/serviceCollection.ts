@@ -1,6 +1,6 @@
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IService, ServiceIdentifier } from "src/platform/instantiation/common/decorator";
-import { Constructor } from "src/base/common/util/type";
+import { Constructor } from "src/base/common/utilities/type";
 import { InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
 
 export class ServiceCollection {

@@ -1,7 +1,7 @@
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { RelayEmitter } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
-import { IScheduler, Scheduler } from "src/base/common/util/async";
+import { URI } from "src/base/common/files/uri";
+import { IScheduler, Scheduler } from "src/base/common/utilities/async";
 import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
 import { IClassicOpenEvent } from "src/workbench/services/classicTree/classicTree";
 import { ClassicTreeService, IClassicTreeService } from "src/workbench/services/classicTree/classicTreeService";

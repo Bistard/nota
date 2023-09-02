@@ -1,4 +1,4 @@
-import { IMeasureable } from "src/base/common/util/size";
+import { IMeasureable } from "src/base/common/utilities/size";
 
 export interface ISpliceable<T> {
 	splice(index: number, deleteCount: number, itemsToInsert?: T[]): T[] | void;

@@ -1,4 +1,4 @@
-import { DeepReadonly, isNullable, isObject, isPrimitive } from "src/base/common/util/type";
+import { DeepReadonly, isNullable, isObject, isPrimitive } from "src/base/common/utilities/type";
 
 /**
  * Copies all properties of source into destination. The optional parameter 

@@ -1,14 +1,14 @@
 import * as assert from 'assert';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { ByteSize, FileType } from 'src/base/common/file/file';
-import { URI } from 'src/base/common/file/uri';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { ByteSize, FileType } from 'src/base/common/files/file';
+import { URI } from 'src/base/common/files/uri';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService } from 'src/platform/files/common/fileService';
 import { NullLogger, TestURI } from 'test/utils/testService';
-import { Random } from 'src/base/common/util/random';
-import { Arrays } from 'src/base/common/util/array';
+import { Random } from 'src/base/common/utilities/random';
+import { Arrays } from 'src/base/common/utilities/array';
 import { after, before } from 'mocha';
-import { Blocker } from 'src/base/common/util/async';
+import { Blocker } from 'src/base/common/utilities/async';
 
 suite('FileService-disk-test', () => {
 

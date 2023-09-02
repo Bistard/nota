@@ -1,5 +1,5 @@
-import { URI } from "src/base/common/file/uri";
-import { Constructor, isObject } from "src/base/common/util/type";
+import { URI } from "src/base/common/files/uri";
+import { Constructor, isObject } from "src/base/common/utilities/type";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export type PrototypeMatcher = (obj: object) => boolean;

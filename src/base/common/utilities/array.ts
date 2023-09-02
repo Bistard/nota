@@ -1,4 +1,4 @@
-import { NonUndefined } from "src/base/common/util/type";
+import { NonUndefined } from "src/base/common/utilities/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.

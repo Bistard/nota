@@ -1,6 +1,6 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Arrays } from "src/base/common/util/array";
-import { Strings } from "src/base/common/util/string";
+import { Arrays } from "src/base/common/utilities/array";
+import { Strings } from "src/base/common/utilities/string";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;

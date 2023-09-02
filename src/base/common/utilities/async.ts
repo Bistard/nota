@@ -2,8 +2,8 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { CancellationError } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { noop } from "src/base/common/performance";
-import { CancellationToken, ICancellable } from "src/base/common/util/cacellation";
-import { isNullable, isNumber } from "src/base/common/util/type";
+import { CancellationToken, ICancellable } from "src/base/common/utilities/cacellation";
+import { isNullable, isNumber } from "src/base/common/utilities/type";
 
 /**
  * {@link CancellablePromise}

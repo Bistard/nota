@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { deepCopy, deepFreeze, mixin, strictEquals } from 'src/base/common/util/object';
+import { deepCopy, deepFreeze, mixin, strictEquals } from 'src/base/common/utilities/object';
 import { nullObject, shouldThrow } from 'test/utils/helpers';
 
 suite('object-test', () => {

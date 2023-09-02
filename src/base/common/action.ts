@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { Arrays } from "src/base/common/util/array";
-import { Callable, isNullable, isNumber, isString, Mutable } from "src/base/common/util/type";
+import { Arrays } from "src/base/common/utilities/array";
+import { Callable, isNullable, isNumber, isString, Mutable } from "src/base/common/utilities/type";
 
 export interface IAction extends IDisposable {
     /** 

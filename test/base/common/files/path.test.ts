@@ -28,7 +28,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import * as assert from 'assert';
-import * as path from 'src/base/common/file/path';
+import * as path from 'src/base/common/files/path';
 import { IS_WINDOWS } from 'src/base/common/platform';
 
 suite('path-test (Node Implementation)', () => {
