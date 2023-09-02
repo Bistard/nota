@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { LinkedList } from 'src/base/common/util/linkedList';
+import { LinkedList } from 'src/base/common/structures/linkedList';
 
 suite('list-test', () => {
 

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { IRange, IRangeList, Range, RangeTable } from 'src/base/common/range';
+import { IRange, IRangeList, Range, RangeTable } from 'src/base/common/structures/range';
 
 function createRange(start: number, end: number): IRange {
 	return { start, end } as IRange;

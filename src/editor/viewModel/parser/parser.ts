@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
-import { Stack } from "src/base/common/util/array";
+import { Stack } from "src/base/common/structures/stack";
 import { isNullable } from "src/base/common/util/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";

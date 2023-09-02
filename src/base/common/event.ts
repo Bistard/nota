@@ -1,4 +1,4 @@
-import { LinkedList } from "src/base/common/util/linkedList";
+import { LinkedList } from "src/base/common/structures/linkedList";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/util/async";

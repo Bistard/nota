@@ -4,7 +4,7 @@ import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProvide
 import { IFileSystemProviderWithFileReadWrite } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { Scheduler } from "src/base/common/util/async";
-import { ResourceMap } from "src/base/common/util/map";
+import { ResourceMap } from "src/base/common/structures/map";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/platform/files/common/watcher";
 import { createRawResourceChangeEvents } from "src/platform/files/node/watcher";
 

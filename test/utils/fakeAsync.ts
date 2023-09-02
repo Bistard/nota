@@ -1,6 +1,6 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
-import { PriorityQueue } from "src/base/common/util/array";
+import { PriorityQueue } from "src/base/common/structures/priorityQueue";
 import { isString } from "src/base/common/util/type";
 
 const trueGlobalAsync = {
@@ -344,7 +344,7 @@ class FakeAsyncExecutor implements IDisposable {
 
     // [fields]
 
-    private readonly _pqueue: PriorityQueue<ITaskWithID>;
+private readonly _pqueue: PriorityQueue<ITaskWithID>;
     private _uuid: number;
     private _executing: boolean;
 

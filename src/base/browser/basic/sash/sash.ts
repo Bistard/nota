@@ -3,7 +3,7 @@ import { AbstractSashController, HorizontalSashController, IAbstractSashControll
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
-import { IRange } from "src/base/common/range";
+import { IRange } from "src/base/common/structures/range";
 import { Mutable } from "src/base/common/util/type";
 import { cancellableTimeout } from "src/base/common/util/async";
 import { VisibilityController } from "src/base/browser/basic/visibilityController";

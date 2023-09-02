@@ -1,7 +1,7 @@
 import { IAsyncNode, IChildrenProvider, IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
-import { ISpliceable } from "src/base/common/range";
+import { ISpliceable } from "src/base/common/structures/range";
 import { Blocker } from "src/base/common/util/async";
 
 /**
