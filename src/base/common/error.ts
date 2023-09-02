@@ -347,7 +347,7 @@ interface IResult<T, E> {
      * instance. Throws an {@link Error} if the {@link Result} is an {@link Err} 
      * instance.
      * 
-     * @throws Will throw an error if the {@link Result} is an {@link Err} instance.
+     * @throws Will panic if the {@link Result} is an {@link Err} instance.
      * 
      * @example
      * ```
@@ -384,6 +384,33 @@ interface IResult<T, E> {
     unwrapOr(data: T): T;
 
     /**
+     * @description Ensures that the {@link IResult} instance is an {@link Ok} 
+     * type and returns its value. If the {@link IResult} is an {@link Err} 
+     * instance, it will {@link panic} with the provided error message.
+     * 
+     * This method is useful for cases where the user expects the result to be
+     * successful and wants to provide a custom error message for potential 
+     * failures.
+     * 
+     * @param errMessage The error message to use when throwing an exception.
+     * @throws Will {@link panic} with the provided `errMessage` if the 
+     *         {@link IResult} is an {@link Err} instance.
+     * 
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Ok(42);
+     * console.log(result.expect("Failed to get the expected value.")); // 42
+     * ```
+     * 
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Some error");
+     * console.log(result.expect("Failed to get the expected value.")); // throws an error with the message "Failed to get the expected value."
+     * ```
+     */
+    expect(errMessage: string): T | never;
+
+    /**
      * @description Matches the current {@link Result} and applies the provided 
      * functions based on whether it is an {@link Ok} or an {@link Err} instance. 
      * Returns a value of type `U` resulting from the applied function.
@@ -409,7 +436,6 @@ interface IResult<T, E> {
 
 
 
-
     // REVIEW: discussion on whether to bring those API into TypeScript.
     // map<T2>(onOk: (data: T) => T2): Result<T2, E>;
     // mapErr<E2>(onErr: (err: E) => E2): Result<T, E2>;
@@ -421,3 +447,17 @@ interface IResult<T, E> {
 // TODO: class Ok
 
 // TODO: class Err
+
+/**
+ * @description Panics the program by throwing an error with the provided message.
+ * 
+ * @remark `panic` is for situations where the error is unrecoverable and the 
+ * program cannot proceed further.
+ * 
+ * @param {string} message - The error message to be thrown.
+ * @throws {Error} Will throw an error with the provided message.
+ * @returns {never} This function never returns normally; always throws an error.
+ */
+export function panic(message: string): never {
+    throw new Error(message);
+}
