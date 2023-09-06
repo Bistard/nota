@@ -43,11 +43,11 @@ const trueGlobalAsync = {
  */
 export namespace FakeAsync {
 
-    export async function run(fn: () => Promise<any>, options?: IFakeAsyncOptions): Promise<void> {
+    export async function run<TArgs extends any[]>(fn: (...args: TArgs) => Promise<any>, options?: IFakeAsyncOptions<TArgs>): Promise<void> {
     
         const enable = options?.enable ?? true;
         if (!enable) {
-            return fn();
+            return fn(...(options?.arguments ?? <any>[]));
         }
     
         /**
@@ -75,7 +75,7 @@ export namespace FakeAsync {
             /**
              * There might be timed-microtasks fired during the execution.
              */
-            await fn();
+            await fn(...(options?.arguments ?? <any>[]));
         } 
         catch (err) {
             onAnyError(err);
@@ -115,12 +115,18 @@ export namespace FakeAsync {
     }
 }
 
-export interface IFakeAsyncOptions {
+export interface IFakeAsyncOptions<TArgs extends any[] = []> {
+    
     /**
      * If enable fake async. 
      * @default true
      */
     readonly enable?: boolean;
+
+    /**
+     * The argument passes into the callback.
+     */
+    readonly arguments?: TArgs;
 
     /**
      * If enable error handling:

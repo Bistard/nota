@@ -111,4 +111,16 @@ suite('FakeAsync-test', () => {
 
         assert.strictEqual(cn, 10);
     });
+
+    test('pass arguments through FakeAsync', async () => {
+
+        let ans = 0;
+        const fn = async (arg: number) => {
+            ans = arg;
+        };
+
+        await FakeAsync.run(fn, { arguments: [42] });
+
+        assert.strictEqual(ans, 42);
+    });
 });
