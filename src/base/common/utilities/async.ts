@@ -327,29 +327,38 @@ export class EventBlocker<T> {
 }
 
 /**
- * @class A `PromiseTimeout` creates a new promise and resolves a boolean to 
- * determine whether the given promise is resolved before the given timeout.
+ * @class Represents a promise that may timeout after a certain duration.
+ * @template T The type of the return value of the promise.
  * 
  * @note An alternative choice is `Promise.race`.
- * @note The new promise will reject if the given promise is rejected before the
- * timeout.
+ * 
+ * @example
+ * const longRunningPromise = new Promise((resolve) => {
+ *     setTimeout(() => resolve('Hello World'), 3000);
+ * });
+ * 
+ * const timeoutPromise = new PromiseTimeout(longRunningPromise, 2000);
+ * 
+ * timeoutPromise.waiting()
+ *   .then(console.log)
+ *   .catch(err => console.error('Promise timed out'));
  */
-export class PromiseTimeout {
+export class PromiseTimeout<T> {
 	
-	private _blocker = new Blocker<boolean>();
+	private _blocker = new Blocker<T>();
 	private _timeout = false;
 
-	constructor(promise: Promise<any>, timeout: number) {
+	constructor(promise: Promise<T>, timeout: number) {
 		const token = setTimeout(() => {
 			this._timeout = true;
-			this._blocker.resolve(false);
+			this._blocker.reject(new Error('Promise is timeout'));
 		}, timeout);
 		
 		promise
-		.then(() => {
+		.then((result) => {
 			if (!this._timeout) {
 				clearTimeout(token);
-				this._blocker.resolve(true);
+				this._blocker.resolve(result);
 			}
 		})
 		.catch(err => {
@@ -360,7 +369,7 @@ export class PromiseTimeout {
 		});
 	}
 
-	public waiting(): Promise<boolean> {
+	public waiting(): Promise<T> {
 		return this._blocker.waiting();
 	}
 }

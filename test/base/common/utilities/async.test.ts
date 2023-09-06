@@ -196,17 +196,79 @@ suite('async-test', () => {
 		}));
 	});
 
-	test('PromiseTimeout', () => FakeAsync.run(async () => {
-		let promise = Promise.resolve();
-		let timeout = new PromiseTimeout(promise, 0);
-		let result = await timeout.waiting();
-		assert.strictEqual(result, true);
+	suite('PromiseTimeout', () => {
+		
+		test('basics', () => FakeAsync.run(async () => {
+			let promise = Promise.resolve(42);
+			let timeout = new PromiseTimeout<number>(promise, 0);
+			assert.strictEqual(await timeout.waiting(), 42);
+	
+			promise = new Blocker<number>().waiting();
+			timeout = new PromiseTimeout(promise, 10);
+			await assert.rejects(() => timeout.waiting(), (err) => err instanceof Error);
+		}));
 
-		promise = new Blocker<void>().waiting();
-		timeout = new PromiseTimeout(promise, 0);
-		result = await timeout.waiting();
-		assert.strictEqual(result, false);
-	}));
+		// FIX: doesn't work with `FakeAsync`
+		test('should resolve if inner promise resolves before timeout', async () => {
+			const p = new Promise<number>((resolve) => {
+				setTimeout(() => {
+					resolve(42);
+				}, 100);
+			});
+	
+			const timeoutPromise = new PromiseTimeout(p, 200);
+			const result = await timeoutPromise.waiting();
+			assert.strictEqual(result, 42);
+		});
+	
+		test('should reject with timeout error if inner promise takes too long', () => FakeAsync.run(async () => {
+			const p = new Promise<number>((resolve) => {
+				setTimeout(() => {
+					resolve(42);
+				}, 300);
+			});
+	
+			const timeoutPromise = new PromiseTimeout(p, 100);
+			
+			try {
+				await timeoutPromise.waiting();
+				assert.fail("Should have rejected due to timeout");
+			} catch (err: any) {
+				assert.strictEqual(err.message, 'Promise is timeout');
+			}
+		}));
+	
+		test('should reject with inner promise error if it rejects before timeout', () => FakeAsync.run(async () => {
+			const error = new Error('Inner promise error');
+			const p = new Promise<number>((_, reject) => {
+				setTimeout(() => {
+					reject(error);
+				}, 50);
+			});
+	
+			const timeoutPromise = new PromiseTimeout(p, 200);
+			await assert.rejects(() => timeoutPromise.waiting());
+		}));
+	
+		test('should not reject or resolve if inner promise does not settle within the timeout', async () => {
+			const p = new Promise<number>(() => {});
+	
+			const timeoutPromise = new PromiseTimeout(p, 100);
+	
+			let settled: boolean | undefined = undefined;
+			timeoutPromise.waiting()
+			.then(() => {
+				settled = true;
+			})
+			.catch(() => {
+				settled = false;
+			});
+	
+			await new Promise(resolve => setTimeout(resolve, 200));  // Let it run for a while
+	
+			assert.strictEqual(settled, false);
+		});
+	});
 
 	test('Scheduler', () => FakeAsync.run(async () => {
 		let cnt = 0;
