@@ -64,15 +64,19 @@ const hook = new class extends class GlobalHooks {
 
     private __registerProcessListeners(): void {
         process.on('uncaughtException', err => {
-            const testName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
+            const fullTestName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
+            const testName = this._currentTest?.title || 'Unknown';
+
             console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect uncaughtException (${testName}): '${errorToMessage(err)}'`);
-            this._unhandled.exceptions.push({ testName: testName, error: err });
+            this._unhandled.exceptions.push({ testName: fullTestName, error: err });
         });
     
         process.on('unhandledRejection', reason => {
-            const testName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
+            const fullTestName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
+            const testName = this._currentTest?.title || 'Unknown';
+
             console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect unhandledRejection (${testName}): '${errorToMessage(reason)}'`);
-            this._unhandled.rejections.push({ testName: testName, error: reason });
+            this._unhandled.rejections.push({ testName: fullTestName, error: reason });
         });
     }
 
@@ -93,6 +97,10 @@ const hook = new class extends class GlobalHooks {
             ['Rejections', this._unhandled.rejections],
         ])
         .forEach(([type, unhandles]) => {
+            if (!unhandles.length) {
+                return;
+            }
+            
             console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `Detected unhandled${type}: ${unhandles.length}`);
             unhandles.forEach((unhandled, index) => {
                 console.log(setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red }));
