@@ -52,14 +52,59 @@ suite('async-test', () => {
 		}));
 	});
 
-    test('Blocker', () => FakeAsync.run(async () => {
-        const blocker = new Blocker<boolean>();
+	suite('Blocker', () => {
 
-        delayFor(0, () => blocker.resolve(true));
-
-        const result = await blocker.waiting();
-        assert.strictEqual(result, true);
-    }));
+		test('should resolve when signaled', () => FakeAsync.run(async () => {
+			const blocker = new Blocker<boolean>();
+	
+			delayFor(0, () => blocker.resolve(true));
+	
+			const result = await blocker.waiting();
+			assert.strictEqual(result, true);
+		}));
+	
+		test('should reject when signaled', () => FakeAsync.run(async () => {
+			const blocker = new Blocker<number>();
+	
+			// Trigger the reject in a future tick
+			const expectedReason = new Error("An error occurred");
+			setTimeout(() => {
+				blocker.reject(expectedReason);
+			}, 100);
+	
+			await assert.rejects(() => blocker.waiting(), 'Blocker should have rejected');
+		}));
+	
+		test('resolve() should only take effect once', () => FakeAsync.run(async () => {
+			const blocker = new Blocker<number>();
+	
+			blocker.resolve(42);
+			blocker.resolve(100); // This should have no effect
+	
+			const result = await blocker.waiting();
+			assert.strictEqual(result, 42);
+		}));
+	
+		test('reject() should only take effect once', () => FakeAsync.run(async () => {
+			const blocker = new Blocker<number>();
+			const expectedReason = new Error("An error occurred");
+	
+			blocker.reject(expectedReason);
+			blocker.reject(new Error("Another error")); // This should have no effect
+	
+			await assert.rejects(() => blocker.waiting(), 'Blocker should have rejected');
+		}));
+	
+		test('resolve() after reject() should have no effect', () => FakeAsync.run(async () => {
+			const blocker = new Blocker<number>();
+			const expectedReason = new Error("An error occurred");
+	
+			blocker.reject(expectedReason);
+			blocker.resolve(42); // This should have no effect
+	
+			await assert.rejects(() => blocker.waiting(), 'Blocker should have rejected');
+		}));
+	});
 
 	test('EventBlocker', () => FakeAsync.run(async () => {
 		const emitter = new Emitter<void>();
