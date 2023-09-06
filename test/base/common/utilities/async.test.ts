@@ -1,10 +1,56 @@
 import * as assert from 'assert';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter } from 'src/base/common/event';
-import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, MicrotaskDelay, PromiseTimeout, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
+import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, PromiseTimeout, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('async-test', () => {
+
+	suite('JoinablePromise', () => {
+		
+		test('should be able to join multiple promises', () => FakeAsync.run(async () => {
+			let p1Resolved = false;
+			let p2Resolved = false;
+	
+			const p1 = new Promise<void>(resolve => {
+				setTimeout(() => {
+					p1Resolved = true;
+					resolve();
+				}, 100);
+			});
+	
+			const p2 = new Promise<void>(resolve => {
+				setTimeout(() => {
+					p2Resolved = true;
+					resolve();
+				}, 150);
+			});
+	
+			const joinable = new JoinablePromise();
+			joinable.join(p1);
+			joinable.join(p2);
+	
+			const results = await joinable.allSettled();
+	
+			assert.strictEqual(results.length, 2);
+			assert.strictEqual(p1Resolved, true);
+			assert.strictEqual(p2Resolved, true);
+		}));
+	
+		test('should return settled status for all promises', () => FakeAsync.run(async () => {
+			const p1 = Promise.resolve();
+			const p2 = Promise.reject();
+	
+			const joinable = new JoinablePromise();
+			joinable.join(p1);
+			joinable.join(p2);
+	
+			const results = await joinable.allSettled();
+	
+			assert.strictEqual(results[0]!.status, 'fulfilled');
+			assert.strictEqual(results[1]!.status, 'rejected');
+		}));
+	});
 
     test('Blocker', () => FakeAsync.run(async () => {
         const blocker = new Blocker<boolean>();

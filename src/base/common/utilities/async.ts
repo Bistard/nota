@@ -61,6 +61,54 @@ export async function delayFor(ms: number, callback?: ITask<void>): Promise<void
 }
 
 /**
+ * @class Represents a collection of promises that can be managed and settled as 
+ * a group. This provides a structured way to join individual promises together 
+ * and handle their settled results in a collective manner.
+ * 
+ * @note {@link allSettled} will never rejects.
+ * 
+ * @example
+ * const joinable = new JoinablePromise();
+ * joinable.join(someAsyncFunction());
+ * joinable.join(anotherAsyncFunction());
+ * const results = await joinable.allSettled();
+ * 
+ * results.forEach(result => {
+ *   if (result.status === 'fulfilled') {
+ *     // Handle fulfilled promise
+ *   } else {
+ *     // Handle rejected promise
+ *   }
+ * });
+ */
+export class JoinablePromise {
+
+	// [fields]
+
+	private readonly _participants: Promise<void>[];
+
+	// [constructor]
+
+	constructor() {
+		this._participants = [];
+	}
+
+	// [public methods]
+
+	public join(participant: Promise<void>): this {
+		this._participants.push(participant);
+		return this;
+	}
+
+	/**
+	 * @note This method never rejects.
+	 */
+	public async allSettled(): Promise<PromiseSettledResult<void>[]> {
+		return Promise.allSettled(this._participants);
+	}
+}
+
+/**
  * @class A class that simulates the native behaviours of {@link Promise} but 
  * with an addtional {@link CancellationToken}. You may decide the control flow
  * by the token. If the token is cancelled, the corresponding cancellable 
