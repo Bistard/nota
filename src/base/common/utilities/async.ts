@@ -704,6 +704,8 @@ export interface IThrottler {
  * 
  * It is designed for limiting actions over a set amount of time. It may prevent
  * performance goes down during a busy period.
+ * 
+ * @template T The type of the return value of the queued tasks.
  */
 export class Throttler implements IThrottler {
 	
@@ -785,6 +787,8 @@ export interface IDebouncer<T> extends IDisposable {
  * executed once the timer is up.
  * 
  * It is designed to ensure that the tasks do not fire so often.
+ * 
+ * @template T The type of the return value of the queued tasks.
  */
 export class Debouncer<T> implements IDebouncer<T> {
 
@@ -839,10 +843,8 @@ export class Debouncer<T> implements IDebouncer<T> {
 
 	public unschedule(): void {
 		this.__clearSchedule();
-		if (this._blocker) {
-			this._blocker.reject(new Error());
-			this._blocker = undefined;
-		}
+		this._blocker?.reject(new Error());
+		this._blocker = undefined;
 	}
 
 	public dispose(): void {
@@ -898,10 +900,14 @@ export interface IThrottleDebouncer<T> extends IDisposable {
 }
 
 /**
- * @class A throttleDebouncer combines a {@link Throttler} and a {@link Debouncer}.
- * It ensures two things:
- * 		1. Delays to execute for each queued task.
- * 		2. Prevents parallel consecutive executions of tasks.
+ * @class Represents a combined throttling and debouncing mechanism. It 
+ * integrates both {@link Throttler} and a {@link Debouncer} to offer two key
+ * features:
+ * 		1. Introduces delays between the executions of queued tasks, ensuring 
+ * 		     tasks are spaced out.
+ * 		2. Ensures that tasks are not executed concurrently in succession.
+ * 
+ * @template T The type of the return value of the queued tasks.
  */
 export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
 	
@@ -913,8 +919,16 @@ export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
 		this.throttler = new Throttler();
 	}
 
+	/**
+     * @description Queues a task for execution. The task will be debounced and 
+	 * throttled based on the set delay.
+     * 
+     * @param task - The task to be executed.
+     * @param {DelayType} [delay] - Optional delay duration overriding the default.
+     * @returns A promise resolving to the result of the executed task.
+     */
 	public queue(task: ITask<Promise<T>>, delay?: DelayType): Promise<T> {
-		return this.debouncer.queue(() => this.throttler.queue(task), delay) as unknown as Promise<T>;
+		return <Promise<T>>this.debouncer.queue(() => this.throttler.queue(task), delay);
 	}
 
 	public onSchedule(): boolean {
