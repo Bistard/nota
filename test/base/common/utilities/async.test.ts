@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter } from 'src/base/common/event';
-import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, PromiseTimeout, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
+import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, TimeoutPromise, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('async-test', () => {
@@ -196,15 +196,15 @@ suite('async-test', () => {
 		}));
 	});
 
-	suite('PromiseTimeout', () => {
+	suite('TimeoutPromise', () => {
 		
 		test('basics', () => FakeAsync.run(async () => {
 			let promise = Promise.resolve(42);
-			let timeout = new PromiseTimeout<number>(promise, 0);
+			let timeout = new TimeoutPromise<number>(promise, 0);
 			assert.strictEqual(await timeout.waiting(), 42);
 	
 			promise = new Blocker<number>().waiting();
-			timeout = new PromiseTimeout(promise, 10);
+			timeout = new TimeoutPromise(promise, 10);
 			await assert.rejects(() => timeout.waiting(), (err) => err instanceof Error);
 		}));
 
@@ -216,7 +216,7 @@ suite('async-test', () => {
 				}, 100);
 			});
 	
-			const timeoutPromise = new PromiseTimeout(p, 200);
+			const timeoutPromise = new TimeoutPromise(p, 200);
 			const result = await timeoutPromise.waiting();
 			assert.strictEqual(result, 42);
 		});
@@ -228,7 +228,7 @@ suite('async-test', () => {
 				}, 300);
 			});
 	
-			const timeoutPromise = new PromiseTimeout(p, 100);
+			const timeoutPromise = new TimeoutPromise(p, 100);
 			
 			try {
 				await timeoutPromise.waiting();
@@ -246,14 +246,14 @@ suite('async-test', () => {
 				}, 50);
 			});
 	
-			const timeoutPromise = new PromiseTimeout(p, 200);
+			const timeoutPromise = new TimeoutPromise(p, 200);
 			await assert.rejects(() => timeoutPromise.waiting());
 		}));
 	
 		test('should not reject or resolve if inner promise does not settle within the timeout', async () => {
 			const p = new Promise<number>(() => {});
 	
-			const timeoutPromise = new PromiseTimeout(p, 100);
+			const timeoutPromise = new TimeoutPromise(p, 100);
 	
 			let settled: boolean | undefined = undefined;
 			timeoutPromise.waiting()

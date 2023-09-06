@@ -9,7 +9,7 @@ import { isNullable, isNumber } from "src/base/common/utilities/type";
  * {@link CancellablePromise}
  * {@link Blocker}
  * {@link EventBlocker}
- * {@link PromiseTimeout}
+ * {@link TimeoutPromise}
  * {@link AsyncRunner}
  * {@link AsyncQueue}
  * {@link Scheduler}
@@ -337,13 +337,13 @@ export class EventBlocker<T> {
  *     setTimeout(() => resolve('Hello World'), 3000);
  * });
  * 
- * const timeoutPromise = new PromiseTimeout(longRunningPromise, 2000);
+ * const timeoutPromise = new TimeoutPromise(longRunningPromise, 2000);
  * 
  * timeoutPromise.waiting()
  *   .then(console.log)
  *   .catch(err => console.error('Promise timed out'));
  */
-export class PromiseTimeout<T> {
+export class TimeoutPromise<T> {
 	
 	private _blocker = new Blocker<T>();
 	private _timeout = false;
