@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { afterEach, setup } from 'mocha';
+import { afterEach, beforeEach, setup } from 'mocha';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter } from 'src/base/common/event';
 import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, TimeoutPromise, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
@@ -380,27 +380,89 @@ suite('async-test', () => {
 		});
 	});
 
-	test('UnbufferedScheduler', () => FakeAsync.run(async () => {
-		let cnt = 0;
-		const scheduler = new UnbufferedScheduler<number>(0, e => {
-			cnt += e;
+	suite('UnbufferedScheduler', () => {
+		let scheduler: UnbufferedScheduler<string>;
+	
+		let lastEvent: string | null = null;
+		let blocker: Blocker<string>;
+	
+		const callback = (event: string): void => {
+			lastEvent = event;
+			blocker.resolve(event);
+		};
+	
+		beforeEach(() => {
+			scheduler = new UnbufferedScheduler<string>(100, callback);
+			blocker = new Blocker<string>();
+			lastEvent = null;
 		});
-		repeat(10, () => scheduler.schedule(1));
-		await delayFor(10, () => {
-			assert.strictEqual(cnt, 1);
-		});
+	
+		test('basics', () => FakeAsync.run(async () => {
+			let cnt = 0;
+			const scheduler = new UnbufferedScheduler<number>(0, e => {
+				cnt += e;
+			});
+			repeat(10, () => scheduler.schedule(1));
+			await delayFor(10, () => {
+				assert.strictEqual(cnt, 1);
+			});
+	
+			// cancellation
+	
+			const scheduler2 = new UnbufferedScheduler<number>(0, e => {
+				cnt += e;
+			});
+			repeat(10, () => scheduler2.schedule(1));
+			scheduler2.cancel();
+			await delayFor(10, () => {
+				assert.strictEqual(cnt, 1);
+			});
+		}));
 
-		// cancellation
-
-		const scheduler2 = new UnbufferedScheduler<number>(0, e => {
-			cnt += e;
+		test('should schedule and execute callback after delay', () => FakeAsync.run(async () => {
+			scheduler.schedule('event1');
+			const event = await blocker.waiting();
+			assert.equal(event, 'event1');
+		}));
+	
+		test('should cancel previous scheduled callback', () => FakeAsync.run(async () => {
+			scheduler.schedule('event1');
+			scheduler.schedule('event2');
+			const event = await blocker.waiting();
+			assert.equal(event, 'event2');
+		}));
+	
+		test('should not buffer events', () => FakeAsync.run(async () => {
+			scheduler.schedule('event1');
+			setTimeout(() => scheduler.schedule('event2'), 50);
+			const event = await blocker.waiting();
+			assert.equal(event, 'event2');
+		}));
+	
+		test('should execute latest scheduled event', () => FakeAsync.run(async () => {
+			scheduler.schedule('event1');
+			setTimeout(() => scheduler.schedule('event2'), 50);
+			const event = await blocker.waiting();
+			assert.equal(event, 'event2');
+		}));
+	
+		test('should indicate if a callback is scheduled', () => {
+			assert.equal(scheduler.isScheduled(), false);
+			scheduler.schedule('event1');
+			assert.equal(scheduler.isScheduled(), true);
+			scheduler.cancel();
+			assert.equal(scheduler.isScheduled(), false);
 		});
-		repeat(10, () => scheduler2.schedule(1));
-		scheduler2.cancel();
-		await delayFor(10, () => {
-			assert.strictEqual(cnt, 1);
-		});
-	}));
+	
+		test('should dispose properly', () => FakeAsync.run(async () => {
+			scheduler.schedule('event1');
+			scheduler.dispose();
+			setTimeout(() => blocker.resolve('timeout'), 110);
+			const event = await blocker.waiting();
+			assert.equal(event, 'timeout');
+			assert.equal(lastEvent, null);
+		}));
+	});
 
     suite('AsyncRunner', () => {
 
