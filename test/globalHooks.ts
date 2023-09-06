@@ -64,13 +64,13 @@ const hook = new class extends class GlobalHooks {
 
     private __registerProcessListeners(): void {
         process.on('uncaughtException', err => {
-            const testName = this._currentTest?.fullTitle() || 'Unknown';
+            const testName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
             console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect uncaughtException (${testName}): '${errorToMessage(err)}'`);
             this._unhandled.exceptions.push({ testName: testName, error: err });
         });
     
         process.on('unhandledRejection', reason => {
-            const testName = this._currentTest?.fullTitle() || 'Unknown';
+            const testName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
             console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect unhandledRejection (${testName}): '${errorToMessage(reason)}'`);
             this._unhandled.rejections.push({ testName: testName, error: reason });
         });
