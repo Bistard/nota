@@ -456,13 +456,24 @@ suite('async-test', () => {
 
     suite('throttleDebouncer', () => {
 
-        test('simple', () => FakeAsync.run(async () => {
+		test('Constructor should properly initialize ThrottleDebouncer', () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			assert.ok(throttleDebouncer);
+		});
+
+        test('basics', () => FakeAsync.run(async () => { // REVIEW
             let cnt = 0;
             const task = () => cnt++;
             const throttleDebouncer = new ThrottleDebouncer<void>(0);
-            throttleDebouncer.queue(async () => { if (!cnt) { task(); } else { throw ''; } }, 0);
-            throttleDebouncer.queue(async () => { if (cnt === 1) { task(); } else { throw ''; } }, 0);
-            throttleDebouncer.queue(async () => { if (cnt === 2) { task(); } else { throw ''; } }, 0);
+            
+			const promises = new JoinablePromise();
+			
+			promises
+			.join(throttleDebouncer.queue(async () => { if (!cnt) { task(); } else { throw new Error(); } }))
+			.join(throttleDebouncer.queue(async () => { if (cnt === 1) { task(); } else { throw new Error(); } }))
+			.join(throttleDebouncer.queue(async () => { if (cnt === 2) { task(); } else { throw new Error(); } }));
+
+			await promises.allSettled();
         }));
 
         test('promise should resolve if disposed', () => FakeAsync.run(async () => {
@@ -470,13 +481,59 @@ suite('async-test', () => {
             const promise = throttleDebouncer.queue(async () => { }, 0);
             throttleDebouncer.dispose();
 
-            try {
-                await promise;
-                assert.fail();
-            } catch (err) {
-                assert.ok(1);
-            }
+			await assert.rejects(() => promise);
         }));
+
+		test('queue should return a promise', () => FakeAsync.run(async () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			const task = () => Promise.resolve(1);
+			const result = await throttleDebouncer.queue(task);
+			assert.strictEqual(result, 1);
+		}));
+	
+		test('queue should respect delay', () => FakeAsync.run(async () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			const task = () => Promise.resolve(1);
+			
+			const startTime = Date.now();
+			await throttleDebouncer.queue(task, 2000);
+			const endTime = Date.now();
+	
+			assert.ok(endTime - startTime >= 2000);
+		}));
+	
+		test('onSchedule should return false if no task is scheduled', () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			assert.strictEqual(throttleDebouncer.onSchedule(), false);
+		});
+	
+		test('onSchedule should return true if a task is scheduled', () => FakeAsync.run(async () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			const task = () => Promise.resolve(1);
+			const promise = throttleDebouncer.queue(task);
+			assert.strictEqual(throttleDebouncer.onSchedule(), true);
+			assert.strictEqual(await promise, 1);
+		}));
+	
+		test('unschedule should cancel a scheduled task', () => FakeAsync.run(async () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			let taskExecuted = false;
+			const task = () => { 
+				taskExecuted = true;
+				return Promise.resolve(1);
+			};
+			
+			const promise = throttleDebouncer.queue(task, 2000);
+			throttleDebouncer.unschedule();
+			await assert.rejects(() => promise);
+			
+			assert.strictEqual(taskExecuted, false);
+		}));
+	
+		test('dispose should release resources', () => {
+			const throttleDebouncer = new ThrottleDebouncer<number>(1000);
+			throttleDebouncer.dispose();
+		});
     });
 
 	test('CancellablePromise - cancel', () => FakeAsync.run(async () => {
