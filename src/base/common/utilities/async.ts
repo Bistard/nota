@@ -770,7 +770,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 
 		// callback when the schedule has reached
 		const onSchedule = () => {
-			const result = this._lastestTask ? this._lastestTask() : undefined!;
+			const result = this._lastestTask!();
 			this._blocker?.resolve(result);
 
 			this._lastestTask = undefined;
