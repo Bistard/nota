@@ -106,20 +106,95 @@ suite('async-test', () => {
 		}));
 	});
 
-	test('EventBlocker', () => FakeAsync.run(async () => {
-		const emitter = new Emitter<void>();
-		
-		const blocker = new EventBlocker(emitter.registerListener);
-		const promise = blocker.waiting();
-		emitter.fire();
+	suite('EventBlocker', () => {
 
-		await promise;
+		test('works with Emitter', () => FakeAsync.run(async () => {
+			const emitter = new Emitter<void>();
+			
+			const blocker = new EventBlocker(emitter.registerListener);
+			const promise = blocker.waiting();
+			emitter.fire();
+	
+			await promise;
+	
+			const neverResolve = new EventBlocker(emitter.registerListener, 0);
+			await neverResolve.waiting()
+			.then(() => assert.fail())
+			.catch(() => { /** success */ });
+		}));
 
-		const neverResolve = new EventBlocker(emitter.registerListener, 0);
-		await neverResolve.waiting()
-		.then(() => assert.fail())
-		.catch(() => { /** success */ });
-	}));
+		test('should resolve when event is fired', () => FakeAsync.run(async () => {
+			let callback: ((event: number) => void) | null = null;
+	
+			const register = (listener: (event: number) => void) => {
+				callback = listener;
+				return {
+					dispose: () => { callback = null; }
+				};
+			};
+	
+			const eventBlocker = new EventBlocker(register);
+	
+			setTimeout(() => {
+				if (callback) callback(42);
+			}, 100);
+	
+			const result = await eventBlocker.waiting();
+			assert.strictEqual(result, 42);
+		}));
+	
+		test('should reject after a timeout if event is not fired', () => FakeAsync.run(async () => {
+			const register = (listener: (event: number) => void) => {
+				return {
+					dispose: () => {}
+				};
+			};
+	
+			const eventBlocker = new EventBlocker(register, 100);
+	
+			await assert.rejects(() => eventBlocker.waiting(), (err) => err instanceof Error);
+		}));
+	
+		test('should not reject if event is fired before timeout', () => FakeAsync.run(async () => {
+			let callback: ((event: number) => void) | null = null;
+	
+			const register = (listener: (event: number) => void) => {
+				callback = listener;
+				return {
+					dispose: () => { callback = null; }
+				};
+			};
+	
+			const eventBlocker = new EventBlocker(register, 200);
+	
+			setTimeout(() => {
+				if (callback) callback(42);
+			}, 100);
+	
+			const result = await eventBlocker.waiting();
+			assert.strictEqual(result, 42);
+		}));
+	
+		test('dispose() should cancel event listening and EventBlocker should rejects', () => FakeAsync.run(async () => {
+			let callback: ((event: number) => void) | null = null;
+	
+			const register = (listener: (event: number) => void) => {
+				callback = listener;
+				return {
+					dispose: () => { callback = null; }
+				};
+			};
+	
+			const eventBlocker = new EventBlocker(register, 10);
+	
+			eventBlocker.dispose();
+			setTimeout(() => {
+				callback?.(42);
+			}, 11);
+	
+			await assert.rejects(() => eventBlocker.waiting(), (err) => err instanceof Error);
+		}));
+	});
 
 	test('PromiseTimeout', () => FakeAsync.run(async () => {
 		let promise = Promise.resolve();
