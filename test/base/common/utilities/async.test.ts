@@ -7,6 +7,15 @@ import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('async-test', () => {
 
+	test("repeat function should call the provided function the specified number of times", function() {
+        let count = 0;
+        repeat(5, (index: number) => {
+            assert.equal(index, count);
+            count++;
+        });
+        assert.equal(count, 5);
+    });
+
 	suite('JoinablePromise', () => {
 		
 		test('should be able to join multiple promises', () => FakeAsync.run(async () => {
@@ -50,6 +59,44 @@ suite('async-test', () => {
 	
 			assert.strictEqual(results[0]!.status, 'fulfilled');
 			assert.strictEqual(results[1]!.status, 'rejected');
+		}));
+	});
+
+	suite('CancellablePromise', () => {
+
+		test('CancellablePromise - cancel', () => FakeAsync.run(async () => {
+			const promise = new CancellablePromise(async (token) => {
+				token.cancel();
+			});
+	
+			try {
+				await promise
+				.then(() => assert.fail('should be cancelled'))
+				.catch((err) => assert.ok(isCancellationError(err)))
+				.finally(() => { throw new ExpectedError(); });
+			} catch (error) {
+				assert.ok(isExpectedError(error));
+				return;
+			}
+			
+			assert.fail('should not reach');
+		}));
+	
+		test('CancellablePromise - await cancel', () => FakeAsync.run(async () => {
+			const number = await new CancellablePromise(async (token) => 5);
+			assert.strictEqual(number, 5);
+	
+			let isCancelled = false;
+			try {
+				await new CancellablePromise(async (token) => token.cancel());
+				assert.fail('should not reach');
+			} 
+			catch (err) {
+				isCancelled = isCancellationError(err);
+			} 
+			finally {
+				assert.ok(isCancelled);
+			}
 		}));
 	});
 
@@ -638,7 +685,7 @@ suite('async-test', () => {
 			});
 		}));
 
-		test('simple cancel', function () {
+		test('simple cancel', () => FakeAsync.run(async function () {
 			let count = 0;
 			const factory = () => {
 				return Promise.resolve(++count);
@@ -658,10 +705,10 @@ suite('async-test', () => {
 			delayer.unschedule();
 			assert.ok(!delayer.onSchedule());
 
-			return p;
-		});
+			await p;
+		}));
 
-		test('simple cancel microtask', function () {
+		test('simple cancel microtask', () => FakeAsync.run(async function () {
 			let count = 0;
 			const factory = () => {
 				return Promise.resolve(++count);
@@ -681,8 +728,8 @@ suite('async-test', () => {
 			delayer.unschedule();
 			assert.ok(!delayer.onSchedule());
 
-			return p;
-		});
+			await p;
+		}));
 
 		test('cancel should cancel all calls to queue', () => FakeAsync.run(async () => {
 			let count = 0;
@@ -868,51 +915,8 @@ suite('async-test', () => {
 		});
     });
 
-	test('CancellablePromise - cancel', () => FakeAsync.run(async () => {
-		const promise = new CancellablePromise(async (token) => {
-			token.cancel();
-		});
-
-		try {
-			await promise
-			.then(() => assert.fail('should be cancelled'))
-			.catch((err) => assert.ok(isCancellationError(err)))
-			.finally(() => { throw new ExpectedError(); });
-		} catch (error) {
-			assert.ok(isExpectedError(error));
-			return;
-		}
-		
-		assert.fail('should not reach');
-	}));
-
-	test('CancellablePromise - await cancel', () => FakeAsync.run(async () => {
-		const number = await new CancellablePromise(async (token) => 5);
-		assert.strictEqual(number, 5);
-
-		let isCancelled = false;
-		try {
-			await new CancellablePromise(async (token) => token.cancel());
-			assert.fail('should not reach');
-		} 
-		catch (err) {
-			isCancelled = isCancellationError(err);
-		} 
-		finally {
-			assert.ok(isCancelled);
-		}
-	}));
-
-	test("repeat function should call the provided function the specified number of times", function() {
-        let count = 0;
-        repeat(5, (index: number) => {
-            assert.equal(index, count);
-            count++;
-        });
-        assert.equal(count, 5);
-    });
-
-	test("IntervalTimer should call the callback at a set interval", () => FakeAsync.run(async () => {
+	suite('IntervalTimer', () => {
+		test("IntervalTimer should call the callback at a set interval", () => FakeAsync.run(async () => {
             let count = 0;
             const timer = new IntervalTimer();
             timer.set(1000, () => {
@@ -923,34 +927,35 @@ suite('async-test', () => {
             });
             await new Promise(resolve => setTimeout(resolve, 3000));
             assert.equal(count, 3);
-	}));
+		}));
 
-    test("IntervalTimer should stop calling the callback after cancel", () => FakeAsync.run(async () => {
-		let count = 0;
-		const timer = new IntervalTimer();
-		timer.set(1000, () => {
-			count++;
-			if (count === 2) {
-				timer.cancel();
-			}
-		});
-		await new Promise(resolve => setTimeout(resolve, 3500));
-		assert.equal(count, 2);
-    }));
+		test("IntervalTimer should stop calling the callback after cancel", () => FakeAsync.run(async () => {
+			let count = 0;
+			const timer = new IntervalTimer();
+			timer.set(1000, () => {
+				count++;
+				if (count === 2) {
+					timer.cancel();
+				}
+			});
+			await new Promise(resolve => setTimeout(resolve, 3500));
+			assert.equal(count, 2);
+		}));
 
-    test("IntervalTimer should cancel the current timer when setting a new one", () => FakeAsync.run(async () => {
-		let count = 0;
-        const timer = new IntervalTimer();
-        timer.set(1000, () => {
-			count++;
-		});
-		timer.set(2000, () => {
-			count++;
-			if (count === 2) {
-				timer.cancel();
-			}
-		});
-        await new Promise(resolve => setTimeout(resolve, 2500));
-        assert.equal(count, 2); // The callback should be invoked twice
-    }));
+		test("IntervalTimer should cancel the current timer when setting a new one", () => FakeAsync.run(async () => {
+			let count = 0;
+			const timer = new IntervalTimer();
+			timer.set(1000, () => {
+				count++;
+			});
+			timer.set(2000, () => {
+				count++;
+				if (count === 2) {
+					timer.cancel();
+				}
+			});
+			await new Promise(resolve => setTimeout(resolve, 2500));
+			assert.equal(count, 2); // The callback should be invoked twice
+		}));
+	});
 });
