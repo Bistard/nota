@@ -180,4 +180,10 @@ export interface IUserConfigurationModule extends IConfigurationModule<Configura
      * @note This only resolves once.
      */
     readonly onLatestConfigurationFileChange: Promise<void>;
+
+    /**
+     * @description Reloads the configuration.
+     * @throws Might throw if the configuration is not reloaded properly.
+     */
+    reload(): void | Promise<void>;
 }

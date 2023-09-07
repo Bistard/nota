@@ -3,7 +3,7 @@ import { IShortcutService } from "src/workbench/services/shortcut/shortcutServic
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 
 export interface IBrowser {
     init(): void;
@@ -37,14 +37,6 @@ export class BrowserInstance implements IBrowser {
         this.lifecycleService.when(LifecyclePhase.Ready)
         .then(() => {
             
-            // FIX: will be erased after save, weird.
-            this.configurationService.set('hello', 'world', { type: ConfigurationModuleType.User })
-            .then(() => {
-                // REVIEW
-                console.log((<any>this.configurationService)._configurationHub.inspect().toJSON());
-                console.log((<any>this.configurationService)._userConfiguration.getConfiguration().toJSON());
-            });
-
             // save user configurations on quite
             this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save()));
         });
