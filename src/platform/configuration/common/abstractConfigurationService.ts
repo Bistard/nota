@@ -115,7 +115,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[AbstractConfigurationService] [onConfigurationChange] [type-${ConfigurationModuleTypeToString(type)}]`);
+        this.logService.trace(`[AbstractConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

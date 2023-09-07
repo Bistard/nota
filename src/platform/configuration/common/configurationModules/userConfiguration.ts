@@ -113,15 +113,13 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     private async __reloadConfiguration(): Promise<void> {
         const result = await this.__loadConfiguration();
-        
         if (result.ifLoaded) {
             /**
              * The configuration is loaded correctly, we need to validate the 
              * loaded configuration.
              */
             const validated = this.__validateConfiguration(result.raw);
-            this.__setupConfiguration({ ifLoaded: true, validated });
-
+            this.__setupConfiguration({ ifLoaded: true, validated: validated });
             this._onDidConfigurationChange.fire();
         } 
         else {
@@ -130,6 +128,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
              * validate.
              */
             this.__setupConfiguration({ ifLoaded: false, validated: result.raw });
+            this._onDidConfigurationLoaded.fire(this._configuration);
         }
     }
 
@@ -149,7 +148,6 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             }
             
             // expecting file not found, we create a new user configuration.
-            await this.fileService.writeFile(this._userResource, DataBuffer.alloc(0), { create: true, overwrite: true });
             raw = await this.__createNewConfiguration();
             return { ifLoaded: false, raw };
         }
@@ -162,7 +160,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         const raw = defaultConfiguration.toJSON();
 
         // keep update to the file
-        await this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true });        
+        await this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true });
         return defaultConfiguration;
     }
 
@@ -190,8 +188,6 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
         this._configuration = configuration;
         this.__syncConfigurationToFileOnChange(configuration);
-
-        this._onDidConfigurationLoaded.fire(configuration);
     }
 
     private __syncConfigurationFromFileOnChange(): void {
@@ -218,7 +214,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
                 { create: true, overwrite: true },
             )
             .catch(err => {
-                throw err;
+                this.logService.error(`Cannot sync configuration to the file at: ${URI.toString(this._userResource)}. The reason is: ${errorToMessage(err)}`);
             });
         }));
     }
