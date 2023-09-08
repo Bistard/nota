@@ -128,9 +128,8 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         this._sections = sections ?? [];
         this._model = toConfigurationModel(model ?? Object.create({}), (msg) => console.warn(msg));
 
-        // auto update sections
-        if (this._sections.length === 0 && Object.keys(this._model).length !== 0) {
-            getConfigurationModelSections(this._model, this._sections);
+        if (!this._sections.length) {
+            this.refreshSections();
         }
     }
 
@@ -138,6 +137,14 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     get sections(): Section[] {
         return this._sections;
+    }
+
+    /**
+     * @note Not used quite often.
+     */
+    public refreshSections(): void {
+        this._sections = [];
+        getConfigurationModelSections(this._model, this._sections);
     }
 
     get model(): DeepReadonly<object> {

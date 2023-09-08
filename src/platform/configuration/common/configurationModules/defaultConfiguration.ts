@@ -73,12 +73,12 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
 
     /**
      * @description Create a new {@link IConfigurationStorage} that 
-     * @returns 
      */
     public static createDefaultConfigurationStorage(registrant: IConfigurationRegistrant): IConfigurationStorage {
         const storage = new ConfigurationStorage();
         const schemas = registrant.getConfigurationSchemas();
         this.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
+        storage.refreshSections();
         return storage;
     }
 
