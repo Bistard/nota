@@ -325,7 +325,21 @@ suite('BrowserConfigurationService', () => {
         await resetUserConfiguration();
     }));
 
-    test('delete - in memory changes but file did not change', () => FakeAsync.run(async() => {
+    test('set - cannot update when the section is not valid', () => FakeAsync.run(async () => {
+        const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
+        await service.init();
+
+        await assert.rejects(() => service.set('invalidSection', 'update user value'));
+    }));
+
+    test('set - cannot update when the value is not valid', () => FakeAsync.run(async () => {
+        const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
+        await service.init();
+
+        await assert.rejects(() => service.set('section', 42)); // should be string
+    }));
+
+    test('delete - in memory changes but file did not change', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         await service.init();
         
