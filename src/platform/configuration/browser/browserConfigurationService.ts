@@ -7,6 +7,8 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { Arrays } from "src/base/common/utilities/array";
+import { JsonSchemaValidator } from "src/base/common/json";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -54,9 +56,24 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         const module = options?.type;
 
         if (module === ConfigurationModuleType.Default) {
-            throw new Error(`[BrowserConfigurationService] cannot update configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
+            throw new Error(`[BrowserConfigurationService] cannot update the configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
 
+        /**
+         * Before update the configuration, we need to ensure two things based 
+         * on the configuration schemas:
+         *   1. The section is valid.
+         *   2. The value is vlaid.
+         */
+        if (!this.__validateConfigurationUpdateInSection(section)) {
+            throw new Error(`[BrowserConfigurationService] cannot update the configuration because the section is invalid: ${section}`);
+        }
+
+        // ignore value check when deleting the configuration
+        if (value !== undefined  && !this.__validateConfigurationUpdateInValue(section, value)) {
+            throw new Error(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}`);
+        }
+        
         if (module === ConfigurationModuleType.Memory) {
             this.__updateInMemoryConfiguration(section, value);
         }
@@ -89,5 +106,29 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
         // make sure the changes are applied to the file
         return this._userConfiguration.onLatestConfigurationFileChange;
+    }
+
+    private __validateConfigurationUpdateInSection(section: Section): boolean {
+        // section validation
+        const validSections = this._defaultConfiguration.getConfiguration().sections;
+        return Arrays.exist(validSections, section);
+    }
+    
+    private __validateConfigurationUpdateInValue(section: Section, value: unknown): boolean {
+        // value validation
+        const getFirstSection = (section: string): string => {
+            const endIdx = section.indexOf('.');
+            return endIdx === -1 ? section : section.substring(0, endIdx);
+        };
+        const firstKey = getFirstSection(section);
+        
+        const schemas = this._registrant.getConfigurationSchemas();
+        const correspondingSchema = schemas[firstKey];
+        if (!correspondingSchema) {
+            return false;
+        }
+        
+        const result = JsonSchemaValidator.validate(value, correspondingSchema);
+        return result.valid;
     }
 }
