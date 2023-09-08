@@ -201,9 +201,9 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     private __syncConfigurationToFileOnChange(configuration: IConfigurationStorage): void {
         /**
-         * Following a file write, an additional configuration reload 
-         * from the file occurs. This step is redundant as the in-memory 
-         * configuration already matches the file content.
+         * Following a file write, an additional configuration reload from the 
+         * file occurs. This step is redundant as the in-memory configuration 
+         * already matches the file content.
          * 
          * This is hacky and a little slow, but it makes sure the job is done.
          */ 
