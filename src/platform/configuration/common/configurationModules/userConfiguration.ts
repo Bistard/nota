@@ -220,6 +220,9 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 }
 
+/**
+ * @class Validates whether the given object fits the configuration schema.
+ */
 class UserConfigurationValidator implements IDisposable {
 
     // [fields]
@@ -230,18 +233,18 @@ class UserConfigurationValidator implements IDisposable {
     private readonly _onInvalidConfiguration = new Emitter<IJsonSchemaValidateResult>();
     public readonly onInvalidConfiguration = this._onInvalidConfiguration.registerListener;
 
-    private readonly _Registrant: IConfigurationRegistrant;
+    private readonly _registrant: IConfigurationRegistrant;
 
     // [constructor]
 
     constructor(registrant: IConfigurationRegistrant) {
-        this._Registrant = registrant;
+        this._registrant = registrant;
     }
 
     // [public methods]
 
     public validate(rawConfiguration: object): object {
-        const schemas = this._Registrant.getConfigurationSchemas();
+        const schemas = this._registrant.getConfigurationSchemas();
         const validatedConfiguration = this.__validate(rawConfiguration, schemas);
         return validatedConfiguration;
     }
