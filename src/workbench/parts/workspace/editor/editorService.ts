@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/files/uri";
 import { IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
-import { IEditorWidget } from "src/editor/editorWidget";
+import { IEditorWidget } from "src/editor_new/editorWidget";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 

@@ -30,7 +30,7 @@ export abstract class EditorViewCommand extends EditorCommand {
             return false;
         }
 
-        const view = (<IEditorWidgetFriendship>widget).view;
+        const view = (<IEditorWidgetFriendship><any>widget).view;
         if (!view) {
             return false;
         }
