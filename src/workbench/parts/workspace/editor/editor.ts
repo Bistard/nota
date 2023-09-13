@@ -71,7 +71,12 @@ export class Editor extends Component implements IEditorService {
         }
 
         // editor construction!
-        const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, {});
+        const editor = this.instantiationService.createInstance(
+            EditorWidget, 
+            {
+                container: this.element.element,
+            },
+        );
         this._editorWidget = editor;
     }
 
