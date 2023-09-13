@@ -52,36 +52,39 @@
 		"ts-loader": "^9.2.5",
 		"ts-node": "^10.4.0",
 		"tsconfig-paths": "^3.12.0",
-		"typescript": "^4.9.5",
+		"typescript": "^5.2.2",
 		"webpack": "^5.74.0",
 		"webpack-cli": "^4.7.2",
 		"webpack-node-externals": "^3.0.0"
 	},
 	"//": {
-		"@types/*": "Type definitions for various libraries to help with TypeScript type checking.",
-        "@typescript-eslint/*": "TypeScript-specific linting tools for ESLint.",
-        "benchmark": "A benchmarking library.",
-        "circular-dependency-plugin": "A webpack plugin to detect modules with circular dependencies.",
-        "cross-env": "Set and use environment variables across platforms. Used to achieve local customized eslint rules.",
-        "css-loader": "Webpack loader for importing CSS files in JavaScript modules.",
-        "electron": "Framework for creating native applications with web technologies.",
-        "eslint": "JavaScript and TypeScript linter.",
-        "fantasticon": "Tool to generate icon fonts.",
-        "jsdom & jsdom-global": "JavaScript-based DOM simulation tools for Node.js.",
-        "link-module-alias": "Link and resolve aliases of modules in Node.js. Used to achieve local customized eslint rules.",
-        "mini-css-extract-plugin": "Extracts CSS from your bundles into separate files.",
-        "minimist": "Parse argument options. Good tiny lib to use.",
-        "mocha and mochapack": "Testing framework and its webpack integration.",
-        "node-loader": "Webpack loader for Node.js native modules.",
-        "sass and sass-loader": "CSS pre-processor and its Webpack loader.",
-        "ts-loader": "TypeScript loader for Webpack.",
-        "ts-node": "TypeScript execution environment for node.",
-        "tsconfig-paths": "Load node modules using paths from tsconfig.",
-        "typescript": "JavaScript superset offering static type checking.",
-        "webpack and related packages": "Module bundler and its various plugins/loaders."
+		"devDependencies": {
+			"@types/*": "Type definitions for various libraries to help with TypeScript type checking.",
+			"@typescript-eslint/*": "TypeScript-specific linting tools for ESLint.",
+			"benchmark": "A benchmarking library.",
+			"circular-dependency-plugin": "A webpack plugin to detect modules with circular dependencies.",
+			"cross-env": "Set and use environment variables across platforms. Used to achieve local customized eslint rules.",
+			"css-loader": "Webpack loader for importing CSS files in JavaScript modules.",
+			"electron": "Framework for creating native applications with web technologies.",
+			"eslint": "JavaScript and TypeScript linter.",
+			"fantasticon": "Tool to generate icon fonts.",
+			"jsdom & jsdom-global": "JavaScript-based DOM simulation tools for Node.js.",
+			"link-module-alias": "Link and resolve aliases of modules in Node.js. Used to achieve local customized eslint rules.",
+			"mini-css-extract-plugin": "Extracts CSS from your bundles into separate files.",
+			"minimist": "Parse argument options. Good tiny lib to use.",
+			"mocha and mochapack": "Testing framework and its webpack integration.",
+			"node-loader": "Webpack loader for Node.js native modules.",
+			"sass and sass-loader": "CSS pre-processor and its Webpack loader.",
+			"ts-loader": "TypeScript loader for Webpack.",
+			"ts-node": "TypeScript execution environment for node.",
+			"tsconfig-paths": "Load node modules using paths from tsconfig.",
+			"typescript": "JavaScript superset offering static type checking.",
+			"webpack and related packages": "Module bundler and its various plugins/loaders."
+		},
+		"dependencies": {
+			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform."
+		}
 	},
-
-
 	"dependencies": {
 		"chokidar": "^3.5.3",
 		"codemirror": "^6.0.1",
@@ -89,8 +92,5 @@
 		"prosemirror-state": "^1.4.2",
 		"prosemirror-transform": "^1.7.0",
 		"prosemirror-view": "^1.29.0"
-	},
-	"//": {
-		"chokidar": "Filesystem watcher. Used to achieve file watching on different platform."
 	}
 }
