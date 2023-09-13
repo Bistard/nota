@@ -1,7 +1,7 @@
 import { Emitter, Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { IFileService } from "src/platform/files/common/fileService";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/section";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";

@@ -4,7 +4,7 @@ import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { Constructor, Mutable } from 'src/base/common/util/type';
+import { Constructor, Mutable } from 'src/base/common/utilities/type';
 import { ILogService } from 'src/base/common/logger';
 import { SideViewTitlePart } from 'src/workbench/parts/sideView/sideViewTitle';
 import { IThemeService } from 'src/workbench/services/theme/themeService';

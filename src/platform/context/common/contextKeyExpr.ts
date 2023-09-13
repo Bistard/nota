@@ -1,4 +1,4 @@
-import { isBoolean, isNonNullable, isNumber, isObject, isString } from "src/base/common/util/type";
+import { isBoolean, isNonNullable, isNumber, isObject, isString } from "src/base/common/utilities/type";
 import { IReadonlyContext } from "src/platform/context/common/context";
 
 /**

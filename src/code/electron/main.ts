@@ -1,15 +1,14 @@
-import 'src/code/common/common.register';
 import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
-import { Schemas, URI } from 'src/base/common/file/uri';
+import { Schemas, URI } from 'src/base/common/files/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
-import { Strings } from 'src/base/common/util/string';
+import { Strings } from 'src/base/common/utilities/string';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IInstantiationService, IServiceProvider, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
 import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
@@ -22,10 +21,13 @@ import { IMainStatusService, MainStatusService } from 'src/platform/status/elect
 import { ICLIArguments } from 'src/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
-import { EventBlocker } from 'src/base/common/util/async';
+import { EventBlocker } from 'src/base/common/utilities/async';
 import { APP_CONFIG_NAME, IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/platform/product/common/productService';
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
+import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
+import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
+import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -128,6 +130,11 @@ const main = new class extends class MainProcess implements IMainProcess {
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
 
+        // registrant-service
+        const registrantService = instantiationService.createInstance(RegistrantService);
+        instantiationService.register(IRegistrantService, registrantService);
+        this.registrantRegistrations(instantiationService, registrantService);
+
         // environment-service
         const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService);
         instantiationService.register(IEnvironmentService, environmentService);
@@ -209,6 +216,30 @@ const main = new class extends class MainProcess implements IMainProcess {
             this.statusService.init(),
             this.configurationService.init(),
         ]);
+    }
+
+    private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
+        
+        // configuration
+        service.registerRegistrant(new class extends ConfigurationRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                // [
+                    
+                // ]
+                // .forEach((register) => {
+                //     register(provider);
+                // });
+            }
+        }());
+
+        // reviver
+        service.registerRegistrant(new ReviverRegistrant());
+
+        // TODO: others
+
+        // initialize registrations
+        service.init();
     }
 
     private async resolveSingleApplication(): Promise<void> {

@@ -1,6 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { NonUndefined } from "src/base/common/util/type";
+import { NonUndefined } from "src/base/common/utilities/type";
 import { Context, IContext, IReadonlyContext } from "src/platform/context/common/context";
 import { ContextKey, IContextKey } from "src/platform/context/common/contextKey";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";

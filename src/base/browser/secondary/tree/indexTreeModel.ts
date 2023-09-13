@@ -1,7 +1,7 @@
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
 import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
-import { ISpliceable } from "src/base/common/range";
+import { ISpliceable } from "src/base/common/structures/range";
 
 const INVALID_INDEX = -1;
 

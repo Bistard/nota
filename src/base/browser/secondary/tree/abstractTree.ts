@@ -6,7 +6,7 @@ import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, I
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
-import { ISpliceable } from "src/base/common/range";
+import { ISpliceable } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";

@@ -1,4 +1,4 @@
-import { Dictionary } from "src/base/common/util/type";
+import { Dictionary } from "src/base/common/utilities/type";
 import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, IProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 

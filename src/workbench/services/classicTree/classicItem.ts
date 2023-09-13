@@ -1,9 +1,9 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
-import { FileType, IResolvedFileStat } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
+import { FileType, IResolvedFileStat } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { CompareFn, isPromise, Mutable } from "src/base/common/util/type";
+import { CompareFn, isPromise, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**

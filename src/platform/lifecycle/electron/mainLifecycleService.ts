@@ -1,7 +1,8 @@
 import { app, BrowserWindow } from "electron";
+import { errorToMessage } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { Blocker, delayFor } from "src/base/common/util/async";
+import { Blocker, delayFor, JoinablePromise } from "src/base/common/utilities/async";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
@@ -249,18 +250,22 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
         }
 
         // notify all listeners
-        const participants: Promise<void>[] = [];
+        const joinable = new JoinablePromise();
         this._onWillQuit.fire({
             reason: reason,
-            join: participant => participants.push(participant),
+            join: participant => joinable.join(participant),
         });
 
         this._ongoingBeforeQuitPromise = (async () => {
+            
             // we need to ensure all the participants have completed their jobs.
-            try {
-                await Promise.allSettled(participants);
-            } catch (err: any) {
-                this.logService.error(err);
+            const results = await joinable.allSettled();
+            
+            // error handling
+            for (const res of results) {
+                if (res.status === 'rejected') {
+                    this.logService.error(errorToMessage(reason));
+                }
             }
         })();
 

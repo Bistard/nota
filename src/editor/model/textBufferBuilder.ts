@@ -1,5 +1,5 @@
-import { Character, CharCode } from "src/base/common/util/char";
-import { Mutable } from "src/base/common/util/type";
+import { Character, CharCode } from "src/base/common/utilities/char";
+import { Mutable } from "src/base/common/utilities/type";
 import { EndOfLine, EndOfLineType, IPieceTableModel, ITextBufferBuilder } from "src/editor/common/model";
 import { PieceTableModel } from "src/editor/model/pieceTable/pieceTableModel";
 import { TextBuffer } from "src/editor/model/textBuffer";

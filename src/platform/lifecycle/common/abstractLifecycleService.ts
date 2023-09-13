@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { Blocker } from "src/base/common/util/async";
+import { Blocker } from "src/base/common/utilities/async";
 import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
 import { IBeforeQuitEvent } from "src/platform/lifecycle/electron/mainLifecycleService";
 

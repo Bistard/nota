@@ -11,7 +11,7 @@ import { IWorkbenchService } from 'src/workbench/services/workbench/workbenchSer
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { IExplorerTreeService } from 'src/workbench/services/explorerTree/explorerTreeService';
-import { URI } from 'src/base/common/file/uri';
+import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';

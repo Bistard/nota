@@ -1,12 +1,8 @@
 import "src/styles/index.scss";
-import "src/code/common/common.register";
-import "src/workbench/parts/workspace/editor/editor";
+import "src/workbench/parts/workspace/editor/editor"; // TODO
 import { Workbench } from "src/workbench/workbench";
-import { workbenchShortcutRegistrations } from "src/workbench/services/workbench/shortcut.register";
-import { workbenchCommandRegistrations } from "src/workbench/services/workbench/command.register";
-import { rendererServiceRegistrations } from "src/code/browser/service.register";
-import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
-import { getSingletonServiceDescriptors, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
+import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable } from "src/base/common/dispose";
@@ -31,10 +27,35 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
+import { WorkbenchConfiguration, rendererWorkbenchConfigurationRegister } from "src/code/browser/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
+import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { rendererSideViewConfigurationRegister } from "src/workbench/parts/sideView/configuration.register";
+import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
+import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
+import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { ReviverRegistrant } from "src/platform/ipc/common/revive";
+import { ICommandService, CommandService } from "src/platform/command/common/commandService";
+import { IContextService, ContextService } from "src/platform/context/common/contextService";
+import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
+import { ISideBarService, SideBar } from "src/workbench/parts/sideBar/sideBar";
+import { ISideViewService, SideViewService } from "src/workbench/parts/sideView/sideView";
+import { Editor } from "src/workbench/parts/workspace/editor/editor";
+import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
+import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
+import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
+import { IExplorerTreeService, ExplorerTreeService } from "src/workbench/services/explorerTree/explorerTreeService";
+import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
+import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
+import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
+import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
+import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
+import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -57,8 +78,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
 
-            // init all kinds of registrations by registrants
-            this.initRegistrations();
+            // register microservices
+            this.rendererServiceRegistrations();
 
             // core service construction
             instantiaionService = this.createCoreServices();
@@ -94,15 +115,17 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private createCoreServices(): IInstantiationService {
 
         // instantiation-service (Dependency Injection)
-        const serviceCollection = new ServiceCollection();
-        const instantiationService = new InstantiationService(serviceCollection);
-
-        // instantiation-service (itself)
+        const instantiationService = new InstantiationService(new ServiceCollection());
         instantiationService.register(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
+
+        // registrant-service
+        const registrantService = instantiationService.createInstance(RegistrantService);
+        instantiationService.register(IRegistrantService, registrantService);
+        this.__registrantRegistrations(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
@@ -137,7 +160,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         logService.setLogger(logger);
 
         // file-service
-        const fileService = new BrowserFileChannel(ipcService);
+        const fileService = instantiationService.createInstance(BrowserFileChannel);
         instantiationService.register(IFileService, fileService);
 
         // product-service
@@ -192,10 +215,76 @@ const renderer = new class extends class RendererInstance extends Disposable {
         ]);
     }
 
-    private initRegistrations(): void {
-        rendererServiceRegistrations();
-        workbenchShortcutRegistrations();
-        workbenchCommandRegistrations();
+    private rendererServiceRegistrations(): void {
+
+        // communication
+        registerService(IDialogService, new ServiceDescriptor(BrowserDialogService, []));
+    
+        // registration
+        registerService(IKeyboardService, new ServiceDescriptor(KeyboardService, []));
+        registerService(IShortcutService, new ServiceDescriptor(ShortcutService, []));
+        registerService(ICommandService, new ServiceDescriptor(CommandService, []));
+    
+        // User Interface
+        registerService(ILayoutService, new ServiceDescriptor(LayoutService, []));
+        registerService(ISideBarService, new ServiceDescriptor(SideBar, []));
+        registerService(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent, []));
+        registerService(IEditorService, new ServiceDescriptor(Editor, []));
+        registerService(ISideViewService, new ServiceDescriptor(SideViewService, []));
+        registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
+        registerService(IThemeService, new ServiceDescriptor(ThemeService, []));
+        registerService(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService, []));
+        registerService(IContextMenuService, new ServiceDescriptor(ContextMenuService, []));
+    
+        // utilities && tools
+        registerService(IContextService, new ServiceDescriptor(ContextService, []));
+        registerService(INotificationService, new ServiceDescriptor(NotificationService, [])); // TODO: notificationService
+        // TODO: performanceService
+        // TODO: folderTreeService
+        // TODO: notebookTreeService
+    }
+
+    private __registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
+        
+        // configuration registrations
+        service.registerRegistrant(new class extends ConfigurationRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                [
+                    rendererWorkbenchConfigurationRegister,
+                    rendererSideViewConfigurationRegister,
+                ]
+                .forEach((register) => register(provider));
+            }
+        }());
+
+        // command registrations
+        service.registerRegistrant(new class extends CommandRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                [
+                    rendererWorkbenchCommandRegister,
+                ]
+                .forEach((register) => register(provider));
+            }
+        }());
+
+        // shortcut registrations
+        service.registerRegistrant(new class extends ShortcutRegistrant {
+            public override initRegistrations(): void {
+                super.initRegistrations();
+                [
+                    rendererWorkbenchShortcutRegister,
+                ]
+                .forEach((register) => register(provider));
+            }
+        }(service.getRegistrant(RegistrantType.Command)));
+
+        // reviver
+        service.registerRegistrant(new ReviverRegistrant());
+
+        // initialize all the registrations
+        service.init();
     }
 }
 { };

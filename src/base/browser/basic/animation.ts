@@ -1,5 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Callable } from "src/base/common/util/type";
+import { Callable } from "src/base/common/utilities/type";
 
 /**
  * when the current enviroment is too old to support `requestAnimationFrame`, we 

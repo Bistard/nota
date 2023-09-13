@@ -1,17 +1,20 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { errorToMessage } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
-import { URI } from "src/base/common/file/uri";
-import { Mutable } from "src/base/common/util/type";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { IReadableStream, newWriteableBufferStream } from "src/base/common/files/stream";
+import { URI } from "src/base/common/files/uri";
+import { Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/platform/ipc/common/channel";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { ResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
+import { IReviverRegistrant } from "src/platform/ipc/common/revive";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -33,12 +36,17 @@ export class BrowserFileChannel extends Disposable implements IFileService {
     // [field]
 
     private readonly _channel: IChannel;
+    private readonly _reviver: IReviverRegistrant;
 
     // [constructor]
 
-    constructor(ipcService: IIpcService) {
+    constructor(
+        @IIpcService ipcService: IIpcService,
+        @IRegistrantService registrantService: IRegistrantService,
+    ) {
         super();
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
+        this._reviver = registrantService.getRegistrant(RegistrantType.Reviver);
 
         this.__register(this._channel.registerListener<IRawResourceChangeEvents>(FileCommand.onDidResourceChange)(event => {
             if (event instanceof Error) {
@@ -54,7 +62,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             if (event instanceof Error) {
                 throw event;
             }
-            this._onDidResourceClose.fire(URI.revive(event));
+            this._onDidResourceClose.fire(URI.revive(event, this._reviver));
         }));
 
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
@@ -79,7 +87,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         const res: IResolvedFileStat = await this._channel.callCommand(FileCommand.stat, [uri, opts]);
 
         const revive = (stat: IResolvedFileStat) => {
-            (<Mutable<URI>>stat.uri) = URI.revive(stat.uri);
+            (<Mutable<URI>>stat.uri) = URI.revive(stat.uri, this._reviver);
             for (const child of (stat?.children ?? [])) {
                 revive(child);
             }

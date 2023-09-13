@@ -1,10 +1,10 @@
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { LogLevel } from "src/base/common/logger";
-import { iterProp } from "src/base/common/util/object";
+import { iterProp } from "src/base/common/utilities/object";
 import { IService, createService, refineDecorator } from "src/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/platform/window/common/window";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 
 export const IEnvironmentService = createService<IEnvironmentService>('environment-service');
 export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, IBrowserEnvironmentService>(IEnvironmentService);

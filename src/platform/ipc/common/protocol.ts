@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
+import { DataBuffer } from "src/base/common/files/buffer";
 import { ChannelType, IpcChannel } from "src/platform/ipc/common/channel";
 
 export interface ISender {

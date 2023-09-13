@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { delayFor } from 'src/base/common/util/async';
+import { delayFor } from 'src/base/common/utilities/async';
 import { AbstractLifecycleService } from 'src/platform/lifecycle/common/abstractLifecycleService';
 import { NullLogger } from 'test/utils/testService';
 

@@ -1,14 +1,17 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IReadableStream, listenStream } from "src/base/common/file/stream";
-import { Schemas, URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { IReadableStream, listenStream } from "src/base/common/files/stream";
+import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
-import { CancellationToken } from "src/base/common/util/cacellation";
+import { CancellationToken } from "src/base/common/utilities/cacellation";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IServerChannel } from "src/platform/ipc/common/channel";
+import { IReviverRegistrant } from "src/platform/ipc/common/revive";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 /** @internal */
 export type ReadableStreamDataFlowType<TData> = TData | Error | 'end';
@@ -42,12 +45,17 @@ export class MainFileChannel implements IServerChannel {
 
     private readonly _activeWatchers = new Map<string, IDisposable>();
 
+    private readonly _reviver: IReviverRegistrant;
+
     // [constructor]
 
     constructor(
         private readonly logService: ILogService,
         private readonly fileService: IFileService,
-    ) { }
+        registrantService: IRegistrantService,
+    ) {
+        this._reviver = registrantService.getRegistrant(RegistrantType.Reviver);
+    }
 
     // [public methods]
 
@@ -101,7 +109,7 @@ export class MainFileChannel implements IServerChannel {
      */
     private __onReadFileStream(uri: URI, opts?: IReadFileOptions): Register<ReadableStreamDataFlowType<DataBuffer>> {
         const token = new CancellationToken();
-        uri = URI.revive(uri);
+        uri = URI.revive(uri, this._reviver);
 
         const emitter = new Emitter<ReadableStreamDataFlowType<DataBuffer>>({
             onLastListenerRemoved: () => token.cancel()

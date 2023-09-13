@@ -1,5 +1,5 @@
-import { join } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { join } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { ICLIArguments } from "src/platform/environment/common/argument";

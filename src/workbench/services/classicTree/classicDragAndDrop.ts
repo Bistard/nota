@@ -1,9 +1,9 @@
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
-import { Arrays } from "src/base/common/util/array";
-import { Scheduler } from "src/base/common/util/async";
-import { Mutable } from "src/base/common/util/type";
+import { Arrays } from "src/base/common/utilities/array";
+import { Scheduler } from "src/base/common/utilities/async";
+import { Mutable } from "src/base/common/utilities/type";
 import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
 import { IClassicTree } from "src/workbench/services/classicTree/classicTree";
 import { IFileService } from "src/platform/files/common/fileService";

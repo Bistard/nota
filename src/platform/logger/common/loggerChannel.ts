@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { BufferLogger, defaultLog, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
 import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { AbstractLoggerService, ILoggerService } from "src/platform/logger/common/abstractLoggerService";

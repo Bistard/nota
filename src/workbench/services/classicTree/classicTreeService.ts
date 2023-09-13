@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { IClassicOpenEvent, ClassicTree, IClassicTree } from "src/workbench/services/classicTree/classicTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ClassicChildrenProvider, ClassicItem } from "src/workbench/services/classicTree/classicItem";

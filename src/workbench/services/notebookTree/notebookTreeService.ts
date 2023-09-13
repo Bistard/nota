@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { ITreeService, TreeMode } from "src/workbench/services/explorerTree/treeService";
 
 export interface INotebookTreeService extends ITreeService<any> {

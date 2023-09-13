@@ -1,4 +1,4 @@
-import { Constructor } from "src/base/common/util/type";
+import { Constructor } from "src/base/common/utilities/type";
 import { InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
 
 export class ServiceDescriptor<T extends Constructor> {

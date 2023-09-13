@@ -1,14 +1,13 @@
 import { Disposable } from "src/base/common/dispose";
 import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
-import { mixin } from "src/base/common/util/object";
-import { Dictionary } from "src/base/common/util/type";
+import { mixin } from "src/base/common/utilities/object";
+import { Dictionary } from "src/base/common/utilities/type";
 import { IDefaultConfigurationModule, ConfigurationModuleType } from "src/platform/configuration/common/configuration";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent, IRawSetConfigurationChangeEvent, IConfigurationSchema } from "src/platform/configuration/common/configurationRegistrant";
 import { IConfigurationStorage, ConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-
-const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 /**
  * @class A {@link DefaultConfiguration} is a class representing the default 
@@ -26,6 +25,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
 
     public readonly type = ConfigurationModuleType.Default;
 
+    private readonly _registrant: IConfigurationRegistrant;
     private _storage: IConfigurationStorage;
     private readonly _initProtector: InitProtector;
 
@@ -36,8 +36,11 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
 
     // [constructor]
 
-    constructor() {
+    constructor(
+        @IRegistrantService registrantService: IRegistrantService,
+    ) {
         super();
+        this._registrant = registrantService.getRegistrant(RegistrantType.Configuration);
         this._storage = this.__register(new ConfigurationStorage());
         this._initProtector = new InitProtector();
     }
@@ -50,19 +53,19 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
 
     public init(): void {
         this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
-        this._storage = DefaultConfiguration.createDefaultConfigurationStorage();
-        this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
+        this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
+        this.__register(this._registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
     }
 
     public reload(): void {
-        this._storage = DefaultConfiguration.createDefaultConfigurationStorage();
+        this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
     }
 
     // [private methods]
 
     private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
         const properties = Array.from(e.properties);
-        DefaultConfiguration.__updateDefaultConfigurations(this._storage, properties, Registrant.getConfigurationSchemas());
+        DefaultConfiguration.__updateDefaultConfigurations(this._storage, properties, this._registrant.getConfigurationSchemas());
         this._onDidConfigurationChange.fire({ properties: properties });
     }
 
@@ -70,12 +73,12 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
 
     /**
      * @description Create a new {@link IConfigurationStorage} that 
-     * @returns 
      */
-    public static createDefaultConfigurationStorage(): IConfigurationStorage {
+    public static createDefaultConfigurationStorage(registrant: IConfigurationRegistrant): IConfigurationStorage {
         const storage = new ConfigurationStorage();
-        const schemas = Registrant.getConfigurationSchemas();
+        const schemas = registrant.getConfigurationSchemas();
         this.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
+        storage.refreshSections();
         return storage;
     }
 

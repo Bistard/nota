@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
-import { join } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { join } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";

@@ -1,12 +1,10 @@
-import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
-import { isNumber } from "src/base/common/util/type";
+import { isNumber } from "src/base/common/utilities/type";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { createRegistrant, REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
-
-export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(RegistrantType.Shortcut);
+import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -99,7 +97,7 @@ interface IShortcutItems {
 /**
  * An interface only for {@link ShortcutRegistrant}.
  */
-export interface IShortcutRegistrant {
+export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut> {
 
     /**
      * @description Register a {@link Shortcut}.
@@ -142,13 +140,14 @@ export interface IShortcutRegistrant {
     getAllShortcutRegistrations(): Map<number, IShortcutItem[]>;
 }
 
-@IShortcutRegistrant
-class ShortcutRegistrant implements IShortcutRegistrant {
+export class ShortcutRegistrant implements IShortcutRegistrant {
 
     // [field]
 
+    public readonly type = RegistrantType.Shortcut;
+
     private static _shortcutID = 0;
-    private readonly _commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
+    private readonly _commandRegistrant: ICommandRegistrant;
 
     /**
      * A map that stores all the registered shortcuts. Mapping from the hash 
@@ -160,11 +159,16 @@ class ShortcutRegistrant implements IShortcutRegistrant {
 
     // [constructor]
 
-    constructor() {
+    constructor(commandRegistrant: ICommandRegistrant) {
         this._shortcuts = new Map();
+        this._commandRegistrant = commandRegistrant;
     }
 
     // [public methods]
+
+    public initRegistrations(): void {
+        // noop
+    }
 
     public register(registration: IShortcutRegistration): IDisposable {
 
