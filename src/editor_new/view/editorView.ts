@@ -1,4 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
+import { IEditorWidgetOptions } from "src/editor_new/common/editorConfiguration";
+import { IEditorView } from "src/editor_new/common/view";
 import { IEditorViewModel } from "src/editor_new/common/viewModel";
 
 export class EditorView extends Disposable {
@@ -7,6 +9,9 @@ export class EditorView extends Disposable {
 
     private readonly _viewModel: IEditorViewModel;
     
+    /** The options of the entire editor. */
+    private readonly _options: IEditorWidgetOptions;
+
     /**
      * The container that contains the whole editor view.
      */
@@ -16,11 +21,17 @@ export class EditorView extends Disposable {
 
     constructor(
         viewModel: IEditorViewModel,
-        container: HTMLElement,
+        options: IEditorWidgetOptions,
     ) {
         super();
         this._viewModel = viewModel;
-        this._container = container;
+        this._options = options;
+    }
+
+    // [getter / setter]
+
+    get container(): HTMLElement {
+        return this._options.container;
     }
 
     // [public methods]

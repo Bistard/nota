@@ -14,6 +14,7 @@ import { IEditorService } from "src/workbench/parts/workspace/editor/editorServi
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { EditorWidget, IEditorWidget } from 'src/editor_new/editorWidget';
+import { EditorRenderMode } from 'src/editor_new/common/editorConfiguration';
 
 export class Editor extends Component implements IEditorService {
 
@@ -75,6 +76,7 @@ export class Editor extends Component implements IEditorService {
             EditorWidget, 
             {
                 container: this.element.element,
+                renderMode: EditorRenderMode.RichText,
             },
         );
         this._editorWidget = editor;

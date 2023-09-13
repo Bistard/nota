@@ -61,7 +61,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     // [getter / setter]
-
     
     get model(): EditorModel | undefined {
         return this._model;
@@ -107,16 +106,24 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private __load(source: URI): void {
 
         // model
-        const model = this.instantiationService.createInstance(EditorModel, source);
+        const model = this.instantiationService.createInstance(
+            EditorModel, 
+            source,
+            this._options,
+        );
 
         // view-model
-        const viewModel = this.instantiationService.createInstance(EditorViewModel, model);
+        const viewModel = this.instantiationService.createInstance(
+            EditorViewModel, 
+            model,
+            this._options,
+        );
 
         // view
         const view = this.instantiationService.createInstance(
             EditorView, 
             viewModel,
-            this._options.container,
+            this._options,
         );
 
         // registrations
