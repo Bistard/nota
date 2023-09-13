@@ -12,11 +12,6 @@ export class EditorView extends Disposable {
     /** The options of the entire editor. */
     private readonly _options: IEditorWidgetOptions;
 
-    /**
-     * The container that contains the whole editor view.
-     */
-    private readonly _container: HTMLElement;
-
     // [constructor]
 
     constructor(
