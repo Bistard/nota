@@ -1,7 +1,9 @@
 import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
 import { IEditorWidgetOptions } from "src/editor_new/common/editorConfiguration";
-import CKEditor from "@ckeditor/ckeditor5-build-classic";
+import { EditorModel } from "src/editor_new/model/editorModel";
+import { EditorView } from "src/editor_new/view/editorView";
+import { EditorViewModel } from "src/editor_new/viewModel/editorViewModel";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 /**
@@ -24,31 +26,84 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [fields]
 
-    private readonly _container: HTMLElement;
     private readonly _options: IEditorWidgetOptions;
 
+    private _model?: EditorModel;
+    private _viewModel?: EditorViewModel;
+    private _view?: EditorView;
+    
     // [constructor]
 
     constructor(
-        container: HTMLElement,
         opts: IEditorWidgetOptions,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super();
-        this._container = container;
         this._options = opts;
+    }
+
+    // [getter / setter]
+
+    
+    get model(): EditorModel | undefined {
+        return this._model;
+    }
+
+    get viewModel(): EditorViewModel | undefined {
+        return this._viewModel;
+    }
+
+    get view(): EditorView | undefined {
+        return this._view;
     }
 
     // [public methods]
 
     public async open(source: URI): Promise<void> {
-        console.log('open invoked');
-        
+        this.__unload();
+        this.__load(source);
+    }
 
-        await CKEditor.create(this._container, {
-            language: 'en',
-        });
+    public override dispose(): void {
+        super.dispose();
     }
 
     // [private helper methods]
+
+    /**
+     * @description Destroys the previous models (along with all the metadata).
+     */
+    private __unload(): void {
+        this._model?.dispose();
+        this._viewModel?.dispose();
+        this._view?.dispose();
+        
+        this._model = undefined;
+        this._viewModel = undefined;
+        this._view = undefined;
+    }
+
+    /**
+     * @description Load the new source into the editor.
+     */
+    private __load(source: URI): void {
+
+        // model
+        const model = this.instantiationService.createInstance(EditorModel, source);
+
+        // view-model
+        const viewModel = this.instantiationService.createInstance(EditorViewModel, model);
+
+        // view
+        const view = this.instantiationService.createInstance(
+            EditorView, 
+            viewModel,
+            this._options.container,
+        );
+
+        // registrations
+        this._model = this.__register(model);
+        this._viewModel = this.__register(viewModel);
+        this._view = this.__register(view);
+    }
 }
