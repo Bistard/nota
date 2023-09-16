@@ -287,7 +287,7 @@ export type Result<T, E> = Ok<T> | Err<E>;
 /**
  * An interface for {@link Ok} and {@link Err}.
  */
-interface IResult<T, E> {
+export interface IResult<T, E> {
     
     /**
      * @description Represents the inner data value or error value of the 
@@ -444,7 +444,22 @@ interface IResult<T, E> {
     // else<E2>(onErr: (err: E) => Result<T, E2>): Result<T, E2>;
 }
 
-/* Represents a successful outcome with a value of type T. */
+/**
+ * @class Represents a successful outcome with a value of type `T`.
+ * 
+ * Instances of `Ok` contain a single `data` property representing the 
+ * successful value, and methods to manipulate or query this result.
+ * 
+ * @example
+ * ```
+ * const success = new Ok(42);
+ * console.log(success.isOk());     // true
+ * console.log(success.isErr());    // false
+ * console.log(success.unwrap());   // 42
+ * ```
+ * 
+ * @template T The type of the successful value.
+ */
 export class Ok<T> implements IResult<T, never> {
     constructor(public readonly data: T) {}
 
@@ -468,12 +483,30 @@ export class Ok<T> implements IResult<T, never> {
         return this.data;
     }
 
-    public match<U>(_onOk: (data: T) => U, _onError: (error: never) => U): U {
-        return _onOk(this.data);
+    public match<U>(onOk: (data: T) => U, _onError: (error: never) => U): U {
+        return onOk(this.data);
     }
 }
 
-/* Represents an error outcome with an error value of type E.*/
+/**
+ * @class Represents an error outcome with a value of type `E`.
+ * 
+ * Instances of `Err` contain a single `data` property representing the 
+ * error value, and methods to manipulate or query this result.
+ * 
+ * Attempting to `unwrap` an `Err` will trigger a panic (a thrown error in 
+ * this context). 
+ * 
+ * @example
+ * ```
+ * const error = new Err("Something went wrong");
+ * console.log(error.isOk());     // false
+ * console.log(error.isErr());    // true
+ * console.error(error.unwrap()); // Will throw an error with the message "Something went wrong"
+ * ```
+ * 
+ * @template E The type of the error value.
+ */
 export class Err<E> implements IResult<never, E> {
     constructor(public readonly data: E) {}
 
