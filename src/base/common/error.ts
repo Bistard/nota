@@ -444,9 +444,63 @@ interface IResult<T, E> {
     // else<E2>(onErr: (err: E) => Result<T, E2>): Result<T, E2>;
 }
 
-// TODO: class Ok
+/* Represents a successful outcome with a value of type T. */
+export class Ok<T> implements IResult<T, never> {
+    constructor(public readonly data: T) {}
 
-// TODO: class Err
+    public isOk(): this is Ok<T> {
+        return true;
+    }
+
+    public isErr(): this is Err<never> {
+        return false;
+    }
+
+    public unwrap(): T {
+        return this.data;
+    }
+
+    public unwrapOr(_data: T): T {
+        return this.data;
+    }
+
+    public expect(_errMessage: string): T {
+        return this.data;
+    }
+
+    public match<U>(_onOk: (data: T) => U, _onError: (error: never) => U): U {
+        return _onOk(this.data);
+    }
+}
+
+/* Represents an error outcome with an error value of type E.*/
+export class Err<E> implements IResult<never, E> {
+    constructor(public readonly data: E) {}
+
+    public isOk(): this is Ok<never> {
+        return false;
+    }
+
+    public isErr(): this is Err<E> {
+        return true;
+    }
+
+    public unwrap(): never {
+        panic(`Tried to unwrap an Err: ${this.data}`);
+    }
+
+    public unwrapOr(data: never): never {
+        return data;
+    }
+
+    public expect(errMessage: string): never {
+        panic(errMessage);
+    }
+
+    public match<U>(_onOk: (data: never) => U, onError: (error: E) => U): U {
+        return onError(this.data);
+    }
+}
 
 /**
  * @description Panics the program by throwing an error with the provided message.
