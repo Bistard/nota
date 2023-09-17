@@ -287,7 +287,7 @@ export type Result<T, E> = Ok<T> | Err<E>;
 /**
  * An interface for {@link Ok} and {@link Err}.
  */
-export interface IResult<T, E> {
+interface IResult<T, E> {
     
     /**
      * @description Represents the inner data value or error value of the 
@@ -442,6 +442,44 @@ export interface IResult<T, E> {
 
     // then<T2, E2>(onOk: (data: T) => Result<T2, E2>): Result<T2, E | E2>;
     // else<E2>(onErr: (err: E) => Result<T, E2>): Result<T, E2>;
+}
+
+/**
+ * @description Creates and returns an instance of the `Ok` class with the 
+ * provided value. This function serves as a shorthand utility to create `Ok` 
+ * instances without using the `new` keyword, making it more concise and 
+ * readable.
+ * 
+ * @template T The type of the successful value.
+ * @param {T} data The successful value to be wrapped in an `Ok` instance.
+ * @returns {Ok<T>} An instance of the `Ok` class containing the provided successful value.
+ * 
+ * @example
+ * ```
+ * const successfulResult = ok(42);
+ * ```
+ */
+export function ok<T>(data: T): Ok<T> {
+    return new Ok(data);
+}
+
+/**
+ * @description Creates and returns an instance of the `Err` class with the 
+ * provided error value. This function serves as a shorthand utility to create 
+ * `Err` instances without using the `new` keyword, making it more concise and 
+ * readable.
+ * 
+ * @template E The type of the error value.
+ * @param {E} data The error value to be wrapped in an `Err` instance.
+ * @returns {Err<E>} An instance of the `Err` class containing the provided error value.
+ * 
+ * @example
+ * ```
+ * const errorResult = err("An error occurred");
+ * ```
+ */
+export function err<E>(data: E): Err<E> {
+    return new Err(data);
 }
 
 /**
