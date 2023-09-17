@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/util/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/util/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, IsAny, checkTrue, checkFalse } from 'src/base/common/util/type';
 
 suite('type-test', () => {
 
@@ -268,12 +268,31 @@ suite('typescript-types-test', () => {
         res = false satisfies IsObject<null>;
     });
 
+    test('IsAny type', () => {
+        checkTrue<IsAny<any>>();
+        checkFalse<IsAny<boolean>>();
+        checkFalse<IsAny<number>>();
+        checkFalse<IsAny<string>>();
+        checkFalse<IsAny<object>>();
+        checkFalse<IsAny<Array<any>>>();
+        checkFalse<IsAny<void>>();
+        checkFalse<IsAny<never>>();
+    });
+
     test('AreEqual type', () => {
         let res: boolean;
         res = true satisfies AreEqual<"a", "a">;
         res = false satisfies AreEqual<"a", "b">;
         res = false satisfies AreEqual<"a", undefined>;
         res = false satisfies AreEqual<"a", { a: 'hello world'; }>;
+
+        checkFalse<AreEqual<boolean, any>>();
+        checkFalse<AreEqual<any, boolean>>();
+        checkTrue<AreEqual<string, string>>();
+        checkTrue<AreEqual<boolean, boolean>>();
+        checkTrue<AreEqual<number, number>>();
+        checkFalse<AreEqual<string, number>>();
+        checkFalse<AreEqual<any, any>>(); // expected
     });
 
     test('ConcatArray type', () => {
