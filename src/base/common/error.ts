@@ -489,7 +489,7 @@ export class Err<E> implements IResult<never, E> {
         panic(`Tried to unwrap an Err: ${this.data}`);
     }
 
-    public unwrapOr(data: never): never {
+    public unwrapOr<T> (data: T): T{
         return data;
     }
 
