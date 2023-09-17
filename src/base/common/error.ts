@@ -584,5 +584,6 @@ export class Err<E> implements IResult<never, E> {
  * @returns {never} This function never returns normally; always throws an error.
  */
 export function panic(message: string): never {
+    // eslint-disable-next-line local/code-no-throw
     throw new Error(message);
 }
