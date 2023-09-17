@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { Err, ErrorHandler, IResult, InitProtector, Ok, panic, tryOrDefault } from 'src/base/common/error';
+import { Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
+import { AreEqual, checkTrue, isString } from 'src/base/common/util/type';
 import { shouldThrow } from 'test/utils/helpers';
 
 suite('error-test', () => {
@@ -58,7 +59,7 @@ suite('error-test', () => {
 suite('result-test', () => {
 
     suite('Ok', () => {
-        const okInstance: IResult<number, string> = new Ok(42);
+        const okInstance: Result<number, string> = new Ok(42);
 
         test('isOk method should return true', () => {
             assert.ok(okInstance.isOk());
@@ -86,7 +87,7 @@ suite('result-test', () => {
     });
 
     suite('Err', () => {
-        const errInstance: IResult<number, string> = new Err("Error Message");
+        const errInstance: Result<number, string> = new Err("Error Message");
 
         test('isOk method should return false', () => {
             assert.ok(!errInstance.isOk());
@@ -116,6 +117,66 @@ suite('result-test', () => {
 
         test('match should apply onError function and return its result', () => {
             assert.strictEqual(errInstance.match(num => 'onSuccess', err => 'onError'), 'onError');
+        });
+    });
+
+    suite('Result', () => {
+
+        function getResult(value: boolean): Result<string, Error> {
+            if (value) {
+                return ok('ok');
+            }
+            return err(new Error('err'));
+        }
+
+        test('isOk type-check', () => {
+            const result = getResult(true);
+            if (result.isOk()) {
+                checkTrue<AreEqual<typeof result.data, string>>();
+            } else {
+                checkTrue<AreEqual<typeof result.data, Error>>();
+            }
+        });
+
+        test('isErr type-check', () => {
+            const result = getResult(true);
+            if (result.isErr()) {
+                checkTrue<AreEqual<typeof result.data, Error>>();
+            } else {
+                checkTrue<AreEqual<typeof result.data, string>>();
+            }
+        });
+        
+        test('unwrap type-check', () => {
+            const result = getResult(true);
+            const str = result.unwrap();
+            checkTrue<AreEqual<typeof str, string>>();
+        });
+        
+        test('unwrapOr type-check', () => {
+            const result = getResult(true);
+            const str = result.unwrapOr('default');
+            checkTrue<AreEqual<typeof str, string>>();
+        });
+        
+        test('expect type-check', () => {
+            const result = getResult(true);
+            const str = result.expect('expect error message');
+            checkTrue<AreEqual<typeof str, string>>();
+        });
+        
+        test('match type-check', () => {
+            const result = getResult(true);
+            result.match(
+                (data) => {
+                    assert.ok(isString(data));
+                    checkTrue<AreEqual<typeof data, string>>();
+                }, 
+                (err) => {
+                    assert.ok(err instanceof Error);
+                    checkTrue<AreEqual<typeof err, Error>>();
+                },
+            );
         });
     });
 
