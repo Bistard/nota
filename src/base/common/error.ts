@@ -282,7 +282,7 @@ export class InitProtector {
  * @see {@link Ok}
  * @see {@link Err}
  */
-export type Result<T, E> = Ok<T> | Err<E>;
+export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
 /**
  * An interface for {@link Ok} and {@link Err}.
@@ -327,7 +327,7 @@ interface IResult<T, E> {
      * console.log(result.isErr()); // false
      * ```
      */
-    isOk(): this is Ok<T>;
+    isOk(): this is Ok<T, E>;
     
     /**
      * @description Returns `true` if the {@link Result} is an {@link Err} 
@@ -340,7 +340,7 @@ interface IResult<T, E> {
      * console.log(result.isOk()); // false
      * ```
      */
-    isErr(): this is Err<E>;
+    isErr(): this is Err<T, E>;
 
     /**
      * @description Returns the inner value if the {@link Result} is an {@link Ok}
@@ -459,7 +459,7 @@ interface IResult<T, E> {
  * const successfulResult = ok(42);
  * ```
  */
-export function ok<T>(data: T): Ok<T> {
+export function ok<T>(data: T): Ok<T, never> {
     return new Ok(data);
 }
 
@@ -478,7 +478,7 @@ export function ok<T>(data: T): Ok<T> {
  * const errorResult = err("An error occurred");
  * ```
  */
-export function err<E>(data: E): Err<E> {
+export function err<E>(data: E): Err<never, E> {
     return new Err(data);
 }
 
@@ -498,14 +498,14 @@ export function err<E>(data: E): Err<E> {
  * 
  * @template T The type of the successful value.
  */
-export class Ok<T> implements IResult<T, never> {
+export class Ok<T, E> implements IResult<T, E> {
     constructor(public readonly data: T) {}
 
-    public isOk(): this is Ok<T> {
+    public isOk(): this is Ok<T, E> {
         return true;
     }
 
-    public isErr(): this is Err<never> {
+    public isErr(): this is Err<T, E> {
         return false;
     }
 
@@ -521,7 +521,7 @@ export class Ok<T> implements IResult<T, never> {
         return this.data;
     }
 
-    public match<U>(onOk: (data: T) => U, _onError: (error: never) => U): U {
+    public match<U>(onOk: (data: T) => U, _onError: (error: E) => U): U {
         return onOk(this.data);
     }
 }
@@ -545,14 +545,14 @@ export class Ok<T> implements IResult<T, never> {
  * 
  * @template E The type of the error value.
  */
-export class Err<E> implements IResult<never, E> {
+export class Err<T, E> implements IResult<T, E> {
     constructor(public readonly data: E) {}
 
-    public isOk(): this is Ok<never> {
+    public isOk(): this is Ok<T, E> {
         return false;
     }
 
-    public isErr(): this is Err<E> {
+    public isErr(): this is Err<T, E> {
         return true;
     }
 
@@ -560,7 +560,7 @@ export class Err<E> implements IResult<never, E> {
         panic(`Tried to unwrap an Err: ${this.data}`);
     }
 
-    public unwrapOr<T> (data: T): T{
+    public unwrapOr(data: T): T{
         return data;
     }
 
@@ -568,7 +568,7 @@ export class Err<E> implements IResult<never, E> {
         panic(errMessage);
     }
 
-    public match<U>(_onOk: (data: never) => U, onError: (error: E) => U): U {
+    public match<U>(_onOk: (data: T) => U, onError: (error: E) => U): U {
         return onError(this.data);
     }
 }
