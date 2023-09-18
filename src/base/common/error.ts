@@ -29,7 +29,7 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
     constructor() {
         this._unexpectedErrorExternalCallback = (error: any) => {
             console.error(error);
-            throw error;
+            panic(`on unexpected external error: ${errorToMessage(error)}`);
         };
     }
 
@@ -177,7 +177,7 @@ export function errorToMessage(error: any, verbose: boolean = false): string {
     }
 
     if (error.stack && verbose) {
-        return Strings.format('{0} (stack trace - {1})', [error.message || UNKNOWN_MESSAGE, stackToMessage(error.stack)]);
+        return Strings.format('{0} (stack trace - {1})', [error.message || UNKNOWN_MESSAGE, __stackToMessage(error.stack)]);
     }
 
     if (error.message) {
@@ -187,7 +187,7 @@ export function errorToMessage(error: any, verbose: boolean = false): string {
     return `${UNKNOWN_MESSAGE}: ${JSON.stringify(error)}`;
 }
 
-function stackToMessage(stack: any): string {
+function __stackToMessage(stack: any): string {
     if (Array.isArray(stack)) {
         return stack.join('\n');
     } else {
@@ -233,13 +233,12 @@ export class InitProtector {
         return this._initialized;
     }
 
-    public init(errorMessage: string): void {
+    public init(errorMessage: string): Result<void, Error> {
         if (!this._initialized) {
             this._initialized = true;
-            return;
+            return ok(undefined);
         }
-
-        throw new Error(`${errorMessage}`);
+        return err(new Error(`${errorMessage}`));
     }
 }
 
@@ -502,7 +501,7 @@ interface IResult<T, E> {
  * const successfulResult = ok(42);
  * ```
  */
-export function ok<T>(data: T): Ok<T, never> {
+export function ok<T, E>(data: T): Ok<T, E> {
     return new Ok(data);
 }
 
