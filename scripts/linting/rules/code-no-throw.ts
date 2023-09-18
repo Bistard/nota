@@ -10,7 +10,7 @@ export = new class CodeNoThrow implements eslint.Rule.RuleModule {
             recommended: true,
         },
         messages: {
-            noThrow: 'Throwing exceptions is not allowed. Use `Result` instead.',
+            noThrow: 'Throwing exceptions is not allowed. Use `Result` or `panic` instead.',
         },
     };
 
