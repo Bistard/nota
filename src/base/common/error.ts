@@ -1,6 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
+import { Callable } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -239,6 +240,45 @@ export class InitProtector {
         }
 
         throw new Error(`${errorMessage}`);
+    }
+}
+
+export namespace Result {
+
+    /**
+     * @description Wraps a callable function that might throw an error. If the 
+     * function successfully returns, the result will be wrapped inside an 
+     * {@link Ok} variant. If the function throws, the error will be wrapped 
+     * inside an {@link Err} variant after invoking the provided `onError` 
+     * callback.
+     * 
+     * @template T Type of the expected return value from the `mightThrow` callable.
+     * @template E Type that the `onError` function produces.
+     * 
+     * @param mightThrow A callable that might throw an error.
+     * @param onError Callback that gets invoked if `mightThrow` throws.
+     * 
+     * @example
+     * function mightFail(): number {
+     *     throw new Error("Failed!");
+     * }
+     * const result = Result.fromThrowable(
+     *     mightFail, 
+     *     error => console.error(`Caught error: ${error}`)
+     * );
+     * // Logs: Caught error: Error: Failed!
+     */
+    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError: (error: unknown) => E): IResult<T, E> {
+        let res: T;
+        
+        try {
+            res = mightThrow();
+        } 
+        catch (error: unknown) {
+            return err(onError(error));
+        }
+
+        return ok(res);
     }
 }
 
