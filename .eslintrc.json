@@ -97,7 +97,8 @@
                 "local/code-no-plain-enum": "warn",
                 "local/test-code-detect-skip": "warn",
                 "local/test-code-no-only": "error",
-                "local/explicit-member-accessibility": "off"
+                "local/explicit-member-accessibility": "off",
+                "local/code-no-throw": "off"
             }
         }
     ]
