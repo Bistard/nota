@@ -126,6 +126,7 @@ export namespace ErrorHandler {
 export const enum ErrorType {
     Cancelled = 'cancelled',
     Expected = 'expected',
+    Panic = 'panic',
 }
 
 export class CancellationError extends Error {
@@ -499,6 +500,7 @@ export function err<E>(data: E): Err<never, E> {
  * @template T The type of the successful value.
  */
 export class Ok<T, E> implements IResult<T, E> {
+    
     constructor(public readonly data: T) {}
 
     public isOk(): this is Ok<T, E> {
@@ -546,6 +548,7 @@ export class Ok<T, E> implements IResult<T, E> {
  * @template E The type of the error value.
  */
 export class Err<T, E> implements IResult<T, E> {
+    
     constructor(public readonly data: E) {}
 
     public isOk(): this is Ok<T, E> {
@@ -577,7 +580,7 @@ export class Err<T, E> implements IResult<T, E> {
  * @description Panics the program by throwing an error with the provided message.
  * 
  * @remark `panic` is for situations where the error is unrecoverable and the 
- * program cannot proceed further.
+ * program cannot proceed further. Use it very carefully.
  * 
  * @param {string} message - The error message to be thrown.
  * @throws {Error} Will throw an error with the provided message.
@@ -585,5 +588,18 @@ export class Err<T, E> implements IResult<T, E> {
  */
 export function panic(message: string): never {
     // eslint-disable-next-line local/code-no-throw
-    throw new Error(message);
+    throw new PanicError(message);
+}
+
+export class PanicError extends Error {
+
+    public readonly type = ErrorType.Panic;
+
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+export function isPanicError(error: any): error is PanicError {
+    return error && error.type === ErrorType.Panic;
 }
