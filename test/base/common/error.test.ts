@@ -189,4 +189,36 @@ suite('result-test', () => {
             });
         });
     });
+
+    suite('Result-namespace', () => {
+
+        test('fromThrowable', () => {
+            
+            function mightFail(): number {
+                throw new Error("Failed!");
+            }
+
+            function notFail(): number {
+                return 42;
+            }
+
+            // not failed
+            const result1 = Result.fromThrowable<number, string>(
+                notFail, 
+                (error: any) => {
+                    return error.message;
+                }
+            );
+            assert.strictEqual(result1.data, 42);
+
+            // failed
+            const result2 = Result.fromThrowable<number, string>(
+                mightFail, 
+                (error: any) => {
+                    return error.message;
+                }
+            );
+            assert.strictEqual(result2.data, 'Failed!');
+        });
+    });
 });
