@@ -1,9 +1,10 @@
 import * as assert from 'assert';
-import { ICommandExecutor, ICommandRegistrant } from 'src/platform/command/common/commandRegistrant';
+import { before } from 'mocha';
+import { CommandRegistrant, ICommandExecutor } from 'src/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/platform/command/common/commandService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
-import { REGISTRANTS } from 'src/platform/registrant/common/registrant';
+import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { NullLogger } from 'test/utils/testService';
 
 interface ITestService extends IService {
@@ -25,7 +26,7 @@ class TestService implements ITestService {
 
 const ITestService = createService<ITestService>('test-service');
 
-suite('command-test', () => {
+suite('commandRegistrant-test', () => {
 
     let instantiationService: IInstantiationService;
     const id = 'test';
@@ -34,19 +35,28 @@ suite('command-test', () => {
         return testService.foo(num);
     };
 
-    setup(() => {
+    let commandRegistrant: CommandRegistrant;
+
+    before(() => {
         instantiationService = new InstantiationService();
+        instantiationService.register(IInstantiationService, instantiationService);
+
         const testService = new TestService();
-        const commandService = new CommandService(instantiationService, new NullLogger());
         instantiationService.register(ITestService, testService);
+        
+        const registrantService = new RegistrantService(new NullLogger());
+        instantiationService.register(IRegistrantService, registrantService);
+        commandRegistrant = new CommandRegistrant();
+        registrantService.registerRegistrant(commandRegistrant);
+
+        const commandService = new CommandService(instantiationService, new NullLogger(), registrantService);
         instantiationService.register(ICommandService, commandService);
     });
 
     test('register-command', () => {
-        const CommandRegistrant = REGISTRANTS.get(ICommandRegistrant);
-        CommandRegistrant.registerCommand({ id }, executor);
+        commandRegistrant.registerCommand({ id }, executor);
 
-        const command = CommandRegistrant.getCommand(id);
+        const command = commandRegistrant.getCommand(id);
         assert.deepStrictEqual(command, {
             id: id,
             command: executor,

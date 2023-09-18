@@ -17,17 +17,17 @@ const configuration = {
     
     "run": {
         command: "electron . --- --log=info",
-        description: 'Run nota.'
+        description: 'Run program.'
     },
 
     "_run": {
         command: "electron . --- --log=trace --open-devtools",
-        description: 'Run nota in develop mode.'
+        description: 'Run program in develop mode.'
     },
 
     "build": {
         command: "node ./scripts/build/build.js",
-        description: 'Build the nota.',
+        description: 'Build the program.',
         options: [
             {
                 flags: ['--watch', '-w'],
@@ -48,12 +48,12 @@ const configuration = {
 
     "watch": {
         command: "npm run script build -- --watch=true --circular=false",
-        description: 'Build the nota and wait to rebuild by watching the change of the source directory.'
+        description: 'Build the program and wait to rebuild by watching the change of the source directory.'
     },
 
     "start": {
         command: "npm run script build && electron .",
-        description: 'Build nota and run nota.',
+        description: 'Build program and run program.',
         options: [
             {
                 flags: ['--log=<level>'],
@@ -74,7 +74,7 @@ const configuration = {
 
     "_start": {
         command: "npm run script start -- --log=trace --open-devtools",
-        description: 'Build nota and run nota in develop mode.'
+        description: 'Build program and run program in develop mode.'
     },
 
     "test": {
@@ -92,7 +92,7 @@ const configuration = {
             {
                 flags: ['--watch'],
                 descriptions: [
-                    'Build the nota and wait to rebuild by watching the change of the source directory.',
+                    'Build the program and wait to rebuild by watching the change of the source directory.',
                 ],
             }
         ]

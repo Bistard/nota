@@ -5,7 +5,7 @@ import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeMod
 import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { isPrimitive } from "src/base/common/util/type";
+import { isPrimitive } from "src/base/common/utilities/type";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 

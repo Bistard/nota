@@ -1,5 +1,5 @@
-import { URI } from "src/base/common/file/uri";
-import { UUID } from "src/base/common/util/string";
+import { URI } from "src/base/common/files/uri";
+import { UUID } from "src/base/common/utilities/string";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
 

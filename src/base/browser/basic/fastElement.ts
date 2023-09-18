@@ -1,6 +1,6 @@
 import { addDisposableListener, DomStyle, EventType, IDomEvent } from "src/base/browser/basic/dom";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 
 /**
  * The interface only for {@link FastElement}.

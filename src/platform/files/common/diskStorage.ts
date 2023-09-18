@@ -1,7 +1,7 @@
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
-import { Dictionary, ifOrDefault } from "src/base/common/util/type";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
+import { Dictionary, ifOrDefault } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**

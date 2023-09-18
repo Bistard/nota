@@ -1,11 +1,11 @@
 import { getCurrTimeStamp } from "src/base/common/date";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
-import { basename, join, parse } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
+import { basename, join, parse } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
-import { AsyncQueue, Blocker } from "src/base/common/util/async";
-import { Strings } from "src/base/common/util/string";
+import { AsyncQueue, Blocker } from "src/base/common/utilities/async";
+import { Strings } from "src/base/common/utilities/string";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { AbstractLoggerService } from "src/platform/logger/common/abstractLoggerService";

@@ -1,9 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
-import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/file/buffer";
+import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/files/buffer";
 import { ILogService } from "src/base/common/logger";
-import { ITask } from "src/base/common/util/async";
-import { If, Pair } from "src/base/common/util/type";
+import { ITask } from "src/base/common/utilities/async";
+import { If, Pair } from "src/base/common/utilities/type";
 import { ChannelType, IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { IProtocol } from "src/platform/ipc/common/protocol";
 

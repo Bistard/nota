@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { Event } from 'src/base/common/event';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { FileOperationErrorType, FileType } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { FileOperationErrorType, FileType } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
 import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
 
 suite('InMemoryFileSystemProvider-test', () => {

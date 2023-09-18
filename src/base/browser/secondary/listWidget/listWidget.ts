@@ -11,9 +11,9 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
-import { IRange } from "src/base/common/range";
+import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { isNumber, nullToUndefined } from "src/base/common/util/type";
+import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
 
 /**
  * The index changed in {@link ListTrait}.

@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import { after, before } from 'mocha';
 import { IDisposable, disposeAll } from 'src/base/common/dispose';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { Schemas, URI } from 'src/base/common/file/uri';
-import { Blocker } from 'src/base/common/util/async';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { Schemas, URI } from 'src/base/common/files/uri';
+import { Blocker } from 'src/base/common/utilities/async';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { IRawResourceChangeEvents } from 'src/platform/files/common/watcher';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';

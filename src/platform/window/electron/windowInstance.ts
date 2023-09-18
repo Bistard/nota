@@ -1,7 +1,7 @@
 import * as electron from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { join, resolve } from "src/base/common/file/path";
+import { join, resolve } from "src/base/common/files/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/platform/files/common/fileService";

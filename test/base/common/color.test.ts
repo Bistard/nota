@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { HexColor, RGBA } from 'src/base/common/color';
-import { AreEqual } from 'src/base/common/util/type';
+import { AreEqual } from 'src/base/common/utilities/type';
 
 suite('color-test', () => {
 

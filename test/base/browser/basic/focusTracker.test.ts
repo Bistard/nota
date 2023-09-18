@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { FocusTracker } from 'src/base/browser/basic/focusTracker';
-import { delayFor } from 'src/base/common/util/async';
+import { delayFor } from 'src/base/common/utilities/async';
 
 suite('FocusTracker-test', () => {
 

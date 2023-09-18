@@ -6,7 +6,7 @@ import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrol
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
-import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
+import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/structures/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { memoize } from "src/base/common/memoization";

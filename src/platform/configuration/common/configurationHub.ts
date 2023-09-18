@@ -1,5 +1,5 @@
-import { strictEquals } from "src/base/common/util/object";
-import { DeepReadonly, Dictionary } from "src/base/common/util/type";
+import { strictEquals } from "src/base/common/utilities/object";
+import { DeepReadonly, Dictionary } from "src/base/common/utilities/type";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationStorage, IConfigurationStorage, IReadonlyConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { ConfigurationModuleType, IConfigurationCompareResult, Section } from "src/platform/configuration/common/configuration";

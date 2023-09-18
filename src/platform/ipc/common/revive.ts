@@ -1,14 +1,13 @@
-import { Constructor, isObject } from "src/base/common/util/type";
-import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
-
-export const IReviverRegistrant = createRegistrant<IReviverRegistrant>(RegistrantType.Reviver);
+import { URI } from "src/base/common/files/uri";
+import { Constructor, isObject } from "src/base/common/utilities/type";
+import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export type PrototypeMatcher = (obj: object) => boolean;
 
 /**
  * An interface only for {@link ReviverRegistrant}.
  */
-export interface IReviverRegistrant {
+export interface IReviverRegistrant extends IRegistrant<RegistrantType.Reviver> {
     /**
      * @description Register a prototype for future reviving process.
      * @param prototype The prototype to be registered.
@@ -42,12 +41,29 @@ export interface IReviverRegistrant {
  * registered one. The way we do it is by checking whether the object has all 
  * the required property names from the registered prototypes.
  */
-@IReviverRegistrant
-class ReviverRegistrant implements IReviverRegistrant {
+export class ReviverRegistrant implements IReviverRegistrant {
+
+    public readonly type = RegistrantType.Reviver;
 
     private readonly _prototypes = new Map<Constructor<any>, PrototypeMatcher>();
 
     constructor() { }
+
+    public initRegistrations(): void {
+        
+        // URI-reviver
+        this.registerPrototype(URI, (obj: unknown) => {
+            if (Object.prototype.hasOwnProperty.call(obj, 'scheme') &&
+                Object.prototype.hasOwnProperty.call(obj, 'authority') &&
+                Object.prototype.hasOwnProperty.call(obj, 'path') &&
+                Object.prototype.hasOwnProperty.call(obj, 'query') &&
+                Object.prototype.hasOwnProperty.call(obj, 'fragment')
+            ) {
+                return true;
+            }
+            return false;
+        });
+    }
 
     public registerPrototype(prototype: Constructor<any>, matcher: PrototypeMatcher): void {
         if (typeof prototype !== 'function') {

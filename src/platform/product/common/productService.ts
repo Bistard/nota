@@ -1,5 +1,5 @@
 import { errorToMessage } from "src/base/common/error";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { JsonSchemaValidator } from "src/base/common/json";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";

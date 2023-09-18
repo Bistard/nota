@@ -3,8 +3,8 @@ import { addDisposableListener, DomUtility, EventType } from "src/base/browser/b
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { AnchorAbstractPosition, AnchorMode, calcViewPositionAlongAxis, IAnchorBox } from "src/base/browser/basic/view";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Range } from "src/base/common/range";
-import { IDomBox, IPosition } from "src/base/common/util/size";
+import { Range } from "src/base/common/structures/range";
+import { IDomBox, IPosition } from "src/base/common/utilities/size";
 
 export interface IAnchor {
     readonly x: number;

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { IJsonSchema, IJsonSchemaValidateResult, JsonSchemaValidator } from 'src/base/common/json';
-import { deepCopy } from 'src/base/common/util/object';
+import { deepCopy } from 'src/base/common/utilities/object';
 
 suite('json-test', function () {
 

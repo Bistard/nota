@@ -1,4 +1,4 @@
-import { Dictionary } from "src/base/common/util/type";
+import { Dictionary } from "src/base/common/utilities/type";
 
 export interface IReadonlyContext {
     getValue<T>(key: string): T | undefined;

@@ -1,9 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Mutable } from "src/base/common/util/type";
+import { Mutable } from "src/base/common/utilities/type";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { createRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
-
-export const ICommandRegistrant = createRegistrant<ICommandRegistrant>(RegistrantType.Command);
+import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export interface ICommandExecutor<T = any> {
     (provider: IServiceProvider, ...args: any[]): T;
@@ -46,7 +44,7 @@ export interface ICommand extends ICommandSchema {
 /**
  * An interface only for {@link CommandRegistrant}.
  */
-export interface ICommandRegistrant {
+export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> {
 
     /**
      * @description Registers a command by storing it in a map with its id as the key.
@@ -71,12 +69,17 @@ export interface ICommandRegistrant {
  * A command registrant can register commands and can be executed through 
  * the {@link ICommandService}.
  */
-@ICommandRegistrant
-class CommandRegistrant implements ICommandRegistrant {
+export class CommandRegistrant implements ICommandRegistrant {
+
+    public readonly type = RegistrantType.Command;
 
     private readonly _commands = new Map<string, ICommand>();
 
     constructor() {
+        // noop
+    }
+
+    public initRegistrations(): void {
         // noop
     }
 

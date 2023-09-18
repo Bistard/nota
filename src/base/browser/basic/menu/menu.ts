@@ -5,8 +5,8 @@ import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IA
 import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
-import { Constructor, Mutable, isNullable } from "src/base/common/util/type";
-import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/util/size";
+import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type";
+import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";

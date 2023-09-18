@@ -1,6 +1,6 @@
-import { ByteSize } from "src/base/common/file/file";
-import { Character, CharCode } from "src/base/common/util/char";
-import { Mutable } from "src/base/common/util/type";
+import { ByteSize } from "src/base/common/files/file";
+import { Character, CharCode } from "src/base/common/utilities/char";
+import { Mutable } from "src/base/common/utilities/type";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";

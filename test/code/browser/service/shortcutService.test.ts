@@ -1,10 +1,11 @@
 import * as assert from 'assert';
+import { before } from 'mocha';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
 import { ILogService } from 'src/base/common/logger';
 import { IKeyboardService } from 'src/workbench/services/keyboard/keyboardService';
-import { ShortcutWeight } from 'src/workbench/services/shortcut/shortcutRegistrant';
+import { ShortcutRegistrant, ShortcutWeight } from 'src/workbench/services/shortcut/shortcutRegistrant';
 import { ShortcutService } from 'src/workbench/services/shortcut/shortcutService';
-import { ICommandRegistrant } from 'src/platform/command/common/commandRegistrant';
+import { CommandRegistrant } from 'src/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/platform/command/common/commandService';
 import { CreateContextKeyExpr } from 'src/platform/context/common/contextKeyExpr';
 import { ContextService, IContextService } from 'src/platform/context/common/contextService';
@@ -12,23 +13,34 @@ import { IEnvironmentService } from 'src/platform/environment/common/environment
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
-import { REGISTRANTS } from 'src/platform/registrant/common/registrant';
 import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utils/testService';
+import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 
 suite('shortcutService-test', () => {
 
-    let keyboardService!: TestKeyboardService;
-    let shortcutService!: ShortcutService;
-    let contextService!: ContextService;
+    let keyboardService: TestKeyboardService;
+    let shortcutService: ShortcutService;
+    let contextService: ContextService;
+    let commandRegistrant: CommandRegistrant;
+    let shortcutRegistrant: ShortcutRegistrant;
 
-    setup(() => {
+    before(() => {
         const DI = new InstantiationService();
 
         keyboardService = new TestKeyboardService();
         const logService = new NullLogger();
         const fileService = new FileService(logService);
         contextService = new ContextService();
-        const commandService = new CommandService(DI, logService);
+        
+        commandRegistrant = new CommandRegistrant();
+        shortcutRegistrant = new ShortcutRegistrant(commandRegistrant);
+        
+        const registrantService = new RegistrantService(new NullLogger());
+        registrantService.registerRegistrant(commandRegistrant);
+        registrantService.registerRegistrant(shortcutRegistrant);
+        DI.register(IRegistrantService, registrantService);
+
+        const commandService = new CommandService(DI, logService, registrantService);
 
         DI.register(IInstantiationService, DI);
         DI.register(IKeyboardService, keyboardService);
@@ -59,13 +71,13 @@ suite('shortcutService-test', () => {
     test('register and unregister', () => {
 
         let pressed = 0;
-        const commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
+        
         commandRegistrant.registerCommand({ id: 'test-shortcut' }, () => pressed++);
 
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         const precondition = CreateContextKeyExpr.Equal('value', true);
 
-        const unregister = shortcutService.register({
+        const unregister = shortcutRegistrant.register({
             shortcut: shortcut,
             when: precondition,
             commandID: 'test-shortcut',

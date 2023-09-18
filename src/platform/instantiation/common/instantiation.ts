@@ -1,4 +1,4 @@
-import { AbstractConstructor, Constructor } from "src/base/common/util/type";
+import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -7,6 +7,56 @@ import { ServiceCollection } from "src/platform/instantiation/common/serviceColl
 
 export const IInstantiationService = createService<IInstantiationService>('instantiation-service');
 
+/**
+ * NonServiceParameters
+ * 
+ * A utility type to extract non-service parameters from a given tuple. This 
+ * recursively checks the tuple elements from right to left (because tuple types 
+ * capture types in order) and excludes `IService` type elements from the 
+ * resulting tuple.
+ * 
+ * @example
+ * ```typescript
+ * type Params = [string, number, IService, boolean, IService];
+ * type Result = NonServiceParameters<Params>;  // Result will be [string, number, boolean]
+ * ```
+ */
+export type NonServiceParameters<TArgs extends any[]> =
+    TArgs extends []
+        ? []
+        : TArgs extends [...infer TFirst, IService]
+            ? NonServiceParameters<TFirst>
+            : TArgs;
+
+
+/**
+ * InstantiationRequiredParameters
+ * 
+ * A utility type to extract non-service constructor parameters from a given abstract constructor type.
+ * This type leverages `NonServiceParameters` to perform the extraction.
+ * 
+ * @template T - An abstract constructor whose parameter types are to be extracted.
+ * 
+ * @example
+ * ```typescript
+ * abstract class MyClass {
+ *     constructor(arg1: string, arg2: IService, arg3: number) {}
+ * }
+ * 
+ * type RequiredParams = InstantiationRequiredParameters<typeof MyClass>;  // RequiredParams will be [string, number]
+ * ```
+ */
+export type InstantiationRequiredParameters<T extends AbstractConstructor> = NonServiceParameters<ConstructorParameters<T>>;
+
+
+/**
+ * The {@link IServiceProvider} is responsible for the management of services 
+ * within an application. It provides mechanisms to fetch existing services or 
+ * to ensure the creation and retrieval of services if they do not already exist. 
+ * 
+ * This design ensures that services are initialized and managed in a central 
+ * location, promoting better architecture and easier debugging.
+ */
 export interface IServiceProvider {
     
     /**
@@ -25,18 +75,6 @@ export interface IServiceProvider {
     getOrCreateService<T extends IService>(serviceIdentifier: ServiceIdentifier<T>): T;
 }
 
-/**
- * Given a list of parameters as a tuple, attempt to extract the leading, 
- * non-service parameters to their own tuple.
- */
-export type NonServiceParameters<TArgs extends any[]> =
-    TArgs extends []
-        ? []
-        : TArgs extends [...infer TFirst, IService]
-            ? NonServiceParameters<TFirst>
-            : TArgs;
-
-export type InstantiationRequiredParameters<T extends AbstractConstructor> = NonServiceParameters<ConstructorParameters<T>>;
 
 /**
  * An interface only for {@link InstantiationService}.
@@ -99,6 +137,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
     getOrCreateService1<T extends IService, TArgs extends any[]>(callback: (provider: IServiceProvider, ...args: TArgs) => T, ...args: TArgs): T;
 }
 
+
 export class InstantiationService implements IInstantiationService {
 
     declare _serviceMarker: undefined;
@@ -134,7 +173,7 @@ export class InstantiationService implements IInstantiationService {
         }
 
         if (service === undefined || service instanceof ServiceDescriptor) {
-            throw new Error(`cannot get service with identifier '${serviceIdentifier.name}'`);
+            throw new Error(`cannot get service with identifier '${serviceIdentifier.toString()}'`);
         }
         return service;
     }
@@ -142,7 +181,7 @@ export class InstantiationService implements IInstantiationService {
     public getOrCreateService<T extends IService>(serviceIdentifier: ServiceIdentifier<T>): T {
         const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
         if (!service) {
-            throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
+            throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
         }
         return service;
     }
@@ -152,14 +191,14 @@ export class InstantiationService implements IInstantiationService {
             getService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.serviceCollections.get(serviceIdentifier);
                 if (!service || service instanceof ServiceDescriptor) {
-                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
+                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
                 }
                 return service;
             },
             getOrCreateService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
                 if (!service) {
-                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.name}'.`);
+                    throw new Error(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
                 }
                 return service;
             }

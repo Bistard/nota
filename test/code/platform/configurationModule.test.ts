@@ -1,17 +1,19 @@
 import assert from "assert";
-import { after, afterEach, before, beforeEach } from 'mocha';
+import { afterEach, before, beforeEach } from 'mocha';
 import { tryOrDefault } from "src/base/common/error";
 import { Event } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { URI } from "src/base/common/file/uri";
-import { Arrays } from "src/base/common/util/array";
-import { deepCopy } from "src/base/common/util/object";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { URI } from "src/base/common/files/uri";
+import { ILogService } from "src/base/common/logger";
+import { Arrays } from "src/base/common/utilities/array";
+import { deepCopy } from "src/base/common/utilities/object";
 import { DefaultConfiguration } from "src/platform/configuration/common/configurationModules/defaultConfiguration";
 import { UserConfiguration } from "src/platform/configuration/common/configurationModules/userConfiguration";
-import { IConfigurationRegistrant, IConfigurationSchema, IConfigurationUnit } from "src/platform/configuration/common/configurationRegistrant";
+import { ConfigurationRegistrant, IConfigurationRegistrant, IConfigurationSchema, IConfigurationUnit } from "src/platform/configuration/common/configurationRegistrant";
 import { IFileService, FileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 import { FakeAsync } from "test/utils/fakeAsync";
 import { NullLogger } from "test/utils/testService";
 
@@ -26,7 +28,6 @@ suite('ConfigurationModule-test', () => {
         Five = 'configuration.test',
     }
     
-    const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
     const unit1: IConfigurationUnit = {
         id: 'configuration.test',
         properties: {
@@ -85,40 +86,35 @@ suite('ConfigurationModule-test', () => {
         }
     };
     
-    const unit3: IConfigurationUnit = {
-        id: 'user.nested.configuration',
-        properties: {
-            [TestConfiguration.One]: {
-                type: 'number',
-                default: 5,
-                minimum: 0,
-            },
-        }
-    };
-    
     suite('DefaultConfiguration-test', () => {
     
         let configuration: DefaultConfiguration;
-    
+        let di: IInstantiationService;
+        let service: IRegistrantService;
+        let registrant: IConfigurationRegistrant;
+
         before(() => {
-            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
-            Registrant.registerConfigurations(unit1);
-        });
-    
-        after(() => {
-            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
+            di = new InstantiationService();
+            di.register(IInstantiationService, di);
         });
     
         /**
          * Create a new {@link DefaultConfiguration} every time.
          */
         beforeEach(() => {
-            configuration = new DefaultConfiguration();
+            service = new RegistrantService(new NullLogger());
+            di.register(IRegistrantService, service);
+            
+            registrant = new ConfigurationRegistrant();
+            registrant.registerConfigurations(unit1);
+            service.registerRegistrant(registrant as ConfigurationRegistrant);
+
+            configuration = di.createInstance(DefaultConfiguration);
             configuration.init();
         });
     
         test('constructor test - DefaultConfiguration instance with an empty model before init', () => {
-            const configuration = new DefaultConfiguration();
+            const configuration = di.createInstance(DefaultConfiguration);
             assert.deepEqual(configuration.getConfiguration().model, Object.create({}));
         });
     
@@ -149,7 +145,7 @@ suite('ConfigurationModule-test', () => {
                     (arrVal, myVal) => arrVal === myVal,
                 );
             });
-            Registrant.registerConfigurations(unit2);
+            registrant.registerConfigurations(unit2);
     
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Three), true);
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Four1), null);
@@ -157,7 +153,7 @@ suite('ConfigurationModule-test', () => {
             // assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Five), undefined);
     
             assert.strictEqual(fired, 1);
-            Registrant.unregisterConfigurations(unit2);
+            registrant.unregisterConfigurations(unit2); // TODO
             assert.strictEqual(fired, 2);
         });
     
@@ -165,7 +161,7 @@ suite('ConfigurationModule-test', () => {
             // const oldModel = deepCopy(configuration.getConfiguration().model);
             // const oldSections = deepCopy(configuration.getConfiguration().sections);
     
-            Registrant.registerConfigurations(unit2);
+            registrant.registerConfigurations(unit2);
     
             const newModel = deepCopy(configuration.getConfiguration().model);
             const newSections = deepCopy(configuration.getConfiguration().sections);
@@ -210,13 +206,13 @@ suite('ConfigurationModule-test', () => {
                 'five': undefined,
             });
 
-            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
+            registrant.unregisterConfigurations(registrant.getConfigurationUnits()); // TODO
         });
 
         test('createDefaultConfigurationStorage', () => {
-            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits());
+            registrant.unregisterConfigurations(registrant.getConfigurationUnits()); // TODO
 
-            Registrant.registerConfigurations({
+            registrant.registerConfigurations({
                 id: 'configuration1',
                 properties: {
                     'workbench': {
@@ -232,7 +228,7 @@ suite('ConfigurationModule-test', () => {
                 }
             });
 
-            const storage = DefaultConfiguration.createDefaultConfigurationStorage();
+            const storage = DefaultConfiguration.createDefaultConfigurationStorage(registrant);
             assert.deepEqual(storage.model, {
                 'workbench': {
                     'one': 10,
@@ -251,23 +247,34 @@ suite('ConfigurationModule-test', () => {
         let fileService: IFileService;
         const baseURI = URI.parse('file:///testFile');
     
+        let di: IInstantiationService;
+        let service: IRegistrantService;
+        let registrant: IConfigurationRegistrant;
+
         before(async () => {
-            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits()); // refresh
-            Registrant.registerConfigurations(unit1);
-    
-            fileService = new FileService(new NullLogger());
+            di = new InstantiationService();
+            di.register(IInstantiationService, di);
+            
+            const logService = new NullLogger();
+            di.register(ILogService, logService);
+
+            fileService = new FileService(logService);
             fileService.registerProvider('file', new InMemoryFileSystemProvider());
-        });
-    
-        after(() => {
-            Registrant.unregisterConfigurations(Registrant.getConfigurationUnits()); // refresh
+            di.register(IFileService, fileService);
         });
     
         /**
          * Create a new {@link UserConfiguration} every time.
          */
         beforeEach(() => {
-            configuration = new UserConfiguration(baseURI, fileService, new NullLogger());
+            service = new RegistrantService(new NullLogger());
+            di.register(IRegistrantService, service);
+            
+            registrant = new ConfigurationRegistrant();
+            service.registerRegistrant(registrant as ConfigurationRegistrant);
+            registrant.registerConfigurations(unit1);
+
+            configuration = di.createInstance(UserConfiguration, baseURI);
         });
     
         afterEach(() => {
@@ -275,7 +282,7 @@ suite('ConfigurationModule-test', () => {
         });
     
         test('constructor test', () => {
-            const configuration = new UserConfiguration(baseURI, fileService, new NullLogger());
+            const configuration = di.createInstance(UserConfiguration, baseURI);
             assert.deepEqual(configuration.getConfiguration().model, Object.create({}));
         });
     

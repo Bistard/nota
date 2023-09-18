@@ -1,68 +1,96 @@
 {
-  "name": "nota",
-  "version": "0.0.1",
-  "description": "an open-sourced markdown editor",
-  "main": "./dist/main-bundle.js",
-  "type": "commonjs",
-  "private": true,
-  "_moduleAliases": {
-    "eslint-plugin-local": "./scripts/linting/eslint-plugin-local"
-  },
-  "scripts": {
-    "postinstall": "link-module-alias",
-    "script": "node ./scripts/script.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Bistard/nota.git"
-  },
-  "keywords": [
-    "nota"
-  ],
-  "author": "sihanli <lshh1015813038@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Bistard/nota/issues"
-  },
-  "homepage": "https://github.com/Bistard/nota#readme",
-  "devDependencies": {
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^16.11.56",
-    "@types/prismjs": "^1.16.6",
-    "@types/requestidlecallback": "^0.3.4",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "benchmark": "^2.1.4",
-    "circular-dependency-plugin": "^5.2.2",
-    "cross-env": "^7.0.3",
-    "css-loader": "^6.7.3",
-    "electron": "^22.3.10",
-    "eslint": "^8.45.0",
-    "fantasticon": "^1.2.3",
-    "jsdom": "19.0.0",
-    "jsdom-global": "3.0.2",
-    "link-module-alias": "^1.2.0",
-    "mini-css-extract-plugin": "^2.7.2",
-    "minimist": "^1.2.6",
-    "mocha": "^9.1.3",
-    "mochapack": "^2.1.4",
-    "node-loader": "^2.0.0",
-    "sass": "^1.58.3",
-    "sass-loader": "^13.2.0",
-    "ts-loader": "^9.2.5",
-    "ts-node": "^10.4.0",
-    "tsconfig-paths": "^3.12.0",
-    "typescript": "^4.9.5",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.7.2",
-    "webpack-node-externals": "^3.0.0"
-  },
-  "dependencies": {
-    "chokidar": "^3.5.3",
-    "codemirror": "^6.0.1",
-    "prosemirror-model": "^1.18.1",
-    "prosemirror-state": "^1.4.2",
-    "prosemirror-transform": "^1.7.0",
-    "prosemirror-view": "^1.29.0"
-  }
+	"name": "nota",
+	"version": "0.0.1",
+	"description": "an open-sourced markdown editor",
+	"main": "./dist/main-bundle.js",
+	"type": "commonjs",
+	"private": true,
+	"_moduleAliases": {
+		"eslint-plugin-local": "./scripts/linting/eslint-plugin-local"
+	},
+	"scripts": {
+		"postinstall": "link-module-alias",
+		"script": "node ./scripts/script.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Bistard/nota.git"
+	},
+	"keywords": [
+		"nota"
+	],
+	"author": "sihanli <lshh1015813038@gmail.com>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Bistard/nota/issues"
+	},
+	"homepage": "https://github.com/Bistard/nota#readme",
+	"devDependencies": {
+		"@types/mocha": "^9.0.0",
+		"@types/node": "^16.11.56",
+		"@types/prismjs": "^1.16.6",
+		"@types/requestidlecallback": "^0.3.4",
+		"@typescript-eslint/eslint-plugin": "^6.0.0",
+		"@typescript-eslint/parser": "^6.0.0",
+		"benchmark": "^2.1.4",
+		"circular-dependency-plugin": "^5.2.2",
+		"cross-env": "^7.0.3",
+		"css-loader": "^6.7.3",
+		"electron": "^22.3.10",
+		"eslint": "^8.45.0",
+		"fantasticon": "^1.2.3",
+		"jsdom": "19.0.0",
+		"jsdom-global": "3.0.2",
+		"link-module-alias": "^1.2.0",
+		"mini-css-extract-plugin": "^2.7.2",
+		"minimist": "^1.2.6",
+		"mocha": "^9.1.3",
+		"mochapack": "^2.1.4",
+		"node-loader": "^2.0.0",
+		"sass": "^1.58.3",
+		"sass-loader": "^13.2.0",
+		"ts-loader": "^9.2.5",
+		"ts-node": "^10.4.0",
+		"tsconfig-paths": "^3.12.0",
+		"typescript": "^5.2.2",
+		"webpack": "^5.74.0",
+		"webpack-cli": "^4.7.2",
+		"webpack-node-externals": "^3.0.0"
+	},
+	"//": {
+		"devDependencies": {
+			"@types/*": "Type definitions for various libraries to help with TypeScript type checking.",
+			"@typescript-eslint/*": "TypeScript-specific linting tools for ESLint.",
+			"benchmark": "A benchmarking library.",
+			"circular-dependency-plugin": "A webpack plugin to detect modules with circular dependencies.",
+			"cross-env": "Set and use environment variables across platforms. Used to achieve local customized eslint rules.",
+			"css-loader": "Webpack loader for importing CSS files in JavaScript modules.",
+			"electron": "Framework for creating native applications with web technologies.",
+			"eslint": "JavaScript and TypeScript linter.",
+			"fantasticon": "Tool to generate icon fonts.",
+			"jsdom & jsdom-global": "JavaScript-based DOM simulation tools for Node.js.",
+			"link-module-alias": "Link and resolve aliases of modules in Node.js. Used to achieve local customized eslint rules.",
+			"mini-css-extract-plugin": "Extracts CSS from your bundles into separate files.",
+			"minimist": "Parse argument options. Good tiny lib to use.",
+			"mocha and mochapack": "Testing framework and its webpack integration.",
+			"node-loader": "Webpack loader for Node.js native modules.",
+			"sass and sass-loader": "CSS pre-processor and its Webpack loader.",
+			"ts-loader": "TypeScript loader for Webpack.",
+			"ts-node": "TypeScript execution environment for node.",
+			"tsconfig-paths": "Load node modules using paths from tsconfig.",
+			"typescript": "JavaScript superset offering static type checking.",
+			"webpack and related packages": "Module bundler and its various plugins/loaders."
+		},
+		"dependencies": {
+			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform."
+		}
+	},
+	"dependencies": {
+		"chokidar": "^3.5.3",
+		"codemirror": "^6.0.1",
+		"prosemirror-model": "^1.18.1",
+		"prosemirror-state": "^1.4.2",
+		"prosemirror-transform": "^1.7.0",
+		"prosemirror-view": "^1.29.0"
+	}
 }
