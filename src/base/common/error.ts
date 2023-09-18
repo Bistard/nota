@@ -389,6 +389,7 @@ interface IResult<T, E> {
      * instance.
      * 
      * @throws Will panic if the {@link Result} is an {@link Err} instance.
+     * @note Because this function may panic, its use is generally discouraged.
      * 
      * @example
      * ```
@@ -429,9 +430,10 @@ interface IResult<T, E> {
      * type and returns its value. If the {@link IResult} is an {@link Err} 
      * instance, it will {@link panic} with the provided error message.
      * 
-     * This method is useful for cases where the user expects the result to be
-     * successful and wants to provide a custom error message for potential 
-     * failures.
+     * @note This method is useful for cases where the user expects the result 
+     * to be successful and wants to provide a custom error message for 
+     * potential failures.
+     * @note Because this function may panic, its use is generally discouraged.
      * 
      * @param errMessage The error message to use when throwing an exception.
      * @throws Will {@link panic} with the provided `errMessage` if the 
