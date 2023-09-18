@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
-import { AreEqual, checkTrue, isString } from 'src/base/common/util/type';
+import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
 import { shouldThrow } from 'test/utils/helpers';
 
 suite('error-test', () => {
