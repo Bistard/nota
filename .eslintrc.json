@@ -79,7 +79,9 @@
 
         "local/code-no-plain-enum": "error",
         "local/code-interface-check": "error",
-        "local/code-service-marker": "error"
+        "local/code-service-marker": "error",
+        "local/code-no-throw": "warn",
+        "local/code-must-handle-result": "off"
     },
 
     "overrides": [
@@ -95,7 +97,8 @@
                 "local/code-no-plain-enum": "warn",
                 "local/test-code-detect-skip": "warn",
                 "local/test-code-no-only": "error",
-                "local/explicit-member-accessibility": "off"
+                "local/explicit-member-accessibility": "off",
+                "local/code-no-throw": "off"
             }
         }
     ]

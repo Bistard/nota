@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -135,27 +135,27 @@ suite('typescript-types-test', () => {
     });
 
     test('Negate type', () => {
-        type False = Negate<true>;
-        const f: False = false;
-        type True = Negate<false>;
-        const t: True = true;
+        checkTrue<Negate<false>>();
+        checkFalse<Negate<true>>();
     });
 
     test('AnyOf type', () => {
-        type True = AnyOf<[0, "", null, 5]>;
-        type False = AnyOf<[0, "", null]>;
-        const t: True = true;
-        const f: False = false;
+        checkTrue<AnyOf<[0, "", null, 5]>>();
+        checkFalse<AnyOf<[0, "", null]>>();
     });
 
     test('Push type', () => {
-        type FourNumbers = Push<[1, 2, 3], 4>;
-        const arr: FourNumbers = [1, 2, 3, 4];
+        checkTrue<AreEqual<
+            Push<[1, 2, 3], 4>, 
+            [1, 2, 3, 4]
+        >>();
     });
 
     test('Pop type', () => {
-        type ThreeNumbers = Pop<[1, 2, 3, 4]>;
-        const arr: ThreeNumbers = [1, 2, 3];
+        checkTrue<AreEqual<
+            Pop<[1, 2, 3, 4]>, 
+            [1, 2, 3]
+        >>();
     });
 
     test('DeepReadonly type', () => {
@@ -172,9 +172,10 @@ suite('typescript-types-test', () => {
     });
 
     test('SplitString type', () => {
-        type ABCArray = SplitString<"A,B,C", ",">;
-        const arr: ABCArray = ["A", "B", "C"];
-        // let notArr: ABCArray = ["A", "B", "C", "D"]; // This should fail
+        checkTrue<AreEqual<
+            SplitString<"A,B,C", ",">, 
+            ["A", "B", "C"]
+        >>();
     });
 
     test('Single type', () => {
@@ -225,61 +226,101 @@ suite('typescript-types-test', () => {
     });
 
     test('IsTruthy type', () => {
-        type T = IsTruthy<0>;
-        const t: T = false;
-        // let tFail: T = true; // This should fail
+        checkFalse<IsTruthy<false>>();
+        checkFalse<IsTruthy<0>>();
+        checkFalse<IsTruthy<''>>();
+        checkFalse<IsTruthy<[]>>();
+        checkFalse<IsTruthy<{}>>();
+        checkFalse<IsTruthy<void>>();
+        checkFalse<IsTruthy<never>>();
+        
+        checkTrue<IsTruthy<true>>();
+        checkTrue<IsTruthy<1>>();
+        checkTrue<IsTruthy<'2'>>();
+        checkTrue<IsTruthy<[1]>>();
+        checkTrue<IsTruthy<{ a: 5 }>>();
     });
 
     test('IsString type', () => {
-        type T = IsString<"hello">;
-        const t: T = true;
+        checkTrue<IsString<"hello">>();
+        checkFalse<IsString<42>>();
+        checkFalse<IsString<void>>();
+        checkFalse<IsString<true>>();
         // let tFail: T = false; // This should fail
     });
 
     test('IsNumber type', () => {
-        type T = IsNumber<42>;
-        const t: T = true;
+        checkTrue<IsNumber<42>>();
+        checkFalse<IsNumber<false>>();
+        checkFalse<IsNumber<'42'>>();
         // let tFail: T = false; // This should fail
     });
 
     test('IsBoolean type', () => {
-        type T = IsBoolean<false>;
-        const t: T = true;
-        // let tFail: T = false; // This should fail
+        checkTrue<IsBoolean<false>>();
+        checkTrue<IsBoolean<true>>();
+        checkTrue<IsBoolean<boolean>>();
+        
+        checkFalse<IsBoolean<5>>();
+        checkFalse<IsBoolean<void>>();
+        checkFalse<IsBoolean<never>>();
+        checkFalse<IsBoolean<{}>>();
     });
 
     test('IsNull type', () => {
-        type T = IsNull<null>;
-        const t: T = true;
-        // let tFail: T = false; // This should fail
+        checkTrue<IsNull<null>>();
+        checkFalse<IsNull<undefined>>();
+        checkFalse<IsNull<void>>();
+        checkFalse<IsNull<never>>();
+        checkFalse<IsNull<1>>();
+        checkFalse<IsNull<'1'>>();
     });
-
+    
     test('IsArray type', () => {
-        type T = IsArray<[1, 2, 3]>;
-        const t: T = true;
-        // let tFail: T = false; // This should fail
+        checkTrue<IsArray<[1, 2, 3]>>();
+        checkTrue<IsArray<[]>>();
+        checkFalse<IsArray<{}>>();
+        checkFalse<IsArray<void>>();
     });
 
     test('IsObject type', () => {
-        let res: boolean;
-        res = true satisfies IsObject<{}>;
-        res = true satisfies IsObject<{ a: true; }>;
-        res = false satisfies IsObject<5>;
-        res = false satisfies IsObject<null>;
+        checkTrue<IsObject<{}>>();
+        checkTrue<IsObject<{ a: true; }>>();
+        checkFalse<IsObject<5>>();
+        checkFalse<IsObject<null>>();
+    });
+
+    test('IsAny type', () => {
+        checkTrue<IsAny<any>>();
+        checkFalse<IsAny<boolean>>();
+        checkFalse<IsAny<number>>();
+        checkFalse<IsAny<string>>();
+        checkFalse<IsAny<object>>();
+        checkFalse<IsAny<Array<any>>>();
+        checkFalse<IsAny<void>>();
+        checkFalse<IsAny<never>>();
     });
 
     test('AreEqual type', () => {
-        let res: boolean;
-        res = true satisfies AreEqual<"a", "a">;
-        res = false satisfies AreEqual<"a", "b">;
-        res = false satisfies AreEqual<"a", undefined>;
-        res = false satisfies AreEqual<"a", { a: 'hello world'; }>;
+        checkTrue<AreEqual<"a", "a">>();
+        checkFalse<AreEqual<"a", "b">>();
+        checkFalse<AreEqual<"a", undefined>>();
+        checkFalse<AreEqual<"a", { a: 'hello world'; }>>();
+
+        checkFalse<AreEqual<boolean, any>>();
+        checkFalse<AreEqual<any, boolean>>();
+        checkTrue<AreEqual<string, string>>();
+        checkTrue<AreEqual<boolean, boolean>>();
+        checkTrue<AreEqual<number, number>>();
+        checkFalse<AreEqual<string, number>>();
+        checkFalse<AreEqual<any, any>>(); // expected
     });
 
     test('ConcatArray type', () => {
-        type Numbers = ConcatArray<[1, 2], [3, 4]>;
-        const nums: Numbers = [1, 2, 3, 4];
-        // let notNums: Numbers = [1, 2, 3]; // This should fail
+        checkTrue<AreEqual<
+            ConcatArray<[1, 2], [3, 4]>,
+            [1, 2, 3, 4]
+        >>();
     });
 
     test('NestedArray type', () => {

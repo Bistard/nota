@@ -148,7 +148,7 @@ export type If<C, T, F> = C extends boolean ? (C extends true ? T : F) : never;
 /**
  * Determines if the given type T is truthy.
  */
-export type IsTruthy<T> = T extends '' | [] | false | 0 ? false : T extends {} ? keyof T extends never ? false :  true : false;
+export type IsTruthy<T> = T extends '' | [] | false | 0 ? false : T extends {} ? keyof T extends never ? false : true : false;
 
 /**
  * Negate a boolean type.
@@ -186,14 +186,41 @@ export type IsArray<T> = T extends any[] ? true : false;
 export type IsObject<T> = T extends Dictionary<string, any> ? true : false;
 
 /**
- * Determines if the given two types T and U are equal.
+ * Checks if a type `T` is equivalent to the `any` type.
+ *
+ * @example
+ * type Example1 = IsAny<any>;       // true
+ * type Example2 = IsAny<number>;    // false
  */
-export type AreEqual<T, U> = [T, U] extends [never, never] ? true : (T extends U ? (U extends T ? true : false) : false);
+export type IsAny<T> = 0 extends (1 & T) ? true : false;
+
+/**
+ * Compares two types `T` and `U` for strict equality.
+ *
+ * Returns `true` if the types are strictly equal, otherwise returns `false`.
+ * Additionally, ensures that `any` type is always unequal to any other type.
+ * 
+ * @template T The first type to compare.
+ * @template U The second type to compare.
+ * @example
+ * AreEqual<number, number>;   // true
+ * AreEqual<number, string>;   // false
+ * AreEqual<any, number>;      // false
+ * AreEqual<boolean, true>;    // false
+ * AreEqual<boolean, false>;   // false
+ * AreEqual<false, false>;     // true
+ * AreEqual<any, any>;         // false
+ */
+export type AreEqual<T, U> =
+    [T, U] extends [U, T] ?
+    (IsAny<T> extends true ? false :
+        IsAny<U> extends true ? false : true)
+    : false;
 
 /**
  * Determines if the given array contains any truthy values.
  */
-export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ?  IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
+export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
 
 /**
  * Push any type into the end of the array.
@@ -222,14 +249,14 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
  */
 export type DeepReadonly<Mutable> =
     Mutable extends Callable<any[], any>
-        ? Mutable
-        : Mutable extends (infer R)[]
-            ? ReadonlyArray<DeepReadonly<R>>
-            : Mutable extends ReadonlyArray<infer R>
-                ? ReadonlyArray<DeepReadonly<R>>
-                : Mutable extends object
-                    ? { readonly [P in keyof Mutable]: DeepReadonly<Mutable[P]> }
-                    : Mutable;
+    ? Mutable
+    : Mutable extends (infer R)[]
+    ? ReadonlyArray<DeepReadonly<R>>
+    : Mutable extends ReadonlyArray<infer R>
+    ? ReadonlyArray<DeepReadonly<R>>
+    : Mutable extends object
+    ? { readonly [P in keyof Mutable]: DeepReadonly<Mutable[P]> }
+    : Mutable;
 
 /**
  * Make all the properties mutable (remove readonly).
@@ -242,25 +269,25 @@ export type Mutable<Immutable> = {
  * Make all the properties mutable recursively (remove readonly).
  */
 export type DeepMutable<Immutable> = {
-    -readonly [TKey in keyof Immutable]: 
-        Immutable[TKey] extends (infer R)[] 
-            ? DeepMutable<R>[] 
-            : Immutable[TKey] extends ReadonlyArray<infer R> 
-                ? DeepMutable<R>[] 
-                : Immutable[TKey] extends object 
-                    ? DeepMutable<Immutable[TKey]> 
-                    : Immutable[TKey];
+    -readonly [TKey in keyof Immutable]:
+    Immutable[TKey] extends (infer R)[]
+    ? DeepMutable<R>[]
+    : Immutable[TKey] extends ReadonlyArray<infer R>
+    ? DeepMutable<R>[]
+    : Immutable[TKey] extends object
+    ? DeepMutable<Immutable[TKey]>
+    : Immutable[TKey];
 };
 
 /**
  * Given a type T, maps each property with type `from` to type `to` that are
  * defined in the given type R.
  */
-export type MapTypes<T, R extends { from: any; to: any }> = {
+export type MapTypes<T, R extends { from: any; to: any; }> = {
     [K in keyof T]: T[K] extends R['from']
-    ? R extends { from: T[K] }
-        ? R['to']
-        : never
+    ? R extends { from: T[K]; }
+    ? R['to']
+    : never
     : T[K]
 };
 
@@ -273,13 +300,13 @@ export type MapTypes<T, R extends { from: any; to: any }> = {
  * a {@link Promise}.
  * @note Ignores the return types that are already promises.
  */
-export type Promisify<T> = { 
-    [K in keyof T]: 
-    T[K] extends ((...args: any) => infer R) 
-        ? (R extends Promise<any> 
-            ? T[K] 
-            : (...args: Parameters<T[K]>) => Promise<R>) 
-        : T[K] 
+export type Promisify<T> = {
+    [K in keyof T]:
+    T[K] extends ((...args: any) => infer R)
+    ? (R extends Promise<any>
+        ? T[K]
+        : (...args: Parameters<T[K]>) => Promise<R>)
+    : T[K]
 };
 
 /**
@@ -297,6 +324,30 @@ export type SplitString<S extends string, D extends string> =
 export function mockType<T>(val: any): T {
     return val as unknown as T;
 }
+
+/**
+ * @description Ensures that the provided type `T` is strictly `true`.
+ * @note The function itself doesn't perform any runtime checks. The type 
+ * checking is done at compile time.
+ *
+ * @template T A type that must extend `true`.
+ * @example
+ * checkTrue<true>();  // No error
+ * checkTrue<false>();  // Error: Argument of type 'false' is not assignable to parameter of type 'true'.
+ */
+export function checkTrue<T extends true>(): void { }
+
+/**
+ * @description Ensures that the provided type `T` is strictly `false`.
+ * @note The function itself doesn't perform any runtime checks. The type 
+ * checking is done at compile time.
+ *
+ * @template T A type that must extend `false`.
+ * @example
+ * checkFalse<false>();  // No error
+ * checkFalse<true>();  // Error: Argument of type 'true' is not assignable to parameter of type 'false'.
+ */
+export function checkFalse<T extends false>(): void { }
 
 /**
  * @description Is the given variable is a primitive type: number , string , 
@@ -370,8 +421,8 @@ export function nullToUndefined<T>(obj: T | null): T | undefined {
  * @returns whether the provided parameter is an Iterable, and will cast to the 
  * given generic type.
  */
- export function isIterable<T>(obj: unknown): obj is Iterable<T> {
-	return !!obj && typeof (obj)[Symbol.iterator] === 'function';
+export function isIterable<T>(obj: unknown): obj is Iterable<T> {
+    return !!obj && typeof (obj)[Symbol.iterator] === 'function';
 }
 
 /**
@@ -379,7 +430,7 @@ export function nullToUndefined<T>(obj: T | null): T | undefined {
  * @param obj The given object.
  */
 export function isPromise(obj: any): obj is Promise<any> {
-    if (typeof obj === 'object' && 
+    if (typeof obj === 'object' &&
         typeof obj.then === 'function' &&
         typeof obj.catch === 'function' &&
         typeof obj.finally === 'function'
