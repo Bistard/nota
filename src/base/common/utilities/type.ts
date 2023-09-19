@@ -296,9 +296,26 @@ export type MapTypes<T, R extends { from: any; to: any; }> = {
  */
 
 /**
- * Given an object, for every return types of the function property, wraps with 
- * a {@link Promise}.
- * @note Ignores the return types that are already promises.
+ * `Promisify` type takes an object type `T` and returns a new type.
+ * For each property of `T`:
+ * - If the property is a function and its return type is not a Promise, it changes its return type to be a Promise.
+ * - If the property is a function and its return type is already a Promise, it keeps it as is.
+ * - If the property is not a function, it remains unchanged.
+ *
+ * @template T - An object type with any kind of properties.
+ * 
+ * @example
+ * type Original = {
+ *   syncMethod: () => number;
+ *   asyncMethod: () => Promise<string>;
+ *   regularProp: string;
+ * };
+ * 
+ * const promisified: Promisify<Original> = {
+ *   syncMethod: async () => 42,
+ *   asyncMethod: async () => 'hello',
+ *   regularProp: 'world'
+ * };
  */
 export type Promisify<T> = {
     [K in keyof T]:
