@@ -520,7 +520,7 @@ export function ok<T, E>(data: T): Ok<T, E> {
  * const errorResult = err("An error occurred");
  * ```
  */
-export function err<E>(data: E): Err<never, E> {
+export function err<T, E>(data: E): Err<T, E> {
     return new Err(data);
 }
 
