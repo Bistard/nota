@@ -267,7 +267,7 @@ export namespace Result {
      * );
      * // Logs: Caught error: Error: Failed!
      */
-    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError: (error: unknown) => E): IResult<T, E> {
+    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError: (error: unknown) => E): Result<T, E> {
         let res: T;
         
         try {
@@ -278,6 +278,33 @@ export namespace Result {
         }
 
         return ok(res);
+    }
+
+    /**
+     * @description Wraps a callable function that might reject its promise. If 
+     * the function successfully resolves, the result will be wrapped inside an 
+     * {@link Ok} variant. If the function rejects, the error will be wrapped 
+     * inside an {@link Err} variant after invoking the provided `onError` 
+     * callback.
+     * 
+     * @template T Type of the expected resolved value from the `mightThrow` callable.
+     * @template E Type that the `onError` function produces.
+     * 
+     * @param mightThrow A callable that might reject its promise.
+     * @param onError Callback that gets invoked if `mightThrow` rejects.
+     * 
+     * @example
+     * async function mightReject(): Promise<number> {
+     *     throw new Error("Promise rejected!");
+     * }
+     * const result = await Result.fromPromise(
+     *     mightReject, 
+     *     error => console.error(`Caught rejection: ${error}`)
+     * );
+     * // Logs: Caught rejection: Error: Promise rejected!
+     */
+    export async function fromPromise<T, E>(mightThrow: Callable<any[], Promise<T>>, onError: (error: unknown) => E): Promise<Result<T, E>> {
+        // TODO
     }
 }
 
@@ -475,15 +502,6 @@ interface IResult<T, E> {
      * ```
      */
     match<U>(onOk: (data: T) =>  U, onError: (error: E) =>  U): U;
-
-
-
-    // REVIEW: discussion on whether to bring those API into TypeScript.
-    // map<T2>(onOk: (data: T) => T2): Result<T2, E>;
-    // mapErr<E2>(onErr: (err: E) => E2): Result<T, E2>;
-
-    // then<T2, E2>(onOk: (data: T) => Result<T2, E2>): Result<T2, E | E2>;
-    // else<E2>(onErr: (err: E) => Result<T, E2>): Result<T, E2>;
 }
 
 /**
