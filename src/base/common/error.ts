@@ -303,8 +303,17 @@ export namespace Result {
      * );
      * // Logs: Caught rejection: Error: Promise rejected!
      */
-    export async function fromPromise<T, E>(mightThrow: Callable<any[], Promise<T>>, onError: (error: unknown) => E): Promise<Result<T, E>> {
-        // TODO
+    export async function fromPromise<T, E>(
+        mightThrow: Callable<any[], Promise<T>>, 
+        onError: (error: unknown) => E
+    ): Promise<Result<T, E>> {
+        try {
+            const value = await mightThrow();
+            return new Ok(value);
+        } catch (error) {
+            const onErrorResult = onError(error);
+            return new Err(onErrorResult);
+        }
     }
 }
 
