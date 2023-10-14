@@ -209,13 +209,12 @@ export type IsAny<T> = 0 extends (1 & T) ? true : false;
  * AreEqual<boolean, true>;    // false
  * AreEqual<boolean, false>;   // false
  * AreEqual<false, false>;     // true
- * AreEqual<any, any>;         // false
+ * 
+ * @link https://github.com/microsoft/TypeScript/issues/27024
  */
-export type AreEqual<T, U> =
-    [T, U] extends [U, T] ?
-    (IsAny<T> extends true ? false :
-        IsAny<U> extends true ? false : true)
-    : false;
+export type AreEqual<X, Y> =
+    (<T>() => T extends X ? 1 : 2) extends
+    (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
  * Determines if the given array contains any truthy values.

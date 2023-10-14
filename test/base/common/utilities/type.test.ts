@@ -302,18 +302,67 @@ suite('typescript-types-test', () => {
     });
 
     test('AreEqual type', () => {
-        checkTrue<AreEqual<"a", "a">>();
-        checkFalse<AreEqual<"a", "b">>();
-        checkFalse<AreEqual<"a", undefined>>();
-        checkFalse<AreEqual<"a", { a: 'hello world'; }>>();
+        // true
+        {
+            checkTrue<AreEqual<any, any>>();
+            checkTrue<AreEqual<unknown, unknown>>();
+            checkTrue<AreEqual<never, never>>();
+            checkTrue<AreEqual<number, number>>();
+            checkTrue<AreEqual<boolean, boolean>>();
+            checkTrue<AreEqual<string, string>>();
+            checkTrue<AreEqual<Symbol, Symbol>>();
+            checkTrue<AreEqual<Function, Function>>();
+            checkTrue<AreEqual<undefined, undefined>>();
+            checkTrue<AreEqual<null, null>>();
+            checkTrue<AreEqual<0, 0>>();
+            checkTrue<AreEqual<1, 1>>();
+            checkTrue<AreEqual<false, false>>();
+            checkTrue<AreEqual<true, true>>();
+            checkTrue<AreEqual<'', ''>>();
+            checkTrue<AreEqual<[], []>>();
+            checkTrue<AreEqual<[1], [1]>>();
+            checkTrue<AreEqual<[1, 2], [1, 2]>>();
+            checkTrue<AreEqual<{}, {}>>();
+            checkTrue<AreEqual<object, object>>();
+            checkTrue<AreEqual<{ a: boolean }, { a: boolean }>>();
+            checkTrue<AreEqual<{ a: { b: string } }, { a: { b: string } }>>();
 
-        checkFalse<AreEqual<boolean, any>>();
-        checkFalse<AreEqual<any, boolean>>();
-        checkTrue<AreEqual<string, string>>();
-        checkTrue<AreEqual<boolean, boolean>>();
-        checkTrue<AreEqual<number, number>>();
-        checkFalse<AreEqual<string, number>>();
-        checkFalse<AreEqual<any, any>>(); // expected
+            checkTrue<AreEqual<() => void, () => void>>();
+            checkTrue<AreEqual<() => any, () => any>>();
+            checkTrue<AreEqual<(<T>() => T), <T>() => T>>();
+            checkTrue<AreEqual<(<T>() => T), <U>() => U>>();
+        }
+
+        // false
+        {
+            checkFalse<AreEqual<"a", "b">>();
+            checkFalse<AreEqual<"a", undefined>>();
+            checkFalse<AreEqual<"a", { a: 'hello world'; }>>();
+
+            checkFalse<AreEqual<any, never>>();
+            checkFalse<AreEqual<any, unknown>>();
+            checkFalse<AreEqual<any, 1>>();
+            checkFalse<AreEqual<any, false>>();
+            checkFalse<AreEqual<unknown, never>>();
+            
+            checkFalse<AreEqual<{ a: boolean }, { b: boolean }>>();
+            checkFalse<AreEqual<{ a: boolean }, { a?: boolean }>>();
+            checkFalse<AreEqual<{ a: boolean }, { a: boolean, b?: boolean }>>();
+            checkFalse<AreEqual<string, number>>();
+            checkFalse<AreEqual<1, 2>>();
+            checkFalse<AreEqual<1, 1 | 2>>();
+            checkFalse<AreEqual<{ a: 1, b: 2 }, { a: 1 } & { b: 2 }>>();
+
+            checkFalse<AreEqual<() => void, () => any>>();
+            checkFalse<AreEqual<() => void, (param: boolean) => void>>();
+            checkFalse<AreEqual<() => void, (param?: boolean) => void>>();
+        }
+
+        // weird
+        {
+            checkFalse<AreEqual<{ a: 1, b: 2 }, { a: 1 } & { b: 2 }>>();
+            checkTrue<AreEqual<'a' | 'b', ('a' | 'b' & unknown)>>();
+        }
     });
 
     test('ConcatArray type', () => {
