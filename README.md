@@ -12,7 +12,7 @@
 
 <br>
 
-An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
+Wisp is a next-gen Markdown note-taking desktop application designed for both education and professional development. It leverages generative AI for enriched note creation, organization, and suggestions.
 
 ## 🚪Portals
 - [🌎Why Me?](#🌎Why-Me?)
@@ -31,24 +31,19 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 > * *Nota* supports all the basic writing functionalities from Markdown. If you require more advanced note-taking skills, go try the other rich text applications.
 
 ## 💖Features
-* [x] Supports markdown WYSIWYG
-> * Currently we are using *milkdown* as our markdown WYSIWYG rendering framework. After the most of the functionalities are done, we are aiming to build our own markdown WYSIWYG rendering (more performant).
-* [ ] Great note-taking-like user experience
-> * *Nota* has potentials to create a neat and powerful notebook structure and users are able to achieve infinitely page nesting.
-> 
-> * For new users, people are able to create different notebooks, and manage their notes (markdown files) by dragging and dropping pages easily.
-> 
-> * For users who already has tons of raw markdown files, application can automatically resolve directories and builds the corresponding notebook structures.
-*  [ ] Backlinks
-> Once you are linking file A to another file B, file B will also know the existence of file A. *Nota* will build these connections for you. Once you find one of these notes, so you can also find the others. Notes now works like a network.
-* [ ] Side-way outline display
-> * Not just like Typora or marktext, you need to click the sidebar to see the outline of the current markdown file, our application is able to render the outline on the sideway directly for convenience purposes.
-* [x] Performant scrolling rendering
-> * For any scrolling components, things will only be rendered within the viewport. In our cases, directory displaying and markdown WYSIWYG rendering (in our future version) this technology will be used.
-* [ ] Supports git extension
-> * Our application will support git (similar to vscode) as default.
-* [ ] Supports themes
-> * We will provide a few default themes. In addition, users may customize their own themes using plugins.
+
+- **Core Features**: 
+  - _AI-Driven Features_: Automated note categorization, organization, and summarization using generative AI and prompt engineering.
+  - _Cloud Serevices_:  We offer cloud services for note synchronization and backup functionalities.
+  
+- **Accessibility**: 
+  - _Markdown WYSIWYG_: we are aiming to build our own markdown WYSIWYG rendering (more performant).
+  - _Effortless Organization & Search_: Smooth sorting tools and enhanced search functionalities.
+  - _User-Friendly Interface_: A clean and simple UI that helps users achieve their tasks seamlessly.
+  - _Easy Data Transferring_: Emphasis on transparency, with user data managed via "Markdown". Your data remains exclusively yours.
+
+- **Extensions**:
+  - _Customization_: Third-party developers can easily create and publish their extensions/plugins through our provided community.
 
 ## 👁‍🗨Screenshots
 > * The current (2022.11.05) UI design is far away from GOOD.
