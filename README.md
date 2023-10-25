@@ -4,8 +4,8 @@
   |
   <a href="README.md">english</a>
   |
-  <a href="doc/readme/zh-cn.md">简体</a>
-  |
+  <a href="doc/readme/zh-cn.md">简体</a>  
+  | 
   <a href="doc/readme/zh-tw.md">繁体</a>
   |
 </div>
@@ -15,14 +15,14 @@
 Wisp is a next-gen Markdown note-taking desktop application designed for both education and professional development. It leverages generative AI for enriched note creation, organization, and suggestions.
 
 ## 🚪Portals
-- [🌎Why Me?](#🌎Why-Me?)
+- [🌎Why Us?](#🌎Why-Us?)
 - [💖Features](#💖features)
 - [👁‍🗨Screenshots](#👁‍🗨screenshots)
 - [✅Get Started](#✅get-started)
 - [💌Contributing](#💌contributing)
 - [📦Architecture](#📦Architecture)
 
-## 🌎Why Me?
+## 🌎Why Us?
 > - **Open Source & Free**: *Nota* stands out as a unique note-taking solution, being both free and open-sourced. Our preference leans towards simplicity, hence our choice of Markdown (plain text) for data storage.
 >
 > - **AI Integration**: We are pioneering the integration of generative AI with note-taking, aiming to revolutionize the way you capture and organize information.
