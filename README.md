@@ -1,14 +1,14 @@
 <!-- <p align="center"><img src="static/logo-small.png" width="100" height="100"></p> -->
 <h1 align="center">Nota (In Developing)</h1>
-<div align="center">
+<!-- <div align="center">
   |
   <a href="README.md">english</a>
   |
   <a href="doc/readme/zh-cn.md">简体</a>  
-  | 
+  |
   <a href="doc/readme/zh-tw.md">繁体</a>
   |
-</div>
+</div> -->
 
 <br>
 
