@@ -23,12 +23,17 @@ Wisp is a next-gen Markdown note-taking desktop application designed for both ed
 - [📦Architecture](#📦Architecture)
 
 ## 🌎Why Me?
-> * *Nota* is a free and open-sourced project. Rich text based note-taking application is not really my thing, that is why I choose Markdown (plain text) as the only way to store our data. 
-> * For users who do not know about Markdown, don't worry about it because *Nota* provides a great user experience that makes you can work just like the others.
-> * You can access all your data freely at any time because it is stored in your local disk.
-> * Since the data and *Nota* have no longer binding to each other, you may use any cloud services to store your data.
-> * You don't need to worry about what happens to your data if *Nota* no longer being updated after 10 years. All you need to do is use another markdown editor to open your local data.
-> * *Nota* supports all the basic writing functionalities from Markdown. If you require more advanced note-taking skills, go try the other rich text applications.
+> - **Open Source & Free**: *Nota* stands out as a unique note-taking solution, being both free and open-sourced. Our preference leans towards simplicity, hence our choice of Markdown (plain text) for data storage.
+>
+> - **AI Integration**: We are pioneering the integration of generative AI with note-taking, aiming to revolutionize the way you capture and organize information.
+>
+> - **Markdown - Simplified**: Unfamiliar with Markdown? No worries. *Nota* ensures that working with Markdown feels as easy and intuitive as any other format.
+> 
+> - **Total Data Control**: With *Nota*, your data is stored on your local disk, ensuring complete and unrestricted access at all times. Plus, even if *Nota* halts updates years from now, your Markdown notes remain accessible and editable with any markdown editor.
+> 
+> - **Flexibility with Cloud Storage**: With a clear distinction between *Nota* and your data, you're free to choose any cloud service for data storage, ensuring flexibility in data management.
+> 
+> - **Comprehensive Markdown Support**: *Nota* encapsulates the foundational aspects of Markdown writing. However, if your note-taking journey seeks advanced terrains, you might find rich-text applications more fitting.
 
 ## 💖Features
 
