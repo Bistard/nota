@@ -39,7 +39,7 @@ Wisp is a next-gen Markdown note-taking desktop application designed for both ed
 
 - **Core Features**: 
   - _AI-Driven Features_: Automated note categorization, organization, and summarization using generative AI and prompt engineering.
-  - _Cloud Serevices_:  We offer cloud services for note synchronization and backup functionalities.
+  - _Cloud Services_:  We offer cloud services for note synchronization and backup functionalities.
   
 - **Accessibility**: 
   - _Markdown WYSIWYG_: we are aiming to build our own markdown WYSIWYG rendering (more performant).
