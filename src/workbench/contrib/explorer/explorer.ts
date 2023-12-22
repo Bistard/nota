@@ -29,7 +29,8 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { errorToMessage } from 'src/base/common/error';
 
 /**
- * @class TODO: complete comments
+ * // TODO
+ * @class
  */
 export class ExplorerView extends SideView implements IExplorerViewService {
 

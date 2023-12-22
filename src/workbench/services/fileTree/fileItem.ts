@@ -191,9 +191,10 @@ export class FileItem implements IFileItem {
                 console.log('[item] resolving children'); // TEST
                 try {
                     const updatedStat = await fileService.stat(
-                        this._stat.uri, {
-                        resolveChildren: true,
-                    },
+                        this._stat.uri, 
+                        {
+                            resolveChildren: true,
+                        },
                     );
                     this._stat = updatedStat;
                 }
