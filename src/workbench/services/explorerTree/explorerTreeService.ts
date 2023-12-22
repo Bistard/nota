@@ -21,11 +21,6 @@ export interface IExplorerTreeService extends ITreeService<IFileTreeOpenEvent<Fi
      * The displaying tree mode.
      */
     readonly mode: TreeMode;
-
-    /**
-     * @description Switch explorer tree displaying mode.
-     */
-    switchMode(mode: TreeMode): void;
 }
 
 /**
@@ -107,10 +102,6 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._onSelect.setInput(this._currentTreeService.onSelect);
 
         this.__registerTreeListeners(root);
-    }
-
-    public switchMode(mode: TreeMode): void {
-        // TODO
     }
 
     public layout(height?: number | undefined): void {

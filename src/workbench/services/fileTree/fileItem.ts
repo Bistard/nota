@@ -86,7 +86,7 @@ export interface IFileItem {
 
 /**
  * @class A data structure to be stored as each tree node in a 
- * {@link ClassicTreeService}. The item will build the tree structure 
+ * {@link FileTreeService}. The item will build the tree structure 
  * recursively once constructed by the provided stat.
  * 
  * If stat is out of updated, invoking refreshChildren will automatically 
@@ -225,7 +225,7 @@ export class FileItem implements IFileItem {
 }
 
 /**
- * @class A {@link IChildrenProvider} used in a {@link ClassicTreeService}
+ * @class A {@link IChildrenProvider} used in a {@link FileTreeService}
  * and to provide children for {@link FileItem}.
  */
 export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {

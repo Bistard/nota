@@ -15,7 +15,7 @@ export interface IFileItemMetadata extends IListViewMetadata {
 }
 
 /**
- * @class The type of renderer used for {@link ClassicTreeService}.
+ * @class The type of renderer used for {@link FileTreeService}.
  */
 export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore, IFileItemMetadata> {
 

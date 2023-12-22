@@ -10,7 +10,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
- * for {@link ClassicTree}.
+ * for {@link FileTree}.
  */
 export class FileItemDragAndDropProvider implements IListDragAndDropProvider<FileItem> {
 
