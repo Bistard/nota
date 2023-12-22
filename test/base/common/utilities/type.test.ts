@@ -310,7 +310,7 @@ suite('typescript-types-test', () => {
             checkTrue<AreEqual<number, number>>();
             checkTrue<AreEqual<boolean, boolean>>();
             checkTrue<AreEqual<string, string>>();
-            checkTrue<AreEqual<Symbol, Symbol>>();
+            checkTrue<AreEqual<symbol, symbol>>();
             checkTrue<AreEqual<Function, Function>>();
             checkTrue<AreEqual<undefined, undefined>>();
             checkTrue<AreEqual<null, null>>();
