@@ -5,7 +5,7 @@ import { ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { FileItem } from "src/workbench/services/classicTree/classicItem";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
 
 export interface IFileTreeOpenEvent<T extends FileItem> {
     readonly item: T;

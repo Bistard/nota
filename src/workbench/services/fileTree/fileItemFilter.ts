@@ -1,5 +1,5 @@
 import { ITreeFilterProvider, ITreeFilterResult } from "src/base/browser/secondary/tree/treeFilter";
-import { FileItem } from "src/workbench/services/classicTree/classicItem";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
 
 /**
  * @class // TODO

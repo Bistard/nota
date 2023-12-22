@@ -2,9 +2,9 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IScheduler, Scheduler } from "src/base/common/utilities/async";
-import { FileItem } from "src/workbench/services/classicTree/classicItem";
-import { IFileTreeOpenEvent } from "src/workbench/services/classicTree/classicTree";
-import { FileTreeService, IFileTreeService } from "src/workbench/services/classicTree/classicTreeService";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
+import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
+import { FileTreeService, IFileTreeService } from "src/workbench/services/fileTree/fileTreeService";
 import { ITreeService, TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";

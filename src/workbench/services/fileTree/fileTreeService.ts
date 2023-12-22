@@ -1,15 +1,15 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/classicTree/classicTree";
+import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileItemChildrenProvider as FileChildrenProvider, FileItem as FileItem } from "src/workbench/services/classicTree/classicItem";
+import { FileItemChildrenProvider as FileChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable } from "src/base/common/dispose";
-import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/classicTree/classicRenderer";
-import { FileItemDragAndDropProvider } from "src/workbench/services/classicTree/classicDragAndDrop";
+import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
+import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
-import { FileItemFilter as FileItemFilter } from "src/workbench/services/classicTree/classicFilter";
+import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 
