@@ -2,6 +2,8 @@ import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
 import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny } from 'src/base/common/utilities/type';
 
+/* eslint-disable @typescript-eslint/ban-types */
+
 suite('type-test', () => {
 
     test('isPrimitive', () => {
@@ -311,6 +313,7 @@ suite('typescript-types-test', () => {
             checkTrue<AreEqual<boolean, boolean>>();
             checkTrue<AreEqual<string, string>>();
             checkTrue<AreEqual<symbol, symbol>>();
+            checkTrue<AreEqual<Symbol, Symbol>>();
             checkTrue<AreEqual<Function, Function>>();
             checkTrue<AreEqual<undefined, undefined>>();
             checkTrue<AreEqual<null, null>>();
