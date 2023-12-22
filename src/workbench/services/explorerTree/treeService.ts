@@ -5,7 +5,6 @@ import { IService } from "src/platform/instantiation/common/decorator";
 
 export const enum TreeMode {
     Classic = 'classic',
-    Notebook = 'notebook',
 }
 
 /**

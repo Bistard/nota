@@ -6,7 +6,6 @@ import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
 import { IClassicOpenEvent } from "src/workbench/services/classicTree/classicTree";
 import { ClassicTreeService, IClassicTreeService } from "src/workbench/services/classicTree/classicTreeService";
 import { ITreeService, TreeMode } from "src/workbench/services/explorerTree/treeService";
-import { INotebookTreeService, NotebookTreeService } from "src/workbench/services/notebookTree/notebookTreeService";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -45,11 +44,11 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     /** The root directory of the opened tree, undefined if not opened. */
     private _root?: URI;
+    
     /** The current tree display mode. */
     private _mode: TreeMode;
 
     private readonly classicTreeService: IClassicTreeService;
-    private readonly notebookTreeService: INotebookTreeService;
 
     private _currTreeDisposable?: IDisposable;
     private _currentTreeService?: ITreeService<unknown>;
@@ -68,9 +67,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._root = undefined;
         this._mode = configurationService.get<TreeMode>(SideViewConfiguration.ExplorerViewMode, TreeMode.Classic);
         this.classicTreeService = instantiationService.createInstance(ClassicTreeService);
-        this.notebookTreeService = instantiationService.createInstance(NotebookTreeService);
         this.__register(this.classicTreeService);
-        this.__register(this.notebookTreeService);
     }
 
     // [getter / setter]
@@ -80,13 +77,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     }
 
     get container(): HTMLElement | undefined {
-        return (
-            this.isOpened
-                ? (this.mode === TreeMode.Notebook
-                    ? this.notebookTreeService.container
-                    : this.classicTreeService.container)
-                : undefined
-        );
+        return this.isOpened ? this.classicTreeService.container : undefined;
     }
 
     get root(): URI | undefined {
@@ -100,11 +91,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
-        const currTreeService: ITreeService<any> = (
-            (this._mode === TreeMode.Notebook)
-                ? this.notebookTreeService
-                : this.classicTreeService
-        );
+        const currTreeService: ITreeService<unknown> = this.classicTreeService;
 
         // try to create the tree service
         try {
