@@ -2,9 +2,9 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IScheduler, Scheduler } from "src/base/common/utilities/async";
-import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
-import { IClassicOpenEvent } from "src/workbench/services/classicTree/classicTree";
-import { ClassicTreeService, IClassicTreeService } from "src/workbench/services/classicTree/classicTreeService";
+import { FileItem } from "src/workbench/services/classicTree/classicItem";
+import { IFileTreeOpenEvent } from "src/workbench/services/classicTree/classicTree";
+import { FileTreeService, IFileTreeService } from "src/workbench/services/classicTree/classicTreeService";
 import { ITreeService, TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
@@ -15,7 +15,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
-export interface IExplorerTreeService extends ITreeService<IClassicOpenEvent<ClassicItem> | any> {
+export interface IExplorerTreeService extends ITreeService<IFileTreeOpenEvent<FileItem> | any> {
 
     /**
      * The displaying tree mode.
@@ -48,7 +48,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     /** The current tree display mode. */
     private _mode: TreeMode;
 
-    private readonly classicTreeService: IClassicTreeService;
+    private readonly classicTreeService: IFileTreeService;
 
     private _currTreeDisposable?: IDisposable;
     private _currentTreeService?: ITreeService<unknown>;
@@ -66,7 +66,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         super();
         this._root = undefined;
         this._mode = configurationService.get<TreeMode>(SideViewConfiguration.ExplorerViewMode, TreeMode.Classic);
-        this.classicTreeService = instantiationService.createInstance(ClassicTreeService);
+        this.classicTreeService = instantiationService.createInstance(FileTreeService);
         this.__register(this.classicTreeService);
     }
 
