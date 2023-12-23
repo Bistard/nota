@@ -4,7 +4,7 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 /**
  * @class // TODO
  */
-export class FileItemFilter<T extends FileItem> implements ITreeFilterProvider<T, any> /** FuzzyScore */ {
+export class FileItemFilter implements ITreeFilterProvider<FileItem, any> /** FuzzyScore */ {
 
     // [field]
 
