@@ -121,7 +121,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 mode: this.#envMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
-                plugins: (new WebpackPluginProvider()).getPlugins({ 
+                plugins: (new WebpackPluginProvider(this.#cwd)).getPlugins({ 
                     circular: process.env.CIRCULAR === 'true', 
                 }),
             }),
