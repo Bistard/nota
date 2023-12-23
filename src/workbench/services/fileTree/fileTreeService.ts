@@ -2,7 +2,7 @@ import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileItemChildrenProvider as FileChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
+import { FileItemChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
@@ -12,6 +12,7 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
+import { CompareFn } from "src/base/common/utilities/type";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
 
@@ -61,10 +62,14 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI): Promise<void> {
+        
+        // retrieve configurations
         const filterOpts: IFilterOpts = {
             exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
             include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
         };
+        const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
+        const compareFunction = ifSupportFileSorting ? this.__buildFileSortingFunction() : undefined;
 
         // resolve the root of the directory first
         const rootStat = await this.fileService.stat(root, { resolveChildren: true });
@@ -79,7 +84,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 {
                     itemProvider: new FileItemProvider(),
                     renderers: [new FileItemRenderer()],
-                    childrenProvider: new FileChildrenProvider(this.logService, this.fileService, filterOpts),
+                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, compareFunction),
                     identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                     // optional
@@ -104,5 +109,25 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     public async close(): Promise<void> {
         // TODO
+    }
+
+    // [private helper methods]
+
+    private __buildFileSortingFunction(): CompareFn<FileItem> {
+        
+        // TODO: customzied FileItem sorting
+        // TODO: @AAsteria
+        // TODO: @duckSoup0203
+        
+        // default
+        return function defaultCompareFn(a: FileItem, b: FileItem): number {
+            if (a.type === b.type) {
+                return (a.name < b.name) ? -1 : 1;
+            } else if (a.isDirectory()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        };
     }
 }
