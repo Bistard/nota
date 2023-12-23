@@ -215,7 +215,7 @@ export class FileItem implements IFileItem {
                 this._children.sort(cmpFn);
             }
 
-            return ok();
+            return ok<void, unknown>();
         })();
 
         return promise;
