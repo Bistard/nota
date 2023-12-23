@@ -119,15 +119,20 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // TODO: @AAsteria
         // TODO: @duckSoup0203
         
-        // default
-        return function defaultCompareFn(a: FileItem, b: FileItem): number {
-            if (a.type === b.type) {
-                return (a.name < b.name) ? -1 : 1;
-            } else if (a.isDirectory()) {
-                return -1;
-            } else {
-                return 1;
-            }
-        };
+        return defaultFileItemCompareFn;
+    }
+}
+
+/**
+ * @description Directory goes first, otherwise sorts in ascending, ASCII 
+ * character order.
+ */
+export function defaultFileItemCompareFn(a: FileItem, b: FileItem): number {
+    if (a.type === b.type) {
+        return (a.name < b.name) ? -1 : 1;
+    } else if (a.isDirectory()) {
+        return -1;
+    } else {
+        return 1;
     }
 }

@@ -6,6 +6,7 @@ import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
 import { CompareFn, isPromise, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
+import { defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeService";
 
 /**
  * An interface only for {@link FileItem}.
@@ -121,7 +122,7 @@ export class FileItem implements IFileItem {
         this._stat = stat;
         this._parent = parent;
         if (!cmpFn) {
-            cmpFn = defaultCompareFn;
+            cmpFn = defaultFileItemCompareFn;
         }
 
         if (stat.children) {
@@ -240,7 +241,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         private readonly logService: ILogService,
         private readonly fileService: IFileService,
         private readonly filterOpts?: IFilterOpts,
-        private readonly cmpFn: CompareFn<FileItem> = defaultCompareFn,
+        private readonly cmpFn: CompareFn<FileItem> = defaultFileItemCompareFn,
     ) { }
 
     // [public methods]
@@ -289,19 +290,5 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
 
     public collapseByDefault(data: FileItem): boolean {
         return true;
-    }
-}
-
-/**
- * @description Directory goes first, otherwise sorts in ascending, ASCII 
- * character order.
- */
-export function defaultCompareFn(a: FileItem, b: FileItem): number {
-    if (a.type === b.type) {
-        return (a.name < b.name) ? -1 : 1;
-    } else if (a.isDirectory()) {
-        return -1;
-    } else {
-        return 1;
     }
 }
