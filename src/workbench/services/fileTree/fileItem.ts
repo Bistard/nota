@@ -77,7 +77,7 @@ export interface IFileItem {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, unknown> | Promise<Result<void, unknown>>;
+    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, unknown>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -181,7 +181,7 @@ export class FileItem implements IFileItem {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, unknown> | AsyncResult<void, unknown> {
+    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, unknown> {
         const promise = (async () => {
 
             /**
@@ -210,7 +210,7 @@ export class FileItem implements IFileItem {
             for (const childStat of (this._stat.children ?? [])) {
                 this._children.push(new FileItem(childStat, this, filters));
             }
-            
+
             if (cmpFn) {
                 this._children.sort(cmpFn);
             }
@@ -218,7 +218,7 @@ export class FileItem implements IFileItem {
             return ok();
         })();
 
-        return promise;
+        return new AsyncResult(promise);
     }
 
     public forgetChildren(): void {
@@ -269,6 +269,8 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
             .then(() => {
                 return data.children;
             })
+
+            // FIX: 这里不会catch到errors, 因为这个Promise永远返回的都是Result, 我设计的AsyncResult有问题, 交给第二天的Chris来完成.
             .catch((error: any) => {
                 this.logService.error(error);
                 return [];
