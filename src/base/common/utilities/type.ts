@@ -445,7 +445,7 @@ export function isIterable<T>(obj: unknown): obj is Iterable<T> {
  * @description Determines if the given object is a {@link Promise} or not.
  * @param obj The given object.
  */
-export function isPromise(obj: any): obj is Promise<any> {
+export function isPromise<T = unknown>(obj: any): obj is Promise<T> {
     if (typeof obj === 'object' &&
         typeof obj.then === 'function' &&
         typeof obj.catch === 'function' &&

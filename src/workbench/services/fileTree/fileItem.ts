@@ -218,7 +218,7 @@ export class FileItem implements IFileItem {
             return ok();
         })();
 
-        return new AsyncResult(promise);
+        return promise;
     }
 
     public forgetChildren(): void {
@@ -266,14 +266,14 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
 
         // the provided item's children never resolved, we wait until it resolved.
         const promise = refreshPromise
-            .then(() => {
-                return data.children;
-            })
-
-            // FIX: 这里不会catch到errors, 因为这个Promise永远返回的都是Result, 我设计的AsyncResult有问题, 交给第二天的Chris来完成.
-            .catch((error: any) => {
+            .then<FileItem[], FileItem[]>((result) => {
+                if (result.isOk()) {
+                    return data.children;
+                }
+                
+                const error: any = result.data;
                 this.logService.error(error);
-                return [];
+                return <FileItem[]>[];
             });
 
         return promise;
