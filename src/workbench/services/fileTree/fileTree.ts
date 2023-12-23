@@ -5,39 +5,39 @@ import { ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
 
-export interface IClassicOpenEvent<T extends ClassicItem> {
+export interface IFileTreeOpenEvent<T extends FileItem> {
     readonly item: T;
 }
 
 /** 
- * Option for constructing a {@link ClassicTree}. 
+ * Option for constructing a {@link FileTree}. 
  */
-export interface IClassicTreeOptions<T extends ClassicItem, TFilter> extends IAsyncTreeOptions<T, TFilter> { }
+export interface IFileTreeOptions<T extends FileItem, TFilter> extends IAsyncTreeOptions<T, TFilter> { }
 
 /** 
- * Option for constructing a {@link ClassicTreeWidget}. 
+ * Option for constructing a {@link FileTreeWidget}. 
  */
-export interface IClassicTreeWidgetOpts<T extends ClassicItem, TFilter> extends IAsyncTreeWidgetOpts<T, TFilter> {
-    readonly extraArguments: [IClassicTree<T, TFilter>];
+export interface IFileTreeWidgetOpts<T extends FileItem, TFilter> extends IAsyncTreeWidgetOpts<T, TFilter> {
+    readonly extraArguments: [IFileTree<T, TFilter>];
 }
 
 /**
  * @internal
  */
-export class ClassicTreeKeyboardController<T extends ClassicItem, TFilter> extends MultiTreeKeyboardController<T, TFilter> {
+export class FileTreeKeyboardController<T extends FileItem, TFilter> extends MultiTreeKeyboardController<T, TFilter> {
 
     // [field]
 
-    declare protected readonly _view: ClassicTreeWidget<T, TFilter>;
-    declare protected readonly _tree: ClassicTree<T, TFilter>;
+    declare protected readonly _view: FileTreeWidget<T, TFilter>;
+    declare protected readonly _tree: FileTree<T, TFilter>;
 
     // [constructor]
 
     constructor(
-        view: ClassicTreeWidget<T, TFilter>,
-        tree: IClassicTree<T, TFilter>,
+        view: FileTreeWidget<T, TFilter>,
+        tree: IFileTree<T, TFilter>,
     ) {
         super(view, tree);
     }
@@ -63,23 +63,23 @@ export class ClassicTreeKeyboardController<T extends ClassicItem, TFilter> exten
 /**
  * @class Used to override and add additional controller behaviours.
  */
-export class ClassicTreeWidget<T extends ClassicItem, TFilter> extends AsyncTreeWidget<T, TFilter> {
+export class FileTreeWidget<T extends FileItem, TFilter> extends AsyncTreeWidget<T, TFilter> {
 
-    protected override __createKeyboardController(opts: IClassicTreeWidgetOpts<T, TFilter>): ClassicTreeKeyboardController<T, TFilter> {
-        return new ClassicTreeKeyboardController(this, opts.extraArguments[0]);
+    protected override __createKeyboardController(opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeKeyboardController<T, TFilter> {
+        return new FileTreeKeyboardController(this, opts.extraArguments[0]);
     }
 }
 
 /**
- * An interface only for {@link ClassicTree}.
+ * An interface only for {@link FileTree}.
  * // TODO
  */
-export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree<T, TFilter> {
+export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onSelect: Register<IClassicOpenEvent<T>>;
+    readonly onSelect: Register<IFileTreeOpenEvent<T>>;
 
     /**
      * @description
@@ -94,13 +94,13 @@ export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree
 /**
  * @class // TODO
  */
-export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TFilter> implements IClassicTree<T, TFilter> {
+export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter> implements IFileTree<T, TFilter> {
 
     // [field]
 
     // [event]
 
-    private readonly _onSelect = new Emitter<IClassicOpenEvent<T>>();
+    private readonly _onSelect = new Emitter<IFileTreeOpenEvent<T>>();
     public readonly onSelect = this._onSelect.registerListener;
 
     // [constructor]
@@ -108,7 +108,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
     constructor(
         container: HTMLElement,
         rootData: T,
-        opts: IClassicTreeOptions<T, TFilter>,
+        opts: IFileTreeOptions<T, TFilter>,
     ) {
         super(container, rootData, opts);
         this.__register(this.onClick(e => this.__onClick(e)));
@@ -143,8 +143,8 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [protected override method]
 
-    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IClassicTreeWidgetOpts<T, TFilter>): ClassicTreeWidget<T, TFilter> {
-        return new ClassicTreeWidget(container, renderers, itemProvider, opts);
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeWidget<T, TFilter> {
+        return new FileTreeWidget(container, renderers, itemProvider, opts);
     }
 
     // [private helper method]

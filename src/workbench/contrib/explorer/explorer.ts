@@ -23,13 +23,14 @@ import { VisibilityController } from 'src/base/browser/basic/visibilityControlle
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-import { IClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
+import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { errorToMessage } from 'src/base/common/error';
 
 /**
- * @class TODO: complete comments
+ * // TODO
+ * @class
  */
 export class ExplorerView extends SideView implements IExplorerViewService {
 
@@ -51,7 +52,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
     // [event]
 
-    private readonly _onDidOpen = this.__register(new Emitter<IClassicOpenEvent>());
+    private readonly _onDidOpen = this.__register(new Emitter<IFileOpenEvent>());
     public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]

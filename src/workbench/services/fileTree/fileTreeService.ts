@@ -1,38 +1,38 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { IClassicOpenEvent, ClassicTree, IClassicTree } from "src/workbench/services/classicTree/classicTree";
+import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
-import { ClassicChildrenProvider, ClassicItem } from "src/workbench/services/classicTree/classicItem";
+import { FileItemChildrenProvider as FileChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable } from "src/base/common/dispose";
-import { ClassicItemProvider, ClassicRenderer } from "src/workbench/services/classicTree/classicRenderer";
-import { ClassicDragAndDropProvider } from "src/workbench/services/classicTree/classicDragAndDrop";
+import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
+import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
-import { ClassicFilter } from "src/workbench/services/classicTree/classicFilter";
+import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 
-export interface IClassicTreeService extends ITreeService<ClassicItem> {
+export interface IFileTreeService extends ITreeService<FileItem> {
 
 }
 
 /**
  * // TODO
  */
-export class ClassicTreeService extends Disposable implements IClassicTreeService {
+export class FileTreeService extends Disposable implements IFileTreeService {
 
     declare _serviceMarker: undefined;
 
     // [event]
 
-    get onSelect(): Register<IClassicOpenEvent<ClassicItem>> {
+    get onSelect(): Register<IFileTreeOpenEvent<FileItem>> {
         return this._tree!.onSelect;
     }
 
     // [field]
 
-    private _tree?: IClassicTree<ClassicItem, void>;
+    private _tree?: IFileTree<FileItem, void>;
 
     // [constructor]
 
@@ -68,23 +68,23 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
 
         // resolve the root of the directory first
         const rootStat = await this.fileService.stat(root, { resolveChildren: true });
-        const rootItem = new ClassicItem(rootStat, null, filterOpts);
+        const rootItem = new FileItem(rootStat, null, filterOpts);
 
         // construct the file system hierarchy
-        const dndProvider = new ClassicDragAndDropProvider(this.fileService);
+        const dndProvider = new FileItemDragAndDropProvider(this.fileService);
         this._tree = this.__register(
-            new ClassicTree<ClassicItem, FuzzyScore>(
+            new FileTree<FileItem, FuzzyScore>(
                 container,
                 rootItem,
                 {
-                    itemProvider: new ClassicItemProvider(),
-                    renderers: [new ClassicRenderer()],
-                    childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filterOpts),
-                    identityProvider: { getID: (data: ClassicItem) => URI.toString(data.uri) },
+                    itemProvider: new FileItemProvider(),
+                    renderers: [new FileItemRenderer()],
+                    childrenProvider: new FileChildrenProvider(this.logService, this.fileService, filterOpts),
+                    identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                     // optional
                     collapsedByDefault: true,
-                    filter: new ClassicFilter(),
+                    filter: new FileItemFilter(),
                     dnd: dndProvider,
                 },
             )
@@ -98,7 +98,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
         this._tree?.layout(height);
     }
 
-    public async refresh(data?: ClassicItem): Promise<void> {
+    public async refresh(data?: FileItem): Promise<void> {
         this._tree?.refresh(data);
     }
 

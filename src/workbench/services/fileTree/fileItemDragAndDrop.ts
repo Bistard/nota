@@ -4,27 +4,27 @@ import { FuzzyScore } from "src/base/common/fuzzy";
 import { Arrays } from "src/base/common/utilities/array";
 import { Scheduler } from "src/base/common/utilities/async";
 import { Mutable } from "src/base/common/utilities/type";
-import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
-import { IClassicTree } from "src/workbench/services/classicTree/classicTree";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
+import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
- * for {@link ClassicTree}.
+ * for {@link FileTree}.
  */
-export class ClassicDragAndDropProvider implements IListDragAndDropProvider<ClassicItem> {
+export class FileItemDragAndDropProvider implements IListDragAndDropProvider<FileItem> {
 
     // [field]
 
-    private readonly _tree!: IClassicTree<ClassicItem, FuzzyScore>;
+    private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
 
     private static readonly EXPAND_DELAY = 300;
-    private readonly _delayExpand: Scheduler<{ item: ClassicItem, index: number; }>;
+    private readonly _delayExpand: Scheduler<{ item: FileItem, index: number; }>;
     /**
      * When dragging over an item, this array is a temporary place to store the 
      * hoving subtree items. Used for unselecting them when the drag is over.
      */
-    private _dragSelections: ClassicItem[] = [];
+    private _dragSelections: FileItem[] = [];
 
     // [constructor]
 
@@ -32,7 +32,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         private readonly fileService: IFileService,
     ) {
 
-        this._delayExpand = new Scheduler(ClassicDragAndDropProvider.EXPAND_DELAY, async (event) => {
+        this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async (event) => {
             const { item, index } = event[0]!;
             await this._tree.expand(item);
             this._dragSelections = this._tree.selectRecursive(item, index);
@@ -41,11 +41,11 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
 
     // [public methods]
 
-    public getDragData(item: ClassicItem): string | null {
+    public getDragData(item: FileItem): string | null {
         return URI.toString(item.uri);
     }
 
-    public getDragTag(items: ClassicItem[]): string {
+    public getDragTag(items: FileItem[]): string {
         if (items.length === 1) {
             return items[0]!.name;
         }
@@ -56,7 +56,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
 
     }
 
-    public onDragEnter(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
+    public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
         if (!targetOver || !targetIndex) {
             return;
         }
@@ -81,7 +81,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         this._dragSelections = this._tree.selectRecursive(targetOver, targetIndex);
     }
 
-    public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
+    public onDragLeave(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
 
         /**
          * Since the leaving target is not the tree. That means the user is 
@@ -98,7 +98,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         }
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): boolean {
+    public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): boolean {
         if (!targetOver || !targetIndex) {
             this.__removeDragSelections();
             this._delayExpand.cancel(true);
@@ -107,7 +107,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         return true;
     }
 
-    public onDragDrop(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): void {
+    public onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): void {
 
         // dropping target is invalid
         if (!targetOver || !targetIndex) {
@@ -128,7 +128,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
 
     // [public helper methods]
 
-    public bindWithTree(tree: IClassicTree<ClassicItem, FuzzyScore>): void {
+    public bindWithTree(tree: IFileTree<FileItem, FuzzyScore>): void {
         (<Mutable<typeof tree>>this._tree) = tree;
     }
 
