@@ -1,4 +1,5 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
+import { AsyncResult, Err, Result, err, ok } from "src/base/common/error";
 import { FileType, IResolvedFileStat } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
@@ -76,7 +77,7 @@ export interface IFileItem {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): void | Promise<void>;
+    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, unknown> | Promise<Result<void, unknown>>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -180,7 +181,7 @@ export class FileItem implements IFileItem {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): void | Promise<void> {
+    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, unknown> | AsyncResult<void, unknown> {
         const promise = (async () => {
 
             /**
@@ -189,19 +190,18 @@ export class FileItem implements IFileItem {
              */
             if (this._isResolved === false) {
                 console.log('[item] resolving children'); // TEST
-                try {
-                    const updatedStat = await fileService.stat(
-                        this._stat.uri, 
-                        {
-                            resolveChildren: true,
-                        },
-                    );
-                    this._stat = updatedStat;
-                }
-                catch (error) {
-                    throw error;
+                
+                const resolving = await Result.fromPromise(
+                    () => fileService.stat(this._stat.uri, { resolveChildren: true }),
+                    (err) => err,
+                );
+
+                if (resolving.isErr()) {
+                    return err<void, unknown>(resolving.data);
                 }
 
+                const updatedStat = resolving.data;
+                this._stat = updatedStat;
                 this._isResolved = true;
             }
 
@@ -210,9 +210,12 @@ export class FileItem implements IFileItem {
             for (const childStat of (this._stat.children ?? [])) {
                 this._children.push(new FileItem(childStat, this, filters));
             }
+            
             if (cmpFn) {
                 this._children.sort(cmpFn);
             }
+
+            return ok();
         })();
 
         return promise;
