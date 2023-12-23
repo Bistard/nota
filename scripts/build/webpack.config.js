@@ -14,6 +14,9 @@ class WebpackPluginProvider {
 
     constructor(cwd) {
         this.#cwd = cwd;
+        if (!cwd || typeof cwd != 'string') {
+            console.log(`${utils.color(utils.c.FgYellow, '[WebpackPluginProvider]')} cwd is not provided or provided with wrong type: '${typeof cwd}'!`);
+        }
     }
 
     // [public methods]
