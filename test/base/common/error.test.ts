@@ -193,7 +193,6 @@ suite('result-test', () => {
     suite('Result-namespace', () => {
 
         test('fromThrowable', () => {
-            
             function mightFail(): number {
                 throw new Error("Failed!");
             }
@@ -219,6 +218,32 @@ suite('result-test', () => {
                 }
             );
             assert.strictEqual(result2.data, 'Failed!');
+        });
+
+        test('fromPromise', async () => {
+            async function mightResolve(): Promise<number> {
+                return 24;
+            }
+        
+            async function mightReject(): Promise<number> {
+                throw new Error("Promise rejected!");
+            }
+        
+            // check the case where the promise resolves successfully
+            const resultSuccess = await Result.fromPromise<number, string>(
+                mightResolve, 
+                (error: any) => error.message
+            );
+            assert.strictEqual(resultSuccess.isOk(), true);
+            assert.strictEqual(resultSuccess.data, 24);
+        
+            // check the case where the promise gets rejected
+            const resultFailure = await Result.fromPromise<number, string>(
+                mightReject, 
+                (error: any) => error.message
+            );
+            assert.strictEqual(resultFailure.isOk(), false);
+            assert.strictEqual(resultFailure.data, "Promise rejected!");
         });
     });
 });

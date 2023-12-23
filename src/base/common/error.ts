@@ -361,6 +361,51 @@ export namespace Result {
 export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
 /**
+ * @type {AsyncResult}
+ * 
+ * @description Represents an asynchronous type that encapsulates a `Promise` resolving to a {@link Result}. This type is used for handling asynchronous operations that might fail, encapsulating the result as either a successful value of type `T` (using the {@link Ok} variant) or an error of type `E` (using the {@link Err} variant).
+ * 
+ * @note This type extends the concept of {@link Result} to asynchronous operations, allowing for explicit and structured error handling in async code without relying on traditional try/catch mechanisms for promise rejections.
+ * 
+ * @template T The type of the value for successful outcomes in the asynchronous operation.
+ * @template E The type of the error for failed outcomes in the asynchronous operation.
+ * 
+ * @example
+ * // Handling successful outcomes in async operations:
+ * async function asyncDivide(a: number, b: number): AsyncResult<number, string> {
+ *     if (b === 0) {
+ *         return new Err("Division by zero");
+ *     }
+ *     return new Ok(a / b);
+ * }
+ * 
+ * const asyncResult = asyncDivide(4, 2);
+ * asyncResult.then(result => {
+ *     if (result.isOk()) {
+ *         console.log("Division result:", result.value);
+ *     } else {
+ *         console.error("Error:", result.error);
+ *     }
+ * });
+ * 
+ * @example
+ * // Handling error outcomes in async operations:
+ * const anotherAsyncResult = asyncDivide(4, 0);
+ * anotherAsyncResult.then(result => {
+ *     if (result.isOk()) {
+ *         console.log("Division result:", result.value);
+ *     } else {
+ *         console.error("Error:", result.error);
+ *     }
+ * });
+ * 
+ * @see {@link Result}
+ * @see {@link Ok}
+ * @see {@link Err}
+ */
+export type AsyncResult<T, E> = Promise<Result<T, E>>;
+
+/**
  * An interface for {@link Ok} and {@link Err}.
  */
 interface IResult<T, E> {
@@ -528,8 +573,10 @@ interface IResult<T, E> {
  * const successfulResult = ok(42);
  * ```
  */
-export function ok<T, E>(data: T): Ok<T, E> {
-    return new Ok(data);
+export function ok<T extends void, E>(): Ok<T, E>;
+export function ok<T, E>(data: T): Ok<T, E>;
+export function ok<T, E>(data?: T): Ok<T, E> {
+    return new Ok(data!);
 }
 
 /**
@@ -547,8 +594,10 @@ export function ok<T, E>(data: T): Ok<T, E> {
  * const errorResult = err("An error occurred");
  * ```
  */
-export function err<T, E>(data: E): Err<T, E> {
-    return new Err(data);
+export function err<T, E extends void>(data?: E): Err<T, E>;
+export function err<T, E>(data: E): Err<T, E>;
+export function err<T, E>(data?: E): Err<T, E> {
+    return new Err(data!);
 }
 
 /**
