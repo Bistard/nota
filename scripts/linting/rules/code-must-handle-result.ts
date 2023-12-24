@@ -3,6 +3,14 @@ import { TypeChecker } from 'typescript';
 import { unionTypeParts } from './utils/typeScriptUtility';
 import { AST_NODE_TYPES } from './utils/astNodeType';
 
+/**
+ * Evaluate within the expression to see if it's a result.
+ * If it's a result, check that it's handled within the expression.
+ * If it's not handled, check if it's assigned or used as a function argument.
+ * If it's assigned without being handled, review the entire variable block for handling.
+ * Otherwise, it was handled appropriately.
+ */
+
 export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
     public readonly meta: eslint.Rule.RuleMetaData = {
@@ -21,7 +29,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 	};
 
     public create(context: eslint.Rule.RuleContext): eslint.Rule.RuleListener {
-		const parserServices = context.parserServices;
+		const parserServices: any = context.parserServices;
 		const checker = parserServices?.program?.getTypeChecker();
 
 		if (!checker || !parserServices) {
@@ -48,26 +56,12 @@ const resultSelector = matchAny([
 ]);
 
 const resultObjectProperties = [
-	'unwrap',
 	'unwrapOr',
-	'match',
 ];
 const handledMethods = ['match', 'unwrap', 'unwrapOr'];
 const MESSAGE_ID = 'mustUseResult';
 
-/**
- * Evaluate within the expression to see if it's a result.
- * If it's a result, check that it's handled within the expression.
- * If it's not handled, check if it's assigned or used as a function argument.
- * If it's assigned without being handled, review the entire variable block for handling.
- * Otherwise, it was handled appropriately.
- */
-
-function isResultLike(
-	checker: TypeChecker,
-	parserServices: any,
-	node?: any | null,
-): boolean {
+function isResultLike(checker: TypeChecker, parserServices: any, node?: any | null): boolean {
 	if (!node) {
 		return false;
 	}
@@ -121,14 +115,12 @@ function isHandledResult(node: any): boolean {
 			return isHandledResult(parent);
 		}
 	}
+	
 	return false;
 }
+
 const endTransverse = [AST_NODE_TYPES.BlockStatement, AST_NODE_TYPES.Program];
-function getAssignation(
-	checker: TypeChecker,
-	parserServices: any,
-	node: any
-): any | undefined {
+function getAssignation(checker: TypeChecker, parserServices: any, node: any): any | undefined {
 	if (
 		node.type === AST_NODE_TYPES.VariableDeclarator &&
 		isResultLike(checker, parserServices, node.init) &&
@@ -136,21 +128,19 @@ function getAssignation(
 	) {
 		return node.id;
 	}
+	
 	if (endTransverse.includes(node.type) || !node.parent) {
 		return undefined;
 	}
+
 	return getAssignation(checker, parserServices, node.parent);
 }
 
-function isReturned(
-	checker: TypeChecker,
-	parserServices: any,
-	node: any
-): boolean {
+function isReturned(checker: TypeChecker, parserServices: any, node: any): boolean {
 	if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
 		return true;
 	}
-	if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+	if (node.type === AST_NODE_TYPES.ReturnStatement) {
 		return true;
 	}
 	if (node.type === AST_NODE_TYPES.BlockStatement) {
@@ -173,7 +163,7 @@ const ignoreParents = [
 ];
 
 function processSelector(
-	context: any,
+	context: eslint.Rule.RuleContext,
 	checker: TypeChecker,
 	parserServices: any,
 	node: any,
