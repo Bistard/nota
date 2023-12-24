@@ -89,12 +89,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         const currTreeService: ITreeService<unknown> = this.classicTreeService;
 
         // try to create the tree service
-        try {
-            await currTreeService.init(container, root);
-        } catch (error) {
-            throw error;
-        }
-
+        await currTreeService.init(container, root);
+        
         // update the metadata only after successed
         this._currentTreeService = currTreeService;
         this._root = root;
