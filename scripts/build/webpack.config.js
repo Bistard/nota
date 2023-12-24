@@ -6,24 +6,15 @@ const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base
 
 class WebpackPluginProvider {
 
-    // [field]
-
-    /** @type {string} Current working directory */
-    #cwd;
-
     // [constructor]
 
-    constructor(cwd) {
-        this.#cwd = cwd;
-        if (!cwd || typeof cwd != 'string') {
-            console.log(`${utils.color(utils.c.FgYellow, '[WebpackPluginProvider]')} cwd is not provided or provided with wrong type: '${typeof cwd}'!`);
-        }
-    }
+    constructor() {}
 
     // [public methods]
 
     /**
      * @param {{
+     *      cwd: string;
      *      circular?: boolean;
      * } | undefined} opts 
      */
@@ -31,6 +22,11 @@ class WebpackPluginProvider {
 
         const plugins = [];
         
+        const cwd = opts.cwd;
+        if (!cwd || typeof cwd != 'string') {
+            console.log(`${utils.color(utils.c.FgYellow, '[WebpackPluginProvider]')} cwd is not provided or provided with wrong type: '${typeof cwd}'!`);
+        }
+
         /**
          * mini-css-extract plugin
          * 
@@ -54,7 +50,7 @@ class WebpackPluginProvider {
                 {
                     exclude: /a\.js|node_modules/,
                     include: /src/,
-                    cwd: this.#cwd,
+                    cwd: cwd,
                     
                     // `onStart` is called before the cycle detection starts
                     onStart({ _compilation }) {
@@ -121,7 +117,8 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 mode: this.#envMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
-                plugins: (new WebpackPluginProvider(this.#cwd)).getPlugins({ 
+                plugins: (new WebpackPluginProvider()).getPlugins({ 
+                    cwd: this.#cwd,
                     circular: process.env.CIRCULAR === 'true', 
                 }),
             }),

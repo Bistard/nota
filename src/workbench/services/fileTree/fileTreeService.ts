@@ -2,7 +2,7 @@ import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileItemChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
+import { FileItemChildrenProvider, FileItem as FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
@@ -120,19 +120,5 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // TODO: @duckSoup0203
         
         return defaultFileItemCompareFn;
-    }
-}
-
-/**
- * @description Directory goes first, otherwise sorts in ascending, ASCII 
- * character order.
- */
-export function defaultFileItemCompareFn(a: FileItem, b: FileItem): number {
-    if (a.type === b.type) {
-        return (a.name < b.name) ? -1 : 1;
-    } else if (a.isDirectory()) {
-        return -1;
-    } else {
-        return 1;
     }
 }
