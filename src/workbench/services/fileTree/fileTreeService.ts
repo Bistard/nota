@@ -69,7 +69,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
         };
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
-        const compareFunction = ifSupportFileSorting ? this.__buildFileSortingFunction() : undefined;
+        const compareFunction = ifSupportFileSorting ? (new FileTreeCustomSorting()).compare : defaultFileItemCompareFn;
 
         // resolve the root of the directory first
         const rootStat = await this.fileService.stat(root, { resolveChildren: true });
@@ -110,15 +110,25 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     public async close(): Promise<void> {
         // TODO
     }
+}
+
+// TODO: @AAsteria
+// TODO: @duckSoup0203
+class FileTreeCustomSorting extends Disposable {
+
+    // [fields]
+
+    // [constructor]
+
+    constructor() {
+        super();
+    }
+
+    // [public methods]
+
+    public compare(a: FileItem, b: FileItem): number {
+        return -1;
+    }
 
     // [private helper methods]
-
-    private __buildFileSortingFunction(): CompareFn<FileItem> {
-        
-        // TODO: customzied FileItem sorting
-        // TODO: @AAsteria
-        // TODO: @duckSoup0203
-        
-        return defaultFileItemCompareFn;
-    }
 }
