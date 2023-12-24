@@ -266,7 +266,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
 
         // the provided item's children never resolved, we wait until it resolved.
         const promise = refreshPromise
-            .then<FileItem[], FileItem[]>((result) => {
+            .then((result) => {
                 if (result.isOk()) {
                     return data.children;
                 }
