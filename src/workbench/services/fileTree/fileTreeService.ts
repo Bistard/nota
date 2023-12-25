@@ -26,12 +26,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     declare _serviceMarker: undefined;
 
-    // [event]
-
-    get onSelect(): Register<IFileTreeOpenEvent<FileItem>> {
-        return this._tree!.onSelect;
-    }
-
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
@@ -46,6 +40,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     ) {
         super();
         this.loadCustomSortOrder();
+    }
+
+    // [event]
+
+    get onSelect(): Register<IFileTreeOpenEvent<FileItem>> {
+        return this._tree!.onSelect;
     }
 
     // [getter]
@@ -72,7 +72,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
         };
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
-        const compareFunction = ifSupportFileSorting ? (new FileTreeCustomSorting([])).compare : defaultFileItemCompareFn;
+        const customSorter = new CustomFileTreeSorter(this.customSortOrder);
+        const compareFunction = ifSupportFileSorting ? customSorter.compare : defaultFileItemCompareFn;
 
         // resolve the root of the directory first
         const rootStat = await this.fileService.stat(root, { resolveChildren: true });
@@ -130,7 +131,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
 // TODO: @AAsteria
 // TODO: @duckSoup0203
-class FileTreeCustomSorting extends Disposable {
+class CustomFileTreeSorter extends Disposable {
 
     // [fields]
     private customSortOrder: string[];
