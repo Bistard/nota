@@ -52,7 +52,11 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
     }
 
     public init(): void {
-        this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
+        const initResult = this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
+        if (initResult.isErr()) {
+            return;
+        }
+
         this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
         this.__register(this._registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
     }

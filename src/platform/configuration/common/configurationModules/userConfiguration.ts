@@ -84,7 +84,10 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 
     public async init(): Promise<void> {
-        this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
+        const initResult = this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
+        if (initResult.isErr()) {
+            return;
+        }
 
         this.__registerListeners();
 
