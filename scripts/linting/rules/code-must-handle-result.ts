@@ -193,7 +193,7 @@ function checkIfNodeIsNotHandled(
 		const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
 
 		/**
-		 * Try to mark the first assigned variable to be assigned, if not, keep 
+		 * Try to mark the first assigned variable to be reported, if not, keep 
 		 * the original one.
 		 */
 		reportNode = variable?.references[0].identifier ?? reportNode;

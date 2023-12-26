@@ -253,26 +253,72 @@ suite('result-test', () => {
 
     suite('result-must-handle', () => {
 
-        function getResult(value: boolean): Result<string, Error> {
+        function returnResult(value: boolean): Result<string, Error> {
             if (value) {
                 return ok('ok');
             }
             return err(new Error('err'));
         }
 
-        test('basics', () => {
-            const test_result = getResult(true);
+        function resultInParameter(res: Result<void, void>): void {}
+        
+        test('isOk check', () => {
+            const test_result = returnResult(true);
             
-            if (test_result.isOk()) {
-                return true;
-            } else {
-                return false;
-            }
+            if (test_result.isOk()) return false;
+            else return true;
+        });
+        
+        test('isErr check', () => {
+            const test_result = returnResult(true);
+            if (test_result.isErr()) return false;
+            else return true;
+        });
+        
+        test('unwrapOr check', () => {
+            const test_result = returnResult(true);
+            const data = test_result.unwrapOr('');
+        });
+        
+        test('unwrap check', () => {
+            const test_result = returnResult(true);
+            const data = test_result.unwrap();
+        });
+        
+        test('match check', () => {
+            const test_result = returnResult(true);
+            test_result.match(() => {}, () => {});
+        });
+        
+        test('expect check', () => {
+            const test_result = returnResult(true);
+            test_result.expect('err message');
         });
 
         test('await keyword', async () => {
-            const test_result = await getResult(true);
+            const test_result = await returnResult(true);
             test_result.unwrap();
+        });
+
+        test('block check', () => {
+            const test_result = returnResult(true);
+            {
+                test_result.unwrap();
+            }
+        });
+
+        test('closure check', () => { // FIX
+            const test_result = returnResult(true);
+            
+            const a = () => {
+                if (test_result.isErr()) return false;
+                else return true;
+            };
+
+            const b = function () {
+                if (test_result.isErr()) return false;
+                else return true;
+            };
         });
     });
 });
