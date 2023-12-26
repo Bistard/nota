@@ -307,7 +307,7 @@ suite('result-test', () => {
             }
         });
 
-        test('closure check', () => { // FIX
+        test('closure check 1', () => { // FIX
             const test_result = returnResult(true);
             
             const a = () => {
@@ -321,7 +321,7 @@ suite('result-test', () => {
             };
         });
 
-        test('inner function call check', () => { // FIX
+        test('closure check 2', () => { // FIX
             const test_result = returnResult(true);
 
             // eslint-disable-next-line @typescript-eslint/ban-types
@@ -331,7 +331,7 @@ suite('result-test', () => {
             });
         });
         
-        test('inner function call check', () => { // FIX
+        test('closure check 3', () => { // FIX
             const test_result = returnResult(true);
             (() => {
                 test_result.unwrap();
