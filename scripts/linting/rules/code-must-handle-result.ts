@@ -40,11 +40,11 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
 		return {
 			CallExpression(node: estree.CallExpression & eslint.Rule.NodeParentExtension) {
-				return checkIfNodeIsNotHandled(context, checker, parserServices, node);
+				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
 			},
 
 			NewExpression(node: estree.NewExpression & eslint.Rule.NodeParentExtension) {
-				return checkIfNodeIsNotHandled(context, checker, parserServices, node);
+				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
 			},
 		};
 	}
@@ -160,7 +160,8 @@ function checkIfNodeIsNotHandled(
 	checker: TypeChecker,
 	parserServices: any,
 	node: any,
-	reportAs = node,
+	reportNode: any = node,
+	isReference: boolean = false,
 ): boolean {
 	if (node.parent?.type.startsWith('TS')) {
 		return false;
@@ -195,7 +196,7 @@ function checkIfNodeIsNotHandled(
 		 * Try to mark the first assigned variable to be assigned, if not, keep 
 		 * the original one.
 		 */
-		reportAs = variable?.references[0].identifier ?? reportAs;
+		reportNode = variable?.references[0].identifier ?? reportNode;
 
 		// check if any reference is handled by recursive calling
 		const anyHandled = references.some(ref =>
@@ -204,8 +205,9 @@ function checkIfNodeIsNotHandled(
 				checker,
 				parserServices,
 				ref.identifier,
-				reportAs
-			)
+				reportNode,
+				true,
+			) 
 		);
 
 		// since the result is handled at least once, we should mark it as handled.
@@ -214,10 +216,12 @@ function checkIfNodeIsNotHandled(
 		}
 	}
 
-	context.report({
-		node: reportAs,
-		messageId: MESSAGE_ID,
-	});
+	if (!isReference) {
+		context.report({
+			node: reportNode,
+			messageId: MESSAGE_ID,
+		});
+	}
 
 	return true;
 }
