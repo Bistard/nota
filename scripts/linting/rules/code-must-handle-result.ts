@@ -24,7 +24,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 			recommended: true,
 		},
 		messages: {
-			mustUseResult: '`Result` must be handled with either of `match`, `unwrap` or `unwrapOr`.',
+			[MESSAGE_ID]: '`Result` must be handled with either of `match`, `unwrap` or `unwrapOr`.',
 		},
 		schema: [],
 		type: 'problem',
@@ -52,7 +52,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 };
 
 const resultObjectProperties = ['unwrapOr'];
-const handledMethods = ['match', 'unwrap', 'unwrapOr'];
+const handledMethods = ['match', 'unwrap', 'unwrapOr', 'isOk', 'isErr', 'expect'];
 const MESSAGE_ID = 'mustUseResult';
 
 function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.Rule.Node | null): boolean {
@@ -190,25 +190,28 @@ function checkIfNodeIsHandled(
 	// Check if is assigned to variables
 	if (assignedTo) {
 		const variable = currentScope.set.get(assignedTo.name);
-		console.log(variable?.name); // TEST
-
 		const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
-		if (references.length > 0) {
-			// check if any reference is handled by recursive calling
-			const anyHandled = references.some(ref =>
-				!checkIfNodeIsHandled(
-					context,
-					checker,
-					parserServices,
-					ref.identifier,
-					reportAs
-				)
-			);
 
-			// since the result is handled at least once, we should mark it as handled.
-			if (anyHandled) {
-				return false;
-			}
+		/**
+		 * Try to mark the first assigned variable to be assigned, if not, keep 
+		 * the original one.
+		 */
+		reportAs = variable?.references[0].identifier ?? reportAs;
+
+		// check if any reference is handled by recursive calling
+		const anyHandled = references.some(ref =>
+			!checkIfNodeIsHandled(
+				context,
+				checker,
+				parserServices,
+				ref.identifier,
+				reportAs
+			)
+		);
+
+		// since the result is handled at least once, we should mark it as handled.
+		if (anyHandled) {
+			return false;
 		}
 	}
 
