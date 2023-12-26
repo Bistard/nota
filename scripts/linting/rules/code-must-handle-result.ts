@@ -3,7 +3,6 @@ import * as estree from 'estree';
 import { TypeChecker } from 'typescript';
 import { unionTypeParts } from './utils/typeScriptUtility';
 import { AST_NODE_TYPES } from './utils/astNodeType';
-import { TSESTree } from '@typescript-eslint/experimental-utils';
 
 /**
  * Evaluate within the expression to see if it's a result.
