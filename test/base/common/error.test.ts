@@ -50,6 +50,7 @@ suite('error-test', () => {
     test('InitProtector', () => {
         const initProtector = new InitProtector();
 
+        // eslint-disable-next-line local/code-must-handle-result
         initProtector.init('first init');
         shouldThrow(() => initProtector.init('second init'));
         shouldThrow(() => initProtector.init('thrid init'));
@@ -59,7 +60,7 @@ suite('error-test', () => {
 suite('result-test', () => {
 
     suite('Ok', () => {
-        const okInstance: Result<number, string> = new Ok(42);
+        const okInstance: Result<number, string> = new Ok(42); // fix
 
         test('isOk method should return true', () => {
             assert.ok(okInstance.isOk());
@@ -87,7 +88,7 @@ suite('result-test', () => {
     });
 
     suite('Err', () => {
-        const errInstance: Result<number, string> = new Err("Error Message");
+        const errInstance: Result<number, string> = new Err("Error Message"); // fix
 
         test('isOk method should return false', () => {
             assert.ok(!errInstance.isOk());
@@ -131,6 +132,7 @@ suite('result-test', () => {
 
         test('isOk type-check', () => {
             const result = getResult(true);
+            
             if (result.isOk()) {
                 checkTrue<AreEqual<typeof result.data, string>>();
             } else {
@@ -202,6 +204,7 @@ suite('result-test', () => {
             }
 
             // not failed
+            // eslint-disable-next-line local/code-must-handle-result
             const result1 = Result.fromThrowable<number, string>(
                 notFail, 
                 (error: any) => {
@@ -211,6 +214,7 @@ suite('result-test', () => {
             assert.strictEqual(result1.data, 42);
 
             // failed
+            // eslint-disable-next-line local/code-must-handle-result
             const result2 = Result.fromThrowable<number, string>(
                 mightFail, 
                 (error: any) => {
@@ -244,6 +248,31 @@ suite('result-test', () => {
             );
             assert.strictEqual(resultFailure.isOk(), false);
             assert.strictEqual(resultFailure.data, "Promise rejected!");
+        });
+    });
+
+    suite('result-must-handle', () => {
+
+        function getResult(value: boolean): Result<string, Error> {
+            if (value) {
+                return ok('ok');
+            }
+            return err(new Error('err'));
+        }
+
+        test('basics', () => {
+            const test_result = getResult(true);
+            
+            if (test_result.isOk()) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        test('await keyword', async () => {
+            const test_result = await getResult(true);
+            test_result.unwrap();
         });
     });
 });
