@@ -307,21 +307,15 @@ suite('result-test', () => {
             }
         });
 
-        test('closure check 1', () => { // FIX
+        test('closure check 1', () => {
             const test_result = returnResult(true);
             
             const a = () => {
-                if (test_result.isErr()) return false;
-                else return true;
-            };
-
-            const b = function () {
-                if (test_result.isErr()) return false;
-                else return true;
+                test_result.unwrap();
             };
         });
 
-        test('closure check 2', () => { // FIX
+        test('closure check 2', () => {
             const test_result = returnResult(true);
 
             // eslint-disable-next-line @typescript-eslint/ban-types
@@ -331,7 +325,7 @@ suite('result-test', () => {
             });
         });
         
-        test('closure check 3', () => { // FIX
+        test('closure check 3', () => {
             const test_result = returnResult(true);
             (() => {
                 test_result.unwrap();
