@@ -60,7 +60,7 @@ suite('error-test', () => {
 suite('result-test', () => {
 
     suite('Ok', () => {
-        const okInstance: Result<number, string> = new Ok(42); // fix
+        const okInstance: Result<number, string> = new Ok(42);
 
         test('isOk method should return true', () => {
             assert.ok(okInstance.isOk());
@@ -88,7 +88,7 @@ suite('result-test', () => {
     });
 
     suite('Err', () => {
-        const errInstance: Result<number, string> = new Err("Error Message"); // fix
+        const errInstance: Result<number, string> = new Err("Error Message");
 
         test('isOk method should return false', () => {
             assert.ok(!errInstance.isOk());
@@ -319,6 +319,23 @@ suite('result-test', () => {
                 if (test_result.isErr()) return false;
                 else return true;
             };
+        });
+
+        test('inner function call check', () => { // FIX
+            const test_result = returnResult(true);
+
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            const cb = (fn: Function) => {};
+            cb(() => {
+                test_result.unwrap();
+            });
+        });
+        
+        test('inner function call check', () => { // FIX
+            const test_result = returnResult(true);
+            (() => {
+                test_result.unwrap();
+            })();
         });
     });
 });
