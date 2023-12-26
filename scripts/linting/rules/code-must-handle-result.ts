@@ -23,7 +23,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 			recommended: true,
 		},
 		messages: {
-			[MESSAGE_ID]: '`Result` must be handled with either of `match`, `unwrap` or `unwrapOr`.',
+			[MESSAGE_ID]: '`Result` must be handled with either of `match`, `unwrap`, `unwrapOr`, `isOk`, `isErr` or `expect`.',
 		},
 		schema: [],
 		type: 'problem',
@@ -52,7 +52,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
 const resultObjectProperties = ['unwrapOr'];
 const handledMethods = ['match', 'unwrap', 'unwrapOr', 'isOk', 'isErr', 'expect'];
-const MESSAGE_ID = 'mustUseResult';
+const MESSAGE_ID = 'ResultNotHandled';
 
 function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.Rule.Node | null): boolean {
 	if (!node) {
