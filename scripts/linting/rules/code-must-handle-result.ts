@@ -40,11 +40,11 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
 		return {
 			CallExpression(node: estree.CallExpression & eslint.Rule.NodeParentExtension) {
-				return checkIfNodeIsHandled(context, checker, parserServices, node);
+				return checkIfNodeIsNotHandled(context, checker, parserServices, node);
 			},
 
 			NewExpression(node: estree.NewExpression & eslint.Rule.NodeParentExtension) {
-				return checkIfNodeIsHandled(context, checker, parserServices, node);
+				return checkIfNodeIsNotHandled(context, checker, parserServices, node);
 			},
 		};
 	}
@@ -155,7 +155,7 @@ const ignoreParents = [
 	'ClassProperty'
 ];
 
-function checkIfNodeIsHandled(
+function checkIfNodeIsNotHandled(
 	context: eslint.Rule.RuleContext,
 	checker: TypeChecker,
 	parserServices: any,
@@ -199,7 +199,7 @@ function checkIfNodeIsHandled(
 
 		// check if any reference is handled by recursive calling
 		const anyHandled = references.some(ref =>
-			!checkIfNodeIsHandled(
+			!checkIfNodeIsNotHandled(
 				context,
 				checker,
 				parserServices,
