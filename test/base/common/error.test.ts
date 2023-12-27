@@ -50,10 +50,11 @@ suite('error-test', () => {
     test('InitProtector', () => {
         const initProtector = new InitProtector();
 
-        // eslint-disable-next-line local/code-must-handle-result
-        initProtector.init('first init');
-        shouldThrow(() => initProtector.init('second init'));
-        shouldThrow(() => initProtector.init('thrid init'));
+        const initResult1 = initProtector.init('first init');
+        assert.ok(initResult1.isOk());
+        
+        const initResult2 = initProtector.init('first init');
+        assert.ok(initResult2.isErr());
     });
 });
 
@@ -84,6 +85,12 @@ suite('result-test', () => {
 
         test('match should apply onOk function and return its result', () => {
             assert.strictEqual(okInstance.match(data => data + 1, _ => 0), 43);
+        });
+
+        test('map should apply a function to inner data and return a new Ok instance', () => {
+            const mappedResult = okInstance.map(data => data * 2);
+            assert.ok(mappedResult.isOk());
+            assert.strictEqual(mappedResult.unwrap(), 84);
         });
     });
 
@@ -118,6 +125,12 @@ suite('result-test', () => {
 
         test('match should apply onError function and return its result', () => {
             assert.strictEqual(errInstance.match(num => 'onSuccess', err => 'onError'), 'onError');
+        });
+
+        test('map should not modify Err instance and return the same Err', () => {
+            const mappedResult = errInstance.map(data => data * 2);
+            assert.ok(mappedResult.isErr());
+            assert.throws(() => mappedResult.unwrap());
         });
     });
 

@@ -556,6 +556,37 @@ interface IResult<T, E> {
      * ```
      */
     match<U>(onOk: (data: T) =>  U, onError: (error: E) =>  U): U;
+
+    /**
+     * @description Applies a function to the contained value (if {@link Ok}) 
+     * and returns a new {@link Result} with the result of the function. If the 
+     * {@link IResult} is an {@link Err}, it returns the original {@link Err} 
+     * value without applying the function.
+     * 
+     * This method can be used for chaining multiple computations that might 
+     * fail, while handling errors at each step.
+     * 
+     * @param predicate The function to apply to the {@link Ok} value.
+     * @returns A new {@link Result} instance containing the result of the 
+     * `predicate` function if the original {@link Result} is an {@link Ok}. If 
+     * the original {@link Result} is an 
+     * {@link Err}, it returns the original {@link Err} value.
+     * 
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Ok(42);
+     * const newResult = result.map(x => x * 2);
+     * console.log(newResult.unwrap()); // 84
+     * ```
+     * 
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Some error");
+     * const newResult = result.map(x => x * 2);
+     * console.log(newResult.isErr()); // true
+     * ```
+     */
+    map<U>(predicate: (data: T) => U): Result<U, E>;
 }
 
 /**
@@ -643,6 +674,10 @@ export class Ok<T, E> implements IResult<T, E> {
     public match<U>(onOk: (data: T) => U, _onError: (error: E) => U): U {
         return onOk(this.data);
     }
+
+    public map<U>(predicate: (data: T) => U): Result<U, E> {
+        return ok(predicate(this.data));
+    }
 }
 
 /**
@@ -690,6 +725,10 @@ export class Err<T, E> implements IResult<T, E> {
 
     public match<U>(_onOk: (data: T) => U, onError: (error: E) => U): U {
         return onError(this.data);
+    }
+    
+    public map<U>(_predicate: (data: T) => U): Result<U, E> {
+        return err(this.data);
     }
 }
 
