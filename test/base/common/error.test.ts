@@ -272,6 +272,13 @@ suite('result-test', () => {
             }
             return err(new Error('err'));
         }
+        
+        function returnAsyncResult(value: boolean): AsyncResult<string, Error> {
+            if (value) {
+                return Promise.resolve(ok('ok'));
+            }
+            return Promise.resolve(err(new Error('err')));
+        }
 
         function resultInParameter(res: Result<void, void>): void {}
         
@@ -290,12 +297,12 @@ suite('result-test', () => {
         
         test('unwrapOr check', () => {
             const test_result = returnResult(true);
-            const data = test_result.unwrapOr('');
+            test_result.unwrapOr('');
         });
         
         test('unwrap check', () => {
             const test_result = returnResult(true);
-            const data = test_result.unwrap();
+            test_result.unwrap();
         });
         
         test('match check', () => {
@@ -309,7 +316,7 @@ suite('result-test', () => {
         });
 
         test('await keyword', async () => {
-            const test_result = await returnResult(true);
+            const test_result = await returnAsyncResult(true);
             test_result.unwrap();
         });
 

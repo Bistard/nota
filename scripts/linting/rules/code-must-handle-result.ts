@@ -46,9 +46,84 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 			NewExpression(node: estree.NewExpression & eslint.Rule.NodeParentExtension) {
 				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
 			},
+
+			AwaitExpression(node: estree.AwaitExpression & eslint.Rule.NodeParentExtension) {
+				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
+			}
 		};
 	}
 };
+
+function checkIfNodeIsNotHandled(
+	context: eslint.Rule.RuleContext,
+	checker: TypeChecker,
+	parserServices: any,
+	node: any,
+	reportNode: any = node,
+	isReference: boolean = false,
+): boolean {
+	if (node.parent?.type.startsWith('TS')) {
+		return false;
+	}
+	
+	if (node.parent && ignoreParents.includes(node.parent.type)) {
+		return false;
+	}
+
+	if (!isResultLike(checker, parserServices, node)) {
+		return false;
+	}
+
+	if (isHandledResult(node)) {
+		return false;
+	}
+
+	// eg. `return getResult();`
+	if (isReturned(checker, parserServices, node)) {
+		return false;
+	}
+
+	const assignedTo = getAssignation(checker, parserServices, node);
+	const currentScope = context.getScope();
+
+	// Check if is assigned to variables
+	if (assignedTo) {
+		const variable = currentScope.set.get(assignedTo.name);
+		const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
+
+		/**
+		 * Try to mark the first assigned variable to be reported, if not, keep 
+		 * the original one.
+		 */
+		reportNode = variable?.references[0].identifier ?? reportNode;
+
+		// check if any reference is handled by recursive calling
+		const anyHandled = references.some(ref =>
+			!checkIfNodeIsNotHandled(
+				context,
+				checker,
+				parserServices,
+				ref.identifier,
+				reportNode,
+				true,
+			) 
+		);
+
+		// since the result is handled at least once, we should mark it as handled.
+		if (anyHandled) {
+			return false;
+		}
+	}
+
+	if (!isReference) {
+		context.report({
+			node: reportNode,
+			messageId: MESSAGE_ID,
+		});
+	}
+
+	return true;
+}
 
 const resultObjectProperties = ['unwrapOr'];
 const handledMethods = ['match', 'unwrap', 'unwrapOr', 'isOk', 'isErr', 'expect'];
@@ -154,74 +229,3 @@ const ignoreParents = [
 	AST_NODE_TYPES.MethodDefinition,
 	'ClassProperty'
 ];
-
-function checkIfNodeIsNotHandled(
-	context: eslint.Rule.RuleContext,
-	checker: TypeChecker,
-	parserServices: any,
-	node: any,
-	reportNode: any = node,
-	isReference: boolean = false,
-): boolean {
-	if (node.parent?.type.startsWith('TS')) {
-		return false;
-	}
-	
-	if (node.parent && ignoreParents.includes(node.parent.type)) {
-		return false;
-	}
-
-	if (!isResultLike(checker, parserServices, node)) {
-		return false;
-	}
-
-	if (isHandledResult(node)) {
-		return false;
-	}
-
-	// eg. `return getResult();`
-	if (isReturned(checker, parserServices, node)) {
-		return false;
-	}
-
-	const assignedTo = getAssignation(checker, parserServices, node);
-	const currentScope = context.getScope();
-
-	// Check if is assigned to variables
-	if (assignedTo) {
-		const variable = currentScope.set.get(assignedTo.name);
-		const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
-
-		/**
-		 * Try to mark the first assigned variable to be reported, if not, keep 
-		 * the original one.
-		 */
-		reportNode = variable?.references[0].identifier ?? reportNode;
-
-		// check if any reference is handled by recursive calling
-		const anyHandled = references.some(ref =>
-			!checkIfNodeIsNotHandled(
-				context,
-				checker,
-				parserServices,
-				ref.identifier,
-				reportNode,
-				true,
-			) 
-		);
-
-		// since the result is handled at least once, we should mark it as handled.
-		if (anyHandled) {
-			return false;
-		}
-	}
-
-	if (!isReference) {
-		context.report({
-			node: reportNode,
-			messageId: MESSAGE_ID,
-		});
-	}
-
-	return true;
-}
