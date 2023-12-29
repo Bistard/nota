@@ -207,6 +207,19 @@ suite('result-test', () => {
 
     suite('Result-namespace', () => {
 
+        test('is', () => {
+            // eslint-disable-next-line local/code-must-handle-result
+            assert.strictEqual(Result.is(ok()), true);
+            // eslint-disable-next-line local/code-must-handle-result
+            assert.strictEqual(Result.is(err()), true);
+            assert.strictEqual(Result.is({ isOk: () => {}, isErr: () => {} }), true);
+            assert.strictEqual(Result.is({ isOk: () => {} }), false);
+            assert.strictEqual(Result.is(5), false);
+            assert.strictEqual(Result.is(undefined), false);
+            assert.strictEqual(Result.is({}), false);
+            assert.strictEqual(Result.is({ isOk: false }), false);
+        });
+
         test('fromThrowable', () => {
             function mightFail(): number {
                 throw new Error("Failed!");

@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, isObject } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -243,6 +243,21 @@ export class InitProtector {
 }
 
 export namespace Result {
+
+    /**
+     * @description Check if the given obj is one of {@link IResult}.
+     * @param obj The given obj
+     * @returns A boolean indicates if success.
+     */
+    export function is<T, E>(obj: any): obj is Result<T, E> {
+        if (isObject(obj) &&
+            typeof obj.isOk === 'function' &&
+            typeof obj.isErr === 'function'
+        ) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @description Wraps a callable function that might throw an error. If the 
