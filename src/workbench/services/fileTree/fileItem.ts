@@ -1,6 +1,6 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
-import { AsyncResult, Err, Result, err, ok } from "src/base/common/error";
-import { FileType, IResolvedFileStat } from "src/base/common/files/file";
+import { AsyncResult, Result, err, ok } from "src/base/common/error";
+import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
@@ -77,7 +77,7 @@ export interface IFileItem {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, unknown>;
+    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -181,7 +181,7 @@ export class FileItem implements IFileItem {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, unknown> {
+    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
         const promise = (async () => {
 
             /**
@@ -191,13 +191,10 @@ export class FileItem implements IFileItem {
             if (this._isResolved === false) {
                 console.log('[item] resolving children'); // TEST
                 
-                const resolving = await Result.fromPromise(
-                    () => fileService.stat(this._stat.uri, { resolveChildren: true }),
-                    (err) => err,
-                );
+                const resolving = await fileService.stat(this._stat.uri, { resolveChildren: true });
 
                 if (resolving.isErr()) {
-                    return err<void, unknown>(resolving.data);
+                    return err<void, FileOperationError>(resolving.error);
                 }
 
                 const updatedStat = resolving.data;
@@ -215,7 +212,7 @@ export class FileItem implements IFileItem {
                 this._children.sort(cmpFn);
             }
 
-            return ok<void, unknown>();
+            return ok<void, FileOperationError>();
         })();
 
         return promise;
@@ -270,9 +267,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
                 if (result.isOk()) {
                     return data.children;
                 }
-                
-                const error: any = result.data;
-                this.logService.error(error);
+                this.logService.error(result.error);
                 return <FileItem[]>[];
             });
 

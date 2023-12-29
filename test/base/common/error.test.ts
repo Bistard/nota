@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { AsyncResult, Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
 import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
-import { shouldThrow } from 'test/utils/helpers';
+import { assertResult, shouldThrow } from 'test/utils/helpers';
 
 suite('error-test', () => {
     
@@ -149,14 +149,14 @@ suite('result-test', () => {
             if (result.isOk()) {
                 checkTrue<AreEqual<typeof result.data, string>>();
             } else {
-                checkTrue<AreEqual<typeof result.data, Error>>();
+                checkTrue<AreEqual<typeof result.error, Error>>();
             }
         });
 
         test('isErr type-check', () => {
             const result = getResult(true);
             if (result.isErr()) {
-                checkTrue<AreEqual<typeof result.data, Error>>();
+                checkTrue<AreEqual<typeof result.error, Error>>();
             } else {
                 checkTrue<AreEqual<typeof result.data, string>>();
             }
@@ -217,24 +217,32 @@ suite('result-test', () => {
             }
 
             // not failed
-            // eslint-disable-next-line local/code-must-handle-result
             const result1 = Result.fromThrowable<number, string>(
                 notFail, 
                 (error: any) => {
                     return error.message;
                 }
             );
-            assert.strictEqual(result1.data, 42);
+            
+            if (result1.isOk()) {
+                assert.strictEqual(result1.data, 42);
+            } else {
+                assert.fail('Result should be an instance of ok');
+            }
 
             // failed
-            // eslint-disable-next-line local/code-must-handle-result
             const result2 = Result.fromThrowable<number, string>(
                 mightFail, 
                 (error: any) => {
                     return error.message;
                 }
             );
-            assert.strictEqual(result2.data, 'Failed!');
+
+            if (result2.isErr()) {
+                assert.strictEqual(result2.error, 'Failed!');
+            } else {
+                assert.fail('Result should be an instance of err');
+            }
         });
 
         test('fromPromise', async () => {
@@ -251,16 +259,24 @@ suite('result-test', () => {
                 mightResolve, 
                 (error: any) => error.message
             );
-            assert.strictEqual(resultSuccess.isOk(), true);
-            assert.strictEqual(resultSuccess.data, 24);
+
+            if (resultSuccess.isOk()) {
+                assert.strictEqual(resultSuccess.data, 24);
+            } else {
+                assert.fail();
+            }
         
             // check the case where the promise gets rejected
             const resultFailure = await Result.fromPromise<number, string>(
                 mightReject, 
                 (error: any) => error.message
             );
-            assert.strictEqual(resultFailure.isOk(), false);
-            assert.strictEqual(resultFailure.data, "Promise rejected!");
+
+            if (resultFailure.isErr()) {
+                assert.strictEqual(resultFailure.error, "Promise rejected!");
+            } else {
+                assert.fail();
+            }
         });
     });
 
@@ -281,12 +297,10 @@ suite('result-test', () => {
         }
 
         function resultInParameter(res: Result<void, void>): void {
-    
             // res.unwrap(); // FIX: should mark as unhandled
         }
         
         async function asyncResultInParameter(res: AsyncResult<void, void>): Promise<void> {
-    
             // res.unwrap(); // FIX: should mark as unhandled
         }
         

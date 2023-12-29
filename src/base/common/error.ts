@@ -303,10 +303,7 @@ export namespace Result {
      * );
      * // Logs: Caught rejection: Error: Promise rejected!
      */
-    export async function fromPromise<T, E>(
-        mightThrow: Callable<any[], Promise<T>>, 
-        onError: (error: unknown) => E
-    ): Promise<Result<T, E>> {
+    export async function fromPromise<T, E>(mightThrow: Callable<any[], Promise<T>>, onError: (error: unknown) => E): AsyncResult<T, E> {
         try {
             const value = await mightThrow();
             return new Ok(value);
@@ -411,13 +408,12 @@ export type AsyncResult<T, E> = Promise<Result<T, E>>;
 interface IResult<T, E> {
     
     /**
-     * @description Represents the inner data value or error value of the 
-     * {@link IResult} instance. 
+     * @description Represents the inner DATA value of the {@link IResult} 
+     * instance. 
      * - In case of a successful outcome, the data is of type `T`. 
-     * - If there's an error, it's of type `E`.
      * 
-     * Users should utilize the {@link isOk} and {@link isErr} methods to 
-     * ascertain the type of data before accessing it.
+     * Users should utilize the {@link isOk} method to ascertain the type of 
+     * data before accessing it.
      * - Force the user to handle the potential error.
      * 
      * @example
@@ -426,16 +422,32 @@ interface IResult<T, E> {
      * const success: IResult<number, string> = new Ok(42);
      * if (success.isOk()) {
      *     console.log(success.data); // 42
-     * }
-     * 
-     * // Error outcome:
-     * const error: IResult<number, string> = new Err("Some error");
-     * if (error.isErr()) {
-     *     console.error(error.data); // "Some error"
+     *     console.log(success.error); // undefined
      * }
      * ```
      */
-    readonly data: T | E;
+    readonly data?: T;
+
+    /**
+     * @description Represents the inner ERROR value of the {@link IResult} 
+     * instance. 
+     * - In case of an error, it's of type `E`.
+     * 
+     * Users should utilize the {@link isOk} method to ascertain the type of 
+     * data before accessing it.
+     * - Force the user to handle the potential error.
+     * 
+     * @example
+     * ```
+     * // Error outcome:
+     * const error: IResult<number, string> = new Err("Some error");
+     * if (error.isErr()) {
+     *     console.error(error.error); // "Some error"
+     *     console.log(error.data); // undefined
+     * }
+     * ```
+     */
+    readonly error?: E;
 
     /**
      * @description Returns `true` if the {@link Result} is an {@link Ok} 
@@ -701,7 +713,7 @@ export class Ok<T, E> implements IResult<T, E> {
  */
 export class Err<T, E> implements IResult<T, E> {
     
-    constructor(public readonly data: E) {}
+    constructor(public readonly error: E) {}
 
     public isOk(): this is Ok<T, E> {
         return false;
@@ -712,23 +724,23 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err: ${this.data}`);
+        panic(`Tried to unwrap an Err: ${this.error}`);
     }
 
-    public unwrapOr(data: T): T{
-        return data;
+    public unwrapOr(error: T): T{
+        return error;
     }
 
     public expect(errMessage: string): never {
         panic(errMessage);
     }
 
-    public match<U>(_onOk: (data: T) => U, onError: (error: E) => U): U {
-        return onError(this.data);
+    public match<U>(_onOk: (error: T) => U, onError: (error: E) => U): U {
+        return onError(this.error);
     }
     
-    public map<U>(_predicate: (data: T) => U): Result<U, E> {
-        return err(this.data);
+    public map<U>(_predicate: (error: T) => U): Result<U, E> {
+        return err(this.error);
     }
 }
 
