@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
+import { AsyncResult, Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
 import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
 import { shouldThrow } from 'test/utils/helpers';
 
@@ -280,7 +280,15 @@ suite('result-test', () => {
             return Promise.resolve(err(new Error('err')));
         }
 
-        function resultInParameter(res: Result<void, void>): void {}
+        function resultInParameter(res: Result<void, void>): void {
+    
+            // res.unwrap(); // FIX: should mark as unhandled
+        }
+        
+        async function asyncResultInParameter(res: AsyncResult<void, void>): Promise<void> {
+    
+            // res.unwrap(); // FIX: should mark as unhandled
+        }
         
         test('isOk check', () => {
             const test_result = returnResult(true);
@@ -319,6 +327,11 @@ suite('result-test', () => {
             const test_result = await returnAsyncResult(true);
             test_result.unwrap();
         });
+        
+        test('await keyword', async () => {
+            const test_result = returnAsyncResult(true);
+            // test_result.unwrap(); // FIX
+        });
 
         test('block check', () => {
             const test_result = returnResult(true);
@@ -350,6 +363,14 @@ suite('result-test', () => {
             (() => {
                 test_result.unwrap();
             })();
+        });
+
+        test.skip('reassignment to the same variable', () => {
+            // let res: Result<string, Error> = returnResult(true);
+            // res.unwrap();
+
+            // res = returnResult(true);
+            // res.unwrap();
         });
     });
 });
