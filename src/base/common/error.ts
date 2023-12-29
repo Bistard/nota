@@ -402,8 +402,13 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
  */
 export type AsyncResult<T, E> = Promise<Result<T, E>>;
 
-export interface IResultLike<T, E> {
+export type ResultLike<T, E> = (IResult<T, E> & { data: T, error: undefined }) | (IResult<T, E> & { error: E, data: undefined });
 
+/**
+ * An interface for {@link Ok} and {@link Err}.
+ */
+interface IResult<T, E> {
+    
     /**
      * @description Represents the inner DATA value of the {@link IResult} 
      * instance. 
@@ -445,13 +450,7 @@ export interface IResultLike<T, E> {
      * ```
      */
     readonly error?: E;
-}
 
-/**
- * An interface for {@link Ok} and {@link Err}.
- */
-interface IResult<T, E> extends IResultLike<T, E> {
-    
     /**
      * @description Returns `true` if the {@link Result} is an {@link Ok} 
      * instance, and `false` otherwise.
