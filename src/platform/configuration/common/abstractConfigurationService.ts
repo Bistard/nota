@@ -82,7 +82,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     public async init(): Promise<void> {
         const initResult = this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
         if (initResult.isErr()) {
-            this.logService.warn(initResult.data.message);
+            this.logService.warn(initResult.error.message);
             return;
         }
 
