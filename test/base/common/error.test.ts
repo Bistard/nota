@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import { AsyncResult, Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
 import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
-import { assertResult, shouldThrow } from 'test/utils/helpers';
 
 suite('error-test', () => {
     
