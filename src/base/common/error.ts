@@ -338,7 +338,7 @@ export namespace Result {
  * 
  * const result = divide(4, 2);
  * if (result.isOk()) {
- *     console.log("Division result:", result.value);
+ *     console.log("Division result:", result.data);
  * } else {
  *     console.error("Error:", result.error);
  * }
@@ -347,7 +347,7 @@ export namespace Result {
  * // Handling error outcomes:
  * const anotherResult = divide(4, 0);
  * if (anotherResult.isOk()) {
- *     console.log("Division result:", anotherResult.value);
+ *     console.log("Division result:", anotherResult.data);
  * } else {
  *     console.error("Error:", anotherResult.error);
  * }
@@ -379,7 +379,7 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
  * const asyncResult = asyncDivide(4, 2);
  * asyncResult.then(result => {
  *     if (result.isOk()) {
- *         console.log("Division result:", result.value);
+ *         console.log("Division result:", result.data);
  *     } else {
  *         console.error("Error:", result.error);
  *     }
@@ -390,7 +390,7 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
  * const anotherAsyncResult = asyncDivide(4, 0);
  * anotherAsyncResult.then(result => {
  *     if (result.isOk()) {
- *         console.log("Division result:", result.value);
+ *         console.log("Division result:", result.data);
  *     } else {
  *         console.error("Error:", result.error);
  *     }
@@ -629,7 +629,7 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * readable.
  * 
  * @template E The type of the error value.
- * @param {E} data The error value to be wrapped in an `Err` instance.
+ * @param {E} error The error value to be wrapped in an `Err` instance.
  * @returns {Err<E>} An instance of the `Err` class containing the provided error value.
  * 
  * @example
@@ -637,10 +637,10 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * const errorResult = err("An error occurred");
  * ```
  */
-export function err<T, E extends void>(data?: E): Err<T, E>;
-export function err<T, E>(data: E): Err<T, E>;
-export function err<T, E>(data?: E): Err<T, E> {
-    return new Err(data!);
+export function err<T, E extends void>(): Err<T, E>;
+export function err<T, E>(error: E): Err<T, E>;
+export function err<T, E>(error?: E): Err<T, E> {
+    return new Err(error!);
 }
 
 /**
