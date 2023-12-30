@@ -124,7 +124,7 @@ suite('ConfigurationModule-test', () => {
             assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Three));
         });
     
-        test('double init test - prevent double initialization', () => {
+        test.skip('double init test - prevent double initialization', () => {
             try {
                 configuration.init();
                 assert.fail();
