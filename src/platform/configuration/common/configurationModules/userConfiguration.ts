@@ -171,7 +171,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         const unvalidated = tryOrDefault<object>(
             {},
             () => JSON.parse(raw),
-            () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'`),
+            (error) => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'. Reason: ${errorToMessage(error)}`),
         );
         const validated = this._validator.validate(unvalidated);
         return validated;
