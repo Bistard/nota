@@ -290,6 +290,21 @@ suite('result-test', () => {
                 assert.fail();
             }
         });
+
+        test('getOrPanic', async () => {
+            // sync
+            // eslint-disable-next-line local/code-must-handle-result
+            const data1 = Result.getOrPanic(ok(5));
+            assert.strictEqual(data1, 5);
+
+            // async
+            // eslint-disable-next-line local/code-must-handle-result
+            const data2 = await Result.getOrPanic(Promise.resolve(ok(6)));
+            assert.strictEqual(data2, 6);
+
+            // eslint-disable-next-line local/code-must-handle-result
+            await assert.rejects(async () => Result.getOrPanic(Promise.resolve(err(7))));
+        });
     });
 
     suite('result-must-handle', () => {

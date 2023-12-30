@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable, isObject } from "src/base/common/utilities/type";
+import { Callable, isObject, isPromise } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -326,6 +326,66 @@ export namespace Result {
             const onErrorResult = onError(error);
             return new Err(onErrorResult);
         }
+    }
+
+    /**
+     * @description Extracts the value from a `Result` or an `AsyncResult` if 
+     * it's an `Ok` variant, or throws the error if it's an `Err` variant. This 
+     * function simplifies error handling by converting a `Result` type into a 
+     * regular value or a thrown error, enabling traditional error handling 
+     * patterns in TypeScript/JavaScript.
+     *
+     * This function is particularly useful when the programmer is confident 
+     * that the `Result` is an `Ok` and wants to enforce this assumption in the 
+     * code. It's a more assertive approach compared to handling both `Ok` and 
+     * `Err` scenarios separately.
+     *
+     * 
+     * @param result The `Result` or `AsyncResult` to extract the value from.
+     * @return The value from the `Result` if it's an `Ok` variant.
+     *
+     * @throws Throws the error contained in the `Err` variant.
+     *
+     * @example
+     * // Using with a synchronous Result:
+     * const result = new Ok(10);
+     * const value = getOrPanic(result); // Returns 10
+     *
+     * @example
+     * // Using with an asynchronous Result (AsyncResult):
+     * const asyncResult = Promise.resolve(new Ok(20));
+     * const asyncValue = await getOrPanic(asyncResult); // Returns 20
+     *
+     * @example
+     * // Error handling:
+     * const errResult = new Err(new Error('Failure'));
+     * try {
+     *     const value = getOrPanic(errResult); // Throws Error('Failure')
+     * } catch (error) {
+     *     console.error(error); // Logs: Error('Failure')
+     * }
+     */
+    export function getOrPanic<T, E>(result: Result<T, E>): T;
+    export async function getOrPanic<T, E>(result: AsyncResult<T, E>): Promise<T>;
+    export function getOrPanic<T, E>(result: Result<T, E> | AsyncResult<T, E>): T | Promise<T> {
+        if (isPromise(result)) {
+            return (async () => {
+                const res = await result;
+                if (res.isOk()) {
+                    return res.data;
+                }
+                
+                // eslint-disable-next-line local/code-no-throw
+                throw res.error;
+            })();
+        }
+        
+        if (result.isOk()) {
+            return result.data;
+        }
+
+        // eslint-disable-next-line local/code-no-throw
+        throw result.error;
     }
 }
 
