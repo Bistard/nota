@@ -60,7 +60,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
         catch (err: any) {
             if (err.code === 'ENOENT') {
-                throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
+                throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
             }
             throw err;
         }
@@ -80,11 +80,11 @@ export class DiskFileSystemProvider extends Disposable implements
                 const exist = fileExists(path);
 
                 if (exist && opts.overwrite === false) {
-                    throw new FileSystemProviderError('File already exists', FileOperationErrorType.FILE_EXISTS);
+                    throw new FileSystemProviderError(`File already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS);
                 }
 
                 else if (!exist && opts.create === false) {
-                    throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
+                    throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
                 }
             }
 
