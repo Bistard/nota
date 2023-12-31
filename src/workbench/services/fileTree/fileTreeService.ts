@@ -14,6 +14,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import * as fs from 'fs';
 import * as path from 'path';
+import { IBrowserEnvironmentService, IDiskEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
@@ -29,7 +30,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
-    private customSortOrder: string[] = [];
+    private customSortOrderMap: Map<string, string[]> = new Map();
 
     // [constructor]
 
@@ -37,9 +38,9 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
+        @IBrowserEnvironmentService private readonly environmentService:IBrowserEnvironmentService
     ) {
         super();
-        this.loadCustomSortOrder();
     }
 
     // [event]
@@ -72,9 +73,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
         };
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
-        const customSorter = new CustomFileTreeSorter(this.customSortOrder);
-        const compareFunction = ifSupportFileSorting ? customSorter.compare : defaultFileItemCompareFn;
 
+        this.loadCustomSortOrder(root.toString());
+        const customSorter = new CustomFileTreeSorter(this.customSortOrderMap.get(root.toString()) || []);
+        // const customSorter = new CustomFileTreeSorter(this.customSortOrder);
+        const compareFunction = ifSupportFileSorting ? customSorter.compare : defaultFileItemCompareFn;
+        
         // resolve the root of the directory first
         const rootStat = await this.fileService.stat(root, { resolveChildren: true });
         const rootItem = new FileItem(rootStat, null, filterOpts);
@@ -115,18 +119,47 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // TODO
     }
 
-    private loadCustomSortOrder(): void {
+    private loadCustomSortOrder(folderUri: string): void {
+        const folderName = path.basename(folderUri);
+        const sortOrderFilePath = path.join(this.environmentService.appRootPath.toString(), `${folderName}.json`);
+
         try {
-            const sortOrderPath = path.join(__dirname, 'sorting.json'); //不要json
-            if (fs.existsSync(sortOrderPath)) {
-                const data = fs.readFileSync(sortOrderPath, 'utf8');
-                this.customSortOrder = JSON.parse(data);
+            if (fs.existsSync(sortOrderFilePath)) {
+                const data = fs.readFileSync(sortOrderFilePath, 'utf8');
+                const sortOrder = JSON.parse(data);
+                this.customSortOrderMap.set(folderUri, sortOrder);
             }
         } catch (error) {
-            console.error('Error loading custom sort order:', error);
-            this.customSortOrder = [];
+            console.error('Error loading custom sort order for', folderUri, ':', error);
         }
     }
+
+    private writeSortOrderFile(folderUri: string, sortOrder: string[]): void {
+        const folderName = path.basename(folderUri);
+        const sortOrderFilePath = path.join(this.environmentService.appRootPath.toString(), `${folderName}.json`);
+    
+        try {
+            const data = JSON.stringify(sortOrder, null, 4);
+            fs.writeFileSync(sortOrderFilePath, data, 'utf8');
+        } catch (error) {
+            console.error('Error writing sort order file for', folderUri, ':', error);
+        }
+    }  
+
+    // TODO: Add new methods to handle drag and drop events and update sort files
+    // private handleDragAndDrop(draggedItem, targetFolder) {
+    //     // Implement drag-and-drop processing logic
+    // }
+
+    // private updateOrderInSameFolder(draggedItem, targetFolder) {
+    //     //Update the sorting within the same folder
+    // }
+
+    // private updateOrderAcrossFolders(draggedItem, targetFolder) {
+    //     //Update sorting across folders
+    // }
+
+    // TODO: Add self-checking-loop method
 }
 
 // TODO: @AAsteria
