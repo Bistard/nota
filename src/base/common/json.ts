@@ -1,4 +1,4 @@
-import { tryOrDefault } from "src/base/common/error";
+import { Result, tryOrDefault } from "src/base/common/error";
 import { Arrays } from "src/base/common/utilities/array";
 import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString } from "src/base/common/utilities/type";
 
@@ -341,4 +341,57 @@ export class JsonSchemaValidator {
             result.errorMessage = schema.errorMessage;
         }
     }
+}
+
+/**
+ * @description Safely parses a JSON string into an object. If the parsing is 
+ * successful, it returns a `Result` containing the parsed object. If a 
+ * `SyntaxError` occurs during parsing (e.g., due to an invalid JSON string), 
+ * the error is caught and returned as an `Err` variant of the `Result`.
+ *
+ * @param str The JSON string to be parsed.
+ * 
+ * @example
+ * // Successful parsing:
+ * const jsonString = '{"name":"John", "age":30}';
+ * const result = jsonSafeParse(jsonString);
+ * if (result.isOk()) {
+ *     const data = result.unwrap(); // data: { name: string; age: number; }
+ *     console.log(data.name); // "John"
+ * } else {
+ *     console.error(result.error.message); // SyntaxError message
+ * }
+ */
+export function jsonSafeParse<T>(str: string): Result<T, SyntaxError> {
+    return Result.fromThrowable(
+        () => JSON.parse(str),
+        error => <SyntaxError>error,
+    );
+}
+
+/**
+ * @description Safely converts a JavaScript object (or any serializable value) 
+ * into a JSON string. If the stringification is successful, it returns a 
+ * `Result` containing the JSON string. If a `SyntaxError` occurs during 
+ * stringification (e.g., due to circular references or non-serializable values), 
+ * the error is caught and returned as an `Err` variant of the `Result`.
+ *
+ * @param obj The object to be stringified to JSON.
+ *
+ * @example
+ * // Successful stringification:
+ * const obj = { name: "John", age: 30 };
+ * const result = jsonSafeStringify(obj);
+ * if (result.isOk()) {
+ *     const jsonString = result.unwrap();
+ *     console.log(jsonString); // '{"name":"John","age":30}'
+ * } else {
+ *     console.error(result.error.message); // SyntaxError message
+ * }
+ */
+export function jsonSafeStringtify(obj: unknown): Result<string, SyntaxError> {
+    return Result.fromThrowable(
+        () => JSON.stringify(obj),
+        error => <SyntaxError>error,
+    );
 }
