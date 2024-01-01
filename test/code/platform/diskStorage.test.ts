@@ -167,10 +167,10 @@ suite('storage-test', () => {
         const storage = new DiskStorage(path, true, fileService);
         (await storage.init()).unwrap();
 
-        await storage.set('key1', 'value1');
-        await storage.set('key2', 'value2');
-        await storage.set('key3', 'value3');
-        await storage.set('key4', 'value4');
+        (await storage.set('key1', 'value1'))?.unwrap();
+        (await storage.set('key2', 'value2'))?.unwrap();
+        (await storage.set('key3', 'value3'))?.unwrap();
+        (await storage.set('key4', 'value4'))?.unwrap();
 
         const contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.strictEqual(contents.length > 0, true);

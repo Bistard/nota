@@ -12,6 +12,18 @@ import { AST_NODE_TYPES } from './utils/astNodeType';
  * Otherwise, it was handled appropriately.
  */
 
+
+const resultObjectProperties = ['unwrapOr'];
+const handledMethods = [
+	'match', 
+	'unwrap', 
+	'unwrapOr', 
+	'isOk', 
+	'isErr', 
+	'expect'
+];
+const MESSAGE_ID = 'ResultNotHandled';
+
 export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
     public readonly meta: eslint.Rule.RuleMetaData = {
@@ -53,6 +65,13 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 		};
 	}
 };
+
+const ignoreParents = [
+	AST_NODE_TYPES.ClassDeclaration,
+	AST_NODE_TYPES.FunctionDeclaration,
+	AST_NODE_TYPES.MethodDefinition,
+	'ClassProperty'
+];
 
 function checkIfNodeIsNotHandled(
 	context: eslint.Rule.RuleContext,
@@ -124,10 +143,6 @@ function checkIfNodeIsNotHandled(
 
 	return true;
 }
-
-const resultObjectProperties = ['unwrapOr'];
-const handledMethods = ['match', 'unwrap', 'unwrapOr', 'isOk', 'isErr', 'expect'];
-const MESSAGE_ID = 'ResultNotHandled';
 
 function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.Rule.Node | null): boolean {
 	if (!node) {
@@ -223,9 +238,4 @@ function isReturned(checker: TypeChecker, parserServices: any, node: eslint.Rule
 	return isReturned(checker, parserServices, node.parent);
 }
 
-const ignoreParents = [
-	AST_NODE_TYPES.ClassDeclaration,
-	AST_NODE_TYPES.FunctionDeclaration,
-	AST_NODE_TYPES.MethodDefinition,
-	'ClassProperty'
-];
+
