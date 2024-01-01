@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { InitProtector, Result, err, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { mixin } from "src/base/common/utilities/object";
 import { Dictionary } from "src/base/common/utilities/type";
@@ -51,18 +51,21 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
         return this._storage;
     }
 
-    public init(): void {
+    public init(): Result<void, Error> {
         const initResult = this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
         if (initResult.isErr()) {
-            return;
+            return err(initResult.error);
         }
 
         this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
         this.__register(this._registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
+
+        return ok();
     }
 
-    public reload(): void {
+    public reload(): Result<void, Error> {
         this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
+        return ok();
     }
 
     // [private methods]

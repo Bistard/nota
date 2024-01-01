@@ -16,6 +16,7 @@ import { BrowserConfigurationService } from 'src/platform/configuration/browser/
 import { delayFor } from 'src/base/common/utilities/async';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
+import { assertAsyncResult } from 'test/utils/helpers';
 
 suite('MainConfiguratioService-test', () => {
 
@@ -30,7 +31,7 @@ suite('MainConfiguratioService-test', () => {
     };
 
     async function resetUserConfiguration(create = false) {
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true });
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true })).unwrap();
     }
 
     before(() => FakeAsync.run(async () => {
@@ -95,7 +96,7 @@ suite('MainConfiguratioService-test', () => {
 
     test('get - Should get default value', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false })).unwrap();
 
         let result = service.get('section');
         assert.strictEqual(result, undefined);
@@ -130,7 +131,7 @@ suite('MainConfiguratioService-test', () => {
 
     test('onDidConfigurationChange - DefaultConfiguration self update', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false })).unwrap();
         await service.init();
 
         let result = service.get('section1');
@@ -169,7 +170,7 @@ suite('MainConfiguratioService-test', () => {
         const result = service.get('section');
         assert.strictEqual(result, 'user value');
 
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false })).unwrap();
 
         await Event.toPromise(service.onDidConfigurationChange).then((e) => {
             assert.ok(e.type === ConfigurationModuleType.User);
@@ -181,13 +182,13 @@ suite('MainConfiguratioService-test', () => {
 
     test('init - create a new file when not exists', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        
-        await fileService.delete(userConfigURI);
-        await assert.rejects(() => fileService.readFile(userConfigURI)); // file does not exist
+
+        (await fileService.delete(userConfigURI)).unwrap();
+        await assert.rejects(async () => (await fileService.readFile(userConfigURI)).unwrap()); // file does not exist
         
         await service.init();
         
-        const content = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const content = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.deepStrictEqual(content, { 'section': 'default value' });
     }));
 
@@ -255,7 +256,7 @@ suite('BrowserConfigurationService', () => {
     }));
 
     async function resetUserConfiguration(create = false) {
-        await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true });
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true })).unwrap();
     }
 
     test('get - should get user value', () => FakeAsync.run(async () => {
@@ -276,7 +277,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'update user value');
 
         // file is not updated
-        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.strictEqual(configuration['section'], 'user value');
     }));
 
@@ -290,7 +291,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'update user value');
 
         // file is also updated
-        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.strictEqual(configuration['section'], 'update user value');
 
         await resetUserConfiguration();
@@ -315,7 +316,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(browserService.get('section'), 'update user value');
 
         // file is also updated (browser-side)
-        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.strictEqual(configuration['section'], 'update user value');
 
         // in-memory is updated (main-side)
@@ -349,7 +350,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'default value');
 
         // file is not updated
-        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.strictEqual(configuration['section'], 'user value');
 
         await resetUserConfiguration();
@@ -365,7 +366,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'default value');
 
         // file is also updated
-        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.strictEqual(configuration['section'], undefined);
 
         await resetUserConfiguration();
@@ -390,7 +391,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(browserService.get('section'), 'default value');
 
         // file is also updated (browser-side)
-        const configuration = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.strictEqual(configuration['section'], undefined);
 
         // in-memory is updated (main-side)
@@ -412,12 +413,12 @@ suite('BrowserConfigurationService', () => {
     test('init - create a new file when not exists', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         
-        await fileService.delete(userConfigURI);
-        await assert.rejects(() => fileService.readFile(userConfigURI)); // file does not exist
+        (await fileService.delete(userConfigURI)).unwrap();
+        await assert.rejects(() => assertAsyncResult(fileService.readFile(userConfigURI))); // file does not exist
         
         await service.init();
         
-        const content = JSON.parse((await fileService.readFile(userConfigURI)).toString());
+        const content = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
         assert.deepStrictEqual(content, { 'section': 'default value' });
     }));
 });

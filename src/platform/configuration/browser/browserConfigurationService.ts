@@ -9,7 +9,7 @@ import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { Arrays } from "src/base/common/utilities/array";
 import { JsonSchemaValidator } from "src/base/common/json";
-import { errorToMessage } from "src/base/common/error";
+import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -37,18 +37,21 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         await this.__updateConfiguration(section, undefined, options);
     }
 
-    public async save(): Promise<void> {
+    public async save(): AsyncResult<void, Error> {
         if (!this.isInit) {
-            return;
+            return ok();
         }
 
-        const jsonData = this._configurationHub.inspect().toJSON();
-        try {
-            await this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true });
-            this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
-        } catch (error: unknown) {
-            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'. The reason is: ${errorToMessage(error)}`);
+        const jsonData = this._configurationHub.inspect().toJSON().unwrap();
+        const write = await this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true });
+
+        if (write.isErr()) {
+            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'. The reason is: ${errorToMessage(write.error)}`);
+            return err(write.error);
         }
+
+        this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
+        return ok();
     }
 
     // [private helper methods]
