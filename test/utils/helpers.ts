@@ -44,10 +44,14 @@ export function assertResult<T, E>(result: Result<T, E>): T {
     return result.data;
 }
 
+/**
+ * @note This function acts exactly like `.unwrap()` method.
+ */
 export async function assertAsyncResult<T, E>(result: AsyncResult<T, E>): Promise<T> {
     const res = await result;
     if (res.isErr()) {
-        assert.fail(errorToMessage(res.error));
+        // eslint-disable-next-line local/code-no-throw
+        throw res.error;
     }
     return res.data;
 }
