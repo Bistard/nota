@@ -914,7 +914,7 @@ export class Err<T, E> implements IResult<T, E> {
         return err(predicate(this.error));
     }
 
-    public andThen<T1, E1>(onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1> {
+    public andThen<T1, E1>(_onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1> {
         return err(this.error);
     }
 
