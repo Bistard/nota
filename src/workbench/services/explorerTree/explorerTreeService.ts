@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable, disposeAll } from "src/base/common/dispose";
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IScheduler, Scheduler } from "src/base/common/utilities/async";
@@ -12,6 +12,8 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { ILogService } from "src/base/common/logger";
+import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
@@ -54,6 +56,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [constructor]
 
     constructor(
+        @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IConfigurationService configurationService: IConfigurationService,
         @IInstantiationService instantiationService: IInstantiationService,
@@ -85,11 +88,14 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [public mehtods]
 
-    public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
+    public async init(container: HTMLElement, root: URI, mode?: TreeMode): AsyncResult<void, Error> {
         const currTreeService: ITreeService<unknown> = this.classicTreeService;
 
         // try to create the tree service
-        await currTreeService.init(container, root);
+        const success = await currTreeService.init(container, root);
+        if (success.isErr()) {
+            return err(success.error);
+        }
         
         // update the metadata only after successed
         this._currentTreeService = currTreeService;
@@ -98,6 +104,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._onSelect.setInput(this._currentTreeService.onSelect);
 
         this.__registerTreeListeners(root);
+
+        return ok();
     }
 
     public layout(height?: number | undefined): void {
@@ -162,8 +170,15 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
             }
         );
 
+        const result = this.fileService.watch(root, { recursive: true });
+        if (result.isErr()) {
+            this.logService.warn(errorToMessage(result.error));
+        } else {
+            const disposable = result.data;
+            disposables.register(disposable);
+        }
+
         disposables.register(this._onDidResourceChangeScheduler);
-        disposables.register(this.fileService.watch(root, { recursive: true }));
         disposables.register(this.fileService.onDidResourceChange(e => {
             this._onDidResourceChangeScheduler?.schedule(e.wrap());
         }));

@@ -167,9 +167,9 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         // save the last opened workspace root path.
         if (this.explorerTreeService.root) {
             const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace));
+            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace))).unwrap();
         } else {
-            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '');
+            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '')).unwrap();
         }
     }
 
@@ -209,15 +209,17 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * Open the root in the explorer tree service who will handle the 
          * complicated stuff for us.
          */
-        try {
-            await this.explorerTreeService.init(container, path);
+        const init = await this.explorerTreeService.init(container, path);
+        if (init.isOk()) {
             this._onDidOpen.fire({ path: path });
-        }
+        } 
+        
         /**
          * If the initialization fails, we capture it and replace it with an
          * empty view.
          */
-        catch (error) {
+        else {
+            const error = init.error;
             success = false;
             container = this.__createEmptyView();
             this.logService.error(`[ExplorerView] cannot open the view at given path '${URI.toString(path, true)}': ${errorToMessage(error)}`);
