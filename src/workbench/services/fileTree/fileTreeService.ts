@@ -12,11 +12,11 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-import { CompareFn } from "src/base/common/utilities/type";
-import { AsyncResult, err, ok } from "src/base/common/error";
+import { IBrowserEnvironmentService, IDiskEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
+import { DataBuffer } from "src/base/common/files/buffer";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
-
+    // noop
 }
 
 /**
@@ -26,15 +26,10 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     declare _serviceMarker: undefined;
 
-    // [event]
-
-    get onSelect(): Register<IFileTreeOpenEvent<FileItem>> {
-        return this._tree!.onSelect;
-    }
-
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
+    private customSortOrderMap: Map<string, string[]> = new Map();
 
     // [constructor]
 
@@ -42,8 +37,15 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
+        @IBrowserEnvironmentService private readonly environmentService:IBrowserEnvironmentService
     ) {
         super();
+    }
+
+    // [event]
+
+    get onSelect(): Register<IFileTreeOpenEvent<FileItem>> {
+        return this._tree!.onSelect;
     }
 
     // [getter]
@@ -70,8 +72,13 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
         };
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
-        const compareFunction = ifSupportFileSorting ? this.__buildFileSortingFunction() : undefined;
 
+        this.loadCustomSortOrder(root);
+        const sorter = new FileTreeSorter(
+            ifSupportFileSorting,
+            this.customSortOrderMap.get(root.toString()) || [],
+        );
+        
         // resolve the root of the directory first
         const statResult = await this.fileService.stat(root, { resolveChildren: true });
         if (statResult.isErr()) {
@@ -89,7 +96,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 {
                     itemProvider: new FileItemProvider(),
                     renderers: [new FileItemRenderer()],
-                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, compareFunction),
+                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare),
                     identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                     // optional
@@ -117,14 +124,118 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // TODO
     }
 
+    private async loadCustomSortOrder(folderUri: URI): Promise<void> {
+        const sortOrderFileName = await this.findSortOrderFileName(folderUri);
+        if (!sortOrderFileName) {
+            throw new Error(`Sort order file not found in ${folderUri.toString()}`);
+        }
+
+        // Use the join method to construct the new URI for the sort order file
+        const sortOrderFileUri = URI.join(folderUri, sortOrderFileName);
+
+        try {
+            // Result
+            const dataBuffer = await this.fileService.readFile(sortOrderFileUri);
+            const sortOrder = JSON.parse(dataBuffer.toString());
+            this.customSortOrderMap.set(folderUri.toString(), sortOrder);
+        } catch (error) {
+            throw new Error(`Error loading custom sort order for ${folderUri.toString()}: ${error}`);
+        }
+    }
+
+    private async saveCustomSortOrder(folderUri: URI, sortOrder: string[]): Promise<void> {
+        const sortOrderFileName = await this.findSortOrderFileName(folderUri);
+        const sortOrderFilePath = sortOrderFileName
+            ? URI.join(folderUri, sortOrderFileName)
+            : URI.join(folderUri, 'default-sort-order.json');
+
+            try {
+                const data = JSON.stringify(sortOrder, null, 4);
+                const buffer = DataBuffer.fromString(data);
+                await this.fileService.writeFile(sortOrderFilePath, buffer);
+            } catch (error) {
+                throw new Error(`Error writing sort order file for ${folderUri.toString()}: ${error}`);
+            }
+    }
+
+    private async findSortOrderFileName(folderUri: URI): Promise<string | null> {
+        try {
+            const entries = await this.fileService.readDir(folderUri);
+            const sortOrderFile = entries.find(([name, _]) => name.endsWith('.sortorder.json'));
+            return sortOrderFile ? sortOrderFile[0] : null;
+        } catch (error) {
+            throw new Error(`Error reading directory ${folderUri.toString()}: ${error}`);
+        }
+    }
+
+    // TODO: Add new methods to handle drag and drop events and update sort files
+    // private handleDragAndDrop(draggedItem, targetFolder) {
+    //     // Implement drag-and-drop processing logic
+    // }
+
+    // private updateOrderInSameFolder(draggedItem, targetFolder) {
+    //     //Update the sorting within the same folder
+    // }
+
+    // private updateOrderAcrossFolders(draggedItem, targetFolder) {
+    //     //Update sorting across folders
+    // }
+
+    // TODO: Add self-checking-loop method
+}
+
+// TODO: @AAsteria
+// TODO: @duckSoup0203
+class FileTreeSorter extends Disposable {
+
+    // [fields]
+    
+    private readonly _ifSupportFileSorting: boolean;
+    private customSortOrder: string[];
+
+    // [constructor]
+
+    constructor(
+        ifSupportFileSorting: boolean,
+        customSortOrder: string[],
+    ) {
+        super();
+        this._ifSupportFileSorting = ifSupportFileSorting;
+        this.customSortOrder = customSortOrder;
+
+        if (ifSupportFileSorting) {
+            this.compare = this.__customCompare;
+        } else {
+            this.compare = defaultFileItemCompareFn;
+        }
+    }
+
+    // [getter]
+
+    public readonly compare: (a: FileItem, b: FileItem) => number;
+
+    // [public methods]
+
+    public saveCustomSortOrder(folderUri: string): void {
+        // TODO: Trigger the save operation in FileTreeService
+        
+    }
+
     // [private helper methods]
 
-    private __buildFileSortingFunction(): CompareFn<FileItem> {
-        
-        // TODO: customzied FileItem sorting
-        // TODO: @AAsteria
-        // TODO: @duckSoup0203
-        
-        return defaultFileItemCompareFn;
+    private __customCompare(a: FileItem, b: FileItem): number {
+        const customSortOrder = this.customSortOrder;
+        const indexA = customSortOrder.indexOf(a.name);
+        const indexB = customSortOrder.indexOf(b.name);
+
+        if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+        } else if (indexA !== -1) {
+            return -1;
+        } else if (indexB !== -1) {
+            return 1;
+        } else {
+            return defaultFileItemCompareFn(a, b);
+        }
     }
 }
