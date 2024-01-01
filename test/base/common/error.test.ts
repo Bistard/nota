@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncResult, Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
+import { AsyncResult, Err, ErrorHandler, GetErrType, GetOkType, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
 import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
 
 suite('error-test', () => {
@@ -243,6 +243,28 @@ suite('result-test', () => {
                 checkTrue<AreEqual<typeof mappedResult.data, string>>();
             } else {
                 checkTrue<AreEqual<typeof mappedResult.error, Error>>();
+            }
+        });
+    
+        test('andThen type-check', () => {
+            const result = getResult(true);
+            const chainedResult = result.andThen(data => ok<number, Error>(data.length));
+    
+            if (chainedResult.isOk()) {
+                checkTrue<AreEqual<typeof chainedResult.data, number>>();
+            } else {
+                checkTrue<AreEqual<typeof chainedResult.error, Error>>();
+            }
+        });
+    
+        test('orElse type-check', () => {
+            const result = getResult(false);
+            const elseResult = result.orElse(_ => ok<string, Error>('Recovered'));
+    
+            if (elseResult.isOk()) {
+                checkTrue<AreEqual<typeof elseResult.data, string>>();
+            } else {
+                checkTrue<AreEqual<typeof elseResult.error, Error>>();
             }
         });
     });
