@@ -12,9 +12,10 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-import * as fs from 'fs';
-import * as path from 'path';
+// import * as fs from 'fs';
+// import * as path from 'path';
 import { IBrowserEnvironmentService, IDiskEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
+import { DataBuffer } from "src/base/common/files/buffer";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
@@ -74,7 +75,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         };
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
 
-        this.loadCustomSortOrder(root.toString());
+        this.loadCustomSortOrder(root);
         const customSorter = new CustomFileTreeSorter(this.customSortOrderMap.get(root.toString()) || []);
         // const customSorter = new CustomFileTreeSorter(this.customSortOrder);
         const compareFunction = ifSupportFileSorting ? customSorter.compare : defaultFileItemCompareFn;
@@ -119,32 +120,48 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // TODO
     }
 
-    private loadCustomSortOrder(folderUri: string): void {
-        const folderName = path.basename(folderUri);
-        const sortOrderFilePath = path.join(this.environmentService.appRootPath.toString(), `${folderName}.json`);
+    private async loadCustomSortOrder(folderUri: URI): Promise<void> {
+        const sortOrderFileName = await this.findSortOrderFileName(folderUri);
+        if (!sortOrderFileName) {
+            throw new Error(`Sort order file not found in ${folderUri.toString()}`);
+        }
+
+        // Use the join method to construct the new URI for the sort order file
+        const sortOrderFileUri = URI.join(folderUri, sortOrderFileName);
 
         try {
-            if (fs.existsSync(sortOrderFilePath)) {
-                const data = fs.readFileSync(sortOrderFilePath, 'utf8');
-                const sortOrder = JSON.parse(data);
-                this.customSortOrderMap.set(folderUri, sortOrder);
-            }
+            const dataBuffer = await this.fileService.readFile(sortOrderFileUri);
+            const sortOrder = JSON.parse(dataBuffer.toString());
+            this.customSortOrderMap.set(folderUri.toString(), sortOrder);
         } catch (error) {
-            console.error('Error loading custom sort order for', folderUri, ':', error);
+            throw new Error(`Error loading custom sort order for ${folderUri.toString()}: ${error}`);
         }
     }
 
-    private writeSortOrderFile(folderUri: string, sortOrder: string[]): void {
-        const folderName = path.basename(folderUri);
-        const sortOrderFilePath = path.join(this.environmentService.appRootPath.toString(), `${folderName}.json`);
-    
+    private async saveCustomSortOrder(folderUri: URI, sortOrder: string[]): Promise<void> {
+        const sortOrderFileName = await this.findSortOrderFileName(folderUri);
+        const sortOrderFilePath = sortOrderFileName
+            ? URI.join(folderUri, sortOrderFileName)
+            : URI.join(folderUri, 'default-sort-order.json');
+
+            try {
+                const data = JSON.stringify(sortOrder, null, 4);
+                const buffer = DataBuffer.fromString(data);
+                await this.fileService.writeFile(sortOrderFilePath, buffer);
+            } catch (error) {
+                throw new Error(`Error writing sort order file for ${folderUri.toString()}: ${error}`);
+            }
+    }
+
+    private async findSortOrderFileName(folderUri: URI): Promise<string | null> {
         try {
-            const data = JSON.stringify(sortOrder, null, 4);
-            fs.writeFileSync(sortOrderFilePath, data, 'utf8');
+            const entries = await this.fileService.readDir(folderUri);
+            const sortOrderFile = entries.find(([name, _]) => name.endsWith('.sortorder.json'));
+            return sortOrderFile ? sortOrderFile[0] : null;
         } catch (error) {
-            console.error('Error writing sort order file for', folderUri, ':', error);
+            throw new Error(`Error reading directory ${folderUri.toString()}: ${error}`);
         }
-    }  
+    }
 
     // TODO: Add new methods to handle drag and drop events and update sort files
     // private handleDragAndDrop(draggedItem, targetFolder) {
@@ -199,5 +216,10 @@ class CustomFileTreeSorter extends Disposable {
                 return 1;
             }
         }
+    }
+
+    public saveCustomSortOrder(folderUri: string): void {
+        // TODO: Trigger the save operation in FileTreeService
+        
     }
 }
