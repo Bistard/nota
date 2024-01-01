@@ -12,8 +12,6 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-// import * as fs from 'fs';
-// import * as path from 'path';
 import { IBrowserEnvironmentService, IDiskEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
 import { DataBuffer } from "src/base/common/files/buffer";
 
@@ -76,9 +74,10 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
 
         this.loadCustomSortOrder(root);
-        const customSorter = new CustomFileTreeSorter(this.customSortOrderMap.get(root.toString()) || []);
-        // const customSorter = new CustomFileTreeSorter(this.customSortOrder);
-        const compareFunction = ifSupportFileSorting ? customSorter.compare : defaultFileItemCompareFn;
+        const sorter = new FileTreeSorter(
+            ifSupportFileSorting,
+            this.customSortOrderMap.get(root.toString()) || [],
+        );
         
         // resolve the root of the directory first
         const rootStat = await this.fileService.stat(root, { resolveChildren: true });
@@ -93,7 +92,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 {
                     itemProvider: new FileItemProvider(),
                     renderers: [new FileItemRenderer()],
-                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, compareFunction),
+                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare),
                     identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                     // optional
@@ -130,6 +129,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const sortOrderFileUri = URI.join(folderUri, sortOrderFileName);
 
         try {
+            // Result
             const dataBuffer = await this.fileService.readFile(sortOrderFileUri);
             const sortOrder = JSON.parse(dataBuffer.toString());
             this.customSortOrderMap.set(folderUri.toString(), sortOrder);
@@ -181,21 +181,44 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
 // TODO: @AAsteria
 // TODO: @duckSoup0203
-class CustomFileTreeSorter extends Disposable {
+class FileTreeSorter extends Disposable {
 
     // [fields]
+    
+    private readonly _ifSupportFileSorting: boolean;
     private customSortOrder: string[];
 
     // [constructor]
 
-    constructor(customSortOrder: string[]) {
+    constructor(
+        ifSupportFileSorting: boolean,
+        customSortOrder: string[],
+    ) {
         super();
+        this._ifSupportFileSorting = ifSupportFileSorting;
         this.customSortOrder = customSortOrder;
+
+        if (ifSupportFileSorting) {
+            this.compare = this.__customCompare;
+        } else {
+            this.compare = defaultFileItemCompareFn;
+        }
     }
+
+    // [getter]
+
+    public readonly compare: (a: FileItem, b: FileItem) => number;
 
     // [public methods]
 
-    public compare(a: FileItem, b: FileItem): number {
+    public saveCustomSortOrder(folderUri: string): void {
+        // TODO: Trigger the save operation in FileTreeService
+        
+    }
+
+    // [private helper methods]
+
+    private __customCompare(a: FileItem, b: FileItem): number {
         const customSortOrder = this.customSortOrder;
         const indexA = customSortOrder.indexOf(a.name);
         const indexB = customSortOrder.indexOf(b.name);
@@ -207,19 +230,7 @@ class CustomFileTreeSorter extends Disposable {
         } else if (indexB !== -1) {
             return 1;
         } else {
-            // Default sorting logic
-            if (a.type === b.type) {
-                return (a.name < b.name) ? -1 : 1;
-            } else if (a.isDirectory()) {
-                return -1;
-            } else {
-                return 1;
-            }
+            return defaultFileItemCompareFn(a, b);
         }
-    }
-
-    public saveCustomSortOrder(folderUri: string): void {
-        // TODO: Trigger the save operation in FileTreeService
-        
     }
 }
