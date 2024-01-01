@@ -14,6 +14,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { IBrowserEnvironmentService, IDiskEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
 import { DataBuffer } from "src/base/common/files/buffer";
+import { AsyncResult, err, ok } from "src/base/common/error";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
