@@ -178,6 +178,12 @@ suite('result-test', () => {
             return err(new Error('err'));
         }
 
+        test('GetOkType & GetErrType', () => {
+            const result = getResult(true);
+            checkTrue<AreEqual<GetOkType<typeof result>, string>>();
+            checkTrue<AreEqual<GetErrType<typeof result>, Error>>();
+        });
+
         test('isOk type-check', () => {
             const result = getResult(true);
             

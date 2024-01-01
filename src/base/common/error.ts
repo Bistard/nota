@@ -479,6 +479,9 @@ export type AsyncResult<T, E> = Promise<Result<T, E>>;
 
 export type ResultLike<T, E> = (IResult<T, E> & { data: T, error: undefined }) | (IResult<T, E> & { error: E, data: undefined });
 
+export type GetOkType<R> = R extends Result<infer T, infer E> ? T : never;
+export type GetErrType<R> = R extends Result<infer T, infer E> ? E : never;
+
 /**
  * An interface for {@link Ok} and {@link Err}.
  */
