@@ -46,7 +46,7 @@ suite('LoggerService', () => {
     function createAssertLogMessage(fileService: IFileService, uri: URI, loggerLogLevel: LogLevel) {
 
         return async (actualLogLevel: LogLevel, message: string): Promise<void> => {
-            const raw = (await fileService.readFile(uri)).toString();
+            const raw = ((await fileService.readFile(uri)).unwrap()).toString();
             const line = raw.split('\n').slice(-2, -1)[0]!; // retrieve the last line
 
             const [loggerName, contentLevel, contentMessage] = splitLogString(line).slice(1, undefined); // remove the timestamp
@@ -78,7 +78,7 @@ suite('LoggerService', () => {
         test('basics', async () => {
             const logger = loggerService.createLogger(URI.fromFile('base'), { name: 'test.log' });
             await logger.waitInitialize();
-            assert.ok(await fileService.exist(URI.fromFile('base/test.log')));
+            assert.ok((await fileService.exist(URI.fromFile('base/test.log'))).unwrap());
 
             await logger.info('hello');
             await assertLastLineLogMessage(LogLevel.INFO, 'hello');
@@ -131,7 +131,7 @@ suite('LoggerService', () => {
             // consturct logger from client side
             const browserLogger = browserLoggerService.createLogger(URI.fromFile('base'), { name: 'test.log' });
             await delayFor(0);
-            assert.ok(await fileService.exist(URI.fromFile('base/test.log')));
+            assert.ok((await fileService.exist(URI.fromFile('base/test.log'))).unwrap());
             const mainLogger = loggerService.getLogger(URI.fromFile('base'));
             assert.ok(mainLogger);
 
