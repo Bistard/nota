@@ -6,6 +6,9 @@ import { Section } from "src/platform/section";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
+import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
+import { FileOperationError } from "src/base/common/files/file";
+import { jsonSafeParse } from "src/base/common/json";
 
 export const II18nService = createService<II18nService>('i18n-service');
 
@@ -89,7 +92,7 @@ export interface II18nService extends IService {
     /**
      * Initializes all the settings and default language.
      */
-    init(): Promise<void>;
+    init(): AsyncResult<void, FileOperationError | SyntaxError>;
 
     /**
      * Changes the current langauge to the provided one.
@@ -183,9 +186,15 @@ export class i18n implements II18nService {
         this._onDidChange.dispose();
     }
 
-    public async init(): Promise<void> {
+    public async init(): AsyncResult<void, FileOperationError | SyntaxError> {
         const uri = URI.join(this._path, this.language + this._extension);
-        await this.__readLocale(uri);
+        const read = await this.__readLocale(uri);
+        if (read.isErr()) {
+            this.logService.error(`Cannot read locale at ${URI.toString(uri)}. Reason: ${errorToMessage(read.error)}`);
+            return err(read.error);
+        }
+
+        return ok();
     }
 
     public setLanguage(lang: LanguageType, opts?: ILocaleOpts): void {
@@ -302,16 +311,22 @@ export class i18n implements II18nService {
      * @param uri The absolute file path to the locale.
      *  eg. ../../en-US.json
      */
-    private async __readLocale(uri: URI): Promise<void> {
-        try {
-            const buffer = await this.fileService.readFile(uri);
-            const jsonObject = JSON.parse(buffer.toString());
-            Object.assign(this._model, jsonObject);
+    private async __readLocale(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
+        const read = await this.fileService.readFile(uri);
+        if (read.isErr()) {
+            return err(read.error);
         }
-        catch (err) {
-            this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
-            throw err;
-        }
-    }
+        
+        const buffer = read.data;
 
+        const parse = jsonSafeParse(buffer.toString());
+        if (parse.isErr()) {
+            return err(parse.error);
+        }
+
+        const jsonObject = parse.data;
+        Object.assign(this._model, jsonObject);
+        
+        return ok();
+    }
 }

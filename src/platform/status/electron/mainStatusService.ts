@@ -9,6 +9,8 @@ import { DiskStorage, IDiskStorage } from "src/platform/files/common/diskStorage
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { StatusKey } from "src/platform/status/common/status";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
+import { FileOperationError } from "src/base/common/files/file";
+import { AsyncResult, Result, ok } from "src/base/common/error";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
@@ -18,14 +20,14 @@ export const IMainStatusService = createService<IMainStatusService>('status-serv
  * from there.
  */
 export interface IMainStatusService extends Disposable, IService {
-    set<T>(key: StatusKey, val: T): Promise<void>;
-    setLot<T>(items: readonly { key: StatusKey, val: T; }[]): Promise<void>;
+    set<T>(key: StatusKey, val: T): AsyncResult<void, FileOperationError>;
+    setLot<T>(items: readonly { key: StatusKey, val: T; }[]): AsyncResult<void, FileOperationError>;
     get<T>(key: StatusKey, defaultVal?: T): T | undefined;
     getLot<T>(keys: StatusKey[], defaultVal?: T[]): (T | undefined)[];
-    delete(key: StatusKey): Promise<boolean>;
+    delete(key: StatusKey): AsyncResult<boolean, FileOperationError>;
     has(key: StatusKey): boolean;
-    init(): Promise<void>;
-    close(): Promise<void>;
+    init(): AsyncResult<void, FileOperationError>;
+    close(): AsyncResult<void, FileOperationError>;
 }
 
 /**
@@ -73,20 +75,24 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     // [public methods]
 
-    public async set<T>(key: StatusKey, val: T): Promise<void> {
-        try {
-            return this._storage.set(key, val);
-        } catch (error: any) {
-            this.logService.warn(error);
+    public async set<T>(key: StatusKey, val: T): AsyncResult<void, FileOperationError> {
+        const success = await this._storage.set(key, val);
+
+        if (Result.is(success)) {
+            return success;
         }
+
+        return ok();
     }
 
-    public async setLot<T>(items: readonly { key: StatusKey, val: T; }[]): Promise<void> {
-        try {
-            return this._storage.setLot(items);
-        } catch (error: any) {
-            this.logService.warn(error);
+    public async setLot<T>(items: readonly { key: StatusKey, val: T; }[]): AsyncResult<void, FileOperationError> {
+        const success = await this._storage.setLot(items);
+
+        if (Result.is(success)) {
+            return success;
         }
+
+        return ok();
     }
 
     public get<T>(key: StatusKey, defaultVal?: T): T | undefined {
@@ -97,36 +103,28 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         return this._storage.getLot(keys, defaultVal);
     }
 
-    public async delete(key: StatusKey): Promise<boolean> {
-        try {
-            return this._storage.delete(key);
-        } catch (error: any) {
-            this.logService.warn(error);
+    public async delete(key: StatusKey): AsyncResult<boolean, FileOperationError> {
+        const success = await this._storage.delete(key);
+        
+        if (Result.is(success)) {
+            return success;
         }
-        return false;
+
+        return ok(success);
     }
 
     public has(key: StatusKey): boolean {
         return this._storage.has(key);
     }
 
-    public async init(): Promise<void> {
-        try {
-            await this._storage.init();
-            this.logService.trace(`[MainStatusService] initialized at '${URI.toString(this._storage.resource)}'`);
-        } catch (error: any) {
-            this.logService.error(error);
-            throw error;
-        }
+    public async init(): AsyncResult<void, FileOperationError> {
+        const success = await this._storage.init();
+        this.logService.trace(`[MainStatusService] initialized at '${URI.toString(this._storage.resource)}'`);
+        return success;
     }
 
-    public async close(): Promise<void> {
-        try {
-            return this._storage.close();
-        } catch (error: any) {
-            this.logService.error(error);
-            throw error;
-        }
+    public async close(): AsyncResult<void, FileOperationError> {
+        return this._storage.close();
     }
 
     private __registerListeners(): void {

@@ -300,6 +300,7 @@ export const enum FileOperationErrorType {
 	FILE_READONLY,
 	NO_PERMISSIONS,
 	UNKNOWN,
+	OTHERS,
 }
 
 function convertFileOperationErrorToString(type: FileOperationErrorType): string {

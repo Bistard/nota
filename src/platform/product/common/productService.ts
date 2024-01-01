@@ -1,6 +1,7 @@
-import { errorToMessage } from "src/base/common/error";
+import { AsyncResult, InitProtector, err, errorToMessage, ok } from "src/base/common/error";
+import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { JsonSchemaValidator } from "src/base/common/json";
+import { JsonSchemaValidator, jsonSafeParse } from "src/base/common/json";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IProductProfile, productProfileSchema } from "src/platform/product/common/product";
@@ -9,7 +10,7 @@ export const IProductService = createService<IProductService>('product-service')
 
 export interface IProductService extends IService {
     readonly profile: IProductProfile;
-    init(productURI: URI): Promise<void>;
+    init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error>;
 }
 
 export class ProductService implements IProductService {
@@ -18,7 +19,7 @@ export class ProductService implements IProductService {
 
     // [fields]
 
-    private _initalized: boolean;
+    private _protector: InitProtector;
     private _profile?: IProductProfile;
 
     // [constructor]
@@ -26,7 +27,7 @@ export class ProductService implements IProductService {
     constructor(
         private readonly fileService: IFileService,
     ) {
-        this._initalized = false;
+        this._protector = new InitProtector();
         this._profile = undefined;
     }
 
@@ -39,29 +40,31 @@ export class ProductService implements IProductService {
         return this._profile;
     }
 
-    public async init(productURI: URI): Promise<void> {
+    public async init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
 
-        if (this._initalized) {
-            throw new Error('[ProductService] cannot initialize twice.');
+        const result = this._protector.init('[ProductService] cannot initialize twice.');
+        if (result.isErr()) {
+            return err(result.error);
         }
-        this._initalized = true;
-
-        // parsing
-        try {
-            const raw = (await this.fileService.readFile(productURI)).toString();
-            const content = JSON.parse(raw);
-
-            const result = JsonSchemaValidator.validate(content, productProfileSchema);
-            if (!result.valid) {
-                throw new Error(`[ProductService] cannot parse product info with raw content: '${result.errorMessage}'`);
-            }
-
-            this._profile = content;
+        
+        const read = await this.fileService.readFile(productURI);
+        if (read.isErr()) {
+            return err(read.error);
         }
 
-        // error handling
-        catch (err) {
-            throw new Error(`[ProductService] cannot read product info at '${URI.toString(productURI)}'. The error message is : '${errorToMessage(err)}'`);
+        const raw = read.unwrap().toString();
+        const parse = jsonSafeParse<any>(raw);
+        if (parse.isErr()) {
+            return err(parse.error);
         }
+
+        const content = parse.unwrap();
+        const validate = JsonSchemaValidator.validate(content, productProfileSchema);
+        if (!validate.valid) {
+            return err(new Error(`[ProductService] cannot parse product info with raw content: '${validate.errorMessage}'`));
+        }
+
+        this._profile = content;
+        return ok();
     }
 }

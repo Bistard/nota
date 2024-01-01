@@ -86,14 +86,15 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._noFormatter = noFormatter;
 
         const intialize = async () => {
-            try {
-                await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
-            } catch (error) {
+            const result = await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
+            if (result.isErr()) {
                 // only ignores when the file already exists
-                if ((<FileOperationError>error).code !== FileOperationErrorType.FILE_EXISTS) {
-                    this._initializing.reject(error);
+                if (result.error.code !== FileOperationErrorType.FILE_EXISTS) {
+                    this._initializing.reject(result.error);
+                    return;
                 }
             }
+            
             this._initializing.resolve();
         };
 
@@ -180,25 +181,25 @@ export class FileLogger extends AbstractLogger implements ILogger {
                 message = `[${getCurrTimeStamp()}] [${this._description}] [${parseLogLevel(level)}] ${message}\n`;
             }
 
-            let content = (await this.fileService.readFile(this._uri)).toString();
+            let content = ((await this.fileService.readFile(this._uri)).unwrap()).toString();
             if (content.length >= MAX_LOG_SIZE) {
-                await this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true });
+                (await this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true })).unwrap();
                 content = '';
             }
 
             content += message;
-            await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true });
+            (await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true })).unwrap();
         })
-            /**
-             * If pass the error into the `ErrorHandler`, the error will eventually
-             * re-enter this code section since the program will log the error and
-             * causes circular calling.
-             * 
-             * The best way I can think of is to `console.error` out the error.
-             */
-            .catch(err => {
-                console.error(err);
-            });
+        /**
+         * If pass the error into the `ErrorHandler`, the error will eventually
+         * re-enter this code section since the program will log the error and
+         * causes circular calling.
+         * 
+         * The best way I can think of is to `console.error` out the error.
+         */
+        .catch(err => {
+            console.error(err);
+        });
     }
 
     private __getBackupURI(): URI {

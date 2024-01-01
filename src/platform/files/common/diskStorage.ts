@@ -1,3 +1,4 @@
+import { AsyncResult, Result, err, ok } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
@@ -26,13 +27,13 @@ export interface IDiskStorage {
      * @throws An exception thrown if file operation encounters an error with
      * type {@link FileOperationError}.
      */
-    set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): Promise<void>;
+    set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): void | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Sets pairs of key and value into the storage. Works the 
-     * same as {@link IDiskStorage.set}.
+     * same as {@link DiskStorage.set}.
      */
-    setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): Promise<void>;
+    setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): void | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Try to get the corresponding value of the given key.
@@ -53,7 +54,7 @@ export interface IDiskStorage {
      * @param key The given key.
      * @returns Returns a boolean to tell if the deletion is taken.
      */
-    delete<K extends PropertyKey = PropertyKey>(key: K): Promise<boolean>;
+    delete<K extends PropertyKey = PropertyKey>(key: K): boolean | AsyncResult<boolean, FileOperationError>;
 
     /**
      * @description Check if storage has a corresponding value of the given key.
@@ -67,25 +68,19 @@ export interface IDiskStorage {
      * 
      * @note `init()` must be called before taking any operations.
      * @note after `close()` is invoked. Caller may re-invoke `init()`.
-     * @throws An exception thrown if file operation encounters an error with
-     * type {@link FileOperationError}.
      */
-    init(): Promise<void>;
+    init(): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Manually save the storage into the memory.
-     * @throws An exception thrown if file operation encounters an error with
-     * type {@link FileOperationError}.
      */
-    save(): Promise<void>;
+    save(): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Close the storage and save the current data into the disk.
      * @note Any operations after `close()` will be ignored except `init()` again.
-     * @throws An exception thrown if file operation encounters an error with
-     * type {@link FileOperationError}.
      */
-    close(): Promise<void>;
+    close(): AsyncResult<void, FileOperationError>;
 }
 
 /**
@@ -111,7 +106,7 @@ export class DiskStorage implements IDiskStorage {
 
     private _storage: Dictionary<PropertyKey, Omit<any, 'null'>> = Object.create(null);
     private _lastSaveStorage: string = '';
-    private _operating?: Promise<void>;
+    private _operating?: AsyncResult<void, FileOperationError>;
 
     // [constructor]
 
@@ -129,11 +124,11 @@ export class DiskStorage implements IDiskStorage {
         this.sync = val;
     }
 
-    public set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): Promise<void> {
+    public set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): void | AsyncResult<void, FileOperationError> {
         return this.setLot([{ key, val }]);
     }
 
-    public async setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): Promise<void> {
+    public setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): void | AsyncResult<void, FileOperationError> {
         let save = false;
 
         for (const { key, val } of items) {
@@ -165,14 +160,14 @@ export class DiskStorage implements IDiskStorage {
         return result;
     }
 
-    public async delete<K extends PropertyKey = PropertyKey>(key: K): Promise<boolean> {
+    public delete<K extends PropertyKey = PropertyKey>(key: K): boolean | AsyncResult<boolean, FileOperationError> {
         if (this._storage[key] === undefined) {
             return false;
         }
 
         this._storage[key] = undefined!;
         if (this.sync) {
-            await this.__save();
+            return this.__save().then(res => res.map(() => true));
         }
 
         return true;
@@ -182,70 +177,98 @@ export class DiskStorage implements IDiskStorage {
         return !!this.get(key);
     }
 
-    public async init(): Promise<void> {
+    public async init(): AsyncResult<void, FileOperationError> {
         // already initialized
         if (this._operating) {
-            return;
+            return ok();
         }
 
         this._operating = this.__init();
         return this._operating;
     }
 
-    public async save(): Promise<void> {
+    public async save(): AsyncResult<void, FileOperationError> {
         // never initialized or already closed
         if (this._operating === undefined) {
-            return;
+            return ok();
         }
 
         return this.__save();
     }
 
-    public async close(): Promise<void> {
+    public async close(): AsyncResult<void, FileOperationError> {
         // never initialized or already closed
         if (this._operating === undefined) {
-            return;
+            return ok();
         }
 
-        await this._operating;
+        const success = await this._operating;
+        if (success.isErr()) {
+            return success;
+        }
+
         return this.__close();
     }
 
     // [private helper methods]
 
-    private async __init(): Promise<void> {
-        // try to read the storage
-        try {
-            this._lastSaveStorage = (await this.fileService.readFile(this.path)).toString();
+    private async __init(): AsyncResult<void, FileOperationError> {
+        
+        const readSuccess = await this.fileService.readFile(this.path);
+        if (readSuccess.isOk()) {
+            // file exists, try to read the existing file.
+            
+            const buffer = readSuccess.data;
+            this._lastSaveStorage = buffer.toString();
+            
             if (this._lastSaveStorage.length) {
-                this._storage = JSON.parse(this._lastSaveStorage);
+                const parse = Result.fromThrowable(
+                    () => JSON.parse(this._lastSaveStorage),
+                    error => error,
+                );
+                
+                if (parse.isErr()) {
+                    return err(new FileOperationError(`Cannot parse the file correctly`, FileOperationErrorType.OTHERS));
+                }
+
+                this._storage = parse.data;
             }
-            return;
-        } catch (err) {
-            if (err instanceof FileOperationError && err.code !== FileOperationErrorType.FILE_NOT_FOUND) {
-                throw err;
-            }
+
+            return ok();
         }
 
+        // only report error when it is not expected (file not found is expected)
+        const error = readSuccess.error;
+        if (error.code !== FileOperationErrorType.FILE_NOT_FOUND) {
+            return err(readSuccess.error);
+        }
+        
         // file does not exist, try to create one and re-initialize.
-        await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
+        const writeSuccess = await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
+        if (writeSuccess.isErr()) {
+            return writeSuccess;
+        }
+
         return this.__init();
     }
 
-    private async __save(): Promise<void> {
+    private async __save(): AsyncResult<void, FileOperationError> {
 
         // never got initialized or already closed, we should never save.
         if (this._operating === undefined) {
-            return;
+            return ok();
         }
 
         // ensure 'init', 'close' or 'save' are completed
-        await this._operating;
+        const success = await this._operating;
+        if (success.isErr()) {
+            return err(success.error);
+        }
 
         const serialized = JSON.stringify(this._storage, null, 4);
         if (this._lastSaveStorage === serialized) {
             // no diff, we quit in advance.
-            return;
+            return ok();
         }
 
         // writing work
@@ -255,10 +278,9 @@ export class DiskStorage implements IDiskStorage {
         return this._operating;
     }
 
-    private async __close(): Promise<void> {
-        return Promise.resolve().then(async () => {
-            await this.__save();
-            this._operating = undefined;
-        });
+    private async __close(): AsyncResult<void, FileOperationError> {
+        const success = await this.__save();
+        this._operating = undefined;
+        return success;
     }
 }

@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, isObject, isPromise } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -245,6 +245,21 @@ export class InitProtector {
 export namespace Result {
 
     /**
+     * @description Check if the given obj is one of {@link IResult}.
+     * @param obj The given obj
+     * @returns A boolean indicates if success.
+     */
+    export function is<T, E>(obj: any): obj is Result<T, E> {
+        if (isObject(obj) &&
+            typeof obj.isOk === 'function' &&
+            typeof obj.isErr === 'function'
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @description Wraps a callable function that might throw an error. If the 
      * function successfully returns, the result will be wrapped inside an 
      * {@link Ok} variant. If the function throws, the error will be wrapped 
@@ -303,10 +318,7 @@ export namespace Result {
      * );
      * // Logs: Caught rejection: Error: Promise rejected!
      */
-    export async function fromPromise<T, E>(
-        mightThrow: Callable<any[], Promise<T>>, 
-        onError: (error: unknown) => E
-    ): Promise<Result<T, E>> {
+    export async function fromPromise<T, E>(mightThrow: Callable<any[], Promise<T>>, onError: (error: unknown) => E): AsyncResult<T, E> {
         try {
             const value = await mightThrow();
             return new Ok(value);
@@ -314,6 +326,66 @@ export namespace Result {
             const onErrorResult = onError(error);
             return new Err(onErrorResult);
         }
+    }
+
+    /**
+     * @description Extracts the value from a `Result` or an `AsyncResult` if 
+     * it's an `Ok` variant, or throws the error if it's an `Err` variant. This 
+     * function simplifies error handling by converting a `Result` type into a 
+     * regular value or a thrown error, enabling traditional error handling 
+     * patterns in TypeScript/JavaScript.
+     *
+     * This function is particularly useful when the programmer is confident 
+     * that the `Result` is an `Ok` and wants to enforce this assumption in the 
+     * code. It's a more assertive approach compared to handling both `Ok` and 
+     * `Err` scenarios separately.
+     *
+     * 
+     * @param result The `Result` or `AsyncResult` to extract the value from.
+     * @return The value from the `Result` if it's an `Ok` variant.
+     *
+     * @throws Throws the error contained in the `Err` variant.
+     *
+     * @example
+     * // Using with a synchronous Result:
+     * const result = new Ok(10);
+     * const value = getOrPanic(result); // Returns 10
+     *
+     * @example
+     * // Using with an asynchronous Result (AsyncResult):
+     * const asyncResult = Promise.resolve(new Ok(20));
+     * const asyncValue = await getOrPanic(asyncResult); // Returns 20
+     *
+     * @example
+     * // Error handling:
+     * const errResult = new Err(new Error('Failure'));
+     * try {
+     *     const value = getOrPanic(errResult); // Throws Error('Failure')
+     * } catch (error) {
+     *     console.error(error); // Logs: Error('Failure')
+     * }
+     */
+    export function getOrPanic<T, E>(result: Result<T, E>): T;
+    export async function getOrPanic<T, E>(result: AsyncResult<T, E>): Promise<T>;
+    export function getOrPanic<T, E>(result: Result<T, E> | AsyncResult<T, E>): T | Promise<T> {
+        if (isPromise(result)) {
+            return (async () => {
+                const res = await result;
+                if (res.isOk()) {
+                    return res.data;
+                }
+                
+                // eslint-disable-next-line local/code-no-throw
+                throw res.error;
+            })();
+        }
+        
+        if (result.isOk()) {
+            return result.data;
+        }
+
+        // eslint-disable-next-line local/code-no-throw
+        throw result.error;
     }
 }
 
@@ -341,7 +413,7 @@ export namespace Result {
  * 
  * const result = divide(4, 2);
  * if (result.isOk()) {
- *     console.log("Division result:", result.value);
+ *     console.log("Division result:", result.data);
  * } else {
  *     console.error("Error:", result.error);
  * }
@@ -350,7 +422,7 @@ export namespace Result {
  * // Handling error outcomes:
  * const anotherResult = divide(4, 0);
  * if (anotherResult.isOk()) {
- *     console.log("Division result:", anotherResult.value);
+ *     console.log("Division result:", anotherResult.data);
  * } else {
  *     console.error("Error:", anotherResult.error);
  * }
@@ -382,7 +454,7 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
  * const asyncResult = asyncDivide(4, 2);
  * asyncResult.then(result => {
  *     if (result.isOk()) {
- *         console.log("Division result:", result.value);
+ *         console.log("Division result:", result.data);
  *     } else {
  *         console.error("Error:", result.error);
  *     }
@@ -393,7 +465,7 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
  * const anotherAsyncResult = asyncDivide(4, 0);
  * anotherAsyncResult.then(result => {
  *     if (result.isOk()) {
- *         console.log("Division result:", result.value);
+ *         console.log("Division result:", result.data);
  *     } else {
  *         console.error("Error:", result.error);
  *     }
@@ -405,19 +477,23 @@ export type Result<T, E> = Ok<T, E> | Err<T, E>;
  */
 export type AsyncResult<T, E> = Promise<Result<T, E>>;
 
+export type ResultLike<T, E> = (IResult<T, E> & { data: T, error: undefined }) | (IResult<T, E> & { error: E, data: undefined });
+
+export type GetOkType<R> = R extends Result<infer T, infer E> ? T : never;
+export type GetErrType<R> = R extends Result<infer T, infer E> ? E : never;
+
 /**
  * An interface for {@link Ok} and {@link Err}.
  */
 interface IResult<T, E> {
     
     /**
-     * @description Represents the inner data value or error value of the 
-     * {@link IResult} instance. 
+     * @description Represents the inner DATA value of the {@link IResult} 
+     * instance. 
      * - In case of a successful outcome, the data is of type `T`. 
-     * - If there's an error, it's of type `E`.
      * 
-     * Users should utilize the {@link isOk} and {@link isErr} methods to 
-     * ascertain the type of data before accessing it.
+     * Users should utilize the {@link isOk} method to ascertain the type of 
+     * data before accessing it.
      * - Force the user to handle the potential error.
      * 
      * @example
@@ -426,16 +502,32 @@ interface IResult<T, E> {
      * const success: IResult<number, string> = new Ok(42);
      * if (success.isOk()) {
      *     console.log(success.data); // 42
-     * }
-     * 
-     * // Error outcome:
-     * const error: IResult<number, string> = new Err("Some error");
-     * if (error.isErr()) {
-     *     console.error(error.data); // "Some error"
+     *     console.log(success.error); // undefined
      * }
      * ```
      */
-    readonly data: T | E;
+    readonly data?: T;
+
+    /**
+     * @description Represents the inner ERROR value of the {@link IResult} 
+     * instance. 
+     * - In case of an error, it's of type `E`.
+     * 
+     * Users should utilize the {@link isOk} method to ascertain the type of 
+     * data before accessing it.
+     * - Force the user to handle the potential error.
+     * 
+     * @example
+     * ```
+     * // Error outcome:
+     * const error: IResult<number, string> = new Err("Some error");
+     * if (error.isErr()) {
+     *     console.error(error.error); // "Some error"
+     *     console.log(error.data); // undefined
+     * }
+     * ```
+     */
+    readonly error?: E;
 
     /**
      * @description Returns `true` if the {@link Result} is an {@link Ok} 
@@ -556,6 +648,112 @@ interface IResult<T, E> {
      * ```
      */
     match<U>(onOk: (data: T) =>  U, onError: (error: E) =>  U): U;
+
+    /**
+     * @description Applies a function to the contained value (if {@link Ok}) 
+     * and returns a new {@link Result} with the result of the function. If the 
+     * {@link IResult} is an {@link Err}, it returns the original {@link Err} 
+     * value without applying the function.
+     * 
+     * This method can be used for chaining multiple computations that might 
+     * fail, while handling errors at each step.
+     * 
+     * @param predicate The function to apply to the {@link Ok} value.
+     * @returns A new {@link Result} instance containing the result of the 
+     * `predicate` function if the original {@link Result} is an {@link Ok}. If 
+     * the original {@link Result} is an 
+     * {@link Err}, it returns the original {@link Err} value.
+     * 
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Ok(42);
+     * const newResult = result.map(x => x * 2);
+     * console.log(newResult.unwrap()); // 84
+     * ```
+     * 
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Some error");
+     * const newResult = result.map(x => x * 2);
+     * console.log(newResult.isErr()); // true
+     * ```
+     */
+    map<T1>(predicate: (data: T) => T1): Result<T1, E>;
+
+
+    /**
+     * @description Applies a function to the contained error value (if {@link Err})
+     * and returns a new {@link Result} with the result of the function. If the 
+     * {@link IResult} is an {@link Ok}, it returns the original {@link Ok} value 
+     * without applying the function.
+     * 
+     * @param predicate The function to apply to the {@link Err} value.
+     * @returns A new {@link Result} instance containing the result of the 
+     * `predicate` function if the original {@link Result} is an {@link Err}. If 
+     * the original {@link Result} is an {@link Ok}, it returns the original 
+     * {@link Ok} value.
+     *
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Not found");
+     * const updatedResult = result.mapErr(error => `Error: ${error}`);
+     * console.log(updatedResult.error); // "Error: Not found"
+     * ```
+     */
+    mapErr<E1>(predicate: (error: E) => E1): Result<T, E1>;
+
+    /**
+     * @description Applies a function to the contained value (if {@link Ok}) and 
+     * returns the result wrapped in a new {@link Result}. Useful for chaining 
+     * operations that may fail.
+     * 
+     * @param onOk The function to apply to the {@link Ok} value, returning a new 
+     * {@link Result}.
+     * @returns The result of applying `onOk` if the original {@link Result} is an 
+     * {@link Ok}. If the original {@link Result} is an {@link Err}, it returns the 
+     * original {@link Err}.
+     *
+     * ...
+     * @example
+     * ```
+     * const parseNumber = (value: string): IResult<number, string> =>
+     *     isNaN(Number(value)) ? new Err("Not a number") : new Ok(Number(value));
+     *
+     * const double = (n: number): IResult<number, string> => new Ok(n * 2);
+     *
+     * const result = parseNumber("42").andThen(double);
+     * console.log(result.unwrap()); // 84
+     *
+     * const resultError = parseNumber("not a number").andThen(double);
+     * console.log(resultError.isErr()); // true
+     * ```
+     */
+    andThen<T1, E1>(onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1>;
+
+    /**
+     * @description Applies a function to the contained error value (if {@link Err}) 
+     * and returns the result wrapped in a new {@link Result}. If the {@link IResult} 
+     * is an {@link Ok}, it returns the original {@link Ok} value.
+     * 
+     * @param onError The function to apply to the {@link Err} value, returning a new 
+     * {@link Result}.
+     * @returns The result of applying `onError` if the original {@link Result} is an 
+     * {@link Err}. If the original {@link Result} is an {@link Ok}, it returns the 
+     * original {@link Ok} value.
+     *
+     * ...
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Failed");
+     * const recoveredResult = result.orElse(error => new Ok(0));
+     * console.log(recoveredResult.unwrap()); // 0
+     *
+     * const okResult: IResult<number, string> = new Ok(42);
+     * const stillOkResult = okResult.orElse(error => new Ok(0));
+     * console.log(stillOkResult.unwrap()); // 42
+     * ```
+     */
+    orElse<E1>(onError: (error: E) => Result<T, E1>): Result<T, E | E1>;
 }
 
 /**
@@ -586,7 +784,7 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * readable.
  * 
  * @template E The type of the error value.
- * @param {E} data The error value to be wrapped in an `Err` instance.
+ * @param {E} error The error value to be wrapped in an `Err` instance.
  * @returns {Err<E>} An instance of the `Err` class containing the provided error value.
  * 
  * @example
@@ -594,10 +792,10 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * const errorResult = err("An error occurred");
  * ```
  */
-export function err<T, E extends void>(data?: E): Err<T, E>;
-export function err<T, E>(data: E): Err<T, E>;
-export function err<T, E>(data?: E): Err<T, E> {
-    return new Err(data!);
+export function err<T, E extends void>(): Err<T, E>;
+export function err<T, E>(error: E): Err<T, E>;
+export function err<T, E>(error?: E): Err<T, E> {
+    return new Err(error!);
 }
 
 /**
@@ -643,6 +841,22 @@ export class Ok<T, E> implements IResult<T, E> {
     public match<U>(onOk: (data: T) => U, _onError: (error: E) => U): U {
         return onOk(this.data);
     }
+
+    public map<U>(predicate: (data: T) => U): Result<U, E> {
+        return ok(predicate(this.data));
+    }
+
+    public mapErr<E1>(_predicate: (error: E) => E1): Result<T, E1> {
+        return ok(this.data);
+    }
+
+    public andThen<T1, E1>(onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1> {
+        return onOk(this.data);
+    }
+    
+    public orElse<E1>(_onError: (error: E) => Result<T, E1>): Result<T, E | E1> {
+        return this;
+    }
 }
 
 /**
@@ -666,7 +880,7 @@ export class Ok<T, E> implements IResult<T, E> {
  */
 export class Err<T, E> implements IResult<T, E> {
     
-    constructor(public readonly data: E) {}
+    constructor(public readonly error: E) {}
 
     public isOk(): this is Ok<T, E> {
         return false;
@@ -677,11 +891,11 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err: ${this.data}`);
+        panic(`Tried to unwrap an Err: ${this.error}`);
     }
 
-    public unwrapOr(data: T): T{
-        return data;
+    public unwrapOr(error: T): T{
+        return error;
     }
 
     public expect(errMessage: string): never {
@@ -689,7 +903,23 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public match<U>(_onOk: (data: T) => U, onError: (error: E) => U): U {
-        return onError(this.data);
+        return onError(this.error);
+    }
+    
+    public map<U>(_predicate: (data: T) => U): Result<U, E> {
+        return err(this.error);
+    }
+
+    public mapErr<E1>(predicate: (error: E) => E1): Result<T, E1> {
+        return err(predicate(this.error));
+    }
+
+    public andThen<T1, E1>(_onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1> {
+        return err(this.error);
+    }
+
+    public orElse<E1>(onError: (error: E) => Result<T, E1>): Result<T, E | E1> {
+        return onError(this.error);
     }
 }
 

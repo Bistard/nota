@@ -61,6 +61,7 @@
         "@typescript-eslint/no-empty-function": "off", // could be 'warn'
 
         "eqeqeq": "error",
+
         "local/explicit-member-accessibility": [
             "error",
             {
@@ -81,7 +82,7 @@
         "local/code-interface-check": "error",
         "local/code-service-marker": "error",
         "local/code-no-throw": "warn",
-        "local/code-must-handle-result": "off"
+        "local/code-must-handle-result": "error"
     },
 
     "overrides": [

@@ -1,8 +1,8 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { InitProtector, errorToMessage, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, InitProtector, err, errorToMessage, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter, Event } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
-import { FileSystemProviderError, FileOperationErrorType } from "src/base/common/files/file";
+import { FileSystemProviderError, FileOperationErrorType, FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
@@ -83,15 +83,18 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         return this._configuration;
     }
 
-    public async init(): Promise<void> {
-        this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
+    public async init(): AsyncResult<void, Error> {
+        const initResult = this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
+        if (initResult.isErr()) {
+            return err(initResult.error);
+        }
 
         this.__registerListeners();
 
         return this.__reloadConfiguration();
     }
 
-    public async reload(): Promise<void> {
+    public async reload(): AsyncResult<void, Error> {
         return this.__reloadConfiguration();
     }
 
@@ -111,14 +114,19 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this._onDidConfigurationLoaded.fire(this._configuration);
     }
 
-    private async __reloadConfiguration(): Promise<void> {
+    private async __reloadConfiguration(): AsyncResult<void, Error> {
         const result = await this.__loadConfiguration();
-        if (result.ifLoaded) {
+        if (result.isErr()) {
+            return err(result.error);
+        }
+
+        const load = result.data;
+        if (load.ifLoaded) {
             /**
              * The configuration is loaded correctly, we need to validate the 
              * loaded configuration.
              */
-            const validated = this.__validateConfiguration(result.raw);
+            const validated = this.__validateConfiguration(load.raw);
             this.__setupConfiguration({ ifLoaded: true, validated: validated });
             this._onDidConfigurationChange.fire();
         } 
@@ -127,48 +135,54 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
              * We are creating a new user configuration, there is no need to 
              * validate.
              */
-            this.__setupConfiguration({ ifLoaded: false, validated: result.raw });
+            this.__setupConfiguration({ ifLoaded: false, validated: load.raw });
             this._onDidConfigurationLoaded.fire(this._configuration);
         }
+
+        return ok();
     }
 
-    private async __loadConfiguration(): Promise<LoadConfigurationResult> {
-        let raw: string | IConfigurationStorage;
-
-        // try to read the user configuration
-        try {
-            raw = (await this.fileService.readFile(this._userResource)).toString();
-            return { ifLoaded: true, raw };
-        } 
-        catch (err: unknown) {
-
-            // throw any errors that we are not expecting
-            if (!(err instanceof FileSystemProviderError && err.code === FileOperationErrorType.FILE_NOT_FOUND)) {
-                throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'. The cause is: ${errorToMessage(err)}`);
-            }
-            
-            // expecting file not found, we create a new user configuration.
-            raw = await this.__createNewConfiguration();
-            return { ifLoaded: false, raw };
+    private async __loadConfiguration(): AsyncResult<LoadConfigurationResult, Error> {
+        const read = await this.fileService.readFile(this._userResource);
+        
+        // read successfully, simply return it.
+        if (read.isOk()) {
+            const raw: string = read.data.toString();
+            return ok({ ifLoaded: true, raw });
         }
 
-        // should not be reached
+        // throw any errors that we are not expecting
+        if (read.error.code !== FileOperationErrorType.FILE_NOT_FOUND) {
+            return err(read.error);
+        }
+
+        // expecting file not found, we create a new user configuration.
+        const create = await this.__createNewConfiguration();
+        if (create.isErr()) {
+            return err(create.error);
+        }
+
+        return ok({ ifLoaded: false, raw: create.data });
     }
 
-    private async __createNewConfiguration(): Promise<IConfigurationStorage> {
+    private async __createNewConfiguration(): AsyncResult<IConfigurationStorage, FileOperationError> {
         const defaultConfiguration = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
-        const raw = defaultConfiguration.toJSON();
+        const raw = defaultConfiguration.toJSON().unwrap();
 
         // keep update to the file
-        await this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true });
-        return defaultConfiguration;
+        const success = await this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true });
+        if (success.isErr()) {
+            return err(success.error);
+        }
+
+        return ok(defaultConfiguration);
     }
 
     private __validateConfiguration(raw: string): object {
         const unvalidated = tryOrDefault<object>(
             {},
             () => JSON.parse(raw),
-            () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'`),
+            error => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'. Reason: ${errorToMessage(error)}`),
         );
         const validated = this._validator.validate(unvalidated);
         return validated;
@@ -191,11 +205,13 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 
     private __syncConfigurationFromFileOnChange(): void {
-        this.__register(this.fileService.watch(this._userResource));
+        this.__register(this.fileService.watch(this._userResource).unwrap());
         this.__register(Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(this._userResource))(() => reloadScheduler.schedule()));
         const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
             100, // wait for a moment to avoid excessive reloading
-            async () => await this.reload()
+            async () => {
+                return await this.reload();
+            }
         ));
     }
 
@@ -208,14 +224,15 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
          * This is hacky and a little slow, but it makes sure the job is done.
          */ 
         this.__register(configuration.onDidChange(async () => {
-            await this.fileService.writeFile(
+            const write = await this.fileService.writeFile(
                 this._userResource, 
                 DataBuffer.fromString(JSON.stringify(configuration.model, null, 4)), 
                 { create: true, overwrite: true },
-            )
-            .catch(err => {
-                this.logService.error(`Cannot sync configuration to the file at: ${URI.toString(this._userResource)}. The reason is: ${errorToMessage(err)}`);
-            });
+            );
+
+            if (write.isErr()) {
+                this.logService.error(`Cannot sync configuration to the file at: ${URI.toString(this._userResource)}. The reason is: ${errorToMessage(write.error)}`);
+            }
         }));
     }
 }

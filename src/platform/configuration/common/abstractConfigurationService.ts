@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, InitProtector, err, errorToMessage, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
@@ -79,15 +79,32 @@ export abstract class AbstractConfigurationService extends Disposable implements
         return this.options.appConfiguration.path;
     }
 
-    public async init(): Promise<void> {
-        this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
+    public async init(): AsyncResult<void, Error> {
+        const initResult = this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
+        if (initResult.isErr()) {
+            this.logService.warn(errorToMessage(initResult.error));
+            return err(initResult.error);
+        }
 
         this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
 
-        await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
-        (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
+        // configuration initialization
+        {
+            const defaultInit = this._defaultConfiguration.init();
+            if (defaultInit.isErr()) {
+                return err(defaultInit.error);
+            }
 
+            const userInit = await this._userConfiguration.init();
+            if (userInit.isErr()) {
+                return err(userInit.error);
+            }
+        }
+
+        (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
+        
         this.logService.trace(`[AbstractConfigurationService] initialized.`);
+        return ok();
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
@@ -98,7 +115,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
     public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
-    public abstract save(): Promise<void>;
+    public abstract save(): AsyncResult<void, Error>;
 
     // [private helper methods]
 

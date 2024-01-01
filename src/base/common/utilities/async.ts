@@ -85,7 +85,7 @@ export class JoinablePromise {
 
 	// [fields]
 
-	private readonly _participants: Promise<void>[];
+	private readonly _participants: Promise<unknown>[];
 
 	// [constructor]
 
@@ -95,7 +95,7 @@ export class JoinablePromise {
 
 	// [public methods]
 
-	public join(participant: Promise<void>): this {
+	public join(participant: Promise<unknown>): this {
 		this._participants.push(participant);
 		return this;
 	}
@@ -103,7 +103,7 @@ export class JoinablePromise {
 	/**
 	 * @note This method never rejects.
 	 */
-	public async allSettled(): Promise<PromiseSettledResult<void>[]> {
+	public async allSettled(): Promise<PromiseSettledResult<unknown>[]> {
 		return Promise.allSettled(this._participants);
 	}
 }
