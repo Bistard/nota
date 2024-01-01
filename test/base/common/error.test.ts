@@ -1,7 +1,6 @@
 import * as assert from 'assert';
-import { Err, ErrorHandler, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
+import { AsyncResult, Err, ErrorHandler, GetErrType, GetOkType, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
 import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
-import { shouldThrow } from 'test/utils/helpers';
 
 suite('error-test', () => {
     
@@ -50,9 +49,11 @@ suite('error-test', () => {
     test('InitProtector', () => {
         const initProtector = new InitProtector();
 
-        initProtector.init('first init');
-        shouldThrow(() => initProtector.init('second init'));
-        shouldThrow(() => initProtector.init('thrid init'));
+        const initResult1 = initProtector.init('first init');
+        assert.ok(initResult1.isOk());
+        
+        const initResult2 = initProtector.init('first init');
+        assert.ok(initResult2.isErr());
     });
 });
 
@@ -83,6 +84,30 @@ suite('result-test', () => {
 
         test('match should apply onOk function and return its result', () => {
             assert.strictEqual(okInstance.match(data => data + 1, _ => 0), 43);
+        });
+
+        test('map should apply a function to inner data and return a new Ok instance', () => {
+            const mappedResult = okInstance.map(data => data * 2);
+            assert.ok(mappedResult.isOk());
+            assert.strictEqual(mappedResult.unwrap(), 84);
+        });
+
+        test('mapErr should not modify Ok instance and return the same Ok', () => {
+            const mappedResult = okInstance.mapErr(err => `Modified: ${err}`);
+            assert.ok(mappedResult.isOk());
+            assert.strictEqual(mappedResult.unwrap(), 42);
+        });
+
+        test('andThen should apply a function and return a new Result for Ok', () => {
+            const result = okInstance.andThen(data => new Ok(data.toString()));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), '42');
+        });
+
+        test('orElse should return the same Ok instance for Ok', () => {
+            const result = okInstance.orElse(err => new Ok(0));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), 42);
         });
     });
 
@@ -118,6 +143,30 @@ suite('result-test', () => {
         test('match should apply onError function and return its result', () => {
             assert.strictEqual(errInstance.match(num => 'onSuccess', err => 'onError'), 'onError');
         });
+
+        test('map should not modify Err instance and return the same Err', () => {
+            const mappedResult = errInstance.map(data => data * 2);
+            assert.ok(mappedResult.isErr());
+            assert.throws(() => mappedResult.unwrap());
+        });
+
+        test('mapErr should apply a function to error and return a new Err instance', () => {
+            const mappedResult = errInstance.mapErr(err => `Modified: ${err}`);
+            assert.ok(mappedResult.isErr());
+            assert.strictEqual(mappedResult.error, 'Modified: Error Message');
+        });
+    
+        test('andThen should not modify Err instance and return the same Err', () => {
+            const chainedResult = errInstance.andThen(_ => new Ok('new value'));
+            assert.ok(chainedResult.isErr());
+            assert.throws(() => chainedResult.unwrap());
+        });
+    
+        test('orElse should apply a function to error and return a new Result', () => {
+            const elseResult = errInstance.orElse(err => new Ok(42));
+            assert.ok(elseResult.isOk());
+            assert.strictEqual(elseResult.unwrap(), 42);
+        });
     });
 
     suite('Result', () => {
@@ -129,19 +178,26 @@ suite('result-test', () => {
             return err(new Error('err'));
         }
 
+        test('GetOkType & GetErrType', () => {
+            const result = getResult(true);
+            checkTrue<AreEqual<GetOkType<typeof result>, string>>();
+            checkTrue<AreEqual<GetErrType<typeof result>, Error>>();
+        });
+
         test('isOk type-check', () => {
             const result = getResult(true);
+            
             if (result.isOk()) {
                 checkTrue<AreEqual<typeof result.data, string>>();
             } else {
-                checkTrue<AreEqual<typeof result.data, Error>>();
+                checkTrue<AreEqual<typeof result.error, Error>>();
             }
         });
 
         test('isErr type-check', () => {
             const result = getResult(true);
             if (result.isErr()) {
-                checkTrue<AreEqual<typeof result.data, Error>>();
+                checkTrue<AreEqual<typeof result.error, Error>>();
             } else {
                 checkTrue<AreEqual<typeof result.data, string>>();
             }
@@ -178,6 +234,39 @@ suite('result-test', () => {
                 },
             );
         });
+
+        test('mapErr type-check', () => {
+            const result = getResult(false);
+            const mappedResult = result.mapErr(err => new Error(err.message));
+    
+            if (mappedResult.isOk()) {
+                checkTrue<AreEqual<typeof mappedResult.data, string>>();
+            } else {
+                checkTrue<AreEqual<typeof mappedResult.error, Error>>();
+            }
+        });
+    
+        test('andThen type-check', () => {
+            const result = getResult(true);
+            const chainedResult = result.andThen(data => ok<number, Error>(data.length));
+    
+            if (chainedResult.isOk()) {
+                checkTrue<AreEqual<typeof chainedResult.data, number>>();
+            } else {
+                checkTrue<AreEqual<typeof chainedResult.error, Error>>();
+            }
+        });
+    
+        test('orElse type-check', () => {
+            const result = getResult(false);
+            const elseResult = result.orElse(_ => ok<string, Error>('Recovered'));
+    
+            if (elseResult.isOk()) {
+                checkTrue<AreEqual<typeof elseResult.data, string>>();
+            } else {
+                checkTrue<AreEqual<typeof elseResult.error, Error>>();
+            }
+        });
     });
 
     suite('panic', () => {
@@ -191,6 +280,19 @@ suite('result-test', () => {
     });
 
     suite('Result-namespace', () => {
+
+        test('is', () => {
+            // eslint-disable-next-line local/code-must-handle-result
+            assert.strictEqual(Result.is(ok()), true);
+            // eslint-disable-next-line local/code-must-handle-result
+            assert.strictEqual(Result.is(err()), true);
+            assert.strictEqual(Result.is({ isOk: () => {}, isErr: () => {} }), true);
+            assert.strictEqual(Result.is({ isOk: () => {} }), false);
+            assert.strictEqual(Result.is(5), false);
+            assert.strictEqual(Result.is(undefined), false);
+            assert.strictEqual(Result.is({}), false);
+            assert.strictEqual(Result.is({ isOk: false }), false);
+        });
 
         test('fromThrowable', () => {
             function mightFail(): number {
@@ -208,7 +310,12 @@ suite('result-test', () => {
                     return error.message;
                 }
             );
-            assert.strictEqual(result1.data, 42);
+            
+            if (result1.isOk()) {
+                assert.strictEqual(result1.data, 42);
+            } else {
+                assert.fail('Result should be an instance of ok');
+            }
 
             // failed
             const result2 = Result.fromThrowable<number, string>(
@@ -217,7 +324,12 @@ suite('result-test', () => {
                     return error.message;
                 }
             );
-            assert.strictEqual(result2.data, 'Failed!');
+
+            if (result2.isErr()) {
+                assert.strictEqual(result2.error, 'Failed!');
+            } else {
+                assert.fail('Result should be an instance of err');
+            }
         });
 
         test('fromPromise', async () => {
@@ -234,16 +346,147 @@ suite('result-test', () => {
                 mightResolve, 
                 (error: any) => error.message
             );
-            assert.strictEqual(resultSuccess.isOk(), true);
-            assert.strictEqual(resultSuccess.data, 24);
+
+            if (resultSuccess.isOk()) {
+                assert.strictEqual(resultSuccess.data, 24);
+            } else {
+                assert.fail();
+            }
         
             // check the case where the promise gets rejected
             const resultFailure = await Result.fromPromise<number, string>(
                 mightReject, 
                 (error: any) => error.message
             );
-            assert.strictEqual(resultFailure.isOk(), false);
-            assert.strictEqual(resultFailure.data, "Promise rejected!");
+
+            if (resultFailure.isErr()) {
+                assert.strictEqual(resultFailure.error, "Promise rejected!");
+            } else {
+                assert.fail();
+            }
+        });
+
+        test('getOrPanic', async () => {
+            // sync
+            // eslint-disable-next-line local/code-must-handle-result
+            const data1 = Result.getOrPanic(ok(5));
+            assert.strictEqual(data1, 5);
+
+            // async
+            // eslint-disable-next-line local/code-must-handle-result
+            const data2 = await Result.getOrPanic(Promise.resolve(ok(6)));
+            assert.strictEqual(data2, 6);
+
+            // eslint-disable-next-line local/code-must-handle-result
+            await assert.rejects(async () => Result.getOrPanic(Promise.resolve(err(7))));
+        });
+    });
+
+    suite('result-must-handle', () => {
+
+        function returnResult(value: boolean): Result<string, Error> {
+            if (value) {
+                return ok('ok');
+            }
+            return err(new Error('err'));
+        }
+        
+        function returnAsyncResult(value: boolean): AsyncResult<string, Error> {
+            if (value) {
+                return Promise.resolve(ok('ok'));
+            }
+            return Promise.resolve(err(new Error('err')));
+        }
+
+        function resultInParameter(res: Result<void, void>): void {
+            // res.unwrap(); // FIX: should mark as unhandled
+        }
+        
+        async function asyncResultInParameter(res: AsyncResult<void, void>): Promise<void> {
+            // res.unwrap(); // FIX: should mark as unhandled
+        }
+        
+        test('isOk check', () => {
+            const test_result = returnResult(true);
+            
+            if (test_result.isOk()) return false;
+            else return true;
+        });
+        
+        test('isErr check', () => {
+            const test_result = returnResult(true);
+            if (test_result.isErr()) return false;
+            else return true;
+        });
+        
+        test('unwrapOr check', () => {
+            const test_result = returnResult(true);
+            test_result.unwrapOr('');
+        });
+        
+        test('unwrap check', () => {
+            const test_result = returnResult(true);
+            test_result.unwrap();
+        });
+        
+        test('match check', () => {
+            const test_result = returnResult(true);
+            test_result.match(() => {}, () => {});
+        });
+        
+        test('expect check', () => {
+            const test_result = returnResult(true);
+            test_result.expect('err message');
+        });
+
+        test('await keyword', async () => {
+            const test_result = await returnAsyncResult(true);
+            test_result.unwrap();
+        });
+        
+        test('await keyword', async () => {
+            const test_result = returnAsyncResult(true);
+            // test_result.unwrap(); // FIX
+        });
+
+        test('block check', () => {
+            const test_result = returnResult(true);
+            {
+                test_result.unwrap();
+            }
+        });
+
+        test('closure check 1', () => {
+            const test_result = returnResult(true);
+            
+            const a = () => {
+                test_result.unwrap();
+            };
+        });
+
+        test('closure check 2', () => {
+            const test_result = returnResult(true);
+
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            const cb = (fn: Function) => {};
+            cb(() => {
+                test_result.unwrap();
+            });
+        });
+        
+        test('closure check 3', () => {
+            const test_result = returnResult(true);
+            (() => {
+                test_result.unwrap();
+            })();
+        });
+
+        test.skip('reassignment to the same variable', () => {
+            // let res: Result<string, Error> = returnResult(true);
+            // res.unwrap();
+
+            // res = returnResult(true);
+            // res.unwrap();
         });
     });
 });

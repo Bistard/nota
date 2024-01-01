@@ -213,6 +213,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
             i18nService.init(),
             productService.init(environmentService.productProfilePath),
         ]);
+        
+        // FIX
     }
 
     private rendererServiceRegistrations(): void {

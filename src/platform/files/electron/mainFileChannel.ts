@@ -1,11 +1,13 @@
 import { IDisposable } from "src/base/common/dispose";
+import { AsyncResult, Result, errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
-import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { FileOperationError, FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
 import { IReadableStream, listenStream } from "src/base/common/files/stream";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { CancellationToken } from "src/base/common/utilities/cacellation";
+import { Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IServerChannel } from "src/platform/ipc/common/channel";
@@ -91,15 +93,15 @@ export class MainFileChannel implements IServerChannel {
     // [private helper methods]
 
     private async __stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
-        return this.fileService.stat(uri, opts);
+        return Result.getOrPanic(this.fileService.stat(uri, opts));
     }
 
     private async __readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
-        return this.fileService.readFile(uri, opts);
+        return Result.getOrPanic(await this.fileService.readFile(uri, opts));
     }
 
-    private async __readDir(uri: URI): Promise<[string, FileType][]> {
-        return this.fileService.readDir(uri);
+    private async __readDir(uri: URI): Promise<Pair<string, FileType>[]> {
+        return Result.getOrPanic(this.fileService.readDir(uri));
     }
 
     /**
@@ -139,31 +141,31 @@ export class MainFileChannel implements IServerChannel {
     }
 
     private async __writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {
-        return this.fileService.writeFile(uri, bufferOrStream, opts);
+        return Result.getOrPanic(this.fileService.writeFile(uri, bufferOrStream, opts));
     }
 
     private async __exist(uri: URI): Promise<boolean> {
-        return this.fileService.exist(uri);
+        return Result.getOrPanic(this.fileService.exist(uri));
     }
 
     private async __createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: ICreateFileOptions): Promise<void> {
-        return this.fileService.createFile(uri, bufferOrStream, opts);
+        return Result.getOrPanic(this.fileService.createFile(uri, bufferOrStream, opts));
     }
 
     private async __createDir(uri: URI): Promise<void> {
-        return this.fileService.createDir(uri);
+        return Result.getOrPanic(this.fileService.createDir(uri));
     }
 
     private async __moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
-        return this.fileService.moveTo(from, to, overwrite);
+        return Result.getOrPanic(this.fileService.moveTo(from, to, overwrite));
     }
 
     private async __copyTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
-        return this.fileService.copyTo(from, to, overwrite);
+        return Result.getOrPanic(this.fileService.copyTo(from, to, overwrite));
     }
 
     private async __delete(uri: URI, opts?: IDeleteFileOptions): Promise<void> {
-        return this.fileService.delete(uri, opts);
+        return Result.getOrPanic(this.fileService.delete(uri, opts));
     }
 
     private __watch(uri: URI, opts?: IWatchOptions): void {
@@ -181,7 +183,13 @@ export class MainFileChannel implements IServerChannel {
             this.logService.warn('file service - duplicate watching on the same resource', URI.toString(uri));
             return;
         }
-        const disposable = this.fileService.watch(uri, opts);
+        const result = this.fileService.watch(uri, opts);
+        if (result.isErr()) {
+            this.logService.warn(errorToMessage(result.error)); // REVIEW: should we throw?
+            return;
+        }
+
+        const disposable = result.data;
         this._activeWatchers.set(raw, disposable);
     }
 

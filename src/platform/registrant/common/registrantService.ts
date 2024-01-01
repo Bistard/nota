@@ -92,7 +92,12 @@ export class RegistrantService implements IRegistrantService {
     }
 
     public init(): void {
-        this._initProtector.init(`[RegistrantService] Cannot initialize twice.`);
+        const initResult = this._initProtector.init(`[RegistrantService] Cannot initialize twice.`);
+        if (initResult.isErr()) {
+            this.logService.warn(initResult.error.message);
+            return;
+        }
+
         this._registrants.forEach((registrant, key) => {
             try {
                 registrant.initRegistrations();

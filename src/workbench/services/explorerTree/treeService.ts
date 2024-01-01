@@ -1,4 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
+import { AsyncResult } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IService } from "src/platform/instantiation/common/decorator";
@@ -36,7 +37,7 @@ export interface ITreeService<T> extends IDisposable, IService {
     /**
      * // TODO
      */
-    init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void>;
+    init(container: HTMLElement, root: URI, mode?: TreeMode): AsyncResult<void, Error>;
 
     /**
      * @description Given the height, re-layouts the height of the whole tree.

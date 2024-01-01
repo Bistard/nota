@@ -172,7 +172,12 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         const blocker = new Blocker<TextBufferBuilder | Error>();
         const builder = new TextBufferBuilder();
-        const stream = await this.fileService.readFileStream(source);
+        const readResult = await this.fileService.readFileStream(source);
+        if (readResult.isErr()) {
+            return readResult.error;
+        }
+
+        const stream = readResult.data;
 
         stream.on('data', (data: DataBuffer) => {
             builder.receive(data.toString());

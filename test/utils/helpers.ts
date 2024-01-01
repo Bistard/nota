@@ -1,4 +1,5 @@
-import type * as assert from 'assert';
+import * as assert from 'assert';
+import { AsyncResult, Result, errorToMessage } from 'src/base/common/error';
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray } from "src/base/common/utilities/type";
@@ -34,6 +35,25 @@ export namespace Context {
             console.log(message);
         }
     }
+}
+
+export function assertResult<T, E>(result: Result<T, E>): T {
+    if (result.isErr()) {
+        assert.fail();
+    }
+    return result.data;
+}
+
+/**
+ * @note This function acts exactly like `.unwrap()` method.
+ */
+export async function assertAsyncResult<T, E>(result: AsyncResult<T, E>): Promise<T> {
+    const res = await result;
+    if (res.isErr()) {
+        // eslint-disable-next-line local/code-no-throw
+        throw res.error;
+    }
+    return res.data;
 }
 
 /**

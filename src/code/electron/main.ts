@@ -196,7 +196,7 @@ const main = new class extends class MainProcess implements IMainProcess {
      */
     private async initServices(): Promise<any> {
 
-        return Promise.all([
+        const results = await Promise.all([
             /**
              * At the very beginning state of the program, we need to initialize
              * all the necessary directories first. We need to ensure each one 
@@ -208,14 +208,14 @@ const main = new class extends class MainProcess implements IMainProcess {
                     this.environmentService.appConfigurationPath,
                     this.environmentService.userDataPath,
                 ]
-                .map(path => {
-                    return mkdir(URI.toFsPath(path), { recursive: true });
-                })
+                .map(path => mkdir(URI.toFsPath(path), { recursive: true }))
             ),
             this.productService.init(this.environmentService.productProfilePath),
             this.statusService.init(),
             this.configurationService.init(),
         ]);
+
+        // FIX: handle results
     }
 
     private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {

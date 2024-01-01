@@ -53,7 +53,7 @@ export interface IBeforeQuitEvent<Reason extends number> {
     /**
      * A method that allows the listener to join the whole process.
      */
-    readonly join: (participant: Promise<void>) => void;
+    readonly join: (participant: Promise<unknown>) => void;
 }
 
 /**

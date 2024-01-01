@@ -508,7 +508,8 @@ export async function readFileIntoStreamAsync(
     provider: IFileSystemProviderWithFileReadWrite, 
     resource: URI, 
     stream: IWriteableStream<DataBuffer>, 
-    opts?: IReadFileOptions): Promise<void> 
+    opts?: IReadFileOptions,
+): Promise<void> 
 {
     try {
         let buffer = await provider.readFile(resource);
@@ -538,7 +539,8 @@ export async function readFileIntoStream<T>(
     resource: URI, 
     stream: IWriteableStream<T>, 
     dataConverter: IDataConverter<DataBuffer, T>, 
-    options: ICreateReadStreamOptions): Promise<void> 
+    options: ICreateReadStreamOptions,
+): Promise<void> 
 {
     let error: Error | undefined = undefined;
     try {
@@ -558,7 +560,8 @@ async function __readFileIntoStream<T>(
     resource: URI, 
     stream: IWriteableStream<T>, 
     dataConverter: IDataConverter<DataBuffer, T>, 
-    options: ICreateReadStreamOptions): Promise<void> 
+    options: ICreateReadStreamOptions,
+): Promise<void> 
 {    
     const fd = await provider.open(resource, { create: false, unlock: false } );
 
@@ -575,8 +578,11 @@ async function __readFileIntoStream<T>(
         let posInBuffer = 0;
 
         do {
-            // read from source (fd) at current position (posInFile) into buffer (buffer) at
-			// buffer position (posInBuffer) up to the size of the buffer (buffer.byteLength).
+			/**
+			 * read from source (fd) at current position (posInFile) into buffer 
+			 * (buffer) at buffer position (posInBuffer) up to the size of the 
+			 * buffer (buffer.byteLength).
+			 */
 			bytesRead = await provider.read(fd, posInFile, buffer.buffer, posInBuffer, buffer.bufferLength - posInBuffer);
 
             posInFile += bytesRead;   
@@ -606,13 +612,7 @@ async function __readFileIntoStream<T>(
 			stream.write(dataConverter(buffer.slice(0, lastChunkLength)));
 		}
 
-    } catch(err) {
-        
-        throw err;
-
     } finally {
-
         await provider.close(fd);
-
     }
 }

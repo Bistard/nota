@@ -1,7 +1,28 @@
 import * as eslint from 'eslint';
+import * as estree from 'estree';
 import { TypeChecker } from 'typescript';
 import { unionTypeParts } from './utils/typeScriptUtility';
 import { AST_NODE_TYPES } from './utils/astNodeType';
+
+/**
+ * Evaluate within the expression to see if it's a result.
+ * If it's a result, check that it's handled within the expression.
+ * If it's not handled, check if it's assigned or used as a function argument.
+ * If it's assigned without being handled, review the entire variable block for handling.
+ * Otherwise, it was handled appropriately.
+ */
+
+
+const resultObjectProperties = ['unwrapOr'];
+const handledMethods = [
+	'match', 
+	'unwrap', 
+	'unwrapOr', 
+	'isOk', 
+	'isErr', 
+	'expect'
+];
+const MESSAGE_ID = 'ResultNotHandled';
 
 export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
@@ -14,7 +35,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 			recommended: true,
 		},
 		messages: {
-			mustUseResult: '`Result` must be handled with either of `match`, `unwrap` or `unwrapOr`.',
+			[MESSAGE_ID]: '`Result` must be handled with either of `match`, `unwrap`, `unwrapOr`, `isOk`, `isErr` or `expect`.',
 		},
 		schema: [],
 		type: 'problem',
@@ -30,44 +51,100 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 		}
 
 		return {
-			[resultSelector](node: any) {
-				return processSelector(context, checker, parserServices, node);
+			CallExpression(node: estree.CallExpression & eslint.Rule.NodeParentExtension) {
+				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
 			},
+
+			NewExpression(node: estree.NewExpression & eslint.Rule.NodeParentExtension) {
+				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
+			},
+
+			AwaitExpression(node: estree.AwaitExpression & eslint.Rule.NodeParentExtension) {
+				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
+			}
 		};
 	}
 };
 
-function matchAny(nodeTypes: string[]) {
-	return `:matches(${nodeTypes.join(', ')})`;
-}
-
-const resultSelector = matchAny([
-	// 'Identifier',
-	AST_NODE_TYPES.CallExpression,
-	AST_NODE_TYPES.NewExpression,
-]);
-
-const resultObjectProperties = [
-	'unwrap',
-	'unwrapOr',
-	'match',
+const ignoreParents = [
+	AST_NODE_TYPES.ClassDeclaration,
+	AST_NODE_TYPES.FunctionDeclaration,
+	AST_NODE_TYPES.MethodDefinition,
+	'ClassProperty'
 ];
-const handledMethods = ['match', 'unwrap', 'unwrapOr'];
-const MESSAGE_ID = 'mustUseResult';
 
-/**
- * Evaluate within the expression to see if it's a result.
- * If it's a result, check that it's handled within the expression.
- * If it's not handled, check if it's assigned or used as a function argument.
- * If it's assigned without being handled, review the entire variable block for handling.
- * Otherwise, it was handled appropriately.
- */
-
-function isResultLike(
+function checkIfNodeIsNotHandled(
+	context: eslint.Rule.RuleContext,
 	checker: TypeChecker,
 	parserServices: any,
-	node?: any | null,
+	node: any,
+	reportNode: any = node,
+	isReference: boolean = false,
 ): boolean {
+	if (node.parent?.type.startsWith('TS')) {
+		return false;
+	}
+	
+	if (node.parent && ignoreParents.includes(node.parent.type)) {
+		return false;
+	}
+
+	if (!isResultLike(checker, parserServices, node)) {
+		return false;
+	}
+
+	if (isHandledResult(node)) {
+		return false;
+	}
+
+	// eg. `return getResult();`
+	if (isReturned(checker, parserServices, node)) {
+		return false;
+	}
+
+	const assignedTo = getAssignation(checker, parserServices, node);
+	const currentScope = context.getScope();
+
+	// Check if is assigned to variables
+	if (assignedTo) {
+		const variable = currentScope.set.get(assignedTo.name);
+		const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
+
+		/**
+		 * Try to mark the first assigned variable to be reported, if not, keep 
+		 * the original one.
+		 */
+		reportNode = variable?.references[0].identifier ?? reportNode;
+
+		// check if any reference is handled by recursive calling
+		const anyHandled = references.some(ref =>
+			!checkIfNodeIsNotHandled(
+				context,
+				checker,
+				parserServices,
+				ref.identifier,
+				reportNode,
+				true,
+			) 
+		);
+
+		// since the result is handled at least once, we should mark it as handled.
+		if (anyHandled) {
+			return false;
+		}
+	}
+
+	if (!isReference) {
+		context.report({
+			node: reportNode,
+			messageId: MESSAGE_ID,
+		});
+	}
+
+	return true;
+}
+
+function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.Rule.Node | null): boolean {
 	if (!node) {
 		return false;
 	}
@@ -106,7 +183,7 @@ function isMemberCalledFn(node?: any): boolean {
 	return node.parent.callee === node;
 }
 
-function isHandledResult(node: any): boolean {
+function isHandledResult(node: eslint.Rule.Node): boolean {
 	const memberExpresion = node.parent;
 	if (memberExpresion?.type === AST_NODE_TYPES.MemberExpression) {
 		
@@ -121,36 +198,32 @@ function isHandledResult(node: any): boolean {
 			return isHandledResult(parent);
 		}
 	}
+	
 	return false;
 }
+
 const endTransverse = [AST_NODE_TYPES.BlockStatement, AST_NODE_TYPES.Program];
-function getAssignation(
-	checker: TypeChecker,
-	parserServices: any,
-	node: any
-): any | undefined {
+function getAssignation(checker: TypeChecker, parserServices: any, node: any): any | undefined {
 	if (
 		node.type === AST_NODE_TYPES.VariableDeclarator &&
-		isResultLike(checker, parserServices, node.init) &&
-		node.id.type === AST_NODE_TYPES.Identifier
+		node.id.type === AST_NODE_TYPES.Identifier &&
+		isResultLike(checker, parserServices, node.init)
 	) {
 		return node.id;
 	}
+	
 	if (endTransverse.includes(node.type) || !node.parent) {
 		return undefined;
 	}
+
 	return getAssignation(checker, parserServices, node.parent);
 }
 
-function isReturned(
-	checker: TypeChecker,
-	parserServices: any,
-	node: any
-): boolean {
+function isReturned(checker: TypeChecker, parserServices: any, node: eslint.Rule.Node): boolean {
 	if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
 		return true;
 	}
-	if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
+	if (node.type === AST_NODE_TYPES.ReturnStatement) {
 		return true;
 	}
 	if (node.type === AST_NODE_TYPES.BlockStatement) {
@@ -165,66 +238,4 @@ function isReturned(
 	return isReturned(checker, parserServices, node.parent);
 }
 
-const ignoreParents = [
-	AST_NODE_TYPES.ClassDeclaration,
-	AST_NODE_TYPES.FunctionDeclaration,
-	AST_NODE_TYPES.MethodDefinition,
-	'ClassProperty'
-];
 
-function processSelector(
-	context: any,
-	checker: TypeChecker,
-	parserServices: any,
-	node: any,
-	reportAs = node,
-): boolean {
-	if (node.parent?.type.startsWith('TS')) {
-		return false;
-	}
-	
-	if (node.parent && ignoreParents.includes(node.parent.type)) {
-		return false;
-	}
-
-	if (!isResultLike(checker, parserServices, node)) {
-		return false;
-	}
-
-	if (isHandledResult(node)) {
-		return false;
-	}
-
-	// return getResult()
-	if (isReturned(checker, parserServices, node)) {
-		return false;
-	}
-
-	const assignedTo = getAssignation(checker, parserServices, node);
-	const currentScope = context.getScope();
-
-	// Check if is assigned
-	if (assignedTo) {
-		const variable = currentScope.set.get(assignedTo.name);
-		const references =
-			variable?.references.filter((ref: any) => ref.identifier !== assignedTo) ?? [];
-		if (references.length > 0) {
-			return references.some((ref: any) =>
-				processSelector(
-					context,
-					checker,
-					parserServices,
-					ref.identifier,
-					reportAs
-				)
-			);
-		}
-	}
-
-	context.report({
-		node: reportAs,
-		messageId: MESSAGE_ID,
-	});
-
-	return true;
-}

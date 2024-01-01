@@ -64,7 +64,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     // [public mehtods]
 
-    public async init(container: HTMLElement, root: URI): Promise<void> {
+    public async init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
         
         // retrieve configurations
         const filterOpts: IFilterOpts = {
@@ -80,7 +80,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         );
         
         // resolve the root of the directory first
-        const rootStat = await this.fileService.stat(root, { resolveChildren: true });
+        const statResult = await this.fileService.stat(root, { resolveChildren: true });
+        if (statResult.isErr()) {
+            return err(statResult.error);
+        }
+        const rootStat = statResult.data;
         const rootItem = new FileItem(rootStat, null, filterOpts);
 
         // construct the file system hierarchy
@@ -105,6 +109,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         dndProvider.bindWithTree(this._tree);
 
         await this._tree.refresh();
+        return ok();
     }
 
     public layout(height?: number | undefined): void {

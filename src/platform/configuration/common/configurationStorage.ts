@@ -1,5 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Result } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
+import { jsonSafeStringtify } from "src/base/common/json";
 import { deepCopy } from "src/base/common/utilities/object";
 import { DeepReadonly, Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
@@ -53,7 +55,7 @@ export interface IReadonlyConfigurationStorage extends IDisposable {
     /**
      * @description Conver the model into the JSON format.
      */
-    toJSON(): string;
+    toJSON(): Result<string, SyntaxError>;
 }
 
 /**
@@ -221,8 +223,8 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return new ConfigurationStorage([...this._sections], deepCopy(this._model));
     }
 
-    public toJSON(): string {
-        return JSON.stringify(this.model, null, 4);
+    public toJSON(): Result<string, SyntaxError> {
+        return jsonSafeStringtify(this.model, undefined, 4);
     }
 
     // [private helper methods]
