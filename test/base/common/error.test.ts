@@ -91,6 +91,24 @@ suite('result-test', () => {
             assert.ok(mappedResult.isOk());
             assert.strictEqual(mappedResult.unwrap(), 84);
         });
+
+        test('mapErr should not modify Ok instance and return the same Ok', () => {
+            const mappedResult = okInstance.mapErr(err => `Modified: ${err}`);
+            assert.ok(mappedResult.isOk());
+            assert.strictEqual(mappedResult.unwrap(), 42);
+        });
+
+        test('andThen should apply a function and return a new Result for Ok', () => {
+            const result = okInstance.andThen(data => new Ok(data.toString()));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), '42');
+        });
+
+        test('orElse should return the same Ok instance for Ok', () => {
+            const result = okInstance.orElse(err => new Ok(0));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), 42);
+        });
     });
 
     suite('Err', () => {
@@ -130,6 +148,24 @@ suite('result-test', () => {
             const mappedResult = errInstance.map(data => data * 2);
             assert.ok(mappedResult.isErr());
             assert.throws(() => mappedResult.unwrap());
+        });
+
+        test('mapErr should apply a function to error and return a new Err instance', () => {
+            const mappedResult = errInstance.mapErr(err => `Modified: ${err}`);
+            assert.ok(mappedResult.isErr());
+            assert.strictEqual(mappedResult.error, 'Modified: Error Message');
+        });
+    
+        test('andThen should not modify Err instance and return the same Err', () => {
+            const chainedResult = errInstance.andThen(_ => new Ok('new value'));
+            assert.ok(chainedResult.isErr());
+            assert.throws(() => chainedResult.unwrap());
+        });
+    
+        test('orElse should apply a function to error and return a new Result', () => {
+            const elseResult = errInstance.orElse(err => new Ok(42));
+            assert.ok(elseResult.isOk());
+            assert.strictEqual(elseResult.unwrap(), 42);
         });
     });
 
@@ -191,6 +227,17 @@ suite('result-test', () => {
                     checkTrue<AreEqual<typeof err, Error>>();
                 },
             );
+        });
+
+        test('mapErr type-check', () => {
+            const result = getResult(false);
+            const mappedResult = result.mapErr(err => new Error(err.message));
+    
+            if (mappedResult.isOk()) {
+                checkTrue<AreEqual<typeof mappedResult.data, string>>();
+            } else {
+                checkTrue<AreEqual<typeof mappedResult.error, Error>>();
+            }
         });
     });
 

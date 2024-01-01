@@ -675,7 +675,82 @@ interface IResult<T, E> {
      * console.log(newResult.isErr()); // true
      * ```
      */
-    map<U>(predicate: (data: T) => U): Result<U, E>;
+    map<T1>(predicate: (data: T) => T1): Result<T1, E>;
+
+
+    /**
+     * @description Applies a function to the contained error value (if {@link Err})
+     * and returns a new {@link Result} with the result of the function. If the 
+     * {@link IResult} is an {@link Ok}, it returns the original {@link Ok} value 
+     * without applying the function.
+     * 
+     * @param predicate The function to apply to the {@link Err} value.
+     * @returns A new {@link Result} instance containing the result of the 
+     * `predicate` function if the original {@link Result} is an {@link Err}. If 
+     * the original {@link Result} is an {@link Ok}, it returns the original 
+     * {@link Ok} value.
+     *
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Not found");
+     * const updatedResult = result.mapErr(error => `Error: ${error}`);
+     * console.log(updatedResult.error); // "Error: Not found"
+     * ```
+     */
+    mapErr<E1>(predicate: (error: E) => E1): Result<T, E1>;
+
+    /**
+     * @description Applies a function to the contained value (if {@link Ok}) and 
+     * returns the result wrapped in a new {@link Result}. Useful for chaining 
+     * operations that may fail.
+     * 
+     * @param onOk The function to apply to the {@link Ok} value, returning a new 
+     * {@link Result}.
+     * @returns The result of applying `onOk` if the original {@link Result} is an 
+     * {@link Ok}. If the original {@link Result} is an {@link Err}, it returns the 
+     * original {@link Err}.
+     *
+     * ...
+     * @example
+     * ```
+     * const parseNumber = (value: string): IResult<number, string> =>
+     *     isNaN(Number(value)) ? new Err("Not a number") : new Ok(Number(value));
+     *
+     * const double = (n: number): IResult<number, string> => new Ok(n * 2);
+     *
+     * const result = parseNumber("42").andThen(double);
+     * console.log(result.unwrap()); // 84
+     *
+     * const resultError = parseNumber("not a number").andThen(double);
+     * console.log(resultError.isErr()); // true
+     * ```
+     */
+    andThen<T1, E1>(onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1>;
+
+    /**
+     * @description Applies a function to the contained error value (if {@link Err}) 
+     * and returns the result wrapped in a new {@link Result}. If the {@link IResult} 
+     * is an {@link Ok}, it returns the original {@link Ok} value.
+     * 
+     * @param onError The function to apply to the {@link Err} value, returning a new 
+     * {@link Result}.
+     * @returns The result of applying `onError` if the original {@link Result} is an 
+     * {@link Err}. If the original {@link Result} is an {@link Ok}, it returns the 
+     * original {@link Ok} value.
+     *
+     * ...
+     * @example
+     * ```
+     * const result: IResult<number, string> = new Err("Failed");
+     * const recoveredResult = result.orElse(error => new Ok(0));
+     * console.log(recoveredResult.unwrap()); // 0
+     *
+     * const okResult: IResult<number, string> = new Ok(42);
+     * const stillOkResult = okResult.orElse(error => new Ok(0));
+     * console.log(stillOkResult.unwrap()); // 42
+     * ```
+     */
+    orElse<E1>(onError: (error: E) => Result<T, E1>): Result<T, E | E1>;
 }
 
 /**
@@ -767,6 +842,18 @@ export class Ok<T, E> implements IResult<T, E> {
     public map<U>(predicate: (data: T) => U): Result<U, E> {
         return ok(predicate(this.data));
     }
+
+    public mapErr<E1>(_predicate: (error: E) => E1): Result<T, E1> {
+        return ok(this.data);
+    }
+
+    public andThen<T1, E1>(onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1> {
+        return onOk(this.data);
+    }
+    
+    public orElse<E1>(_onError: (error: E) => Result<T, E1>): Result<T, E | E1> {
+        return this;
+    }
 }
 
 /**
@@ -812,12 +899,24 @@ export class Err<T, E> implements IResult<T, E> {
         panic(errMessage);
     }
 
-    public match<U>(_onOk: (error: T) => U, onError: (error: E) => U): U {
+    public match<U>(_onOk: (data: T) => U, onError: (error: E) => U): U {
         return onError(this.error);
     }
     
-    public map<U>(_predicate: (error: T) => U): Result<U, E> {
+    public map<U>(_predicate: (data: T) => U): Result<U, E> {
         return err(this.error);
+    }
+
+    public mapErr<E1>(predicate: (error: E) => E1): Result<T, E1> {
+        return err(predicate(this.error));
+    }
+
+    public andThen<T1, E1>(onOk: (data: T) => Result<T1, E1>): Result<T1, E | E1> {
+        return err(this.error);
+    }
+
+    public orElse<E1>(onError: (error: E) => Result<T, E1>): Result<T, E | E1> {
+        return onError(this.error);
     }
 }
 
