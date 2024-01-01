@@ -22,22 +22,22 @@ suite('storage-test', () => {
         fileService = new FileService(new NullLogger());
         fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
 
-        await fileService.createDir(dir);
-        await fileService.createFile(path);
+        (await fileService.createDir(dir)).unwrap();
+        (await fileService.createFile(path)).unwrap();
     }));
 
     afterEach(() => FakeAsync.run(async () => {
-        await fileService.writeFile(path, DataBuffer.fromString(''), { create: false });
+        (await fileService.writeFile(path, DataBuffer.fromString(''), { create: false })).unwrap();
     }));
 
     after(() => FakeAsync.run(async () => {
-        await fileService.delete(dir, { recursive: true });
+        (await fileService.delete(dir, { recursive: true })).unwrap();
         fileService.dispose();
     }));
 
     test('basic - set / get / has', () => FakeAsync.run(async () => {
         const storage = new DiskStorage(path, true, fileService);
-        await storage.init();
+        (await storage.init()).unwrap();
 
         storage.set('key1', 'value1');
         assert.strictEqual(storage.get('key1'), 'value1');
@@ -74,7 +74,7 @@ suite('storage-test', () => {
         assert.strictEqual(storage.get('key1'), 'value1');
         assert.strictEqual(storage.get('key2'), undefined);
 
-        await storage.init();
+        (await storage.init()).unwrap();
 
         assert.strictEqual(storage.get('key1'), 'value1');
         assert.strictEqual(storage.get('key2'), undefined);
@@ -82,22 +82,22 @@ suite('storage-test', () => {
 
     test('used after close', () => FakeAsync.run(async () => {
         const storage = new DiskStorage(path, true, fileService);
-        await storage.init();
+        (await storage.init()).unwrap();
 
         storage.set('key1', 'value1');
         storage.set('key2', 'value2');
         storage.set('key3', 'value3');
         storage.set('key4', 'value4');
 
-        await storage.close();
+        (await storage.close()).unwrap();
 
         storage.set('key5', 'marker');
 
-        const contents = (await fileService.readFile(path)).toString();
+        const contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.ok(contents.includes('value1'));
         assert.ok(!contents.includes('marker'));
 
-        await storage.close();
+        (await storage.close()).unwrap();
     }));
 
     test('Closed before init', () => FakeAsync.run(async () => {
@@ -108,71 +108,71 @@ suite('storage-test', () => {
         storage.set('key3', 'value3');
         storage.set('key4', 'value4');
 
-        await storage.close();
+        (await storage.close()).unwrap();
 
-        const contents = (await fileService.readFile(path)).toString();
+        const contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.strictEqual(contents.length, 0);
     }));
 
     test('re-init', () => FakeAsync.run(async () => {
         const storage = new DiskStorage(path, true, fileService);
-        await storage.init();
+        (await storage.init()).unwrap();
 
-        await storage.close();
+        (await storage.close()).unwrap();
 
         storage.set('key1', 'value1');
         storage.set('key2', 'value2');
         storage.set('key3', 'value3');
         storage.set('key4', 'value4');
 
-        await storage.init();
+        (await storage.init()).unwrap();
 
         assert.deepStrictEqual(storage.getLot(['key1', 'key2', 'key3', 'key4']), [undefined, undefined, undefined, undefined]);
     }));
 
     test('non-sync saving', () => FakeAsync.run(async () => {
         const storage = new DiskStorage(path, false, fileService);
-        await storage.init();
+        (await storage.init()).unwrap();
 
         storage.set('key1', 'value1');
         storage.set('key2', 'value2');
         storage.set('key3', 'value3');
         storage.set('key4', 'value4');
 
-        let contents = (await fileService.readFile(path)).toString();
+        let contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.strictEqual(contents.length, 0);
 
-        await storage.close();
+        (await storage.close()).unwrap();
 
-        contents = (await fileService.readFile(path)).toString();
+        contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.strictEqual(contents.length > 0, true);
     }));
 
     test('manually saving', () => FakeAsync.run(async () => {
         const storage = new DiskStorage(path, false, fileService);
-        await storage.init();
+        (await storage.init()).unwrap();
 
         storage.set('key1', 'value1');
         storage.set('key2', 'value2');
         storage.set('key3', 'value3');
         storage.set('key4', 'value4');
 
-        await storage.save();
+        (await storage.save()).unwrap();
 
-        const contents = (await fileService.readFile(path)).toString();
+        const contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.strictEqual(contents.length > 0, true);
     }));
 
     test('sync saving', () => FakeAsync.run(async () => {
         const storage = new DiskStorage(path, true, fileService);
-        await storage.init();
+        (await storage.init()).unwrap();
 
         await storage.set('key1', 'value1');
         await storage.set('key2', 'value2');
         await storage.set('key3', 'value3');
         await storage.set('key4', 'value4');
 
-        const contents = (await fileService.readFile(path)).toString();
+        const contents = ((await fileService.readFile(path)).unwrap()).toString();
         assert.strictEqual(contents.length > 0, true);
     }));
 });
