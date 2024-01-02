@@ -1078,4 +1078,9 @@ export class AsyncResult<T, E> {
 
         return new AsyncResult(next);
     }
+
+    public async toPromise(): Promise<T> {
+        const result = await this._promise;
+        return result.unwrap();
+    }
 }
