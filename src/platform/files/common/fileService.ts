@@ -188,15 +188,11 @@ export class FileService extends Disposable implements IFileService {
         if (get.isErr()) {
             return AsyncResult.err(get.error);
         }
-        const provider = get.data;
 
-        const result = Result.fromPromise(
-            () => provider.stat(uri),
-            (error) => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
-        )
-        .andThen(stat => this.__resolveStat(uri, provider, stat, opts));
-
-        return result;
+        return get.toAsync()
+        .andThen(async provider => <const>[await provider.stat(uri), provider])
+        .andThen(([stat, provider]) => this.__resolveStat(uri, provider, stat, opts))
+        .mapErr((error) => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
     }
 
     public readFile(uri: URI, opts?: IReadFileOptions): AsyncResult<DataBuffer, FileOperationError> {
@@ -204,7 +200,7 @@ export class FileService extends Disposable implements IFileService {
         if (get.isErr()) {
             return AsyncResult.err(get.error);
         }
-        const provider = get.data;
+        const provider = get.unwrap();
 
         return this.__readFile(provider, uri, opts);
     }
@@ -214,7 +210,7 @@ export class FileService extends Disposable implements IFileService {
         if (get.isErr()) {
             return AsyncResult.err(get.error);
         }
-        const provider = get.data;
+        const provider = get.unwrap();
 
         return this.__readFileStream(provider, uri, opts);
     }
@@ -224,7 +220,7 @@ export class FileService extends Disposable implements IFileService {
         if (get.isErr()) {
             return AsyncResult.err(get.error);
         }
-        const provider = get.data;
+        const provider = get.unwrap();
 
         // validate write operation, returns the stat of the file.
         return this.__validateWrite(provider, uri, opts)
@@ -262,14 +258,11 @@ export class FileService extends Disposable implements IFileService {
             return AsyncResult.err(get.error);
         }
 
-        const provider = get.data;
-
-        return Result.fromPromise(
-            () => provider.stat(uri),
-            error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
-        )
-        .andThen(() => AsyncResult.ok(true))
-        .orElse(() => AsyncResult.ok(false));
+        return get.toAsync()
+        .andThen(provider => provider.stat(uri))
+        .andThen(() => ok(true))
+        .orElse(() => ok(false))
+        .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
     }
 
     public createFile(
@@ -287,23 +280,15 @@ export class FileService extends Disposable implements IFileService {
         if (get.isErr()) {
             return AsyncResult.err(get.error);
         }
-        const provider = get.data;
-
-
-        return Result.fromPromise(
-            () => provider.readdir(uri),
-            error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
-        );
+        
+        return get.toAsync()
+        .andThen(provider => provider.readdir(uri))
+        .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
     }
 
     public createDir(uri: URI): AsyncResult<void, FileOperationError> {
-        const get = this.__getWriteProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
-        const provider = get.data;
-
-        return this.__mkdirRecursive(provider, uri);
+        return this.__getWriteProvider(uri).toAsync()
+        .andThen(provider => this.__mkdirRecursive(provider, uri));
     }
 
     public moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError> {
@@ -317,8 +302,8 @@ export class FileService extends Disposable implements IFileService {
             return AsyncResult.err(toResult.error);
         }
 
-        const fromProvider = fromResult.data;
-        const toProvider = toResult.data;
+        const fromProvider = fromResult.unwrap();
+        const toProvider = toResult.unwrap();
 
         return this.__doMoveTo(from, fromProvider, to, toProvider, overwrite)
         .andThen(() => this.stat(to));
@@ -335,8 +320,8 @@ export class FileService extends Disposable implements IFileService {
             return AsyncResult.err(toResult.error);
         }
 
-        const fromProvider = fromResult.data;
-        const toProvider = toResult.data;
+        const fromProvider = fromResult.unwrap();
+        const toProvider = toResult.unwrap();
 
         return this.__doCopyTo(from, fromProvider, to, toProvider, overwrite)
         .andThen(() => this.stat(to));
@@ -344,19 +329,8 @@ export class FileService extends Disposable implements IFileService {
 
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return this.__validateDelete(uri, opts)
-        .andThen(provider => 
-            Result.fromPromise(
-                () => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }),
-                error => new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error),
-            )
-        );
-        return this.__validateDelete(uri, opts)
-        .andThen(provider => 
-            Result.fromPromise(
-                () => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }),
-                error => new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error),
-            )
-        );
+        .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
+        .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error)));
     }
 
     public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
@@ -371,7 +345,7 @@ export class FileService extends Disposable implements IFileService {
         if (get.isErr()) {
             return err(get.error);
         }
-        const provider = get.data;
+        const provider = get.unwrap();
 
         const result = Result.fromThrowable(
             () => provider.watch(uri, opts),
@@ -382,7 +356,7 @@ export class FileService extends Disposable implements IFileService {
             return err(result.error);
         }
 
-        const disposable = result.data;
+        const disposable = result.unwrap();
         this._activeWatchers.set(uri, disposable);
 
         return ok(disposable);
@@ -596,7 +570,7 @@ export class FileService extends Disposable implements IFileService {
             }
 
             // not a directory
-            const stat = statResult.data;
+            const stat = statResult.unwrap();
             if ((stat.type & FileType.DIRECTORY) === 0) {
                 return err(new FileOperationError('undable to create directory that already exists but is not a directory', FileOperationErrorType.FILE_IS_DIRECTORY));
             }
@@ -656,7 +630,7 @@ export class FileService extends Disposable implements IFileService {
                 return err(dirResult.error);
             }
 
-            const children = dirResult.data;
+            const children = dirResult.unwrap();
             const resolvedChildren = await Promise.all(
                 children.map(async ([name, _type]) => {
                     const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
@@ -669,13 +643,13 @@ export class FileService extends Disposable implements IFileService {
                         return undefined;
                     }
                     
-                    const childStat = statResult.data;
+                    const childStat = statResult.unwrap();
                     const recursive = await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
                     if (recursive.isErr()) {
                         return undefined;
                     }
 
-                    return recursive.data;
+                    return recursive.unwrap();
                 })
             );
 
@@ -716,7 +690,7 @@ export class FileService extends Disposable implements IFileService {
         .andThen(() => {
             return this.__doCopyTo(from, fromProvider, to, toProvider, overwrite);
         })
-        
+
         .andThen(() => {
             return this.delete(from, { recursive: true });
         });
@@ -780,7 +754,7 @@ export class FileService extends Disposable implements IFileService {
             return err(get.error);
         }
 
-        const provider = get.data;
+        const provider = get.unwrap();
 
         if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
             return ok(provider);
@@ -796,12 +770,12 @@ export class FileService extends Disposable implements IFileService {
             return err(get.error);
         }
         
-        const readonlyResult = this.__errIfProviderReadonly(get.data);
+        const readonlyResult = this.__errIfProviderReadonly(get.unwrap());
         if (readonlyResult.isErr()) {
             return err(readonlyResult.error);
         }
 
-        const provider = readonlyResult.data;
+        const provider = readonlyResult.unwrap();
 
         if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
             return ok(provider);
@@ -926,11 +900,11 @@ export class FileService extends Disposable implements IFileService {
             return AsyncResult.err(get.error);
         }
         
-        const ifReadonly = this.__errIfProviderReadonly(get.data);
+        const ifReadonly = this.__errIfProviderReadonly(get.unwrap());
         if (ifReadonly.isErr()) {
             return AsyncResult.err(ifReadonly.error);
         }
-        const provider = ifReadonly.data;
+        const provider = ifReadonly.unwrap();
 
         const check = Result.fromPromise(
             async () => provider.stat(uri),
