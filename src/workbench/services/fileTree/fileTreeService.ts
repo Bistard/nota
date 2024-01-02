@@ -161,13 +161,19 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private async findSortOrderFileName(folderUri: URI): Promise<string | null> {
         try {
-            const entries = await this.fileService.readDir(folderUri);
+            const result = await this.fileService.readDir(folderUri);
+            if (result.isErr()) {
+                throw new Error(`Error reading directory ${folderUri.toString()}: ${result.unwrap()}`);
+            }
+    
+            const entries = result.unwrap();
             const sortOrderFile = entries.find(([name, _]) => name.endsWith('.sortorder.json'));
             return sortOrderFile ? sortOrderFile[0] : null;
         } catch (error) {
-            throw new Error(`Error reading directory ${folderUri.toString()}: ${error}`);
+            throw new Error(`Unexpected error: ${error}`);
         }
     }
+    
 
     // TODO: Add new methods to handle drag and drop events and update sort files
     // private handleDragAndDrop(draggedItem, targetFolder) {
