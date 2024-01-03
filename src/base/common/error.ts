@@ -507,8 +507,7 @@ interface IResult<T, E> {
 
     /**
      * @description Returns the inner value if the {@link Result} is an {@link Ok}
-     * instance. Throws an {@link Error} if the {@link Result} is an {@link Err} 
-     * instance.
+     * instance. Panics if the {@link Result} is an {@link Err} instance.
      * 
      * @throws Will panic if the {@link Result} is an {@link Err} instance.
      * @note Because this function may panic, its use is generally discouraged.
@@ -546,6 +545,26 @@ interface IResult<T, E> {
      * ```
      */
     unwrapOr(data: T): T;
+
+    /**
+     * @description Returns the inner error if the {@link Result} is an {@link Err}
+     * instance. Panics if the {@link Result} is an {@link Ok} instance.
+     * 
+     * @throws Will panic if the {@link Result} is an {@link Ok} instance.
+     * @note Because this function may panic, its use is generally discouraged.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = new Ok(42);
+     * console.log(result.unwrapErr()); // panics
+     * ```
+     * @example
+     * ```
+     * const result: Result<number, string> = new Err('Some error');
+     * console.log(result.unwrapErr()); // 'Some error'
+     * ```
+     */
+    unwrapErr(): E;
 
     /**
      * @description Ensures that the {@link IResult} instance is an {@link Ok} 
@@ -789,6 +808,10 @@ export class Ok<T, E> implements IResult<T, E> {
         return this.data;
     }
 
+    public unwrapErr(): E {
+        return panic(`Tried to unwrap an Ok`);
+    }
+
     public expect(_errMessage: string): T {
         return this.data;
     }
@@ -851,11 +874,15 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err: ${this.error}`);
+        panic(`Tried to unwrap an Err`);
     }
 
-    public unwrapOr(error: T): T{
+    public unwrapOr(error: T): T {
         return error;
+    }
+
+    public unwrapErr(): E {
+        return this.error;
     }
 
     public expect(errMessage: string): never {
