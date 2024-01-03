@@ -730,10 +730,6 @@ interface IResult<T, E> {
  * instances without using the `new` keyword, making it more concise and 
  * readable.
  * 
- * @template T The type of the successful value.
- * @param {T} data The successful value to be wrapped in an `Ok` instance.
- * @returns {Ok<T>} An instance of the `Ok` class containing the provided successful value.
- * 
  * @example
  * ```
  * const successfulResult = ok(42);
@@ -750,10 +746,6 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * provided error value. This function serves as a shorthand utility to create 
  * `Err` instances without using the `new` keyword, making it more concise and 
  * readable.
- * 
- * @template E The type of the error value.
- * @param {E} error The error value to be wrapped in an `Err` instance.
- * @returns {Err<E>} An instance of the `Err` class containing the provided error value.
  * 
  * @example
  * ```
@@ -772,6 +764,9 @@ export function err<T, E>(error?: E): Err<T, E> {
  * Instances of `Ok` contain a single `data` property representing the 
  * successful value, and methods to manipulate or query this result.
  * 
+ * @template T The type of the successful value.
+ * @template E The type of the error value.
+ * 
  * @example
  * ```
  * const success = new Ok(42);
@@ -779,8 +774,6 @@ export function err<T, E>(error?: E): Err<T, E> {
  * console.log(success.isErr());    // false
  * console.log(success.unwrap());   // 42
  * ```
- * 
- * @template T The type of the successful value.
  */
 export class Ok<T, E> implements IResult<T, E> {
     
@@ -840,6 +833,9 @@ export class Ok<T, E> implements IResult<T, E> {
  * Attempting to `unwrap` an `Err` will trigger a panic (a thrown error in 
  * this context). 
  * 
+ * @template T The type of the successful value.
+ * @template E The type of the error value.
+ * 
  * @example
  * ```
  * const error = new Err("Something went wrong");
@@ -847,8 +843,6 @@ export class Ok<T, E> implements IResult<T, E> {
  * console.log(error.isErr());    // true
  * console.error(error.unwrap()); // Will throw an error with the message "Something went wrong"
  * ```
- * 
- * @template E The type of the error value.
  */
 export class Err<T, E> implements IResult<T, E> {
     
