@@ -45,7 +45,7 @@ export function assertResult<T, E>(result: Result<T, E>): T {
 }
 
 /**
- * @note This function acts exactly like `.unwrap()` method.
+ * @deprecated This function acts exactly like `.unwrap()` method.
  */
 export async function assertAsyncResult<T, E>(result: AsyncResult<T, E>): Promise<T> {
     const res = await result;

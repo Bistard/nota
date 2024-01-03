@@ -78,6 +78,10 @@ suite('result-test', () => {
             assert.strictEqual(okInstance.unwrapOr(0), 42);
         });
 
+        test('unwrapErr should panics', () => {
+            assert.throws(() => okInstance.unwrapErr());
+        });
+
         test('expect should return inner data regardless of error message', () => {
             assert.strictEqual(okInstance.expect('This should not be thrown'), 42);
         });
@@ -130,6 +134,10 @@ suite('result-test', () => {
 
         test('unwrapOr should return provided default value', () => {
             assert.strictEqual(errInstance.unwrapOr(0), 0);
+        });
+
+        test('unwrapErr should return inner value', () => {
+            assert.strictEqual(errInstance.unwrapErr(), "Error Message");
         });
 
         test('expect should throw provided error message', () => {
@@ -271,17 +279,17 @@ suite('result-test', () => {
 
     suite('AsyncResult', () => {
         
-        function getAsyncResult(value: boolean): AsyncResult<string, Error> {
+        function getAsyncResult(value: boolean): AsyncResult<string, string> {
             if (value) {
                 return AsyncResult.ok('ok');
             }
-            return AsyncResult.err(new Error('err'));
+            return AsyncResult.err('err');
         }
 
         test('GetAsyncOkType & GetAsyncErrType', () => {
             const result = getAsyncResult(true);
             checkTrue<AreEqual<GetAsyncOkType<typeof result>, string>>();
-            checkTrue<AreEqual<GetAsyncErrType<typeof result>, Error>>();
+            checkTrue<AreEqual<GetAsyncErrType<typeof result>, string>>();
         });
 
         test('await for resolving Ok', async () => {
@@ -297,7 +305,7 @@ suite('result-test', () => {
             const resolvedResult = await result;
     
             assert.ok(resolvedResult.isErr());
-            assert.strictEqual(resolvedResult.unwrap(), 'err');
+            assert.strictEqual(resolvedResult.unwrapErr(), 'err');
         });
 
         test('isOk should return true for success', async () => {
@@ -306,8 +314,8 @@ suite('result-test', () => {
         });
     
         test('isErr should return false for success', async () => {
-            const result = getAsyncResult(true);
-            assert.ok(!(await result.isErr()));
+            const result = await getAsyncResult(true);
+            assert.ok(!result.isErr());
         });
     
         test('unwrap should return value for success', async () => {
@@ -415,7 +423,7 @@ suite('result-test', () => {
                 const transformedResult = await result.andThen(ok => AsyncResult.ok(42));
         
                 assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrap(), 'err');
+                assert.strictEqual(transformedResult.unwrapErr(), 'err');
             });
             
             test('andThen method should transform successful Promise', async () => {
@@ -431,13 +439,13 @@ suite('result-test', () => {
                 const transformedResult = await result.andThen(async () => { throw 'error!'; });
         
                 assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrap(), 'error!');
+                assert.strictEqual(transformedResult.unwrapErr(), 'error!');
             });
         });
         
         suite('orElse', () => {
             test('orElse method should transform async Ok', async () => {
-                const result = getAsyncResult(true);
+                const result = getAsyncResult(false);
                 const transformedResult = await result.orElse(_ => AsyncResult.ok<string, Error>('42'));
         
                 assert.ok(transformedResult.isOk());
@@ -445,7 +453,7 @@ suite('result-test', () => {
             });
     
             test('orElse method should transform Ok', async () => {
-                const result = getAsyncResult(true);
+                const result = getAsyncResult(false);
                 const transformedResult = await result.orElse(_ => ok<string, Error>('42'));
         
                 assert.ok(transformedResult.isOk());
@@ -456,12 +464,12 @@ suite('result-test', () => {
                 const result = getAsyncResult(false);
                 const transformedResult = await result.orElse(ok => AsyncResult.ok<string, Error>('42'));
         
-                assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrap(), 'err');
+                assert.ok(transformedResult.isOk());
+                assert.strictEqual(transformedResult.unwrap(), '42');
             });
             
             test('orElse method should transform successful Promise', async () => {
-                const result = getAsyncResult(true);
+                const result = getAsyncResult(false);
                 const transformedResult = await result.orElse(async () => '42');
                 
                 assert.ok(transformedResult.isOk());
@@ -469,11 +477,11 @@ suite('result-test', () => {
             });
             
             test('orElse method should transform failed Promise', async () => {
-                const result = getAsyncResult(true);
+                const result = getAsyncResult(false);
                 const transformedResult = await result.orElse(async () => { throw 'error!'; });
                 
                 assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrap(), 'error!');
+                assert.strictEqual(transformedResult.unwrapErr(), 'error!');
             });
         });
         
@@ -486,6 +494,20 @@ suite('result-test', () => {
             } catch (error) {
                 assert.ok(error instanceof PanicError);
             }
+        });
+
+        test('AsyncResult.is', () => {
+            assert.strictEqual(AsyncResult.is(AsyncResult.ok()), true);
+            assert.strictEqual(AsyncResult.is(AsyncResult.err()), true);
+            
+            assert.strictEqual(AsyncResult.is(ok()), false);
+            assert.strictEqual(AsyncResult.is(err()), false);
+            assert.strictEqual(AsyncResult.is({ isOk: () => {}, isErr: () => {} }), false);
+            assert.strictEqual(AsyncResult.is({ isOk: () => {} }), false);
+            assert.strictEqual(AsyncResult.is(5), false);
+            assert.strictEqual(AsyncResult.is(undefined), false);
+            assert.strictEqual(AsyncResult.is({}), false);
+            assert.strictEqual(AsyncResult.is({ isOk: false }), false);
         });
     });
 
@@ -506,7 +528,7 @@ suite('result-test', () => {
             assert.strictEqual(Result.is(ok()), true);
             // eslint-disable-next-line local/code-must-handle-result
             assert.strictEqual(Result.is(err()), true);
-            assert.strictEqual(Result.is({ isOk: () => {}, isErr: () => {} }), true);
+            assert.strictEqual(Result.is({ isOk: () => {}, isErr: () => {} }), false);
             assert.strictEqual(Result.is({ isOk: () => {} }), false);
             assert.strictEqual(Result.is(5), false);
             assert.strictEqual(Result.is(undefined), false);
