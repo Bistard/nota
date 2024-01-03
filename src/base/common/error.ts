@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable, isObject, isPromise } from "src/base/common/utilities/type";
+import { Callable, isPromise } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -250,13 +250,7 @@ export namespace Result {
      * @returns A boolean indicates if success.
      */
     export function is<T, E>(obj: any): obj is Result<T, E> {
-        if (isObject(obj) &&
-            typeof obj.isOk === 'function' &&
-            typeof obj.isErr === 'function'
-        ) {
-            return true;
-        }
-        return false;
+        return obj instanceof Ok || obj instanceof Err;
     }
 
     /**
@@ -960,20 +954,14 @@ export class AsyncResult<T, E> {
     }
 
     public static is<T, E>(obj: any): obj is AsyncResult<T, E> {
-        if (typeof obj === 'object' &&
-            typeof obj.then === 'function' &&
-            isPromise(obj._promise)
-        ) {
-            return true;
-        }
-        return false;
+        return obj instanceof AsyncResult;
     }
 
     // [PromiseLike]
 
     public then<A, B>(
-        success?: (res: Result<T, E>) => A | Promise<A>,
-        failure?: (reason: unknown) => B | Promise<B>,
+        success: (res: Result<T, E>) => A | Promise<A>,
+        failure: (reason: unknown) => B | Promise<B>,
     ): Promise<A | B> 
     {
         return this._promise.then(success, failure);
