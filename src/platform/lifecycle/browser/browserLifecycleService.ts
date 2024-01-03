@@ -67,7 +67,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
         // notify all listeners
         this.logService.trace('[BrowserLifecycleService] willQuit');
-        const participants: Promise<unknown>[] = [];
+        const participants: PromiseLike<unknown>[] = [];
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
             join: participant => participants.push(participant),
