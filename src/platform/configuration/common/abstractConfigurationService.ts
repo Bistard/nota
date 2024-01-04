@@ -81,14 +81,15 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public init(): AsyncResult<void, Error> {
         
-        return this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.')
+        return this._initProtector.init('[ConfigurationService] cannot be initialized twice.')
         .toAsync()
         
         // configuration initialization
         .andThen(() => {
-            this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
+            this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
 
-            return this._defaultConfiguration.init().toAsync()
+            return this._defaultConfiguration.init()
+                .toAsync()
                 .andThen(() => this._userConfiguration.init());
         })
         /**
@@ -97,7 +98,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
          */
         .andThen(() => {
             (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
-            this.logService.trace(`[AbstractConfigurationService] initialized.`);
+            this.logService.trace(`[ConfigurationService] initialized.`);
             return ok();
         });
     }
@@ -127,7 +128,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[AbstractConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
+        this.logService.trace(`[ConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

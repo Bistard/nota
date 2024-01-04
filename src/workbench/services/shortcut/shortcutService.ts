@@ -200,8 +200,8 @@ export class ShortcutService extends Disposable implements IShortcutService {
             for (const { commandID, shortcut: name, when, weight } of configuration) {
                 const load = this.__loadCommandBy(commandID, name, when, weight);
                 load.match(
-                    () => this.logService.trace(`The shortcut '${commandID} (${name})' registered.`),
-                    (error) => this.logService.warn(`The shortcut '${commandID} (${name})' failed to register. Reason: ${errorToMessage(error)}`)
+                    () => this.logService.trace(`Shortcut registered: '${commandID} (${name})'`),
+                    (error) => this.logService.warn(`Shortcut failed to register: '${commandID} (${name})'. Reason: ${errorToMessage(error)}`)
                 );
             }
 

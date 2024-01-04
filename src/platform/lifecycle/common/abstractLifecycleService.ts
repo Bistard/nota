@@ -61,7 +61,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
             this._phaseBlocker.delete(newPhase);
         }
 
-        this.logService.trace(`[${this.type}LifecycleService] [phase-${this.parsePhaseToString(newPhase)}]`);
+        this.logService.trace(`[${this.type}LifecycleService] [phase -> ${this.parsePhaseToString(newPhase)}]`);
     }
 
     public async when(desiredPhase: Phase): Promise<void> {

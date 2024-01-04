@@ -158,7 +158,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         logService.setLogger(pipelineLogger);
 
         // product-service
-        const productService = new ProductService(fileService);
+        const productService = new ProductService(fileService, logService);
         instantiationService.register(IProductService, productService);
 
         // life-cycle-service
@@ -214,6 +214,8 @@ const main = new class extends class MainProcess implements IMainProcess {
             this.statusService.init(),
             this.configurationService.init(),
         ]);
+
+        console.log(results);
 
         // FIX: handle results
     }

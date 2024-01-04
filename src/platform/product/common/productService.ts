@@ -2,6 +2,7 @@ import { AsyncResult, InitProtector, err, errorToMessage, ok } from "src/base/co
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { JsonSchemaValidator, jsonSafeParse } from "src/base/common/json";
+import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IProductProfile, productProfileSchema } from "src/platform/product/common/product";
@@ -26,6 +27,8 @@ export class ProductService implements IProductService {
 
     constructor(
         private readonly fileService: IFileService,
+        private readonly logService: ILogService,
+
     ) {
         this._protector = new InitProtector();
         this._profile = undefined;
@@ -41,6 +44,7 @@ export class ProductService implements IProductService {
     }
 
     public init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
+        this.logService.trace(`[ProductService] initializing...`);
 
         return this._protector.init('[ProductService] cannot initialize twice.')
         .toAsync()
@@ -53,6 +57,8 @@ export class ProductService implements IProductService {
             }
     
             this._profile = parsed;
+
+            this.logService.trace(`[ProductService] initialized at '${URI.toString(productURI)}'`);
             return ok();
         });
     }

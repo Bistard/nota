@@ -164,7 +164,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IFileService, fileService);
 
         // product-service
-        const productService = new ProductService(fileService);
+        const productService = new ProductService(fileService, logService);
         instantiationService.register(IProductService, productService);
 
         // configuration-service
