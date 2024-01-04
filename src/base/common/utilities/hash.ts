@@ -1,3 +1,4 @@
+import * as CryptoJS from 'crypto-js';
 
 /**
  * @description Hashes a given string into number.
@@ -11,4 +12,13 @@ export function hash(s: string): number {
         h = (h << 5) - h + s.charCodeAt(--i) | 0;
     }
     return h; 
+}
+
+/**
+ * @description Hashes a given string with MD5
+ * @param input The given string.
+ * @returns The hash code converted to a string
+ */
+function generateMD5Hash(input: string): string {
+    return CryptoJS.MD5(input).toString();
 }

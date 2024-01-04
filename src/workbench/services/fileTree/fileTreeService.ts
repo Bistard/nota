@@ -141,19 +141,15 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         }
     
         const sortOrderFileUri = URI.join(folderUri, sortOrderFileName);
-        return Result.fromPromise(
-            async () => {
-                const dataBuffer = await this.fileService.readFile(sortOrderFileUri);
-                const sortOrder = JSON.parse(dataBuffer.toString());
-                this.customSortOrderMap.set(folderUri.toString(), sortOrder);
-            },
-            error => {
-                if (error instanceof Error) {
-                    return new FileOperationError(`Error loading custom sort order for ${folderUri.toString()}: ${error.message}`, FileOperationErrorType.UNKNOWN, error);
-                }
-                return new FileOperationError(`An unknown error occurred while loading the custom sort order for ${folderUri.toString()}`, FileOperationErrorType.UNKNOWN);
-            }
-        );
+
+        const readResult = await this.fileService.readFile(sortOrderFileUri);
+        if (readResult.isErr()) {
+            return err(readResult.error);
+        }
+        const buffer = readResult.unwrap();
+        const sortOrder = JSON.parse(buffer.toString());
+        this.customSortOrderMap.set(folderUri.toString(), sortOrder);
+        return ok();
     }
     
     private async saveCustomSortOrder(folderUri: URI, sortOrder: string[]): AsyncResult<void, FileOperationError> {
@@ -163,7 +159,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         }
     
         const sortOrderFileName = sortOrderFileNameResult.unwrap();
-        if (sortOrderFileName === null) {
+        if (!sortOrderFileName) {
             return err(new FileOperationError(`Sort order file not found in ${folderUri.toString()}`, FileOperationErrorType.FILE_NOT_FOUND));
         }
     
@@ -171,37 +167,26 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const data = JSON.stringify(sortOrder, null, 4);
         const buffer = DataBuffer.fromString(data);
     
-        try {
-            await this.fileService.writeFile(sortOrderFilePath, buffer);
-            return ok();
-        } catch (error) {
-            if (error instanceof Error) {
-                return err(new FileOperationError(`Error writing sort order file for ${folderUri.toString()}: ${error.message}`, FileOperationErrorType.UNKNOWN, error));
-            } else {
-                return err(new FileOperationError(`An unknown error occurred while writing the sort order file for ${folderUri.toString()}`, FileOperationErrorType.UNKNOWN));
-            }
+        const writeResult = await this.fileService.writeFile(sortOrderFilePath, buffer);
+        if (writeResult.isErr()) {
+            return err(writeResult.error);
         }
+    
+        return ok();
     }
     
     private async findSortOrderFileName(folderUri: URI): AsyncResult<string | null, FileOperationError> {
-        return Result.fromPromise(
-            async () => {
-                const result = await this.fileService.readDir(folderUri);
-                if (result.isErr()) {
-                    throw result.error; // Propagate the error
-                }
-                const entries = result.unwrap();
-                const sortOrderFile = entries.find(([name, _]) => name.endsWith('.sortorder.json'));
-                return sortOrderFile ? sortOrderFile[0] : null;
-            },
-            error => {
-                if (error instanceof Error) {
-                    return new FileOperationError(`Error reading directory ${folderUri.toString()}: ${error.message}`, FileOperationErrorType.UNKNOWN, error);
-                }
-                return new FileOperationError(`An unknown error occurred while searching for the sort order file in ${folderUri.toString()}`, FileOperationErrorType.UNKNOWN);
-            }
-        );
+        const readDirResult = await this.fileService.readDir(folderUri);
+        if (readDirResult.isErr()) {
+            return err(new FileOperationError(`Error reading directory ${folderUri.toString()}: ${readDirResult.error.message}`, FileOperationErrorType.UNKNOWN, readDirResult.error));
+        }
+    
+        const entries = readDirResult.unwrap();
+        const sortOrderFile = entries.find(([name, _]) => name.endsWith('.sortorder.json'));
+    
+        return sortOrderFile ? ok(sortOrderFile[0]) : ok(null);
     }
+    
     
     // TODO: Add new methods to handle drag and drop events and update sort files
     // private handleDragAndDrop(draggedItem, targetFolder) {
