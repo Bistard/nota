@@ -36,6 +36,7 @@
 		"circular-dependency-plugin": "^5.2.2",
 		"cross-env": "^7.0.3",
 		"css-loader": "^6.7.3",
+		"crypto-js": "^4.2.0",
 		"electron": "^22.3.25",
 		"eslint": "^8.56.0",
 		"fantasticon": "^1.2.3",
