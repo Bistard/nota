@@ -9,7 +9,7 @@ import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFi
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
-suite.skip('SyncDiskStorage-test', () => {
+suite('SyncDiskStorage-test', () => {
     let dir: URI;
     let path: URI;
     let fileService: IFileService;
@@ -174,9 +174,35 @@ suite.skip('SyncDiskStorage-test', () => {
         const contents = (await fileService.readFile(path).unwrap()).toString();
         assert.strictEqual(contents.length > 0, true);
     }));
+
+    test('init when file already exists', () => FakeAsync.run(async () => {
+        const existFilePath = URI.join(dir, 'someFile.json');
+        await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" }'), { create: true, overwrite: true }).unwrap();
+
+        const storage = new SyncDiskStorage(existFilePath, fileService);
+        await storage.init().unwrap();
+
+        assert.strictEqual(storage.get('name'), 'chris');
+    }));
+    
+    test('init when file already exists but parsed wrong', () => FakeAsync.run(async () => {
+        const existFilePath = URI.join(dir, 'someFile.json');
+        await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" '), { create: true, overwrite: true }).unwrap();
+
+        const storage = new SyncDiskStorage(existFilePath, fileService);
+        (await storage.init()).unwrapErr();
+    }));
+    
+    test('init when file does not exist', () => FakeAsync.run(async () => {
+        const existFilePath = URI.join(dir, 'someFile.json');
+        await fileService.delete(existFilePath).unwrap();
+
+        const storage = new SyncDiskStorage(existFilePath, fileService);
+        (await storage.init()).unwrap();
+    }));
 });
 
-suite.skip('AsyncDiskStorage-test', () => {
+suite('AsyncDiskStorage-test', () => {
     let dir: URI;
     let path: URI;
     let fileService: IFileService;
@@ -340,5 +366,31 @@ suite.skip('AsyncDiskStorage-test', () => {
 
         const contents = ((await fileService.readFile(path).unwrap())).toString();
         assert.strictEqual(contents.length > 0, true);
+    }));
+
+    test('init when file already exists', () => FakeAsync.run(async () => {
+        const existFilePath = URI.join(dir, 'someFile.json');
+        await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" }'), { create: true, overwrite: true }).unwrap();
+
+        const storage = new SyncDiskStorage(existFilePath, fileService);
+        await storage.init().unwrap();
+
+        assert.strictEqual(storage.get('name'), 'chris');
+    }));
+    
+    test('init when file already exists but parsed wrong', () => FakeAsync.run(async () => {
+        const existFilePath = URI.join(dir, 'someFile.json');
+        await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" '), { create: true, overwrite: true }).unwrap();
+
+        const storage = new SyncDiskStorage(existFilePath, fileService);
+        (await storage.init()).unwrapErr();
+    }));
+    
+    test('init when file does not exist', () => FakeAsync.run(async () => {
+        const existFilePath = URI.join(dir, 'someFile.json');
+        await fileService.delete(existFilePath).unwrap();
+
+        const storage = new SyncDiskStorage(existFilePath, fileService);
+        (await storage.init()).unwrap();
     }));
 });

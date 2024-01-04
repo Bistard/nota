@@ -24,8 +24,7 @@ export interface IDiskStorage<TSync extends boolean> {
     set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): If<TSync, AsyncResult<void, FileOperationError>, void>;
 
     /**
-     * @description Sets pairs of key and value into the storage. Works the 
-     * same as {@link DiskStorage.set}.
+     * @description Sets pairs of key and value into the storage.
      */
     setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): If<TSync, AsyncResult<void, FileOperationError>, void>;
 
@@ -149,40 +148,10 @@ class DiskStorageBase {
     // [protected helper methods]
 
     protected __init(): AsyncResult<void, FileOperationError> {
-        
         return this.fileService.readFile(this.path)
-        
-        // file exists, try to read the existing file.
-        .andThen(buffer => {
-            this._lastSaveStorage = buffer.toString();
-            
-            if (!this._lastSaveStorage.length) {
-                return ok<void, FileOperationError>();
-            }
-
-            return jsonSafeParse(this._lastSaveStorage)
-                .toAsync()
-                .andThen((parsed: any) => {
-                    this._storage = parsed;
-                    return ok();
-                })
-                .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
-        })
-        
-        // error handling
-        .orElse(error => {
-            
-            // only report error when it is not expected (file not found is expected)
-            if (error.code !== FileOperationErrorType.FILE_NOT_FOUND) {
-                return err(error);
-            }
-
-            // file does not exist, try to create one and re-initialize.
-            return this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
-        })
-        .andThen(() => {
-            return this.__init();
-        });
+            .andThen(buffer => this.__onInitFileRead(buffer))
+            .orElse(error => this.__onInitReadError(error))
+            .andThen(reinitialize => reinitialize ? this.__init() : AsyncResult.ok());
     }
 
     protected __save(): AsyncResult<void, FileOperationError> {
@@ -220,6 +189,38 @@ class DiskStorageBase {
             this._operating = undefined; 
             return ok(); 
         });
+    }
+
+    // [private helper methods]
+
+    private __onInitFileRead(buffer: DataBuffer): AsyncResult<boolean, FileOperationError> {
+        this._lastSaveStorage = buffer.toString();
+    
+        // If the file is empty, no further action is needed
+        if (!this._lastSaveStorage.length) {
+            return AsyncResult.ok(false);
+        }
+    
+        // Parse the file content
+        return jsonSafeParse<any>(this._lastSaveStorage)
+            .toAsync()
+            .andThen(parsed => {
+                this._storage = parsed;
+                return ok(false);
+            })
+            .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
+    }
+
+    private __onInitReadError(error: FileOperationError): AsyncResult<boolean, FileOperationError> {
+        
+        // Report unexpected errors
+        if (error.code !== FileOperationErrorType.FILE_NOT_FOUND) {
+            return AsyncResult.err(error);
+        }
+    
+        // file does not exist, try to create an empty one and re-initialize.
+        return this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false })
+            .map(() => true);
     }
 }
 

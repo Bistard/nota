@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable, isPromise } from "src/base/common/utilities/type";
+import { Callable } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -874,7 +874,7 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err`);
+        panic(`Tried to unwrap an Err: ${errorToMessage(this.error)}`);
     }
 
     public unwrapOr(error: T): T {
@@ -984,7 +984,7 @@ export class AsyncResult<T, E> {
         return obj instanceof AsyncResult;
     }
 
-    // [PromiseLike]
+    // [PromiseLike]~
 
     public then<A, B>(
         success: (res: Result<T, E>) => A | Promise<A>,
