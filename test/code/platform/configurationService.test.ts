@@ -31,7 +31,7 @@ suite('MainConfiguratioService-test', () => {
     };
 
     async function resetUserConfiguration(create = false) {
-        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true })).unwrap();
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true }).unwrap());
     }
 
     before(() => FakeAsync.run(async () => {
@@ -80,7 +80,7 @@ suite('MainConfiguratioService-test', () => {
         let result = service.get('section');
         assert.strictEqual(result, undefined);
 
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         result = service.get('section');
         assert.strictEqual(result, 'user value');
@@ -88,7 +88,7 @@ suite('MainConfiguratioService-test', () => {
 
     test('get - Should get user value', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         const result = service.get('section');
         assert.strictEqual(result, 'user value');
@@ -96,12 +96,12 @@ suite('MainConfiguratioService-test', () => {
 
     test('get - Should get default value', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false })).unwrap();
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false }).unwrap());
 
         let result = service.get('section');
         assert.strictEqual(result, undefined);
 
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         result = service.get('section');
         assert.strictEqual(result, 'default value');
@@ -109,7 +109,7 @@ suite('MainConfiguratioService-test', () => {
 
     test('get - Should return default value when section does not exist', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         const result = service.get('nonExistingSection', "default");
         assert.strictEqual(result, "default");
@@ -117,22 +117,22 @@ suite('MainConfiguratioService-test', () => {
 
     test('set - Should throw error as set operation is not supported', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         await assert.rejects(() => service.set('section', 'value'));
     }));
 
     test('delete - Should throw error as delete operation is not supported', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         await assert.rejects(() => service.delete('section'));
     }));
 
     test('onDidConfigurationChange - DefaultConfiguration self update', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false })).unwrap();
-        (await service.init()).unwrap();
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false }).unwrap());
+        (await service.init().unwrap());
 
         let result = service.get('section1');
         assert.strictEqual(result, undefined);
@@ -165,12 +165,12 @@ suite('MainConfiguratioService-test', () => {
 
     test('onDidConfigurationChange - UserConfiguration self update', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         const result = service.get('section');
         assert.strictEqual(result, 'user value');
 
-        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false })).unwrap();
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false }).unwrap());
 
         await Event.toPromise(service.onDidConfigurationChange).then((e) => {
             assert.ok(e.type === ConfigurationModuleType.User);
@@ -183,12 +183,12 @@ suite('MainConfiguratioService-test', () => {
     test('init - create a new file when not exists', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
 
-        (await fileService.delete(userConfigURI)).unwrap();
+        (await fileService.delete(userConfigURI).unwrap());
         await assert.rejects(async () => (await fileService.readFile(userConfigURI)).unwrap()); // file does not exist
         
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
-        const content = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const content = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.deepStrictEqual(content, { 'section': 'default value' });
     }));
 
@@ -256,12 +256,12 @@ suite('BrowserConfigurationService', () => {
     }));
 
     async function resetUserConfiguration(create = false) {
-        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true })).unwrap();
+        (await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify(userConfig)), { create: create, overwrite: true }).unwrap());
     }
 
     test('get - should get user value', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
         const result = service.get('section');
         assert.strictEqual(result, 'user value');
@@ -269,7 +269,7 @@ suite('BrowserConfigurationService', () => {
 
     test('set - in memory changes but file did not change', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
         await service.set('section', 'update user value', { type: ConfigurationModuleType.Memory });
 
@@ -277,13 +277,13 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'update user value');
 
         // file is not updated
-        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], 'user value');
     }));
 
     test('set - user configuration changes', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
         await service.set('section', 'update user value', { type: ConfigurationModuleType.User });
 
@@ -291,7 +291,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'update user value');
 
         // file is also updated
-        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], 'update user value');
 
         await resetUserConfiguration();
@@ -302,8 +302,8 @@ suite('BrowserConfigurationService', () => {
         const mainService = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
         
         // init two sides
-        (await browserService.init()).unwrap();
-        (await mainService.init()).unwrap();
+        (await browserService.init().unwrap());
+        (await mainService.init().unwrap());
         
         // before change
         assert.strictEqual(browserService.get('section'), 'user value');
@@ -316,7 +316,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(browserService.get('section'), 'update user value');
 
         // file is also updated (browser-side)
-        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], 'update user value');
 
         // in-memory is updated (main-side)
@@ -328,21 +328,21 @@ suite('BrowserConfigurationService', () => {
 
     test('set - cannot update when the section is not valid', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         await assert.rejects(() => service.set('invalidSection', 'update user value'));
     }));
 
     test('set - cannot update when the value is not valid', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
 
         await assert.rejects(() => service.set('section', 42)); // should be string
     }));
 
     test('delete - in memory changes but file did not change', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
         await service.delete('section', { type: ConfigurationModuleType.Memory });
 
@@ -350,7 +350,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'default value');
 
         // file is not updated
-        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], 'user value');
 
         await resetUserConfiguration();
@@ -358,7 +358,7 @@ suite('BrowserConfigurationService', () => {
 
     test('delete - user configuration changes', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
         await service.delete('section', { type: ConfigurationModuleType.User });
 
@@ -366,7 +366,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(service.get('section'), 'default value');
 
         // file is also updated
-        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], undefined);
 
         await resetUserConfiguration();
@@ -377,8 +377,8 @@ suite('BrowserConfigurationService', () => {
         const mainService = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
         
         // init two sides
-        (await browserService.init()).unwrap();
-        (await mainService.init()).unwrap();
+        (await browserService.init().unwrap());
+        (await mainService.init().unwrap());
         
         // before change
         assert.strictEqual(browserService.get('section'), 'user value');
@@ -391,7 +391,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(browserService.get('section'), 'default value');
 
         // file is also updated (browser-side)
-        const configuration = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], undefined);
 
         // in-memory is updated (main-side)
@@ -403,7 +403,7 @@ suite('BrowserConfigurationService', () => {
 
     test('set / delete - does not support set to default module type', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
         // does not support set to 'default' module
         await assert.rejects(() => service.set('section', 'update user value', { type: ConfigurationModuleType.Default }));
@@ -413,12 +413,12 @@ suite('BrowserConfigurationService', () => {
     test('init - create a new file when not exists', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         
-        (await fileService.delete(userConfigURI)).unwrap();
+        (await fileService.delete(userConfigURI).unwrap());
         await assert.rejects(() => assertAsyncResult(fileService.readFile(userConfigURI))); // file does not exist
         
-        (await service.init()).unwrap();
+        (await service.init().unwrap());
         
-        const content = JSON.parse(((await fileService.readFile(userConfigURI)).unwrap()).toString());
+        const content = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.deepStrictEqual(content, { 'section': 'default value' });
     }));
 });

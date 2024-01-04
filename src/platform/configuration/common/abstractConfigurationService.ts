@@ -79,32 +79,28 @@ export abstract class AbstractConfigurationService extends Disposable implements
         return this.options.appConfiguration.path;
     }
 
-    public async init(): AsyncResult<void, Error> {
-        const initResult = this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
-        if (initResult.isErr()) {
-            this.logService.warn(errorToMessage(initResult.error));
-            return err(initResult.error);
-        }
-
-        this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
-
-        // configuration initialization
-        {
-            const defaultInit = this._defaultConfiguration.init();
-            if (defaultInit.isErr()) {
-                return err(defaultInit.error);
-            }
-
-            const userInit = await this._userConfiguration.init();
-            if (userInit.isErr()) {
-                return err(userInit.error);
-            }
-        }
-
-        (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
+    public init(): AsyncResult<void, Error> {
         
-        this.logService.trace(`[AbstractConfigurationService] initialized.`);
-        return ok();
+        return this._initProtector.init('[ConfigurationService] cannot be initialized twice.')
+        .toAsync()
+        
+        // configuration initialization
+        .andThen(() => {
+            this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
+
+            return this._defaultConfiguration.init()
+                .toAsync()
+                .andThen(() => this._userConfiguration.init());
+        })
+        /**
+         * After configurations are initialized, we need to reload it to make 
+         * sure everything is updated.
+         */
+        .andThen(() => {
+            (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
+            this.logService.trace(`[ConfigurationService] initialized.`);
+            return ok();
+        });
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
@@ -132,7 +128,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[AbstractConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
+        this.logService.trace(`[ConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

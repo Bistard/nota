@@ -167,9 +167,9 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         // save the last opened workspace root path.
         if (this.explorerTreeService.root) {
             const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace))).unwrap();
+            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace)).unwrap());
         } else {
-            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '')).unwrap();
+            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '').unwrap());
         }
     }
 

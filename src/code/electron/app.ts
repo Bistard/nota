@@ -204,7 +204,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         let id = this.statusService.get<string>(StatusKey.MachineIdKey);
         if (!id) {
             id = getUUID();
-            this.statusService.set(StatusKey.MachineIdKey, id);
+            this.statusService.set(StatusKey.MachineIdKey, id).unwrap();
         }
         return id;
     }

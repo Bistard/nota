@@ -85,7 +85,7 @@ export class JoinablePromise {
 
 	// [fields]
 
-	private readonly _participants: Promise<unknown>[];
+	private readonly _participants: PromiseLike<any>[];
 
 	// [constructor]
 
@@ -95,7 +95,7 @@ export class JoinablePromise {
 
 	// [public methods]
 
-	public join(participant: Promise<unknown>): this {
+	public join(participant: PromiseLike<any>): this {
 		this._participants.push(participant);
 		return this;
 	}
@@ -103,7 +103,7 @@ export class JoinablePromise {
 	/**
 	 * @note This method never rejects.
 	 */
-	public async allSettled(): Promise<PromiseSettledResult<unknown>[]> {
+	public async allSettled(): Promise<PromiseSettledResult<any>[]> {
 		return Promise.allSettled(this._participants);
 	}
 }

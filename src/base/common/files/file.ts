@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IReadableStreamEvent } from "src/base/common/files/stream";
+import { IReadableStream, IReadyReadableStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 
@@ -88,7 +88,7 @@ export interface IFileSystemProvider {
 	readFile?(uri: URI): Promise<Uint8Array>;
 	writeFile?(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 
-	readFileStream?(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
+	readFileStream?(uri: URI, opt?: IReadFileOptions): IReadyReadableStream<Uint8Array>;
 
 	open?(uri: URI, opts?: IOpenFileOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
@@ -144,7 +144,7 @@ export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 }
 
 export interface IFileSystemProviderWithReadFileStream extends IFileSystemProvider {
-	readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
+	readFileStream(uri: URI, opt?: IReadFileOptions): IReadyReadableStream<Uint8Array>;
 }
 
 export type FileSystemProviderAbleToRead =

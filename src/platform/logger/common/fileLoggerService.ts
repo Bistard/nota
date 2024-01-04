@@ -181,14 +181,14 @@ export class FileLogger extends AbstractLogger implements ILogger {
                 message = `[${getCurrTimeStamp()}] [${this._description}] [${parseLogLevel(level)}] ${message}\n`;
             }
 
-            let content = ((await this.fileService.readFile(this._uri)).unwrap()).toString();
+            let content = ((await this.fileService.readFile(this._uri).unwrap())).toString();
             if (content.length >= MAX_LOG_SIZE) {
-                (await this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true })).unwrap();
+                (await this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true }).unwrap());
                 content = '';
             }
 
             content += message;
-            (await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true })).unwrap();
+            (await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true }).unwrap());
         })
         /**
          * If pass the error into the `ErrorHandler`, the error will eventually

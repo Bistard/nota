@@ -21,12 +21,12 @@ suite('watcher-test', () => {
     });
 
     after(async () => {
-        (await fileService.delete(baseURI, { recursive: true })).unwrap();
+        (await fileService.delete(baseURI, { recursive: true }).unwrap());
     });
 
     test('watch file', async () => {
         const fileURI = URI.join(baseURI, 'file.txt');
-        (await fileService.createFile(fileURI, DataBuffer.alloc(0), { overwrite: true })).unwrap();
+        (await fileService.createFile(fileURI, DataBuffer.alloc(0), { overwrite: true }).unwrap());
         
         const disposables: IDisposable[] = [];
 
@@ -39,7 +39,7 @@ suite('watcher-test', () => {
         const blocker = new Blocker<IRawResourceChangeEvents>();
         disposables.push(watcher.onDidChange((e) => blocker.resolve(e)));
 
-        (await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: false, overwrite: true, })).unwrap();
+        (await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: false, overwrite: true, }).unwrap());
 
         const e = await blocker.waiting();
         
@@ -72,7 +72,7 @@ suite('watcher-test', () => {
 
 
         // await fileService.createDir(subDirURI);
-        (await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: true, overwrite: true, })).unwrap();
+        (await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: true, overwrite: true, }).unwrap());
 
         const e = await blocker.waiting();
         console.log(e);

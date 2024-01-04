@@ -1,5 +1,5 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
-import { AsyncResult, Result, err, ok } from "src/base/common/error";
+import { AsyncResult, Result, err, errorToMessage, ok } from "src/base/common/error";
 import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
@@ -77,7 +77,7 @@ export interface IFileItem {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError>;
+    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -215,7 +215,7 @@ export class FileItem implements IFileItem {
             return ok<void, FileOperationError>();
         })();
 
-        return promise;
+        return new AsyncResult(promise);
     }
 
     public forgetChildren(): void {
@@ -257,19 +257,24 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts, this.cmpFn);
 
         // the provided item's children are already resolved, we simply return it.
-        if (!isPromise(refreshPromise)) {
+        if (!AsyncResult.is(refreshPromise)) {
             return data.children;
         }
 
         // the provided item's children never resolved, we wait until it resolved.
         const promise = refreshPromise
-            .then((result) => {
-                if (result.isOk()) {
-                    return data.children;
-                }
-                this.logService.error(result.error);
-                return <FileItem[]>[];
-            });
+        .then(
+            (result) => {
+                return result.match(
+                    () => data.children,
+                    error => {
+                        this.logService.error(errorToMessage(error));
+                        return <FileItem[]>[];
+                    }
+                );
+            },
+            (error) => <FileItem[]>[],
+        );
 
         return promise;
     }

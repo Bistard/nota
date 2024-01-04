@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable, isObject, isPromise } from "src/base/common/utilities/type";
+import { Callable } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -250,13 +250,7 @@ export namespace Result {
      * @returns A boolean indicates if success.
      */
     export function is<T, E>(obj: any): obj is Result<T, E> {
-        if (isObject(obj) &&
-            typeof obj.isOk === 'function' &&
-            typeof obj.isErr === 'function'
-        ) {
-            return true;
-        }
-        return false;
+        return obj instanceof Ok || obj instanceof Err;
     }
 
     /**
@@ -318,14 +312,12 @@ export namespace Result {
      * );
      * // Logs: Caught rejection: Error: Promise rejected!
      */
-    export async function fromPromise<T, E>(mightThrow: Callable<any[], Promise<T>>, onError: (error: unknown) => E): AsyncResult<T, E> {
-        try {
-            const value = await mightThrow();
-            return new Ok(value);
-        } catch (error) {
-            const onErrorResult = onError(error);
-            return new Err(onErrorResult);
-        }
+    export function fromPromise<T, E>(mightThrow: Callable<any[], Promise<T>>, onError?: (error: unknown) => E): AsyncResult<T, E> {
+        const next = mightThrow()
+            .then(data => ok<T, E>(data))
+            .catch(error => err<T, E>(onError ? onError(error): error));
+
+        return new AsyncResult(next);
     }
 
     /**
@@ -368,7 +360,7 @@ export namespace Result {
     export function getOrPanic<T, E>(result: Result<T, E>): T;
     export async function getOrPanic<T, E>(result: AsyncResult<T, E>): Promise<T>;
     export function getOrPanic<T, E>(result: Result<T, E> | AsyncResult<T, E>): T | Promise<T> {
-        if (isPromise(result)) {
+        if (AsyncResult.is(result)) {
             return (async () => {
                 const res = await result;
                 if (res.isOk()) {
@@ -432,55 +424,13 @@ export namespace Result {
  */
 export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
-/**
- * @type {AsyncResult}
- * 
- * @description Represents an asynchronous type that encapsulates a `Promise` resolving to a {@link Result}. This type is used for handling asynchronous operations that might fail, encapsulating the result as either a successful value of type `T` (using the {@link Ok} variant) or an error of type `E` (using the {@link Err} variant).
- * 
- * @note This type extends the concept of {@link Result} to asynchronous operations, allowing for explicit and structured error handling in async code without relying on traditional try/catch mechanisms for promise rejections.
- * 
- * @template T The type of the value for successful outcomes in the asynchronous operation.
- * @template E The type of the error for failed outcomes in the asynchronous operation.
- * 
- * @example
- * // Handling successful outcomes in async operations:
- * async function asyncDivide(a: number, b: number): AsyncResult<number, string> {
- *     if (b === 0) {
- *         return new Err("Division by zero");
- *     }
- *     return new Ok(a / b);
- * }
- * 
- * const asyncResult = asyncDivide(4, 2);
- * asyncResult.then(result => {
- *     if (result.isOk()) {
- *         console.log("Division result:", result.data);
- *     } else {
- *         console.error("Error:", result.error);
- *     }
- * });
- * 
- * @example
- * // Handling error outcomes in async operations:
- * const anotherAsyncResult = asyncDivide(4, 0);
- * anotherAsyncResult.then(result => {
- *     if (result.isOk()) {
- *         console.log("Division result:", result.data);
- *     } else {
- *         console.error("Error:", result.error);
- *     }
- * });
- * 
- * @see {@link Result}
- * @see {@link Ok}
- * @see {@link Err}
- */
-export type AsyncResult<T, E> = Promise<Result<T, E>>;
-
 export type ResultLike<T, E> = (IResult<T, E> & { data: T, error: undefined }) | (IResult<T, E> & { error: E, data: undefined });
 
 export type GetOkType<R> = R extends Result<infer T, infer E> ? T : never;
 export type GetErrType<R> = R extends Result<infer T, infer E> ? E : never;
+
+export type GetAsyncOkType<R> = R extends AsyncResult<infer T, infer E> ? T : never;
+export type GetAsyncErrType<R> = R extends AsyncResult<infer T, infer E> ? E : never;
 
 /**
  * An interface for {@link Ok} and {@link Err}.
@@ -557,8 +507,7 @@ interface IResult<T, E> {
 
     /**
      * @description Returns the inner value if the {@link Result} is an {@link Ok}
-     * instance. Throws an {@link Error} if the {@link Result} is an {@link Err} 
-     * instance.
+     * instance. Panics if the {@link Result} is an {@link Err} instance.
      * 
      * @throws Will panic if the {@link Result} is an {@link Err} instance.
      * @note Because this function may panic, its use is generally discouraged.
@@ -596,6 +545,26 @@ interface IResult<T, E> {
      * ```
      */
     unwrapOr(data: T): T;
+
+    /**
+     * @description Returns the inner error if the {@link Result} is an {@link Err}
+     * instance. Panics if the {@link Result} is an {@link Ok} instance.
+     * 
+     * @throws Will panic if the {@link Result} is an {@link Ok} instance.
+     * @note Because this function may panic, its use is generally discouraged.
+     * 
+     * @example
+     * ```
+     * const result: Result<number, string> = new Ok(42);
+     * console.log(result.unwrapErr()); // panics
+     * ```
+     * @example
+     * ```
+     * const result: Result<number, string> = new Err('Some error');
+     * console.log(result.unwrapErr()); // 'Some error'
+     * ```
+     */
+    unwrapErr(): E;
 
     /**
      * @description Ensures that the {@link IResult} instance is an {@link Ok} 
@@ -754,6 +723,18 @@ interface IResult<T, E> {
      * ```
      */
     orElse<E1>(onError: (error: E) => Result<T, E1>): Result<T, E | E1>;
+
+    /**
+     * @description Transforms the {@link IResult} into an {@link AsyncResult}, 
+     * allowing for integration with asynchronous operations. This method wraps 
+     * the {@link Result} in a Promise, making it compatible with async-await 
+     * patterns or Promise-based workflows.
+     * 
+     * This method is particularly useful for scenarios where a synchronous 
+     * {@link Result} needs to be incorporated into asynchronous function chains, 
+     * or when interacting with APIs that return Promises.
+     */
+    toAsync(): AsyncResult<T, E>;
 }
 
 /**
@@ -761,10 +742,6 @@ interface IResult<T, E> {
  * provided value. This function serves as a shorthand utility to create `Ok` 
  * instances without using the `new` keyword, making it more concise and 
  * readable.
- * 
- * @template T The type of the successful value.
- * @param {T} data The successful value to be wrapped in an `Ok` instance.
- * @returns {Ok<T>} An instance of the `Ok` class containing the provided successful value.
  * 
  * @example
  * ```
@@ -783,10 +760,6 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * `Err` instances without using the `new` keyword, making it more concise and 
  * readable.
  * 
- * @template E The type of the error value.
- * @param {E} error The error value to be wrapped in an `Err` instance.
- * @returns {Err<E>} An instance of the `Err` class containing the provided error value.
- * 
  * @example
  * ```
  * const errorResult = err("An error occurred");
@@ -804,6 +777,9 @@ export function err<T, E>(error?: E): Err<T, E> {
  * Instances of `Ok` contain a single `data` property representing the 
  * successful value, and methods to manipulate or query this result.
  * 
+ * @template T The type of the successful value.
+ * @template E The type of the error value.
+ * 
  * @example
  * ```
  * const success = new Ok(42);
@@ -811,8 +787,6 @@ export function err<T, E>(error?: E): Err<T, E> {
  * console.log(success.isErr());    // false
  * console.log(success.unwrap());   // 42
  * ```
- * 
- * @template T The type of the successful value.
  */
 export class Ok<T, E> implements IResult<T, E> {
     
@@ -832,6 +806,10 @@ export class Ok<T, E> implements IResult<T, E> {
 
     public unwrapOr(_data: T): T {
         return this.data;
+    }
+
+    public unwrapErr(): E {
+        return panic(`Tried to unwrap an Ok`);
     }
 
     public expect(_errMessage: string): T {
@@ -857,6 +835,10 @@ export class Ok<T, E> implements IResult<T, E> {
     public orElse<E1>(_onError: (error: E) => Result<T, E1>): Result<T, E | E1> {
         return this;
     }
+
+    public toAsync(): AsyncResult<T, E> {
+        return new AsyncResult(Promise.resolve(ok(this.data)));
+    }
 }
 
 /**
@@ -868,6 +850,9 @@ export class Ok<T, E> implements IResult<T, E> {
  * Attempting to `unwrap` an `Err` will trigger a panic (a thrown error in 
  * this context). 
  * 
+ * @template T The type of the successful value.
+ * @template E The type of the error value.
+ * 
  * @example
  * ```
  * const error = new Err("Something went wrong");
@@ -875,8 +860,6 @@ export class Ok<T, E> implements IResult<T, E> {
  * console.log(error.isErr());    // true
  * console.error(error.unwrap()); // Will throw an error with the message "Something went wrong"
  * ```
- * 
- * @template E The type of the error value.
  */
 export class Err<T, E> implements IResult<T, E> {
     
@@ -891,11 +874,15 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err: ${this.error}`);
+        panic(`Tried to unwrap an Err: ${errorToMessage(this.error)}`);
     }
 
-    public unwrapOr(error: T): T{
+    public unwrapOr(error: T): T {
         return error;
+    }
+
+    public unwrapErr(): E {
+        return this.error;
     }
 
     public expect(errMessage: string): never {
@@ -920,6 +907,10 @@ export class Err<T, E> implements IResult<T, E> {
 
     public orElse<E1>(onError: (error: E) => Result<T, E1>): Result<T, E | E1> {
         return onError(this.error);
+    }
+
+    public toAsync(): AsyncResult<T, E> {
+        return new AsyncResult(Promise.resolve(err(this.error)));
     }
 }
 
@@ -949,4 +940,160 @@ export class PanicError extends Error {
 
 export function isPanicError(error: any): error is PanicError {
     return error && error.type === ErrorType.Panic;
+}
+
+/**
+ * @class Represents an asynchronous operation that yields a result upon 
+ * completion. The `AsyncResult` class encapsulates a `Promise` which resolves 
+ * to a `Result<T, E>`, providing a functional way to handle asynchronous 
+ * operations and their success or failure outcomes.
+ *
+ * The `AsyncResult` class is particularly useful in scenarios where you need to 
+ * perform a series of asynchronous operations, each dependent on the success of 
+ * the previous one, and handle errors at any point in the chain. It allows for 
+ * writing clean, readable asynchronous code without deeply nested callbacks or 
+ * complex error-handling structures.
+ */
+export class AsyncResult<T, E> {
+    
+    // [field]
+
+    private readonly _promise: Promise<Result<T, E>>;
+
+    // [constructor]
+
+    constructor(promise: Promise<Result<T, E>>) {
+        this._promise = promise;
+    }
+
+    // [static methods]
+
+    public static ok<T extends void, E>(): AsyncResult<T, E>;
+    public static ok<T, E>(data: T): AsyncResult<T, E>;
+    public static ok<T, E>(data?: T): AsyncResult<T, E> {
+        return new AsyncResult<T, E>(Promise.resolve(ok(data!)));
+    }
+
+    public static err<T, E extends void>(): AsyncResult<T, E>;
+    public static err<T, E>(error: E): AsyncResult<T, E>;
+    public static err<T, E>(error?: E): AsyncResult<T, E> {
+        return new AsyncResult<T, E>(Promise.resolve(err(error!)));
+    }
+
+    public static is<T, E>(obj: any): obj is AsyncResult<T, E> {
+        return obj instanceof AsyncResult;
+    }
+
+    // [PromiseLike]~
+
+    public then<A, B>(
+        success: (res: Result<T, E>) => A | Promise<A>,
+        failure: (reason: unknown) => B | Promise<B>,
+    ): Promise<A | B> 
+    {
+        return this._promise.then(success, failure);
+    }
+
+    // [public methods]
+
+    public isOk(): Promise<boolean> {
+        return this._promise.then(res => res.isOk());
+    }
+
+    public isErr(): Promise<boolean> {
+        return this._promise.then(res => res.isOk());
+    }
+
+    public unwrap(): Promise<T | never> {
+        return this._promise.then(res => res.unwrap());
+    }
+
+    public unwrapOr(defaultValue: T): Promise<T> {
+        return this._promise.then(res => res.unwrapOr(defaultValue));
+    }
+
+    public unwrapErr(): Promise<E> {
+        return this._promise.then(res => res.unwrapErr());
+    }
+
+    public expect(errorMessage: string): Promise<T | never> {
+        return this._promise.then(res => res.expect(errorMessage));
+    }
+
+    public match<U>(onOk: (data: T) => U, onError: (error: E) => U): Promise<U> {
+        return this._promise.then((res) => res.match(onOk, onError));
+    }
+
+    public map<U>(predicate: (data: T) => U | Promise<U>): AsyncResult<U, E> {
+        const next = this._promise.then(async res => {
+            if (res.isErr()) {
+                return err<U, E>(res.error);
+            }
+            const oldData = res.data;
+            const newData = await predicate(oldData);
+            return ok<U, E>(newData);
+        });
+
+        return new AsyncResult(next);
+    }
+
+    public mapErr<E1>(predicate: (error: E) => E1 | Promise<E1>): AsyncResult<T, E1> {
+        const next = this._promise.then(async res => {
+            if (res.isOk()) {
+                return ok<T, E1>(res.data);
+            }
+            const oldError = res.error;
+            const newError = await predicate(oldError);
+            return err<T, E1>(newError);
+        });
+
+        return new AsyncResult(next);
+    }
+
+    public andThen<T1, E1>(onOk: (data: T) => Result<T1, E1> | AsyncResult<T1, E1> | Promise<T1>): AsyncResult<T1, E | E1> {
+        const next = this._promise.then(async res => {
+            if (res.isErr()) {
+                return err<T1, E>(res.error);
+            }
+
+            try {
+                const newRes = await onOk(res.data);
+                if (Result.is(newRes)) {
+                    return newRes;
+                } else {
+                    return ok<T1, E1>(newRes);
+                }
+            } catch (promiseError) {
+                return err<T1, any>(<any>promiseError);
+            }
+        });
+
+        return new AsyncResult<T1, E | E1>(next);
+    }
+
+    public orElse<E1>(onError: (error: E) => Result<T, E1> | AsyncResult<T, E1> | Promise<T>): AsyncResult<T, E1> {
+        const next = this._promise.then(async res => {
+            if (res.isOk()) {
+                return ok<T, E1>(res.data);
+            }
+
+            try {
+                const newRes = await onError(res.error);
+                if (Result.is(newRes)) {
+                    return newRes;
+                } else {
+                    return ok<T, E1>(newRes);
+                }
+            } catch (promiseError) {
+                return err<T, E1>(<E1>promiseError);
+            }
+        });
+
+        return new AsyncResult(next);
+    }
+
+    public async toPromise(): Promise<T> {
+        const result = await this._promise;
+        return result.unwrap();
+    }
 }
