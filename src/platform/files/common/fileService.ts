@@ -184,22 +184,18 @@ export class FileService extends Disposable implements IFileService {
      **************************************************************************/
 
     public stat(uri: URI, opts?: IResolveStatOptions): AsyncResult<IResolvedFileStat, FileOperationError> {
-        const get = this.__getProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
-
-        return get.toAsync()
+        return this.__getProvider(uri)
+        .toAsync()
         .andThen(async provider => <const>[await provider.stat(uri), provider])
         .andThen(([stat, provider]) => this.__resolveStat(uri, provider, stat, opts))
         .mapErr((error) => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
     }
 
     public readFile(uri: URI, opts?: IReadFileOptions): AsyncResult<DataBuffer, FileOperationError> {
-        const get = this.__getReadProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
+        return this.__getReadProvider(uri)
+            .toAsync()
+            .andThen(provider => this.__readFile(provider, uri, opts));
+    }
         const provider = get.unwrap();
 
         return this.__readFile(provider, uri, opts);
@@ -253,16 +249,12 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public exist(uri: URI): AsyncResult<boolean, FileOperationError> {
-        const get = this.__getProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
-
-        return get.toAsync()
-        .andThen(provider => provider.stat(uri))
-        .andThen(() => ok(true))
-        .orElse(() => ok(false))
-        .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
+        return this.__getProvider(uri)
+            .toAsync()
+            .andThen(provider => provider.stat(uri))
+            .andThen(() => ok(true))
+            .orElse(() => ok(false))
+            .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
     }
 
     public createFile(
@@ -276,19 +268,16 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public readDir(uri: URI): AsyncResult<Pair<string, FileType>[], FileOperationError> {
-        const get = this.__getProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
-        
-        return get.toAsync()
-        .andThen(provider => provider.readdir(uri))
-        .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
+        return this.__getProvider(uri)
+            .toAsync()
+            .andThen(provider => provider.readdir(uri))
+            .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
     }
 
     public createDir(uri: URI): AsyncResult<void, FileOperationError> {
-        return this.__getWriteProvider(uri).toAsync()
-        .andThen(provider => this.__mkdirRecursive(provider, uri));
+        return this.__getWriteProvider(uri)
+            .toAsync()
+            .andThen(provider => this.__mkdirRecursive(provider, uri));
     }
 
     public moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError> {
@@ -306,7 +295,7 @@ export class FileService extends Disposable implements IFileService {
         const toProvider = toResult.unwrap();
 
         return this.__doMoveTo(from, fromProvider, to, toProvider, overwrite)
-        .andThen(() => this.stat(to));
+            .andThen(() => this.stat(to));
     }
 
     public copyTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError> {
@@ -329,8 +318,8 @@ export class FileService extends Disposable implements IFileService {
 
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return this.__validateDelete(uri, opts)
-        .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
-        .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error)));
+            .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
+            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error)));
     }
 
     public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
@@ -749,39 +738,27 @@ export class FileService extends Disposable implements IFileService {
 
     private __getReadProvider(uri: URI): Result<IFileSystemProviderWithFileReadWrite | IFileSystemProviderWithOpenReadWriteClose, FileOperationError> 
     {
-        const get = this.__getProvider(uri);
-        if (get.isErr()) {
-            return err(get.error);
-        }
+        return this.__getProvider(uri)
+        .andThen(provider => {
+            if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
+                return ok(provider);
+            }
 
-        const provider = get.unwrap();
-
-        if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
-            return ok(provider);
-        }
-
-        return err(new FileOperationError(`Filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the read operation.`, FileOperationErrorType.OTHERS));
+            return err(new FileOperationError(`Filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the read operation.`, FileOperationErrorType.OTHERS));
+        });
     }
 
     private __getWriteProvider(uri: URI): Result<IFileSystemProviderWithFileReadWrite | IFileSystemProviderWithOpenReadWriteClose, FileOperationError> 
     {
-        const get = this.__getProvider(uri);
-        if (get.isErr()) {
-            return err(get.error);
-        }
-        
-        const readonlyResult = this.__errIfProviderReadonly(get.unwrap());
-        if (readonlyResult.isErr()) {
-            return err(readonlyResult.error);
-        }
+        return this.__getProvider(uri)
+            .andThen(provider => this.__errIfProviderReadonly(provider))
+            .andThen(provider => {
+                if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
+                    return ok(provider);
+                }
 
-        const provider = readonlyResult.unwrap();
-
-        if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
-            return ok(provider);
-        }
-
-        return err(new FileOperationError(`filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`, FileOperationErrorType.OTHERS));
+                return err(new FileOperationError(`filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`, FileOperationErrorType.OTHERS));
+            });
     }
 
     private __getProvider(uri: URI): Result<IFileSystemProvider, FileOperationError> {
@@ -841,22 +818,22 @@ export class FileService extends Disposable implements IFileService {
 
         // check existance first
         return Result.fromPromise<IFileStat | undefined, FileOperationError>(() => provider.stat(uri))
-        .orElse<FileOperationError>(() => AsyncResult.ok(undefined))
-        .andThen(stat => {
-            if (!stat) {
-                return AsyncResult.ok(undefined);
-            }
+            .orElse<FileOperationError>(() => AsyncResult.ok(undefined))
+            .andThen(stat => {
+                if (!stat) {
+                    return AsyncResult.ok(undefined);
+                }
 
-            if (stat.type & FileType.DIRECTORY) {
-                return AsyncResult.err(new FileOperationError('unable to write file which is actually a directory', FileOperationErrorType.FILE_IS_DIRECTORY));
-            }
+                if (stat.type & FileType.DIRECTORY) {
+                    return AsyncResult.err(new FileOperationError('unable to write file which is actually a directory', FileOperationErrorType.FILE_IS_DIRECTORY));
+                }
 
-            if (stat.readonly ?? false) {
-                return AsyncResult.err(new FileOperationError('unable to write file which is readonly', FileOperationErrorType.FILE_READONLY));
-            }
+                if (stat.readonly ?? false) {
+                    return AsyncResult.err(new FileOperationError('unable to write file which is readonly', FileOperationErrorType.FILE_READONLY));
+                }
 
-            return AsyncResult.ok(stat);
-        });
+                return AsyncResult.ok(stat);
+            });
     }
 
     private __validateReadLimit(size: number, opts?: IReadFileOptions): Result<void, FileOperationError> {
@@ -886,12 +863,12 @@ export class FileService extends Disposable implements IFileService {
 
     private __validateCreate(uri: URI, opts?: ICreateFileOptions): AsyncResult<void, FileOperationError> {
         return this.exist(uri)
-        .andThen(exist => {
-            if (exist && opts?.overwrite === false) {
-                return err(new FileOperationError('file already exists', FileOperationErrorType.FILE_EXISTS));
-            }
-            return ok();
-        });
+            .andThen(exist => {
+                if (exist && opts?.overwrite === false) {
+                    return err(new FileOperationError('file already exists', FileOperationErrorType.FILE_EXISTS));
+                }
+                return ok();
+            });
     }
 
     private __validateDelete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<IFileSystemProvider, FileOperationError> {
