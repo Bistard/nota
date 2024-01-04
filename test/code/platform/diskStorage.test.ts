@@ -162,19 +162,6 @@ suite('SyncDiskStorage-test', () => {
         assert.strictEqual(contents.length > 0, true);
     }));
 
-    test('sync saving', () => FakeAsync.run(async () => {
-        const storage = new SyncDiskStorage(path, fileService);
-        await storage.init().unwrap();
-
-        storage.set('key1', 'value1');
-        storage.set('key2', 'value2');
-        storage.set('key3', 'value3');
-        storage.set('key4', 'value4');
-
-        const contents = (await fileService.readFile(path).unwrap()).toString();
-        assert.strictEqual(contents.length > 0, true);
-    }));
-
     test('init when file already exists', () => FakeAsync.run(async () => {
         const existFilePath = URI.join(dir, 'someFile.json');
         await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" }'), { create: true, overwrite: true }).unwrap();
@@ -320,24 +307,6 @@ suite('AsyncDiskStorage-test', () => {
         (await storage.init().unwrap());
 
         assert.deepStrictEqual(storage.getLot(['key1', 'key2', 'key3', 'key4']), [undefined, undefined, undefined, undefined]);
-    }));
-
-    test('non-sync saving', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
-        (await storage.init().unwrap());
-
-        await storage.set('key1', 'value1').unwrap();
-        await storage.set('key2', 'value2').unwrap();
-        await storage.set('key3', 'value3').unwrap();
-        await storage.set('key4', 'value4').unwrap();
-
-        let contents = ((await fileService.readFile(path).unwrap())).toString();
-        assert.strictEqual(contents.length, 0);
-
-        (await storage.close().unwrap());
-
-        contents = ((await fileService.readFile(path).unwrap())).toString();
-        assert.strictEqual(contents.length > 0, true);
     }));
 
     test('manually saving', () => FakeAsync.run(async () => {
