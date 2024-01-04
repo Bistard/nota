@@ -18,6 +18,7 @@ const handledMethods = [
 	'match', 
 	'unwrap', 
 	'unwrapOr', 
+	'unwrapErr',
 	'isOk', 
 	'isErr', 
 	'expect',
@@ -36,7 +37,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 			recommended: true,
 		},
 		messages: {
-			[MESSAGE_ID]: '`Result` must be handled with either of `match`, `unwrap`, `unwrapOr`, `isOk`, `isErr`, `expect` or `then`.',
+			[MESSAGE_ID]: '`Result` must be handled with either of `match`, `unwrap`, `unwrapOr`, `unwrapErr`, `isOk`, `isErr`, `expect` or `then`.',
 		},
 		schema: [],
 		type: 'problem',
