@@ -196,7 +196,6 @@ export class FileService extends Disposable implements IFileService {
             .toAsync()
             .andThen(provider => this.__readFile(provider, uri, opts));
     }
-        const provider = get.unwrap();
 
         return this.__readFile(provider, uri, opts);
     }
@@ -743,7 +742,6 @@ export class FileService extends Disposable implements IFileService {
             if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
                 return ok(provider);
             }
-
             return err(new FileOperationError(`Filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the read operation.`, FileOperationErrorType.OTHERS));
         });
     }
@@ -756,7 +754,6 @@ export class FileService extends Disposable implements IFileService {
                 if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
                     return ok(provider);
                 }
-
                 return err(new FileOperationError(`filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`, FileOperationErrorType.OTHERS));
             });
     }
