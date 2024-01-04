@@ -10,27 +10,17 @@ import { Arrays } from 'src/base/common/utilities/array';
 import { after, before } from 'mocha';
 import { Blocker } from 'src/base/common/utilities/async';
 import { assertAsyncResult } from 'test/utils/helpers';
+import { errorToMessage } from 'src/base/common/error';
+import { listenStream } from 'src/base/common/files/stream';
+import * as fs from 'fs';
 
 suite('FileService-disk-test', () => {
 
     const service = new FileService(new NullLogger());
 
     async function createFileWithSize(resource: URI, size: number, defaultChar?: number): Promise<void> {
-
-        const arr: string[] = [];
-
-        if (!defaultChar) {
-            for (let i = 0; i < size; i++) {
-                arr[i] = Random.char();
-            }
-        } else {
-            for (let i = 0; i < size; i++) {
-                arr[i] = String(defaultChar);
-            }
-        }
-
-        const buffer = DataBuffer.fromString(arr.join());
-        await assertAsyncResult(service.writeFile(resource, buffer, { create: true, overwrite: true, unlock: true }));
+        const buffer = DataBuffer.fromString(Random.string(size));
+        fs.writeFileSync(URI.toFsPath(resource), buffer.toString(), { encoding: 'utf-8' });
     }
 
     const baseURI = URI.join(TestURI, 'file-service-test');
@@ -40,11 +30,17 @@ suite('FileService-disk-test', () => {
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
         assert.strictEqual(provider, service.getProvider('file'));
-
+        
         // create testing files
-        await assertAsyncResult(service.createDir(baseURI));
         const filebaseURI = URI.join(baseURI, 'files');
-        for (const size of [ByteSize.KB, 256 * ByteSize.KB, ByteSize.MB, 10 * ByteSize.MB]) {
+        fs.mkdirSync(URI.toFsPath(filebaseURI), { recursive: true });
+
+        for (const size of [
+            ByteSize.KB, 
+            256 * ByteSize.KB, 
+            1 * ByteSize.MB, 
+            10 * ByteSize.MB,
+        ]) {
             await createFileWithSize(URI.join(filebaseURI, `file-${size}.txt`), size, undefined);
         }
     });
@@ -242,18 +238,23 @@ suite('FileService-disk-test', () => {
 
         const totalSize = 1 * ByteSize.MB;
         const uri = URI.join(baseURI, 'files', `file-${totalSize}.txt`);
-        const stream = await assertAsyncResult(service.readFileStream(uri));
+        const ready = await (service.readFileStream(uri).unwrap());
+        
+        const stream = ready.flow();
+
         const end = new Blocker<void>();
 
-        stream.on('data', (data) => {
-            cnt++;
-        });
-        stream.on('end', () => {
-            assert.strictEqual(cnt, totalSize / FileService.bufferSize);
-            end.resolve();
-        });
-        stream.on('error', (err) => {
-            assert.fail();
+        listenStream(stream, {
+            onData: (buffer) => {
+                cnt++;
+            },
+            onError: (error) => {
+                assert.fail(errorToMessage(error));
+            },
+            onEnd: () => {
+                assert.strictEqual(cnt, totalSize / FileService.bufferSize);
+                end.resolve();
+            }
         });
 
         await end.waiting();
@@ -267,7 +268,7 @@ suite('FileService-disk-test', () => {
 
         await assertAsyncResult(service.copyTo(uri, newUri));
 
-        const content = (await assertAsyncResult(service.readFile(newUri))).toString();
+        const content = (await service.readFile(newUri).unwrap()).toString();
         assert.strictEqual(content, 'copy content');
 
         await assertAsyncResult(service.writeFile(uri, DataBuffer.fromString('copy content1'), { overwrite: true, create: false, unlock: true }));
@@ -403,6 +404,6 @@ suite('FileService-disk-test', () => {
     // });
 
     after(async () => {
-        await assertAsyncResult(service.delete(baseURI, { recursive: true }));
+        fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
     });
 });
