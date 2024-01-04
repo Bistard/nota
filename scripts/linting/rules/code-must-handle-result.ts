@@ -5,16 +5,19 @@ import { unionTypeParts } from './utils/typeScriptUtility';
 import { AST_NODE_TYPES } from './utils/astNodeType';
 
 /**
- * Evaluate within the expression to see if it's a result.
- * If it's a result, check that it's handled within the expression.
- * If it's not handled, check if it's assigned or used as a function argument.
- * If it's assigned without being handled, review the entire variable block for handling.
- * Otherwise, it was handled appropriately.
+ * Evaluate within the expression to see if it's a result. Specifically:
+ *   - Check if the expression is a `Result`.
+ *   - If it is a `Result`, ensure it is handled within the expression:
+ *     - Handling can occur through specific methods (e.g., `match`, `unwrap`).
+ *     - Alternatively, handling is assumed if the `Result` is passed as a function argument.
+ *   - If the `Result` is not directly handled, check if it is assigned to a variable:
+ *     - Review the entire variable block to confirm if the `Result` is subsequently handled.
+ *   - A `Result` passed as a function argument is considered handled, assuming function takes ownership.
+ *   - If none of these conditions are met, the `Result` is considered not handled appropriately.
  */
 
-
-const resultObjectProperties = ['unwrapOr'];
-const handledMethods = [
+const RESULT_OBJ_PROP = ['match', 'unwrapOr'];
+const HANDLED_METHODS = [
 	'match', 
 	'unwrap', 
 	'unwrapOr', 
@@ -156,7 +159,7 @@ function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.R
 
 	for (const ty of unionTypeParts(checker.getApparentType(type))) {
 		if (
-			resultObjectProperties
+			RESULT_OBJ_PROP
 				.map((p) => ty.getProperty(p))
 				.every((p) => p !== undefined)
 		) {
@@ -186,20 +189,13 @@ function isMemberCalledFn(node?: any): boolean {
 }
 
 function isHandledResult(node: eslint.Rule.Node): boolean {
-	const memberExpresion = node.parent;
-	if (memberExpresion?.type === AST_NODE_TYPES.MemberExpression) {
-		
-		const methodName = findMemberName(memberExpresion);
-		const methodIsCalled = isMemberCalledFn(memberExpresion);
-		if (methodName && handledMethods.includes(methodName) && methodIsCalled) {
-			return true;
-		}
+	if (isHandledMemberExpression(node) || isHandledInChainMethod(node)) {
+        return true;
+    }
 
-		const parent = node.parent?.parent; // search for chain method .map().handler
-		if (parent && parent?.type !== AST_NODE_TYPES.ExpressionStatement) {
-			return isHandledResult(parent);
-		}
-	}
+	if (isPassedAsFunctionArgument(node)) {
+        return true;
+    }
 	
 	return false;
 }
@@ -240,4 +236,32 @@ function isReturned(checker: TypeChecker, parserServices: any, node: eslint.Rule
 	return isReturned(checker, parserServices, node.parent);
 }
 
+function isHandledMemberExpression(node: eslint.Rule.Node): boolean {
+    const memberExpression = node.parent;
+    if (memberExpression?.type === AST_NODE_TYPES.MemberExpression) {
+        const methodName = findMemberName(memberExpression);
+        const methodIsCalled = isMemberCalledFn(memberExpression);
+        return Boolean(methodName && HANDLED_METHODS.includes(methodName) && methodIsCalled);
+    }
+    return false;
+}
 
+function isHandledInChainMethod(node: eslint.Rule.Node): boolean {
+    // search for chain method .map().handler
+    const parent = node.parent?.parent;
+    if (parent && parent?.type !== AST_NODE_TYPES.ExpressionStatement) {
+        return isHandledResult(parent);
+    }
+    return false;
+}
+
+function isPassedAsFunctionArgument(node: any): boolean {
+    let parentNode = node.parent;
+    while (parentNode) {
+        if (parentNode.type === AST_NODE_TYPES.CallExpression) {
+            return parentNode.arguments.includes(node);
+        }
+        parentNode = parentNode.parent;
+    }
+    return false;
+}
