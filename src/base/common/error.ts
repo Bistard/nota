@@ -1012,6 +1012,10 @@ export class AsyncResult<T, E> {
         return this._promise.then(res => res.unwrapOr(defaultValue));
     }
 
+    public unwrapErr(): Promise<E> {
+        return this._promise.then(res => res.unwrapErr());
+    }
+
     public expect(errorMessage: string): Promise<T | never> {
         return this._promise.then(res => res.expect(errorMessage));
     }

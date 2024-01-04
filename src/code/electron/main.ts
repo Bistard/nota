@@ -196,28 +196,26 @@ const main = new class extends class MainProcess implements IMainProcess {
      */
     private async initServices(): Promise<any> {
 
-        const results = await Promise.all([
-            /**
-             * At the very beginning state of the program, we need to initialize
-             * all the necessary directories first. We need to ensure each one 
-             * is created successfully.
-             */
-            Promise.all(
-                [
-                    this.environmentService.logPath,
-                    this.environmentService.appConfigurationPath,
-                    this.environmentService.userDataPath,
-                ]
-                .map(path => mkdir(URI.toFsPath(path), { recursive: true }))
-            ),
-            this.productService.init(this.environmentService.productProfilePath),
-            this.statusService.init(),
-            this.configurationService.init(),
-        ]);
+        /**
+        * At the very beginning state of the program, we need to initialize
+        * all the necessary directories first. We need to ensure each one 
+        * is created successfully.
+        */
 
-        console.log(results);
+        await Promise.all(
+           [
+               this.environmentService.logPath,
+               this.environmentService.appConfigurationPath,
+               this.environmentService.userDataPath,
+           ]
+           .map(path => mkdir(URI.toFsPath(path), { recursive: true }))
+       );
 
-        // FIX: handle results
+        
+        await this.productService.init(this.environmentService.productProfilePath)
+            .andThen(() => this.statusService.init())
+            .andThen(() => this.configurationService.init())
+            .unwrap();
     }
 
     private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
