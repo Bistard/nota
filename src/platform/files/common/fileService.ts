@@ -197,9 +197,6 @@ export class FileService extends Disposable implements IFileService {
             .andThen(provider => this.__readFile(provider, uri, opts));
     }
 
-        return this.__readFile(provider, uri, opts);
-    }
-
     public readFileStream(uri: URI, opts?: IReadFileOptions): AsyncResult<IReadableStream<DataBuffer>, FileOperationError> {
         const get = this.__getReadProvider(uri);
         if (get.isErr()) {
