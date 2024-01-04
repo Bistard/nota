@@ -40,31 +40,20 @@ export class ProductService implements IProductService {
         return this._profile;
     }
 
-    public async init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
+    public init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
 
-        const result = this._protector.init('[ProductService] cannot initialize twice.');
-        if (result.isErr()) {
-            return err(result.error);
-        }
-        
-        const read = await this.fileService.readFile(productURI);
-        if (read.isErr()) {
-            return err(read.error);
-        }
-
-        const raw = read.unwrap().toString();
-        const parse = jsonSafeParse<any>(raw);
-        if (parse.isErr()) {
-            return err(parse.error);
-        }
-
-        const content = parse.unwrap();
-        const validate = JsonSchemaValidator.validate(content, productProfileSchema);
-        if (!validate.valid) {
-            return err(new Error(`[ProductService] cannot parse product info with raw content: '${validate.errorMessage}'`));
-        }
-
-        this._profile = content;
-        return ok();
+        return this._protector.init('[ProductService] cannot initialize twice.')
+        .toAsync()
+        .andThen(() => this.fileService.readFile(productURI))
+        .andThen(buffer => jsonSafeParse(buffer.toString()))
+        .andThen((parsed: any) => {
+            const validate = JsonSchemaValidator.validate(parsed, productProfileSchema);
+            if (!validate.valid) {
+                return err(new Error(`[ProductService] cannot parse product info with raw content: '${validate.errorMessage}'`));
+            }
+    
+            this._profile = parsed;
+            return ok();
+        });
     }
 }

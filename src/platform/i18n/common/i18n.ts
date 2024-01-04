@@ -186,15 +186,14 @@ export class i18n implements II18nService {
         this._onDidChange.dispose();
     }
 
-    public async init(): AsyncResult<void, FileOperationError | SyntaxError> {
+    public init(): AsyncResult<void, FileOperationError | SyntaxError> {
         const uri = URI.join(this._path, this.language + this._extension);
-        const read = await this.__readLocale(uri);
-        if (read.isErr()) {
-            this.logService.error(`Cannot read locale at ${URI.toString(uri)}. Reason: ${errorToMessage(read.error)}`);
-            return err(read.error);
-        }
-
-        return ok();
+        
+        return this.__readLocale(uri)
+        .orElse(error => {
+            this.logService.error(`Cannot read locale at ${URI.toString(uri)}. Reason: ${errorToMessage(error)}`);
+            return err(error);
+        });
     }
 
     public setLanguage(lang: LanguageType, opts?: ILocaleOpts): void {
@@ -311,22 +310,12 @@ export class i18n implements II18nService {
      * @param uri The absolute file path to the locale.
      *  eg. ../../en-US.json
      */
-    private async __readLocale(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
-        const read = await this.fileService.readFile(uri);
-        if (read.isErr()) {
-            return err(read.error);
-        }
-        
-        const buffer = read.data;
-
-        const parse = jsonSafeParse(buffer.toString());
-        if (parse.isErr()) {
-            return err(parse.error);
-        }
-
-        const jsonObject = parse.data;
-        Object.assign(this._model, jsonObject);
-        
-        return ok();
+    private __readLocale(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.fileService.readFile(uri)
+        .andThen(buffer => jsonSafeParse(buffer.toString()))
+        .andThen(parsed => {
+            Object.assign(this._model, parsed);
+            return ok();
+        });
     }
 }

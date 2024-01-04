@@ -62,8 +62,9 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     // [public mehtods]
 
-    public async init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
-        
+    public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
+        return new AsyncResult((async () => {
+
         // retrieve configurations
         const filterOpts: IFilterOpts = {
             exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
@@ -103,6 +104,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
         await this._tree.refresh();
         return ok();
+        
+        })());
     }
 
     public layout(height?: number | undefined): void {

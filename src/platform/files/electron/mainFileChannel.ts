@@ -1,8 +1,8 @@
 import { IDisposable } from "src/base/common/dispose";
-import { AsyncResult, Result, errorToMessage } from "src/base/common/error";
+import { Result, errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
-import { FileOperationError, FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
 import { IReadableStream, listenStream } from "src/base/common/files/stream";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";

@@ -5,7 +5,7 @@ import { URI } from "src/base/common/files/uri";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
 import { IFileService } from "src/platform/files/common/fileService";
-import { EditorToken, IEditorModel, IEditorModelOptions, IPieceTableModel } from "src/editor/common/model";
+import { EditorToken, IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
@@ -177,7 +177,7 @@ export class EditorModel extends Disposable implements IEditorModel {
             return readResult.error;
         }
 
-        const stream = readResult.data;
+        const stream = readResult.unwrap().resume();
 
         stream.on('data', (data: DataBuffer) => {
             builder.receive(data.toString());
