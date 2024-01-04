@@ -177,7 +177,7 @@ suite('SyncDiskStorage-test', () => {
         await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" '), { create: true, overwrite: true }).unwrap();
 
         const storage = new SyncDiskStorage(existFilePath, fileService);
-        (await storage.init()).unwrapErr();
+        (await storage.init().unwrapErr());
     }));
     
     test('init when file does not exist', () => FakeAsync.run(async () => {
@@ -185,7 +185,7 @@ suite('SyncDiskStorage-test', () => {
         await fileService.delete(existFilePath).unwrap();
 
         const storage = new SyncDiskStorage(existFilePath, fileService);
-        (await storage.init()).unwrap();
+        (await storage.init().unwrap());
     }));
 });
 
@@ -352,7 +352,7 @@ suite('AsyncDiskStorage-test', () => {
         await fileService.writeFile(existFilePath, DataBuffer.fromString('{ "name": "chris" '), { create: true, overwrite: true }).unwrap();
 
         const storage = new SyncDiskStorage(existFilePath, fileService);
-        (await storage.init()).unwrapErr();
+        (await storage.init().unwrapErr());
     }));
     
     test('init when file does not exist', () => FakeAsync.run(async () => {
@@ -360,6 +360,6 @@ suite('AsyncDiskStorage-test', () => {
         await fileService.delete(existFilePath).unwrap();
 
         const storage = new SyncDiskStorage(existFilePath, fileService);
-        (await storage.init()).unwrap();
+        (await storage.init().unwrap());
     }));
 });

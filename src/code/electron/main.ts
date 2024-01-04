@@ -208,10 +208,9 @@ const main = new class extends class MainProcess implements IMainProcess {
                this.environmentService.appConfigurationPath,
                this.environmentService.userDataPath,
            ]
-           .map(path => mkdir(URI.toFsPath(path), { recursive: true }))
+           .map(path => mkdir(URI.toFsPath(path), { recursive: true })),
        );
 
-        
         await this.productService.init(this.environmentService.productProfilePath)
             .andThen(() => this.statusService.init())
             .andThen(() => this.configurationService.init())

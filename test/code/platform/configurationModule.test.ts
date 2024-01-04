@@ -292,9 +292,9 @@ suite('ConfigurationModule-test', () => {
                 [TestConfiguration.One]: 10,
                 [TestConfiguration.Two]: 'bad world',
             }));
-            await assertAsyncResult(fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }));
+            await (fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
-            (await configuration.init()).unwrap();
+            (await configuration.init().unwrap());
             // console.log(configuration.getConfiguration().model);
     
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
@@ -306,9 +306,9 @@ suite('ConfigurationModule-test', () => {
                 [TestConfiguration.One]: undefined,
                 [TestConfiguration.Two]: undefined,
             }));
-            await assertAsyncResult(fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }));
+            await (fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
-            await assertAsyncResult(configuration.init());
+            await (configuration.init().unwrap());
             // console.log(configuration.getConfiguration().model);
     
             assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.One)), undefined);
@@ -317,14 +317,14 @@ suite('ConfigurationModule-test', () => {
     
         test('double init test - prevent double initialization', () => FakeAsync.run(async () => {
             await assert.rejects(async () => {
-                await assertAsyncResult(configuration.init());
-                await assertAsyncResult(configuration.init());
+                await (configuration.init().unwrap());
+                await (configuration.init().unwrap());
             });
         }));
     
         test('onDidConfigurationChange - the source user configuration file has changed', () => FakeAsync.run(async () => {
             const stopWatch = fileService.watch(baseURI).unwrap();
-            await assertAsyncResult(configuration.init());
+            await (configuration.init().unwrap());
     
             assert.throws(() => configuration.getConfiguration().get(TestConfiguration.One));
             assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Two));
@@ -333,7 +333,7 @@ suite('ConfigurationModule-test', () => {
                 [TestConfiguration.One]: 10,
                 [TestConfiguration.Two]: 'hello world',
             }));
-            await assertAsyncResult(fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }));
+            await (fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
             await Event.toPromise(configuration.onDidConfigurationChange).then(() => {
                 assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
@@ -352,9 +352,9 @@ suite('ConfigurationModule-test', () => {
                     }
                 },
             }));
-            (await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, })).unwrap();
+            (await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
-            (await configuration.init()).unwrap();
+            (await configuration.init().unwrap());
             assert.deepEqual(configuration.getConfiguration().model, {});
         }));
     });
