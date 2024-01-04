@@ -6,14 +6,14 @@ import { AST_NODE_TYPES } from './utils/astNodeType';
 
 /**
  * Evaluate within the expression to see if it's a result. Specifically:
- *   - Check if the expression is a `Result`.
- *   - If it is a `Result`, ensure it is handled within the expression:
- *     - Handling can occur through specific methods (e.g., `match`, `unwrap`).
- *     - Alternatively, handling is assumed if the `Result` is passed as a function argument.
- *   - If the `Result` is not directly handled, check if it is assigned to a variable:
- *     - Review the entire variable block to confirm if the `Result` is subsequently handled.
- *   - A `Result` passed as a function argument is considered handled, assuming function takes ownership.
- *   - If none of these conditions are met, the `Result` is considered not handled appropriately.
+ *     - Check if the expression is a `Result`.
+ *     - If it is a `Result`, ensure it is handled within the expression:
+ *         - Handling can occur through specific methods (e.g., `match`, `unwrap`).
+ *         - Alternatively, handling is assumed if the `Result` is passed as a function argument.
+ *     - If the `Result` is not directly handled, check if it is assigned to a variable:
+ *         - Review the entire variable block to confirm if the `Result` is subsequently handled.
+ *     - A `Result` passed as a function argument is considered handled, assuming function takes ownership.
+ *     - If none of these conditions are met, the `Result` is considered not handled appropriately.
  */
 
 const RESULT_OBJ_PROP = ['match', 'unwrapOr'];
@@ -66,7 +66,7 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
 			AwaitExpression(node: estree.AwaitExpression & eslint.Rule.NodeParentExtension) {
 				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
-			}
+			},
 		};
 	}
 };
@@ -107,36 +107,9 @@ function checkIfNodeIsNotHandled(
 		return false;
 	}
 
-	const assignedTo = getAssignation(checker, parserServices, node);
-	const currentScope = context.getScope();
-
-	// Check if is assigned to variables
-	if (assignedTo) {
-		const variable = currentScope.set.get(assignedTo.name);
-		const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
-
-		/**
-		 * Try to mark the first assigned variable to be reported, if not, keep 
-		 * the original one.
-		 */
-		reportNode = variable?.references[0].identifier ?? reportNode;
-
-		// check if any reference is handled by recursive calling
-		const anyHandled = references.some(ref =>
-			!checkIfNodeIsNotHandled(
-				context,
-				checker,
-				parserServices,
-				ref.identifier,
-				reportNode,
-				true,
-			) 
-		);
-
-		// since the result is handled at least once, we should mark it as handled.
-		if (anyHandled) {
-			return false;
-		}
+	const anyHandled = handleAssignation(context, checker, parserServices, node, reportNode);
+    if (anyHandled) {
+		return false;
 	}
 
 	if (!isReference) {
@@ -147,6 +120,43 @@ function checkIfNodeIsNotHandled(
 	}
 
 	return true;
+}
+
+function handleAssignation(
+    context: eslint.Rule.RuleContext,
+    checker: TypeChecker,
+    parserServices: any,
+    node: any,
+    reportNode: any
+): boolean {
+    const assignedTo = getAssignation(checker, parserServices, node);
+    const currentScope = context.getScope();
+
+	// Check if is assigned to variables
+    if (assignedTo) {
+        const variable = currentScope.set.get(assignedTo.name);
+        const references = variable?.references.filter(ref => ref.identifier !== assignedTo) ?? [];
+        
+		/**
+		 * Try to mark the first assigned variable to be reported, if not, keep 
+		 * the original one.
+		 */
+		reportNode = variable?.references[0].identifier ?? reportNode;
+
+		// check if any reference is handled by recursive calling
+        return references.some(ref =>
+            !checkIfNodeIsNotHandled(
+                context,
+                checker,
+                parserServices,
+                ref.identifier,
+                reportNode,
+                true,
+            )
+        );
+    }
+
+    return false;
 }
 
 function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.Rule.Node | null): boolean {
