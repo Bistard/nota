@@ -50,7 +50,7 @@ export interface IReadableStream<T> extends IReadableStreamEvent<T> {
 	removeListener(event: string, callback: Callable<any[], any>): void;
 }
 
-export interface IWriteableStream<T> extends IReadableStream<T> {
+interface IWriteableStream<T> extends IReadableStream<T> {
     
     /**
 	 * Writing data to the stream will trigger the on('data')
@@ -615,4 +615,40 @@ async function __readFileIntoStream<T>(
     } finally {
         await provider.close(fd);
     }
+}
+
+/**
+ * @description The stream must be paused before it is returned to the client. 
+ * This is a crucial step because the function that handles the stream is 
+ * involved in a complex sequence of operations, often nested within multiple 
+ * asynchronous Promises (see {@link AsyncResult} for an example).
+ * 
+ * In simpler terms, when a stream is created, it is ready to start sending data 
+ * immediately. However, due to the asynchronous nature of Promises, there's a 
+ * delay before the client is actually prepared to handle the incoming data. If 
+ * the stream starts flowing (sending data) during this delay, the client isn't 
+ * set up to listen to it yet. As a result, any data sent by the stream in this 
+ * meantime will be missed by the client.
+ * 
+ * By pausing the stream just before returning it, we ensure that it doesn't 
+ * start sending data too early.
+ */
+export function toReadyStream<T>(fn: () => IReadableStream<T>): IReadyReadableStream<T> {
+	return {
+		flow: fn
+	};
+}
+
+export interface IReadyReadableStream<T> {
+	
+	/**
+	 * Start to let the stream be able to flow. Client better to listen to the 
+	 * returned stream immediately after this function call to make sure does 
+	 * not miss any incoming data.
+	 */
+	flow(): IReadableStream<T>;
+}
+
+export function isReadyStream(stream: any): stream is IReadyReadableStream<any> {
+	return typeof stream.flow === 'function';
 }

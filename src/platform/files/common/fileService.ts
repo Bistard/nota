@@ -4,7 +4,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, FileSystemProviderError } from "src/base/common/files/file";
 import { basename, dirname, join } from "src/base/common/files/path";
-import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, readFileIntoStream, readFileIntoStreamAsync, streamToBuffer, transformStream } from "src/base/common/files/stream";
+import { bufferToStream, IReadableStream, IReadyReadableStream, listenStream, newWriteableBufferStream, readFileIntoStream, readFileIntoStreamAsync, streamToBuffer, toReadyStream, transformStream } from "src/base/common/files/stream";
 import { isAbsoluteURI, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
@@ -66,7 +66,7 @@ export interface IFileService extends IDisposable, IService {
      * @description Read the file buffered using stream. 
      * @note Options is set to false if it is not given.
      */
-    readFileStream(uri: URI, opts?: IReadFileOptions): AsyncResult<IReadableStream<DataBuffer>, FileOperationError>;
+    readFileStream(uri: URI, opts?: IReadFileOptions): AsyncResult<IReadyReadableStream<DataBuffer>, FileOperationError>;
 
     /** 
      * @description Write to the file. 
@@ -164,7 +164,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace('[FileService] stop watching on ' + URI.toString(uri));
+            this.logService.trace(`[FileService] stop watching on '${URI.toString(uri)}'`);
 
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
@@ -197,14 +197,10 @@ export class FileService extends Disposable implements IFileService {
             .andThen(provider => this.__readFile(provider, uri, opts));
     }
 
-    public readFileStream(uri: URI, opts?: IReadFileOptions): AsyncResult<IReadableStream<DataBuffer>, FileOperationError> {
-        const get = this.__getReadProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
-        const provider = get.unwrap();
-
-        return this.__readFileStream(provider, uri, opts);
+    public readFileStream(uri: URI, opts?: IReadFileOptions): AsyncResult<IReadyReadableStream<DataBuffer>, FileOperationError> {
+        return this.__getReadProvider(uri)
+            .toAsync()
+            .andThen(provider => this.__readFileStream(provider, uri, opts));
     }
 
     public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): AsyncResult<void, FileOperationError> {
@@ -366,18 +362,21 @@ export class FileService extends Disposable implements IFileService {
     ): AsyncResult<DataBuffer, FileOperationError> 
     {
         return this.__readFileStream(provider, uri, { ...opts, preferUnbuffered: true })
-        .andThen(stream => streamToBuffer(stream));
+        .andThen(ready => {
+            const stream = ready.flow();
+            return streamToBuffer(stream);
+        });
     }
 
     private __readFileStream(
         provider: FileSystemProviderAbleToRead,
         uri: URI,
         opts?: IReadFileOptions & { preferUnbuffered?: boolean; },
-    ): AsyncResult<IReadableStream<DataBuffer>, FileOperationError> 
+    ): AsyncResult<IReadyReadableStream<DataBuffer>, FileOperationError> 
     {
         return this.__validateRead(provider, uri, opts)
         .andThen(() => {
-            let stream: IReadableStream<DataBuffer> | undefined = undefined;
+            let stream: IReadyReadableStream<DataBuffer> | undefined = undefined;
 
             /**
              * read unbuffered:
@@ -410,26 +409,38 @@ export class FileService extends Disposable implements IFileService {
         provider: IFileSystemProviderWithFileReadWrite,
         uri: URI,
         opts?: IReadFileOptions,
-    ): IReadableStream<DataBuffer> 
+    ): IReadyReadableStream<DataBuffer>
     {
         const stream = newWriteableBufferStream();
-        readFileIntoStreamAsync(provider, uri, stream, opts);
-        return stream;
+        return toReadyStream(() => {
+            readFileIntoStreamAsync(provider, uri, stream, opts);
+            return stream;
+        });
     }
 
     private __readFileStreamed(
         provider: IFileSystemProviderWithReadFileStream,
         uri: URI,
         opts?: IReadFileOptions,
-    ): IReadableStream<DataBuffer> 
+    ): IReadyReadableStream<DataBuffer> 
     {
-        const stream = provider.readFileStream(uri, opts);
-        return transformStream(
-            stream, {
-            data: data => DataBuffer.wrap(data)
-        },
-            data => DataBuffer.concat(data)
-        );
+        const readyStream = provider.readFileStream(uri, opts);
+
+        return toReadyStream(() => {
+            const fromStream = readyStream.flow();
+
+            /**
+             * Because `transformStream` will trigger `listenStream` which will
+             * force the `fromStream` into flowing state, thus it must be delayed.
+             */
+            const toStream = transformStream(fromStream, {
+                    data: data => DataBuffer.wrap(data),
+                },
+                data => DataBuffer.concat(data),
+            );
+
+            return toStream;
+        });
     }
 
     /** @description Read the file using buffer I/O. */
@@ -437,11 +448,13 @@ export class FileService extends Disposable implements IFileService {
         provider: IFileSystemProviderWithOpenReadWriteClose,
         uri: URI,
         opts?: IReadFileOptions,
-    ): IReadableStream<DataBuffer> 
+    ): IReadyReadableStream<DataBuffer> 
     {
         const stream = newWriteableBufferStream();
-        readFileIntoStream(provider, uri, stream, data => data, { ...opts, bufferSize: FileService.bufferSize });
-        return stream;
+        return toReadyStream(() => {
+            readFileIntoStream(provider, uri, stream, data => data, { ...opts, bufferSize: FileService.bufferSize });
+            return stream;
+        });
     }
 
     /***************************************************************************

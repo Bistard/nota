@@ -3,7 +3,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
 import { join } from "src/base/common/files/path";
-import { IReadableStreamEvent, newWriteableStream, readFileIntoStream } from "src/base/common/files/stream";
+import { IReadableStream, IReadyReadableStream, newWriteableStream, readFileIntoStream, toReadyStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
 import { retry } from "src/base/common/utilities/async";
 import { FileService } from "src/platform/files/common/fileService";
@@ -107,13 +107,16 @@ export class DiskFileSystemProvider extends Disposable implements
 
     }
 
-    public readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array> {
+    public readFileStream(uri: URI, opt?: IReadFileOptions): IReadyReadableStream<Uint8Array> {
         const stream = newWriteableStream<Uint8Array>(data => DataBuffer.concat(data.map(data => DataBuffer.wrap(data))).buffer);
-        readFileIntoStream(this, uri, stream, data => data.buffer, {
-            ...opt,
-            bufferSize: FileService.bufferSize
+        return toReadyStream(() => {
+            readFileIntoStream(this, uri, stream, data => data.buffer, {
+                ...opt,
+                bufferSize: FileService.bufferSize
+            });
+            
+            return stream;
         });
-        return stream;
     }
 
     /***************************************************************************
