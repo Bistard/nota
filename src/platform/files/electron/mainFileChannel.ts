@@ -126,7 +126,7 @@ export class MainFileChannel implements IServerChannel {
             throw new Error('The registered provider does not has read file stream capability.');
         }
 
-        const stream = provider.readFileStream(uri, opts);
+        const stream = provider.readFileStream(uri, opts).flow();
         listenStream(stream, {
             onData: (data) => emitter.fire(DataBuffer.wrap(data)),
             onError: (error) => emitter.fire(error),

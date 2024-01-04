@@ -177,7 +177,7 @@ export class EditorModel extends Disposable implements IEditorModel {
             return readResult.error;
         }
 
-        const stream = readResult.unwrap().resume();
+        const stream = readResult.unwrap().flow();
 
         stream.on('data', (data: DataBuffer) => {
             builder.receive(data.toString());

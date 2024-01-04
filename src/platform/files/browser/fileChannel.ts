@@ -3,7 +3,7 @@ import { AsyncResult, Result, errorToMessage, ok } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
-import { IReadableStream, newWriteableBufferStream } from "src/base/common/files/stream";
+import { IReadableStream, IReadyReadableStream, newWriteableBufferStream, toReadyStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
 import { Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -112,7 +112,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         );
     }
 
-    public async readFileStream(uri: URI, opts?: IReadFileOptions | undefined): AsyncResult<IReadableStream<DataBuffer>, FileOperationError> {
+    public readFileStream(uri: URI, opts?: IReadFileOptions | undefined): AsyncResult<IReadyReadableStream<DataBuffer>, FileOperationError> {
         const stream = newWriteableBufferStream();
 
         const listener = this._channel.registerListener<ReadableStreamDataFlowType<DataBuffer>>(FileCommand.readFileStream, [uri, opts]);
@@ -143,7 +143,12 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             }
         });
 
-        return ok(stream);
+        stream.pause();
+        
+        return AsyncResult.ok(toReadyStream(() => {
+            stream.resume();
+            return stream;
+        }));
     }
 
     public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): AsyncResult<void, FileOperationError> {
