@@ -83,18 +83,15 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         return this._configuration;
     }
 
-    public async init(): AsyncResult<void, Error> {
-        const initResult = this._initProtector.init('[UserConfiguration] Cannot initialize twice.');
-        if (initResult.isErr()) {
-            return err(initResult.error);
-        }
-
-        this.__registerListeners();
-
-        return this.__reloadConfiguration();
+    public init(): AsyncResult<void, Error> {
+        return this._initProtector.init('[UserConfiguration] Cannot initialize twice.').toAsync()
+        .andThen(() => {
+            this.__registerListeners();
+            return this.__reloadConfiguration();
+        });
     }
 
-    public async reload(): AsyncResult<void, Error> {
+    public reload(): AsyncResult<void, Error> {
         return this.__reloadConfiguration();
     }
 
@@ -114,68 +111,58 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this._onDidConfigurationLoaded.fire(this._configuration);
     }
 
-    private async __reloadConfiguration(): AsyncResult<void, Error> {
-        const result = await this.__loadConfiguration();
-        if (result.isErr()) {
-            return err(result.error);
-        }
-
-        const load = result.data;
-        if (load.ifLoaded) {
-            /**
-             * The configuration is loaded correctly, we need to validate the 
-             * loaded configuration.
-             */
-            const validated = this.__validateConfiguration(load.raw);
-            this.__setupConfiguration({ ifLoaded: true, validated: validated });
-            this._onDidConfigurationChange.fire();
-        } 
-        else {
-            /**
-             * We are creating a new user configuration, there is no need to 
-             * validate.
-             */
-            this.__setupConfiguration({ ifLoaded: false, validated: load.raw });
-            this._onDidConfigurationLoaded.fire(this._configuration);
-        }
-
-        return ok();
+    private __reloadConfiguration(): AsyncResult<void, Error> {
+        return this.__loadConfiguration()
+        .andThen(load => {
+            if (load.ifLoaded) {
+                /**
+                 * The configuration is loaded correctly, we need to validate the 
+                 * loaded configuration.
+                 */
+                const validated = this.__validateConfiguration(load.raw);
+                this.__setupConfiguration({ ifLoaded: true, validated: validated });
+                this._onDidConfigurationChange.fire();
+            } 
+            else {
+                /**
+                 * We are creating a new user configuration, there is no need to 
+                 * validate.
+                 */
+                this.__setupConfiguration({ ifLoaded: false, validated: load.raw });
+                this._onDidConfigurationLoaded.fire(this._configuration);
+            }
+    
+            return ok();
+        });
     }
 
-    private async __loadConfiguration(): AsyncResult<LoadConfigurationResult, Error> {
-        const read = await this.fileService.readFile(this._userResource);
+    private __loadConfiguration(): AsyncResult<LoadConfigurationResult, Error> {
         
-        // read successfully, simply return it.
-        if (read.isOk()) {
-            const raw: string = read.data.toString();
+        return this.fileService.readFile(this._userResource)
+        .andThen<LoadConfigurationResult, FileOperationError>(buffer => {
+            // read successfully, simply return it.
+            const raw: string = buffer.toString();
             return ok({ ifLoaded: true, raw });
-        }
+        })
+        .orElse(error => {
+            // unexpected error
+            if (error.code !== FileOperationErrorType.FILE_NOT_FOUND) {
+                return err(error);
+            }
 
-        // throw any errors that we are not expecting
-        if (read.error.code !== FileOperationErrorType.FILE_NOT_FOUND) {
-            return err(read.error);
-        }
-
-        // expecting file not found, we create a new user configuration.
-        const create = await this.__createNewConfiguration();
-        if (create.isErr()) {
-            return err(create.error);
-        }
-
-        return ok({ ifLoaded: false, raw: create.data });
+            // expecting file not found, we create a new user configuration.
+            return this.__createNewConfiguration()
+                .map(config => { return { ifLoaded: false, raw: config }; });
+        });
     }
 
-    private async __createNewConfiguration(): AsyncResult<IConfigurationStorage, FileOperationError> {
+    private __createNewConfiguration(): AsyncResult<IConfigurationStorage, FileOperationError> {
         const defaultConfiguration = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
         const raw = defaultConfiguration.toJSON().unwrap();
 
         // keep update to the file
-        const success = await this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true });
-        if (success.isErr()) {
-            return err(success.error);
-        }
-
-        return ok(defaultConfiguration);
+        return this.fileService.createFile(this._userResource, DataBuffer.fromString(raw), { overwrite: true })
+            .map(() => defaultConfiguration);
     }
 
     private __validateConfiguration(raw: string): object {

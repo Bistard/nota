@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncResult, Result, errorToMessage } from 'src/base/common/error';
+import { AsyncResult, Result } from 'src/base/common/error';
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray } from "src/base/common/utilities/type";
@@ -45,7 +45,7 @@ export function assertResult<T, E>(result: Result<T, E>): T {
 }
 
 /**
- * @note This function acts exactly like `.unwrap()` method.
+ * @deprecated This function acts exactly like `.unwrap()` method.
  */
 export async function assertAsyncResult<T, E>(result: AsyncResult<T, E>): Promise<T> {
     const res = await result;

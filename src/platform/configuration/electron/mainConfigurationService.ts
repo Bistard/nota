@@ -28,7 +28,7 @@ export class MainConfigurationService extends AbstractConfigurationService {
         return Promise.reject(new Error('[ConfigurationService] does not support `Delete`'));
     }
 
-    public async save(): AsyncResult<void, Error> {
-        return err(new Error('[ConfigurationService] does not support `save`'));
+    public save(): AsyncResult<void, Error> {
+        return AsyncResult.err(new Error('[ConfigurationService] does not support `save`'));
     }
 }

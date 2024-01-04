@@ -37,21 +37,20 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         await this.__updateConfiguration(section, undefined, options);
     }
 
-    public async save(): AsyncResult<void, Error> {
+    public save(): AsyncResult<void, Error> {
         if (!this.isInit) {
-            return ok();
+            return AsyncResult.ok();
         }
 
         const jsonData = this._configurationHub.inspect().toJSON().unwrap();
-        const write = await this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true });
-
-        if (write.isErr()) {
-            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'. The reason is: ${errorToMessage(write.error)}`);
-            return err(write.error);
-        }
-
-        this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
-        return ok();
+        return this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true })
+        .orElse(error => {
+            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'. The reason is: ${errorToMessage(error)}`);
+            return err(error);
+        })
+        .andThen(() => {
+            return ok(this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`));
+        });
     }
 
     // [private helper methods]

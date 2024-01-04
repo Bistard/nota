@@ -5,7 +5,7 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { DiskStorage, IDiskStorage } from "src/platform/files/common/diskStorage";
+import { AsyncDiskStorage } from "src/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { StatusKey } from "src/platform/status/common/status";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
@@ -16,8 +16,8 @@ export const IMainStatusService = createService<IMainStatusService>('status-serv
 
 /**
  * An interface only for {@link MainStatusService}. The API are mainly just a
- * wrapper of a {@link IDiskStorage}. You may check the more detailed document
- * from there.
+ * wrapper of a {@link AsyncDiskStorage}. You may check the more detailed 
+ * document from there.
  */
 export interface IMainStatusService extends Disposable, IService {
     set<T>(key: StatusKey, val: T): AsyncResult<void, FileOperationError>;
@@ -48,7 +48,6 @@ export interface IMainStatusService extends Disposable, IService {
  * @note Service will be initialized at the very beginning of the program.
  * You may assume the service is initialized properly and invoke `init()`
  * only if you need to re-initialize.
- * 
  */
 export class MainStatusService extends Disposable implements IMainStatusService {
 
@@ -57,7 +56,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     // [field]
 
     public static readonly FILE_NAME = 'status.nota.json';
-    private _storage: IDiskStorage;
+    private _storage: AsyncDiskStorage;
 
     // [constructor]
 
@@ -69,30 +68,18 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     ) {
         super();
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), APP_DIR_NAME, MainStatusService.FILE_NAME));
-        this._storage = new DiskStorage(path, true, this.fileService);
+        this._storage = new AsyncDiskStorage(path, this.fileService);
         this.__registerListeners();
     }
 
     // [public methods]
 
-    public async set<T>(key: StatusKey, val: T): AsyncResult<void, FileOperationError> {
-        const success = await this._storage.set(key, val);
-
-        if (Result.is(success)) {
-            return success;
-        }
-
-        return ok();
+    public set<T>(key: StatusKey, val: T): AsyncResult<void, FileOperationError> {
+        return this._storage.set(key, val);
     }
 
-    public async setLot<T>(items: readonly { key: StatusKey, val: T; }[]): AsyncResult<void, FileOperationError> {
-        const success = await this._storage.setLot(items);
-
-        if (Result.is(success)) {
-            return success;
-        }
-
-        return ok();
+    public setLot<T>(items: readonly { key: StatusKey, val: T; }[]): AsyncResult<void, FileOperationError> {
+        return this._storage.setLot(items);
     }
 
     public get<T>(key: StatusKey, defaultVal?: T): T | undefined {
@@ -103,32 +90,29 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         return this._storage.getLot(keys, defaultVal);
     }
 
-    public async delete(key: StatusKey): AsyncResult<boolean, FileOperationError> {
-        const success = await this._storage.delete(key);
-        
-        if (Result.is(success)) {
-            return success;
-        }
-
-        return ok(success);
+    public delete(key: StatusKey): AsyncResult<boolean, FileOperationError> {
+        return this._storage.delete(key);
     }
 
     public has(key: StatusKey): boolean {
         return this._storage.has(key);
     }
 
-    public async init(): AsyncResult<void, FileOperationError> {
-        const success = await this._storage.init();
-        this.logService.trace(`[MainStatusService] initialized at '${URI.toString(this._storage.resource)}'`);
-        return success;
+    public init(): AsyncResult<void, FileOperationError> {
+        this.logService.trace(`[MainStatusService] initializing...`);
+
+        return this._storage.init()
+        .andThen(() => { 
+            this.logService.trace(`[MainStatusService] initialized at '${URI.toString(this._storage.resource)}'`);
+            return ok();
+        });
     }
 
-    public async close(): AsyncResult<void, FileOperationError> {
+    public close(): AsyncResult<void, FileOperationError> {
         return this._storage.close();
     }
 
     private __registerListeners(): void {
-        this.logService.trace(`[MainStatusService] __registerListeners()`);
         this.lifecycleService.onWillQuit((e) => e.join(this.close()));
     }
 }
