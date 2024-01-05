@@ -159,7 +159,7 @@ function handleAssignation(
     return false;
 }
 
-function isResultLike(checker: TypeChecker, parserServices: any, node?: eslint.Rule.Node | null): boolean {
+function isResultLike(checker: TypeChecker, parserServices: any, node?: any | null): boolean {
 	if (!node) {
 		return false;
 	}
@@ -199,15 +199,19 @@ function isMemberCalledFn(node?: any): boolean {
 }
 
 function isHandledResult(node: eslint.Rule.Node): boolean {
-	if (isHandledMemberExpression(node) || isHandledInChainMethod(node)) {
+	if (isHandledByChaining(node)) {
         return true;
     }
 
-	if (isPassedAsFunctionArgument(node)) {
-        return true;
-    }
-	
+	if (isDirectlyPassedAsArgument(node)) {
+		return true;
+	}
+
 	return false;
+}
+
+function isHandledByChaining(node: eslint.Rule.Node): boolean {
+	return isHandledMemberExpression(node) || isHandledInChainMethod(node);
 }
 
 const endTransverse = [AST_NODE_TYPES.BlockStatement, AST_NODE_TYPES.Program];
@@ -257,21 +261,19 @@ function isHandledMemberExpression(node: eslint.Rule.Node): boolean {
 }
 
 function isHandledInChainMethod(node: eslint.Rule.Node): boolean {
-    // search for chain method .map().handler
     const parent = node.parent?.parent;
-    if (parent && parent?.type !== AST_NODE_TYPES.ExpressionStatement) {
-        return isHandledResult(parent);
-    }
-    return false;
+	if (!parent || parent.type === AST_NODE_TYPES.ExpressionStatement) {
+		return false;
+	}
+
+    return isHandledByChaining(parent);
 }
 
-function isPassedAsFunctionArgument(node: any): boolean {
-    let parentNode = node.parent;
-    while (parentNode) {
-        if (parentNode.type === AST_NODE_TYPES.CallExpression) {
-            return parentNode.arguments.includes(node);
-        }
-        parentNode = parentNode.parent;
-    }
-    return false;
+function isDirectlyPassedAsArgument(node: any): boolean {
+	const parent = node.parent;
+	if (parent?.type === AST_NODE_TYPES.CallExpression) {
+		return parent.arguments.includes(node);
+	}
+
+	return false;
 }
