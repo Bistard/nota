@@ -3,6 +3,7 @@ import * as estree from 'estree';
 import { TypeChecker } from 'typescript';
 import { unionTypeParts } from './utils/typeScriptUtility';
 import { AST_NODE_TYPES } from './utils/astNodeType';
+import { Mutable } from './utils/common';
 
 /**
  * Evaluate within the expression to see if it's a result. Specifically:
@@ -29,6 +30,9 @@ const HANDLED_METHODS = [
 ];
 const MESSAGE_ID = 'ResultNotHandled';
 
+const parserServices: any = undefined!;
+const checker: TypeChecker = undefined!;
+
 export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
     public readonly meta: eslint.Rule.RuleMetaData = {
@@ -46,9 +50,11 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 		type: 'problem',
 	};
 
+	// [public methods]
+
     public create(context: eslint.Rule.RuleContext): eslint.Rule.RuleListener {
-		const parserServices = context.parserServices;
-		const checker = parserServices?.program?.getTypeChecker();
+		(<Mutable<any>>parserServices) = context.parserServices;
+		(<Mutable<TypeChecker>>checker) = parserServices?.program?.getTypeChecker();
 
 		if (!checker || !parserServices) {
 			// eslint-disable-next-line local/code-no-throw
@@ -57,15 +63,15 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
 		return {
 			CallExpression(node: estree.CallExpression & eslint.Rule.NodeParentExtension) {
-				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
+				checkIfNodeIsNotHandled(context, node, node, false);
 			},
 
 			NewExpression(node: estree.NewExpression & eslint.Rule.NodeParentExtension) {
-				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
+				checkIfNodeIsNotHandled(context, node, node, false);
 			},
 
 			AwaitExpression(node: estree.AwaitExpression & eslint.Rule.NodeParentExtension) {
-				checkIfNodeIsNotHandled(context, checker, parserServices, node, node, false);
+				checkIfNodeIsNotHandled(context, node, node, false);
 			},
 		};
 	}
@@ -80,8 +86,6 @@ const ignoreParents = [
 
 function checkIfNodeIsNotHandled(
 	context: eslint.Rule.RuleContext,
-	checker: TypeChecker,
-	parserServices: any,
 	node: any,
 	reportNode: any = node,
 	isReference: boolean = false,
@@ -94,7 +98,7 @@ function checkIfNodeIsNotHandled(
 		return false;
 	}
 
-	if (!isResultLike(checker, parserServices, node)) {
+	if (!isResultLike(node)) {
 		return false;
 	}
 
@@ -103,11 +107,11 @@ function checkIfNodeIsNotHandled(
 	}
 
 	// eg. `return getResult();`
-	if (isReturned(checker, parserServices, node)) {
+	if (isReturned(node)) {
 		return false;
 	}
 
-	const anyHandled = handleAssignation(context, checker, parserServices, node, reportNode);
+	const anyHandled = handleAssignation(context, node, reportNode);
     if (anyHandled) {
 		return false;
 	}
@@ -124,12 +128,10 @@ function checkIfNodeIsNotHandled(
 
 function handleAssignation(
     context: eslint.Rule.RuleContext,
-    checker: TypeChecker,
-    parserServices: any,
     node: any,
-    reportNode: any
+    reportNode: any,
 ): boolean {
-    const assignedTo = getAssignation(checker, parserServices, node);
+    const assignedTo = getAssignation(node);
     const currentScope = context.getScope();
 
 	// Check if is assigned to variables
@@ -147,8 +149,6 @@ function handleAssignation(
         return references.some(ref =>
             !checkIfNodeIsNotHandled(
                 context,
-                checker,
-                parserServices,
                 ref.identifier,
                 reportNode,
                 true,
@@ -159,7 +159,7 @@ function handleAssignation(
     return false;
 }
 
-function isResultLike(checker: TypeChecker, parserServices: any, node?: any | null): boolean {
+function isResultLike(node?: any | null): boolean {
 	if (!node) {
 		return false;
 	}
@@ -215,11 +215,11 @@ function isHandledByChaining(node: eslint.Rule.Node): boolean {
 }
 
 const endTransverse = [AST_NODE_TYPES.BlockStatement, AST_NODE_TYPES.Program];
-function getAssignation(checker: TypeChecker, parserServices: any, node: any): any | undefined {
+function getAssignation(node: any): any | undefined {
 	if (
 		node.type === AST_NODE_TYPES.VariableDeclarator &&
 		node.id.type === AST_NODE_TYPES.Identifier &&
-		isResultLike(checker, parserServices, node.init)
+		isResultLike(node.init)
 	) {
 		return node.id;
 	}
@@ -228,10 +228,10 @@ function getAssignation(checker: TypeChecker, parserServices: any, node: any): a
 		return undefined;
 	}
 
-	return getAssignation(checker, parserServices, node.parent);
+	return getAssignation(node.parent);
 }
 
-function isReturned(checker: TypeChecker, parserServices: any, node: eslint.Rule.Node): boolean {
+function isReturned(node: eslint.Rule.Node): boolean {
 	if (node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
 		return true;
 	}
@@ -247,7 +247,7 @@ function isReturned(checker: TypeChecker, parserServices: any, node: eslint.Rule
 	if (!node.parent) {
 		return false;
 	}
-	return isReturned(checker, parserServices, node.parent);
+	return isReturned(node.parent);
 }
 
 function isHandledMemberExpression(node: eslint.Rule.Node): boolean {
