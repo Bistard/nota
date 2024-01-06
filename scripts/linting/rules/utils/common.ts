@@ -1,6 +1,10 @@
 import { AST_NODE_TYPES } from "./astNodeType";
 import * as ts from 'typescript';
 
+export type Mutable<Immutable> = {
+    -readonly [P in keyof Immutable]: Immutable[P]
+};
+
 const enum MemberNameType {
     Private = 1,
     Quoted = 2,
