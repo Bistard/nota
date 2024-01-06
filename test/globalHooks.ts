@@ -54,11 +54,16 @@ const hook = new class extends class GlobalHooks {
     private __registerMochaListeners(): void {
         const setCurrentTest = (test?: Mocha.Test) => { this._currentTest = test; };
 
-        mocha.beforeEach(function() {
+        mocha.beforeEach(function () {
             setCurrentTest(this.currentTest);
         });
         
-        mocha.afterEach(function() {
+        mocha.afterEach(function () {
+            
+            if (this.currentTest?.state === 'failed') {
+                const fullTestName = this.currentTest.titlePath().join(' -> ');
+                throw new Error(fullTestName);
+            }
             setCurrentTest(undefined);
         });
     }
@@ -104,9 +109,7 @@ const hook = new class extends class GlobalHooks {
             
             console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `Detected unhandled${type}: ${unhandles.length}`);
             unhandles.forEach((unhandled, index) => {
-                const errMessage = setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red });
-                console.log(errMessage);
-                throw new Error(errMessage);
+                console.log(setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red }));
             });
         });
     }
