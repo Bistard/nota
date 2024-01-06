@@ -1,9 +1,9 @@
 import * as eslint from 'eslint';
 import * as estree from 'estree';
+import * as estraverse from 'estraverse';
 import { TypeChecker } from 'typescript';
 import { unionTypeParts } from './utils/typeScriptUtility';
 import { AST_NODE_TYPES } from './utils/astNodeType';
-import { Mutable } from './utils/common';
 
 /**
  * Evaluate within the expression to see if it's a result. Specifically:
@@ -30,8 +30,8 @@ const HANDLED_METHODS = [
 ];
 const MESSAGE_ID = 'ResultNotHandled';
 
-const parserServices: any = undefined!;
-const checker: TypeChecker = undefined!;
+let parserServices: any = undefined!;
+let checker: TypeChecker = undefined!;
 
 export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 
@@ -53,8 +53,8 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 	// [public methods]
 
     public create(context: eslint.Rule.RuleContext): eslint.Rule.RuleListener {
-		(<Mutable<any>>parserServices) = context.parserServices;
-		(<Mutable<TypeChecker>>checker) = parserServices?.program?.getTypeChecker();
+		parserServices = context.parserServices;
+		checker = parserServices?.program?.getTypeChecker();
 
 		if (!checker || !parserServices) {
 			// eslint-disable-next-line local/code-no-throw
@@ -73,16 +73,21 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 			AwaitExpression(node: estree.AwaitExpression & eslint.Rule.NodeParentExtension) {
 				checkIfNodeIsNotHandled(context, node, node, false);
 			},
+			
+			FunctionDeclaration(node: estree.FunctionDeclaration & eslint.Rule.NodeParentExtension) {
+				checkFunctionParameterIfHandled(context, node);
+			},
+			
+			FunctionExpression(node: estree.FunctionExpression & eslint.Rule.NodeParentExtension) {
+				checkFunctionParameterIfHandled(context, node);
+			},
+
+			// ArrowFunctionExpression(node: estree.ArrowFunctionExpression & eslint.Rule.NodeParentExtension) {
+			// 	checkFunctionParameterIfHandled(context, node);
+			// },
 		};
 	}
 };
-
-const ignoreParents = [
-	AST_NODE_TYPES.ClassDeclaration,
-	AST_NODE_TYPES.FunctionDeclaration,
-	AST_NODE_TYPES.MethodDefinition,
-	'ClassProperty'
-];
 
 function checkIfNodeIsNotHandled(
 	context: eslint.Rule.RuleContext,
@@ -91,10 +96,6 @@ function checkIfNodeIsNotHandled(
 	isReference: boolean = false,
 ): boolean {
 	if (node.parent?.type.startsWith('TS')) {
-		return false;
-	}
-	
-	if (node.parent && ignoreParents.includes(node.parent.type)) {
 		return false;
 	}
 
@@ -276,4 +277,49 @@ function isDirectlyPassedAsArgument(node: any): boolean {
 	}
 
 	return false;
+}
+
+function checkFunctionParameterIfHandled(
+	context: eslint.Rule.RuleContext,
+	node: any,
+) {
+	const resultParamNodes: any[] = node.params.filter((param: any) => isResultLike(param));
+	if (resultParamNodes.length === 0) {
+		return;
+	}
+
+	const unusedResultNames: any[] = resultParamNodes.map((node: any) => node.name);
+	const usedResultNodes: any[] = [];	
+
+	// iterate entire function body to see if result is ever used
+	estraverse.traverse(node.body, {
+		enter(node) {
+			if (node.type === AST_NODE_TYPES.Identifier) {
+				const idx = unusedResultNames.indexOf(node.name);
+				if (idx !== -1) {
+					usedResultNodes.push(node);
+					unusedResultNames.splice(idx, 1);
+				}
+			}
+		},
+	});
+
+	// find all unused result and simply report them
+	for (const paramNode of resultParamNodes) {
+		if (unusedResultNames.indexOf(paramNode.name) !== -1) {
+			context.report({
+				node: paramNode,
+				messageId: MESSAGE_ID,
+			});
+		}
+	}
+
+	/**
+	 * Iterate every used node to see if it is handled. Report to the original 
+	 * parameter if it is unhandled.
+	 */
+	for (const usedNode of usedResultNodes) {
+		const paramNode = resultParamNodes.filter((param: any) => param.name === usedNode.name)[0];
+		checkIfNodeIsNotHandled(context, usedNode, paramNode);
+	}
 }
