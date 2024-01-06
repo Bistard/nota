@@ -1,6 +1,7 @@
 const childProcess = require("child_process");
 const fs = require('fs');
 const path = require('path');
+const { exit } = require("process");
 
 (async function () {
 
@@ -22,6 +23,16 @@ const path = require('path');
             stdio: "inherit",
         },
     );
+    
+    proc.addListener('error', (err) => {
+        console.log('[PROCESS_ERROR]', err);
+        exit(err.code ?? 100);
+    });
+
+    proc.addListener('exit', (code, signal) => {
+        console.log('[PROCESS_EXIT]', code, signal);
+        exit(code);
+    });
 })();
 
 async function buildCommandFromConfiguration(rawCommand, cliArgs, configurationPath) {
