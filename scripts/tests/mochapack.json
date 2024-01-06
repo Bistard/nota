@@ -5,6 +5,5 @@
     "recursive": true,
     "ui": "tdd",
     "require": "jsdom-global/register",
-    "include": "./test/globalHooks.ts",
     "timeout": "10000"
 }
