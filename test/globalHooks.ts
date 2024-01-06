@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-throw */
 import * as fs from 'fs';
 import * as os from 'os';
 import * as mocha from "mocha";
@@ -103,7 +104,9 @@ const hook = new class extends class GlobalHooks {
             
             console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `Detected unhandled${type}: ${unhandles.length}`);
             unhandles.forEach((unhandled, index) => {
-                console.log(setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red }));
+                const errMessage = setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red });
+                console.log(errMessage);
+                throw new Error(errMessage);
             });
         });
     }
