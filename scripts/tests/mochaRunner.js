@@ -1,7 +1,5 @@
 const childProcess = require("child_process");
 const fs = require('fs');
-const path = require('path');
-const { exit } = require("process");
 
 (async function () {
 
@@ -24,15 +22,7 @@ const { exit } = require("process");
         },
     );
     
-    proc.addListener('error', (err) => {
-        console.log('[PROCESS_ERROR]', err);
-        exit(err.code ?? 100);
-    });
-
-    proc.addListener('exit', (code, signal) => {
-        console.log('[PROCESS_EXIT]', code, signal);
-        exit(code);
-    });
+    registerProcListeners(proc);
 })();
 
 async function buildCommandFromConfiguration(rawCommand, cliArgs, configurationPath) {
@@ -63,4 +53,18 @@ async function buildCommandFromConfiguration(rawCommand, cliArgs, configurationP
 
     rawCommand += ' ' + cliArgs.join(' ');
     return rawCommand;
+}
+
+function registerProcListeners(proc) {
+    
+    // make sure the error code is returned from the child proc
+    {
+        proc.addListener('error', (err) => {
+            process.exit(err.code ?? 100);
+        });
+    
+        proc.addListener('exit', (code) => {
+            process.exit(code);
+        });
+    }
 }
