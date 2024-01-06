@@ -82,9 +82,9 @@ export = new class CodeMustHandleResult implements eslint.Rule.RuleModule {
 				checkFunctionParameterIfHandled(context, node);
 			},
 
-			// ArrowFunctionExpression(node: estree.ArrowFunctionExpression & eslint.Rule.NodeParentExtension) {
-			// 	checkFunctionParameterIfHandled(context, node);
-			// },
+			ArrowFunctionExpression(node: estree.ArrowFunctionExpression & eslint.Rule.NodeParentExtension) {
+				checkFunctionParameterIfHandled(context, node);
+			},
 		};
 	}
 };
@@ -302,6 +302,15 @@ function checkFunctionParameterIfHandled(
 				}
 			}
 		},
+		
+		/**
+		 * Use default node iteration for unknown node type. This can solve 
+		 * errors when traversing `ArrowFunctionExpression`.
+		 * 
+		 * I am not sure about the exact machanism, but without this line, the 
+		 * linter cannot parse `ArrowFunctionExpression` correctly.
+		 */
+		fallback: 'iteration',
 	});
 
 	// find all unused result and simply report them
