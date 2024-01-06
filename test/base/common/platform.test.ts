@@ -29,12 +29,6 @@ suite('platform-test', () => {
     });
 
     test('Is Linux check', () => {
-
-        console.log(os.platform());
-        console.log(OS);
-        console.log(IS_LINUX, IS_MAC, IS_WINDOWS);
-        console.log(navigator.userAgent);
-
         assert.strictEqual(IS_LINUX, OS.isLinux);
         if (!IS_LINUX) {
             return;
