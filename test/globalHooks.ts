@@ -43,7 +43,7 @@ const hook = new class extends class GlobalHooks {
 
         // register listeners
         this.__registerMochaListeners();
-        this.__registerProcessListeners();
+        // this.__registerProcessListeners();
 
         // set `after` hook
         mocha.after(() => this.__onAllTestsComplete());
@@ -59,7 +59,6 @@ const hook = new class extends class GlobalHooks {
         });
         
         mocha.afterEach(function () {
-            
             if (this.currentTest?.state === 'failed') {
                 const fullTestName = this.currentTest.titlePath().join(' -> ');
                 throw new Error(fullTestName);
