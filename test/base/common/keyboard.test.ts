@@ -93,29 +93,6 @@ suite('keyboard-test', () => {
             assert.strictEqual(Shortcut.fromString('00').equal(Shortcut.None), true);
         });
 
-        test.skip('shortcut hashcode', () => { // FIX
-            const testHash = function (shortcut: Shortcut): void {
-                
-                console.log('before', shortcut);
-                const hashcode = shortcut.toHashcode();
-                const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
-                console.count();
-                console.log(hashcode, converted);
-                assert.ok(converted.equal(shortcut));
-            };
-
-            testHash(new Shortcut(false, false, false, false, KeyCode.Digit9));
-            testHash(new Shortcut(true, false, false, false, KeyCode.Digit6));
-            testHash(new Shortcut(true, true, false, false, KeyCode.Digit6));
-            testHash(new Shortcut(true, true, true, false, KeyCode.Digit1));
-            testHash(new Shortcut(true, true, true, true, KeyCode.Digit7));
-            testHash(new Shortcut(false, true, true, true, KeyCode.Digit2));
-            testHash(new Shortcut(false, false, true, true, KeyCode.Digit5));
-            testHash(new Shortcut(false, false, false, true, KeyCode.Digit5));
-            testHash(new Shortcut(false, true, false, true, KeyCode.Digit2));
-            testHash(new Shortcut(true, true, false, true, KeyCode.Digit0));
-        });
-
         const enum KeyModifer {
             CtrlCmd = (1 << 11) >>> 0,
             Shift = (1 << 10) >>> 0,
