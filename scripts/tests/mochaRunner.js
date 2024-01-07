@@ -22,7 +22,7 @@ const fs = require('fs');
         },
     );
     
-    registerProcListeners(proc);
+    // registerProcListeners(proc);
 })();
 
 async function buildCommandFromConfiguration(rawCommand, cliArgs, configurationPath) {
