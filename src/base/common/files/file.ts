@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IReadableStream, IReadyReadableStream } from "src/base/common/files/stream";
+import { IReadyReadableStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 

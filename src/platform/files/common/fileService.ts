@@ -5,7 +5,7 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, FileSystemProviderError } from "src/base/common/files/file";
 import { basename, dirname, join } from "src/base/common/files/path";
 import { bufferToStream, IReadableStream, IReadyReadableStream, listenStream, newWriteableBufferStream, readFileIntoStream, readFileIntoStreamAsync, streamToBuffer, toReadyStream, transformStream } from "src/base/common/files/stream";
-import { isAbsoluteURI, URI } from "src/base/common/files/uri";
+import { isAbsoluteURI, Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
 import { Iterable } from "src/base/common/utilities/iterable";
@@ -35,12 +35,12 @@ export interface IFileService extends IDisposable, IService {
     /** 
      * @description Registers a file system provider for a given scheme. 
      */
-    registerProvider(scheme: string, provider: IFileSystemProvider): void;
+    registerProvider(scheme: string | Schemas, provider: IFileSystemProvider): void;
 
     /** 
      * @description Gets a file system provider for a given scheme. 
      */
-    getProvider(scheme: string): IFileSystemProvider | undefined;
+    getProvider(scheme: string | Schemas): IFileSystemProvider | undefined;
 
     /**
      * @description Resolves the properties of a file/folder identified by the 
@@ -159,7 +159,7 @@ export class FileService extends Disposable implements IFileService {
      * public API - Provider Operations
      **************************************************************************/
 
-    public registerProvider(scheme: string, provider: IFileSystemProvider): void {
+    public registerProvider(scheme: string | Schemas, provider: IFileSystemProvider): void {
         this._providers.set(scheme, provider);
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
@@ -175,7 +175,7 @@ export class FileService extends Disposable implements IFileService {
         }));
     }
 
-    public getProvider(scheme: string): IFileSystemProvider | undefined {
+    public getProvider(scheme: string | Schemas): IFileSystemProvider | undefined {
         return this._providers.get(scheme);
     }
 

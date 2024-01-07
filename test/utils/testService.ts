@@ -59,7 +59,6 @@ export namespace TestIPC {
         }
 
         public override dispose(): void {
-
             this._onDidDisconnect.fire();
             super.dispose();
         }
