@@ -143,10 +143,12 @@ suite('FileService-disk-test', () => {
             const uri = URI.join(base, 'dir1', 'dir2', 'file1.txt');
             await (service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true }).unwrap());
             await (service.delete(base, { useTrash: true, recursive: false }).unwrap());
-            assert.strictEqual(true, false);
-        } catch (err) {
+            throw 'never';
+        } catch (err: any) {
+            if (err === 'never') {
+                assert.fail(err);
+            }
             await (service.delete(base, { useTrash: true, recursive: true }).unwrap());
-            assert.strictEqual(true, true);
         }
     });
 
