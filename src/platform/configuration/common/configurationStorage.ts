@@ -87,6 +87,11 @@ export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
      *                      The default is true.
      */
     merge(others: IConfigurationStorage | IConfigurationStorage[], ignoreNullity?: boolean): void;
+
+    /**
+     * @internal Not used very often.
+     */
+    refreshSections(): void;
 }
 
 /**
@@ -141,9 +146,6 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return this._sections;
     }
 
-    /**
-     * @note Not used quite often.
-     */
     public refreshSections(): void {
         this._sections = [];
         getConfigurationModelSections(this._model, this._sections);

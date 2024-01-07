@@ -2,6 +2,8 @@ import * as assert from 'assert';
 import * as os from 'os';
 import { IS_LINUX, IS_MAC, IS_WINDOWS, PLATFORM, Platform } from 'src/base/common/platform';
 
+declare const navigator: any;
+
 suite('platform-test', () => {
 
     const OS = {
