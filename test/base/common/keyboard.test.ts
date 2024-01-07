@@ -98,6 +98,7 @@ suite('keyboard-test', () => {
                 const hashcode = shortcut.toHashcode();
                 const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
                 console.count();
+                console.log(hashcode, converted);
                 assert.ok(converted.equal(shortcut));
             };
 
