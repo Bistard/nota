@@ -43,6 +43,9 @@ export interface IReadableStream<T> extends IReadableStreamEvent<T> {
 	/** Starts emitting events again after pause() was called. */
 	resume(): void;
 
+	/** Check if the stream is paused. */
+	isPaused(): boolean;
+
 	/** Destroys the stream and stops emitting any event. */
 	destroy(): void;
 
@@ -231,6 +234,10 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 			this._flowEnd();
 		}
     }
+
+	public isPaused(): boolean {
+		return !this.state.flowing;
+	}
 
 	public destroy(): void {
         if (!this.state.destroyed) {
