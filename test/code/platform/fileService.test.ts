@@ -92,7 +92,7 @@ suite('FileService-disk-test', () => {
         assert.strictEqual(dir[3]![1], FileType.FILE);
     });
 
-    test('createDir - ', async () => {
+    test('createDir', async () => {
         const root = URI.join(baseURI, 'dir-1');
         const uri = URI.join(root, 'dir-2');
 
