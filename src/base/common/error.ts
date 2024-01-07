@@ -860,13 +860,18 @@ export class Err<T, E> implements IResult<T, E> {
  * @remark `panic` is for situations where the error is unrecoverable and the 
  * program cannot proceed further. Use it very carefully.
  * 
- * @param {string} message - The error message to be thrown.
- * @throws {Error} Will throw an error with the provided message.
- * @returns {never} This function never returns normally; always throws an error.
+ * @param messageOrError - The error message to be thrown.
+ * @throws Will throw an error with the provided message.
+ * @returns This function never returns normally; always throws an error.
  */
-export function panic(message: string): never {
+export function panic(messageOrError: string | Error): never {
+    if (messageOrError instanceof Error) {
+        // eslint-disable-next-line local/code-no-throw
+        throw messageOrError;
+    }
+    
     // eslint-disable-next-line local/code-no-throw
-    throw new PanicError(message);
+    throw new PanicError(messageOrError);
 }
 
 export class PanicError extends Error {
