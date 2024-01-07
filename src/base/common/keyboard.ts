@@ -526,6 +526,7 @@ export class Shortcut {
     }
 
     public static fromHashcode(hashcode: number, os: Platform = PLATFORM): Shortcut {
+        console.log('platform', PLATFORM);
         const ctrlCmd = (hashcode & BinaryShortcutMask.CtrlCmd ? true : false);
         const winCtrl = (hashcode & BinaryShortcutMask.WinCtrl ? true : false);
 

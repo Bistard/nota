@@ -95,6 +95,8 @@ suite('keyboard-test', () => {
 
         test('shortcut hashcode', () => {
             const testHash = function (shortcut: Shortcut): void {
+                
+                console.log('before', shortcut);
                 const hashcode = shortcut.toHashcode();
                 const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
                 console.count();
@@ -103,7 +105,7 @@ suite('keyboard-test', () => {
             };
 
             testHash(new Shortcut(false, false, false, false, KeyCode.Digit9));
-            testHash(new Shortcut(true, false, false, false, KeyCode.Digit6));
+            testHash(new Shortcut(true, false, false, false, KeyCode.Digit6)); // FIX
             testHash(new Shortcut(true, true, false, false, KeyCode.Digit6));
             testHash(new Shortcut(true, true, true, false, KeyCode.Digit1));
             testHash(new Shortcut(true, true, true, true, KeyCode.Digit7));
