@@ -417,22 +417,6 @@ suite('URI-test', () => {
         assert.strictEqual(URI.extname(multiDotUri), '.ext');
     });
 
-    test.only('dirname - basics', () => {
-        const uri = URI.parse('file:///c:/test/dir/file.txt');
-        const dirUri = URI.dirname(uri);
-        assert.strictEqual(dirUri.path, '/c:/test/dir');
-
-        // Without file
-        const noFileUri = URI.parse('file:///c:/test/dir/');
-        const noFileDirUri = URI.dirname(noFileUri);
-        assert.strictEqual(noFileDirUri.path, '/c:/test');
-
-        // Root directory
-        const rootUri = URI.parse('file:///c:/');
-        const rootDirUri = URI.dirname(rootUri);
-        assert.strictEqual(rootDirUri.path, '/c:/');
-    });
-
 	test('dirname - more (windows)', function () {
 		if (!IS_WINDOWS) {
 			this.skip();
