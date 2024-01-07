@@ -43,7 +43,8 @@ export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
                 || userAgent.indexOf('win32') >= 0; // for Mocha env check: see issue #170
             isMac = userAgent.indexOf('Macintosh') >= 0
                 || userAgent.indexOf('darwin') >= 0;
-            isLinux = userAgent.indexOf('Linux') >= 0;
+            isLinux = userAgent.indexOf('Linux') >= 0
+                || userAgent.indexOf('linux') >= 0;
         }
         // Native environment
         else if (isObject(nodeProcess)) {

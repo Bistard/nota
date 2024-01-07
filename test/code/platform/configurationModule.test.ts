@@ -15,7 +15,6 @@ import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFi
 import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 import { FakeAsync } from "test/utils/fakeAsync";
-import { assertAsyncResult } from "test/utils/helpers";
 import { NullLogger } from "test/utils/testService";
 
 suite('ConfigurationModule-test', () => {

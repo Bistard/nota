@@ -53,11 +53,11 @@ const hook = new class extends class GlobalHooks {
     private __registerMochaListeners(): void {
         const setCurrentTest = (test?: Mocha.Test) => { this._currentTest = test; };
 
-        mocha.beforeEach(function() {
+        mocha.beforeEach(function () {
             setCurrentTest(this.currentTest);
         });
         
-        mocha.afterEach(function() {
+        mocha.afterEach(function () {
             setCurrentTest(undefined);
         });
     }
