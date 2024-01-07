@@ -9,8 +9,13 @@ let _hitCount = 0;
 /**
  * @description Simple printing debug strategy.
  */
-export function hit(): void {
+export function hit(): number {
     console.log(_hitCount++);
+    return _hitCount;
+}
+
+export function resetHit(): void {
+    _hitCount = 0;
 }
 
 export namespace Context {
