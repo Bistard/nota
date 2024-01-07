@@ -114,39 +114,38 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     public readFileStream(uri: URI, opts?: IReadFileOptions | undefined): AsyncResult<IReadyReadableStream<DataBuffer>, FileOperationError> {
         const stream = newWriteableBufferStream();
-
+        
+        /**
+         * Reading file using stream needs to be handled specially when acrossing 
+         * IPC. The channels between client and server is using `registerListener` 
+         * API instead of using `callCommand` internally.
+         */
         const listener = this._channel.registerListener<ReadableStreamDataFlowType<DataBuffer>>(FileCommand.readFileStream, [uri, opts]);
         const disconnect = listener((flowingData) => {
 
             // normal data
             if (flowingData instanceof DataBuffer) {
                 stream.write(flowingData);
+                return;
             }
 
-            // end or error
-            else {
-                if (flowingData === 'end') {
-                    stream.end();
+            // error
+            if (flowingData !== 'end') {
+                let error = flowingData;
+                if (!(error instanceof Error)) {
+                    error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
                 }
 
-                else {
-                    let error = flowingData;
-                    if (!(error instanceof Error)) {
-                        error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
-                    }
-
-                    stream.error(error);
-                    stream.end();
-                }
-
-                disconnect.dispose();
+                stream.error(error);
             }
+            
+            // error or end
+            stream.end();
+            disconnect.dispose();
         });
 
         stream.pause();
-        
         return AsyncResult.ok(toReadyStream(() => {
-            stream.resume();
             return stream;
         }));
     }

@@ -266,32 +266,36 @@ suite('FileChannel-test (IPC)', () => {
     }));
 
     // FIX
-    test.skip('readFileStream', () => FakeAsync.run(async () => {
-        let cnt = 0;
+    test('readFileStream', () => FakeAsync.run(async () => {
 
         const totalSize = 1 * ByteSize.MB;
         const uri = URI.join(testFileURI, `file-${totalSize}.txt`);
         const ready = await (clientService.readFileStream(uri).unwrap());
         
         const stream = ready.flow();
-
-        const end = new Blocker<void>();
+        const end = new Blocker<boolean>();
+        const buffers: DataBuffer[] = [];
 
         listenStream(stream, {
-            onData: (buffer) => {
-                cnt++;
+            onData: buffer => {
+                buffers.push(buffer);
             },
-            onError: (error) => {
+            onError: error => {
                 assert.fail(errorToMessage(error));
             },
-            onEnd: () => {
-                assert.strictEqual(cnt, totalSize / FileService.bufferSize);
-                end.resolve();
+            onEnd: async () => {
+                const content = DataBuffer.concat(buffers).toString();
+                const actualContent = (await clientService.readFile(uri).unwrap()).toString();
+                end.resolve(content === actualContent);
             }
         });
 
-        await end.waiting();
+        const success = await end.waiting();
         stream.destroy();
+
+        if (!success) {
+            assert.fail();
+        }
     }));
 
     test('copyTo - file', () => FakeAsync.run(async () => {
