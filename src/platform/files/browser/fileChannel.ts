@@ -146,6 +146,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
         stream.pause();
         return AsyncResult.ok(toReadyStream(() => {
+            Promise.resolve().then(() => stream.resume());
             return stream;
         }));
     }

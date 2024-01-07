@@ -265,7 +265,6 @@ suite('FileChannel-test (IPC)', () => {
         await (clientService.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true }).unwrap());
     }));
 
-    // FIX
     test('readFileStream', () => FakeAsync.run(async () => {
 
         const totalSize = 1 * ByteSize.MB;
