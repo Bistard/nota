@@ -311,7 +311,7 @@ export class FileService extends Disposable implements IFileService {
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return this.__validateDelete(uri, opts)
             .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
-            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error)));
+            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error))));
     }
 
     public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
@@ -521,7 +521,7 @@ export class FileService extends Disposable implements IFileService {
 
             return Result.fromPromise(
                 () => blocker.waiting().finally(() => provider.close(fd)),
-                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}`, getFileErrorCode(error), error),
+                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}. Reason: ${errorToMessage(error)}`, getFileErrorCode(error)),
             );
         });
     }
