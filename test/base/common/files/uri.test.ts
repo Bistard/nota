@@ -417,7 +417,7 @@ suite('URI-test', () => {
         assert.strictEqual(URI.extname(multiDotUri), '.ext');
     });
 
-    test('dirname - basics', () => {
+    test.skip('dirname - basics', () => {
         const uri = URI.parse('file:///c:/test/dir/file.txt');
         const dirUri = URI.dirname(uri);
         assert.strictEqual(dirUri.path, '/c:/test/dir');

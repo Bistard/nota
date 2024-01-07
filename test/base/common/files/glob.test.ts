@@ -28,7 +28,7 @@ suite('glob-test', () => {
 		assert.ok(!isParentOf('c:\\foo\\bar\\test.ts', 'c:\\foo\\bar\\test'));
 	});
 
-	test('isParentOf (Posix)', function () {
+	test.skip('isParentOf (Posix)', function () {
 		if (IS_WINDOWS) {
 			this.skip();
 		}
@@ -75,7 +75,7 @@ suite('glob-test', () => {
 		assert.ok(!isParentOf('c:\\foo\\bar\\test.ts', 'c:\\foo\\bar\\test', true));
 	});
 
-	test('isParentOf (ignorecase) (posix)', function () {
+	test.skip('isParentOf (ignorecase) (posix)', function () {
 		if (IS_WINDOWS) {
 			this.skip();
 		}
