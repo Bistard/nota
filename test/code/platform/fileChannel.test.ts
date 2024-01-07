@@ -88,7 +88,6 @@ suite('FileChannel-test (IPC)', () => {
         assert.strictEqual(stat.children, undefined);
     }));
 
-    // FIX: super slow
     test('stat - resolve children', () => FakeAsync.run(async () => {
         const stat = await (clientService.stat(testFileURI, { resolveChildren: true }).unwrap());
         assert.strictEqual(stat.type, FileType.DIRECTORY);
