@@ -70,6 +70,7 @@ export namespace TestIPC {
 
         private readonly _onMessage = new Emitter<DataBuffer>({
             onFirstListenerDidAdd: () => {
+                // only fire the events when there is a listener, in case fires in advance.
                 for (const buffer of this._buffers) {
                     this._onMessage.fire(buffer);
                 }
