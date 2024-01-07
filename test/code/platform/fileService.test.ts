@@ -23,6 +23,7 @@ suite('FileService-disk-test', () => {
     }
 
     const baseURI = URI.join(TestURI, 'file-service-test');
+    const testFileURI = URI.join(baseURI, 'files');
 
     before(async () => {
         // disk provider registration
@@ -31,8 +32,7 @@ suite('FileService-disk-test', () => {
         assert.strictEqual(provider, service.getProvider('file'));
         
         // create testing files
-        const filebaseURI = URI.join(baseURI, 'files');
-        fs.mkdirSync(URI.toFsPath(filebaseURI), { recursive: true });
+        fs.mkdirSync(URI.toFsPath(testFileURI), { recursive: true });
 
         for (const size of [
             ByteSize.KB, 
@@ -40,7 +40,7 @@ suite('FileService-disk-test', () => {
             1 * ByteSize.MB, 
             10 * ByteSize.MB,
         ]) {
-            await createFileWithSize(URI.join(filebaseURI, `file-${size}.txt`), size, undefined);
+            await createFileWithSize(URI.join(testFileURI, `file-${size}.txt`), size, undefined);
         }
     });
 
@@ -53,8 +53,7 @@ suite('FileService-disk-test', () => {
     });
 
     test('stat - resolve children', async () => {
-        const filebaseURI = URI.join(baseURI, 'files');
-        const stat = await (service.stat(filebaseURI, { resolveChildren: true }).unwrap());
+        const stat = await (service.stat(testFileURI, { resolveChildren: true }).unwrap());
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'files');
         assert.strictEqual(stat.readonly, false);
@@ -75,20 +74,17 @@ suite('FileService-disk-test', () => {
     });
 
     test('readFile - basic', async () => {
-        const filebaseURI = URI.join(baseURI, 'files');
-        const uri = URI.join(filebaseURI, `file-${ByteSize.KB}.txt`);
+        const uri = URI.join(testFileURI, `file-${ByteSize.KB}.txt`);
         await (service.readFile(uri).unwrap());
     });
 
     test('readFile - error', async () => {
-        const filebaseURI = URI.join(baseURI, 'files');
-        const uri = URI.join(filebaseURI, `file-unknown.txt`);
+        const uri = URI.join(testFileURI, `file-unknown.txt`);
         await assert.rejects(() => (service.readFile(uri)).unwrap());
     });
 
     test('readDir', async () => {
-        const filebaseURI = URI.join(baseURI, 'files');
-        const dir = await (service.readDir(filebaseURI).unwrap());
+        const dir = await (service.readDir(testFileURI).unwrap());
         assert.strictEqual(dir.length, 4);
         assert.strictEqual(dir[0]![1], FileType.FILE);
         assert.strictEqual(dir[1]![1], FileType.FILE);
@@ -96,7 +92,7 @@ suite('FileService-disk-test', () => {
         assert.strictEqual(dir[3]![1], FileType.FILE);
     });
 
-    test('createDir', async () => {
+    test('createDir - ', async () => {
         const root = URI.join(baseURI, 'dir-1');
         const uri = URI.join(root, 'dir-2');
 
@@ -110,12 +106,11 @@ suite('FileService-disk-test', () => {
     });
 
     test('exist', async () => {
-        const filebaseURI = URI.join(baseURI, 'files');
-        assert.strictEqual(await (service.exist(filebaseURI).unwrap()), true);
-        assert.strictEqual(await (service.exist(URI.join(filebaseURI, `file-${ByteSize.KB}.hello.world`)).unwrap()), false);
-        assert.strictEqual(await (service.exist(URI.join(filebaseURI, `file-${256 * ByteSize.KB}.txt`)).unwrap()), true);
-        assert.strictEqual(await (service.exist(URI.join(filebaseURI, `file-${ByteSize.MB}.txt`)).unwrap()), true);
-        assert.strictEqual(await (service.exist(URI.join(filebaseURI, `file-${10 * ByteSize.MB}.txt`)).unwrap()), true);
+        assert.strictEqual(await (service.exist(testFileURI).unwrap()), true);
+        assert.strictEqual(await (service.exist(URI.join(testFileURI, `file-${ByteSize.KB}.hello.world`)).unwrap()), false);
+        assert.strictEqual(await (service.exist(URI.join(testFileURI, `file-${256 * ByteSize.KB}.txt`)).unwrap()), true);
+        assert.strictEqual(await (service.exist(URI.join(testFileURI, `file-${ByteSize.MB}.txt`)).unwrap()), true);
+        assert.strictEqual(await (service.exist(URI.join(testFileURI, `file-${10 * ByteSize.MB}.txt`)).unwrap()), true);
     });
 
     test('delete - file', async () => {
@@ -200,34 +195,34 @@ suite('FileService-disk-test', () => {
     });
 
     test('readFile - 256kb', async () => {
-        const uri = URI.join(baseURI, 'files', `file-${256 * ByteSize.KB}.txt`);
+        const uri = URI.join(testFileURI, `file-${256 * ByteSize.KB}.txt`);
         await (service.readFile(uri).unwrap());
     });
 
     test('writeFile - 256kb', async () => {
-        const uri = URI.join(baseURI, 'files', `file-${256 * ByteSize.KB}.txt`);
+        const uri = URI.join(testFileURI, `file-${256 * ByteSize.KB}.txt`);
         const buffer = DataBuffer.fromString(Random.string(256 * ByteSize.KB));
         await (service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true }).unwrap());
     });
 
     test('readFile - 1mb', async () => {
-        const uri = URI.join(baseURI, 'files', `file-${1 * ByteSize.MB}.txt`);
+        const uri = URI.join(testFileURI, `file-${1 * ByteSize.MB}.txt`);
         await (service.readFile(uri).unwrap());
     });
 
     test('writeFile - 1mb', async () => {
-        const uri = URI.join(baseURI, 'files', `file-${1 * ByteSize.MB}.txt`);
+        const uri = URI.join(testFileURI, `file-${1 * ByteSize.MB}.txt`);
         const buffer = DataBuffer.fromString(Random.string(ByteSize.MB));
         await (service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true }).unwrap());
     });
 
     test('readFile - 10mb', async () => {
-        const uri = URI.join(baseURI, 'files', `file-${10 * ByteSize.MB}.txt`);
+        const uri = URI.join(testFileURI, `file-${10 * ByteSize.MB}.txt`);
         await (service.readFile(uri).unwrap());
     });
 
     test('writeFile - 10mb', async () => {
-        const uri = URI.join(baseURI, 'files', `file-${10 * ByteSize.MB}.txt`);
+        const uri = URI.join(testFileURI, `file-${10 * ByteSize.MB}.txt`);
         const buffer = DataBuffer.fromString(Random.string(10 * ByteSize.MB));
         await (service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true }).unwrap());
     });
@@ -236,7 +231,7 @@ suite('FileService-disk-test', () => {
         let cnt = 0;
 
         const totalSize = 1 * ByteSize.MB;
-        const uri = URI.join(baseURI, 'files', `file-${totalSize}.txt`);
+        const uri = URI.join(testFileURI, `file-${totalSize}.txt`);
         const ready = await (service.readFileStream(uri).unwrap());
         
         const stream = ready.flow();
