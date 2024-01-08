@@ -74,7 +74,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     // fileItem's order file will be stored in userDataPath
     // Its order file's name is the md5hash of fileItem.uri path.
     private findOrCreateOrderFile(item: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
-        const hashCode = generateMD5Hash(URI.toFsPath(item.uri));
+        const hashCode = generateMD5Hash(URI.toString(item.uri));
         const orderFileName = hashCode + ".json";
         const orderFileURI = URI.join(this.environmentService.userDataPath, hashCode.slice(0, 2), orderFileName);
 
