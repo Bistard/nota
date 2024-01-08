@@ -19,6 +19,7 @@ import { RegistrantService } from 'src/platform/registrant/common/registrantServ
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger, TestIPC, TestURI } from 'test/utils/testService';
 import * as fs from 'fs';
+import { directoryExists } from 'src/base/node/io';
 
 suite('FileChannel-test (IPC)', () => {
 
@@ -33,6 +34,12 @@ suite('FileChannel-test (IPC)', () => {
     const testFileURI = URI.join(baseURI, 'files');
 
     before(async function () {
+        
+        // in case, remove the preivous cache files.
+        if (await directoryExists(URI.toFsPath(baseURI))) {
+            fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
+        }
+
         const logService = new NullLogger();
         const registrantService = new RegistrantService(logService);
         registrantService.registerRegistrant(new ReviverRegistrant());
@@ -62,10 +69,12 @@ suite('FileChannel-test (IPC)', () => {
         }
     });
 
-    after(() => {
+    after(async () => {
         server.dispose();
         client.dispose();
-        fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
+        if (await directoryExists(URI.toFsPath(baseURI))) {
+            fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
+        }
     });
 
     async function createFileWithSize(resource: URI, size: number, defaultChar?: number): Promise<void> {

@@ -277,240 +277,6 @@ suite('result-test', () => {
         });
     });
 
-    suite('AsyncResult', () => {
-        
-        function getAsyncResult(value: boolean): AsyncResult<string, string> {
-            if (value) {
-                return AsyncResult.ok('ok');
-            }
-            return AsyncResult.err('err');
-        }
-
-        test('GetAsyncOkType & GetAsyncErrType', () => {
-            const result = getAsyncResult(true);
-            checkTrue<AreEqual<GetAsyncOkType<typeof result>, string>>();
-            checkTrue<AreEqual<GetAsyncErrType<typeof result>, string>>();
-        });
-
-        test('await for resolving Ok', async () => {
-            const result = getAsyncResult(true);
-            const resolvedResult = await result;
-    
-            assert.ok(resolvedResult.isOk());
-            assert.strictEqual(resolvedResult.unwrap(), 'ok');
-        });
-        
-        test('await for resolving Err', async () => {
-            const result = getAsyncResult(false);
-            const resolvedResult = await result;
-    
-            assert.ok(resolvedResult.isErr());
-            assert.strictEqual(resolvedResult.unwrapErr(), 'err');
-        });
-
-        test('isOk should return true for success', async () => {
-            const result = getAsyncResult(true);
-            assert.ok(await result.isOk());
-        });
-    
-        test('isErr should return false for success', async () => {
-            const result = await getAsyncResult(true);
-            assert.ok(!result.isErr());
-        });
-    
-        test('unwrap should return value for success', async () => {
-            const result = getAsyncResult(true);
-            assert.strictEqual(await result.unwrap(), 'ok');
-        });
-    
-        test('unwrap should throw for error', async () => {
-            const result = getAsyncResult(false);
-            try {
-                await result.unwrap();
-                assert.fail('unwrap should have thrown an error');
-            } catch (error) {
-                assert.ok(error instanceof Error);
-            }
-        });
-    
-        test('unwrapOr should return value for success', async () => {
-            const result = getAsyncResult(true);
-            assert.strictEqual(await result.unwrapOr('default'), 'ok');
-        });
-    
-        test('unwrapOr should return default for error', async () => {
-            const result = getAsyncResult(false);
-            assert.strictEqual(await result.unwrapOr('default'), 'default');
-        });
-    
-        test('expect should return value for success', async () => {
-            const result = getAsyncResult(true);
-            assert.strictEqual(await result.expect('error message'), 'ok');
-        });
-    
-        test('expect should throw custom error for error', async () => {
-            const result = getAsyncResult(false);
-            try {
-                await result.expect('custom error');
-                assert.fail('expect should have thrown an error');
-            } catch (error) {
-                assert.strictEqual((<Error>error).message, 'custom error');
-            }
-        });
-    
-        test('match should call onOk for success', async () => {
-            const result = getAsyncResult(true);
-            const matched = await result.match(
-                data => data.toUpperCase(),
-                error => 'error'
-            );
-            assert.strictEqual(matched, 'OK');
-        });
-    
-        test('match should call onError for error', async () => {
-            const result = getAsyncResult(false);
-            const matched = await result.match(
-                data => data.toUpperCase(),
-                error => 'handled error'
-            );
-            assert.strictEqual(matched, 'handled error');
-        });
-    
-        test('map should transform value for success', async () => {
-            const result = getAsyncResult(true);
-            const mapped = await result.map(data => data.length);
-            assert.strictEqual(mapped.unwrap(), 2);
-        });
-    
-        test('map should not affect error', async () => {
-            const result = getAsyncResult(false);
-            const mapped = await result.map(data => data.length);
-            assert.ok(mapped.isErr());
-        });
-    
-        test('mapErr should not affect success', async () => {
-            const result = getAsyncResult(true);
-            const mapped = await result.mapErr(error => new Error('new error'));
-            assert.ok(mapped.isOk());
-        });
-    
-        test('mapErr should transform error', async () => {
-            const result = getAsyncResult(false);
-            const mapped = await result.mapErr(error => new Error('new error'));
-            assert.ok(mapped.isErr());
-            assert.strictEqual(mapped.error.message, 'new error');
-        });
-
-        suite('andThen', () => {
-            test('andThen method should transform async Ok', async () => {
-                const result = getAsyncResult(true);
-                const transformedResult = await result.andThen(ok => AsyncResult.ok(42));
-        
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), 42);
-            });
-    
-            test('andThen method should transform Ok', async () => {
-                const result = getAsyncResult(true);
-                const transformedResult = await result.andThen(_ => ok(42));
-        
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), 42);
-            });
-            
-            test('andThen method should transform err', async () => {
-                const result = getAsyncResult(false);
-                const transformedResult = await result.andThen(ok => AsyncResult.ok(42));
-        
-                assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrapErr(), 'err');
-            });
-            
-            test('andThen method should transform successful Promise', async () => {
-                const result = getAsyncResult(true);
-                const transformedResult = await result.andThen(async () => 42);
-        
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), 42);
-            });
-            
-            test('andThen method should transform failed Promise', async () => {
-                const result = getAsyncResult(true);
-                const transformedResult = await result.andThen(async () => { throw 'error!'; });
-        
-                assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrapErr(), 'error!');
-            });
-        });
-        
-        suite('orElse', () => {
-            test('orElse method should transform async Ok', async () => {
-                const result = getAsyncResult(false);
-                const transformedResult = await result.orElse(_ => AsyncResult.ok<string, Error>('42'));
-        
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), '42');
-            });
-    
-            test('orElse method should transform Ok', async () => {
-                const result = getAsyncResult(false);
-                const transformedResult = await result.orElse(_ => ok<string, Error>('42'));
-        
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), '42');
-            });
-            
-            test('orElse method should transform err', async () => {
-                const result = getAsyncResult(false);
-                const transformedResult = await result.orElse(ok => AsyncResult.ok<string, Error>('42'));
-        
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), '42');
-            });
-            
-            test('orElse method should transform successful Promise', async () => {
-                const result = getAsyncResult(false);
-                const transformedResult = await result.orElse(async () => '42');
-                
-                assert.ok(transformedResult.isOk());
-                assert.strictEqual(transformedResult.unwrap(), '42');
-            });
-            
-            test('orElse method should transform failed Promise', async () => {
-                const result = getAsyncResult(false);
-                const transformedResult = await result.orElse(async () => { throw 'error!'; });
-                
-                assert.ok(transformedResult.isErr());
-                assert.strictEqual(transformedResult.unwrapErr(), 'error!');
-            });
-        });
-        
-        test('toPromise should reject with error for AsyncResult.err', async () => {
-            // eslint-disable-next-line local/code-must-handle-result
-            const result = getAsyncResult(false);
-            try {
-                await result.toPromise();
-                assert.fail('Promise should have been rejected');
-            } catch (error) {
-                assert.ok(error instanceof PanicError);
-            }
-        });
-
-        test('AsyncResult.is', () => {
-            assert.strictEqual(AsyncResult.is(AsyncResult.ok()), true);
-            assert.strictEqual(AsyncResult.is(AsyncResult.err()), true);
-            
-            assert.strictEqual(AsyncResult.is(ok()), false);
-            assert.strictEqual(AsyncResult.is(err()), false);
-            assert.strictEqual(AsyncResult.is({ isOk: () => {}, isErr: () => {} }), false);
-            assert.strictEqual(AsyncResult.is({ isOk: () => {} }), false);
-            assert.strictEqual(AsyncResult.is(5), false);
-            assert.strictEqual(AsyncResult.is(undefined), false);
-            assert.strictEqual(AsyncResult.is({}), false);
-            assert.strictEqual(AsyncResult.is({ isOk: false }), false);
-        });
-    });
-
     suite('panic', () => {
         test('should throw provided error message', () => {
             assert.throws(() => {
@@ -607,5 +373,239 @@ suite('result-test', () => {
                 assert.fail();
             }
         });
+    });
+});
+
+suite('AsyncResult', () => {
+        
+    function getAsyncResult(value: boolean): AsyncResult<string, string> {
+        if (value) {
+            return AsyncResult.ok('ok');
+        }
+        return AsyncResult.err('err');
+    }
+
+    test('GetAsyncOkType & GetAsyncErrType', () => {
+        const result = getAsyncResult(true);
+        checkTrue<AreEqual<GetAsyncOkType<typeof result>, string>>();
+        checkTrue<AreEqual<GetAsyncErrType<typeof result>, string>>();
+    });
+
+    test('await for resolving Ok', async () => {
+        const result = getAsyncResult(true);
+        const resolvedResult = await result;
+
+        assert.ok(resolvedResult.isOk());
+        assert.strictEqual(resolvedResult.unwrap(), 'ok');
+    });
+    
+    test('await for resolving Err', async () => {
+        const result = getAsyncResult(false);
+        const resolvedResult = await result;
+
+        assert.ok(resolvedResult.isErr());
+        assert.strictEqual(resolvedResult.unwrapErr(), 'err');
+    });
+
+    test('isOk should return true for success', async () => {
+        const result = getAsyncResult(true);
+        assert.ok(await result.isOk());
+    });
+
+    test('isErr should return false for success', async () => {
+        const result = await getAsyncResult(true);
+        assert.ok(!result.isErr());
+    });
+
+    test('unwrap should return value for success', async () => {
+        const result = getAsyncResult(true);
+        assert.strictEqual(await result.unwrap(), 'ok');
+    });
+
+    test('unwrap should throw for error', async () => {
+        const result = getAsyncResult(false);
+        try {
+            await result.unwrap();
+            assert.fail('unwrap should have thrown an error');
+        } catch (error) {
+            assert.ok(error instanceof Error);
+        }
+    });
+
+    test('unwrapOr should return value for success', async () => {
+        const result = getAsyncResult(true);
+        assert.strictEqual(await result.unwrapOr('default'), 'ok');
+    });
+
+    test('unwrapOr should return default for error', async () => {
+        const result = getAsyncResult(false);
+        assert.strictEqual(await result.unwrapOr('default'), 'default');
+    });
+
+    test('expect should return value for success', async () => {
+        const result = getAsyncResult(true);
+        assert.strictEqual(await result.expect('error message'), 'ok');
+    });
+
+    test('expect should throw custom error for error', async () => {
+        const result = getAsyncResult(false);
+        try {
+            await result.expect('custom error');
+            assert.fail('expect should have thrown an error');
+        } catch (error) {
+            assert.strictEqual((<Error>error).message, 'custom error');
+        }
+    });
+
+    test('match should call onOk for success', async () => {
+        const result = getAsyncResult(true);
+        const matched = await result.match(
+            data => data.toUpperCase(),
+            error => 'error'
+        );
+        assert.strictEqual(matched, 'OK');
+    });
+
+    test('match should call onError for error', async () => {
+        const result = getAsyncResult(false);
+        const matched = await result.match(
+            data => data.toUpperCase(),
+            error => 'handled error'
+        );
+        assert.strictEqual(matched, 'handled error');
+    });
+
+    test('map should transform value for success', async () => {
+        const result = getAsyncResult(true);
+        const mapped = await result.map(data => data.length);
+        assert.strictEqual(mapped.unwrap(), 2);
+    });
+
+    test('map should not affect error', async () => {
+        const result = getAsyncResult(false);
+        const mapped = await result.map(data => data.length);
+        assert.ok(mapped.isErr());
+    });
+
+    test('mapErr should not affect success', async () => {
+        const result = getAsyncResult(true);
+        const mapped = await result.mapErr(error => new Error('new error'));
+        assert.ok(mapped.isOk());
+    });
+
+    test('mapErr should transform error', async () => {
+        const result = getAsyncResult(false);
+        const mapped = await result.mapErr(error => new Error('new error'));
+        assert.ok(mapped.isErr());
+        assert.strictEqual(mapped.error.message, 'new error');
+    });
+
+    suite('andThen', () => {
+        test('andThen method should transform async Ok', async () => {
+            const result = getAsyncResult(true);
+            const transformedResult = await result.andThen(ok => AsyncResult.ok(42));
+    
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), 42);
+        });
+
+        test('andThen method should transform Ok', async () => {
+            const result = getAsyncResult(true);
+            const transformedResult = await result.andThen(_ => ok(42));
+    
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), 42);
+        });
+        
+        test('andThen method should transform err', async () => {
+            const result = getAsyncResult(false);
+            const transformedResult = await result.andThen(ok => AsyncResult.ok(42));
+    
+            assert.ok(transformedResult.isErr());
+            assert.strictEqual(transformedResult.unwrapErr(), 'err');
+        });
+        
+        test('andThen method should transform successful Promise', async () => {
+            const result = getAsyncResult(true);
+            const transformedResult = await result.andThen(async () => 42);
+    
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), 42);
+        });
+        
+        test('andThen method should transform failed Promise', async () => {
+            const result = getAsyncResult(true);
+            const transformedResult = await result.andThen(async () => { throw 'error!'; });
+    
+            assert.ok(transformedResult.isErr());
+            assert.strictEqual(transformedResult.unwrapErr(), 'error!');
+        });
+    });
+    
+    suite('orElse', () => {
+        test('orElse method should transform async Ok', async () => {
+            const result = getAsyncResult(false);
+            const transformedResult = await result.orElse(_ => AsyncResult.ok<string, Error>('42'));
+    
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), '42');
+        });
+
+        test('orElse method should transform Ok', async () => {
+            const result = getAsyncResult(false);
+            const transformedResult = await result.orElse(_ => ok<string, Error>('42'));
+    
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), '42');
+        });
+        
+        test('orElse method should transform err', async () => {
+            const result = getAsyncResult(false);
+            const transformedResult = await result.orElse(ok => AsyncResult.ok<string, Error>('42'));
+    
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), '42');
+        });
+        
+        test('orElse method should transform successful Promise', async () => {
+            const result = getAsyncResult(false);
+            const transformedResult = await result.orElse(async () => '42');
+            
+            assert.ok(transformedResult.isOk());
+            assert.strictEqual(transformedResult.unwrap(), '42');
+        });
+        
+        test('orElse method should transform failed Promise', async () => {
+            const result = getAsyncResult(false);
+            const transformedResult = await result.orElse(async () => { throw 'error!'; });
+            
+            assert.ok(transformedResult.isErr());
+            assert.strictEqual(transformedResult.unwrapErr(), 'error!');
+        });
+    });
+    
+    test('toPromise should reject with error for AsyncResult.err', async () => {
+        // eslint-disable-next-line local/code-must-handle-result
+        const result = getAsyncResult(false);
+        try {
+            await result.toPromise();
+            assert.fail('Promise should have been rejected');
+        } catch (error) {
+            assert.ok(error instanceof PanicError);
+        }
+    });
+
+    test('AsyncResult.is', () => {
+        assert.strictEqual(AsyncResult.is(AsyncResult.ok()), true);
+        assert.strictEqual(AsyncResult.is(AsyncResult.err()), true);
+        
+        assert.strictEqual(AsyncResult.is(ok()), false);
+        assert.strictEqual(AsyncResult.is(err()), false);
+        assert.strictEqual(AsyncResult.is({ isOk: () => {}, isErr: () => {} }), false);
+        assert.strictEqual(AsyncResult.is({ isOk: () => {} }), false);
+        assert.strictEqual(AsyncResult.is(5), false);
+        assert.strictEqual(AsyncResult.is(undefined), false);
+        assert.strictEqual(AsyncResult.is({}), false);
+        assert.strictEqual(AsyncResult.is({ isOk: false }), false);
     });
 });
