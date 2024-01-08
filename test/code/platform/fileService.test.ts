@@ -13,6 +13,7 @@ import { errorToMessage } from 'src/base/common/error';
 import { listenStream } from 'src/base/common/files/stream';
 import { directoryExists } from 'src/base/node/io';
 import * as fs from 'fs';
+import { ResourceChangeType } from 'src/platform/files/common/watcher';
 
 suite('FileService-disk-test', () => {
 
@@ -368,25 +369,37 @@ suite('FileService-disk-test', () => {
         }
     });
 
-    // FIX: this does not work in macOS
     test('watch - deleting file', async () => {
         const base = URI.join(baseURI, 'watch');
-        const file = URI.join(base, 'watch-file');
+        const file = URI.join(base, 'watch-deleting-file');
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
+        
         const unwatch = service.watch(file).unwrap();
-
         const firstDel = new EventBlocker(service.onDidResourceChange);
+        
         await service.delete(file).unwrap();
+        
         const events = await firstDel.waiting();
-        assert.ok(events.wrap().match(file));
+        assert.ok(events.wrap().match(file, [ResourceChangeType.DELETED]));
 
         unwatch.dispose();
-
-        const secondDel = new EventBlocker(service.onDidResourceChange, 100);
+    });
+    
+    test('watch - updating file', async () => {
+        const base = URI.join(baseURI, 'watch');
+        const file = URI.join(base, 'watch-updating-file');
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
-        secondDel.waiting()
-        .then(() => assert.fail('should not be watching'))
-        .catch(() => { /** success (not watching for this) */ });
+        
+        const unwatch = service.watch(file).unwrap();
+        const firstDel = new EventBlocker(service.onDidResourceChange);
+        
+        await service.delete(file).unwrap();
+        await service.createFile(file, DataBuffer.alloc(0)).unwrap();
+        
+        const events = await firstDel.waiting();
+        assert.ok(events.wrap().match(file, [ResourceChangeType.UPDATED]));
+
+        unwatch.dispose();
     });
 
     // FIX: idk why this doesn't work
