@@ -95,7 +95,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             return err(statResult.error);
         }
         const rootStat = statResult.data;
-        const rootItem = new FileItem(rootStat, null, filterOpts);
+        const rootItem = new FileItem(rootStat, null, () => {}, filterOpts);
 
         // construct the file system hierarchy
         const dndProvider = new FileItemDragAndDropProvider(this.fileService);

@@ -69,6 +69,7 @@ export interface IFileItem {
      * item.
      * @param fileService The given {@link IFileService} for fetching the 
      * children of the current item.
+     * @param onError Make sure the error is provided to outside.
      * @param filters Providing filter options during the resolution process can 
      * prevent unnecessary performance loss compares to we filter the result 
      * after the process.
@@ -77,7 +78,7 @@ export interface IFileItem {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
+    refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -115,6 +116,7 @@ export class FileItem implements IFileItem {
     constructor(
         stat: IResolvedFileStat,
         parent: FileItem | null,
+        onError: (error: Error) => void,
         filters?: IFilterOpts,
         cmpFn?: CompareFn<FileItem>
     ) {
@@ -131,12 +133,17 @@ export class FileItem implements IFileItem {
                 if (filters && isFiltered(child.name, filters)) {
                     continue;
                 }
-                this._children.push(new FileItem(child, this));
+                this._children.push(new FileItem(child, this, onError, filters, cmpFn));
             }
         }
 
         if (cmpFn) {
-            this._children.sort(cmpFn);
+            try {
+                this._children.sort(cmpFn);
+            } catch (error: any) {
+                this._children.sort();
+                onError(error);
+            }
         }
     }
 
@@ -181,7 +188,7 @@ export class FileItem implements IFileItem {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
+    public refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
         const promise = (async () => {
 
             /**
@@ -205,7 +212,7 @@ export class FileItem implements IFileItem {
             // update the children stat recursively
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
-                this._children.push(new FileItem(childStat, this, filters));
+                this._children.push(new FileItem(childStat, this, onError, filters, cmpFn));
             }
 
             if (cmpFn) {
@@ -253,8 +260,13 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
      */
     public getChildren(data: FileItem): FileItem[] | Promise<FileItem[]> {
 
+        const onError = (error: any) => {
+            this.logService.error(errorToMessage(error));
+            return <FileItem[]>[];
+        };
+
         // refresh the children recursively
-        const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts, this.cmpFn);
+        const refreshPromise = data.refreshChildren(this.fileService, onError, this.filterOpts, this.cmpFn);
 
         // the provided item's children are already resolved, we simply return it.
         if (!AsyncResult.is(refreshPromise)) {
@@ -262,18 +274,16 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         }
 
         // the provided item's children never resolved, we wait until it resolved.
+        
         const promise = refreshPromise
         .then(
             (result) => {
                 return result.match(
                     () => data.children,
-                    error => {
-                        this.logService.error(errorToMessage(error));
-                        return <FileItem[]>[];
-                    }
+                    error => onError(error)
                 );
             },
-            (error) => <FileItem[]>[],
+            (error) => onError(error),
         );
 
         return promise;
