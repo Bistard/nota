@@ -40,7 +40,7 @@ export class FileTreeSorter extends Disposable {
         this._customSorter = this.instantiationService.createInstance(CustomSorter);
         // swich case
         // this.compare
-        this.compare = this._customSorter.compare;
+        this.compare = this._customSorter.compare.bind(this._customSorter);
     }
 
     // [getter]
@@ -49,4 +49,7 @@ export class FileTreeSorter extends Disposable {
 
     // [public methods]
 
+
+    // private methods
 }
+

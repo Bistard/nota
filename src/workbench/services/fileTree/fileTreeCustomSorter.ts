@@ -33,19 +33,26 @@ export class CustomSorter extends Disposable implements ICustomSorter{
     }
 
     public compare(a: FileItem, b: FileItem): number {
-        const customSortOrder = this._customSortOrderMap[URI.toFsPath(a.parent!.uri)];
+        const customSortOrder: string[] | undefined = this._customSortOrderMap[URI.toFsPath(a.parent!.uri)];
+        if (customSortOrder === undefined) {
+            return defaultFileItemCompareFn(a, b);
+        }
         const indexA = customSortOrder.indexOf(a.name);
         const indexB = customSortOrder.indexOf(b.name);
 
         if (indexA !== -1 && indexB !== -1) {
+            console.log("1");
             return indexA - indexB;
         } else if (indexA !== -1) {
             customSortOrder.push(b.name);
+            console.log("2");
             return -1;
         } else if (indexB !== -1) {
             customSortOrder.push(a.name);
+            console.log("3");
             return 1;
         } else {
+            console.log("4");
             customSortOrder.push(b.name);
             customSortOrder.push(a.name);
             return defaultFileItemCompareFn(a, b);
