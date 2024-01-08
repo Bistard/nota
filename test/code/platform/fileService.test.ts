@@ -8,9 +8,10 @@ import { NullLogger, TestURI } from 'test/utils/testService';
 import { Random } from 'src/base/common/utilities/random';
 import { Arrays } from 'src/base/common/utilities/array';
 import { after, before } from 'mocha';
-import { Blocker } from 'src/base/common/utilities/async';
+import { Blocker, EventBlocker } from 'src/base/common/utilities/async';
 import { errorToMessage } from 'src/base/common/error';
 import { listenStream } from 'src/base/common/files/stream';
+import { directoryExists } from 'src/base/node/io';
 import * as fs from 'fs';
 
 suite('FileService-disk-test', () => {
@@ -26,6 +27,12 @@ suite('FileService-disk-test', () => {
     const testFileURI = URI.join(baseURI, 'files');
 
     before(async () => {
+
+        // in case, remove the preivous cache files.
+        if (await directoryExists(URI.toFsPath(baseURI))) {
+            fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
+        }
+
         // disk provider registration
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
@@ -41,6 +48,12 @@ suite('FileService-disk-test', () => {
             10 * ByteSize.MB,
         ]) {
             await createFileWithSize(URI.join(testFileURI, `file-${size}.txt`), size, undefined);
+        }
+    });
+
+    after(async () => {
+        if (await directoryExists(URI.toFsPath(baseURI))) {
+            fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
         }
     });
 
@@ -356,50 +369,47 @@ suite('FileService-disk-test', () => {
     });
 
     // FIX: this does not work in macOS
-    // test('watch - basic', async () => {
-    //     const base = URI.join(baseURI, 'watch');
-    //     const file = URI.join(base, 'watch-file');
-    //     await service.createFile(file, DataBuffer.alloc(0));
-    //     const unwatch = service.watch(file);
+    test('watch - deleting file', async () => {
+        const base = URI.join(baseURI, 'watch');
+        const file = URI.join(base, 'watch-file');
+        await service.createFile(file, DataBuffer.alloc(0)).unwrap();
+        const unwatch = service.watch(file).unwrap();
 
-    //     const first = new EventBlocker(service.onDidResourceChange);
-    //     service.delete(file);
-    //     await first.waiting()
-    //     .then((e) => assert.strictEqual(e.match(file), true))
-    //     .catch(() => assert.fail());
+        const firstDel = new EventBlocker(service.onDidResourceChange);
+        await service.delete(file).unwrap();
+        const events = await firstDel.waiting();
+        assert.ok(events.wrap().match(file));
 
-    //     unwatch.dispose();
+        unwatch.dispose();
 
-    //     const second = new EventBlocker(service.onDidResourceChange, 100);
-    //     service.createFile(file, DataBuffer.alloc(0));
-    //     await second.waiting()
-    //     .then(() => assert.fail('should not be watching'))
-    //     .catch(() => { /** success (not watching for this) */ });
-    // });
+        const secondDel = new EventBlocker(service.onDidResourceChange, 100);
+        await service.createFile(file, DataBuffer.alloc(0)).unwrap();
+        secondDel.waiting()
+        .then(() => assert.fail('should not be watching'))
+        .catch(() => { /** success (not watching for this) */ });
+    });
 
     // FIX: idk why this doesn't work
-    // test('watch - directory', async () => {
+    test.skip('watch - directory', async () => {
 
-    //     const base = URI.join(baseURI, 'watch1');
-    //     const dir = URI.join(base, 'watch-directory');
-    //     await service.createDir(dir);
-    //     const unwatch = service.watch(dir, { recursive: true });
+        const base = URI.join(baseURI, 'watch1');
+        const dir = URI.join(base, 'watch-directory');
+        await service.createDir(dir).unwrap();
+        const unwatch = service.watch(dir, { recursive: true }).unwrap();
 
-    //     const first = new EventBlocker(service.onDidResourceChange);
-    //     service.createFile(URI.join(dir, 'nest-file1'), DataBuffer.alloc(0));
-    //     await first.waiting()
-    //     .then((e) => assert.strictEqual(e.affect(dir), true));
+        const first = new EventBlocker(service.onDidResourceChange, 10000);
+        await service.createFile(URI.join(dir, 'nest-file1'), DataBuffer.alloc(0)).unwrap();
+        
+        const events = await first.waiting();
+        assert.ok(events.wrap().affect(dir));
+        unwatch.dispose();
 
-    //     unwatch.dispose();
-
-    //     const second = new EventBlocker(service.onDidResourceChange, 100);
-    //     service.delete(URI.join(dir, 'nest-file1'));
-    //     await second.waiting()
-    //     .then(() => assert.fail('should not be watching'))
-    //     .catch(() => { /** success (not watching for this) */ });
-    // });
-
-    after(async () => {
-        fs.rmSync(URI.toFsPath(baseURI), { maxRetries: 3, recursive: true });
+        const second = new EventBlocker(service.onDidResourceChange, 100);
+        await service.delete(URI.join(dir, 'nest-file1')).unwrap();
+        const shouldFail = second.waiting();
+        
+        shouldFail
+        .then(() => assert.fail('should not be watching'))
+        .catch(() => { /** success (not watching for this) */ });
     });
 });
