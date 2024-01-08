@@ -4,6 +4,7 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { jsonSafeStringtify, jsonSafeParse } from "src/base/common/json";
+import { ResourceMap } from "src/base/common/structures/map";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
@@ -19,7 +20,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     
     // [fields]
 
-    private readonly _customSortOrderMap: Map<string, string[]> = new Map();
+    private readonly _customSortOrderMap: ResourceMap<string[]> = new ResourceMap();
 
     // [constructor]
 
@@ -39,7 +40,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     public compare(a: TItem, b: TItem): number {
 
         // FIX: what happens if `a.parent` is `null`
-        const customSortOrder: string[] | undefined = this._customSortOrderMap[URI.toFsPath(a.parent!.uri)];
+        const customSortOrder: string[] | undefined = this._customSortOrderMap.get(a.parent!.uri);
         if (customSortOrder === undefined) {
             return defaultFileItemCompareFn(a, b);
         }
@@ -86,7 +87,8 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
             }
 
             // the order file does not exist, we need to create a new one.
-            return jsonSafeStringtify(item.children, undefined, 4) // FIX: you are stringifying `FileItem[]` into string, but at line 99 you are parsing it as `string[]` type.
+            // FIX: you are stringifying `FileItem[]` into string, but in `loadCustomSortOrder` you are parsing it as `string[]` type.
+            return jsonSafeStringtify(item.children, undefined, 4)
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
                 .map(() => orderFileURI));
@@ -98,14 +100,14 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
         .andThen(order => {
-            this._customSortOrderMap.set(URI.toFsPath(item.uri), order);
+            this._customSortOrderMap.set(item.uri, order);
             return ok();
         });
     }
 
     private saveCustomSortOrder(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.findOrCreateOrderFile(item)
-        .andThen(orderFileURI => jsonSafeStringtify(this._customSortOrderMap[URI.toFsPath(item.uri)], undefined, 4)
+        .andThen(orderFileURI => jsonSafeStringtify(this._customSortOrderMap.get(item.uri), undefined, 4)
             .map(stringify => <const>[orderFileURI, stringify]))
         .andThen(([orderFileURI, stringtify]) => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringtify)));
     }
