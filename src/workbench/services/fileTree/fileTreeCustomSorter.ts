@@ -108,7 +108,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     private saveCustomSortOrder(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.findOrCreateOrderFile(item)
         .andThen(orderFileURI => jsonSafeStringify(this._customSortOrderMap.get(item.uri), undefined, 4)
-            .map(stringify => <const>[orderFileURI, stringify]))
-        .andThen(([orderFileURI, stringify]) => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify)));
+            .toAsync()
+            .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify)))));
     }
 }
