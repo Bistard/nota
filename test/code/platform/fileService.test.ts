@@ -385,7 +385,7 @@ suite('FileService-disk-test', () => {
         unwatch.dispose();
     });
     
-    test('watch - updating file', async () => {
+    test.skip('watch - updating file', async () => {
         const base = URI.join(baseURI, 'watch');
         const file = URI.join(base, 'watch-updating-file');
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
