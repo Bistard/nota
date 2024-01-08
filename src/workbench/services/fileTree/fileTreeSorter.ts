@@ -1,10 +1,11 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
-import { FileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
-export interface IFileTreeSorter extends IDisposable {
-    readonly compare: (a: FileItem, b: FileItem) => number;
+export interface IFileTreeSorter<TItem extends FileItem> extends IDisposable {
+
+    readonly compare: (a: TItem, b: TItem) => number;
 }
 
 // TODO: @AAsteria
@@ -21,11 +22,16 @@ export const enum FileSortType {
     CustomSort = 'CustomSort',
 }
 
-export class FileTreeSorter extends Disposable {
+/**
+ * @class // TODO
+ */
+export class FileTreeSorter<TItem extends FileItem> extends Disposable implements IFileTreeSorter<TItem> {
 
     // [fields]
+
     private readonly _sortType: FileSortType;
-    private readonly _customSorter: FileTreeCustomSorter;
+    private readonly _customSorter: IFileTreeCustomSorter<TItem>;
+    
     // [constructor]
 
     constructor(
@@ -42,11 +48,9 @@ export class FileTreeSorter extends Disposable {
 
     // [getter]
 
-    public readonly compare: (a: FileItem, b: FileItem) => number;
+    public readonly compare: (a: TItem, b: TItem) => number;
 
     // [public methods]
 
-
-    // private methods
 }
 

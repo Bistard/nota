@@ -34,7 +34,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
-    private _sorter?: FileTreeSorter;
 
     // [constructor]
 
@@ -71,9 +70,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [public mehtods]
 
     public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
-        // file tree sorter
         const [sorter, registerSorterListeners] = this.__initSorter();
-        this._sorter = this.__register(sorter);
+        this.__register(sorter);
         
         return this.__initTree(container, root, sorter)
         .andThen(async tree => {
@@ -97,7 +95,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     // [private helper methods]
 
-    private __initTree(container: HTMLElement, root: URI, sorter: FileTreeSorter): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
+    private __initTree(container: HTMLElement, root: URI, sorter: FileTreeSorter<FileItem>): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
         
         // make sure the root directory exists first
         return this.fileService.stat(root, { resolveChildren: true })
@@ -142,7 +140,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         });
     }   
 
-    private __initSorter(): Pair<FileTreeSorter, (tree: IFileTree<FileItem, void>) => void> {
+    private __initSorter(): Pair<FileTreeSorter<FileItem>, (tree: IFileTree<FileItem, void>) => void> {
         const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSorting);
 
         const sorter = new FileTreeSorter(

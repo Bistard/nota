@@ -9,17 +9,18 @@ import { IBrowserEnvironmentService } from "src/platform/environment/common/envi
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
-interface IFileTreeCustomSorter extends IDisposable {
-    compare(a: FileItem, b: FileItem): number;
-
-    init(fileItem: FileItem): AsyncResult<void, FileOperationError | SyntaxError>;
+export interface IFileTreeCustomSorter<TItem extends FileItem> extends IDisposable {
+    compare(a: TItem, b: TItem): number;
+    init(fileItem: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
-export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomSorter {
-    // map for optimization, act as a cache
-    // private _customSortOrderMap: Map<string, string[]> = new Map();
+export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable implements IFileTreeCustomSorter<TItem> {
+    
+    // [fields]
 
     private readonly _customSortOrderMap: Map<string, string[]> = new Map();
+
+    // [constructor]
 
     constructor(
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
@@ -27,12 +28,14 @@ export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomS
     ) {
         super();
     }
+    
+    // [public methods]
 
-    public init(fileItem: FileItem):  AsyncResult<void, FileOperationError | SyntaxError>{
+    public init(fileItem: TItem):  AsyncResult<void, FileOperationError | SyntaxError>{
         return this.loadCustomSortOrder(fileItem);
     }
 
-    public compare(a: FileItem, b: FileItem): number {
+    public compare(a: TItem, b: TItem): number {
         const customSortOrder: string[] | undefined = this._customSortOrderMap[URI.toFsPath(a.parent!.uri)];
         if (customSortOrder === undefined) {
             return defaultFileItemCompareFn(a, b);
@@ -59,10 +62,11 @@ export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomS
         }
     }
     
-    // private methods
+    // [private helper methods]
+
     // fileItem's order file will be stored in userDataPath
     // Its order file's name is the md5hash of fileItem.uri path.
-    private findOrCreateOrderFile(item: FileItem): AsyncResult<URI, FileOperationError | SyntaxError> {
+    private findOrCreateOrderFile(item: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
         const folderPath = URI.toFsPath(item.uri);
         const hashCode = generateMD5Hash(folderPath);
         const orderFileName = hashCode + ".json";
@@ -80,7 +84,7 @@ export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomS
         });
     }
 
-    private loadCustomSortOrder(item: FileItem): AsyncResult<void, FileOperationError | SyntaxError> {
+    private loadCustomSortOrder(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.findOrCreateOrderFile(item)
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
@@ -90,7 +94,7 @@ export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomS
         });
     }
 
-    private saveCustomSortOrder(item: FileItem): AsyncResult<void, FileOperationError | SyntaxError> {
+    private saveCustomSortOrder(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.findOrCreateOrderFile(item)
         .andThen(orderFileURI => jsonSafeStringtify(this._customSortOrderMap[URI.toFsPath(item.uri)], undefined, 4)
             .map(stringify => <const>[orderFileURI, stringify]))
