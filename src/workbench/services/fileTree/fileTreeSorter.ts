@@ -1,7 +1,7 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
-import { CustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { FileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 export interface IFileTreeSorter extends IDisposable {
     readonly compare: (a: FileItem, b: FileItem) => number;
@@ -26,7 +26,7 @@ export class FileTreeSorter extends Disposable {
     // [fields]
     private _sortType: FileSortType;
     private instantiationService: IInstantiationService;
-    private _customSorter: CustomSorter;
+    private _customSorter: FileTreeCustomSorter;
     // [constructor]
 
     constructor(
@@ -37,7 +37,7 @@ export class FileTreeSorter extends Disposable {
         this.instantiationService = instantiationService;
         this._sortType = sortType;
 
-        this._customSorter = this.instantiationService.createInstance(CustomSorter);
+        this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter);
         // swich case
         // this.compare
         this.compare = this._customSorter.compare.bind(this._customSorter);

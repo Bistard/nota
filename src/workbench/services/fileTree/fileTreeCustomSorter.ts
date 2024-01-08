@@ -9,13 +9,13 @@ import { IBrowserEnvironmentService } from "src/platform/environment/common/envi
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
-interface ICustomSorter extends IDisposable{
+interface IFileTreeCustomSorter extends IDisposable {
     compare(a: FileItem, b: FileItem): number;
 
     init(fileItem: FileItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
-export class CustomSorter extends Disposable implements ICustomSorter{
+export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomSorter {
     // map for optimization, act as a cache
     // private _customSortOrderMap: Map<string, string[]> = new Map();
 
