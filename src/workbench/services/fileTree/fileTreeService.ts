@@ -17,6 +17,7 @@ import { AsyncResult, err, ok } from "src/base/common/error";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { noop } from "src/base/common/performance";
+import { Pair } from "src/base/common/utilities/type";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
@@ -32,6 +33,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
+    private _sorter?: FileTreeSorter;
 
     // [constructor]
 
@@ -75,20 +77,17 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
             include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
         };
-        const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSorting);
 
-        const sorter = new FileTreeSorter(
-            this.instantiationService,
-            fileSortType,
-        );
+        // file tree sorter
+        const [sorter, registerSorterListeners] = this.__initSorter();
+        this._sorter = this.__register(sorter);
         
         // resolve the root of the directory first
-        const statResult = await this.fileService.stat(root, { resolveChildren: true });
-        if (statResult.isErr()) {
-            return err(statResult.error);
+        const stat = await this.fileService.stat(root, { resolveChildren: true });
+        if (stat.isErr()) {
+            return err(stat.error);
         }
-        const rootStat = statResult.data;
-        const rootItem = new FileItem(rootStat, null, noop, filterOpts);
+        const rootItem = new FileItem(stat.data, null, noop, filterOpts, this._sorter.compare);
 
         // construct the file system hierarchy
         const dndProvider = new FileItemDragAndDropProvider(this.fileService);
@@ -99,7 +98,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 {
                     itemProvider: new FileItemProvider(),
                     renderers: [new FileItemRenderer()],
-                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare),
+                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, this._sorter.compare),
                     identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                     // optional
@@ -111,9 +110,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         );
         dndProvider.bindWithTree(this._tree);
 
+        registerSorterListeners(this._tree);
+
         await this._tree.refresh();
-        return ok();
         
+        return ok();
         })());
     }
 
@@ -127,6 +128,25 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     public async close(): Promise<void> {
         // TODO
+    }
+
+    // [private helper methods]
+
+    private __initSorter(): Pair<FileTreeSorter, (tree: IFileTree<FileItem, void>) => void> {
+        const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSorting);
+
+        const sorter = new FileTreeSorter(
+            this.instantiationService,
+            fileSortType,
+        );
+
+        const registerListeners = (tree: IFileTree<FileItem, void>) => {
+            tree.onRefresh(() => {
+                // TODO
+            });
+        };
+
+        return [sorter, registerListeners];
     }
 
     // TODO: Add new methods to handle drag and drop events and update sort files
