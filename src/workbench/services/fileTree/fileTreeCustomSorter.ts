@@ -73,8 +73,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     // fileItem's order file will be stored in userDataPath
     // Its order file's name is the md5hash of fileItem.uri path.
     private findOrCreateOrderFile(item: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
-        const folderPath = URI.toFsPath(item.uri);
-        const hashCode = generateMD5Hash(folderPath);
+        const hashCode = generateMD5Hash(URI.toFsPath(item.uri));
         const orderFileName = hashCode + ".json";
         const orderFileURI = URI.join(this.environmentService.userDataPath, hashCode.slice(0, 2), orderFileName);
 
@@ -87,7 +86,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
             }
 
             // the order file does not exist, we need to create a new one.
-            // FIX: you are stringifying `FileItem[]` into string, but in `loadCustomSortOrder` you are parsing it as `string[]` type.
+            // FIX: you are stringifying `FileItem[]` into string, but in `loadCustomSortOrder` you are parsing the string as `string[]` type.
             return jsonSafeStringify(item.children, undefined, 4)
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
