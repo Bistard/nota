@@ -3,7 +3,7 @@ import { AsyncResult, ok } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { jsonSafeStringtify, jsonSafeParse } from "src/base/common/json";
+import { jsonSafeStringify, jsonSafeParse } from "src/base/common/json";
 import { ResourceMap } from "src/base/common/structures/map";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
@@ -88,7 +88,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
 
             // the order file does not exist, we need to create a new one.
             // FIX: you are stringifying `FileItem[]` into string, but in `loadCustomSortOrder` you are parsing it as `string[]` type.
-            return jsonSafeStringtify(item.children, undefined, 4)
+            return jsonSafeStringify(item.children, undefined, 4)
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
                 .map(() => orderFileURI));
@@ -107,8 +107,8 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
 
     private saveCustomSortOrder(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.findOrCreateOrderFile(item)
-        .andThen(orderFileURI => jsonSafeStringtify(this._customSortOrderMap.get(item.uri), undefined, 4)
+        .andThen(orderFileURI => jsonSafeStringify(this._customSortOrderMap.get(item.uri), undefined, 4)
             .map(stringify => <const>[orderFileURI, stringify]))
-        .andThen(([orderFileURI, stringtify]) => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringtify)));
+        .andThen(([orderFileURI, stringify]) => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify)));
     }
 }
