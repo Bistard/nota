@@ -19,7 +19,7 @@ export class FileTreeCustomSorter extends Disposable implements IFileTreeCustomS
     // map for optimization, act as a cache
     // private _customSortOrderMap: Map<string, string[]> = new Map();
 
-    private _customSortOrderMap: Map<string, string[]> = new Map();
+    private readonly _customSortOrderMap: Map<string, string[]> = new Map();
 
     constructor(
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,

@@ -17,16 +17,15 @@ export const enum FileSortType {
     CreationTimeAscending = 'CreationTimeAscending',
     CreationTimeDescending = 'CreationTimeDescending',
     ModificationTimeAscending = 'ModificationTimeAscending',
-    ModificationTimeDescending= 'ModificationTimeDescending',
+    ModificationTimeDescending = 'ModificationTimeDescending',
     CustomSort = 'CustomSort',
 }
 
 export class FileTreeSorter extends Disposable {
 
     // [fields]
-    private _sortType: FileSortType;
-    private instantiationService: IInstantiationService;
-    private _customSorter: FileTreeCustomSorter;
+    private readonly _sortType: FileSortType;
+    private readonly _customSorter: FileTreeCustomSorter;
     // [constructor]
 
     constructor(
@@ -34,10 +33,9 @@ export class FileTreeSorter extends Disposable {
         sortType: FileSortType,
     ) {
         super();
-        this.instantiationService = instantiationService;
         this._sortType = sortType;
 
-        this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter);
+        this._customSorter = instantiationService.createInstance(FileTreeCustomSorter);
         // swich case
         // this.compare
         this.compare = this._customSorter.compare.bind(this._customSorter);
