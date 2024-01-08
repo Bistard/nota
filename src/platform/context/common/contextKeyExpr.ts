@@ -1,4 +1,4 @@
-import { isBoolean, isNonNullable, isNumber, isObject, isString } from "src/base/common/utilities/type";
+import { CompareOrder, isBoolean, isNonNullable, isNumber, isObject, isString } from "src/base/common/utilities/type";
 import { IReadonlyContext } from "src/platform/context/common/context";
 
 /**
@@ -217,36 +217,36 @@ constants.set('true', true);
 
 function __compare1(key1: string, key2: string): number {
     if (key1 < key2) {
-        return -1;
+        return CompareOrder.First;
     }
     if (key1 > key2) {
-        return 1;
+        return CompareOrder.Second;
     }
-    return 0;
+    return CompareOrder.Same;
 }
 
 function __compare2(key1: string, value1: any, key2: string, value2: any): number {
     if (key1 < key2) {
-        return -1;
+        return CompareOrder.First;
     }
     if (key1 > key2) {
-        return 1;
+        return CompareOrder.Second;
     }
     if (value1 < value2) {
-        return -1;
+        return CompareOrder.First;
     }
     if (value1 > value2) {
-        return 1;
+        return CompareOrder.Second;
     }
-    return 0;
+    return CompareOrder.Same;
 }
 
 function __compare3(expr1: readonly ContextKeyExpr[], expr2: readonly ContextKeyExpr[]): number {
     if (expr1.length < expr2.length) {
-        return -1;
+        return CompareOrder.First;
     }
     if (expr1.length > expr2.length) {
-        return 1;
+        return CompareOrder.Second;
     }
     for (let i = 0; i < expr1.length; i++) {
         const expr = expr1[i]!;
@@ -256,7 +256,7 @@ function __compare3(expr1: readonly ContextKeyExpr[], expr2: readonly ContextKey
             return r;
         }
     }
-    return 0;
+    return CompareOrder.Same;
 }
 
 function __getTerminals(node: ContextKeyExpr): ContextKeyExpr[] {
@@ -889,20 +889,20 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
             return this.type - other.type;
         }
         if (this.key < other.key) {
-            return -1;
+            return CompareOrder.First;
         }
         if (this.key > other.key) {
-            return 1;
+            return CompareOrder.Second;
         }
         const thisSource = this.regexp.source;
         const otherSource = other.regexp.source;
         if (thisSource < otherSource) {
-            return -1;
+            return CompareOrder.First;
         }
         if (thisSource > otherSource) {
-            return 1;
+            return CompareOrder.Second;
         }
-        return 0;
+        return CompareOrder.Same;
     }
 }
 

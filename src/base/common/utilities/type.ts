@@ -58,7 +58,7 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * 
  * The function should return:
  * - A negative number if `a` should be sorted/comes before `b`
- * - Zero if `a` and `b` are equal
+ * - A zero if `a` and `b` are equal
  * - A positive number if `a` should be sorted/comes after `b`
  *
  * @template T The type of the arguments to compare.
@@ -70,7 +70,23 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * let numbers = [3, 1, 4, 1, 5, 9];
  * numbers.sort(compareNumbers);
  */
-export type CompareFn<T> = (a: T, b: T) => number;
+export type CompareFn<T> = (a: T, b: T) => CompareOrder;
+
+/**
+ * Given two parameters `a` and `b`, determine which one goes first. `First` 
+ * indicates `a`, `second` indicates `b`.
+ */
+export const enum CompareOrder {
+    
+    /** The first parameter `a` goes first. */
+    First = -1,
+
+    /** The second parameter `b` goes first. */
+    Second = 1,
+
+    /** Items are the same. */
+    Same = 0,
+}
 
 /**
  * This type only removes `undefined`, which s more narrows than {@link NonNullable}.

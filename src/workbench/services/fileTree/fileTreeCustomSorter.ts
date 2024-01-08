@@ -5,6 +5,7 @@ import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { jsonSafeStringtify, jsonSafeParse } from "src/base/common/json";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
+import { CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
@@ -36,26 +37,28 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     }
 
     public compare(a: TItem, b: TItem): number {
+
+        // FIX: what happens if `a.parent` is `null`
         const customSortOrder: string[] | undefined = this._customSortOrderMap[URI.toFsPath(a.parent!.uri)];
         if (customSortOrder === undefined) {
             return defaultFileItemCompareFn(a, b);
         }
+        
         const indexA = customSortOrder.indexOf(a.name);
         const indexB = customSortOrder.indexOf(b.name);
 
         if (indexA !== -1 && indexB !== -1) {
-            console.log("1");
             return indexA - indexB;
-        } else if (indexA !== -1) {
+        } 
+        else if (indexA !== -1) {
             customSortOrder.push(b.name);
-            console.log("2");
-            return -1;
-        } else if (indexB !== -1) {
+            return CompareOrder.First;
+        } 
+        else if (indexB !== -1) {
             customSortOrder.push(a.name);
-            console.log("3");
-            return 1;
-        } else {
-            console.log("4");
+            return CompareOrder.Second;
+        } 
+        else {
             customSortOrder.push(b.name);
             customSortOrder.push(a.name);
             return defaultFileItemCompareFn(a, b);

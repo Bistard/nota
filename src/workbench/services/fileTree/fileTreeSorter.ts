@@ -1,4 +1,5 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
+import { CompareFn } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
@@ -33,7 +34,7 @@ export class FileTreeSorter<TItem extends FileItem> extends Disposable implement
 
     // [fields]
 
-    private _compare: (a: TItem, b: TItem) => number = defaultFileItemCompareFn;
+    private _compare: CompareFn<TItem> = defaultFileItemCompareFn;
     private readonly _sortType: FileSortType;
     private readonly _sortOrder: FileSortOrder;
     private readonly _customSorter: IFileTreeCustomSorter<TItem>;

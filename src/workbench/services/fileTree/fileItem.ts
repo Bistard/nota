@@ -4,7 +4,7 @@ import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { CompareFn, isPromise, Mutable } from "src/base/common/utilities/type";
+import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**
@@ -308,10 +308,10 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
  */
 export function defaultFileItemCompareFn<TItem extends FileItem>(a: TItem, b: TItem): number {
     if (a.type === b.type) {
-        return (a.name < b.name) ? -1 : 1;
+        return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
     } else if (a.isDirectory()) {
-        return -1;
+        return CompareOrder.First;
     } else {
-        return 1;
+        return CompareOrder.Second;
     }
 }
