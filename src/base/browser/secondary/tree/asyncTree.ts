@@ -8,7 +8,7 @@ import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, 
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { AsyncQueue } from "src/base/common/utilities/async";
@@ -87,6 +87,11 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * The root data of the tree.
      */
     get root(): T;
+
+    /**
+     * Event fires before the tree starts to refresh the updated data and rendering.
+     */
+    readonly onRefresh: Register<void>;
 
     /**
      * @description Given the data, re-acquires the stat of the the corresponding 
@@ -222,10 +227,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
     }
 
     public isChildrenResolved(node: T): boolean {
-        if (this._childrenProvider.isChildrenResolved) {
-            return this._childrenProvider.isChildrenResolved(node);
-        }
-        return true;
+        return this._childrenProvider.isChildrenResolved?.(node) ?? true;
     }
 
     public setCollapsed(node: T, collapsed?: boolean, recursive?: boolean): boolean {
@@ -285,6 +287,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     private _onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
 
     // [event]
+
+    private readonly _onRefresh = this.__register(new Emitter<void>());
+    public readonly onRefresh: Register<void> = this._onRefresh.registerListener;
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._tree.onDidSplice; }
     get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._tree.onDidChangeCollapseState; }
@@ -349,6 +354,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
+
+        this._onRefresh.fire();
 
         // wait until refreshing the node and its descendants
         await this._tree.refreshNode(asyncNode);
@@ -567,7 +574,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * rerender the whole tree view.
          */
         try {
-            
+            this._onRefresh.fire();
+
             // get the updated tree structure into the model
             await this._tree.refreshNode(node);
             
