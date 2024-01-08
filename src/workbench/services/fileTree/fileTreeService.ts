@@ -1,10 +1,10 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
-import { FileService, IFileService } from "src/platform/files/common/fileService";
-import { FileItemChildrenProvider, FileItem as FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+import { IFileService } from "src/platform/files/common/fileService";
+import { FileItemChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService } from "src/base/common/logger";
@@ -12,18 +12,11 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-import { IBrowserEnvironmentService, IDiskEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
-import { DataBuffer } from "src/base/common/files/buffer";
-import { AsyncResult, Result, err, ok } from "src/base/common/error";
-import { FileOperationError, FileOperationErrorType, FileType } from "src/base/common/files/file";
-import { generateKey } from "crypto";
-import { generateMD5Hash } from "src/base/common/utilities/hash";
-import { buffer } from "stream/consumers";
-import { jsonSafeParse, jsonSafeStringtify } from "src/base/common/json";
+import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
+import { AsyncResult, err, ok } from "src/base/common/error";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
-
-
+import { noop } from "src/base/common/performance";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
@@ -95,7 +88,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             return err(statResult.error);
         }
         const rootStat = statResult.data;
-        const rootItem = new FileItem(rootStat, null, () => {}, filterOpts);
+        const rootItem = new FileItem(rootStat, null, noop, filterOpts);
 
         // construct the file system hierarchy
         const dndProvider = new FileItemDragAndDropProvider(this.fileService);
