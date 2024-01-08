@@ -210,7 +210,7 @@ export class URI implements IURI {
 	}
 
 	/**
-	 * @description Join a URI with one or more string paths.
+	 * @description Join a URI with one or more string file/folder names.
 	 */
 	public static join(uri: URI, ...path: string[]): URI {
 		if (!uri.path) {

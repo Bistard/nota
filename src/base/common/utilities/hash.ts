@@ -19,6 +19,6 @@ export function hash(s: string): number {
  * @param input The given string.
  * @returns The hash code converted to a string
  */
-function generateMD5Hash(input: string): string {
+export function generateMD5Hash(input: string): string {
     return CryptoJS.MD5(input).toString();
 }
