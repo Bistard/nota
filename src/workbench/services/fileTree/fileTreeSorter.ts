@@ -34,10 +34,9 @@ export class FileTreeSorter extends Disposable {
     ) {
         super();
         this._sortType = sortType;
-
         this._customSorter = instantiationService.createInstance(FileTreeCustomSorter);
-        // swich case
-        // this.compare
+        
+        // switch case
         this.compare = this._customSorter.compare.bind(this._customSorter);
     }
 
