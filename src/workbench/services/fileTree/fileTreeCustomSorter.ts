@@ -20,6 +20,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     
     // [fields]
 
+    // TODO: need a detailed documentation on this field
     private readonly _customSortOrderMap: ResourceMap<string[]> = new ResourceMap();
 
     // [constructor]
