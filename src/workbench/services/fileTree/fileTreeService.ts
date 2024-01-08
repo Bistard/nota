@@ -13,11 +13,12 @@ import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTre
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
-import { AsyncResult, err, ok } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/error";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { noop } from "src/base/common/performance";
 import { Pair } from "src/base/common/utilities/type";
+import { FileOperationError } from "src/base/common/files/file";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
@@ -70,52 +71,16 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [public mehtods]
 
     public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
-        return new AsyncResult((async () => {
-
-        // retrieve configurations
-        const filterOpts: IFilterOpts = {
-            exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
-            include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
-        };
-
         // file tree sorter
         const [sorter, registerSorterListeners] = this.__initSorter();
         this._sorter = this.__register(sorter);
         
-        // resolve the root of the directory first
-        const stat = await this.fileService.stat(root, { resolveChildren: true });
-        if (stat.isErr()) {
-            return err(stat.error);
-        }
-        const rootItem = new FileItem(stat.data, null, noop, filterOpts, this._sorter.compare);
+        return this.__initTree(container, root, sorter)
+        .andThen(async tree => {
+            registerSorterListeners(tree);
 
-        // construct the file system hierarchy
-        const dndProvider = new FileItemDragAndDropProvider(this.fileService);
-        this._tree = this.__register(
-            new FileTree<FileItem, FuzzyScore>(
-                container,
-                rootItem,
-                {
-                    itemProvider: new FileItemProvider(),
-                    renderers: [new FileItemRenderer()],
-                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, this._sorter.compare),
-                    identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
-
-                    // optional
-                    collapsedByDefault: true,
-                    filter: new FileItemFilter(),
-                    dnd: dndProvider,
-                },
-            )
-        );
-        dndProvider.bindWithTree(this._tree);
-
-        registerSorterListeners(this._tree);
-
-        await this._tree.refresh();
-        
-        return ok();
-        })());
+            await tree.refresh();
+        });
     }
 
     public layout(height?: number | undefined): void {
@@ -131,6 +96,51 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     }
 
     // [private helper methods]
+
+    private __initTree(container: HTMLElement, root: URI, sorter: FileTreeSorter): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
+        
+        // make sure the root directory exists first
+        return this.fileService.stat(root, { resolveChildren: true })
+
+        // build the tree
+        .andThen(rootStat => {
+            
+            // retrieve tree configurations
+            const filterOpts: IFilterOpts = {
+                exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
+                include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
+            };
+
+            // initially construct the entire file system hierarchy
+            const rootItem = new FileItem(rootStat, null, noop, filterOpts, sorter.compare);
+
+            // init
+            const dndProvider = new FileItemDragAndDropProvider(this.fileService);
+            const tree = this.__register(
+                new FileTree<FileItem, FuzzyScore>(
+                    container,
+                    rootItem,
+                    {
+                        itemProvider: new FileItemProvider(),
+                        renderers: [new FileItemRenderer()],
+                        childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare),
+                        identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
+
+                        // optional
+                        collapsedByDefault: true,
+                        filter: new FileItemFilter(),
+                        dnd: dndProvider,
+                    },
+                )
+            );
+
+            // bind the dnd with the tree
+            dndProvider.bindWithTree(tree);
+
+            this._tree = tree;
+            return ok(tree);
+        });
+    }   
 
     private __initSorter(): Pair<FileTreeSorter, (tree: IFileTree<FileItem, void>) => void> {
         const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSorting);
