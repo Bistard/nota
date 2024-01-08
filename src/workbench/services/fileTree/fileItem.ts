@@ -306,7 +306,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
  * @description Directory goes first, otherwise sorts in ascending, ASCII 
  * character order.
  */
-export function defaultFileItemCompareFn(a: FileItem, b: FileItem): number {
+export function defaultFileItemCompareFn<TItem extends FileItem>(a: TItem, b: TItem): number {
     if (a.type === b.type) {
         return (a.name < b.name) ? -1 : 1;
     } else if (a.isDirectory()) {

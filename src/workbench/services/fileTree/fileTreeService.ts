@@ -15,7 +15,7 @@ import { SideViewConfiguration } from "src/workbench/parts/sideView/configuratio
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { AsyncResult, ok } from "src/base/common/error";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
+import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { noop } from "src/base/common/performance";
 import { Pair } from "src/base/common/utilities/type";
 import { FileOperationError } from "src/base/common/files/file";
@@ -110,9 +110,9 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             };
 
             // initially construct the entire file system hierarchy
-            const rootItem = new FileItem(rootStat, null, noop, filterOpts, sorter.compare);
+            const rootItem = new FileItem(rootStat, null, noop, filterOpts, sorter.compare.bind(sorter));
 
-            // init
+            // init tree
             const dndProvider = new FileItemDragAndDropProvider(this.fileService);
             const tree = this.__register(
                 new FileTree<FileItem, FuzzyScore>(
@@ -121,7 +121,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                     {
                         itemProvider: new FileItemProvider(),
                         renderers: [new FileItemRenderer()],
-                        childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare),
+                        childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare.bind(sorter)),
                         identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                         // optional
@@ -141,11 +141,13 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     }   
 
     private __initSorter(): Pair<FileTreeSorter<FileItem>, (tree: IFileTree<FileItem, void>) => void> {
-        const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSorting);
+        const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+        const fileSortOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
 
         const sorter = new FileTreeSorter(
             this.instantiationService,
             fileSortType,
+            fileSortOrder,
         );
 
         const registerListeners = (tree: IFileTree<FileItem, void>) => {
