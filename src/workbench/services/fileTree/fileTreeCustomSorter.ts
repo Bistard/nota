@@ -67,6 +67,8 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
     
     // [private helper methods]
 
+    // TODO: more detailed documentations are needed for those private helper methods
+
     // fileItem's order file will be stored in userDataPath
     // Its order file's name is the md5hash of fileItem.uri path.
     private findOrCreateOrderFile(item: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
@@ -76,14 +78,18 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
         const orderFileURI = URI.join(this.environmentService.userDataPath, hashCode.slice(0, 2), orderFileName);
 
         return this.fileService.exist(orderFileURI)
-        .andThen(exsited => {
-            if (!exsited) {
-                return jsonSafeStringtify(item.children, undefined, 4)
-                .toAsync()
-                .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
-                    .map(() => orderFileURI));
+        .andThen(existed => {
+
+            // order file founded, we do nothing.
+            if (existed) {
+                return ok(orderFileURI);
             }
-            return AsyncResult.ok(orderFileURI);
+
+            // the order file does not exist, we need to create a new one.
+            return jsonSafeStringtify(item.children, undefined, 4) // FIX: you are stringifying `FileItem[]` into string, but at line 99 you are parsing it as `string[]` type.
+            .toAsync()
+            .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
+                .map(() => orderFileURI));
         });
     }
 
