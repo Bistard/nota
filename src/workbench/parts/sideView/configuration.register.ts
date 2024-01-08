@@ -1,5 +1,6 @@
 import { TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 export const enum SideViewConfiguration {
     DefaultSideView = 'sideView.defaultView',
@@ -45,8 +46,16 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                     default: [''],
                                 },
                                 ['fileSorting']: {
-                                    type: 'boolean',
-                                    default: true,
+                                    type: 'string',
+                                    enum: [FileSortType.CreationTimeAscending, 
+                                        FileSortType.CreationTimeDescending, 
+                                        FileSortType.CustomSort, 
+                                        FileSortType.DefaultSystemSort, 
+                                        FileSortType.ModificationTimeAscending, 
+                                        FileSortType.ModificationTimeDescending, 
+                                        FileSortType.NameAscending, 
+                                        FileSortType.NameDescending],
+                                    default: FileSortType.DefaultSystemSort,
                                 },
                             }
                         }
