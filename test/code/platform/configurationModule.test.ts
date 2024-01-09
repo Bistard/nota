@@ -322,7 +322,8 @@ suite('ConfigurationModule-test', () => {
         }));
     
         test('onDidConfigurationChange - the source user configuration file has changed', () => FakeAsync.run(async () => {
-            const stopWatch = fileService.watch(baseURI).unwrap();
+            const stopWatch = await fileService.watch(baseURI).unwrap();
+
             await (configuration.init().unwrap());
     
             assert.throws(() => configuration.getConfiguration().get(TestConfiguration.One));

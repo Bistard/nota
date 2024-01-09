@@ -34,22 +34,22 @@ suite('glob-test', () => {
 			this.skip();
 		}
 
-		assert.ok(isParentOf('/some/path', '/'), String(hit()));
-		assert.ok(isParentOf('/some/path', '/some'), String(hit()));
-		assert.ok(isParentOf('/some/path', '/some/'), String(hit()));
-		assert.ok(isParentOf('/someöäü/path', '/someöäü'), String(hit()));
-		assert.ok(isParentOf('/someöäü/path', '/someöäü/'), String(hit()));
-		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/bar'), String(hit()));
-		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/bar/'), String(hit()));
+		assert.ok(isParentOf('/some/path', '/'));
+		assert.ok(isParentOf('/some/path', '/some'));
+		assert.ok(isParentOf('/some/path', '/some/'));
+		assert.ok(isParentOf('/someöäü/path', '/someöäü'));
+		assert.ok(isParentOf('/someöäü/path', '/someöäü/'));
+		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/bar'));
+		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/bar/'));
 
-		assert.ok(isParentOf('/some/path', '/some'), String(hit()));
-		assert.ok(isParentOf('/some/path', '/some/'), String(hit()));
-		assert.ok(isParentOf('/someöäü/path', '/someöäü'), String(hit()));
-		assert.ok(isParentOf('/someöäü/path', '/someöäü/'), String(hit())); 
+		assert.ok(isParentOf('/some/path', '/some'));
+		assert.ok(isParentOf('/some/path', '/some/'));
+		assert.ok(isParentOf('/someöäü/path', '/someöäü'));
+		assert.ok(isParentOf('/someöäü/path', '/someöäü/')); 
 
-		assert.ok(!isParentOf('/some/path', '/some/path'), String(hit()));
-		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/barr'), String(hit()));
-		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/bar/test'), String(hit()));
+		assert.ok(!isParentOf('/some/path', '/some/path'));
+		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/barr'));
+		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/bar/test'));
 	});
 
     test('isParentOf (ignorecase) (Windows)', function () {

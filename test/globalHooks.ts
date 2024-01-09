@@ -120,7 +120,7 @@ const hook = new class extends class GlobalHooks {
     }
 
     private async __cleanTestDirectory(): Promise<void> {
-        if (fileExists(TestPath)) {
+        if (await fileExists(TestPath)) {
             await fs.promises.rm(TestPath, { maxRetries: 3, retryDelay: 100, force: true, recursive: true });
         }
     }

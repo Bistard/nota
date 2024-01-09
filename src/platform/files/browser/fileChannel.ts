@@ -5,7 +5,7 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
 import { IReadableStream, IReadyReadableStream, newWriteableBufferStream, toReadyStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
-import { Mutable } from "src/base/common/utilities/type";
+import { Mutable, Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
@@ -114,39 +114,39 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     public readFileStream(uri: URI, opts?: IReadFileOptions | undefined): AsyncResult<IReadyReadableStream<DataBuffer>, FileOperationError> {
         const stream = newWriteableBufferStream();
-
+        
+        /**
+         * Reading file using stream needs to be handled specially when acrossing 
+         * IPC. The channels between client and server is using `registerListener` 
+         * API instead of using `callCommand` internally.
+         */
         const listener = this._channel.registerListener<ReadableStreamDataFlowType<DataBuffer>>(FileCommand.readFileStream, [uri, opts]);
         const disconnect = listener((flowingData) => {
 
             // normal data
             if (flowingData instanceof DataBuffer) {
                 stream.write(flowingData);
+                return;
             }
 
-            // end or error
-            else {
-                if (flowingData === 'end') {
-                    stream.end();
+            // error
+            if (flowingData !== 'end') {
+                let error = flowingData;
+                if (!(error instanceof Error)) {
+                    error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
                 }
 
-                else {
-                    let error = flowingData;
-                    if (!(error instanceof Error)) {
-                        error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
-                    }
-
-                    stream.error(error);
-                    stream.end();
-                }
-
-                disconnect.dispose();
+                stream.error(error);
             }
+            
+            // error or end
+            stream.end();
+            disconnect.dispose();
         });
 
         stream.pause();
-        
         return AsyncResult.ok(toReadyStream(() => {
-            stream.resume();
+            Promise.resolve().then(() => stream.resume());
             return stream;
         }));
     }
@@ -193,10 +193,12 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         );
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
+    public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
         this._channel.callCommand(FileCommand.watch, [uri, opts]);
-        return ok(toDisposable(() => {
+        const cancel = toDisposable(() => {
             return this._channel.callCommand(FileCommand.unwatch, [uri]);
-        }));
+        });
+
+        return AsyncResult.ok(cancel);
     }
 }
