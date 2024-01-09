@@ -89,7 +89,7 @@ export class FileTreeSorter<TItem extends FileItem> extends Disposable implement
                 break;
         }
     }
-
+    
     // [private helper methods]
 }
 

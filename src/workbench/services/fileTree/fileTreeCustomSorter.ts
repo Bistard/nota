@@ -14,6 +14,8 @@ import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileT
 export interface IFileTreeCustomSorter<TItem extends FileItem> extends IDisposable {
     compare(a: TItem, b: TItem): number;
     init(fileItem: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
+    addItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
+    removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
 export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable implements IFileTreeCustomSorter<TItem> {
@@ -65,6 +67,51 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
             customSortOrder.push(a.name);
             return defaultFileItemCompareFn(a, b);
         }
+    }
+
+    // APIs for fileTree Item Adding and Deleting
+    public addItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.loadCustomSortOrder(item.parent as TItem)
+            .andThen(() => {
+                if (!item.parent) {
+                    return ok();
+                }
+                const customSortOrder = this._customSortOrderMap.get(item.parent.uri);
+                if (customSortOrder && !customSortOrder.includes(item.name)) {
+                    customSortOrder.push(item.name);
+                    return this.saveCustomSortOrder(item.parent as TItem);
+                }
+                return ok();
+            });
+    }
+
+    public removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.loadCustomSortOrder(item.parent as TItem)
+            .andThen(() => {
+                if (!item.parent) {
+                    return ok();
+                }
+                const customSortOrder = this._customSortOrderMap.get(item.parent.uri);
+                if (customSortOrder) {
+                    const index = customSortOrder.indexOf(item.name);
+                    if (index > -1) {
+                        customSortOrder.splice(index, 1);
+                        return this.saveCustomSortOrder(item.parent as TItem);
+                    }
+                }
+                return ok();
+            });
+    }
+
+    // Updates custom sort order items based on provided array of new items
+    public updateSortOrder(parentItem: TItem, newItems: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.loadCustomSortOrder(parentItem)
+            .andThen(() => {
+                const parentUri = parentItem.uri;
+                const updatedSortOrder = newItems.map(item => item.name);
+                this._customSortOrderMap.set(parentUri, updatedSortOrder);
+                return this.saveCustomSortOrder(parentItem);
+            });
     }
     
     // [private helper methods]
