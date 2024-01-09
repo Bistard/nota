@@ -5,7 +5,7 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, FileSystemProviderError } from "src/base/common/files/file";
 import { basename, dirname, join } from "src/base/common/files/path";
 import { bufferToStream, IReadableStream, IReadyReadableStream, listenStream, newWriteableBufferStream, readFileIntoStream, readFileIntoStreamAsync, streamToBuffer, toReadyStream, transformStream } from "src/base/common/files/stream";
-import { isAbsoluteURI, URI } from "src/base/common/files/uri";
+import { isAbsoluteURI, Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
 import { Iterable } from "src/base/common/utilities/iterable";
@@ -35,12 +35,12 @@ export interface IFileService extends IDisposable, IService {
     /** 
      * @description Registers a file system provider for a given scheme. 
      */
-    registerProvider(scheme: string, provider: IFileSystemProvider): void;
+    registerProvider(scheme: string | Schemas, provider: IFileSystemProvider): void;
 
     /** 
      * @description Gets a file system provider for a given scheme. 
      */
-    getProvider(scheme: string): IFileSystemProvider | undefined;
+    getProvider(scheme: string | Schemas): IFileSystemProvider | undefined;
 
     /**
      * @description Resolves the properties of a file/folder identified by the 
@@ -109,7 +109,7 @@ export interface IFileService extends IDisposable, IService {
      * @description Watch the given target and events will be fired by listening 
      * to file service.
      */
-    watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError>;
+    watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError>;
 }
 
 /**
@@ -159,7 +159,7 @@ export class FileService extends Disposable implements IFileService {
      * public API - Provider Operations
      **************************************************************************/
 
-    public registerProvider(scheme: string, provider: IFileSystemProvider): void {
+    public registerProvider(scheme: string | Schemas, provider: IFileSystemProvider): void {
         this._providers.set(scheme, provider);
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
@@ -175,7 +175,7 @@ export class FileService extends Disposable implements IFileService {
         }));
     }
 
-    public getProvider(scheme: string): IFileSystemProvider | undefined {
+    public getProvider(scheme: string | Schemas): IFileSystemProvider | undefined {
         return this._providers.get(scheme);
     }
 
@@ -311,20 +311,20 @@ export class FileService extends Disposable implements IFileService {
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return this.__validateDelete(uri, opts)
             .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
-            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'`, getFileErrorCode(error), error)));
+            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error))));
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
+    public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
         if (this._activeWatchers.has(uri)) {
             this.logService.warn('[FileService] duplicate watching on the same resource', URI.toString(uri));
-            return ok(Disposable.NONE);
+            return AsyncResult.ok(Disposable.NONE);
         }
 
         this.logService.trace(`[FileService] Watching on '${URI.toString(uri)}'`);
 
         const get = this.__getProvider(uri);
         if (get.isErr()) {
-            return err(get.error);
+            return AsyncResult.err(get.error);
         }
         const provider = get.unwrap();
 
@@ -334,13 +334,16 @@ export class FileService extends Disposable implements IFileService {
         );
         
         if (result.isErr()) {
-            return err(result.error);
+            return AsyncResult.err(result.error);
         }
 
-        const disposable = result.unwrap();
-        this._activeWatchers.set(uri, disposable);
-
-        return ok(disposable);
+        return Result.fromPromise(
+            () => result.unwrap(),
+            error => new FileOperationError(`Cannot watch at target: '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, FileOperationErrorType.UNKNOWN))
+        .andThen(disposable => {
+            this._activeWatchers.set(uri, disposable);
+            return ok(disposable);
+        });
     }
 
     public override dispose(): void {
@@ -521,7 +524,7 @@ export class FileService extends Disposable implements IFileService {
 
             return Result.fromPromise(
                 () => blocker.waiting().finally(() => provider.close(fd)),
-                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}`, getFileErrorCode(error), error),
+                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}. Reason: ${errorToMessage(error)}`, getFileErrorCode(error)),
             );
         });
     }

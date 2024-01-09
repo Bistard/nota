@@ -292,7 +292,7 @@ export class EventBlocker<T> {
 	private _fired = false;
 	private _timeout?: NodeJS.Timeout;
 	
-	constructor(register: Register<T>, timeout?: number) {
+	constructor(register: Register<T>, timeoutMS?: number) {
 		// one time only listener
 		this._listener = register((event) => {
 			this._fired = true;
@@ -306,12 +306,12 @@ export class EventBlocker<T> {
 			this._blocker.resolve(event);
 		});
 
-		if (isNumber(timeout)) {
+		if (isNumber(timeoutMS)) {
 			this._timeout = setTimeout(() => {
 				if (!this._fired) {
-					this._blocker.reject(new Error());
+					this._blocker.reject(new Error('EventBlocker timeout'));
 				}
-			}, timeout);
+			}, timeoutMS);
 		}
 	}
 

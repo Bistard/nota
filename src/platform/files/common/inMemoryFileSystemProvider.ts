@@ -96,7 +96,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	/**
 	 * @note Does not support recursive watching.
 	 */
-	public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+	public watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable> {
 		if (opts) {
 			throw new Error('[InMemoryFileSystemProvider] does not provide options for `watch`.');
 		}
@@ -110,7 +110,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		});
 		this._watchers.set(uri, watcher);
 
-		return watcher;
+		return Promise.resolve(watcher);
 	}
 
 	public async stat(uri: URI): Promise<IFileStat> {

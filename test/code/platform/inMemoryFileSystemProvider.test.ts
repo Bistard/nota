@@ -68,7 +68,8 @@ suite('InMemoryFileSystemProvider-test', () => {
         const fileURI = URI.join(driURI, 'file1');
 
         await provider.mkdir(driURI);
-        const disposable = provider.watch(fileURI);
+        const disposable = await provider.watch(fileURI);
+
         const onChange = Event.toPromise(provider.onDidResourceChange);
 
         await provider.writeFile(fileURI, DataBuffer.fromString('hello world').buffer, { create: true });
@@ -88,7 +89,7 @@ suite('InMemoryFileSystemProvider-test', () => {
     test('watch - directory', async () => {
         const driURI = URI.parse('file:///dir1');
 
-        const disposable = provider.watch(driURI);
+        const disposable = await provider.watch(driURI);
         const onChange = Event.toPromise(provider.onDidResourceChange);
 
         await provider.mkdir(driURI);
