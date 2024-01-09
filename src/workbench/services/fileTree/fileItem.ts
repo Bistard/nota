@@ -10,7 +10,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 /**
  * An interface only for {@link FileItem}.
  */
-export interface IFileItem {
+export interface IFileItem<TItem extends IFileItem<TItem>> {
 
     /** The {@link URI} of the target. */
     readonly uri: URI;
@@ -28,16 +28,16 @@ export interface IFileItem {
     readonly modifyTime: number;
 
     /** The parent of the target. Null if current target is the root. */
-    readonly parent: FileItem | null;
+    readonly parent: TItem | null;
 
     /** The direct children of the target. */
-    readonly children: FileItem[];
+    readonly children: TItem[];
 
     /**
      * @description Returns the root of the current target
      * @complexity O(h) - h: height of the tree.
      */
-    root(): FileItem;
+    root(): TItem;
 
     /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
@@ -94,7 +94,7 @@ export interface IFileItem {
  * If stat is out of updated, invoking refreshChildren will automatically 
  * rebuild the whole tree structure.
  */
-export class FileItem implements IFileItem {
+export class FileItem implements IFileItem<FileItem> {
 
     // [field]
 
@@ -306,7 +306,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
  * @description Directory goes first, otherwise sorts in ascending, ASCII 
  * character order.
  */
-export function defaultFileItemCompareFn<TItem extends FileItem>(a: TItem, b: TItem): number {
+export function defaultFileItemCompareFn<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
     if (a.type === b.type) {
         return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
     } else if (a.isDirectory()) {

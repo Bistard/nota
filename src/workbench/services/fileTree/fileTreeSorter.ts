@@ -1,13 +1,13 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { CompareFn } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+import { FileItem, IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 /**
  * An interface only for {@link FileTreeSorter}.
  */
-export interface IFileTreeSorter<TItem extends FileItem> extends IDisposable {
+export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDisposable {
     compare(a: TItem, b: TItem): number;
     setType(sortType: FileSortType): void;
     setOrder(sortOrder: FileSortOrder): void;
@@ -30,7 +30,7 @@ export const enum FileSortOrder {
 /**
  * @class // TODO
  */
-export class FileTreeSorter<TItem extends FileItem> extends Disposable implements IFileTreeSorter<TItem> {
+export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeSorter<TItem> {
 
     // [fields]
 

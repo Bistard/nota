@@ -9,16 +9,16 @@ import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
-export interface IFileTreeCustomSorter<TItem extends FileItem> extends IDisposable {
+export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
     compare(a: TItem, b: TItem): number;
     init(fileItem: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
     addItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
     removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
-export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable implements IFileTreeCustomSorter<TItem> {
+export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
     
     // [fields]
 
@@ -71,7 +71,8 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
 
     // APIs for fileTree Item Adding and Deleting
     public addItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.loadCustomSortOrder(item.parent as TItem)
+        // FIX: what happens if `item.parent` is `null`
+        return this.loadCustomSortOrder(item.parent)
             .andThen(() => {
                 if (!item.parent) {
                     return ok();
@@ -79,14 +80,15 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
                 const customSortOrder = this._customSortOrderMap.get(item.parent.uri);
                 if (customSortOrder && !customSortOrder.includes(item.name)) {
                     customSortOrder.push(item.name);
-                    return this.saveCustomSortOrder(item.parent as TItem);
+                    return this.saveCustomSortOrder(item.parent);
                 }
                 return ok();
             });
     }
 
     public removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.loadCustomSortOrder(item.parent as TItem)
+        // FIX: what happens if `item.parent` is `null`
+        return this.loadCustomSortOrder(item.parent)
             .andThen(() => {
                 if (!item.parent) {
                     return ok();
@@ -96,7 +98,7 @@ export class FileTreeCustomSorter<TItem extends FileItem> extends Disposable imp
                     const index = customSortOrder.indexOf(item.name);
                     if (index > -1) {
                         customSortOrder.splice(index, 1);
-                        return this.saveCustomSortOrder(item.parent as TItem);
+                        return this.saveCustomSortOrder(item.parent);
                     }
                 }
                 return ok();
