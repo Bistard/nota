@@ -36,35 +36,35 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     
     // [public methods]
 
-    public init(fileItem: TItem):  AsyncResult<void, FileOperationError | SyntaxError>{
+    public init(fileItem: TItem):  AsyncResult<void, FileOperationError | SyntaxError> {
         return this.loadCustomSortOrder(fileItem);
     }
 
     public compare(a: TItem, b: TItem): number {
 
         // FIX: what happens if `a.parent` is `null`
-        const customSortOrder: string[] | undefined = this._customSortOrderMap.get(a.parent!.uri);
-        if (customSortOrder === undefined) {
+        const order: string[] | undefined = this._customSortOrderMap.get(a.parent!.uri);
+        if (order === undefined) {
             return defaultFileItemCompareFn(a, b);
         }
         
-        const indexA = customSortOrder.indexOf(a.name);
-        const indexB = customSortOrder.indexOf(b.name);
+        const indexA = order.indexOf(a.name);
+        const indexB = order.indexOf(b.name);
 
         if (indexA !== -1 && indexB !== -1) {
             return indexA - indexB;
         } 
         else if (indexA !== -1) {
-            customSortOrder.push(b.name);
+            order.push(b.name);
             return CompareOrder.First;
         } 
         else if (indexB !== -1) {
-            customSortOrder.push(a.name);
+            order.push(a.name);
             return CompareOrder.Second;
         } 
         else {
-            customSortOrder.push(b.name);
-            customSortOrder.push(a.name);
+            order.push(b.name);
+            order.push(a.name);
             return defaultFileItemCompareFn(a, b);
         }
     }
@@ -77,11 +77,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 if (!item.parent) {
                     return ok();
                 }
-                const customSortOrder = this._customSortOrderMap.get(item.parent.uri);
-                if (customSortOrder && !customSortOrder.includes(item.name)) {
-                    customSortOrder.push(item.name);
+                
+                const order = this._customSortOrderMap.get(item.parent.uri);
+                if (order && !order.includes(item.name)) {
+                    order.push(item.name);
                     return this.saveCustomSortOrder(item.parent);
                 }
+                
                 return ok();
             });
     }
@@ -93,14 +95,16 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 if (!item.parent) {
                     return ok();
                 }
-                const customSortOrder = this._customSortOrderMap.get(item.parent.uri);
-                if (customSortOrder) {
-                    const index = customSortOrder.indexOf(item.name);
+                
+                const order = this._customSortOrderMap.get(item.parent.uri);
+                if (order) {
+                    const index = order.indexOf(item.name);
                     if (index > -1) {
-                        customSortOrder.splice(index, 1);
+                        order.splice(index, 1);
                         return this.saveCustomSortOrder(item.parent);
                     }
                 }
+
                 return ok();
             });
     }
@@ -136,7 +140,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             // the order file does not exist, we need to create a new one.
-            // FIX: you are stringifying `FileItem[]` into string, but in `loadCustomSortOrder` you are parsing the string as `string[]` type.
+            // FIX: you are stringifying `TItem[]` into string, but in `loadCustomSortOrder` you are parsing the string as `string[]` type.
             return jsonSafeStringify(item.children, undefined, 4)
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
