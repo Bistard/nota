@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { ByteSize, FileType } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
@@ -12,7 +13,6 @@ import { Blocker, EventBlocker } from 'src/base/common/utilities/async';
 import { errorToMessage } from 'src/base/common/error';
 import { listenStream } from 'src/base/common/files/stream';
 import { directoryExists } from 'src/base/node/io';
-import * as fs from 'fs';
 import { ResourceChangeType } from 'src/platform/files/common/watcher';
 
 suite('FileService-disk-test', () => {
@@ -386,7 +386,7 @@ suite('FileService-disk-test', () => {
         unwatch.dispose();
     });
     
-    test.skip('watch - updating file', async () => {
+    test('watch - updating file', async () => {
         const base = URI.join(baseURI, 'watch');
         const file = URI.join(base, 'watch-updating-file');
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
@@ -404,8 +404,7 @@ suite('FileService-disk-test', () => {
         unwatch.dispose();
     });
 
-    // FIX: idk why this doesn't work
-    test.skip('watch - directory', async () => {
+    test('watch - directory', async () => {
         const base = URI.join(baseURI, 'watch1');
         const dir = URI.join(base, 'watch-directory');
         await service.createDir(dir).unwrap();
@@ -421,10 +420,7 @@ suite('FileService-disk-test', () => {
 
         const second = new EventBlocker(service.onDidResourceChange, 100);
         await service.delete(URI.join(dir, 'nest-file1')).unwrap();
-        const shouldFail = second.waiting();
         
-        shouldFail
-        .then(() => assert.fail('should not be watching'))
-        .catch(() => { /** success (not watching for this) */ });
+        return assert.rejects(() => second.waiting());
     });
 });

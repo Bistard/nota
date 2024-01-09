@@ -181,7 +181,7 @@ export class WatchInstance implements IWatchInstance {
             ignored: this._request.exclude,
             ignorePermissionErrors: false,
             ignoreInitial: true,
-            depth: this._request.recursive ? undefined : 1,
+            depth: this._request.recursive ? undefined : 0,
             usePolling: true, // issue: https://github.com/Bistard/nota/issues/149
         });
 
@@ -199,14 +199,12 @@ export class WatchInstance implements IWatchInstance {
             this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('change', (path: string, stat?: fs.Stats) => {
-            console.log('on change');
             this.__onEventFire({ type: ResourceChangeType.UPDATED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('error', (error: Error) => {
             throw error;
         })
         .on('ready', () => {
-            console.log('on ready');
             this._onReady.fire();
             this.logService?.trace(`[WatchInstance] filesystem watcher is ready on: '${resource}'`);
         });

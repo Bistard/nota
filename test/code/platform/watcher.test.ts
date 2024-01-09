@@ -57,11 +57,56 @@ suite('watcher-test', () => {
         cancel.dispose();
     });
 
-    test('watch directory (recursive)', async function () {
+    test('watch directory (non-recursive) direct file will be watched', async function () {
         const subDirURI = URI.join(baseURI, 'subDir');
         await fileService.createDir(subDirURI).unwrap();
 
         const fileURI = URI.join(subDirURI, 'file.txt');
+
+        const watcher = new Watcher();
+        const cancel = await watcher.watch({
+            resource: subDirURI,
+            recursive: false,
+        });
+
+        const blocker = new EventBlocker<IRawResourceChangeEvents>(watcher.onDidChange);
+        await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: true, overwrite: true, }).unwrap();
+        const events = await blocker.waiting();
+        
+        assert.ok(events.anyAdded);
+        assert.ok(events.anyFile);
+        assert.ok(!events.anyDeleted);
+        assert.ok(!events.anyUpdated);
+        assert.ok(!events.anyDirectory);
+        assert.ok(events.wrap().match(fileURI));
+
+        cancel.dispose();
+    });
+    
+    test('watch directory (non-recursive) non-direct file will not be watched', async function () {
+        const subDirURI = URI.join(baseURI, 'subDir');
+        await fileService.createDir(URI.join(subDirURI, 'non-direct')).unwrap();
+
+        const fileURI = URI.join(subDirURI, 'non-direct', 'file.txt');
+
+        const watcher = new Watcher();
+        const cancel = await watcher.watch({
+            resource: subDirURI,
+            recursive: false,
+        });
+
+        const blocker = new EventBlocker<IRawResourceChangeEvents>(watcher.onDidChange, 10);
+        await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: true, overwrite: true, }).unwrap();
+        
+        return assert.rejects(() => blocker.waiting())
+        .then(() => cancel.dispose());
+    });
+    
+    test('watch directory (recursive)', async function () {
+        const subDirURI = URI.join(baseURI, 'subDir');
+        await fileService.createDir(URI.join(subDirURI, 'non-direct')).unwrap();
+
+        const fileURI = URI.join(subDirURI, 'non-direct', 'file.txt');
 
         const watcher = new Watcher();
         const cancel = await watcher.watch({
