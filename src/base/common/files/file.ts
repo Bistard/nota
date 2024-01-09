@@ -75,7 +75,7 @@ export interface IFileSystemProvider {
 	readonly onDidResourceChange: Register<IRawResourceChangeEvents>;
 	readonly onDidResourceClose: Register<URI>;
 
-	watch(uri: URI, opts?: IWatchOptions): IDisposable;
+	watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable>;
 
 	stat(uri: URI): Promise<IFileStat>;
 	mkdir(uri: URI): Promise<void>;

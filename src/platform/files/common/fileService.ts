@@ -109,7 +109,7 @@ export interface IFileService extends IDisposable, IService {
      * @description Watch the given target and events will be fired by listening 
      * to file service.
      */
-    watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError>;
+    watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError>;
 }
 
 /**
@@ -314,17 +314,17 @@ export class FileService extends Disposable implements IFileService {
             .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error))));
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
+    public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
         if (this._activeWatchers.has(uri)) {
             this.logService.warn('[FileService] duplicate watching on the same resource', URI.toString(uri));
-            return ok(Disposable.NONE);
+            return AsyncResult.ok(Disposable.NONE);
         }
 
         this.logService.trace(`[FileService] Watching on '${URI.toString(uri)}'`);
 
         const get = this.__getProvider(uri);
         if (get.isErr()) {
-            return err(get.error);
+            return AsyncResult.err(get.error);
         }
         const provider = get.unwrap();
 
@@ -334,13 +334,16 @@ export class FileService extends Disposable implements IFileService {
         );
         
         if (result.isErr()) {
-            return err(result.error);
+            return AsyncResult.err(result.error);
         }
 
-        const disposable = result.unwrap();
-        this._activeWatchers.set(uri, disposable);
-
-        return ok(disposable);
+        return Result.fromPromise(
+            () => result.unwrap(),
+            error => new FileOperationError(`Cannot watch at target: '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, FileOperationErrorType.UNKNOWN))
+        .andThen(disposable => {
+            this._activeWatchers.set(uri, disposable);
+            return ok(disposable);
+        });
     }
 
     public override dispose(): void {

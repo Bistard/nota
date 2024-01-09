@@ -165,13 +165,11 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         );
 
         const result = this.fileService.watch(root, { recursive: true });
-        if (result.isErr()) {
-            this.logService.warn(errorToMessage(result.error));
-        } else {
-            const disposable = result.data;
-            disposables.register(disposable);
-        }
-
+        result.match<void>(
+            (disposable) => disposables.register(disposable),
+            error => this.logService.warn(errorToMessage(error)),
+        );
+        
         disposables.register(this._onDidResourceChangeScheduler);
         disposables.register(this.fileService.onDidResourceChange(e => {
             this._onDidResourceChangeScheduler?.schedule(e.wrap());

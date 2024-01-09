@@ -5,7 +5,7 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
 import { IReadableStream, IReadyReadableStream, newWriteableBufferStream, toReadyStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
-import { Mutable } from "src/base/common/utilities/type";
+import { Mutable, Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
@@ -193,10 +193,12 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         );
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): Result<IDisposable, FileOperationError> {
+    public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
         this._channel.callCommand(FileCommand.watch, [uri, opts]);
-        return ok(toDisposable(() => {
+        const cancel = toDisposable(() => {
             return this._channel.callCommand(FileCommand.unwatch, [uri]);
-        }));
+        });
+
+        return AsyncResult.ok(cancel);
     }
 }

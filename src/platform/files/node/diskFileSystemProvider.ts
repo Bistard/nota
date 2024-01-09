@@ -353,14 +353,13 @@ export class DiskFileSystemProvider extends Disposable implements
         }
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+    public watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable> {
         if (!this._watcher) {
             this._watcher = new Watcher(this.logService);
             this.__register(this._watcher.onDidChange(e => this._onDidResourceChange.fire(e)));
             this.__register(this._watcher.onDidClose(e => this._onDidResourceClose.fire(e)));
         }
-        const disposable = this._watcher.watch({ resource: uri, ...opts });
-        return disposable;
+        return this._watcher.watch({ resource: uri, ...opts });
     }
 
     /***************************************************************************

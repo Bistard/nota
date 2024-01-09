@@ -374,7 +374,8 @@ suite('FileService-disk-test', () => {
         const file = URI.join(base, 'watch-deleting-file');
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
         
-        const unwatch = service.watch(file).unwrap();
+        const unwatch = await service.watch(file).unwrap();
+        
         const firstDel = new EventBlocker(service.onDidResourceChange);
         
         await service.delete(file).unwrap();
@@ -390,9 +391,10 @@ suite('FileService-disk-test', () => {
         const file = URI.join(base, 'watch-updating-file');
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
         
-        const unwatch = service.watch(file).unwrap();
-        const firstDel = new EventBlocker(service.onDidResourceChange);
+        const unwatch = await service.watch(file).unwrap();
         
+        const firstDel = new EventBlocker(service.onDidResourceChange);
+
         await service.delete(file).unwrap();
         await service.createFile(file, DataBuffer.alloc(0)).unwrap();
         
@@ -404,11 +406,11 @@ suite('FileService-disk-test', () => {
 
     // FIX: idk why this doesn't work
     test.skip('watch - directory', async () => {
-
         const base = URI.join(baseURI, 'watch1');
         const dir = URI.join(base, 'watch-directory');
         await service.createDir(dir).unwrap();
-        const unwatch = service.watch(dir, { recursive: true }).unwrap();
+        
+        const unwatch = await service.watch(dir, { recursive: true }).unwrap();
 
         const first = new EventBlocker(service.onDidResourceChange, 10000);
         await service.createFile(URI.join(dir, 'nest-file1'), DataBuffer.alloc(0)).unwrap();

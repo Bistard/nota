@@ -184,13 +184,13 @@ export class MainFileChannel implements IServerChannel {
             return;
         }
         const result = this.fileService.watch(uri, opts);
-        if (result.isErr()) {
-            this.logService.warn(errorToMessage(result.error)); // REVIEW: should we throw?
-            return;
-        }
 
-        const disposable = result.data;
-        this._activeWatchers.set(raw, disposable);
+        result.match<void>(
+            disposable => this._activeWatchers.set(raw, disposable),
+            error => this.logService.warn(errorToMessage(error)),
+        );
+        
+        // TODO
     }
 
     private __unwatch(uri: URI): void {
