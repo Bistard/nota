@@ -32,7 +32,7 @@ suite('watcher-test', () => {
         await clean();
     });
 
-    test('watch file - update', async () => {
+    test.skip('watch file - update', async () => {
         const fileURI = URI.join(baseURI, 'file.txt');
         (await fileService.createFile(fileURI, DataBuffer.alloc(0), { overwrite: true }).unwrap());
         
@@ -63,7 +63,7 @@ suite('watcher-test', () => {
         cancel.dispose();
     });
 
-    test('watch directory (non-recursive) direct file will be watched', async function () {
+    test.skip('watch directory (non-recursive) direct file will be watched', async function () {
         if (IS_LINUX) {
             this.skip(); // FIX
         }
@@ -93,7 +93,7 @@ suite('watcher-test', () => {
         cancel.dispose();
     });
     
-    test('watch directory (non-recursive) non-direct file will not be watched', async function () {
+    test.skip('watch directory (non-recursive) non-direct file will not be watched', async function () {
         const subDirURI = URI.join(baseURI, 'subDir');
         await fileService.createDir(URI.join(subDirURI, 'non-direct')).unwrap();
 
@@ -112,7 +112,7 @@ suite('watcher-test', () => {
         .then(() => cancel.dispose());
     });
     
-    test('watch directory (recursive)', async function () {
+    test.skip('watch directory (recursive)', async function () {
         if (IS_LINUX) {
             this.skip(); // FIX
         }

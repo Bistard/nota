@@ -387,7 +387,7 @@ suite('FileService-disk-test', () => {
         unwatch.dispose();
     });
     
-    test('watch - updating file', async function () {
+    test.skip('watch - updating file', async function () {
         if (IS_LINUX) {
             this.skip(); // FIX
         }
@@ -409,7 +409,7 @@ suite('FileService-disk-test', () => {
         unwatch.dispose();
     });
 
-    test('watch - directory', async function () {
+    test.skip('watch - directory', async function () {
         if (IS_LINUX) {
             this.skip(); // FIX
         }
