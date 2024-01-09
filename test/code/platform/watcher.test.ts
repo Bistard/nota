@@ -31,7 +31,7 @@ suite('watcher-test', () => {
         await clean();
     });
 
-    test('watch file', async () => {
+    test('watch file - update', async () => {
         const fileURI = URI.join(baseURI, 'file.txt');
         (await fileService.createFile(fileURI, DataBuffer.alloc(0), { overwrite: true }).unwrap());
         
@@ -52,6 +52,11 @@ suite('watcher-test', () => {
         assert.strictEqual(e.events[0]!.resource, URI.toString(fileURI));
         
         // match check
+        assert.ok(e.anyFile);
+        assert.ok(e.anyUpdated);
+        assert.ok(!e.anyDeleted);
+        assert.ok(!e.anyAdded);
+        assert.ok(!e.anyDirectory);
         assert.ok(e.wrap().match(fileURI));
 
         cancel.dispose();

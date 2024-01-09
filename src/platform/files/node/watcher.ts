@@ -187,24 +187,30 @@ export class WatchInstance implements IWatchInstance {
 
         watcher
         .on('add', (path: string, stat?: fs.Stats) => {
+            console.log('on add');
             this.__onEventFire({ type: ResourceChangeType.ADDED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('unlink', (path: string, stat?: fs.Stats) => {
+            console.log('on unlink');
             this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('addDir', (path: string, stat?: fs.Stats) => {
+            console.log('on addDir');
             this.__onEventFire({ type: ResourceChangeType.ADDED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('unlinkDir', (path: string, stat?: fs.Stats) => {
+            console.log('on unlinkDir');
             this.__onEventFire({ type: ResourceChangeType.DELETED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('change', (path: string, stat?: fs.Stats) => {
+            console.log('on change');
             this.__onEventFire({ type: ResourceChangeType.UPDATED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('error', (error: Error) => {
             throw error;
         })
         .on('ready', () => {
+            console.log('on ready');
             this._onReady.fire();
             this.logService?.trace(`[WatchInstance] filesystem watcher is ready on: '${resource}'`);
         });
