@@ -139,7 +139,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
         try {
             // Result
-            const dataBuffer = await this.fileService.readFile(sortOrderFileUri);
+            const dataBuffer = await this.fileService.readFile(sortOrderFileUri).unwrap();
             const sortOrder = JSON.parse(dataBuffer.toString());
             this.customSortOrderMap.set(folderUri.toString(), sortOrder);
         } catch (error) {
@@ -156,7 +156,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             try {
                 const data = JSON.stringify(sortOrder, null, 4);
                 const buffer = DataBuffer.fromString(data);
-                await this.fileService.writeFile(sortOrderFilePath, buffer);
+                await this.fileService.writeFile(sortOrderFilePath, buffer).unwrap();
             } catch (error) {
                 throw new Error(`Error writing sort order file for ${folderUri.toString()}: ${error}`);
             }
@@ -164,7 +164,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private async findSortOrderFileName(folderUri: URI): Promise<string | null> {
         try {
-            const entries = await this.fileService.readDir(folderUri);
+            const entries = await this.fileService.readDir(folderUri).unwrap();
             const sortOrderFile = entries.find(([name, _]) => name.endsWith('.sortorder.json'));
             return sortOrderFile ? sortOrderFile[0] : null;
         } catch (error) {
