@@ -75,12 +75,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         };
         const ifSupportFileSorting = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerFileSorting, false);
 
-        this.loadCustomSortOrder(root);
+        // this.loadCustomSortOrder(root);
         const sorter = new FileTreeSorter(
             ifSupportFileSorting,
             this.customSortOrderMap.get(root.toString()) || [],
         );
-        
+
         // resolve the root of the directory first
         const statResult = await this.fileService.stat(root, { resolveChildren: true });
         if (statResult.isErr()) {
@@ -98,7 +98,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 {
                     itemProvider: new FileItemProvider(),
                     renderers: [new FileItemRenderer()],
-                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare),
+                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, defaultFileItemCompareFn),
                     identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                     // optional
