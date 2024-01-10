@@ -103,7 +103,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
         return this._storage.init()
         .andThen(() => { 
-            this.logService.trace('MainStatusService', `initialized at '${URI.toString(this._storage.resource)}'`);
+            this.logService.trace('MainStatusService', `initialized.`, { at: URI.toString(this._storage.resource) });
             return ok();
         });
     }

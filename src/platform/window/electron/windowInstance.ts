@@ -219,15 +219,15 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.show();
         }
 
-        this.logService.trace('WindowInstance', `window created with id: ${window.id}`);
+        this.logService.trace('WindowInstance', `window created with id.`, { ID: window.id });
         return window;
     }
 
     private registerListeners(): void {
-        this.logService.trace('WindowInstance', `registerListeners(): ${this._id}`);
+        this.logService.trace('WindowInstance', `registerListeners()`, { ID: this._id });
 
         this._window.webContents.on('did-finish-load', () => {
-            this.logService.trace('WindowInstance', `load successed: ${this._id}`);
+            this.logService.trace('WindowInstance', `load successed.`, { ID: this._id });
             this._window.show();
         });
 

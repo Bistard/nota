@@ -64,11 +64,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug('App', `application starting at '${URI.toString(this.environmentService.appRootPath)}'...`);
+        this.logService.debug('App', `application starting...`, { appRootPath: URI.toString(this.environmentService.appRootPath) });
 
         // machine ID
         const machineID = this.__getMachineID();
-        this.logService.debug('App', `Resolved machine ID: ${machineID}`);
+        this.logService.debug('App', `Resolved machine ID.`, { ID: machineID });
 
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);

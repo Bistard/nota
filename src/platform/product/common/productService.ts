@@ -58,7 +58,7 @@ export class ProductService implements IProductService {
     
             this._profile = parsed;
 
-            this.logService.trace('ProductService', `initialized at '${URI.toString(productURI)}'`);
+            this.logService.trace('ProductService', `initialized.`, { at: URI.toString(productURI) });
             return ok();
         });
     }

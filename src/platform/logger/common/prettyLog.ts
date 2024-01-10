@@ -106,7 +106,7 @@ function getErrorString(color: boolean, error: any): string {
     }
 
     if (!(error instanceof Error)) {
-        return `    ${paintValue(1, color, 'error', error)}`;
+        return `    ${tryPaintValue(1, color, 'error', error)}`;
     }
 
     const stackLines = error.stack ? error.stack.split('\n') : [];
@@ -148,7 +148,7 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
 
     iterPropEnumerable(additional, key => {
         const value = additional[key];
-        const valueStr = paintValue(depth, color, key, value);
+        const valueStr = tryPaintValue(depth, color, key, value);
 
         keys.push(key);
         values.push(valueStr);
@@ -166,7 +166,7 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
 
 const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
 
-function paintValue(depth: number, color: boolean, key: string, value: any): string {
+function tryPaintValue(depth: number, color: boolean, key: string, value: any): string {
 
     if (!color) {
         return tryOrDefault('[parse error]', () => JSON.stringify(value));

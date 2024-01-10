@@ -111,7 +111,7 @@ export class SideViewService extends Component implements ISideViewService {
     // [public method]
 
     public registerView(id: string, viewCtor: Constructor<ISideView>): void {
-        this.logService.trace('SideViewService', `registers a view with ID: ${id}`);
+        this.logService.trace('SideViewService', `registers a view with ID`, { ID: id });
 
         if (this.hasComponent(id)) {
             this.logService.warn('SideViewService', `The side view with ID is already registered`, { ID: id });
