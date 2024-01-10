@@ -47,9 +47,9 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
-        this.logService.trace('[BrowserLifecycleService] quit');
+        this.logService.trace('BrowserLifecycleService', 'quit');
 
-        this.logService.trace('[BrowserLifecycleService] beforeQuit');
+        this.logService.trace('BrowserLifecycleService', 'beforeQuit');
         this._onBeforeQuit.fire();
 
         await this.__fireWillQuit();
@@ -66,7 +66,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         }
 
         // notify all listeners
-        this.logService.trace('[BrowserLifecycleService] willQuit');
+        this.logService.trace('BrowserLifecycleService', 'willQuit');
         const participants: PromiseLike<unknown>[] = [];
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
@@ -76,10 +76,10 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         this._ongoingQuitPromise = (async () => {
             // we need to ensure all the participants have completed their jobs.
             try {
-                this.logService.trace('[BrowserLifecycleService] willQuit AllSettled on-going...');
+                this.logService.trace('BrowserLifecycleService', 'willQuit AllSettled on-going...');
                 await Promise.allSettled(participants);
             } catch (error: any) {
-                this.logService.error(error);
+                this.logService.error('BrowserLifecycleService', 'participants error encountered.', error);
             }
         })();
 

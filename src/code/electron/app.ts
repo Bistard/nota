@@ -64,11 +64,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug(`application starting at '${URI.toString(this.environmentService.appRootPath)}'...`);
+        this.logService.debug('App', `application starting at '${URI.toString(this.environmentService.appRootPath)}'...`);
 
         // machine ID
         const machineID = this.__getMachineID();
-        this.logService.debug(`Resolved machine ID: ${machineID}`);
+        this.logService.debug('App', `Resolved machine ID: ${machineID}`);
 
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);
@@ -89,7 +89,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`[ApplicationInstance] registerListenering...`);
+        this.logService.trace('App', `registerListenering...`);
 
         Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
 
@@ -99,7 +99,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
 
         electron.app.on('open-file', (event, path) => {
-            this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
+            this.logService.trace('App', `open-file - ${path}`);
             // REVIEW
         });
 
@@ -111,7 +111,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
-        this.logService.trace('[ApplicationInstance] creating services...');
+        this.logService.trace('App', 'creating services...');
 
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
@@ -210,6 +210,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private __onUnexpectedError(error: any): void {
-        this.logService.error(`[ApplicationInstance] [uncought exception] ${errorToMessage(error)}`);
+        this.logService.error('App', `uncought exception`, error);
     }
 }

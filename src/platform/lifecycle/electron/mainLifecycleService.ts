@@ -1,5 +1,4 @@
 import { app, BrowserWindow } from "electron";
-import { errorToMessage } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor, JoinablePromise } from "src/base/common/utilities/async";
@@ -102,17 +101,17 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             return this._pendingQuitBlocker.waiting();
         }
 
-        this.logService.trace('[MainLifecycleService] quit()');
+        this.logService.trace('MainLifecycleService', 'quit()');
         this._pendingQuitBlocker = new Blocker<void>();
 
-        this.logService.trace('[MainLifecycleService] app.quit()');
+        this.logService.trace('MainLifecycleService', 'app.quit()');
         app.quit();
 
         return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
-        this.logService.trace('[MainLifecycleService] kill()');
+        this.logService.trace('MainLifecycleService', 'kill()');
 
         // Give the other services a chance to be notified and complete their job.
         await this.__fireOnBeforeQuit(QuitReason.Kill);
@@ -150,7 +149,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
-        this.logService.trace(`[MainLifecycleService] registerListeners()`);
+        this.logService.trace('MainLifecycleService', `registerListeners()`);
 
         let onWindowAllClosed: () => void = undefined!;
         let onBeforeQuitAnyWindows: () => void = undefined!;
@@ -164,14 +163,14 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * which will not be prevented and will quit normally.
          */
         app.once('will-quit', (event: Electron.Event) => {
-            this.logService.trace('[MainLifecycleService] app.once("will-quit")');
+            this.logService.trace('MainLifecycleService', 'app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
             event.preventDefault();
 
             this.__fireOnBeforeQuit(QuitReason.Quit)
                 .finally(() => {
-                    this.logService.trace('[MainLifecycleService] application is about to quiting...');
+                    this.logService.trace('MainLifecycleService', 'application is about to quiting...');
 
                     if (this._pendingQuitBlocker) {
                         this._pendingQuitBlocker.resolve();
@@ -198,7 +197,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * 'window-all-closed' will not emit.
          */
         onWindowAllClosed = () => {
-            this.logService.trace('[MainLifecycleService] app.addListener("window-all-closed")');
+            this.logService.trace('MainLifecycleService', 'app.addListener("window-all-closed")');
             // mac: only quit when requested
             if (IS_MAC && this._requestQuit) {
                 app.quit();
@@ -219,10 +218,10 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
                 return;
             }
 
-            this.logService.trace('[MainLifecycleService] app.addListener("before-quit")');
+            this.logService.trace('MainLifecycleService', 'app.addListener("before-quit")');
             this._requestQuit = true;
 
-            this.logService.trace('[MainLifecycleService] onBeforeQuit.fire()');
+            this.logService.trace('MainLifecycleService', 'onBeforeQuit.fire()');
             this._onBeforeQuit.fire();
 
             /**
@@ -264,7 +263,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             // error handling
             for (const res of results) {
                 if (res.status === 'rejected') {
-                    this.logService.error(errorToMessage(reason));
+                    this.logService.error('MainLifecycleService', ' `onWillQuit` participant fails.', res.reason);
                 }
             }
         })();

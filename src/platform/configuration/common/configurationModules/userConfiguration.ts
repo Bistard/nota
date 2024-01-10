@@ -2,7 +2,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { AsyncResult, InitProtector, err, errorToMessage, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter, Event } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
-import { FileSystemProviderError, FileOperationErrorType, FileOperationError } from "src/base/common/files/file";
+import { FileOperationErrorType, FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
@@ -98,8 +98,8 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     // [private helper methods]
 
     private __registerListeners(): void {
-        this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
-        this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${JSON.stringify(result)}.`)));
+        this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn('UserConfiguration', 'Cannot identify the configuration.', { unknownKey: unknownKey, from: URI.toString(this._userResource, true) })));
+        this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn('UserConfiguration', 'encounter invalid configuration.', { invalid: result })));
 
         // configuration updation from the file
         this.__syncConfigurationFromFileOnChange();
@@ -169,7 +169,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         const unvalidated = tryOrDefault<object>(
             {},
             () => JSON.parse(raw),
-            error => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'. Reason: ${errorToMessage(error)}`),
+            error => this.logService.error('UserConfiguration', 'Cannot initialize user configuration.', error, { at: URI.toString(this._userResource, true) }),
         );
         const validated = this._validator.validate(unvalidated);
         return validated;
@@ -218,7 +218,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             );
 
             if (write.isErr()) {
-                this.logService.error(`Cannot sync configuration to the file at: ${URI.toString(this._userResource)}. The reason is: ${errorToMessage(write.error)}`);
+                this.logService.error('UserConfiguration', 'Cannot sync configuration to the file.', write.error, { at: URI.toString(this._userResource) });
             }
         }));
     }

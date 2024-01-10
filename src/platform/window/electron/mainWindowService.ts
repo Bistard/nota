@@ -98,18 +98,18 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public open(options: IWindowCreationOptions): IWindowInstance {
-        this.logService.trace('[MainWindowService] trying to open a window...');
+        this.logService.trace('MainWindowService', 'trying to open a window...');
 
         const newWindow = this.doOpen(options);
 
-        this.logService.trace('[MainWindowService] window opened');
+        this.logService.trace('MainWindowService', 'window opened');
         return newWindow;
     }
 
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`[MainWindowService] registerListeners()`);
+        this.logService.trace('MainWindowService', `registerListeners()`);
         // noop
     }
 
@@ -130,7 +130,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 for (const uri of errorURIs) {
                     message += '\n\t' + URI.toString(uri);
                 }
-                this.logService.error(message);
+                this.logService.error('MainWindowService', message);
             }
         }
 
@@ -172,7 +172,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private helper methods]
 
     private __openInNewWindow(options: IWindowCreationOptions, configuration: IWindowConfiguration): IWindowInstance {
-        this.logService.trace('[MainWindowService] openInNewWindow');
+        this.logService.trace('MainWindowService', 'openInNewWindow');
 
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,

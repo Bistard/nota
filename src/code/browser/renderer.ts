@@ -103,7 +103,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             if (instantiaionService) {
                 try {
                     const logService = instantiaionService.getService(ILogService);
-                    logService.error(error);
+                    logService.error('renderer', 'error encountered', error);
                 } catch { }
             }
             ErrorHandler.onUnexpectedError(error);

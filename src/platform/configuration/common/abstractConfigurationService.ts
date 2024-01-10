@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { AsyncResult, InitProtector, err, errorToMessage, ok, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, InitProtector, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
@@ -61,7 +61,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
             this.__register(this._defaultConfiguration.onDidConfigurationChange(e => this.__onDefaultConfigurationChange(e)));
             
             // catch configuration registration errors and log out
-            this.__register(this._registrant.onErrorRegistration(e => logService.warn(`The configuration registration fails: ${JSON.stringify(e)}.`)));
+            this.__register(this._registrant.onErrorRegistration(e => logService.warn('ConfigurationService', 'The configuration registration fails.', { event: e })));
             
             // user configuration self reload
             this.__register(this._userConfiguration.onDidConfigurationChange(() => this.__onUserConfigurationChange()));
@@ -86,7 +86,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         
         // configuration initialization
         .andThen(() => {
-            this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
+            this.logService.trace('ConfigurationService', 'initializing...', { at: URI.toString(this.options.appConfiguration.path, true) });
 
             return this._defaultConfiguration.init()
                 .toAsync()
@@ -98,7 +98,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
          */
         .andThen(() => {
             (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
-            this.logService.trace(`[ConfigurationService] initialized.`);
+            this.logService.trace('ConfigurationService', 'initialized.');
             return ok();
         });
     }
@@ -128,7 +128,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[ConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
+        this.logService.trace('ConfigurationService', `onConfigurationChange`, { ConfigurationChange: ConfigurationModuleTypeToString(type) });
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

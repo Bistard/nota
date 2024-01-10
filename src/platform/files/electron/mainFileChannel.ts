@@ -1,5 +1,4 @@
 import { IDisposable } from "src/base/common/dispose";
-import { Result, errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
@@ -180,14 +179,14 @@ export class MainFileChannel implements IServerChannel {
         const raw = URI.toString(uri);
         const exist = this._activeWatchers.get(raw);
         if (exist) {
-            this.logService.warn('file service - duplicate watching on the same resource', URI.toString(uri));
+            this.logService.warn('MainFileChannel', 'duplicate watching on the same resource', { URI: URI.toString(uri) });
             return;
         }
         const result = this.fileService.watch(uri, opts);
 
         result.match<void>(
             disposable => this._activeWatchers.set(raw, disposable),
-            error => this.logService.warn(errorToMessage(error)),
+            error => this.logService.error('MainFileChannel', 'Cannot watch the resource.', error, { URI: URI.toString(uri) }),
         );
         
         // TODO

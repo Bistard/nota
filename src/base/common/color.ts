@@ -51,22 +51,36 @@ export const enum ASNIBackgroundColor {
 
 export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
 
-/**
- * @description Sets the ANSI foreground and background colors for a given 
- * string of text.
- * 
- * @param text - The text to be colored.
- * @param fgColor - The ANSI foreground color code to set for the text.
- * @param bgColor - The ANSI background color code to set for the text.
- * @returns - The text string prefixed with ANSI color codes and suffixed with a 
- * reset color code.
- *
- * @example
- * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
- * console.log(coloredText); // Prints the message in red color with white background in the console.
- */
-export function setANSIColor(text: string, colors?: { fgColor?: ASNIForegroundColor, bgColor?: ASNIBackgroundColor }): string {
-	return `${colors?.fgColor ?? ''}${colors?.bgColor ?? ''}${text}\x1b[0m`;
+
+export namespace TextColors {
+	/**
+	 * @description Sets the ANSI foreground and background colors for a given 
+	 * string of text.
+	 * 
+	 * @param text - The text to be colored.
+	 * @param fgColor - The ANSI foreground color code to set for the text.
+	 * @param bgColor - The ANSI background color code to set for the text.
+	 * @returns - The text string prefixed with ANSI color codes and suffixed 
+	 * with a reset color code.
+	 *
+	 * @example
+	 * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
+	 * console.log(coloredText); // Prints the message in red color with white background in the console.
+	 */
+	export function setANSIColor(text: string, colors?: { fgColor?: ASNIForegroundColor, bgColor?: ASNIBackgroundColor }): string {
+		return `${colors?.fgColor ?? ''}${colors?.bgColor ?? ''}${text}\x1b[0m`;
+	}
+
+	/**
+	 * @description Sets the ANSI (RGB) foreground for a given string of text. 
+	 * The color is only supported with morden command line.
+	 * @param text The text to be colored.
+	 * @returns The text string prefixed with ANSI color codes and suffixed with 
+	 * a reset color code.
+	 */
+	export function setRGBColor(text: string, r: number, g: number, b: number): string {
+		return `\x1b[38;2;${r};${g};${b}m${text}\x1b[0m`;
+	}
 }
 
 export type LowerHexLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';

@@ -1,4 +1,4 @@
-import { InitProtector, errorToMessage } from "src/base/common/error";
+import { InitProtector } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { GetRegistrantByType, RegistrantType } from "src/platform/registrant/common/registrant";
@@ -92,17 +92,17 @@ export class RegistrantService implements IRegistrantService {
     }
 
     public init(): void {
-        const initResult = this._initProtector.init(`[RegistrantService] Cannot initialize twice.`);
+        const initResult = this._initProtector.init(`Cannot initialize twice.`);
         if (initResult.isErr()) {
-            this.logService.warn(initResult.error.message);
+            this.logService.warn('RegistrantService', initResult.error.message);
             return;
         }
 
         this._registrants.forEach((registrant, key) => {
             try {
                 registrant.initRegistrations();
-            } catch (err) {
-                this.logService.error(`Registrant initialization failed: ${errorToMessage(err)}`);
+            } catch (error: any) {
+                this.logService.error('RegistrantService', `Registrant initialization failed.`, error);
             }
         });
     }

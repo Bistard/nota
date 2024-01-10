@@ -111,10 +111,10 @@ export class SideViewService extends Component implements ISideViewService {
     // [public method]
 
     public registerView(id: string, viewCtor: Constructor<ISideView>): void {
-        this.logService.trace(`[SideViewService] registers a view with id ${id}`);
+        this.logService.trace('SideViewService', `registers a view with ID: ${id}`);
 
         if (this.hasComponent(id)) {
-            this.logService.warn(`The side view with id ${id} is already registered`);
+            this.logService.warn('SideViewService', `The side view with ID is already registered`, { ID: id });
             return;
         }
 
@@ -162,7 +162,7 @@ export class SideViewService extends Component implements ISideViewService {
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn(`Cannot switch to view with ID: ${id}`);
+            this.logService.warn('SideViewService', `Cannot switch to view with ID.`, { ID: id });
             return;
         }
         this.__switchView(view);

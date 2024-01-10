@@ -26,7 +26,6 @@ import { RGBA } from 'src/base/common/color';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { errorToMessage } from 'src/base/common/error';
 
 /**
  * // TODO
@@ -91,7 +90,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     public async open(root: URI): Promise<void> {
 
         if (this.explorerTreeService.isOpened) {
-            this.logService.warn(`[ExplorerView] view is already opened at '${URI.toString(this.explorerTreeService.root!), true}'`);
+            this.logService.warn('ExplorerView', `view is already opened.`, { at: URI.toString(this.explorerTreeService.root!, true) });
             return;
         }
 
@@ -222,7 +221,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
             const error = init.error;
             success = false;
             container = this.__createEmptyView();
-            this.logService.error(`[ExplorerView] cannot open the view at given path '${URI.toString(path, true)}': ${errorToMessage(error)}`);
+            this.logService.error('ExplorerView', `Cannot open the view`, error, { at: URI.toString(path, true) });
         }
 
         return [container, success];

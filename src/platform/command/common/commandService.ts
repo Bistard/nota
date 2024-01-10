@@ -1,5 +1,4 @@
 import { Disposable } from "src/base/common/dispose";
-import { errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { ICommandEvent, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
@@ -69,11 +68,11 @@ export class CommandService extends Disposable implements ICommandService {
         try {
             const result = command.command(this.instantiationService, ...args);
             this._onDidExecuteCommand.fire({ commandID: id, args: args });
-            this.logService.trace(`[CommandService] executed the command '${id}'`);
+            this.logService.trace('CommandService', `executed the command '${id}'`);
             return Promise.resolve(<T>result);
         }
-        catch (error) {
-            this.logService.error(`[CommandService] encounters an error with command '${id}': ${errorToMessage(error)}`);
+        catch (error: any) {
+            this.logService.error('CommandService', `encounters an error with command '${id}'.`, error);
             return Promise.reject();
         }
     }

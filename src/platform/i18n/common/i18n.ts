@@ -6,7 +6,7 @@ import { Section } from "src/platform/section";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
-import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/error";
 import { FileOperationError } from "src/base/common/files/file";
 import { jsonSafeParse } from "src/base/common/json";
 
@@ -191,7 +191,7 @@ export class i18n implements II18nService {
         
         return this.__readLocale(uri)
         .orElse(error => {
-            this.logService.error(`Cannot read locale at ${URI.toString(uri)}. Reason: ${errorToMessage(error)}`);
+            this.logService.error('i18nService', `Cannot read locale.`, error, { at: URI.toString(uri) });
             return err(error);
         });
     }
