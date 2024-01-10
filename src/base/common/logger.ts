@@ -178,11 +178,6 @@ export interface ILoggerOpts {
      * Always log the messages and will ignore {@link LogLevel}.
      */
     readonly alwaysLog?: boolean;
-
-    /**
-     * If print the log in a pretty way.
-     */
-    readonly prettyLog?: true;
 }
 
 export function parseLogLevel(level: LogLevel): string {
