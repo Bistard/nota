@@ -25,7 +25,7 @@ export function testPrettyLog(logService: ILogService): void {
     });
     logService.warn('FileTreeService', 'this is warn');
     logService.error('FileTreeService', 'this is error');
-    logService.error('FileTreeService', 'this is error', new Error());
+    logService.error('FileTreeService', 'this is an error', new Error('This is error message'));
     logService.fatal('FileTreeService', 'this is fatal');
 }
 
@@ -44,7 +44,7 @@ export function prettyLog(
     const descriptionStr = `${description}`;
     const reporterStr = `${reporter}`;
     const messageStr = `${message}`;
-    const errorStr = getErrorString(error);
+    const errorStr = getErrorString(color, error);
     const additionalStr = additional && getAddtionalString(1, color, additional);
 
     let result = `[${levelStr}] [${time}] [${descriptionStr}] [${reporterStr}] ${messageStr}\n`;
@@ -93,18 +93,50 @@ function getTimeString(color: boolean): string {
     return TextColors.setRGBColor(raw, ...[96, 151, 83]);
 }
 
-function getErrorString(color: boolean, error?: any): string {
-    if (!error) {
-        return '';
-    }
-
+function getErrorString(color: boolean, error: any): string {
     /**
      * We have to check the runtime type of the `error` since those error can be 
      * catched by a try-catch and the client might be wrong about those errors'
      * type.
      */
+    
+    // no errors
+    if (error === undefined) {
+        return '';
+    }
 
-    return 'error string';
+    if (!(error instanceof Error)) {
+        return `    ${paintValue(1, color, 'error', error)}`;
+    }
+
+    const stackLines = error.stack ? error.stack.split('\n') : [];
+    let maxLength = 0;
+
+    // Find the maximum length of the lines
+    for (const line of stackLines) {
+        maxLength = Math.max(maxLength, line.trim().length);
+    }
+
+    // Adding space for formatting and borders
+    maxLength += 6; 
+
+    // Create top and bottom borders based on the maxLength
+    const borderLine = '-'.repeat(maxLength);
+
+    const topBorder = `+${borderLine}+`;
+    const bottomBorder = `+${borderLine}+`;
+
+    const formattedLines = stackLines.map((line, index) => {
+        const trimed = line.trim();
+        if (index === 0) {
+            // Format the first line (Error message)
+            return `| ${trimed} `.padEnd(maxLength + 1, ' ') + '|';
+        }
+        // Format stack trace lines
+        return `| [${index}] ${trimed} `.padEnd(maxLength + 1, ' ') + '|';
+    });
+
+    return [topBorder, ...formattedLines, bottomBorder].map(str => `    ${str}`).join('\n');
 }
 
 function getAddtionalString(depth: number, color: boolean, additional: Additionals): string {    
