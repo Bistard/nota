@@ -13,45 +13,51 @@ import { prettyLog } from "src/platform/logger/common/prettyLog";
 export class ConsoleLogger extends AbstractLogger implements ILogger {
 
     private readonly _ifUseColors: boolean;
+	private readonly _description: string;
 
     constructor(level: LogLevel = DEFAULT_LOG_LEVEL, ifUseColor: boolean = true) {
         super(level);
         this._ifUseColors = ifUseColor;
+		this._description = (typeof process !== 'undefined')
+			? 'main'
+			: (typeof document !== 'undefined')
+				? 'browser'
+				: 'others';
     }
 
     public trace(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.TRACE) {
-			console.log(prettyLog(this._ifUseColors, LogLevel.TRACE, 'rendener', reporter, message, undefined, additional).slice(0, -1));
+			console.log(prettyLog(this._ifUseColors, LogLevel.TRACE, this._description, reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
 	public debug(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.DEBUG) {
-            console.log(prettyLog(this._ifUseColors, LogLevel.DEBUG, 'rendener', reporter, message, undefined, additional).slice(0, -1));
+            console.log(prettyLog(this._ifUseColors, LogLevel.DEBUG, this._description, reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
 	public info(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.INFO) {
-			console.log(prettyLog(this._ifUseColors, LogLevel.INFO, 'rendener', reporter, message, undefined, additional).slice(0, -1));
+			console.log(prettyLog(this._ifUseColors, LogLevel.INFO, this._description, reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
 	public warn(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.WARN) {
-			console.warn(prettyLog(this._ifUseColors, LogLevel.WARN, 'rendener', reporter, message, undefined, additional).slice(0, -1));
+			console.warn(prettyLog(this._ifUseColors, LogLevel.WARN, this._description, reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
 	public error(reporter: string, message: string, error?: Error, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.ERROR) {
-			console.error(prettyLog(this._ifUseColors, LogLevel.ERROR, 'rendener', reporter, message, error, additional).slice(0, -1));
+			console.error(prettyLog(this._ifUseColors, LogLevel.ERROR, this._description, reporter, message, error, additional).slice(0, -1));
 		}
 	}
 
 	public fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.FATAL) {
-			console.error(prettyLog(this._ifUseColors, LogLevel.FATAL, 'rendener', reporter, message, error, additional).slice(0, -1));
+			console.error(prettyLog(this._ifUseColors, LogLevel.FATAL, this._description, reporter, message, error, additional).slice(0, -1));
 		}
 	}
 
