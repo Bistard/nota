@@ -122,6 +122,15 @@ export abstract class AbstractLogger extends Disposable implements IAbstractLogg
 }
 
 /**
+ * {@link ILogger} prints those data types in a prettier way.
+ */
+export type PrettyTypes = string | boolean | number | null | undefined | object | Array<any> | Error;
+// export type Additionals = Pair<string, PrettyTypes>[];
+export type Additionals = {
+    [key: string]: PrettyTypes;
+};
+
+/**
  * A {@link ILogger} is an instance that able to handle a series of incoming 
  * logging messages. 
  * 
@@ -132,16 +141,16 @@ export interface ILogger extends IAbstractLogger {
 
     /**
      * @description Provides a collections of logging ways.
+     * @param reporter The name of the reporter (module or component) generating the log.
      * @param message The message for logging.
-     * @param args Provided arguments will be append to the end of the message 
-     *             and spliting by spaces.
+     * @param additional Additional data to log, formatted prettily.
      */
-    trace(message: string, ...args: any[]): void;
-    debug(message: string, ...args: any[]): void;
-    info(message: string, ...args: any[]): void;
-    warn(message: string, ...args: any[]): void;
-    error(message: string | Error, ...args: any[]): void;
-    fatal(message: string | Error, ...args: any[]): void;
+    trace(reporter: string, message: string, additional?: Additionals): void;
+    debug(reporter: string, message: string, additional?: Additionals): void;
+    info(reporter: string, message: string, additional?: Additionals): void;
+    warn(reporter: string, message: string, additional?: Additionals): void;
+    error(reporter: string, message: string, error?: Error, additional?: Additionals): void;
+    fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void;
     flush(): Promise<void>;
 }
 
@@ -166,14 +175,14 @@ export interface ILoggerOpts {
     readonly description?: string;
 
     /**
-     * If use the built-in formatter to format the message.
-     */
-    readonly noFormatter?: boolean;
-
-    /**
      * Always log the messages and will ignore {@link LogLevel}.
      */
     readonly alwaysLog?: boolean;
+
+    /**
+     * If print the log in a pretty way.
+     */
+    readonly prettyLog?: true;
 }
 
 export function parseLogLevel(level: LogLevel): string {
@@ -225,39 +234,39 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
         this._loggers.push(logger);
     }
 
-    public trace(message: string, ...args: any[]): void {
+    public trace(reporter: string, message: string, additional?: Additionals): void {
         for (const logger of this._loggers) {
-            logger.trace(message, ...args);
+            logger.trace(reporter, message, additional);
         }
     }
 
-    public debug(message: string, ...args: any[]): void {
+    public debug(reporter: string, message: string, additional?: Additionals): void {
         for (const logger of this._loggers) {
-            logger.debug(message, ...args);
+            logger.debug(reporter, message, additional);
         }
     }
 
-    public info(message: string, ...args: any[]): void {
+    public info(reporter: string, message: string, additional?: Additionals): void {
         for (const logger of this._loggers) {
-            logger.info(message, ...args);
+            logger.info(reporter, message, additional);
         }
     }
 
-    public warn(message: string, ...args: any[]): void {
+    public warn(reporter: string, message: string, additional?: Additionals): void {
         for (const logger of this._loggers) {
-            logger.warn(message, ...args);
+            logger.warn(reporter, message, additional);
         }
     }
 
-    public error(message: string | Error, ...args: any[]): void {
+    public error(reporter: string, message: string, error?: Error, additional?: Additionals): void {
         for (const logger of this._loggers) {
-            logger.error(message, ...args);
+            logger.error(reporter, message, error, additional);
         }
     }
 
-    public fatal(message: string | Error, ...args: any[]): void {
+    public fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void {
         for (const logger of this._loggers) {
-            logger.fatal(message, ...args);
+            logger.fatal(reporter, message, error, additional);
         }
     }
 
@@ -268,6 +277,8 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
     }
 }
 
+export type BufferLoggerBufferType = { level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals; };
+
 /**
  * @description Buffer logger may wraps antoher {@link ILogger} at anytime. If
  * there is no provided logger, the logging message will be stored in the buffer
@@ -275,7 +286,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
  */
 export class BufferLogger extends AbstractLogger implements ILogService {
 
-    protected readonly _buffer: { level: LogLevel, message: (string | Error), args: any[]; }[] = [];
+    protected readonly _buffer: BufferLoggerBufferType[] = [];
     private _logger?: ILogger;
 
     constructor() {
@@ -291,28 +302,28 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         return this._logger;
     }
 
-    public trace(message: string, ...args: any[]): void {
-        this.__log(LogLevel.TRACE, message, ...args);
+    public trace(reporter: string, message: string, additional?: Additionals): void {
+        this.__log(LogLevel.TRACE, reporter, message, undefined, additional);
     }
 
-    public debug(message: string, ...args: any[]): void {
-        this.__log(LogLevel.DEBUG, message, ...args);
+    public debug(reporter: string, message: string, additional?: Additionals): void {
+        this.__log(LogLevel.DEBUG, reporter, message, undefined, additional);
     }
 
-    public info(message: string, ...args: any[]): void {
-        this.__log(LogLevel.INFO, message, ...args);
+    public info(reporter: string, message: string, additional?: Additionals): void {
+        this.__log(LogLevel.INFO, reporter, message, undefined, additional);
     }
 
-    public warn(message: string, ...args: any[]): void {
-        this.__log(LogLevel.WARN, message, ...args);
+    public warn(reporter: string, message: string, additional?: Additionals): void {
+        this.__log(LogLevel.WARN, reporter, message, undefined, additional);
     }
 
-    public error(message: string | Error, ...args: any[]): void {
-        this.__log(LogLevel.ERROR, message, ...args);
+    public error(reporter: string, message: string, error?: Error, additional?: Additionals): void {
+        this.__log(LogLevel.ERROR, reporter, message, error, additional);
     }
 
-    public fatal(message: string | Error, ...args: any[]): void {
-        this.__log(LogLevel.FATAL, message, ...args);
+    public fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void {
+        this.__log(LogLevel.FATAL, reporter, message, error, additional);
     }
 
     public async flush(): Promise<void> {
@@ -322,42 +333,40 @@ export class BufferLogger extends AbstractLogger implements ILogService {
 
     // [protected helper methods]
 
-    protected __log(level: LogLevel, message: string | Error, ...args: any[]): void {
-        this._buffer.push({ level: level, message, args });
+    protected __log(level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals): void {
+        this._buffer.push({ level: level, reporter, message, error, additional });
         if (this._logger) {
             this.__flushBuffer();
         }
     }
 
     protected __flushBuffer(): void {
-        for (const { level, message, args } of this._buffer) {
-            defaultLog(this._logger!, level, message, args);
+        for (const { level, reporter, message, error, additional } of this._buffer) {
+            defaultLog(this._logger!, level, reporter, message, error, additional);
         }
         this._buffer.length = 0;
     }
 }
 
-export type LogFunction = (logger: ILogger, level: LogLevel, message: string | Error, args: any[]) => void;
-
-export function defaultLog(logger: ILogger, level: LogLevel, message: string | Error, args: any[] = []): void {
+export function defaultLog(logger: ILogger, level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals): void {
     switch (level) {
         case LogLevel.TRACE:
-            logger.trace(<any>message, ...args);
+            logger.trace(reporter, message, additional);
             break;
         case LogLevel.DEBUG:
-            logger.debug(<any>message, ...args);
+            logger.debug(reporter, message, additional);
             break;
         case LogLevel.INFO:
-            logger.info(<any>message, ...args);
+            logger.info(reporter, message, additional);
             break;
         case LogLevel.WARN:
-            logger.warn(<any>message, ...args);
+            logger.warn(reporter, message, additional);
             break;
         case LogLevel.ERROR:
-            logger.error(<any>message, ...args);
+            logger.error(reporter, message, error, additional);
             break;
         case LogLevel.FATAL:
-            logger.fatal(<any>message, ...args);
+            logger.fatal(reporter, message, error, additional);
             break;
     }
 }

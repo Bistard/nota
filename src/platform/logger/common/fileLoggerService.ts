@@ -1,14 +1,14 @@
 import { getCurrTimeStamp } from "src/base/common/date";
 import { DataBuffer } from "src/base/common/files/buffer";
-import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
+import { ByteSize, FileOperationErrorType } from "src/base/common/files/file";
 import { basename, join, parse } from "src/base/common/files/path";
 import { URI } from "src/base/common/files/uri";
-import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
+import { AbstractLogger, Additionals, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
 import { AsyncQueue, Blocker } from "src/base/common/utilities/async";
-import { Strings } from "src/base/common/utilities/string";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { AbstractLoggerService } from "src/platform/logger/common/abstractLoggerService";
+import { prettyLog } from "src/platform/logger/common/prettyLog";
 
 /**
  * @class The logger service that able to create a {@link FileLogger} which has
@@ -30,7 +30,6 @@ export class FileLoggerService extends AbstractLoggerService<FileLogger> {
             URI.join(uri, name),
             opts.description ?? opts.name ?? 'No Description',
             level,
-            opts.noFormatter ?? false
         );
         return logger;
     }
@@ -63,7 +62,6 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
     private _backupCnt: number;
     private _backupExt: string;
-    private readonly _noFormatter: boolean;
 
     // [cosntructor]
 
@@ -71,7 +69,6 @@ export class FileLogger extends AbstractLogger implements ILogger {
         uri: URI,
         description: string,
         level: LogLevel,
-        noFormatter: boolean,
         @IFileService private readonly fileService: IFileService
     ) {
         super(level);
@@ -83,7 +80,6 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
         this._backupCnt = 1;
         this._backupExt = '';
-        this._noFormatter = noFormatter;
 
         const intialize = async () => {
             const result = await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
@@ -107,49 +103,39 @@ export class FileLogger extends AbstractLogger implements ILogger {
         return this._initializing.waiting();
     }
 
-    public async trace(message: string, ...args: any[]): Promise<void> {
+    public async trace(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.TRACE) {
-            return this.__log(LogLevel.TRACE, Strings.stringify(message, ...args));
+            return this.__log(prettyLog(LogLevel.TRACE, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async debug(message: string, ...args: any[]): Promise<void> {
+    public async debug(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.DEBUG) {
-            return this.__log(LogLevel.DEBUG, Strings.stringify(message, ...args));
+            return this.__log(prettyLog(LogLevel.DEBUG, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async info(message: string, ...args: any[]): Promise<void> {
+    public async info(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.INFO) {
-            return this.__log(LogLevel.INFO, Strings.stringify(message, ...args));
+            return this.__log(prettyLog(LogLevel.INFO, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async warn(message: string, ...args: any[]): Promise<void> {
+    public async warn(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.WARN) {
-            return this.__log(LogLevel.WARN, Strings.stringify(message, ...args));
+            return this.__log(prettyLog(LogLevel.WARN, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async error(message: string | Error, ...args: any[]): Promise<void> {
+    public async error(reporter: string, message: string, error?: Error, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.ERROR) {
-            if (message instanceof Error) {
-                message = message.stack!;
-                return this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
-            } else {
-                return this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
-            }
+            return this.__log(prettyLog(LogLevel.ERROR, this._description, reporter, message, error, additional));
         }
     }
 
-    public async fatal(message: string | Error, ...args: any[]): Promise<void> {
+    public async fatal(reporter: string, message: string, error?: Error, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.FATAL) {
-            if (message instanceof Error) {
-                message = message.stack!;
-                return this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
-            } else {
-                return this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
-            }
+            return this.__log(prettyLog(LogLevel.FATAL, this._description, reporter, message, error, additional));
         }
     }
 
@@ -167,19 +153,14 @@ export class FileLogger extends AbstractLogger implements ILogger {
     /**
      * @description Logs the given message asynchronously and guarantees process
      * each log in succession.
-     * @param level The level of the message.
      * @param message The raw message in string.
      */
-    private async __log(level: LogLevel, message: string): Promise<void> {
+    private async __log(message: string): Promise<void> {
 
         // Queue the log asynchronously
         return this._queue.queue(async () => {
 
             await this._initializing.waiting();
-
-            if (this._noFormatter === false) {
-                message = `[${getCurrTimeStamp()}] [${this._description}] [${parseLogLevel(level)}] ${message}\n`;
-            }
 
             let content = ((await this.fileService.readFile(this._uri).unwrap())).toString();
             if (content.length >= MAX_LOG_SIZE) {
