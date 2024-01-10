@@ -70,6 +70,6 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     // [private helper methods]
 
     protected inspect(): void {
-        this.logService?.trace('DiskEnvironmentService', `Disk Environment loaded.`, { environment: getAllEnvironments(this) });
+        this.logService?.trace('DiskEnvironmentService', `Disk Environment loaded.`, getAllEnvironments(this));
     }
 }
