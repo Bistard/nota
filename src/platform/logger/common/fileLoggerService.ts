@@ -105,37 +105,37 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
     public async trace(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.TRACE) {
-            return this.__log(prettyLog(LogLevel.TRACE, this._description, reporter, message, undefined, additional));
+            return this.__log(prettyLog(false, LogLevel.TRACE, this._description, reporter, message, undefined, additional));
         }
     }
 
     public async debug(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.DEBUG) {
-            return this.__log(prettyLog(LogLevel.DEBUG, this._description, reporter, message, undefined, additional));
+            return this.__log(prettyLog(false, LogLevel.DEBUG, this._description, reporter, message, undefined, additional));
         }
     }
 
     public async info(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.INFO) {
-            return this.__log(prettyLog(LogLevel.INFO, this._description, reporter, message, undefined, additional));
+            return this.__log(prettyLog(false, LogLevel.INFO, this._description, reporter, message, undefined, additional));
         }
     }
 
     public async warn(reporter: string, message: string, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.WARN) {
-            return this.__log(prettyLog(LogLevel.WARN, this._description, reporter, message, undefined, additional));
+            return this.__log(prettyLog(false, LogLevel.WARN, this._description, reporter, message, undefined, additional));
         }
     }
 
     public async error(reporter: string, message: string, error?: Error, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.ERROR) {
-            return this.__log(prettyLog(LogLevel.ERROR, this._description, reporter, message, error, additional));
+            return this.__log(prettyLog(false, LogLevel.ERROR, this._description, reporter, message, error, additional));
         }
     }
 
     public async fatal(reporter: string, message: string, error?: Error, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.FATAL) {
-            return this.__log(prettyLog(LogLevel.FATAL, this._description, reporter, message, error, additional));
+            return this.__log(prettyLog(false, LogLevel.FATAL, this._description, reporter, message, error, additional));
         }
     }
 

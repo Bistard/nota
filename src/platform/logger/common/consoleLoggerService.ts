@@ -1,6 +1,5 @@
-import { ASNIForegroundColor, setANSIColor } from "src/base/common/color";
-import { getCurrTimeStamp } from "src/base/common/date";
-import { AbstractLogger, DEFAULT_LOG_LEVEL, ILogger, LogLevel } from "src/base/common/logger";
+import { AbstractLogger, Additionals, DEFAULT_LOG_LEVEL, ILogger, LogLevel } from "src/base/common/logger";
+import { prettyLog } from "src/platform/logger/common/prettyLog";
 
 /**
  * @class The logger has ability to write log into the console. The log writing 
@@ -20,63 +19,39 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
         this._ifUseColors = ifUseColor;
     }
 
-    public trace(message: string, ...args: any[]): void {
+    public trace(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.TRACE) {
-			if (this._ifUseColors) {
-				console.log(setANSIColor(`[TRACE] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightGray }), message, ...args);
-			} else {
-				console.log(`[TRACE] [${getCurrTimeStamp()}]`, message, ...args);
-			}
+			console.log(prettyLog(this._ifUseColors, LogLevel.TRACE, 'rendener', reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
-	public debug(message: string, ...args: any[]): void {
+	public debug(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.DEBUG) {
-            if (this._ifUseColors) {
-				console.log(setANSIColor(`[DEBUG] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightGray }), message, ...args);
-			} else {
-				console.log(`[DEBUG] [${getCurrTimeStamp()}]`, message, ...args);
-			}
+            console.log(prettyLog(this._ifUseColors, LogLevel.DEBUG, 'rendener', reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
-	public info(message: string, ...args: any[]): void {
+	public info(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.INFO) {
-			if (this._ifUseColors) {
-				console.log(setANSIColor(`[INFO]  [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightGray }), message, ...args);
-			} else {
-				console.log(`[INFO]  [${getCurrTimeStamp()}]`, message, ...args);
-			}
+			console.log(prettyLog(this._ifUseColors, LogLevel.INFO, 'rendener', reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
-	public warn(message: string | Error, ...args: any[]): void {
+	public warn(reporter: string, message: string, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.WARN) {
-			if (this._ifUseColors) {
-				console.warn(setANSIColor(`[WARN]  [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightYellow }), message, ...args);
-			} else {
-				console.warn(`[WARN]  [${getCurrTimeStamp()}]`, message, ...args);
-			}
+			console.warn(prettyLog(this._ifUseColors, LogLevel.WARN, 'rendener', reporter, message, undefined, additional).slice(0, -1));
 		}
 	}
 
-	public error(message: string, ...args: any[]): void {
+	public error(reporter: string, message: string, error?: Error, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.ERROR) {
-			if (this._ifUseColors) {
-				console.error(setANSIColor(`[ERROR] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightRed }), message, ...args);
-			} else {
-				console.error(`[ERROR] [${getCurrTimeStamp()}]`, message, ...args);
-			}
+			console.error(prettyLog(this._ifUseColors, LogLevel.ERROR, 'rendener', reporter, message, error, additional).slice(0, -1));
 		}
 	}
 
-	public fatal(message: string, ...args: any[]): void {
+	public fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void {
 		if (this.getLevel() <= LogLevel.FATAL) {
-			if (this._ifUseColors) {
-				console.error(setANSIColor(`[FATAL] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.Magenta }), message, ...args);
-			} else {
-				console.error(`[FATAL] [${getCurrTimeStamp()}]`, message, ...args);
-			}
+			console.error(prettyLog(this._ifUseColors, LogLevel.FATAL, 'rendener', reporter, message, error, additional).slice(0, -1));
 		}
 	}
 

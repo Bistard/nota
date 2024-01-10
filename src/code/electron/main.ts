@@ -263,7 +263,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         catch (error: any) {
             // unexpected errors
             if (error.code !== 'EADDRINUSE') {
-                this.logService.error(error);
+                this.logService.error('Main', error);
                 throw error;
             }
 
@@ -272,7 +272,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         }
 
         // we are the first running application under the current version.
-        this.logService.debug('Running as the first application.');
+        this.logService.debug('Main', 'Running as the first application.');
         process.env[ProcessKey.PID] = String(process.pid);
         return;
     }
@@ -282,15 +282,15 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         if (isExpectedError(error)) {
             if (error.message) {
-                this.logService.trace(`${error.message}`);
+                this.logService.trace('Main', `${error.message}`);
             }
         }
         else {
             code = 1;
             if (error.stack) {
-                this.logService.error(error.stack);
+                this.logService.error('Main', error.message, error);
             } else {
-                this.logService.error(`Main process error: ${error.toString()}`);
+                this.logService.error('Main', error.message, new Error(`Main process error: ${error.toString()}`));
             }
         }
 
