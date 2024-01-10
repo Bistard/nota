@@ -4,7 +4,17 @@ import { tryOrDefault } from "src/base/common/error";
 import { Schemas } from "src/base/common/files/uri";
 import { Additionals, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
-import { Triple, isObject } from "src/base/common/utilities/type";
+import { isObject } from "src/base/common/utilities/type";
+
+const RGB_colors = <const>{
+    LightGray: [211, 211, 211],
+    LightBlue: [15, 134, 214],
+    LightGreen: [181, 206, 168],
+    LightYellow: [206, 145, 120],
+    LightRed: [235, 57, 65],
+    Magenta: [190, 40, 255],
+    Green: [96, 151, 83], 
+};
 
 export function testPrettyLog(logService: ILogService): void {
     logService.trace('FileTreeService', 'this is trace');
@@ -40,7 +50,7 @@ export function prettyLog(
 ): string 
 {
     const levelStr = getLevelString(color, logLevel);
-    const time = getTimeString(color);
+    const time = getTimeString(color, logLevel);
     const descriptionStr = `${description}`;
     const reporterStr = `${reporter}`;
     const messageStr = `${message}`;
@@ -73,24 +83,36 @@ function getLevelString(color: boolean, logLevel: LogLevel): string {
     return TextColors.setRGBColor(raw, ...getLevelColor(logLevel));
 }
 
-function getLevelColor(level: LogLevel): Triple<number, number, number> {
+function getLevelColor(level: LogLevel): readonly [number, number, number] {
     switch (level) {
-        case LogLevel.TRACE: return [211, 211, 211]; // LightGray
-        case LogLevel.DEBUG: return [15, 134, 214];  // LightBlue
-        case LogLevel.INFO:  return [181, 206, 168]; // LightGreen
-        case LogLevel.WARN:  return [206, 145, 120]; // LightYellow
-        case LogLevel.ERROR: return [235, 57, 65];   // LightRed
-        case LogLevel.FATAL: return [190, 40, 255];  // Magenta
-        default:             return [211, 211, 211]; // LightGray
+        case LogLevel.TRACE: return RGB_colors.LightGray;
+        case LogLevel.DEBUG: return RGB_colors.LightBlue; 
+        case LogLevel.INFO:  return RGB_colors.LightGreen;
+        case LogLevel.WARN:  return RGB_colors.LightYellow;
+        case LogLevel.ERROR: return RGB_colors.LightRed;  
+        case LogLevel.FATAL: return RGB_colors.Magenta; 
+        default:             return RGB_colors.LightGray;
     }
 }
 
-function getTimeString(color: boolean): string {
-    const raw = `${getCurrTimeStamp().slice(0, -4)}`;
+function getTimeString(color: boolean, level: LogLevel): string {
+    const time = `${getCurrTimeStamp().slice(0, -4)}`;
     if (!color) {
-        return raw;
+        return time;
     }
-    return TextColors.setRGBColor(raw, ...[96, 151, 83]);
+
+    // normal time color
+    if (level <= LogLevel.INFO) {
+        return TextColors.setRGBColor(time, ...RGB_colors.Green);
+    }
+
+    if (level === LogLevel.WARN) {
+        return TextColors.setRGBColor(time, ...RGB_colors.LightYellow);
+    } else if (level === LogLevel.ERROR) {
+        return TextColors.setRGBColor(time, ...RGB_colors.LightRed);
+    } else  {
+        return TextColors.setRGBColor(time, ...RGB_colors.Magenta);
+    }
 }
 
 function getErrorString(color: boolean, error: any): string {
@@ -181,7 +203,7 @@ function tryPaintValue(depth: number, color: boolean, key: string, value: any): 
             key.endsWith('uri')
         )
     ) {
-        return TextColors.setRGBColor(value, ...[15, 134, 214]);
+        return TextColors.setRGBColor(value, ...RGB_colors.LightBlue);
     }
 
     return paintDefaultValue(depth, value, false);
@@ -189,10 +211,10 @@ function tryPaintValue(depth: number, color: boolean, key: string, value: any): 
 
 function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boolean): string {
     switch (typeof value) {
-        case "number": return TextColors.setRGBColor(`${value}`, ...[181, 206, 168]);
+        case "number": return TextColors.setRGBColor(`${value}`, ...RGB_colors.LightGreen);
         case "string": {
             if (value.startsWith(Schemas.FILE) || value.startsWith(Schemas.HTTP) || value.startsWith(Schemas.HTTPS)) {
-                return TextColors.setRGBColor(value, ...[15, 134, 214]);
+                return TextColors.setRGBColor(value, ...RGB_colors.LightBlue);
             }
             return value;
         }
@@ -200,12 +222,12 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
         case "boolean":
         case "symbol":
         case "undefined":
-            return TextColors.setRGBColor(`${value}`, ...[15, 134, 214]);
+            return TextColors.setRGBColor(`${value}`, ...RGB_colors.LightBlue);
         case "function":
             return tryOrDefault('[parse error]', () => JSON.stringify(value));
         case "object": {
             if (value === null) {
-                return TextColors.setRGBColor('null', ...[15, 134, 214]);
+                return TextColors.setRGBColor('null', ...RGB_colors.LightBlue);
             }
 
             // recursive paint the array
