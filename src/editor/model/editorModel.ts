@@ -52,7 +52,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const lexerOptions = this.__initLexerOptions(options);
         this._lexer = new MarkdownLexer(lexerOptions);
 
-        
+        this._onLog.fire({ level: LogLevel.DEBUG, message: 'EditorModel constructed.' });
     }
 
     // [getter / setter]
@@ -141,6 +141,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     private async __buildModel(source: URI): Promise<void> {
+        this._onLog.fire({ level: LogLevel.DEBUG, message: `EditorModel start building at: ${URI.toString(source)}` });
 
         // building plain text into piece-table
         const builderOrError = await this.__createTextBufferBuilder(source);
@@ -157,6 +158,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const rawContent = this._textModel.getRawContent();
         this._tokens = this._lexer.lex(rawContent);
 
+        this._onLog.fire({ level: LogLevel.DEBUG, message: `EditorModel built.` });
         this._onDidBuild.fire();
     }
 
@@ -171,7 +173,6 @@ export class EditorModel extends Disposable implements IEditorModel {
      * @note method will invoke `TextBufferBuilder.build()` automatically.
      */
     private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | Error> {
-
         const blocker = new Blocker<TextBufferBuilder | Error>();
         const builder = new TextBufferBuilder();
         const readResult = await this.fileService.readFileStream(source);
