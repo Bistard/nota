@@ -1,5 +1,5 @@
 import { INodeProcess } from "src/base/common/process";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 import { GLOBAL } from "src/platform/electron/browser/global";
 
 interface INavigator {
@@ -19,11 +19,10 @@ declare const process: INodeProcess;
 declare const navigator: INavigator;
 
 export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
-    = function resolvePlatformStatus() {
+    = function resolvePlatformStatus(): [boolean, boolean, boolean, Platform] {
         let isWin = false;
         let isMac = false;
         let isLinux = false;
-        let userAgent: string | undefined;
         let nodeProcess: INodeProcess | undefined;
 
         if (typeof GLOBAL.nota !== 'undefined' && typeof GLOBAL.nota.process !== 'undefined') {
@@ -39,11 +38,13 @@ export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
 
         // Web environment
         if (typeof navigator === 'object' && !isElectronRenderer) {
-            userAgent = navigator.userAgent;
+            const userAgent = navigator.userAgent;
             isWin = userAgent.indexOf('Windows') >= 0
                 || userAgent.indexOf('win32') >= 0; // for Mocha env check: see issue #170
-            isMac = userAgent.indexOf('Macintosh') >= 0;
-            isLinux = userAgent.indexOf('Linux') >= 0;
+            isMac = userAgent.indexOf('Macintosh') >= 0
+                || userAgent.indexOf('darwin') >= 0;
+            isLinux = userAgent.indexOf('Linux') >= 0
+                || userAgent.indexOf('linux') >= 0;
         }
         // Native environment
         else if (isObject(nodeProcess)) {
@@ -53,7 +54,7 @@ export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
         }
         // Unknown environment
         else {
-            console.error('Unable to resolve platform.');
+            console.error('Unable to resolve the current platform.');
         }
 
         let _platform: Platform = Platform.Web;
@@ -76,5 +77,6 @@ export function PlatformToString(platform: Platform) {
         case Platform.Mac: return 'Mac';
         case Platform.Linux: return 'Linux';
         case Platform.Windows: return 'Windows';
+        default: return 'Unknown';
     }
 }

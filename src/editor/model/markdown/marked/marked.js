@@ -21,7 +21,7 @@
 
 'use strict';
 
-const { join } = require("src/base/common/file/path");
+const { join } = require("src/base/common/files/path");
 
 function _defineProperties(target, props) {
 	for (var i = 0; i < props.length; i++) {

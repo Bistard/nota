@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { ISideView } from "src/workbench/parts/sideView/sideView";
 
 export const ExplorerViewID = 'explorer-view';
@@ -23,7 +23,7 @@ export interface IExplorerViewService extends ISideView {
     /**
      * Fired when the directory is opened.
      */
-    onDidOpen: Register<IClassicOpenEvent>;
+    onDidOpen: Register<IFileOpenEvent>;
 
     /**
      * Open the explorer view under the given root path.
@@ -36,7 +36,7 @@ export interface IExplorerViewService extends ISideView {
     close(): Promise<void>;
 }
 
-export interface IClassicOpenEvent {
+export interface IFileOpenEvent {
 
     /**
      * The path of the current opened directory in URI form.

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as assert from 'assert';
-import { FileSystemProviderError, FileOperationErrorType, FileType } from 'src/base/common/file/file';
-import { URI } from 'src/base/common/file/uri';
+import { FileSystemProviderError, FileOperationErrorType, FileType } from 'src/base/common/files/file';
+import { URI } from 'src/base/common/files/uri';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { TestURI } from 'test/utils/testService';
 import { afterEach, beforeEach } from 'mocha';

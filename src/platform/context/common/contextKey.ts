@@ -1,4 +1,4 @@
-import { NonUndefined } from "src/base/common/util/type";
+import { NonUndefined } from "src/base/common/utilities/type";
 import { IContextServiceFriendship } from "src/platform/context/common/contextService";
 
 /**

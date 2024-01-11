@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { Blocker } from "src/base/common/util/async";
+import { Blocker } from "src/base/common/utilities/async";
 import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
 import { IBeforeQuitEvent } from "src/platform/lifecycle/electron/mainLifecycleService";
 
@@ -32,7 +32,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
     ) {
         super();
         this._phase = initPhase;
-        this.logService.trace(`[${type}LifecycleService] [phase-${this.parsePhaseToString(initPhase)}]`);
+        this.logService.trace(`${type}LifecycleService`, 'Process reaching at phase:', { phase: `${this.parsePhaseToString(initPhase)}` });
     }
 
     // [public abstract method]
@@ -61,7 +61,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
             this._phaseBlocker.delete(newPhase);
         }
 
-        this.logService.trace(`[${this.type}LifecycleService] [phase-${this.parsePhaseToString(newPhase)}]`);
+        this.logService.trace(`${this.type}LifecycleService`, 'Process reaching at phase:', { phase: `${this.parsePhaseToString(newPhase)}` });
     }
 
     public async when(desiredPhase: Phase): Promise<void> {

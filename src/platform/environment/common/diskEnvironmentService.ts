@@ -1,9 +1,9 @@
 import { getCurrTimeStamp } from "src/base/common/date";
-import { join, resolve } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { join, resolve } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { MapTypes, isString } from "src/base/common/util/type";
+import { MapTypes, isString } from "src/base/common/utilities/type";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts } from "src/platform/environment/common/environment";
@@ -21,7 +21,7 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     constructor(
         private readonly CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
-        @ILogService private readonly logService?: ILogService,
+        @ILogService private readonly logService: ILogService,
     ) {
         this.opts = {
             isPackaged: opts.isPackaged,
@@ -70,7 +70,6 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     // [private helper methods]
 
     protected inspect(): void {
-        const environments = JSON.stringify(getAllEnvironments(this), null, 4);
-        this.logService?.trace(`[DiskEnvironmentService] loaded:\n${environments}`);
+        this.logService.trace('DiskEnvironmentService', `Disk Environment loaded.`, getAllEnvironments(this));
     }
 }

@@ -1,11 +1,14 @@
 import { Emitter, Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { IFileService } from "src/platform/files/common/fileService";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/section";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
+import { AsyncResult, err, ok } from "src/base/common/error";
+import { FileOperationError } from "src/base/common/files/file";
+import { jsonSafeParse } from "src/base/common/json";
 
 export const II18nService = createService<II18nService>('i18n-service');
 
@@ -89,7 +92,7 @@ export interface II18nService extends IService {
     /**
      * Initializes all the settings and default language.
      */
-    init(): Promise<void>;
+    init(): AsyncResult<void, FileOperationError | SyntaxError>;
 
     /**
      * Changes the current langauge to the provided one.
@@ -183,9 +186,19 @@ export class i18n implements II18nService {
         this._onDidChange.dispose();
     }
 
-    public async init(): Promise<void> {
+    public init(): AsyncResult<void, FileOperationError | SyntaxError> {
+        this.logService.trace('i18n', 'i18n intializing...');
+        
         const uri = URI.join(this._path, this.language + this._extension);
-        await this.__readLocale(uri);
+        return this.__readLocale(uri)
+        .orElse(error => {
+            this.logService.error('i18nService', `Cannot read locale.`, error, { at: URI.toString(uri) });
+            return err(error);
+        })
+        .andThen(() => {
+            this.logService.trace('i18n', 'i18n intialized.');
+            return ok();
+        });
     }
 
     public setLanguage(lang: LanguageType, opts?: ILocaleOpts): void {
@@ -302,16 +315,12 @@ export class i18n implements II18nService {
      * @param uri The absolute file path to the locale.
      *  eg. ../../en-US.json
      */
-    private async __readLocale(uri: URI): Promise<void> {
-        try {
-            const buffer = await this.fileService.readFile(uri);
-            const jsonObject = JSON.parse(buffer.toString());
-            Object.assign(this._model, jsonObject);
-        }
-        catch (err) {
-            this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
-            throw err;
-        }
+    private __readLocale(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.fileService.readFile(uri)
+        .andThen(buffer => jsonSafeParse(buffer.toString()))
+        .andThen(parsed => {
+            Object.assign(this._model, parsed);
+            return ok();
+        });
     }
-
 }

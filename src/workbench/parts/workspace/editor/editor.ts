@@ -1,5 +1,5 @@
 import 'src/workbench/parts/workspace/editor/media/editor.scss';
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -10,7 +10,7 @@ import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/expl
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
-import { deepCopy } from "src/base/common/util/object";
+import { deepCopy } from "src/base/common/utilities/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';

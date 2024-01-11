@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { Blocker, delayFor } from "src/base/common/util/async";
+import { Blocker, delayFor, JoinablePromise } from "src/base/common/utilities/async";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
@@ -52,7 +52,7 @@ export interface IBeforeQuitEvent<Reason extends number> {
     /**
      * A method that allows the listener to join the whole process.
      */
-    readonly join: (participant: Promise<void>) => void;
+    readonly join: (participant: PromiseLike<any>) => void;
 }
 
 /**
@@ -101,17 +101,17 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             return this._pendingQuitBlocker.waiting();
         }
 
-        this.logService.trace('[MainLifecycleService] quit()');
+        this.logService.trace('MainLifecycleService', 'quit()');
         this._pendingQuitBlocker = new Blocker<void>();
 
-        this.logService.trace('[MainLifecycleService] app.quit()');
+        this.logService.trace('MainLifecycleService', 'app.quit()');
         app.quit();
 
         return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
-        this.logService.trace('[MainLifecycleService] kill()');
+        this.logService.trace('MainLifecycleService', 'kill()');
 
         // Give the other services a chance to be notified and complete their job.
         await this.__fireOnBeforeQuit(QuitReason.Kill);
@@ -149,8 +149,6 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
-        this.logService.trace(`[MainLifecycleService] registerListeners()`);
-
         let onWindowAllClosed: () => void = undefined!;
         let onBeforeQuitAnyWindows: () => void = undefined!;
 
@@ -163,14 +161,14 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * which will not be prevented and will quit normally.
          */
         app.once('will-quit', (event: Electron.Event) => {
-            this.logService.trace('[MainLifecycleService] app.once("will-quit")');
+            this.logService.trace('MainLifecycleService', 'app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
             event.preventDefault();
 
             this.__fireOnBeforeQuit(QuitReason.Quit)
                 .finally(() => {
-                    this.logService.trace('[MainLifecycleService] application is about to quiting...');
+                    this.logService.info('MainLifecycleService', 'application is quiting...');
 
                     if (this._pendingQuitBlocker) {
                         this._pendingQuitBlocker.resolve();
@@ -197,7 +195,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * 'window-all-closed' will not emit.
          */
         onWindowAllClosed = () => {
-            this.logService.trace('[MainLifecycleService] app.addListener("window-all-closed")');
+            this.logService.trace('MainLifecycleService', 'app.addListener("window-all-closed")');
             // mac: only quit when requested
             if (IS_MAC && this._requestQuit) {
                 app.quit();
@@ -218,10 +216,10 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
                 return;
             }
 
-            this.logService.trace('[MainLifecycleService] app.addListener("before-quit")');
+            this.logService.trace('MainLifecycleService', 'app.addListener("before-quit")');
             this._requestQuit = true;
 
-            this.logService.trace('[MainLifecycleService] onBeforeQuit.fire()');
+            this.logService.trace('MainLifecycleService', 'onBeforeQuit.fire()');
             this._onBeforeQuit.fire();
 
             /**
@@ -243,28 +241,38 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      * @returns A promise to be wait until all the other listeners are completed.
      */
     private __fireOnBeforeQuit(reason: QuitReason): Promise<void> {
+        this.logService.info('MainLifecycleService', 'Application is about to quit...', { reason: parseQuitReason(reason) });
 
         if (this._ongoingBeforeQuitPromise) {
             return this._ongoingBeforeQuitPromise;
         }
 
+        this.logService.info('MainLifecycleService', 'Broadcasting the application is about to quit...');
+
         // notify all listeners
-        const participants: Promise<void>[] = [];
+        const joinable = new JoinablePromise();
         this._onWillQuit.fire({
             reason: reason,
-            join: participant => participants.push(participant),
+            join: participant => joinable.join(participant),
         });
 
         this._ongoingBeforeQuitPromise = (async () => {
+            
             // we need to ensure all the participants have completed their jobs.
-            try {
-                await Promise.allSettled(participants);
-            } catch (err: any) {
-                this.logService.error(err);
+            const results = await joinable.allSettled();
+            
+            // error handling
+            for (const res of results) {
+                if (res.status === 'rejected') {
+                    this.logService.error('MainLifecycleService', '`onWillQuit` participant fails.', res.reason);
+                }
             }
         })();
 
-        return this._ongoingBeforeQuitPromise.then(() => this._ongoingBeforeQuitPromise = undefined);
+        return this._ongoingBeforeQuitPromise.then(() => {
+            this._ongoingBeforeQuitPromise = undefined;
+            this.logService.info('MainLifecycleService', 'Broadcasting `quit` successed.');
+        });
     }
 }
 
@@ -273,5 +281,12 @@ function parsePhaseString(phase: LifecyclePhase): string {
         case LifecyclePhase.Starting: return 'Starting';
         case LifecyclePhase.Ready: return 'Ready';
         case LifecyclePhase.Idle: return 'Idle';
+    }
+}
+
+function parseQuitReason(reason: QuitReason): string {
+    switch (reason) {
+        case QuitReason.Quit: return 'The application quit normally.';
+        case QuitReason.Kill: return 'The application exit abnormally and killed with an exit code.';
     }
 }

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { ISpliceable } from 'src/base/common/range';
+import { ISpliceable } from 'src/base/common/structures/range';
 import { FlexIndexTreeModel, IndexTreeModel } from 'src/base/browser/secondary/tree/indexTreeModel';
 import { ITreeFilterProvider, ITreeFilterResult } from 'src/base/browser/secondary/tree/treeFilter';
 import { IFlexNode, ITreeNode } from 'src/base/browser/secondary/tree/tree';

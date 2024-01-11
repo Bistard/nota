@@ -41,7 +41,7 @@ export class LookupPaletteService implements ILookupPaletteService {
             return;
         }
 
-        this.logService.trace('[LookupPaletteService] init()');
+        this.logService.trace('LookupPaletteService', 'init()');
         this.registerListeners();
     }
 
@@ -58,10 +58,10 @@ export class LookupPaletteService implements ILookupPaletteService {
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace('[LookupPaletteService] registerListeners()');
+        this.logService.trace('LookupPaletteService', 'registerListeners()');
 
         if (globalShortcut.isRegistered(GLOBAL_LOOKUP_KEY)) {
-            this.logService.warn(`Shortcut for lookup-service is already registered: ${GLOBAL_LOOKUP_KEY}, service is turned-off for now.`);
+            this.logService.warn('LookupPaletteService', `Shortcut for lookup-service is already registered: ${GLOBAL_LOOKUP_KEY}, service is turned-off for now.`);
             return;
         }
 

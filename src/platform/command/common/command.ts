@@ -1,12 +1,8 @@
-import { IShortcutRegistrant, IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { ICommandRegistrant, ICommandSchema } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr, CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-
-const shortcutRegistrant = REGISTRANTS.get(IShortcutRegistrant);
-const commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
 
 export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'overwrite'> {
 
@@ -73,17 +69,19 @@ export abstract class Command implements ICommand {
             overwrite: true,
         };
 
+        // FIX: shortcutRegistrant invalid
         // register as the shortcut if needed
-        if (schema.shortcutOptions) {
-            shortcutRegistrant.register({
-                commandID: schema.id,
-                ...schema.shortcutOptions,
-                when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
-            });
-        }
+        // if (schema.shortcutOptions) {
+        //     shortcutRegistrant.register({
+        //         commandID: schema.id,
+        //         ...schema.shortcutOptions,
+        //         when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
+        //     });
+        // }
 
         // command registration
-        commandRegistrant.registerCommand(actualSchema, this.__runCommand.bind(this));
+        // FIX: commandRegistrant invalid
+        // commandRegistrant.registerCommand(actualSchema, this.__runCommand.bind(this));
     }
 
     // [public methods]

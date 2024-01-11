@@ -4,10 +4,10 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Event, Register } from "src/base/common/event";
-import { basename } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { basename } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
-import { isNonNullable } from "src/base/common/util/type";
+import { isNonNullable } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
@@ -203,7 +203,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             return;
         }
 
-        this.logService.trace(`[EditorWidget] Reading file '${basename(URI.toString(model.source))}'`);
+        this.logService.trace('EditorWidget', `Reading file '${basename(URI.toString(model.source))}'`);
 
         this._model = model;
         this._viewModel = this.instantiationService.createInstance(
@@ -275,7 +275,9 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
         // log out all the messages from MVVM
         disposables.register(Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
-            defaultLog(this.logService, event.level, event.data);
+            
+            // FIX
+            // defaultLog(this.logService, event.level, event.data);
         }));
 
         // binding to the view model

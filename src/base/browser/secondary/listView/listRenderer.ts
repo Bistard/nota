@@ -10,7 +10,7 @@ export const enum RendererType {
 	Unknown,  /** testing purpose. */
 	
 	ListItem, /** {@link ListItemRenderer} */
-	Explorer, /** {@link ClassicRenderer} */
+	Explorer, /** {@link FileItemRenderer} */
 	
 	MarkdownPlainText, // TODO
 	MarkdownHeading,  /** {@link HeadingRenderer} */

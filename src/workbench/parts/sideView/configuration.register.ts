@@ -1,6 +1,5 @@
 import { TreeMode } from "src/workbench/services/explorerTree/treeService";
-import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
+import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 
 export const enum SideViewConfiguration {
     DefaultSideView = 'sideView.defaultView',
@@ -8,41 +7,52 @@ export const enum SideViewConfiguration {
     ExplorerViewMode = 'sideView.explorer.mode',
     ExplorerViewInclude = 'sideView.explorer.include',
     ExplorerViewExclude = 'sideView.explorer.exclude',
+
+    ExplorerFileSorting = 'sideView.explorer.fileSorting',
 }
 
-const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
-
-Registrant.registerConfigurations({
-    id: 'side-view',
-    properties: {
-        ['sideView']: {
-            type: 'object',
+export const rendererSideViewConfigurationRegister = createRegister(
+    RegistrantType.Configuration, 
+    'rendererSideView',
+    (registrant) => {
+        registrant.registerConfigurations({
+            id: 'side-view',
             properties: {
-                
-                ['defaultView']: {
-                    type: 'string',
-                    default: 'explorer',
-                },
-                
-                // sideView.explorer
-                ['explorer']: {
+                ['sideView']: {
                     type: 'object',
                     properties: {
-                        ['mode']: {
+                        
+                        // sideView.defaultView
+                        ['defaultView']: {
                             type: 'string',
-                            default: TreeMode.Classic,
+                            default: 'explorer',
                         },
-                        ['include']: {
-                            type: 'array',
-                            default: ['^\\..*'],
-                        },
-                        ['exclude']: {
-                            type: 'array',
-                            default: [''],
-                        },
+                        
+                        // sideView.explorer
+                        ['explorer']: {
+                            type: 'object',
+                            properties: {
+                                ['mode']: {
+                                    type: 'string',
+                                    default: TreeMode.Classic,
+                                },
+                                ['include']: {
+                                    type: 'array',
+                                    default: ['^\\..*'],
+                                },
+                                ['exclude']: {
+                                    type: 'array',
+                                    default: [''],
+                                },
+                                ['fileSorting']: {
+                                    type: 'boolean',
+                                    default: true,
+                                },
+                            }
+                        }
                     }
-                }
+                },
             }
-        },
-    }
-});
+        });
+    },
+);

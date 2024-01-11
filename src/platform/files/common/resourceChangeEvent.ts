@@ -1,5 +1,5 @@
-import { URI } from "src/base/common/file/uri";
-import { CreateTernarySearchTree, TernarySearchTree } from "src/base/common/util/ternarySearchTree";
+import { URI } from "src/base/common/files/uri";
+import { CreateTernarySearchTree, TernarySearchTree } from "src/base/common/structures/ternarySearchTree";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/platform/files/common/watcher";
 
 /**

@@ -4,8 +4,12 @@ import { ILogService } from "src/base/common/logger";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileService } from "src/platform/files/common/fileService";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { URI } from "src/base/common/files/uri";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { Arrays } from "src/base/common/utilities/array";
+import { JsonSchemaValidator } from "src/base/common/json";
+import { AsyncResult, err, ok } from "src/base/common/error";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -18,8 +22,10 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @IInstantiationService instantiationService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @ILogService logService: ILogService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
-        super(options, instantiationService, logService);
+        super(options, instantiationService, logService, registrantService);
+        this.logService.trace('BrowserConfigurationService', 'Constructed.');
     }
 
     // [public methods]
@@ -32,18 +38,20 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         await this.__updateConfiguration(section, undefined, options);
     }
 
-    public async save(): Promise<void> {
+    public save(): AsyncResult<void, Error> {
         if (!this.isInit) {
-            return;
+            return AsyncResult.ok();
         }
 
-        const jsonData = this._configurationHub.inspect().toJSON();
-        try {
-            await this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true });
-            this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
-        } catch (error: unknown) {
-            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
-        }
+        const jsonData = this._configurationHub.inspect().toJSON().unwrap();
+        return this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true })
+        .orElse(error => {
+            this.logService.error('BrowserConfigurationService', `Cannot save configuration.`, error, { at: URI.toString(this.appConfigurationPath) });
+            return err(error);
+        })
+        .andThen(() => {
+            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration`, { at: URI.toString(this.appConfigurationPath) }));
+        });
     }
 
     // [private helper methods]
@@ -52,8 +60,27 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         const module = options?.type;
 
         if (module === ConfigurationModuleType.Default) {
-            throw new Error(`[BrowserConfigurationService] cannot update configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
+            throw new Error(`[BrowserConfigurationService] cannot update the configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
+
+        /**
+         * Before update the configuration, we need to ensure two things based 
+         * on the configuration schemas:
+         *   1. The section is valid.
+         *   2. The value is vlaid.
+         */
+        if (!this.__validateConfigurationUpdateInSection(section)) {
+            throw new Error(`[BrowserConfigurationService] cannot update the configuration because the section is invalid: ${section}`);
+        }
+
+        // ignore value check when deleting the configuration
+        if (value !== undefined  && !this.__validateConfigurationUpdateInValue(section, value)) {
+            throw new Error(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}`);
+        }
+        
+        /**
+         * Updates the configuration based on its target module type.
+         */
 
         if (module === ConfigurationModuleType.Memory) {
             this.__updateInMemoryConfiguration(section, value);
@@ -87,5 +114,29 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
         // make sure the changes are applied to the file
         return this._userConfiguration.onLatestConfigurationFileChange;
+    }
+
+    private __validateConfigurationUpdateInSection(section: Section): boolean {
+        // section validation
+        const validSections = this._defaultConfiguration.getConfiguration().sections;
+        return Arrays.exist(validSections, section);
+    }
+    
+    private __validateConfigurationUpdateInValue(section: Section, value: unknown): boolean {
+        // value validation
+        const getFirstSection = (section: string): string => {
+            const endIdx = section.indexOf('.');
+            return endIdx === -1 ? section : section.substring(0, endIdx);
+        };
+        const firstKey = getFirstSection(section);
+        
+        const schemas = this._registrant.getConfigurationSchemas();
+        const correspondingSchema = schemas[firstKey];
+        if (!correspondingSchema) {
+            return false;
+        }
+        
+        const result = JsonSchemaValidator.validate(value, correspondingSchema);
+        return result.valid;
     }
 }

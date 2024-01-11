@@ -1,9 +1,10 @@
 import * as assert from 'assert';
 import { after, before } from 'mocha';
 import { Emitter, Event, Register } from 'src/base/common/event';
-import { DataBuffer } from 'src/base/common/file/buffer';
-import { URI } from 'src/base/common/file/uri';
-import { delayFor } from 'src/base/common/util/async';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { URI } from 'src/base/common/files/uri';
+import { delayFor } from 'src/base/common/utilities/async';
+import { IService } from 'src/platform/instantiation/common/decorator';
 import { IChannel, IServerChannel } from 'src/platform/ipc/common/channel';
 import { ClientBase, ServerBase } from 'src/platform/ipc/common/net';
 import { ProxyChannel } from 'src/platform/ipc/common/proxy';
@@ -11,7 +12,7 @@ import { TestIPC } from 'test/utils/testService';
 
 const TestChannelId = 'testchannel';
 
-interface ITestService {
+interface ITestService extends IService {
 	marco(): Promise<string>;
 	error(message: string): Promise<void>;
 	neverComplete(): Promise<void>;
@@ -24,6 +25,8 @@ interface ITestService {
 }
 
 class TestService implements ITestService {
+
+	declare _serviceMarker: undefined;
 
 	private readonly _onPong = new Emitter<string>();
 	readonly onPong = this._onPong.registerListener;
@@ -80,6 +83,8 @@ class TestServerChannel implements IServerChannel {
 }
 
 class TestClientChannel implements ITestService {
+
+	declare _serviceMarker: undefined;
 
 	get onPong(): Register<string> {
 		return this.channel.registerListener('onPong');
@@ -201,7 +206,7 @@ suite('IPC-test', function () {
 			server.registerChannel(TestChannelId, ProxyChannel.wrapService(service));
 
 			client = testServer.createConnection('client1');
-			ipcService = ProxyChannel.unwrapChannel(client.getChannel(TestChannelId));
+			ipcService = ProxyChannel.unwrapChannel<ITestService>(client.getChannel(TestChannelId));
 		});
 
 		after(function () {

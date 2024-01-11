@@ -11,7 +11,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { AsyncQueue } from "src/base/common/util/async";
+import { AsyncQueue } from "src/base/common/utilities/async";
 
 /**
  * @internal

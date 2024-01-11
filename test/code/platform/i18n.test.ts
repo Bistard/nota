@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Mutable } from 'src/base/common/util/type';
+import { Mutable } from 'src/base/common/utilities/type';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { i18n } from 'src/platform/i18n/common/i18n';
 import { Section } from 'src/platform/section';

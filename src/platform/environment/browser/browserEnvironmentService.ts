@@ -13,7 +13,7 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
     private readonly _configuration: IWindowConfiguration;
 
     constructor(
-        logService?: ILogService,
+        logService: ILogService,
     ) {
         super(windowConfiguration, {
             isPackaged: windowConfiguration.isPackaged,
@@ -27,6 +27,8 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
         if (this._configuration.log === 'trace') {
             this.inspect();
         }
+
+        logService.trace('BrowserEnvironmentService', 'BrowserEnvironmentService constructed.');
     }
 
     get machineID(): string { return this._configuration.machineID; }

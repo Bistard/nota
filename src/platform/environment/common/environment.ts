@@ -1,10 +1,10 @@
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { LogLevel } from "src/base/common/logger";
-import { iterProp } from "src/base/common/util/object";
+import { iterProp } from "src/base/common/utilities/object";
 import { IService, createService, refineDecorator } from "src/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/platform/window/common/window";
-import { isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/utilities/type";
 
 export const IEnvironmentService = createService<IEnvironmentService>('environment-service');
 export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, IBrowserEnvironmentService>(IEnvironmentService);
@@ -14,8 +14,9 @@ export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, I
  * array.
  * @param service The desired {@link IEnvironmentService}.
  */
-export function getAllEnvironments(service: IEnvironmentService): string[] {
-    const result: string[] = [];
+export function getAllEnvironments(service: IEnvironmentService): Record<string, string> {
+    const result = {};
+
     let value: any;
     iterProp(service, (propName) => {
         if (propName !== 'constructor' && typeof service[propName] !== 'function') {
@@ -29,7 +30,8 @@ export function getAllEnvironments(service: IEnvironmentService): string[] {
             else {
                 value = propVal;
             }
-            result.push(`${propName}: ${value}`);
+
+            result[propName] = value;
         }
     }, -1);
     return result;

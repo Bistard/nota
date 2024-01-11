@@ -1,18 +1,18 @@
 import * as fs from "fs";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { join } from "src/base/common/file/path";
-import { IReadableStreamEvent, newWriteableStream, readFileIntoStream } from "src/base/common/file/stream";
-import { URI } from "src/base/common/file/uri";
-import { retry } from "src/base/common/util/async";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { join } from "src/base/common/files/path";
+import { IReadyReadableStream, newWriteableStream, readFileIntoStream, toReadyStream } from "src/base/common/files/stream";
+import { URI } from "src/base/common/files/uri";
+import { retry } from "src/base/common/utilities/async";
 import { FileService } from "src/platform/files/common/fileService";
-import { fileExists, FileMode } from "src/base/node/io";
+import { fileExists, FileMode, statWithSymbolink } from "src/base/node/io";
 import { Watcher } from "src/platform/files/node/watcher";
 import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/platform/files/common/watcher";
-import { errorToMessage } from "src/base/common/error";
+import { errorToMessage, panic } from "src/base/common/error";
 
 export class DiskFileSystemProvider extends Disposable implements
     IFileSystemProviderWithFileReadWrite,
@@ -60,7 +60,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
         catch (err: any) {
             if (err.code === 'ENOENT') {
-                throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
+                throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
             }
             throw err;
         }
@@ -77,14 +77,14 @@ export class DiskFileSystemProvider extends Disposable implements
 
             // validation {overwrite, create}
             if (opts.create === false || opts.overwrite === false) {
-                const exist = fileExists(path);
+                const exist = await fileExists(path);
 
                 if (exist && opts.overwrite === false) {
-                    throw new FileSystemProviderError('File already exists', FileOperationErrorType.FILE_EXISTS);
+                    throw new FileSystemProviderError(`File already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS);
                 }
 
                 else if (!exist && opts.create === false) {
-                    throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
+                    throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
                 }
             }
 
@@ -107,13 +107,16 @@ export class DiskFileSystemProvider extends Disposable implements
 
     }
 
-    public readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array> {
+    public readFileStream(uri: URI, opt?: IReadFileOptions): IReadyReadableStream<Uint8Array> {
         const stream = newWriteableStream<Uint8Array>(data => DataBuffer.concat(data.map(data => DataBuffer.wrap(data))).buffer);
-        readFileIntoStream(this, uri, stream, data => data.buffer, {
-            ...opt,
-            bufferSize: FileService.bufferSize
+        return toReadyStream(() => {
+            readFileIntoStream(this, uri, stream, data => data.buffer, {
+                ...opt,
+                bufferSize: FileService.bufferSize
+            });
+            
+            return stream;
         });
-        return stream;
     }
 
     /***************************************************************************
@@ -204,7 +207,7 @@ export class DiskFileSystemProvider extends Disposable implements
             const toPath = URI.toFsPath(to);
             const stat = await this.stat(from);
 
-            if (fileExists(toPath) && opts.overwrite === false) {
+            if (await fileExists(toPath) && opts.overwrite === false) {
                 throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.UNKNOWN);
             }
 
@@ -234,11 +237,39 @@ export class DiskFileSystemProvider extends Disposable implements
 
             if (opts.recursive) {
                 await fs.promises.rm(path, { recursive: opts.recursive });
-            } else {
+                return;
+            } 
+
+            // not deleting recursive, use unlink
+            try {
                 await fs.promises.unlink(path);
+            } catch (unlinkError: any) {
+                /**
+                 * `fs.unlink` will throw when used on directories we try to 
+                 * detect this error and then see if the provided resource is 
+                 * actually a directory. in that case we use `fs.rmdir` to 
+                 * delete the directory.
+                 */
+
+                if (unlinkError.code === 'EPERM' || unlinkError.code === 'EISDIR') {
+                    let isDirectory = false;
+                    try {
+                        const { stat, symbolicLink } = await statWithSymbolink(path);
+                        isDirectory = stat.isDirectory() && !symbolicLink;
+                    } catch (statError) { /** ignore */ }
+
+                    if (isDirectory) {
+                        await fs.promises.rmdir(path);
+                    } else {
+                        panic(unlinkError);
+                    }
+                } else {
+                    panic(unlinkError);
+                }
             }
+
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -251,7 +282,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         try {
-            if (fileExists(toPath) && opts.overwrite === false) {
+            if (await fileExists(toPath) && opts.overwrite === false) {
                 throw 'file already exists';
             }
             await fs.promises.rename(fromPath, toPath);
@@ -322,14 +353,13 @@ export class DiskFileSystemProvider extends Disposable implements
         }
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+    public watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable> {
         if (!this._watcher) {
             this._watcher = new Watcher(this.logService);
             this.__register(this._watcher.onDidChange(e => this._onDidResourceChange.fire(e)));
             this.__register(this._watcher.onDidClose(e => this._onDidResourceClose.fire(e)));
         }
-        const disposable = this._watcher.watch({ resource: uri, ...opts });
-        return disposable;
+        return this._watcher.watch({ resource: uri, ...opts });
     }
 
     /***************************************************************************

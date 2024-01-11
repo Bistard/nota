@@ -1,6 +1,6 @@
 import { DisposableManager } from "src/base/common/dispose";
 import { NodeEventEmitter } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
+import { DataBuffer } from "src/base/common/files/buffer";
 import { ipcRenderer } from "src/platform/electron/browser/global";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ClientBase } from "src/platform/ipc/common/net";

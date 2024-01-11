@@ -2,8 +2,8 @@ import * as fs from "fs";
 import { BrowserWindow, dialog } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { AsyncQueue } from "src/base/common/util/async";
-import { mockType, nullToUndefined } from "src/base/common/util/type";
+import { AsyncQueue } from "src/base/common/utilities/async";
+import { mockType, nullToUndefined } from "src/base/common/utilities/type";
 import { IDialogService, IInternalOpenDialogOptions, IOpenDialogOptions } from "src/platform/dialog/common/dialog";
 import { createService } from "src/platform/instantiation/common/decorator";
 
@@ -62,10 +62,10 @@ export class MainDialogService implements IMainDialogService {
             let dialogResult: Electron.OpenDialogReturnValue;
 
             if (window) {
-                this.logService.trace(`[MainDialogService] showing open dialog with window ID: ${window.id}...`);
+                this.logService.trace('MainDialogService', `showing open dialog with window ID: ${window.id}...`);
                 dialogResult = await dialog.showOpenDialog(window, opts);
             } else {
-                this.logService.trace(`[MainDialogService] showing open dialog...`);
+                this.logService.trace('MainDialogService', `showing open dialog...`);
                 dialogResult = await dialog.showOpenDialog(opts);
             }
 
@@ -79,10 +79,10 @@ export class MainDialogService implements IMainDialogService {
         return this.__getDialogQueue<Electron.SaveDialogReturnValue>(window).queue(async () => {
             let dialogResult: Electron.SaveDialogReturnValue;
             if (window) {
-                this.logService.trace(`[MainDialogService] showing save dialog with window ID: ${window.id}...`);
+                this.logService.trace('MainDialogService', `showing save dialog with window ID: ${window.id}...`);
                 dialogResult = await dialog.showSaveDialog(window, opts);
             } else {
-                this.logService.trace(`[MainDialogService] showing save dialog...`);
+                this.logService.trace('MainDialogService', `showing save dialog...`);
                 dialogResult = await dialog.showSaveDialog(opts);
             }
 
@@ -93,10 +93,10 @@ export class MainDialogService implements IMainDialogService {
     public async showMessageBox(opts: Electron.MessageBoxOptions, window?: BrowserWindow): Promise<Electron.MessageBoxReturnValue> {
         return this.__getDialogQueue<Electron.MessageBoxReturnValue>(window).queue(async () => {
             if (window) {
-                this.logService.trace(`[MainDialogService] showing message dialog with window ID: ${window.id}...`);
+                this.logService.trace('MainDialogService', `showing message dialog with window ID: ${window.id}...`);
                 return dialog.showMessageBox(window, opts);
             }
-            this.logService.trace(`[MainDialogService] showing message dialog...`);
+            this.logService.trace('MainDialogService', `showing message dialog...`);
             return dialog.showMessageBox(opts);
         });
     }
@@ -135,20 +135,20 @@ export class MainDialogService implements IMainDialogService {
     }
 
     private __getDialogQueue<T>(window?: BrowserWindow): AsyncQueue<T> {
-        let queue: AsyncQueue<T>;
+        let queue: AsyncQueue<any> | undefined;
 
         if (!window) {
-            queue = mockType(this._dialogQueues.get(-1));
+            queue = this._dialogQueues.get(-1);
             if (!queue) {
                 queue = new AsyncQueue();
-                this._dialogQueues.set(-1, mockType(queue));
+                this._dialogQueues.set(-1, queue);
             }
         }
         else {
-            queue = mockType(this._dialogQueues.get(window.id));
+            queue = this._dialogQueues.get(window.id);
             if (!queue) {
                 queue = new AsyncQueue();
-                this._dialogQueues.set(window.id, mockType(queue));
+                this._dialogQueues.set(window.id, queue);
             }
         }
 

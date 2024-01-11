@@ -1,7 +1,7 @@
 import * as assert from 'assert';
-import { createRegistrant, REGISTRANTS, RegistrantType } from 'src/platform/registrant/common/registrant';
+import { createRegistrant, REGISTRANTS, RegistrantTypeDeprecated } from 'src/platform/registrant/common/registrant';
 
-const INullRegistrant = createRegistrant<INullRegistrant>(RegistrantType.Test, true);
+const INullRegistrant = createRegistrant<INullRegistrant>(RegistrantTypeDeprecated.Test, true);
 
 interface INullRegistrant {
     foo(): boolean;

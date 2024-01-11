@@ -6,7 +6,7 @@
 
 import { ProcessMemoryInfo } from "electron";
 import { INodeProcess, IProcessEnvironment } from "src/base/common/process";
-import { Callable } from "src/base/common/util/type";
+import { Callable } from "src/base/common/utilities/type";
 
 /**
  * @link https://electronjs.org/docs/api/structures/ipc-renderer-event

@@ -1,10 +1,10 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IOverwriteFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IFileSystemProviderWithFileReadWrite } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
-import { Scheduler } from "src/base/common/util/async";
-import { ResourceMap } from "src/base/common/util/map";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IOverwriteFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
+import { IFileSystemProviderWithFileReadWrite } from "src/base/common/files/file";
+import { URI } from "src/base/common/files/uri";
+import { Scheduler } from "src/base/common/utilities/async";
+import { ResourceMap } from "src/base/common/structures/map";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/platform/files/common/watcher";
 import { createRawResourceChangeEvents } from "src/platform/files/node/watcher";
 
@@ -96,7 +96,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	/**
 	 * @note Does not support recursive watching.
 	 */
-	public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+	public watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable> {
 		if (opts) {
 			throw new Error('[InMemoryFileSystemProvider] does not provide options for `watch`.');
 		}
@@ -110,7 +110,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		});
 		this._watchers.set(uri, watcher);
 
-		return watcher;
+		return Promise.resolve(watcher);
 	}
 
 	public async stat(uri: URI): Promise<IFileStat> {
@@ -119,7 +119,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
 	public async mkdir(uri: URI): Promise<void> {
 		if (this.__lookup(uri, true)) {
-			throw new FileSystemProviderError('file exists already', FileOperationErrorType.FILE_EXISTS);
+			throw new FileSystemProviderError(`file exists already: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS);
 		}
 
 		const baseName = URI.basename(uri);
@@ -161,7 +161,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
 	public async rename(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void> {
 		if (!opts.overwrite && this.__lookup(to, true)) {
-			throw new FileSystemProviderError('file exists already', FileOperationErrorType.FILE_EXISTS);
+			throw new FileSystemProviderError(`file exists already: ${URI.toString(to)}`, FileOperationErrorType.FILE_EXISTS);
 		}
 
 		const entry = this.__lookup(from, false);
@@ -184,7 +184,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (entry?.data) {
 			return entry.data;
 		}
-		throw new FileSystemProviderError('file not found', FileOperationErrorType.FILE_NOT_FOUND);
+		throw new FileSystemProviderError(`file not found: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
 	}
 
 	public async writeFile(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void> {
@@ -193,15 +193,15 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		let entry = parent.entries.get(basename);
 
 		if (entry instanceof Directory) {
-			throw new FileSystemProviderError('file is directory', FileOperationErrorType.FILE_IS_DIRECTORY);
+			throw new FileSystemProviderError(`file is directory: ${URI.toString(uri)}`, FileOperationErrorType.FILE_IS_DIRECTORY);
 		}
 
 		if (!entry && !opts.create) {
-			throw new FileSystemProviderError('file not found', FileOperationErrorType.FILE_NOT_FOUND);
+			throw new FileSystemProviderError(`file not found: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
 		}
 
 		if (entry && opts.create && !opts.overwrite) {
-			throw new FileSystemProviderError('file already exists', FileOperationErrorType.FILE_EXISTS);
+			throw new FileSystemProviderError(`file already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS);
 		}
 
 		if (!entry) {
@@ -244,7 +244,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
 			if (!child) {
 				if (!silent) {
-					throw new FileSystemProviderError('file not found', FileOperationErrorType.FILE_NOT_FOUND);
+					throw new FileSystemProviderError(`file not found: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
 				} else {
 					return undefined;
 				}
@@ -260,7 +260,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (entry instanceof Directory) {
 			return entry;
 		}
-		throw new FileSystemProviderError('file not a directory', FileOperationErrorType.FILE_IS_NOT_DIRECTORY);
+		throw new FileSystemProviderError(`file not a directory: ${URI.toString(uri)}`, FileOperationErrorType.FILE_IS_NOT_DIRECTORY);
 	}
 
 	private __lookupFile(uri: URI, silent: boolean = false): File {
@@ -268,7 +268,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (entry instanceof File) {
 			return entry;
 		}
-		throw new FileSystemProviderError('file is a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
+		throw new FileSystemProviderError(`file is a directory: ${URI.toString(uri)}`, FileOperationErrorType.FILE_IS_DIRECTORY);
 	}
 
 	private __triggerWatchers(uri: URI, types: ResourceChangeType | ResourceChangeType[], isFile: boolean): void {

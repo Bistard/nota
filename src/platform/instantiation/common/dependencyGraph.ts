@@ -1,4 +1,4 @@
-import { Callable, StringDictionary, isEmptyObject } from "src/base/common/util/type";
+import { Callable, StringDictionary, isEmptyObject } from "src/base/common/utilities/type";
 
 function forEach<T>(
     target: StringDictionary<T>, 

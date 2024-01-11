@@ -8,7 +8,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
 import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
-import { UnbufferedScheduler } from "src/base/common/util/async";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
 
 export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeperatorAction | CheckMenuAction;
 

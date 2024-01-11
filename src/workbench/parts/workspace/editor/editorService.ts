@@ -1,4 +1,4 @@
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
 import { IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IEditorWidget } from "src/editor/editorWidget";

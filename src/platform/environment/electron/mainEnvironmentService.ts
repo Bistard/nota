@@ -1,5 +1,5 @@
-import { join } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { join } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { ICLIArguments } from "src/platform/environment/common/argument";
@@ -18,13 +18,15 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
     constructor(
         CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
-        @ILogService logService?: ILogService,
+        @ILogService logService: ILogService,
     ) {
         super(CLIArgv, opts, logService);
 
         if (CLIArgv.log === 'trace') {
             this.inspect();
         }
+
+        logService.trace('MainEnvironmentService', 'MainEnvironmentService constructed.');
     }
 
     @memoize

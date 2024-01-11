@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { tmpdir } from "os";
 import { Emitter, Register } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { join } from "src/base/common/file/path";
-import { URI } from "src/base/common/file/uri";
+import { DataBuffer } from "src/base/common/files/buffer";
+import { join } from "src/base/common/files/path";
+import { URI } from "src/base/common/files/uri";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -59,7 +59,6 @@ export namespace TestIPC {
         }
 
         public override dispose(): void {
-
             this._onDidDisconnect.fire();
             super.dispose();
         }
@@ -71,6 +70,7 @@ export namespace TestIPC {
 
         private readonly _onMessage = new Emitter<DataBuffer>({
             onFirstListenerDidAdd: () => {
+                // only fire the events when there is a listener, in case fires in advance.
                 for (const buffer of this._buffers) {
                     this._onMessage.fire(buffer);
                 }
@@ -140,6 +140,7 @@ export class NullEnvironmentService extends DiskEnvironmentService implements IE
             userDataPath: 'temp/',
             userHomePath: 'temp/',
         },
+        new NullLogger(),
         );
     }
 }
@@ -155,7 +156,9 @@ export class NullBrowserEnvironmentService extends DiskEnvironmentService implem
             tmpDirPath: 'temp/',
             userDataPath: 'temp/',
             userHomePath: 'temp/',
-        });
+        },
+        new NullLogger(),
+        );
     }
 
     get machineID(): string {

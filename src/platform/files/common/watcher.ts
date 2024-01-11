@@ -1,6 +1,7 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
+import { Pair } from "src/base/common/utilities/type";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 
 /**
@@ -44,9 +45,12 @@ export interface IWatcher {
      * @description Watch the provided resources and fires the event once these
      * resources are either added, deleted or updated.
      * @param request The provided request for watching.
-     * @returns A disposable to close the current watch request.
+     * @returns A promise resolves when the watcher is ready. A disposable to 
+     *          close the current watch request.
+     * 
+     * @note Promise will reject when after 1000ms.
      */
-    watch(request: IWatchRequest): IDisposable;
+    watch(request: IWatchRequest): Promise<IDisposable>;
 
     /**
      * @description Closes all the current watchings asynchronously.
@@ -135,8 +139,10 @@ export interface IRawResourceChangeEvent {
  * An interface only for {@link WatchInstance}.
  */
 export interface IWatchInstance {
-
     readonly request: IWatchRequest;
+    
+    /** Fires when the watch instance is ready for listening */
+    readonly onReady: Register<void>;
     watch(): void;
     close(): Promise<URI | undefined>;
 }

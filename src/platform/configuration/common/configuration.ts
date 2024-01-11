@@ -1,11 +1,12 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { DeepReadonly } from "src/base/common/util/type";
+import { DeepReadonly } from "src/base/common/utilities/type";
 import { IConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
-import { URI } from "src/base/common/file/uri";
+import { URI } from "src/base/common/files/uri";
+import { AsyncResult, Result } from "src/base/common/error";
 
 export const APP_DIR_NAME = '.wisp';
 export const APP_CONFIG_NAME = 'app.config.json';
@@ -37,7 +38,7 @@ export interface IConfigurationService extends IDisposable, IService {
     /**
      * Initialize the configuration service.
      */
-    init(): Promise<void>;
+    init(): AsyncResult<void, Error>;
 
     /**
      * @description Get the configuration by the given section.
@@ -77,7 +78,7 @@ export interface IConfigurationService extends IDisposable, IService {
     /**
      * @description Saves the configuration.
      */
-    save(): Promise<void>;
+    save(): AsyncResult<void, Error>;
 }
 
 export interface IConfigurationServiceOptions {
@@ -144,12 +145,12 @@ export interface IConfigurationModule<TType extends ConfigurationModuleType, TOn
      * @description Initializes the configuration.
      * @note This method should not invoke `onDidConfigurationChange`.
      */
-    init(): void | Promise<void>;
+    init(): Result<void, Error> | AsyncResult<void, Error>;
 
     /**
      * @description Reloads the configuration.
      */
-    reload(): void | Promise<void>;
+    reload(): Result<void, Error> | AsyncResult<void, Error>;
 }
 
 export interface IDefaultConfigurationModule extends IConfigurationModule<ConfigurationModuleType.Default, IRawConfigurationChangeEvent> {

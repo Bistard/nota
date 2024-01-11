@@ -4,7 +4,7 @@ import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { RGBA } from "src/base/common/color";
 import { Emitter, Register } from "src/base/common/event";
-import { IDimension } from "src/base/common/util/size";
+import { IDimension } from "src/base/common/utilities/size";
 
 export interface ITypeEvent {
     /**

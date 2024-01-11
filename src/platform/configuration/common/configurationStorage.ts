@@ -1,7 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Result } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
-import { deepCopy } from "src/base/common/util/object";
-import { DeepReadonly, Dictionary, isObject } from "src/base/common/util/type";
+import { jsonSafeStringtify } from "src/base/common/json";
+import { deepCopy } from "src/base/common/utilities/object";
+import { DeepReadonly, Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
 
 export interface IConfigurationStorageChangeEvent {
@@ -53,7 +55,7 @@ export interface IReadonlyConfigurationStorage extends IDisposable {
     /**
      * @description Conver the model into the JSON format.
      */
-    toJSON(): string;
+    toJSON(): Result<string, SyntaxError>;
 }
 
 /**
@@ -85,6 +87,11 @@ export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
      *                      The default is true.
      */
     merge(others: IConfigurationStorage | IConfigurationStorage[], ignoreNullity?: boolean): void;
+
+    /**
+     * @internal Not used very often.
+     */
+    refreshSections(): void;
 }
 
 /**
@@ -128,9 +135,8 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         this._sections = sections ?? [];
         this._model = toConfigurationModel(model ?? Object.create({}), (msg) => console.warn(msg));
 
-        // auto update sections
-        if (this._sections.length === 0 && Object.keys(this._model).length !== 0) {
-            getConfigurationModelSections(this._model, this._sections);
+        if (!this._sections.length) {
+            this.refreshSections();
         }
     }
 
@@ -138,6 +144,11 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     get sections(): Section[] {
         return this._sections;
+    }
+
+    public refreshSections(): void {
+        this._sections = [];
+        getConfigurationModelSections(this._model, this._sections);
     }
 
     get model(): DeepReadonly<object> {
@@ -214,8 +225,8 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return new ConfigurationStorage([...this._sections], deepCopy(this._model));
     }
 
-    public toJSON(): string {
-        return JSON.stringify(this.model, null, 4);
+    public toJSON(): Result<string, SyntaxError> {
+        return jsonSafeStringtify(this.model, undefined, 4);
     }
 
     // [private helper methods]

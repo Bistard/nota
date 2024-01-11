@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { delayFor } from 'src/base/common/util/async';
+import { delayFor } from 'src/base/common/utilities/async';
 import { FakeAsync, IFakeAsyncOptions } from 'test/utils/fakeAsync';
 import { FakeConsole } from 'test/utils/fakeConsole';
 
@@ -110,5 +110,17 @@ suite('FakeAsync-test', () => {
         await FakeAsync.run(fn);
 
         assert.strictEqual(cn, 10);
+    });
+
+    test('pass arguments through FakeAsync', async () => {
+
+        let ans = 0;
+        const fn = async (arg: number) => {
+            ans = arg;
+        };
+
+        await FakeAsync.run(fn, { arguments: [42] });
+
+        assert.strictEqual(ans, 42);
     });
 });

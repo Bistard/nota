@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { Constructor, ParameterDecorator } from "src/base/common/util/type";
+import { Constructor, ParameterDecorator } from "src/base/common/utilities/type";
 
 /**
  * Represents a decorator, as an identifier, for each unique microservice.

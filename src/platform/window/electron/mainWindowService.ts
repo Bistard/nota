@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { isNumber, Mutable } from "src/base/common/util/type";
+import { isNumber, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -9,8 +9,8 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/platform/envir
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
-import { URI } from "src/base/common/file/uri";
-import { UUID } from "src/base/common/util/string";
+import { URI } from "src/base/common/files/uri";
+import { UUID } from "src/base/common/utilities/string";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -74,6 +74,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     ) {
         super();
         this.registerListeners();
+        this.logService.trace('MainWindowService', 'MainWindowService constructed.');
     }
 
     // [getter / setter]
@@ -98,18 +99,17 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public open(options: IWindowCreationOptions): IWindowInstance {
-        this.logService.trace('[MainWindowService] trying to open a window...');
+        this.logService.trace('MainWindowService', 'trying to open a window...');
 
         const newWindow = this.doOpen(options);
 
-        this.logService.trace('[MainWindowService] window opened');
+        this.logService.trace('MainWindowService', 'window opened.');
         return newWindow;
     }
 
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`[MainWindowService] registerListeners()`);
         // noop
     }
 
@@ -130,7 +130,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 for (const uri of errorURIs) {
                     message += '\n\t' + URI.toString(uri);
                 }
-                this.logService.error(message);
+                this.logService.error('MainWindowService', message);
             }
         }
 
@@ -164,6 +164,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         (<Mutable<typeof configuration>>configuration).windowID = window.id;
 
         // load window
+        this.logService.trace('MainWindowService', 'Loading window...');
         window.load(configuration);
 
         return window;
@@ -172,8 +173,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private helper methods]
 
     private __openInNewWindow(options: IWindowCreationOptions, configuration: IWindowConfiguration): IWindowInstance {
-        this.logService.trace('[MainWindowService] openInNewWindow');
-
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,
             configuration,

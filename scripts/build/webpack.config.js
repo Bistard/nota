@@ -1,3 +1,4 @@
+const utils = require('../utility');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');
@@ -5,21 +6,15 @@ const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base
 
 class WebpackPluginProvider {
 
-    // [field]
-
-    /** @type {string} Current working directory */
-    #cwd;
-
     // [constructor]
 
-    constructor(cwd) {
-        this.#cwd = cwd;
-    }
+    constructor() {}
 
     // [public methods]
 
     /**
      * @param {{
+     *      cwd: string;
      *      circular?: boolean;
      * } | undefined} opts 
      */
@@ -27,6 +22,11 @@ class WebpackPluginProvider {
 
         const plugins = [];
         
+        const cwd = opts.cwd;
+        if (!cwd || typeof cwd != 'string') {
+            console.log(`${utils.color(utils.c.FgYellow, '[WebpackPluginProvider]')} cwd is not provided or provided with wrong type: '${typeof cwd}'!`);
+        }
+
         /**
          * mini-css-extract plugin
          * 
@@ -50,7 +50,7 @@ class WebpackPluginProvider {
                 {
                     exclude: /a\.js|node_modules/,
                     include: /src/,
-                    cwd: this.#cwd,
+                    cwd: cwd,
                     
                     // `onStart` is called before the cycle detection starts
                     onStart({ _compilation }) {
@@ -118,6 +118,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
                 plugins: (new WebpackPluginProvider()).getPlugins({ 
+                    cwd: this.#cwd,
                     circular: process.env.CIRCULAR === 'true', 
                 }),
             }),
