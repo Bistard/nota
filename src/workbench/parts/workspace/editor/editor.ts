@@ -13,8 +13,8 @@ import { deepCopy } from "src/base/common/utilities/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
-import { EditorWidget, IEditorWidget } from 'src/editor_new/editorWidget';
-import { EditorRenderMode } from 'src/editor_new/common/editorConfiguration';
+import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
+import { EditorType } from 'src/editor/common/viewModel';
 
 export class Editor extends Component implements IEditorService {
 
@@ -71,15 +71,19 @@ export class Editor extends Component implements IEditorService {
             options.baseURI = URI.toFsPath(explorerView.root);
         }
 
-        // editor construction!
+        this.logService.debug('EditorService', 'Constructing editor...');
+
+        // editor construction
         const editor = this.instantiationService.createInstance(
             EditorWidget, 
+            this.element.element,
             {
-                container: this.element.element,
-                renderMode: EditorRenderMode.RichText,
+                mode: EditorType.Rich,
             },
         );
         this._editorWidget = editor;
+
+        this.logService.debug('EditorService', 'Editor constructed.');
     }
 
     protected override async _registerListeners(): Promise<void> {
