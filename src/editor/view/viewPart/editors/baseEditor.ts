@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { errorToMessage } from "src/base/common/error";
 import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
-import { EditorType, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorType, RenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
 
 /**
@@ -53,7 +53,7 @@ export interface IBaseEditor<TType extends EditorType> extends IEditorCore {
      */
     readonly container: HTMLElement;
 
-    updateContent(event: IRenderEvent): void;
+    updateContent(event: RenderEvent): void;
 }
 
 export abstract class BaseEditor<TType extends EditorType, TCore extends IEditorCore> extends Disposable {
@@ -86,7 +86,7 @@ export abstract class BaseEditor<TType extends EditorType, TCore extends IEditor
     // [public abstract methods]
 
     protected abstract createEditorCore(container: HTMLElement, context: ViewContext, ...args: any[]): TCore;
-    public abstract updateContent(event: IRenderEvent): void;
+    public abstract updateContent(event: RenderEvent): void;
     
     // [public methods]
     

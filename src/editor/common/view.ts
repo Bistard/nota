@@ -5,9 +5,8 @@ import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
 import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
 import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
 
-// TEST
-export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>;
-export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>;
+export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>; // TEST
+export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>; // TEST
 
 export type EditorInstance = RichtextEditor | PlaintextEditor | SplitviewEditor;
 

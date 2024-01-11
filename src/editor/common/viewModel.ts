@@ -24,7 +24,7 @@ export interface IEditorViewModel extends Disposable {
      * Fires when a log is about happen.
      */
     readonly onLog: Register<ILogEvent<string | Error>>;
-    readonly onRender: Register<IRenderEvent>;
+    readonly onRender: Register<RenderEvent>;
     readonly onDidRenderModeChange: Register<EditorType>;
 
     getSchema(): EditorSchema;
@@ -61,7 +61,7 @@ export interface IEditorViewModelOptions {
  * Type of event to indicate how to render the data from the text model into the 
  * view.
  */
-export type IRenderEvent = IRenderPlainEvent | IRenderSplitEvent | IRenderRichEvent;
+export type RenderEvent = IRenderPlainEvent | IRenderSplitEvent | IRenderRichEvent;
 
 export interface IRenderPlainEvent {
     

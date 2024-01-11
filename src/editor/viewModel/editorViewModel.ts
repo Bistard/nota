@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
-import { EditorType, IEditorViewModel, IEditorViewModelOptions, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModel, IEditorViewModelOptions, RenderEvent } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
 import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
@@ -41,7 +41,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
     public readonly onLog = this._onLog.registerListener;
 
-    private readonly _onRender = this.__register(new Emitter<IRenderEvent>());
+    private readonly _onRender = this.__register(new Emitter<RenderEvent>());
     public readonly onRender = this._onRender.registerListener;
 
     private readonly _onDidRenderModeChange = this.__register(new Emitter<EditorType>());
@@ -111,7 +111,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         console.log('[document]', document); // TEST
 
         const renderType = this._options.mode.value;
-        let event: IRenderEvent;
+        let event: RenderEvent;
 
         if (renderType === EditorType.Plain) {
             event = {

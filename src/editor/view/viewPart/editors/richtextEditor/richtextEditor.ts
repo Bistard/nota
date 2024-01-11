@@ -53,7 +53,7 @@ export class RichtextEditor extends BaseEditor<EditorType.Rich, RichtextEditorCo
         context: ViewContext, 
         initState?: ProseEditorState,
     ) {
-        const coreArguments: any[] = [];
+        const coreArguments: ProseEditorState[] = [];
         coreArguments.push(initState ?? createRichtextDefaultState(context));
 
         super(EditorType.Rich, container, context, coreArguments);
@@ -83,10 +83,6 @@ export class RichtextEditor extends BaseEditor<EditorType.Rich, RichtextEditorCo
             return new RichtextEditor(container, context, oldEdtior._core.view.state);
         }
         return new RichtextEditor(container, context);
-    }
-
-    public static getInternalView(editor: RichtextEditor): ProseEditorView {
-        return editor._core.view;
     }
 
     // [protected methods]
@@ -169,7 +165,6 @@ class RichtextEditorCore extends EditorEventBroadcaster implements IRichtextEdit
     // [public methods]
 
     public updateContent(doc: ProseNode): void {
-        
         const newState = ProseEditorState.create({
             schema: this._ctx.viewModel.getSchema(),
             doc: doc,

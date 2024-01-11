@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
 import { EditorInstance, IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { EditorType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModel, RenderEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
@@ -158,7 +158,7 @@ interface IEditorManager extends Disposable {
      * created.
      * @param event The event that contains the context for rendering. 
      */
-    render(event: IRenderEvent): void;
+    render(event: RenderEvent): void;
 
     /**
      * @description Change the current rendering mode. This will recreate the
@@ -217,7 +217,7 @@ class EditorManager extends Disposable implements IEditorManager {
 
     // [public methods]
 
-    public render(event: IRenderEvent): void {
+    public render(event: RenderEvent): void {
         
         console.log('[view] on render event', event); // TEST
 
@@ -251,7 +251,6 @@ class EditorManager extends Disposable implements IEditorManager {
         
         switch (mode) {
             case EditorType.Plain: {
-                // todo: splitWindow
                 throw new Error('does not support plain text editor yet.');
             }
             case EditorType.Rich: {
@@ -259,11 +258,9 @@ class EditorManager extends Disposable implements IEditorManager {
                 break;
             }
             case EditorType.Split: {
-                // todo: splitWindow
                 throw new Error('does not support split editor yet.');
             }
             default: {
-                // todo: emptyWindow
                 throw new Error('does not support empty editor yet.');
             }
         }
