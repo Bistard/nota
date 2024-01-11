@@ -217,7 +217,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         const i18nService = instantiaionService.getService(II18nService);
         const productService = instantiaionService.getService(IProductService);
 
-        configuraionService.init()
+        await configuraionService.init()
         .andThen(() => i18nService.init())
         .andThen(() => productService.init(environmentService.productProfilePath))
         .unwrap();
