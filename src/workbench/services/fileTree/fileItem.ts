@@ -1,10 +1,10 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
-import { AsyncResult, Result, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, Result, err, ok } from "src/base/common/error";
 import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { CompareFn, isPromise, Mutable } from "src/base/common/utilities/type";
+import { CompareFn, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**
@@ -268,7 +268,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
                 return result.match(
                     () => data.children,
                     error => {
-                        this.logService.error(errorToMessage(error));
+                        this.logService.error('FileItemChildrenProvider', 'Refreshing FileItem children failed.', error);
                         return <FileItem[]>[];
                     }
                 );

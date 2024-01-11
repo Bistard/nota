@@ -1,4 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
+import { ILogService } from "src/base/common/logger";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IpcClient } from "src/platform/ipc/browser/ipcClient";
 import { ChannelType, IChannel } from "src/platform/ipc/common/channel";
@@ -21,8 +22,13 @@ export class IpcService implements IIpcService {
 
     private readonly connection: IpcClient;
 
-    constructor(windowID: number) {
+    constructor(
+        windowID: number,
+        @ILogService logService: ILogService,
+    ) {
+        logService.trace('IpcClient', 'Constructing...');
         this.connection = new IpcClient(`window:${windowID}`);
+        logService.trace('IpcClient', 'Constructed.', { ID: windowID });
     }
 
     public getChannel(channel: ChannelType): IChannel {

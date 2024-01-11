@@ -14,12 +14,13 @@ suite('logger', () => {
             output += message;
         };
         
-        logger.info('hello');
-        logger.info(' ');
-        logger.info('world');
-        logger.info('!');
+        logger.info('hello', '');
+        logger.info(' ', '');
+        logger.info('world', '');
+        logger.info('!', '');
         assert.strictEqual(output, '');
 
+        // will flush the buffer once set a logger
         logger.setLogger(wrapLogger);
         assert.strictEqual(output, 'hello world!');
     });
@@ -79,28 +80,28 @@ suite('logger', () => {
 
         const pipeline = new PipelineLogger([new TestLogger1(), new TestLogger2()]);
         
-        pipeline.trace('');
+        pipeline.trace('', '');
         assert.strictEqual(logs1[0], 'log1 - trace');
         assert.strictEqual(logs2[0], 'log2 - trace');
 
-        pipeline.debug('');
+        pipeline.debug('', '');
         assert.strictEqual(logs1[0], 'log1 - debug');
         assert.strictEqual(logs2[0], 'log2 - debug');
 
-        pipeline.info('');
+        pipeline.info('', '');
         assert.strictEqual(logs1[0], 'log1 - info');
         assert.strictEqual(logs2[0], 'log2 - info');
 
-        pipeline.warn('');
+        pipeline.warn('', '');
         assert.strictEqual(logs1[0], 'log1 - warn');
         assert.strictEqual(logs2[0], 'log2 - warn');
 
-        pipeline.error('');
+        pipeline.error('', '');
         assert.strictEqual(logs1[0], 'log1 - error');
         assert.strictEqual(logs2[0], 'log2 - error');
 
 
-        pipeline.fatal('');
+        pipeline.fatal('', '');
         assert.strictEqual(logs1[0], 'log1 - fatal');
         assert.strictEqual(logs2[0], 'log2 - fatal');
 

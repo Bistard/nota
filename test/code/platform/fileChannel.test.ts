@@ -52,7 +52,7 @@ suite('FileChannel-test (IPC)', () => {
         server.registerChannel(IpcChannel.DiskFile, new MainFileChannel(logService, mainService, registrantService));
         
         client = server.createConnection('browserFileChannel');
-        clientService = new BrowserFileChannel({ _serviceMarker: undefined, dispose: () => {}, getChannel: () => client.getChannel(IpcChannel.DiskFile) }, registrantService);
+        clientService = new BrowserFileChannel({ _serviceMarker: undefined, dispose: () => {}, getChannel: () => client.getChannel(IpcChannel.DiskFile) }, registrantService, new NullLogger());
 
         // create testing files
         {

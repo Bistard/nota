@@ -20,7 +20,9 @@ export class BrowserInstance implements IBrowser {
         @ILogService private readonly logService: ILogService,
         @IShortcutService private readonly shortcutService: IShortcutService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
-    ) { }
+    ) {
+        logService.trace('BrowserInstance', 'BrowserInstance constructed.');
+    }
 
     // [public methods]
 

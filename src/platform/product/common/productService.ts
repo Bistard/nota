@@ -1,4 +1,4 @@
-import { AsyncResult, InitProtector, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, InitProtector, err, ok } from "src/base/common/error";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { JsonSchemaValidator, jsonSafeParse } from "src/base/common/json";
@@ -38,27 +38,27 @@ export class ProductService implements IProductService {
 
     get profile(): IProductProfile {
         if (!this._profile) {
-            throw new Error('[ProductService] cannot get profile because the product service is not initialized.');
+            throw new Error('cannot get profile because the product service is not initialized.');
         }
         return this._profile;
     }
 
     public init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
-        this.logService.trace(`[ProductService] initializing...`);
+        this.logService.trace('ProductService', 'initializing...');
 
-        return this._protector.init('[ProductService] cannot initialize twice.')
+        return this._protector.init('cannot initialize twice.')
         .toAsync()
         .andThen(() => this.fileService.readFile(productURI))
         .andThen(buffer => jsonSafeParse(buffer.toString()))
         .andThen((parsed: any) => {
             const validate = JsonSchemaValidator.validate(parsed, productProfileSchema);
             if (!validate.valid) {
-                return err(new Error(`[ProductService] cannot parse product info with raw content: '${validate.errorMessage}'`));
+                return err(new Error(`cannot parse product info with raw content: '${validate.errorMessage}'`));
             }
     
             this._profile = parsed;
 
-            this.logService.trace(`[ProductService] initialized at '${URI.toString(productURI)}'`);
+            this.logService.trace('ProductService', `initialized.`, { at: URI.toString(productURI) });
             return ok();
         });
     }

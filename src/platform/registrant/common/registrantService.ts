@@ -1,4 +1,4 @@
-import { InitProtector, errorToMessage } from "src/base/common/error";
+import { InitProtector } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { GetRegistrantByType, RegistrantType } from "src/platform/registrant/common/registrant";
@@ -63,6 +63,7 @@ export class RegistrantService implements IRegistrantService {
     constructor(
         @ILogService private readonly logService: ILogService,
     ) {
+        this.logService.trace('RegistrantService', 'Registrant service constructed.');
         this._initProtector = new InitProtector();
         this._registrants = new Map();
     }
@@ -80,6 +81,8 @@ export class RegistrantService implements IRegistrantService {
         }
 
         this._registrants.set(registrant.type, registrant);
+
+        this.logService.info('RegistrantService', 'Registrant registered.', { type: registrant.type });
     }
 
     public getRegistrant<T extends RegistrantType>(type: T): GetRegistrantByType<T> {
@@ -92,17 +95,19 @@ export class RegistrantService implements IRegistrantService {
     }
 
     public init(): void {
-        const initResult = this._initProtector.init(`[RegistrantService] Cannot initialize twice.`);
+        const initResult = this._initProtector.init(`Cannot initialize twice.`);
         if (initResult.isErr()) {
-            this.logService.warn(initResult.error.message);
+            this.logService.warn('RegistrantService', initResult.error.message);
             return;
         }
 
         this._registrants.forEach((registrant, key) => {
             try {
+                this.logService.info('RegistrantService', 'Initializing registrant...', { type: registrant.type });
                 registrant.initRegistrations();
-            } catch (err) {
-                this.logService.error(`Registrant initialization failed: ${errorToMessage(err)}`);
+                this.logService.info('RegistrantService', 'Registrant initialized successfully.', { type: registrant.type });
+            } catch (error: any) {
+                this.logService.error('RegistrantService', `Registrant initialization failed.`, error);
             }
         });
     }

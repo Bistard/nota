@@ -9,7 +9,7 @@ import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { Arrays } from "src/base/common/utilities/array";
 import { JsonSchemaValidator } from "src/base/common/json";
-import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/error";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -25,6 +25,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super(options, instantiationService, logService, registrantService);
+        this.logService.trace('BrowserConfigurationService', 'Constructed.');
     }
 
     // [public methods]
@@ -45,11 +46,11 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         const jsonData = this._configurationHub.inspect().toJSON().unwrap();
         return this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true })
         .orElse(error => {
-            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'. The reason is: ${errorToMessage(error)}`);
+            this.logService.error('BrowserConfigurationService', `Cannot save configuration.`, error, { at: URI.toString(this.appConfigurationPath) });
             return err(error);
         })
         .andThen(() => {
-            return ok(this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`));
+            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration`, { at: URI.toString(this.appConfigurationPath) }));
         });
     }
 

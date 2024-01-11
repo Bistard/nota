@@ -203,7 +203,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             return;
         }
 
-        this.logService.trace(`[EditorWidget] Reading file '${basename(URI.toString(model.source))}'`);
+        this.logService.trace('EditorWidget', `Reading file '${basename(URI.toString(model.source))}'`);
 
         this._model = model;
         this._viewModel = this.instantiationService.createInstance(
@@ -275,7 +275,9 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
         // log out all the messages from MVVM
         disposables.register(Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
-            defaultLog(this.logService, event.level, event.data);
+            
+            // FIX
+            // defaultLog(this.logService, event.level, event.data);
         }));
 
         // binding to the view model
