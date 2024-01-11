@@ -17,7 +17,7 @@ export interface IDocumentParser {
     /**
      * Fires when the parser wish to log out a message.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
+    readonly onLog: Register<ILogEvent>;
 
     /**
      * @description Parsing the given tokens into document nodes used for 
@@ -57,7 +57,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
 
     // [event]
 
-    public readonly onLog: Register<ILogEvent<string | Error>>;
+    public readonly onLog: Register<ILogEvent>;
 
     // [constructor]
 
@@ -211,7 +211,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [event]
 
-    private readonly _onLog = new Emitter<ILogEvent<string | Error>>();
+    private readonly _onLog = new Emitter<ILogEvent>();
     public readonly onLog = this._onLog.registerListener;
 
     // [constructor]
@@ -242,8 +242,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
                 this._onLog.fire({
-                    data: `cannot find any registered document nodes that matches the given token with type '${name}'`,
                     level: LogLevel.WARN,
+                    message: `Cannot find any registered document nodes that matches the given token with type: '${name}'.`,
                 });
                 continue;
             }

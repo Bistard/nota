@@ -14,7 +14,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
 
-    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
+    private readonly _onLog = this.__register(new Emitter<ILogEvent>());
     public readonly onLog = this._onLog.registerListener;
 
     private readonly _onDidBuild = this.__register(new Emitter<void>());
@@ -51,6 +51,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         // lexer construction
         const lexerOptions = this.__initLexerOptions(options);
         this._lexer = new MarkdownLexer(lexerOptions);
+
+        
     }
 
     // [getter / setter]
@@ -143,7 +145,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         // building plain text into piece-table
         const builderOrError = await this.__createTextBufferBuilder(source);
         if (builderOrError instanceof Error) {
-            this._onLog.fire({ level: LogLevel.ERROR, data: new Error(`cannot build text model at ${URI.toFsPath(source)}`) });
+            this._onLog.fire({ level: LogLevel.ERROR, message: `cannot build text model at: ${URI.toFsPath(source)}`, error: builderOrError });
             return;
         }
 

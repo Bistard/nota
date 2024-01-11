@@ -38,7 +38,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [event]
 
-    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
+    private readonly _onLog = this.__register(new Emitter<ILogEvent>());
     public readonly onLog = this._onLog.registerListener;
 
     private readonly _onRender = this.__register(new Emitter<RenderEvent>());

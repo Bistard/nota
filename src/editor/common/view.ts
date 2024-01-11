@@ -25,7 +25,7 @@ export interface IEditorView extends IEditorEventBroadcaster {
     /**
      * Fires when a log is about happen.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
+    readonly onLog: Register<ILogEvent>;
 
     /**
      * @description Updates the options of the editor view.

@@ -38,6 +38,7 @@ export class Editor extends Component implements IEditorService {
     ) {
         super('editor', null, themeService, componentService);
         this._editorWidget = null;
+        this.logService.trace('EditorService', 'Constructed.');
     }
 
     // [getter]
@@ -53,6 +54,7 @@ export class Editor extends Component implements IEditorService {
             throw new Error(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
         }
 
+        
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
         this._editorWidget.open(uri);
     }

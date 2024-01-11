@@ -358,7 +358,7 @@ export interface IEditorModel extends IDisposable {
     /**
      * Fires when a log is about happen.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
+    readonly onLog: Register<ILogEvent>;
 
     /** 
      * Fires when the model is built.

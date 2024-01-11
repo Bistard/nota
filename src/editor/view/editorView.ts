@@ -12,7 +12,7 @@ export class ViewContext {
         public readonly viewModel: IEditorViewModel,
         public readonly view: IEditorView,
         public readonly options: EditorOptionsType,
-        public readonly log: (event: ILogEvent<string | Error>) => void,
+        public readonly log: (event: ILogEvent) => void,
     ) {}
 }
 
@@ -27,7 +27,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
+    private readonly _onLog = this.__register(new Emitter<ILogEvent>());
     public readonly onLog = this._onLog.registerListener;
     
     public readonly onDidFocusChange: Register<boolean>;

@@ -6,9 +6,11 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 export const ILogService = createService<ILogService>('log-service');
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
 
-export interface ILogEvent<T> {
-    readonly data: T;
+export interface ILogEvent {
     readonly level: LogLevel;
+    readonly message: string;
+    readonly error?: Error;
+    readonly additionals?: Additionals;
 }
 
 /**

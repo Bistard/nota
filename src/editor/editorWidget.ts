@@ -1,16 +1,15 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
-import { basename } from "src/base/common/files/path";
 import { URI } from "src/base/common/files/uri";
-import { ILogService } from "src/base/common/logger";
+import { ILogService, defaultLog } from "src/base/common/logger";
 import { isNonNullable } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
+import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -62,15 +61,21 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
     // [fields]
 
+    /**
+     * The HTML container of the entire editor.
+     */
     private readonly _container: FastElement<HTMLElement>;
+    
+    /**
+     * The smart editor options that supports API to self update.
+     */
     private readonly _options: EditorOptionsType;
 
+    // MVVM
     private _model: IEditorModel | null;
     private _viewModel: IEditorViewModel | null;
     private _view: IEditorView | null;
     private _editorData: EditorData | null;
-
-    private readonly _editorContextManager: EditorContextManager;
 
     // [events]
 
@@ -136,11 +141,11 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         this._editorData = null;
 
         this._options = this.__initOptions(options);
-
-        this._editorContextManager = new EditorContextManager(this, contextService);
+        
+        const contextUpdater = new EditorContextUpdater(this, contextService);
 
         this.__registerListeners();
-        this.__register(this._editorContextManager);
+        this.__register(contextUpdater);
     }
 
     // [getter]
@@ -164,6 +169,8 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     // [public methods]
 
     public async open(source: URI): Promise<void> {
+        this.logService.debug('EditorWidget', `Editor openning source at: ${URI.toString(source)}`);
+
         this.__detachModel();
         const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
         this.__attachModel(textModel);
@@ -172,6 +179,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     public override dispose(): void {
         super.dispose();
         this.__detachModel();
+        this.logService.debug('EditorWidget', 'Editor disposed.');
     }
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
@@ -182,7 +190,6 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     // [private helper methods]
 
     private __attachModel(model?: IEditorModel): void {
-
         if (!model) {
             this._model = null;
             return;
@@ -191,8 +198,6 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         if (this._model === model) {
             return;
         }
-
-        this.logService.trace('EditorWidget', `Reading file '${basename(URI.toString(model.source))}'`);
 
         this._model = model;
         this._viewModel = this.instantiationService.createInstance(
@@ -235,6 +240,8 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
         const mixOptions = EditorOptions;
         this.__updateOptions(mixOptions, newOption);
+
+        this.logService.debug('EditorWidget', 'Editor intialized with configurations.', toJsonEditorOption(mixOptions));
         return mixOptions;
     }
 
@@ -252,7 +259,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private __saveEditorOptions(): void {
         const option: IEditorWidgetOptions = {};
         for (const [key, value] of Object.entries(this._options)) {
-            option[key] = value.value;
+            option[key] = value.value ?? null;
         }
 
         this.configurationService.set('editor', option);
@@ -263,9 +270,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
         // log out all the messages from MVVM
         disposables.register(Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
-            
-            // FIX
-            // defaultLog(this.logService, event.level, event.data);
+            defaultLog(this.logService, event.level, 'EditorWidget', event.message, event.error, event.additionals);
         }));
 
         // binding to the view model
@@ -309,7 +314,11 @@ class EditorData implements IDisposable {
     }
 }
 
-class EditorContextManager extends Disposable {
+/**
+ * @class Once the class is constructed, the {@link IContextKey} relates to 
+ * editor will be self-updated.
+ */
+class EditorContextUpdater extends Disposable {
 
     // [context]
 
@@ -327,6 +336,7 @@ class EditorContextManager extends Disposable {
         this.focusedEditor = contextService.createContextKey('isEditorFocused', false, 'Whether the editor is focused.');
         this.editorRenderMode = contextService.createContextKey('editorRenderMode', editor.renderMode, 'The render mode of the editor.');
 
+        // Register auto update context listeners
         this.__registerListeners();
     }
 
