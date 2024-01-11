@@ -16,6 +16,7 @@ import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction }
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { ILogService } from "src/base/common/logger";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -30,8 +31,9 @@ export abstract class WorkbenchLayout extends Component {
     // [constructor]
 
     constructor(
-        @ILayoutService protected readonly layoutService: ILayoutService,
         protected readonly instantiationService: IInstantiationService,
+        @ILogService protected readonly logService: ILogService,
+        @ILayoutService protected readonly layoutService: ILayoutService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ISideBarService protected readonly sideBarService: ISideBarService,
@@ -41,7 +43,6 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService);
-
         this.__registerSideViews();
     }
 

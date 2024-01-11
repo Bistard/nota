@@ -191,6 +191,11 @@ const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
 function tryPaintValue(depth: number, color: boolean, key: string, value: any): string {
 
     if (!color) {
+        // recursive print object
+        if (isObject(value) && !(value instanceof Error)) {
+            return `\n${getAddtionalString(depth + 1, false, <any>value)}`;
+        }
+
         return tryOrDefault('[parse error]', () => JSON.stringify(value));
     }
 

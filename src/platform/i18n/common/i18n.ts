@@ -187,12 +187,17 @@ export class i18n implements II18nService {
     }
 
     public init(): AsyncResult<void, FileOperationError | SyntaxError> {
-        const uri = URI.join(this._path, this.language + this._extension);
+        this.logService.trace('i18n', 'i18n intializing...');
         
+        const uri = URI.join(this._path, this.language + this._extension);
         return this.__readLocale(uri)
         .orElse(error => {
             this.logService.error('i18nService', `Cannot read locale.`, error, { at: URI.toString(uri) });
             return err(error);
+        })
+        .andThen(() => {
+            this.logService.trace('i18n', 'i18n intialized.');
+            return ok();
         });
     }
 

@@ -62,6 +62,10 @@ import { IThemeService, ThemeService } from "src/workbench/services/theme/themeS
  */
 const renderer = new class extends class RendererInstance extends Disposable {
 
+    // [fields]
+
+    private readonly logService!: ILogService;
+
     // [constructor]
 
     constructor() {
@@ -87,7 +91,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // service initialization
             await Promise.all([
                 this.initServices(instantiaionService),
-                waitDomToBeLoad(),
+                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web envrionment (DOM content) has been loaded.')),
             ]);
 
             // create workbench UI
@@ -121,6 +125,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // log-service
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
+        (<any>this.logService) = logService;
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -132,7 +137,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IBrowserEnvironmentService, environmentService);
 
         // ipc-service
-        const ipcService = new IpcService(environmentService.windowID);
+        const ipcService = new IpcService(environmentService.windowID, logService);
         instantiationService.register(IIpcService, ipcService);
 
         // host-service
@@ -196,25 +201,28 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // singleton initializations
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
+            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifer.toString()}'.`);
             instantiationService.register(serviceIdentifer, serviceDescriptor);
         }
 
+        logService.trace('renderer', 'All core renderer services are constructed.');
         return instantiationService;
     }
 
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
+        this.logService.trace('renderer', 'Start initializing core renderer services...');
+
         const configuraionService = instantiaionService.getService(IConfigurationService);
         const environmentService = instantiaionService.getService(IBrowserEnvironmentService);
         const i18nService = instantiaionService.getService(II18nService);
         const productService = instantiaionService.getService(IProductService);
 
-        return Promise.all<any>([
-            configuraionService.init(),
-            i18nService.init(),
-            productService.init(environmentService.productProfilePath),
-        ]);
+        configuraionService.init()
+        .andThen(() => i18nService.init())
+        .andThen(() => productService.init(environmentService.productProfilePath))
+        .unwrap();
         
-        // FIX
+        this.logService.trace('renderer', 'All core renderer services are initialized successfully.');
     }
 
     private rendererServiceRegistrations(): void {

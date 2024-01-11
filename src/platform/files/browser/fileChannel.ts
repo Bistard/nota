@@ -15,6 +15,7 @@ import { ResourceChangeEvent } from "src/platform/files/common/resourceChangeEve
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { ILogService } from "src/base/common/logger";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -43,6 +44,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
     constructor(
         @IIpcService ipcService: IIpcService,
         @IRegistrantService registrantService: IRegistrantService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
@@ -71,12 +73,14 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             }
             this._onDidAllResourceClosed.fire();
         }));
+
+        logService.trace('BrowserFileChannel', 'constructed.');
     }
 
     // [public methods]
 
     public registerProvider(_scheme: string, _provider: IFileSystemProvider): void {
-        console.warn('Cannot register a provider to the file service in the renderer process');
+        this.logService.warn('BrowserFileChannel', 'Cannot register a provider to the file service in the renderer process.', { scheme: _scheme });
     }
 
     public getProvider(_scheme: string): IFileSystemProvider | undefined {

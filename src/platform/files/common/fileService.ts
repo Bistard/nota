@@ -165,7 +165,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace('FileService', `stop watching on '${URI.toString(uri)}'`);
+            this.logService.trace('FileService', `stop watching at:`, { at: URI.toString(uri) });
 
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
