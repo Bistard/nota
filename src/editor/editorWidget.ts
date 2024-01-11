@@ -1,22 +1,16 @@
-import "src/editor/contrib/contribution.register";
-import "src/editor/common/command/command.register";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
-import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { basename } from "src/base/common/files/path";
 import { URI } from "src/base/common/files/uri";
-import { defaultLog, ILogService } from "src/base/common/logger";
+import { ILogService } from "src/base/common/logger";
 import { isNonNullable } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
-import { IEditorExtension } from "src/editor/common/extension/editorExtension";
-import { IEditorExtensionRegistrant } from "src/editor/common/extension/editorExtensionRegistrant";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -76,7 +70,6 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private _view: IEditorView | null;
     private _editorData: EditorData | null;
 
-    private readonly _extensionManager: EditorExtensionManager;
     private readonly _editorContextManager: EditorContextManager;
 
     // [events]
@@ -144,13 +137,9 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
         this._options = this.__initOptions(options);
 
-        this._extensionManager = new EditorExtensionManager(this, instantiationService);
         this._editorContextManager = new EditorContextManager(this, contextService);
 
         this.__registerListeners();
-
-        // resource registrantion
-        this.__register(this._extensionManager);
         this.__register(this._editorContextManager);
     }
 
@@ -209,7 +198,6 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         this._viewModel = this.instantiationService.createInstance(
             EditorViewModel,
             model,
-            this._extensionManager.getExtensions(),
             this._options,
         );
         this._view = this.instantiationService.createInstance(
@@ -318,64 +306,6 @@ class EditorData implements IDisposable {
         this.model.dispose();
         this.viewModel.dispose();
         this.view.dispose();
-    }
-}
-
-/**
- * @internal
- * @class Use to manage all the editor-related extensions lifecycle.
- */
-class EditorExtensionManager implements IDisposable {
-
-    // [field]
-
-    private readonly _extensions: Map<string, IEditorExtension>;
-    private readonly _registrant: IEditorExtensionRegistrant;
-
-    // [constructor]
-
-    constructor(
-        editorWidget: IEditorWidget,
-        instantiationService: IInstantiationService,
-    ) {
-
-        this._extensions = new Map();
-        this._registrant = REGISTRANTS.get(IEditorExtensionRegistrant);
-
-        // constructs all the extensions for the editor
-        const descriptors = this._registrant.getEditorExtensions();
-        for (const { ID, ctor } of descriptors) {
-
-            const exist = this._extensions.get(ID);
-            if (exist) {
-                ErrorHandler.onUnexpectedError(new Error(`Cannot register two editor extensions with the same ID: '${ID}'`));
-                continue;
-            }
-
-            try {
-                const extension = instantiationService.createInstance(ctor, editorWidget);
-                this._extensions.set(ID, extension);
-            } catch (err) {
-                ErrorHandler.onUnexpectedError(err);
-            }
-        }
-    }
-
-    // [public methods]
-
-    public getExtensions(): IEditorExtension[] {
-        const extensions: IEditorExtension[] = [];
-        for (const [id, extension] of this._extensions) {
-            extensions.push(extension);
-        }
-        return extensions;
-    }
-
-    public dispose(): void {
-        for (const extension of this._extensions.values()) {
-            extension.dispose();
-        }
-        this._extensions.clear();
     }
 }
 

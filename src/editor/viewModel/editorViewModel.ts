@@ -23,7 +23,6 @@ import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 import { HTML } from "src/editor/viewModel/parser/node/html";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
@@ -32,7 +31,6 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     private readonly _options: EditorOptionsType;
 
     private readonly _model: IEditorModel;
-    private readonly _extensions: IEditorExtension[];
 
     private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _schema: EditorSchema;
@@ -53,13 +51,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     constructor(
         model: IEditorModel,
-        extensions: IEditorExtension[],
         options: EditorOptionsType,
     ) {
         super();
         this._model = model;
         this._options = options;
-        this._extensions = extensions;
 
         this._nodeProvider = new DocumentNodeProvider();
         this.__registerNodeProvider();
@@ -86,10 +82,6 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     public getSchema(): EditorSchema {
         return this._schema;
-    }
-
-    public getExtensions(): IEditorExtension[] {
-        return this._extensions;
     }
 
     public updateOptions(options: Partial<IEditorViewModelOptions>): void {

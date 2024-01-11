@@ -152,7 +152,7 @@ class RichtextEditorCore extends EditorEventBroadcaster implements IRichtextEdit
             container, 
             {
                 state: initState,
-                plugins: context.viewModel.getExtensions(),
+                plugins: [],
             }
         );
         super(view);
