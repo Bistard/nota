@@ -149,8 +149,6 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
-        this.logService.trace('MainLifecycleService', `registerListeners()`);
-
         let onWindowAllClosed: () => void = undefined!;
         let onBeforeQuitAnyWindows: () => void = undefined!;
 
@@ -170,7 +168,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
             this.__fireOnBeforeQuit(QuitReason.Quit)
                 .finally(() => {
-                    this.logService.trace('MainLifecycleService', 'application is about to quiting...');
+                    this.logService.info('MainLifecycleService', 'application is quiting...');
 
                     if (this._pendingQuitBlocker) {
                         this._pendingQuitBlocker.resolve();
@@ -243,10 +241,13 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      * @returns A promise to be wait until all the other listeners are completed.
      */
     private __fireOnBeforeQuit(reason: QuitReason): Promise<void> {
+        this.logService.info('MainLifecycleService', 'Application is about to quit...', { reason: parseQuitReason(reason) });
 
         if (this._ongoingBeforeQuitPromise) {
             return this._ongoingBeforeQuitPromise;
         }
+
+        this.logService.info('MainLifecycleService', 'Broadcasting the application is about to quit...');
 
         // notify all listeners
         const joinable = new JoinablePromise();
@@ -263,12 +264,15 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             // error handling
             for (const res of results) {
                 if (res.status === 'rejected') {
-                    this.logService.error('MainLifecycleService', ' `onWillQuit` participant fails.', res.reason);
+                    this.logService.error('MainLifecycleService', '`onWillQuit` participant fails.', res.reason);
                 }
             }
         })();
 
-        return this._ongoingBeforeQuitPromise.then(() => this._ongoingBeforeQuitPromise = undefined);
+        return this._ongoingBeforeQuitPromise.then(() => {
+            this._ongoingBeforeQuitPromise = undefined;
+            this.logService.info('MainLifecycleService', 'Broadcasting `quit` successed.');
+        });
     }
 }
 
@@ -277,5 +281,12 @@ function parsePhaseString(phase: LifecyclePhase): string {
         case LifecyclePhase.Starting: return 'Starting';
         case LifecyclePhase.Ready: return 'Ready';
         case LifecyclePhase.Idle: return 'Idle';
+    }
+}
+
+function parseQuitReason(reason: QuitReason): string {
+    switch (reason) {
+        case QuitReason.Quit: return 'The application quit normally.';
+        case QuitReason.Kill: return 'The application exit abnormally and killed with an exit code.';
     }
 }

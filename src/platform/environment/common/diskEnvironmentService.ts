@@ -21,7 +21,7 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     constructor(
         private readonly CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
-        @ILogService private readonly logService?: ILogService,
+        @ILogService private readonly logService: ILogService,
     ) {
         this.opts = {
             isPackaged: opts.isPackaged,
@@ -70,6 +70,6 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     // [private helper methods]
 
     protected inspect(): void {
-        this.logService?.trace('DiskEnvironmentService', `Disk Environment loaded.`, getAllEnvironments(this));
+        this.logService.trace('DiskEnvironmentService', `Disk Environment loaded.`, getAllEnvironments(this));
     }
 }

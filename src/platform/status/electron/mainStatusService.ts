@@ -70,6 +70,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), APP_DIR_NAME, MainStatusService.FILE_NAME));
         this._storage = new AsyncDiskStorage(path, this.fileService);
         this.__registerListeners();
+        this.logService.trace('MainStatusService', 'MainStatusService constructed.');
     }
 
     // [public methods]

@@ -42,6 +42,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
+        this.logService.trace('ConfigurationService', 'Constructing...');
 
         // initialization
         {
@@ -49,7 +50,10 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
             this._initProtector = new InitProtector();
 
+            this.logService.trace('ConfigurationService', 'Constructing `DefaultConfiguration`...');
             this._defaultConfiguration = this.instantiationService.createInstance(DefaultConfiguration);
+            
+            this.logService.trace('ConfigurationService', 'Constructing `UserConfiguration`...');
             this._userConfiguration = this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath);
 
             this._configurationHub = this.__reloadConfigurationHub();
@@ -81,7 +85,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public init(): AsyncResult<void, Error> {
         
-        return this._initProtector.init('[ConfigurationService] cannot be initialized twice.')
+        return this._initProtector.init('cannot be initialized twice.')
         .toAsync()
         
         // configuration initialization
@@ -98,7 +102,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
          */
         .andThen(() => {
             (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
-            this.logService.trace('ConfigurationService', 'initialized.');
+            this.logService.trace('ConfigurationService', 'initialized successfully.');
             return ok();
         });
     }
@@ -128,7 +132,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace('ConfigurationService', `onConfigurationChange`, { ConfigurationChange: ConfigurationModuleTypeToString(type) });
+        this.logService.trace('ConfigurationService', `Configuration changes.`, { type: ConfigurationModuleTypeToString(type), configurationKeys: change.properties });
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

@@ -38,7 +38,7 @@ export class ProductService implements IProductService {
 
     get profile(): IProductProfile {
         if (!this._profile) {
-            throw new Error('[ProductService] cannot get profile because the product service is not initialized.');
+            throw new Error('cannot get profile because the product service is not initialized.');
         }
         return this._profile;
     }
@@ -46,7 +46,7 @@ export class ProductService implements IProductService {
     public init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
         this.logService.trace('ProductService', 'initializing...');
 
-        return this._protector.init('[ProductService] cannot initialize twice.')
+        return this._protector.init('cannot initialize twice.')
         .toAsync()
         .andThen(() => this.fileService.readFile(productURI))
         .andThen(buffer => jsonSafeParse(buffer.toString()))

@@ -18,13 +18,15 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
     constructor(
         CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
-        @ILogService logService?: ILogService,
+        @ILogService logService: ILogService,
     ) {
         super(CLIArgv, opts, logService);
 
         if (CLIArgv.log === 'trace') {
             this.inspect();
         }
+
+        logService.trace('MainEnvironmentService', 'MainEnvironmentService constructed.');
     }
 
     @memoize

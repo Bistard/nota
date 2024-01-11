@@ -140,6 +140,7 @@ export class NullEnvironmentService extends DiskEnvironmentService implements IE
             userDataPath: 'temp/',
             userHomePath: 'temp/',
         },
+        new NullLogger(),
         );
     }
 }
@@ -155,7 +156,9 @@ export class NullBrowserEnvironmentService extends DiskEnvironmentService implem
             tmpDirPath: 'temp/',
             userDataPath: 'temp/',
             userHomePath: 'temp/',
-        });
+        },
+        new NullLogger(),
+        );
     }
 
     get machineID(): string {
