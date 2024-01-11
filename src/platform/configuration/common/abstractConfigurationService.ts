@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, InitProtector, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
@@ -42,6 +42,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
+        this.logService.trace('ConfigurationService', 'Constructing...');
 
         // initialization
         {
@@ -49,7 +50,10 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
             this._initProtector = new InitProtector();
 
+            this.logService.trace('ConfigurationService', 'Constructing `DefaultConfiguration`...');
             this._defaultConfiguration = this.instantiationService.createInstance(DefaultConfiguration);
+            
+            this.logService.trace('ConfigurationService', 'Constructing `UserConfiguration`...');
             this._userConfiguration = this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath);
 
             this._configurationHub = this.__reloadConfigurationHub();
@@ -61,7 +65,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
             this.__register(this._defaultConfiguration.onDidConfigurationChange(e => this.__onDefaultConfigurationChange(e)));
             
             // catch configuration registration errors and log out
-            this.__register(this._registrant.onErrorRegistration(e => logService.warn(`The configuration registration fails: ${JSON.stringify(e)}.`)));
+            this.__register(this._registrant.onErrorRegistration(e => logService.warn('ConfigurationService', 'The configuration registration fails.', { event: e })));
             
             // user configuration self reload
             this.__register(this._userConfiguration.onDidConfigurationChange(() => this.__onUserConfigurationChange()));
@@ -79,15 +83,28 @@ export abstract class AbstractConfigurationService extends Disposable implements
         return this.options.appConfiguration.path;
     }
 
-    public async init(): Promise<void> {
-        this._initProtector.init('[AbstractConfigurationService] cannot be initialized twice.');
+    public init(): AsyncResult<void, Error> {
+        
+        return this._initProtector.init('cannot be initialized twice.')
+        .toAsync()
+        
+        // configuration initialization
+        .andThen(() => {
+            this.logService.trace('ConfigurationService', 'initializing...', { at: URI.toString(this.options.appConfiguration.path, true) });
 
-        this.logService.trace(`[AbstractConfigurationService] initializing at configuration path'${URI.toString(this.options.appConfiguration.path, true)}'...`);
-
-        await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
-        (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
-
-        this.logService.trace(`[AbstractConfigurationService] initialized.`);
+            return this._defaultConfiguration.init()
+                .toAsync()
+                .andThen(() => this._userConfiguration.init());
+        })
+        /**
+         * After configurations are initialized, we need to reload it to make 
+         * sure everything is updated.
+         */
+        .andThen(() => {
+            (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
+            this.logService.trace('ConfigurationService', 'initialized successfully.');
+            return ok();
+        });
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
@@ -98,7 +115,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
     public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
-    public abstract save(): Promise<void>;
+    public abstract save(): AsyncResult<void, Error>;
 
     // [private helper methods]
 
@@ -115,7 +132,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[AbstractConfigurationService] [onConfigurationChange] [type: ${ConfigurationModuleTypeToString(type)}]`);
+        this.logService.trace('ConfigurationService', `Configuration changes.`, { type: ConfigurationModuleTypeToString(type), configurationKeys: change.properties });
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

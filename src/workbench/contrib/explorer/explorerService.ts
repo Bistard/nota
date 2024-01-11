@@ -23,7 +23,7 @@ export interface IExplorerViewService extends ISideView {
     /**
      * Fired when the directory is opened.
      */
-    onDidOpen: Register<IClassicOpenEvent>;
+    onDidOpen: Register<IFileOpenEvent>;
 
     /**
      * Open the explorer view under the given root path.
@@ -36,7 +36,7 @@ export interface IExplorerViewService extends ISideView {
     close(): Promise<void>;
 }
 
-export interface IClassicOpenEvent {
+export interface IFileOpenEvent {
 
     /**
      * The path of the current opened directory in URI form.

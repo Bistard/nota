@@ -43,6 +43,9 @@ export interface IReadableStream<T> extends IReadableStreamEvent<T> {
 	/** Starts emitting events again after pause() was called. */
 	resume(): void;
 
+	/** Check if the stream is paused. */
+	isPaused(): boolean;
+
 	/** Destroys the stream and stops emitting any event. */
 	destroy(): void;
 
@@ -50,7 +53,7 @@ export interface IReadableStream<T> extends IReadableStreamEvent<T> {
 	removeListener(event: string, callback: Callable<any[], any>): void;
 }
 
-export interface IWriteableStream<T> extends IReadableStream<T> {
+interface IWriteableStream<T> extends IReadableStream<T> {
     
     /**
 	 * Writing data to the stream will trigger the on('data')
@@ -231,6 +234,10 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 			this._flowEnd();
 		}
     }
+
+	public isPaused(): boolean {
+		return !this.state.flowing;
+	}
 
 	public destroy(): void {
         if (!this.state.destroyed) {
@@ -508,7 +515,8 @@ export async function readFileIntoStreamAsync(
     provider: IFileSystemProviderWithFileReadWrite, 
     resource: URI, 
     stream: IWriteableStream<DataBuffer>, 
-    opts?: IReadFileOptions): Promise<void> 
+    opts?: IReadFileOptions,
+): Promise<void> 
 {
     try {
         let buffer = await provider.readFile(resource);
@@ -538,7 +546,8 @@ export async function readFileIntoStream<T>(
     resource: URI, 
     stream: IWriteableStream<T>, 
     dataConverter: IDataConverter<DataBuffer, T>, 
-    options: ICreateReadStreamOptions): Promise<void> 
+    options: ICreateReadStreamOptions,
+): Promise<void> 
 {
     let error: Error | undefined = undefined;
     try {
@@ -558,7 +567,8 @@ async function __readFileIntoStream<T>(
     resource: URI, 
     stream: IWriteableStream<T>, 
     dataConverter: IDataConverter<DataBuffer, T>, 
-    options: ICreateReadStreamOptions): Promise<void> 
+    options: ICreateReadStreamOptions,
+): Promise<void> 
 {    
     const fd = await provider.open(resource, { create: false, unlock: false } );
 
@@ -575,8 +585,11 @@ async function __readFileIntoStream<T>(
         let posInBuffer = 0;
 
         do {
-            // read from source (fd) at current position (posInFile) into buffer (buffer) at
-			// buffer position (posInBuffer) up to the size of the buffer (buffer.byteLength).
+			/**
+			 * read from source (fd) at current position (posInFile) into buffer 
+			 * (buffer) at buffer position (posInBuffer) up to the size of the 
+			 * buffer (buffer.byteLength).
+			 */
 			bytesRead = await provider.read(fd, posInFile, buffer.buffer, posInBuffer, buffer.bufferLength - posInBuffer);
 
             posInFile += bytesRead;   
@@ -606,13 +619,43 @@ async function __readFileIntoStream<T>(
 			stream.write(dataConverter(buffer.slice(0, lastChunkLength)));
 		}
 
-    } catch(err) {
-        
-        throw err;
-
     } finally {
-
         await provider.close(fd);
-
     }
+}
+
+/**
+ * @description The stream must be paused before it is returned to the client. 
+ * This is a crucial step because the function that handles the stream is 
+ * involved in a complex sequence of operations, often nested within multiple 
+ * asynchronous Promises (see {@link AsyncResult} for an example).
+ * 
+ * In simpler terms, when a stream is created, it is ready to start sending data 
+ * immediately. However, due to the asynchronous nature of Promises, there's a 
+ * delay before the client is actually prepared to handle the incoming data. If 
+ * the stream starts flowing (sending data) during this delay, the client isn't 
+ * set up to listen to it yet. As a result, any data sent by the stream in this 
+ * meantime will be missed by the client.
+ * 
+ * By pausing the stream just before returning it, we ensure that it doesn't 
+ * start sending data too early.
+ */
+export function toReadyStream<T>(fn: () => IReadableStream<T>): IReadyReadableStream<T> {
+	return {
+		flow: fn
+	};
+}
+
+export interface IReadyReadableStream<T> {
+	
+	/**
+	 * Start to let the stream be able to flow. Client better to listen to the 
+	 * returned stream immediately after this function call to make sure does 
+	 * not miss any incoming data.
+	 */
+	flow(): IReadableStream<T>;
+}
+
+export function isReadyStream(stream: any): stream is IReadyReadableStream<any> {
+	return typeof stream.flow === 'function';
 }

@@ -19,6 +19,7 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/code/browser/configuration.register';
 import { SideViewConfiguration } from 'src/workbench/parts/sideView/configuration.register';
+import { ILogService } from 'src/base/common/logger';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -34,8 +35,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     // [constructor]
 
     constructor(
-        @ILayoutService layoutService: ILayoutService,
         @IInstantiationService instantiationService: IInstantiationService,
+        @ILogService logService: ILogService,
+        @ILayoutService layoutService: ILayoutService,
         @IConfigurationService configurationService: IConfigurationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
@@ -45,12 +47,15 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(layoutService, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, sideBarService, sideViewService, workspaceService, configurationService, contextMenuService);
+        logService.trace('Workbench', 'Workbench constructed.');
     }
 
     // [public methods]
 
     public init(): void {
+        this.logService.trace('Workbench', 'Initializing...');
+
         // initialization services
         this.initServices();
 
@@ -62,6 +67,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // once everything is done we layout the workbench
         this.layout();
+
+        this.logService.trace('Workbench', 'Initialized.');
     }
 
     protected initServices(): void {

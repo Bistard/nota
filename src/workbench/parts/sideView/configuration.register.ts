@@ -7,6 +7,8 @@ export const enum SideViewConfiguration {
     ExplorerViewMode = 'sideView.explorer.mode',
     ExplorerViewInclude = 'sideView.explorer.include',
     ExplorerViewExclude = 'sideView.explorer.exclude',
+
+    ExplorerFileSorting = 'sideView.explorer.fileSorting',
 }
 
 export const rendererSideViewConfigurationRegister = createRegister(
@@ -20,6 +22,7 @@ export const rendererSideViewConfigurationRegister = createRegister(
                     type: 'object',
                     properties: {
                         
+                        // sideView.defaultView
                         ['defaultView']: {
                             type: 'string',
                             default: 'explorer',
@@ -40,6 +43,10 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                 ['exclude']: {
                                     type: 'array',
                                     default: [''],
+                                },
+                                ['fileSorting']: {
+                                    type: 'boolean',
+                                    default: true,
                                 },
                             }
                         }

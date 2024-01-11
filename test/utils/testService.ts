@@ -59,7 +59,6 @@ export namespace TestIPC {
         }
 
         public override dispose(): void {
-
             this._onDidDisconnect.fire();
             super.dispose();
         }
@@ -71,6 +70,7 @@ export namespace TestIPC {
 
         private readonly _onMessage = new Emitter<DataBuffer>({
             onFirstListenerDidAdd: () => {
+                // only fire the events when there is a listener, in case fires in advance.
                 for (const buffer of this._buffers) {
                     this._onMessage.fire(buffer);
                 }
@@ -140,6 +140,7 @@ export class NullEnvironmentService extends DiskEnvironmentService implements IE
             userDataPath: 'temp/',
             userHomePath: 'temp/',
         },
+        new NullLogger(),
         );
     }
 }
@@ -155,7 +156,9 @@ export class NullBrowserEnvironmentService extends DiskEnvironmentService implem
             tmpDirPath: 'temp/',
             userDataPath: 'temp/',
             userHomePath: 'temp/',
-        });
+        },
+        new NullLogger(),
+        );
     }
 
     get machineID(): string {

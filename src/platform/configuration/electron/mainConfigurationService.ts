@@ -3,6 +3,7 @@ import { AbstractConfigurationService } from "src/platform/configuration/common/
 import { ILogService } from "src/base/common/logger";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { AsyncResult } from "src/base/common/error";
 
 export class MainConfigurationService extends AbstractConfigurationService {
 
@@ -15,6 +16,7 @@ export class MainConfigurationService extends AbstractConfigurationService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super(options, instantiationService, logService, registrantService);
+        this.logService.trace('MainConfigurationService', 'Constructed.');
     }
 
     // [public methods]
@@ -27,7 +29,7 @@ export class MainConfigurationService extends AbstractConfigurationService {
         return Promise.reject(new Error('[ConfigurationService] does not support `Delete`'));
     }
 
-    public async save(): Promise<void> {
-        return Promise.reject(new Error('[ConfigurationService] does not support `save`'));
+    public save(): AsyncResult<void, Error> {
+        return AsyncResult.err(new Error('[ConfigurationService] does not support `save`'));
     }
 }

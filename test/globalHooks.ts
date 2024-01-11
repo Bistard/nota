@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as mocha from "mocha";
 import { TestPath } from "test/utils/testService";
 import { fileExists } from "src/base/node/io";
-import { ASNIForegroundColor, setANSIColor } from 'src/base/common/color';
+import { ASNIForegroundColor, TextColors } from 'src/base/common/color';
 import { errorToMessage } from 'src/base/common/error';
 import { Pair } from 'src/base/common/utilities/type';
 
@@ -38,7 +38,7 @@ const hook = new class extends class GlobalHooks {
     public attach(): void {
         
         // beginning text
-        console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Green }), `Global hook are attached on the environment '${os.platform()}'`);
+        console.log(TextColors.setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Green }), `Global hook are attached on the environment '${os.platform()}'`);
 
         // register listeners
         this.__registerMochaListeners();
@@ -53,11 +53,11 @@ const hook = new class extends class GlobalHooks {
     private __registerMochaListeners(): void {
         const setCurrentTest = (test?: Mocha.Test) => { this._currentTest = test; };
 
-        mocha.beforeEach(function() {
+        mocha.beforeEach(function () {
             setCurrentTest(this.currentTest);
         });
         
-        mocha.afterEach(function() {
+        mocha.afterEach(function () {
             setCurrentTest(undefined);
         });
     }
@@ -67,7 +67,7 @@ const hook = new class extends class GlobalHooks {
             const fullTestName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
             const testName = this._currentTest?.title || 'Unknown';
 
-            console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect uncaughtException (${testName}): '${errorToMessage(err)}'`);
+            console.log(TextColors.setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect uncaughtException (${testName}): '${errorToMessage(err)}'`);
             this._unhandled.exceptions.push({ testName: fullTestName, error: err });
         });
     
@@ -75,7 +75,7 @@ const hook = new class extends class GlobalHooks {
             const fullTestName = this._currentTest?.titlePath().join(' -> ') || 'Unknown';
             const testName = this._currentTest?.title || 'Unknown';
 
-            console.log(setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect unhandledRejection (${testName}): '${errorToMessage(reason)}'`);
+            console.log(TextColors.setANSIColor(`[Global Hooks]`, { fgColor: ASNIForegroundColor.Red }), `Detect unhandledRejection (${testName}): '${errorToMessage(reason)}'`);
             this._unhandled.rejections.push({ testName: fullTestName, error: reason });
         });
     }
@@ -101,26 +101,26 @@ const hook = new class extends class GlobalHooks {
                 return;
             }
             
-            console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `Detected unhandled${type}: ${unhandles.length}`);
+            console.log(TextColors.setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `Detected unhandled${type}: ${unhandles.length}`);
             unhandles.forEach((unhandled, index) => {
-                console.log(setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red }));
+                console.log(TextColors.setANSIColor(`${index + 1}. "${unhandled.testName}"`, { fgColor: ASNIForegroundColor.Red }));
             });
         });
     }
 
     private async __cleanup(): Promise<void> {
-        console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Yellow }), 'cleanning up unit test resources...');
+        console.log(TextColors.setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Yellow }), 'cleanning up unit test resources...');
         
         try {
             await this.__cleanTestDirectory();
-            console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Green }), `cleanning finished`);
+            console.log(TextColors.setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Green }), `cleanning finished`);
         } catch (err) {
-            console.log(setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `cleanning process encounters an error: '${errorToMessage(err)}'`);
+            console.log(TextColors.setANSIColor(`[Global Hook]`, { fgColor: ASNIForegroundColor.Red }), `cleanning process encounters an error: '${errorToMessage(err)}'`);
         }
     }
 
     private async __cleanTestDirectory(): Promise<void> {
-        if (fileExists(TestPath)) {
+        if (await fileExists(TestPath)) {
             await fs.promises.rm(TestPath, { maxRetries: 3, retryDelay: 100, force: true, recursive: true });
         }
     }

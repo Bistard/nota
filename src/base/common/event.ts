@@ -164,44 +164,42 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
             throw new Error('emitter is already disposed, cannot register a new listener.');
         }
 
-        if (this._register === undefined) {
-			this._register = (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
-				
-                // before first add callback
-                if (this._opts?.onFirstListenerAdd && this._listeners.empty()) {
-                    this._opts.onFirstListenerAdd();
+        this._register ??= (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
+
+            // before first add callback
+            if (this._opts?.onFirstListenerAdd && this._listeners.empty()) {
+                this._opts.onFirstListenerAdd();
+            }
+
+            // register the listener (callback)
+            const listenerWrapper = new __Listener(listener, thisObject);
+            const node = this._listeners.push_back(listenerWrapper);
+            let listenerRemoved = false;
+
+            if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
+                this._opts.onFirstListenerDidAdd();
+            }
+
+            // returns a disposable in order to decide when to stop listening (unregister)
+            const unRegister = toDisposable(() => {
+                if (!this._disposed && !listenerRemoved) {
+                    this._listeners.remove(node);
+            
+                    // last remove callback
+                    if (this._opts?.onLastListenerRemoved && this._listeners.empty()) {
+                        this._opts.onLastListenerRemoved();
+                    }
+
+                    listenerRemoved = true;
                 }
+            });
 
-                // register the listener (callback)
-                const listenerWrapper = new __Listener(listener, thisObject);
-				const node = this._listeners.push_back(listenerWrapper);
-                let listenerRemoved = false;
+            if (disposables) {
+                disposables.push(unRegister);
+            }
 
-                if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
-                    this._opts.onFirstListenerDidAdd();
-                }
-
-                // returns a disposable in order to decide when to stop listening (unregister)
-				const unRegister = toDisposable(() => {
-					if (!this._disposed && !listenerRemoved) {
-						this._listeners.remove(node);
-                
-                        // last remove callback
-                        if (this._opts?.onLastListenerRemoved && this._listeners.empty()) {
-                            this._opts.onLastListenerRemoved();
-                        }
-
-                        listenerRemoved = true;
-					}
-				});
-
-				if (disposables) {
-					disposables.push(unRegister);
-				}
-
-				return unRegister;
-			};
-		}
+            return unRegister;
+        };
         
 		return this._register;
     }

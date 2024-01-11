@@ -1,10 +1,10 @@
 import { ITreeFilterProvider, ITreeFilterResult } from "src/base/browser/secondary/tree/treeFilter";
-import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
 
 /**
  * @class // TODO
  */
-export class ClassicFilter<T extends ClassicItem> implements ITreeFilterProvider<T, any> /** FuzzyScore */ {
+export class FileItemFilter implements ITreeFilterProvider<FileItem, any> /** FuzzyScore */ {
 
     // [field]
 
@@ -16,7 +16,7 @@ export class ClassicFilter<T extends ClassicItem> implements ITreeFilterProvider
 
     // [public methods]
 
-    public filter(item: ClassicItem): ITreeFilterResult<any> {
+    public filter(item: FileItem): ITreeFilterResult<any> {
         return {
             visibility: true,
             filterMetadata: undefined,

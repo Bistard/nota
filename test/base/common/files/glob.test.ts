@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { isParentOf } from 'src/base/common/files/glob';
 import { IS_WINDOWS } from 'src/base/common/platform';
+import { hit } from 'test/utils/helpers';
 
 suite('glob-test', () => {
 
@@ -28,7 +29,7 @@ suite('glob-test', () => {
 		assert.ok(!isParentOf('c:\\foo\\bar\\test.ts', 'c:\\foo\\bar\\test'));
 	});
 
-	test('isParentOf (Posix)', function () {
+	test('isParentOf (Linux | Mac)', function () {
 		if (IS_WINDOWS) {
 			this.skip();
 		}
@@ -44,14 +45,14 @@ suite('glob-test', () => {
 		assert.ok(isParentOf('/some/path', '/some'));
 		assert.ok(isParentOf('/some/path', '/some/'));
 		assert.ok(isParentOf('/someöäü/path', '/someöäü'));
-		assert.ok(isParentOf('/someöäü/path', '/someöäü/'));
+		assert.ok(isParentOf('/someöäü/path', '/someöäü/')); 
 
-		assert.ok(isParentOf('/some/path', '/some/path'));
-		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/barr'));
-		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/bar/test'));
+		assert.ok(!isParentOf('/some/path', '/some/path'));
+		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/barr'));
+		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/bar/test'));
 	});
 
-    test('isParentOf (ignorecase) (windows)', function () {
+    test('isParentOf (ignorecase) (Windows)', function () {
 		if (!IS_WINDOWS) {
 			this.skip();
 		}
@@ -93,8 +94,8 @@ suite('glob-test', () => {
 		assert.ok(isParentOf('/someöäü/path', '/SOMEÖÄÜ', true));
 		assert.ok(isParentOf('/someöäü/path', '/SOMEÖÄÜ/', true));
 
-		assert.ok(isParentOf('/some/path', '/some/path', true));
-		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/barr', true));
-		assert.ok(isParentOf('/foo/bar/test.ts', '/foo/bar/test', true));
+		assert.ok(!isParentOf('/some/path', '/some/path', true));
+		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/barr', true));
+		assert.ok(!isParentOf('/foo/bar/test.ts', '/foo/bar/test', true));
 	});
 });

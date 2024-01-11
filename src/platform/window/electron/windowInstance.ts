@@ -98,16 +98,18 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
-
+        logService.trace('WindowInstance', 'WindowInstance constructing...');
+        
         const displayOptions = creationConfig.displayOptions || defaultDisplayState();
         this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
-
+        
         if (this.environmentService.CLIArguments['open-devtools'] === true) {
             this._window.webContents.openDevTools({ mode: 'detach', activate: true });
         }
-
+        
         this.registerListeners();
+        logService.trace('WindowInstance', 'WindowInstance constructed.');
     }
 
     // [getter / setter]
@@ -123,7 +125,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [public methods]
 
     public load(configuration: IWindowConfiguration): Promise<void> {
-        this.logService.trace(`[WindowInstance] [ID-${this._id}] loading...`);
+        this.logService.trace('WindowInstance', `Loading window...`, { ID: this._id });
 
         this._configurationIpcAccessible.updateData(configuration);
 
@@ -147,7 +149,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [private methods]
 
     private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
-        this.logService.trace('[WindowInstance] creating window...');
+        this.logService.trace('WindowInstance', 'creating window...');
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         const browserOption: electron.BrowserWindowConstructorOptions = {
@@ -219,15 +221,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.show();
         }
 
-        this.logService.trace(`[WindowInstance] window created with id '${window.id}'`);
+        this.logService.trace('WindowInstance', `window created.`, { ID: window.id });
         return window;
     }
 
     private registerListeners(): void {
-        this.logService.trace(`[WindowInstance] [ID-${this._id}] registerListeners()`);
 
         this._window.webContents.on('did-finish-load', () => {
-            this.logService.trace(`[WindowInstance] [ID-${this._id}] load successed`);
+            this.logService.trace('WindowInstance', `load successed.`, { ID: this._id });
             this._window.show();
         });
 

@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { InitProtector, Result, err, ok, tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { mixin } from "src/base/common/utilities/object";
 import { Dictionary } from "src/base/common/utilities/type";
@@ -51,14 +51,21 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
         return this._storage;
     }
 
-    public init(): void {
-        this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
+    public init(): Result<void, Error> {
+        const initResult = this._initProtector.init('[DefaultConfiguration] Cannot initialize twice.');
+        if (initResult.isErr()) {
+            return err(initResult.error);
+        }
+
         this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
         this.__register(this._registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
+
+        return ok();
     }
 
-    public reload(): void {
+    public reload(): Result<void, Error> {
         this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
+        return ok();
     }
 
     // [private methods]
@@ -66,6 +73,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
     private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
         const properties = Array.from(e.properties);
         DefaultConfiguration.__updateDefaultConfigurations(this._storage, properties, this._registrant.getConfigurationSchemas());
+        this._storage.refreshSections();
         this._onDidConfigurationChange.fire({ properties: properties });
     }
 
@@ -77,7 +85,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
     public static createDefaultConfigurationStorage(registrant: IConfigurationRegistrant): IConfigurationStorage {
         const storage = new ConfigurationStorage();
         const schemas = registrant.getConfigurationSchemas();
-        this.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
+        DefaultConfiguration.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
         storage.refreshSections();
         return storage;
     }

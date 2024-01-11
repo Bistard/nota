@@ -6,6 +6,7 @@ import { IReadableStream, listenStream } from "src/base/common/files/stream";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { CancellationToken } from "src/base/common/utilities/cacellation";
+import { Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IServerChannel } from "src/platform/ipc/common/channel";
@@ -91,15 +92,15 @@ export class MainFileChannel implements IServerChannel {
     // [private helper methods]
 
     private async __stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
-        return this.fileService.stat(uri, opts);
+        return this.fileService.stat(uri, opts).unwrap();
     }
 
     private async __readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
-        return this.fileService.readFile(uri, opts);
+        return await this.fileService.readFile(uri, opts).unwrap();
     }
 
-    private async __readDir(uri: URI): Promise<[string, FileType][]> {
-        return this.fileService.readDir(uri);
+    private async __readDir(uri: URI): Promise<Pair<string, FileType>[]> {
+        return this.fileService.readDir(uri).unwrap();
     }
 
     /**
@@ -124,7 +125,7 @@ export class MainFileChannel implements IServerChannel {
             throw new Error('The registered provider does not has read file stream capability.');
         }
 
-        const stream = provider.readFileStream(uri, opts);
+        const stream = provider.readFileStream(uri, opts).flow();
         listenStream(stream, {
             onData: (data) => emitter.fire(DataBuffer.wrap(data)),
             onError: (error) => emitter.fire(error),
@@ -139,31 +140,31 @@ export class MainFileChannel implements IServerChannel {
     }
 
     private async __writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {
-        return this.fileService.writeFile(uri, bufferOrStream, opts);
+        return this.fileService.writeFile(uri, bufferOrStream, opts).unwrap();
     }
 
     private async __exist(uri: URI): Promise<boolean> {
-        return this.fileService.exist(uri);
+        return this.fileService.exist(uri).unwrap();
     }
 
     private async __createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: ICreateFileOptions): Promise<void> {
-        return this.fileService.createFile(uri, bufferOrStream, opts);
+        return this.fileService.createFile(uri, bufferOrStream, opts).unwrap();
     }
 
     private async __createDir(uri: URI): Promise<void> {
-        return this.fileService.createDir(uri);
+        return this.fileService.createDir(uri).unwrap();
     }
 
     private async __moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
-        return this.fileService.moveTo(from, to, overwrite);
+        return this.fileService.moveTo(from, to, overwrite).unwrap();
     }
 
     private async __copyTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
-        return this.fileService.copyTo(from, to, overwrite);
+        return this.fileService.copyTo(from, to, overwrite).unwrap();
     }
 
     private async __delete(uri: URI, opts?: IDeleteFileOptions): Promise<void> {
-        return this.fileService.delete(uri, opts);
+        return this.fileService.delete(uri, opts).unwrap();
     }
 
     private __watch(uri: URI, opts?: IWatchOptions): void {
@@ -178,11 +179,17 @@ export class MainFileChannel implements IServerChannel {
         const raw = URI.toString(uri);
         const exist = this._activeWatchers.get(raw);
         if (exist) {
-            this.logService.warn('file service - duplicate watching on the same resource', URI.toString(uri));
+            this.logService.warn('MainFileChannel', 'duplicate watching on the same resource', { URI: URI.toString(uri) });
             return;
         }
-        const disposable = this.fileService.watch(uri, opts);
-        this._activeWatchers.set(raw, disposable);
+        const result = this.fileService.watch(uri, opts);
+
+        result.match<void>(
+            disposable => this._activeWatchers.set(raw, disposable),
+            error => this.logService.error('MainFileChannel', 'Cannot watch the resource.', error, { URI: URI.toString(uri) }),
+        );
+        
+        // TODO
     }
 
     private __unwatch(uri: URI): void {

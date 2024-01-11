@@ -1,5 +1,7 @@
 import { IDisposable } from "src/base/common/dispose";
+import { AsyncResult } from "src/base/common/error";
 import { Register } from "src/base/common/event";
+import { FileOperationError } from "src/base/common/files/file";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { StatusKey } from "src/platform/status/common/status";
 
@@ -41,9 +43,9 @@ export interface IHostService extends IService {
     reloadWebPage(id?: number): Promise<void>;
 
     // status-service
-    setApplicationStatus(key: StatusKey, val: any): Promise<void>;
-    setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void>;
-    deleteApplicationStatus(key: StatusKey): Promise<boolean>;
+    setApplicationStatus(key: StatusKey, val: any): AsyncResult<void, FileOperationError>;
+    setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): AsyncResult<void, FileOperationError>;
+    deleteApplicationStatus(key: StatusKey): AsyncResult<boolean, FileOperationError>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {

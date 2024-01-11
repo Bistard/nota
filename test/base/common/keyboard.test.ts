@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Keyboard, KeyCode, Shortcut } from 'src/base/common/keyboard';
-import { PLATFORM } from 'src/base/common/platform';
+import { IS_MAC, PLATFORM } from 'src/base/common/platform';
 
 suite('keyboard-test', () => {
 
@@ -93,23 +93,80 @@ suite('keyboard-test', () => {
             assert.strictEqual(Shortcut.fromString('00').equal(Shortcut.None), true);
         });
 
-        test('shortcut hashcode', () => {
-            const testHash = function (shortcut: Shortcut): void {
-                const hashcode = shortcut.toHashcode();
-                const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
-                assert.ok(converted.equal(shortcut));
-            };
+        const enum KeyModifer {
+            CtrlCmd = (1 << 11) >>> 0,
+            Shift = (1 << 10) >>> 0,
+            Alt = (1 << 9) >>> 0,
+            WinCtrl = (1 << 8) >>> 0,
+        }
 
-            testHash(new Shortcut(false, false, false, false, KeyCode.Digit9));
-            testHash(new Shortcut(true, false, false, false, KeyCode.Digit6));
-            testHash(new Shortcut(true, true, false, false, KeyCode.Digit6));
-            testHash(new Shortcut(true, true, true, false, KeyCode.Digit1));
-            testHash(new Shortcut(true, true, true, true, KeyCode.Digit7));
-            testHash(new Shortcut(false, true, true, true, KeyCode.Digit2));
-            testHash(new Shortcut(false, false, true, true, KeyCode.Digit5));
-            testHash(new Shortcut(false, false, false, true, KeyCode.Digit5));
-            testHash(new Shortcut(false, true, false, true, KeyCode.Digit2));
-            testHash(new Shortcut(true, true, false, true, KeyCode.Digit0));
+        function testHash(shortcut: Shortcut, expected: number, isMac: boolean): void {
+            
+            const hashcode = shortcut.toHashcode();
+            const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
+
+            const expectCtrlCmd = expected & KeyModifer.CtrlCmd;
+            const expectShift = expected & KeyModifer.Shift;
+            const expectAlt = expected & KeyModifer.Alt;
+            const expectWinCtrl = expected & KeyModifer.WinCtrl;
+
+            assert.strictEqual(converted.shift, Boolean(expectShift));
+            assert.strictEqual(converted.alt, Boolean(expectAlt));
+
+            if (isMac) {
+                assert.strictEqual(converted.ctrl, Boolean(expectWinCtrl));
+                assert.strictEqual(converted.meta, Boolean(expectCtrlCmd));
+            } else {
+                assert.strictEqual(converted.ctrl, Boolean(expectCtrlCmd));
+                assert.strictEqual(converted.meta, Boolean(expectWinCtrl));
+            }
+
+        }
+
+        test('MAC - shortcut encoding & decoding', function () {
+            if (!IS_MAC) {
+                this.skip();
+            }
+            
+            testHash(new Shortcut(false, false, false, false, KeyCode.Enter), KeyCode.Enter, true);
+			testHash(new Shortcut(false, false, false, true, KeyCode.Enter), KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, false, true, false, KeyCode.Enter), KeyModifer.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(false, false, true, true, KeyCode.Enter), KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, false, false, KeyCode.Enter), KeyModifer.Shift | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, false, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, true, false, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, true, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
+        });
+
+        test('WINDOWS & LINUX - shortcut encoding & decoding', function () {
+            if (IS_MAC) {
+                this.skip();
+            }
+
+            testHash(new Shortcut(false, false, false, false, KeyCode.Enter), KeyCode.Enter, false);
+			testHash(new Shortcut(false, false, false, true, KeyCode.Enter), KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, false, true, false, KeyCode.Enter), KeyModifer.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(false, false, true, true, KeyCode.Enter), KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, false, false, KeyCode.Enter), KeyModifer.Shift | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, false, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, true, false, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, true, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
         });
     });
 

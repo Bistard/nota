@@ -23,13 +23,13 @@ import { VisibilityController } from 'src/base/browser/basic/visibilityControlle
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-import { IClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
+import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { errorToMessage } from 'src/base/common/error';
 
 /**
- * @class TODO: complete comments
+ * // TODO
+ * @class
  */
 export class ExplorerView extends SideView implements IExplorerViewService {
 
@@ -51,7 +51,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
     // [event]
 
-    private readonly _onDidOpen = this.__register(new Emitter<IClassicOpenEvent>());
+    private readonly _onDidOpen = this.__register(new Emitter<IFileOpenEvent>());
     public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]
@@ -90,7 +90,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     public async open(root: URI): Promise<void> {
 
         if (this.explorerTreeService.isOpened) {
-            this.logService.warn(`[ExplorerView] view is already opened at '${URI.toString(this.explorerTreeService.root!), true}'`);
+            this.logService.warn('ExplorerView', `view is already opened.`, { at: URI.toString(this.explorerTreeService.root!, true) });
             return;
         }
 
@@ -166,9 +166,9 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         // save the last opened workspace root path.
         if (this.explorerTreeService.root) {
             const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace));
+            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace)).unwrap());
         } else {
-            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '');
+            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '').unwrap());
         }
     }
 
@@ -208,18 +208,20 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * Open the root in the explorer tree service who will handle the 
          * complicated stuff for us.
          */
-        try {
-            await this.explorerTreeService.init(container, path);
+        const init = await this.explorerTreeService.init(container, path);
+        if (init.isOk()) {
             this._onDidOpen.fire({ path: path });
-        }
+        } 
+        
         /**
          * If the initialization fails, we capture it and replace it with an
          * empty view.
          */
-        catch (error) {
+        else {
+            const error = init.error;
             success = false;
             container = this.__createEmptyView();
-            this.logService.error(`[ExplorerView] cannot open the view at given path '${URI.toString(path, true)}': ${errorToMessage(error)}`);
+            this.logService.error('ExplorerView', `Cannot open the view`, error, { at: URI.toString(path, true) });
         }
 
         return [container, success];

@@ -1,6 +1,8 @@
 import { app, BrowserWindow } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { AsyncResult } from "src/base/common/error";
 import { Event, NodeEventEmitter } from "src/base/common/event";
+import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { memoize } from "src/base/common/memoization";
 import { IOpenDialogOptions } from "src/platform/dialog/common/dialog";
@@ -162,15 +164,15 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.webContents.reload();
     }
 
-    public async setApplicationStatus(key: StatusKey, val: any): Promise<void> {
+    public setApplicationStatus(key: StatusKey, val: any): AsyncResult<void, FileOperationError> {
         return this.statusService.set(key, val);
     }
 
-    public async setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void> {
+    public setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): AsyncResult<void, FileOperationError> {
         return this.statusService.setLot(items);
     }
 
-    public async deleteApplicationStatus(key: StatusKey): Promise<boolean> {
+    public deleteApplicationStatus(key: StatusKey): AsyncResult<boolean, FileOperationError> {
         return this.statusService.delete(key);
     }
 

@@ -110,7 +110,7 @@ suite('ConfigurationModule-test', () => {
             service.registerRegistrant(registrant as ConfigurationRegistrant);
 
             configuration = di.createInstance(DefaultConfiguration);
-            configuration.init();
+            configuration.init().unwrap();
         });
     
         test('constructor test - DefaultConfiguration instance with an empty model before init', () => {
@@ -126,7 +126,7 @@ suite('ConfigurationModule-test', () => {
     
         test('double init test - prevent double initialization', () => {
             try {
-                configuration.init();
+                configuration.init().unwrap();
                 assert.fail();
             } catch {
                 assert.ok(true);
@@ -170,7 +170,7 @@ suite('ConfigurationModule-test', () => {
              * Reload should not make a difference in DefaultConfiguration since
              * default configuration can self update.
              */
-            configuration.reload();
+            configuration.reload().unwrap();
     
             const newReloadModel = deepCopy(configuration.getConfiguration().model);
             const newReloadSections = deepCopy(configuration.getConfiguration().sections);
@@ -291,9 +291,9 @@ suite('ConfigurationModule-test', () => {
                 [TestConfiguration.One]: 10,
                 [TestConfiguration.Two]: 'bad world',
             }));
-            await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+            await (fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
-            await configuration.init();
+            (await configuration.init().unwrap());
             // console.log(configuration.getConfiguration().model);
     
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
@@ -305,9 +305,9 @@ suite('ConfigurationModule-test', () => {
                 [TestConfiguration.One]: undefined,
                 [TestConfiguration.Two]: undefined,
             }));
-            await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+            await (fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
-            await configuration.init();
+            await (configuration.init().unwrap());
             // console.log(configuration.getConfiguration().model);
     
             assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.One)), undefined);
@@ -316,14 +316,15 @@ suite('ConfigurationModule-test', () => {
     
         test('double init test - prevent double initialization', () => FakeAsync.run(async () => {
             await assert.rejects(async () => {
-                await configuration.init();
-                await configuration.init();
+                await (configuration.init().unwrap());
+                await (configuration.init().unwrap());
             });
         }));
     
         test('onDidConfigurationChange - the source user configuration file has changed', () => FakeAsync.run(async () => {
-            const stopWatch = fileService.watch(baseURI);
-            await configuration.init();
+            const stopWatch = await fileService.watch(baseURI).unwrap();
+
+            await (configuration.init().unwrap());
     
             assert.throws(() => configuration.getConfiguration().get(TestConfiguration.One));
             assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Two));
@@ -332,7 +333,7 @@ suite('ConfigurationModule-test', () => {
                 [TestConfiguration.One]: 10,
                 [TestConfiguration.Two]: 'hello world',
             }));
-            await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+            await (fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
             await Event.toPromise(configuration.onDidConfigurationChange).then(() => {
                 assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
@@ -351,9 +352,9 @@ suite('ConfigurationModule-test', () => {
                     }
                 },
             }));
-            await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+            (await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, }).unwrap());
     
-            await configuration.init();
+            (await configuration.init().unwrap());
             assert.deepEqual(configuration.getConfiguration().model, {});
         }));
     });

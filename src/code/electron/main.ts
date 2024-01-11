@@ -90,6 +90,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             try {
                 await this.initServices();
             } catch (error) {
+                // FIX: could be errors other than directory-related
                 this.__showDirectoryErrorDialog(error);
                 throw error;
             }
@@ -158,7 +159,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         logService.setLogger(pipelineLogger);
 
         // product-service
-        const productService = new ProductService(fileService);
+        const productService = new ProductService(fileService, logService);
         instantiationService.register(IProductService, productService);
 
         // life-cycle-service
@@ -188,6 +189,8 @@ const main = new class extends class MainProcess implements IMainProcess {
         (<any>this.logService) = logService;
         (<any>this.lifecycleService) = lifecycleService;
         (<any>this.statusService) = statusService;
+
+        this.logService.trace('MainProcess', 'All core services are constructed.');
     }
 
     /**
@@ -195,27 +198,30 @@ const main = new class extends class MainProcess implements IMainProcess {
      * services are created.
      */
     private async initServices(): Promise<any> {
+        this.logService.trace('MainProcess', 'Start initializing core services...');
 
-        return Promise.all([
-            /**
-             * At the very beginning state of the program, we need to initialize
-             * all the necessary directories first. We need to ensure each one 
-             * is created successfully.
-             */
-            Promise.all(
-                [
-                    this.environmentService.logPath,
-                    this.environmentService.appConfigurationPath,
-                    this.environmentService.userDataPath,
-                ]
-                .map(path => {
-                    return mkdir(URI.toFsPath(path), { recursive: true });
-                })
-            ),
-            this.productService.init(this.environmentService.productProfilePath),
-            this.statusService.init(),
-            this.configurationService.init(),
-        ]);
+        /**
+        * At the very beginning state of the program, we need to initialize
+        * all the necessary directories first. We need to ensure each one 
+        * is created successfully.
+        */
+
+        await Promise.all(
+           [
+               this.environmentService.logPath,
+               this.environmentService.appConfigurationPath,
+               this.environmentService.userDataPath,
+           ]
+           .map(path => mkdir(URI.toFsPath(path), { recursive: true })),
+       );
+
+        await this.productService.init(this.environmentService.productProfilePath)
+            .andThen(() => this.statusService.init())
+            .andThen(() => this.configurationService.init())
+            .unwrap();
+
+
+        this.logService.trace('MainProcess', 'All core services are initialized successfully.');
     }
 
     private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
@@ -243,6 +249,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     }
 
     private async resolveSingleApplication(): Promise<void> {
+        this.logService.trace('MainProcess', 'Resolving application by listenning to pipe...', { pipe: this.environmentService.mainIpcHandle });
 
         try {
             /**
@@ -264,7 +271,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         catch (error: any) {
             // unexpected errors
             if (error.code !== 'EADDRINUSE') {
-                this.logService.error(error);
+                this.logService.error('MainProcess', 'unexpected error (expect EADDRINUSE)', error);
                 throw error;
             }
 
@@ -273,7 +280,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         }
 
         // we are the first running application under the current version.
-        this.logService.debug('Running as the first application.');
+        this.logService.debug('MainProcess', 'Window resolved successfully. Running as the first application.');
         process.env[ProcessKey.PID] = String(process.pid);
         return;
     }
@@ -283,15 +290,15 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         if (isExpectedError(error)) {
             if (error.message) {
-                this.logService.trace(`${error.message}`);
+                this.logService.trace('MainProcess', `${error.message}`);
             }
         }
         else {
             code = 1;
             if (error.stack) {
-                this.logService.error(error.stack);
+                this.logService.error('MainProcess', error.message, error);
             } else {
-                this.logService.error(`Main process error: ${error.toString()}`);
+                this.logService.error('MainProcess', error.message, new Error(`Main process error: ${error.toString()}`));
             }
         }
 

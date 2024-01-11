@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IReadableStreamEvent } from "src/base/common/files/stream";
+import { IReadyReadableStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 
@@ -75,7 +75,7 @@ export interface IFileSystemProvider {
 	readonly onDidResourceChange: Register<IRawResourceChangeEvents>;
 	readonly onDidResourceClose: Register<URI>;
 
-	watch(uri: URI, opts?: IWatchOptions): IDisposable;
+	watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable>;
 
 	stat(uri: URI): Promise<IFileStat>;
 	mkdir(uri: URI): Promise<void>;
@@ -88,7 +88,7 @@ export interface IFileSystemProvider {
 	readFile?(uri: URI): Promise<Uint8Array>;
 	writeFile?(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 
-	readFileStream?(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
+	readFileStream?(uri: URI, opt?: IReadFileOptions): IReadyReadableStream<Uint8Array>;
 
 	open?(uri: URI, opts?: IOpenFileOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
@@ -144,7 +144,7 @@ export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 }
 
 export interface IFileSystemProviderWithReadFileStream extends IFileSystemProvider {
-	readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
+	readFileStream(uri: URI, opt?: IReadFileOptions): IReadyReadableStream<Uint8Array>;
 }
 
 export type FileSystemProviderAbleToRead =
@@ -300,6 +300,7 @@ export const enum FileOperationErrorType {
 	FILE_READONLY,
 	NO_PERMISSIONS,
 	UNKNOWN,
+	OTHERS,
 }
 
 function convertFileOperationErrorToString(type: FileOperationErrorType): string {

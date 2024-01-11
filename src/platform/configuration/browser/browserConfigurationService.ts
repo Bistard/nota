@@ -9,7 +9,7 @@ import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { Arrays } from "src/base/common/utilities/array";
 import { JsonSchemaValidator } from "src/base/common/json";
-import { errorToMessage } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/error";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -25,6 +25,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super(options, instantiationService, logService, registrantService);
+        this.logService.trace('BrowserConfigurationService', 'Constructed.');
     }
 
     // [public methods]
@@ -37,18 +38,20 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         await this.__updateConfiguration(section, undefined, options);
     }
 
-    public async save(): Promise<void> {
+    public save(): AsyncResult<void, Error> {
         if (!this.isInit) {
-            return;
+            return AsyncResult.ok();
         }
 
-        const jsonData = this._configurationHub.inspect().toJSON();
-        try {
-            await this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true });
-            this.logService.info(`[BrowserConfigurationService] Successfully save configuration at '${URI.toString(this.appConfigurationPath)}'.`);
-        } catch (error: unknown) {
-            this.logService.error(`[BrowserConfigurationService] Cannot save configuration at '${URI.toString(this.appConfigurationPath)}'. The reason is: ${errorToMessage(error)}`);
-        }
+        const jsonData = this._configurationHub.inspect().toJSON().unwrap();
+        return this.fileService.writeFile(this.appConfigurationPath, DataBuffer.fromString(jsonData), { create: true, overwrite: true })
+        .orElse(error => {
+            this.logService.error('BrowserConfigurationService', `Cannot save configuration.`, error, { at: URI.toString(this.appConfigurationPath) });
+            return err(error);
+        })
+        .andThen(() => {
+            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration`, { at: URI.toString(this.appConfigurationPath) }));
+        });
     }
 
     // [private helper methods]

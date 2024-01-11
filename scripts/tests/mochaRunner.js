@@ -1,6 +1,5 @@
 const childProcess = require("child_process");
 const fs = require('fs');
-const path = require('path');
 
 (async function () {
 
@@ -22,6 +21,8 @@ const path = require('path');
             stdio: "inherit",
         },
     );
+    
+    registerProcListeners(proc);
 })();
 
 async function buildCommandFromConfiguration(rawCommand, cliArgs, configurationPath) {
@@ -52,4 +53,18 @@ async function buildCommandFromConfiguration(rawCommand, cliArgs, configurationP
 
     rawCommand += ' ' + cliArgs.join(' ');
     return rawCommand;
+}
+
+function registerProcListeners(proc) {
+    
+    // make sure the error code is returned from the child proc
+    {
+        proc.addListener('error', (err) => {
+            process.exit(err.code ?? 100);
+        });
+    
+        proc.addListener('exit', (code) => {
+            process.exit(code);
+        });
+    }
 }

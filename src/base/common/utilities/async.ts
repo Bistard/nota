@@ -85,7 +85,7 @@ export class JoinablePromise {
 
 	// [fields]
 
-	private readonly _participants: Promise<void>[];
+	private readonly _participants: PromiseLike<any>[];
 
 	// [constructor]
 
@@ -95,7 +95,7 @@ export class JoinablePromise {
 
 	// [public methods]
 
-	public join(participant: Promise<void>): this {
+	public join(participant: PromiseLike<any>): this {
 		this._participants.push(participant);
 		return this;
 	}
@@ -103,7 +103,7 @@ export class JoinablePromise {
 	/**
 	 * @note This method never rejects.
 	 */
-	public async allSettled(): Promise<PromiseSettledResult<void>[]> {
+	public async allSettled(): Promise<PromiseSettledResult<any>[]> {
 		return Promise.allSettled(this._participants);
 	}
 }
@@ -292,7 +292,7 @@ export class EventBlocker<T> {
 	private _fired = false;
 	private _timeout?: NodeJS.Timeout;
 	
-	constructor(register: Register<T>, timeout?: number) {
+	constructor(register: Register<T>, timeoutMS?: number) {
 		// one time only listener
 		this._listener = register((event) => {
 			this._fired = true;
@@ -306,12 +306,12 @@ export class EventBlocker<T> {
 			this._blocker.resolve(event);
 		});
 
-		if (isNumber(timeout)) {
+		if (isNumber(timeoutMS)) {
 			this._timeout = setTimeout(() => {
 				if (!this._fired) {
-					this._blocker.reject(new Error());
+					this._blocker.reject(new Error('EventBlocker timeout'));
 				}
-			}, timeout);
+			}, timeoutMS);
 		}
 	}
 

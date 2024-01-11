@@ -64,11 +64,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug(`application starting at '${URI.toString(this.environmentService.appRootPath)}'...`);
+        this.logService.debug('App', `application starting...`, { appRootPath: URI.toString(this.environmentService.appRootPath) });
 
         // machine ID
         const machineID = this.__getMachineID();
-        this.logService.debug(`Resolved machine ID: ${machineID}`);
+        this.logService.debug('App', `Resolved machine ID.`, { ID: machineID });
 
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);
@@ -89,8 +89,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`[ApplicationInstance] registerListenering...`);
-
         Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
 
         // interept unexpected errors so that the error will not go back to `main.ts`
@@ -99,7 +97,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
 
         electron.app.on('open-file', (event, path) => {
-            this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
+            this.logService.trace('App', `open-file - ${path}`);
             // REVIEW
         });
 
@@ -107,11 +105,10 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
             // REVIEW
             // this.mainWindowService?.open();
         });
-
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
-        this.logService.trace('[ApplicationInstance] creating services...');
+        this.logService.trace('App', 'constructing application services...');
 
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
@@ -132,10 +129,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // lookup-service
         appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService, []));
 
+        this.logService.trace('App', 'Application services constructed.');
         return appInstantiationService;
     }
 
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
+        this.logService.trace('App', 'Registering IPC channels...');
 
         // file-service-channel
         const diskFileChannel = new MainFileChannel(this.logService, this.fileService, this.registrantService);
@@ -155,9 +154,13 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const dialogService = provider.getService(IMainDialogService);
         const dialogChannel = ProxyChannel.wrapService(dialogService);
         server.registerChannel(IpcChannel.Dialog, dialogChannel);
+
+        this.logService.trace('App', 'IPC channels registered successfully.');
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
+        this.logService.trace('App', 'Openning the first window...');
+
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
         // life-cycle-service: READY
@@ -204,12 +207,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         let id = this.statusService.get<string>(StatusKey.MachineIdKey);
         if (!id) {
             id = getUUID();
-            this.statusService.set(StatusKey.MachineIdKey, id);
+            this.statusService.set(StatusKey.MachineIdKey, id).unwrap();
         }
         return id;
     }
 
     private __onUnexpectedError(error: any): void {
-        this.logService.error(`[ApplicationInstance] [uncought exception] ${errorToMessage(error)}`);
+        this.logService.error('App', `Uncought exception occured.`, error);
     }
 }
