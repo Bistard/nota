@@ -1,7 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
@@ -11,14 +10,15 @@ export const enum EditorType {
     Rich = 'rich-text',
 }
 
+/**
+ * The interface is only for {@link EditorViewModel}.
+ */
 export interface IEditorViewModel extends Disposable {
 
     /**
      * The current rendering mode of the view.
      */
     readonly renderMode: EditorType;
-
-    readonly model: IEditorModel;
 
     /**
      * Fires when a log is about happen.
@@ -36,6 +36,9 @@ export interface IEditorViewModel extends Disposable {
     updateOptions(options: Partial<IEditorViewModelOptions>): void;
 }
 
+/**
+ * The option for {@link EditorViewModel}.
+ */
 export interface IEditorViewModelOptions {
 
     /**

@@ -120,12 +120,13 @@ interface IParsingNodeState {
 
 /**
  * Interface only for {@link DocumentParseState}.
+ * 
  * The {@link IDocumentNode} has full accessbility to control the parsing flow.
  * The state provides a series of methods for different tokens so that they can 
  * decide how to parse themselves correctly.
  * 
  * @implements
- * The state will invoke {@link IDocumentNode.parseFromToken} for each token
+ * The state will invoke `IDocumentNode.parseFromToken` for each token
  * internally.
  */
 export interface IDocumentParseState {

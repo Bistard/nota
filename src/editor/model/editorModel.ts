@@ -17,7 +17,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     private readonly _onLog = this.__register(new Emitter<ILogEvent>());
     public readonly onLog = this._onLog.registerListener;
 
-    private readonly _onDidBuild = this.__register(new Emitter<void>());
+    private readonly _onDidBuild = this.__register(new Emitter<EditorToken[]>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
 
     private readonly _onDidContentChange = this.__register(new Emitter<void>());
@@ -25,17 +25,24 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [field]
 
-    private readonly _source: URI;
+    /** The configuration of the editor */
     private readonly _options: EditorOptionsType;
-
-    private readonly _lexer: IMarkdownLexer;
-
+    
+    /** 
+     * The source file the model is about to read and parse.
+     */
+    private readonly _source: URI;
+    
     /**
      * `undefined` indicates the model is not built yet. The text model is 
      * registered, need to be disposed manually.
      */
     private _textModel: IPieceTableModel = undefined!;
-    private _tokens: EditorToken[] = [];
+    
+    /**
+     * Responsible for parsing the raw text into tokens.
+     */
+    private readonly _lexer: IMarkdownLexer;
 
     // [constructor]
 
@@ -48,7 +55,6 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._source = source;
         this._options = options;
 
-        // lexer construction
         const lexerOptions = this.__initLexerOptions(options);
         this._lexer = new MarkdownLexer(lexerOptions);
 
@@ -102,10 +108,6 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._textModel.getLineLength(lineNumber);
     }
 
-    public getTokens(): EditorToken[] {
-        return this._tokens;
-    }
-
     public updateOptions(options: EditorOptionsType): void {
         if (options.baseURI.value) {
             this._lexer.updateOptions({ baseURI: options.baseURI.value });
@@ -156,10 +158,10 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._textModel = textModel;
 
         const rawContent = this._textModel.getRawContent();
-        this._tokens = this._lexer.lex(rawContent);
+        const tokens = this._lexer.lex(rawContent);
 
         this._onLog.fire({ level: LogLevel.DEBUG, message: `EditorModel built.` });
-        this._onDidBuild.fire();
+        this._onDidBuild.fire(tokens);
     }
 
     /**

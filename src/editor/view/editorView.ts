@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { ILogEvent } from "src/base/common/logger";
+import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { EditorInstance, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorType, IEditorViewModel, RenderEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
@@ -20,8 +20,14 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [fields]
 
+    /**
+     * The HTML container of the entire editor.
+     */
     private readonly _container: HTMLElement;
 
+    /**
+     * A wrapper of some frequently used references.
+     */
     private readonly _ctx: ViewContext;
     private readonly _editorManager: IEditorManager;
 
@@ -87,13 +93,11 @@ export class EditorView extends Disposable implements IEditorView {
 
         // render
         container.appendChild(this._container);
+
+        this._onLog.fire({ level: LogLevel.DEBUG, message: 'EditorView constructed.' });
     }
 
     // [public methods]
-
-    get viewModel(): IEditorViewModel {
-        return this._ctx.viewModel;
-    }
 
     get editor(): EditorInstance {
         return this._editorManager.editor;
@@ -218,8 +222,7 @@ class EditorManager extends Disposable implements IEditorManager {
     // [public methods]
 
     public render(event: RenderEvent): void {
-        
-        console.log('[view] on render event', event); // TEST
+        console.log('[EditorView] on render event', event); // TEST
 
         /**
          * The new render event requires new type of rendering mode, destroys

@@ -363,9 +363,7 @@ export interface IEditorModel extends IDisposable {
     /** 
      * Fires when the model is built.
      */
-    readonly onDidBuild: Register<void>;
-
-    readonly onDidContentChange: Register<void>;
+    readonly onDidBuild: Register<EditorToken[]>;
 
     /**
      * @description Start building the model.
@@ -408,18 +406,15 @@ export interface IEditorModel extends IDisposable {
     getLineLength(lineNumber: number): number;
 
     /**
-     * @description Inspect the current markdown tokens that is parsed by the
-     * lexer.
-     */
-    getTokens(): EditorToken[];
-
-    /**
      * @description Updates the options of the editor model.
      * @param options The editor option.
      */
     updateOptions(options: EditorOptionsType): void;
 }
 
+/**
+ * The option for {@link EditorModel}.
+ */
 export interface IEditorModelOptions {
 
     /**

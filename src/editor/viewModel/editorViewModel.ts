@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
-import { IEditorModel } from "src/editor/common/model";
+import { EditorToken, IEditorModel } from "src/editor/common/model";
 import { EditorType, IEditorViewModel, IEditorViewModelOptions, RenderEvent } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
@@ -18,7 +18,7 @@ import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
 import { Space } from "src/editor/viewModel/parser/node/space";
 import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
-import { ILogEvent } from "src/base/common/logger";
+import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 import { HTML } from "src/editor/viewModel/parser/node/html";
 import { TokenEnum } from "src/editor/common/markdown";
@@ -28,6 +28,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [field]
 
+    /** The configuration of the editor */
     private readonly _options: EditorOptionsType;
 
     private readonly _model: IEditorModel;
@@ -66,16 +67,14 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this.__initDocParser();
 
         this.__registerModelListeners();
+
+        this._onLog.fire({ level: LogLevel.DEBUG, message: 'EditorViewModel constructed.' });
     }
 
     // [getter]
 
     get renderMode(): EditorType {
         return this._options.mode.value;
-    }
-
-    get model(): IEditorModel {
-        return this._model;
     }
 
     // [public methods]
@@ -97,18 +96,16 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     private __registerModelListeners(): void {
         
-        this.__register(Event.any([this._model.onDidContentChange, this._model.onDidBuild])(() => {
-            this.__onDidModelContentChange();
+        this.__register(Event.any([this._model.onDidBuild])(tokens => {
+            this.__onDidModelContentChange(tokens);
         }));
     }
 
-    private __onDidModelContentChange(): void {
+    private __onDidModelContentChange(tokens: EditorToken[]): void {
+        console.log('[EditorViewModel] [tokens]', tokens); // TEST
 
-        const tokens = this._model.getTokens();
         const document = this._docParser.parse(tokens);
-        
-        console.log('[tokens]', tokens); // TEST
-        console.log('[document]', document); // TEST
+        console.log('[EditorViewModel] [document]', document); // TEST
 
         const renderType = this._options.mode.value;
         let event: RenderEvent;
