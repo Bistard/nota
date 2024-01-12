@@ -75,7 +75,6 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     // [public methods]
 
     public parse(tokens: EditorToken[]): ProseNode {        
-        
         this._state.parseTokens(tokens);
         const documentRoot = this._state.complete();
         this._state.clean();
@@ -111,6 +110,9 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     }
 }
 
+/**
+ * @internal
+ */
 interface IParsingNodeState {
     readonly ctor: ProseNodeType;
     children: ProseNode[];

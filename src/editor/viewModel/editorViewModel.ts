@@ -4,23 +4,8 @@ import { EditorToken, IEditorModel } from "src/editor/common/model";
 import { EditorType, IEditorViewModel, IEditorViewModelOptions, RenderEvent } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
-import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
-import { Emphasis } from "src/editor/viewModel/parser/mark/emphasis";
-import { Link } from "src/editor/viewModel/parser/mark/link";
-import { Strong } from "src/editor/viewModel/parser/mark/strong";
-import { Blockquote } from "src/editor/viewModel/parser/node/blockquote";
-import { CodeBlock } from "src/editor/viewModel/parser/node/codeBlock";
-import { Heading } from "src/editor/viewModel/parser/node/heading";
-import { HorizontalRule } from "src/editor/viewModel/parser/node/horizontalRule";
-import { Image } from "src/editor/viewModel/parser/node/image";
-import { LineBreak } from "src/editor/viewModel/parser/node/lineBreak";
-import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
-import { Space } from "src/editor/viewModel/parser/node/space";
-import { Text } from "src/editor/viewModel/parser/node/text";
-import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
+import { EditorSchema, buildSchema } from "src/editor/viewModel/schema";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
-import { List, ListItem } from "src/editor/viewModel/parser/node/list";
-import { HTML } from "src/editor/viewModel/parser/node/html";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 
@@ -30,11 +15,12 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     /** The configuration of the editor */
     private readonly _options: EditorOptionsType;
-
     private readonly _model: IEditorModel;
 
-    private readonly _nodeProvider: DocumentNodeProvider;
+    /** An object that defines how a view is organized. */
     private readonly _schema: EditorSchema;
+
+    /** Parser that parses the given token into a legal view based on the schema */
     private readonly _docParser: IDocumentParser;
 
     // [event]
@@ -58,14 +44,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this._model = model;
         this._options = options;
 
-        this._nodeProvider = new DocumentNodeProvider();
-        this.__registerNodeProvider();
-
-        this._schema = new MarkdownSchema(this._nodeProvider);
-
-        this._docParser = new DocumentParser(this._schema, this._nodeProvider, /* options */);
-        this.__initDocParser();
-
+        const nodeProvider = DocumentNodeProvider.create().register();
+        this._schema = buildSchema(nodeProvider);
+        this._docParser = new DocumentParser(this._schema, nodeProvider, /* options */);
+        
+        this.__registerParserListeners(this._docParser);
         this.__registerModelListeners();
 
         this._onLog.fire({ level: LogLevel.DEBUG, message: 'EditorViewModel constructed.' });
@@ -133,33 +116,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this._onRender.fire(event);
     }
 
-    private __registerNodeProvider(): void {
-        const provider = this._nodeProvider;
-
-        // nodes
-        provider.registerNode(new Space());
-        provider.registerNode(new Text());
-        provider.registerNode(new Heading());
-        provider.registerNode(new Paragraph());
-        provider.registerNode(new Blockquote());
-        provider.registerNode(new HorizontalRule());
-        provider.registerNode(new CodeBlock());
-        provider.registerNode(new LineBreak());
-        provider.registerNode(new Image());
-        provider.registerNode(new List());
-        provider.registerNode(new ListItem());
-        provider.registerNode(new HTML());
-
-        // marks
-        provider.registerMark(new Link());
-        provider.registerMark(new Emphasis());
-        provider.registerMark(new Strong());
-        provider.registerMark(new Codespan());
-    }
-
-    private __initDocParser(): void {
-        const parser = this._docParser;
-        
+    private __registerParserListeners(parser: IDocumentParser): void {
         parser.onLog(event => this._onLog.fire(event));
         
         if (this._options.ignoreHTML.value) {

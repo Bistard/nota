@@ -1,9 +1,24 @@
-import { Mutable } from "src/base/common/utilities/type";
+import { IO, Mutable } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/viewModel/schema";
+import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
+import { Emphasis } from "src/editor/viewModel/parser/mark/emphasis";
+import { Link } from "src/editor/viewModel/parser/mark/link";
+import { Strong } from "src/editor/viewModel/parser/mark/strong";
+import { Blockquote } from "src/editor/viewModel/parser/node/blockquote";
+import { CodeBlock } from "src/editor/viewModel/parser/node/codeBlock";
+import { Heading } from "src/editor/viewModel/parser/node/heading";
+import { HorizontalRule } from "src/editor/viewModel/parser/node/horizontalRule";
+import { Image } from "src/editor/viewModel/parser/node/image";
+import { LineBreak } from "src/editor/viewModel/parser/node/lineBreak";
+import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
+import { Space } from "src/editor/viewModel/parser/node/space";
+import { Text } from "src/editor/viewModel/parser/node/text";
+import { List, ListItem } from "src/editor/viewModel/parser/node/list";
+import { HTML } from "src/editor/viewModel/parser/node/html";
 
 export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
     
@@ -88,7 +103,43 @@ export class DocumentNodeProvider {
 
     // [constructor]
 
-    constructor() {}
+    private constructor() {}
+
+    // [public static methods]
+
+    public static create(): { register: IO<DocumentNodeProvider> } {
+        const provider = new DocumentNodeProvider();
+
+        return {
+            
+            /**
+             * @description Registers all the valid document nodes.
+             */
+            register: () => {
+                // nodes
+                provider.registerNode(new Space());
+                provider.registerNode(new Text());
+                provider.registerNode(new Heading());
+                provider.registerNode(new Paragraph());
+                provider.registerNode(new Blockquote());
+                provider.registerNode(new HorizontalRule());
+                provider.registerNode(new CodeBlock());
+                provider.registerNode(new LineBreak());
+                provider.registerNode(new Image());
+                provider.registerNode(new List());
+                provider.registerNode(new ListItem());
+                provider.registerNode(new HTML());
+
+                // marks
+                provider.registerMark(new Link());
+                provider.registerMark(new Emphasis());
+                provider.registerMark(new Strong());
+                provider.registerMark(new Codespan());
+
+                return provider;
+            }
+        };
+    }
 
     // [public methods]
 
