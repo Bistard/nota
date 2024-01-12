@@ -1,6 +1,6 @@
 import { Dictionary } from "src/base/common/utilities/type";
 import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, IProseTextNode } from "src/editor/common/proseMirror";
-import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNodeProvider";
 
 /**
  * The top level document node.

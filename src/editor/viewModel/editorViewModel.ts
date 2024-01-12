@@ -2,12 +2,12 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { EditorToken, IEditorModel } from "src/editor/common/model";
 import { EditorType, IEditorViewModel, IEditorViewModelOptions, RenderEvent } from "src/editor/common/viewModel";
-import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
 import { EditorSchema, buildSchema } from "src/editor/viewModel/schema";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
+import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNodeProvider";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
