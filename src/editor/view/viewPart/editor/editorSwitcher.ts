@@ -1,16 +1,16 @@
 import { Disposable } from "src/base/common/dispose";
-import { EditorInstance } from "src/editor/common/view";
+import { EditorWindow } from "src/editor/common/view";
 import { EditorType, RenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor_old/richtextEditor";
+import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
 /**
- * Interface only for {@link EditorViewSwitcher}.
+ * Interface only for {@link EditorWindowSwitcher}.
  */
-export interface IEditorViewSwitcher extends Disposable {
+export interface IEditorWindowSwitcher extends Disposable {
 
     readonly container: HTMLElement;
-    readonly editor: EditorInstance;
+    readonly editor: EditorWindow;
     readonly renderMode: EditorType;
 
     /**
@@ -30,10 +30,10 @@ export interface IEditorViewSwitcher extends Disposable {
 }
 
 /**
- * @class Integration on {@link EditorInstance}. Provide functionality to switch
+ * @class Integration on {@link EditorWindow}. Provide functionality to switch
  * the editor view into different rendering {@link EditorType} type easily.
  */
-export class EditorViewSwitcher extends Disposable implements IEditorViewSwitcher {
+export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwitcher {
 
     // [field]
 
@@ -41,7 +41,7 @@ export class EditorViewSwitcher extends Disposable implements IEditorViewSwitche
     private readonly _ctx: ViewContext;
     
     private _renderMode: EditorType;
-    private _editor: EditorInstance;
+    private _editor: EditorWindow;
 
     // [constructor]
 
@@ -69,7 +69,7 @@ export class EditorViewSwitcher extends Disposable implements IEditorViewSwitche
         return this._container;
     }
 
-    get editor(): EditorInstance {
+    get editor(): EditorWindow {
         return this._editor;
     }
     
@@ -91,7 +91,11 @@ export class EditorViewSwitcher extends Disposable implements IEditorViewSwitche
             this._editor = this.__createWindow(event.type);
         }
 
-        this._editor.updateContent(event as any);
+        // render
+
+        if (event.type === EditorType.Rich) {
+            this._editor.render(event.document);
+        }
     }
 
     public setRenderMode(mode: EditorType): void {
@@ -105,17 +109,17 @@ export class EditorViewSwitcher extends Disposable implements IEditorViewSwitche
 
     // [private helper methods]
 
-    private __createWindow(mode: EditorType, oldEdtior?: EditorInstance): EditorInstance {
+    private __createWindow(mode: EditorType, oldEdtior?: EditorWindow): EditorWindow {
         
-        const winArgs = [this._container, this._ctx, oldEdtior] as const;
-        let editor: EditorInstance;
+        const editorArguments = <const>[this._container, this._ctx];
+        let editor: EditorWindow;
         
         switch (mode) {
             case EditorType.Plain: {
                 throw new Error('does not support plain text editor yet.');
             }
             case EditorType.Rich: {
-                editor = RichtextEditor.create(...winArgs);
+                editor = new RichtextEditor(...editorArguments);
                 break;
             }
             case EditorType.Split: {

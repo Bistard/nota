@@ -1,11 +1,11 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
-import { EditorInstance, IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
-import { EditorViewSwitcher, IEditorViewSwitcher } from "src/editor/view/viewPart/editors/editorSwitcher";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { EditorWindowSwitcher, IEditorWindowSwitcher } from "src/editor/view/viewPart/editor/editorSwitcher";
 import { Mutable } from "src/base/common/utilities/type";
 
 export class ViewContext {
@@ -30,7 +30,7 @@ export class EditorView extends Disposable implements IEditorView {
      * A wrapper of some frequently used references.
      */
     private readonly _ctx: ViewContext;
-    private readonly _editorSwitcher: IEditorViewSwitcher;
+    private readonly _editorSwitcher: IEditorWindowSwitcher;
 
     // [events]
     
@@ -69,7 +69,7 @@ export class EditorView extends Disposable implements IEditorView {
         this._container = editorContainer;
 
         // the centre that integrates the editor-related functionalities
-        this._editorSwitcher = this.__register(new EditorViewSwitcher(editorContainer, context));
+        this._editorSwitcher = this.__register(new EditorWindowSwitcher(editorContainer, context));
         this.__adaptEditorSwitcherListeners(this._editorSwitcher);
         
         // update listener registration from view-model
@@ -84,7 +84,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [public methods]
 
-    get editor(): EditorInstance {
+    get editor(): EditorWindow {
         return this._editorSwitcher.editor;
     }
 
@@ -131,7 +131,7 @@ export class EditorView extends Disposable implements IEditorView {
         }));
     }
 
-    private __adaptEditorSwitcherListeners(this: Mutable<IEditorView>, switcher: IEditorViewSwitcher): void {
+    private __adaptEditorSwitcherListeners(this: Mutable<IEditorView>, switcher: IEditorWindowSwitcher): void {
         this.onDidFocusChange = switcher.editor.onDidFocusChange;
         this.onBeforeRender = switcher.editor.onBeforeRender;
         this.onClick = switcher.editor.onClick;

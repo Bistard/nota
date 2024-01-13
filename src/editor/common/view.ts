@@ -1,24 +1,23 @@
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
-import { EditorType } from "src/editor/common/viewModel";
-import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor_old";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor_old/richtextEditor";
+import { IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { EditorBase } from "src/editor/view/viewPart/editor/editorBase";
+import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
-export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>; // TEST
-export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>; // TEST
+export type PlaintextEditor = {} & EditorBase; // TEST
+export type SplitviewEditor = {} & EditorBase; // TEST
 
-export type EditorInstance = RichtextEditor | PlaintextEditor | SplitviewEditor;
+export type EditorWindow = RichtextEditor | PlaintextEditor | SplitviewEditor;
 
 /**
  * An interface only for {@link EditorView}.
  */
-export interface IEditorView extends IEditorEventBroadcaster {
+export interface IEditorView extends IProseEventBroadcaster {
 
     /**
      * The actual editor instance.
      */
-    readonly editor: EditorInstance;
+    readonly editor: EditorWindow;
 
     /**
      * Fires when a log is about happen.

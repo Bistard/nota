@@ -67,9 +67,9 @@ export interface IOnDropEvent {
 }
 
 /**
- * An interface only for {@link EditorEventBroadcaster}.
+ * An interface only for {@link ProseEventBroadcaster}.
  */
-export interface IEditorEventBroadcaster extends IDisposable {
+export interface IProseEventBroadcaster extends IDisposable {
 
     /** 
 	 * Fires when the component is either focused or blured (true represents 
@@ -148,7 +148,7 @@ export interface IEditorEventBroadcaster extends IDisposable {
     readonly onDrop: Register<IOnDropEvent>;
 }
 
-function isProseEditorView(obj: any): obj is ProseEditorView {
+function __isProseEditorView(obj: any): obj is ProseEditorView {
     return !!obj.state;
 }
 
@@ -157,7 +157,7 @@ function isProseEditorView(obj: any): obj is ProseEditorView {
  * extension, the boradcaster will bind all the pre-defined event emitter with 
  * that target properly.
  */
-export class EditorEventBroadcaster extends Disposable implements IEditorEventBroadcaster {
+export class ProseEventBroadcaster extends Disposable implements IProseEventBroadcaster {
 
     // [event]
 
@@ -207,7 +207,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         
         let view!: ProseEditorView;
         let property: ProseDirectEditorProperty | ProseEditorProperty<any>;
-        if (isProseEditorView(viewOrExtensionProperty)) {
+        if (__isProseEditorView(viewOrExtensionProperty)) {
             view = viewOrExtensionProperty;
             property = view.props;
         } else {
