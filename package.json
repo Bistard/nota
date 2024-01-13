@@ -71,7 +71,6 @@
 			"jsdom & jsdom-global": "JavaScript-based DOM simulation tools for Node.js.",
 			"link-module-alias": "Link and resolve aliases of modules in Node.js. Used to achieve local customized eslint rules.",
 			"mini-css-extract-plugin": "Extracts CSS from your bundles into separate files.",
-			"minimist": "Parse argument options. Good tiny lib to use.",
 			"mocha and mochapack": "Testing framework and its webpack integration.",
 			"node-loader": "Webpack loader for Node.js native modules.",
 			"sass and sass-loader": "CSS pre-processor and its Webpack loader.",
@@ -82,14 +81,12 @@
 			"webpack and related packages": "Module bundler and its various plugins/loaders."
 		},
 		"dependencies": {
-			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform."
+			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform.",
+			"minimist": "Parse argument options. Good tiny lib to use."
 		}
 	},
 	"dependencies": {
-		"@ckeditor/ckeditor5-build-classic": "^39.0.2",
-		"@ckeditor/ckeditor5-editor-classic": "github:ckeditor/ckeditor5-editor-classic",
 		"chokidar": "^3.5.3",
-		"ckeditor": "^4.12.1",
 		"codemirror": "^6.0.1",
 		"minimist": "^1.2.8",
 		"prosemirror-model": "^1.18.1",
