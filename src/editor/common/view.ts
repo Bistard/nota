@@ -2,8 +2,8 @@ import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
 import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
 import { EditorType } from "src/editor/common/viewModel";
-import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
+import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor_old";
+import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor_old/richtextEditor";
 
 export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>; // TEST
 export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>; // TEST

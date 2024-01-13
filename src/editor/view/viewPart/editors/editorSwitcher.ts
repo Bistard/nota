@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { EditorInstance } from "src/editor/common/view";
 import { EditorType, RenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
+import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor_old/richtextEditor";
 
 /**
  * Interface only for {@link EditorViewSwitcher}.

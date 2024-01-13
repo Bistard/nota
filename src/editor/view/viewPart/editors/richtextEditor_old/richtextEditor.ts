@@ -4,7 +4,7 @@ import { ProseEditorState, ProseEditorView, ProseNode } from "src/editor/common/
 import { EditorInstance } from "src/editor/common/view";
 import { EditorType, IRenderRichEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
-import { IEditorCore, BaseEditor, IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
+import { IEditorCore, BaseEditor, IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor_old";
 
 function createRichtextDefaultState(context: ViewContext): ProseEditorState {
     return ProseEditorState.create({
