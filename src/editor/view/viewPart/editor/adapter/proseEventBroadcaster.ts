@@ -205,7 +205,7 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     constructor(viewOrExtensionProperty: ProseEditorView | ProseEditorProperty<any>) {
         super();
         
-        let view!: ProseEditorView;
+        let view: ProseEditorView | undefined;
         let property: ProseDirectEditorProperty | ProseEditorProperty<any>;
         if (__isProseEditorView(viewOrExtensionProperty)) {
             view = viewOrExtensionProperty;
@@ -219,6 +219,7 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
          * prosemirror view directly.
          */
         if (view) {
+            const proseView = view;
             (<ProseDirectEditorProperty>property).dispatchTransaction = (tr) => {
                 let prevented = false;
                 this._onBeforeRender.fire({ 
@@ -230,8 +231,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
                     return;
                 }
     
-                const newState = view.state.apply(tr);
-                view.updateState(newState);
+                const newState = proseView.state.apply(tr);
+                proseView.updateState(newState);
             };
         }
 

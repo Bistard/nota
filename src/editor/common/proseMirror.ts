@@ -2,11 +2,14 @@ import { Node as ProseNode } from "prosemirror-model";
 
 export { 
     EditorState as ProseEditorState,
+    NodeSelection as ProseNodeSelection,
 } from "prosemirror-state";
 
 export { Transaction as ProseTransaction,
      Plugin as ProseExtension,
      Command as ProseCommand,
+     AllSelection as ProseAllSelection,
+     TextSelection as ProseTextSelection,
 } from "prosemirror-state";
 
 export { EditorView as ProseEditorView, 
@@ -16,6 +19,7 @@ export { EditorView as ProseEditorView,
 
 export { 
     Slice as ProseSlice,
+    ContentMatch as ProseContentMatch,
 } from "prosemirror-model";
 
 export { 
