@@ -9,22 +9,32 @@ export const enum KeyboardEditorCommands {
 
 abstract class EditorCommand extends Command {
     
-    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined, view?: ProseEditorView): boolean | Promise<boolean>;
+    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void), view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
 export namespace EditorCommands {
 
+    /**
+     * @description Replaces the current selection in the editor with a newline 
+     * character, but only under specific conditions. This command is typically 
+     * used within a code block or similar construct where a newline is 
+     * meaningful.
+     * 
+     * The command checks if the current selection (cursor position) is within a 
+     * node {@link CodeBlock} that is marked as a 'code' node. If the selection 
+     * meets this criteria, the function replaces the selection with a newline 
+     * character.
+     */
     export class CreateNewLineInCodeBlock extends EditorCommand {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
+        
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
             const { $head, $anchor } = state.selection;
             if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
                 return false;
             }
     
-            const tr = state.tr.insertText("\n")
-                .scrollIntoView();
-            dispatch?.(tr);
+            const tr = state.tr.insertText("\n").scrollIntoView();
+            dispatch(tr);
             
             return true;
         }
@@ -32,7 +42,7 @@ export namespace EditorCommands {
     
     export class CreateParagraphNear extends EditorCommand {
     
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
             const selection = state.selection;
             const { $from, $to } = selection;
     
@@ -63,7 +73,7 @@ export namespace EditorCommands {
     
     export class liftEmptyBlock extends EditorCommand {
     
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
             const { $cursor } = state.selection as ProseTextSelection;
     
             if (!$cursor || $cursor.parent.content.size) {
@@ -73,7 +83,7 @@ export namespace EditorCommands {
             if ($cursor.depth > 1 && $cursor.after() !== $cursor.end(-1)) {
                 const before = $cursor.before();
                 if (canSplit(state.doc, before)) {
-                    dispatch?.(state.tr.split(before).scrollIntoView());
+                    dispatch(state.tr.split(before).scrollIntoView());
                     return true;
                 }
             }
@@ -85,14 +95,14 @@ export namespace EditorCommands {
             }
     
             const newTr = state.tr.lift(range!, target).scrollIntoView();
-            dispatch?.(newTr);
+            dispatch(newTr);
             return true;
         }
     }
     
     export class SplitBlock extends EditorCommand {
     
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
             const { $from, $to } = state.selection;
     
             if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
@@ -101,7 +111,7 @@ export namespace EditorCommands {
                 }
     
                 const newTr = state.tr.split($from.pos).scrollIntoView();
-                dispatch?.(newTr);
+                dispatch(newTr);
                 return true;
             }
     

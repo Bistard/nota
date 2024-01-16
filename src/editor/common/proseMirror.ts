@@ -30,7 +30,6 @@ export {
     Schema as ProseSchema,
 } from "prosemirror-model";
 
-
 export interface IProseTextNode extends ProseNode {
     withText(text: string): IProseTextNode;
 }

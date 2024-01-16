@@ -1,6 +1,6 @@
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands, KeyboardEditorCommands } from "src/editor/view/contrib/keyboardCommand";
+import { EditorCommands, KeyboardEditorCommands } from "src/editor/view/contrib/editorCommand";
 import { Command, buildChainCommand } from "src/platform/command/common/command";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -8,10 +8,13 @@ import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
-export class EditorKeyboardExtension extends EditorExtension {
+export class EditorCommandExtension extends EditorExtension {
 
     // [fields]
 
+    /**
+     * Mapping from {@link Shortcut}-hashed code to command ID.
+     */
     private readonly _commands: Map<number, KeyboardEditorCommands>;
 
     // [constructor]
@@ -36,7 +39,6 @@ export class EditorKeyboardExtension extends EditorExtension {
             commandService.executeCommand(name, event.view.state, event.view.dispatch, event.event);
         });
 
-        
         this.__registerEditorCommands(registrantService);
     }
 
