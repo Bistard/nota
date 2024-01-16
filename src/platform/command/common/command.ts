@@ -3,6 +3,7 @@ import { ICommandRegistrant, ICommandSchema } from "src/platform/command/common/
 import { ContextKeyExpr, CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { Constructor } from "src/base/common/utilities/type";
 
 export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'overwrite'> {
 
@@ -147,4 +148,16 @@ export class ChainCommand extends Command {
         }
         return false;
     }
+}
+
+/**
+ * @description A helpers to construct a {@link ChainCommand} easily.
+ */
+export function buildChainCommand(schema: ICommandRegistrationSchema, ctors: Constructor<Command>[]): Command {
+    return new ChainCommand(
+        schema,
+        [
+            ...ctors.map(ctor => new ctor(schema))
+        ]
+    );
 }
