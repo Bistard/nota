@@ -1,6 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { EditorWindow } from "src/editor/common/view";
 import { EditorType, RenderEvent } from "src/editor/common/viewModel";
+import { EditorExtensionType } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
@@ -39,16 +40,22 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
 
     private readonly _container: HTMLElement;
     private readonly _ctx: ViewContext;
+    private readonly _extensions: EditorExtensionType[];
     
     private _renderMode: EditorType;
     private _editor: EditorWindow;
 
     // [constructor]
 
-    constructor(container: HTMLElement, context: ViewContext) {
+    constructor(
+        container: HTMLElement, 
+        context: ViewContext,
+        extensions: EditorExtensionType[],
+    ) {
         super();
 
         this._ctx = context;
+        this._extensions = extensions;
 
         const winContainer = document.createElement('div');
         winContainer.className = 'editor-container';
@@ -111,7 +118,7 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
 
     private __createWindow(mode: EditorType, oldEdtior?: EditorWindow): EditorWindow {
         
-        const editorArguments = <const>[this._container, this._ctx];
+        const editorArguments = <const>[this._container, this._ctx, this._extensions];
         let editor: EditorWindow;
         
         switch (mode) {

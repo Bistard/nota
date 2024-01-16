@@ -1,3 +1,4 @@
+import { EditorExtensionType } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { ReadableEditor } from "src/editor/view/viewPart/editor/readableEditor";
 
@@ -11,8 +12,9 @@ export abstract class WriteableEditor extends ReadableEditor {
     constructor(
         container: HTMLElement,
         context: ViewContext,
+        extensions: EditorExtensionType[],
     ) {
-        super(container, context);
+        super(container, context, extensions);
     }
 
     // [public methods]

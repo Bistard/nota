@@ -7,7 +7,7 @@ export abstract class EditorExtension extends Disposable {
     
     // [fields]
 
-    private readonly _viewPlugin: ProseExtension;
+    private readonly _viewExtension: ProseExtension;
     private readonly _eventBroadcaster: ProseEventBroadcaster;
 
     // [event]
@@ -30,8 +30,8 @@ export abstract class EditorExtension extends Disposable {
 
     constructor() {
         super();
-        this._viewPlugin = new ProseExtension({});
-        this._eventBroadcaster = this.__register(new ProseEventBroadcaster(this._viewPlugin.props));
+        this._viewExtension = new ProseExtension({});
+        this._eventBroadcaster = this.__register(new ProseEventBroadcaster(this._viewExtension.props));
 
         // event binding
         {
@@ -53,7 +53,7 @@ export abstract class EditorExtension extends Disposable {
 
     // [public methods]
 
-    public getViewPlugin(): ProseExtension {
-        return this._viewPlugin;
+    public getViewExtension(): ProseExtension {
+        return this._viewExtension;
     }
 }
