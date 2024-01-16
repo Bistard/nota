@@ -7,14 +7,14 @@ export const enum KeyboardEditorCommands {
     Enter = 'editor-enter',
 }
 
-abstract class EditorCommandBase extends Command {
+abstract class EditorCommand extends Command {
     
     public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined, view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
-export namespace EditorCommand {
+export namespace EditorCommands {
 
-    export class CreateNewLineInCodeBlock extends EditorCommandBase {
+    export class CreateNewLineInCodeBlock extends EditorCommand {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
             const { $head, $anchor } = state.selection;
@@ -30,7 +30,7 @@ export namespace EditorCommand {
         }
     }
     
-    export class CreateParagraphNear extends EditorCommandBase {
+    export class CreateParagraphNear extends EditorCommand {
     
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
             const selection = state.selection;
@@ -61,7 +61,7 @@ export namespace EditorCommand {
         }
     }
     
-    export class liftEmptyBlock extends EditorCommandBase {
+    export class liftEmptyBlock extends EditorCommand {
     
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
             const { $cursor } = state.selection as ProseTextSelection;
@@ -90,7 +90,7 @@ export namespace EditorCommand {
         }
     }
     
-    export class SplitBlock extends EditorCommandBase {
+    export class SplitBlock extends EditorCommand {
     
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: ((tr: ProseTransaction) => void) | undefined): boolean {
             const { $from, $to } = state.selection;

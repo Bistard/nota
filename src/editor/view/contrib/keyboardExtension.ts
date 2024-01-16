@@ -1,7 +1,7 @@
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommand, KeyboardEditorCommands } from "src/editor/view/contrib/keyboardCommand";
-import { ChainCommand, Command, buildChainCommand } from "src/platform/command/common/command";
+import { EditorCommands, KeyboardEditorCommands } from "src/editor/view/contrib/keyboardCommand";
+import { Command, buildChainCommand } from "src/platform/command/common/command";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
@@ -25,8 +25,6 @@ export class EditorKeyboardExtension extends EditorExtension {
         this._commands = new Map();
         
         this.onKeydown(event => {
-            const state = event.view.state;
-            const dispatch = event.view.dispatch;
             const keyEvent = event.event;
 
             const shortcut = new Shortcut(keyEvent.ctrl, keyEvent.shift, keyEvent.alt, keyEvent.meta, keyEvent.key);
@@ -35,7 +33,7 @@ export class EditorKeyboardExtension extends EditorExtension {
                 return;
             }
 
-            commandService.executeCommand(name, state, dispatch, keyEvent);
+            commandService.executeCommand(name, event.view.state, event.view.dispatch, event.event);
         });
 
         
@@ -61,10 +59,10 @@ export class EditorKeyboardExtension extends EditorExtension {
             this.__registerCommand(
                 registrant, 
                 buildChainCommand(schema, [
-                    EditorCommand.CreateNewLineInCodeBlock,
-                    EditorCommand.CreateParagraphNear,
-                    EditorCommand.liftEmptyBlock,
-                    EditorCommand.SplitBlock,
+                    EditorCommands.CreateNewLineInCodeBlock,
+                    EditorCommands.CreateParagraphNear,
+                    EditorCommands.liftEmptyBlock,
+                    EditorCommands.SplitBlock,
                 ]),
             );
         }
