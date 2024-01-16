@@ -15,6 +15,7 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
 import { EditorType } from 'src/editor/common/viewModel';
+import { getBuiltInExtension } from 'src/editor/common/extension/builtInExtension';
 
 export class Editor extends Component implements IEditorService {
 
@@ -62,9 +63,7 @@ export class Editor extends Component implements IEditorService {
     // [override protected methods]
 
     protected override async _createContent(): Promise<void> {
-
         await this.lifecycleService.when(LifecyclePhase.Ready);
-
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
@@ -79,6 +78,7 @@ export class Editor extends Component implements IEditorService {
         const editor = this.instantiationService.createInstance(
             EditorWidget, 
             this.element.element,
+            getBuiltInExtension(),
             {
                 mode: EditorType.Rich,
             },
