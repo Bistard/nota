@@ -61,10 +61,10 @@ export class EditorCommandExtension extends EditorExtension {
             this.__registerCommand(
                 registrant, 
                 buildChainCommand(schema, [
-                    EditorCommands.CreateNewLineInCodeBlock,
-                    EditorCommands.CreateParagraphNear,
-                    EditorCommands.liftEmptyBlock,
-                    EditorCommands.SplitBlock,
+                    EditorCommands.insertNewLineInCodeBlock,
+                    EditorCommands.InsertEmptyParagraphAdjacentToBlock,
+                    EditorCommands.LiftEmptyTextBlock,
+                    EditorCommands.SplitBlockAtSelection,
                 ]),
             );
         }
