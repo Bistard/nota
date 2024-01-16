@@ -7,6 +7,7 @@ import { EditorOptionsType } from "src/editor/common/configuration/editorConfigu
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorWindowSwitcher, IEditorWindowSwitcher } from "src/editor/view/viewPart/editor/editorSwitcher";
 import { Mutable } from "src/base/common/utilities/type";
+import { EditorExtensionType } from "src/editor/editorWidget";
 
 export class ViewContext {
     constructor(
@@ -56,6 +57,7 @@ export class EditorView extends Disposable implements IEditorView {
     constructor(
         container: HTMLElement,
         viewModel: IEditorViewModel,
+        extensions: EditorExtensionType[],
         options: EditorOptionsType,
     ) {
         super();
@@ -69,7 +71,7 @@ export class EditorView extends Disposable implements IEditorView {
         this._container = editorContainer;
 
         // the centre that integrates the editor-related functionalities
-        this._editorSwitcher = this.__register(new EditorWindowSwitcher(editorContainer, context));
+        this._editorSwitcher = this.__register(new EditorWindowSwitcher(editorContainer, context, extensions));
         this.__adaptEditorSwitcherListeners(this._editorSwitcher);
         
         // update listener registration from view-model

@@ -3,13 +3,13 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { Emitter, Event, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService, defaultLog } from "src/base/common/logger";
-import { isNonNullable } from "src/base/common/utilities/type";
+import { Constructor, isNonNullable } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
+import { EditorOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -17,6 +17,7 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IProseEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { EditorExtension } from "src/editor/common/extension/editorExtension";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -48,16 +49,10 @@ export interface IEditorWidget extends IProseEventBroadcaster {
     updateOptions(options: Partial<IEditorWidgetOptions>): void;
 }
 
-export interface IEditorWidgetFriendship extends IEditorWidget {
-    readonly model: IEditorModel | null;
-    readonly viewModel: IEditorViewModel | null;
-    readonly view: IEditorView | null;
-}
-
 /**
  * @class // TODO
  */
-export class EditorWidget extends Disposable implements IEditorWidgetFriendship {
+export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [fields]
 
@@ -76,6 +71,11 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private _viewModel: IEditorViewModel | null;
     private _view: IEditorView | null;
     private _editorData: EditorData | null;
+
+    /**
+     * Responsible for constructing a list of editor extensions
+     */
+    private readonly _extensionManager: EditorExtensionManager;
 
     // [events]
 
@@ -125,6 +125,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
     constructor(
         container: HTMLElement,
+        extensions: { id: string, ctor: Constructor<EditorExtension> }[],
         options: IEditorWidgetOptions,
         @ILogService private readonly logService: ILogService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -143,9 +144,11 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         this._options = this.__initOptions(options);
         
         const contextUpdater = new EditorContextUpdater(this, contextService);
+        this._extensionManager = instantiationService.createInstance(EditorExtensionManager, extensions);
 
         this.__registerListeners();
         this.__register(contextUpdater);
+        this.__register(this._extensionManager);
     }
 
     // [getter]
@@ -209,6 +212,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             EditorView,
             this._container.element,
             this._viewModel,
+            this._extensionManager.getExtensions(),
             this._options,
         );
 
@@ -250,7 +254,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
             // only updates the option if they both have the same key
             if (isNonNullable(option[key])) {
-                const opt = <IEditorOption<any, any>>option[key];
+                const opt = option[key];
                 opt.updateWith(value);
             }
         }
@@ -345,5 +349,44 @@ class EditorContextUpdater extends Disposable {
     private __registerListeners(): void {
         this.__register(this.editor.onDidFocusChange(isFocused => this.focusedEditor.set(isFocused)));
         this.__register(this.editor.onDidRenderModeChange(mode => this.editorRenderMode.set(mode)));
+    }
+}
+
+export type EditorExtensionType = { 
+    readonly id: string;
+    readonly extension: EditorExtension;
+};
+
+class EditorExtensionManager extends Disposable {
+
+    // [fields]
+
+    private readonly _extensions: Map<string, EditorExtension>;
+
+    // [constructor]
+
+    constructor(
+        extensions: { id: string, ctor: Constructor<EditorExtension> }[],
+        @IInstantiationService instantiationService: IInstantiationService,
+        @ILogService logService: ILogService,
+    ) {
+        super();
+        this._extensions = new Map();
+
+        for (const { id, ctor} of extensions) {
+            try {
+                const instance = instantiationService.createInstance(ctor);
+                this._extensions.set(id, instance);
+                logService.debug('EditorWidget', `Editor extension constructed: ${id}`);
+            } catch (error: any) {
+                logService.error('EditorWidget', `Cannot create the editor extension: ${id}`, error);
+            }
+        }
+    }
+
+    // [public methods]
+
+    public getExtensions(): EditorExtensionType[] {
+        return [...Array.from(this._extensions.entries(), ([id, extension]) => { return { id, extension }; })];
     }
 }
