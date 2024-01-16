@@ -94,6 +94,10 @@ export abstract class Command implements ICommand {
         return this._schema.when;
     }
 
+    get schema(): ICommandSchema {
+        return this._schema;
+    }
+
     // [protected methods]
 
     /**

@@ -1,4 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { ILogService } from "src/base/common/logger";
 import { Mutable } from "src/base/common/utilities/type";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
@@ -75,7 +76,9 @@ export class CommandRegistrant implements ICommandRegistrant {
 
     private readonly _commands = new Map<string, ICommand>();
 
-    constructor() {
+    constructor(
+        @ILogService private readonly logService: ILogService,
+    ) {
         // noop
     }
 
@@ -95,6 +98,7 @@ export class CommandRegistrant implements ICommandRegistrant {
         }
 
         if (schema.overwrite === true || !this._commands.has(id)) {
+            this.logService.trace('CommandRegistrant', `Registering command: ${schema.id}`);
             this._commands.set(id, cmd);
         }
 

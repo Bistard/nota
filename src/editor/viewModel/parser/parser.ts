@@ -1,4 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { panic } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
@@ -369,14 +370,14 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     private __getActive(): IParsingNodeState {
         if (this._actives.empty()) {
-            throw new Error('Current document parsing state has no active tokens.');
+            panic('Current document parsing state has no active tokens.');
         }
         return this._actives.top();
     }
 
     private __popActive(): IParsingNodeState {
         if (this._actives.empty()) {
-            throw new Error('Current document parsing state has no active tokens.');
+            panic('Current document parsing state has no active tokens.');
         }
         return this._actives.pop();
     }
