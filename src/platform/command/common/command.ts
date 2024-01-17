@@ -158,6 +158,6 @@ export function buildChainCommand(schema: ICommandRegistrationSchema, ctors: Con
         schema,
         [
             ...ctors.map(ctor => new ctor(schema))
-        ]
+        ],
     );
 }

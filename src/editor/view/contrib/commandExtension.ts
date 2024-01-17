@@ -1,12 +1,16 @@
-import { KeyCode, Shortcut } from "src/base/common/keyboard";
+import { Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands, KeyboardEditorCommands } from "src/editor/view/contrib/editorCommand";
+import { EditorCommands } from "src/editor/view/contrib/editorCommand";
 import { Command, buildChainCommand } from "src/platform/command/common/command";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+
+export const enum EditorCommandID {
+    Enter = 'editor-enter',
+}
 
 export class EditorCommandExtension extends EditorExtension {
 
@@ -15,7 +19,7 @@ export class EditorCommandExtension extends EditorExtension {
     /**
      * Mapping from {@link Shortcut}-hashed code to command ID.
      */
-    private readonly _commands: Map<number, KeyboardEditorCommands>;
+    private readonly _commands: Map<number, EditorCommandID>;
 
     // [constructor]
 
@@ -49,24 +53,16 @@ export class EditorCommandExtension extends EditorExtension {
 
         // enter
         {
-            this._commands.set(
-                new Shortcut(false, false, false, false, KeyCode.Enter).toHashcode(),
-                KeyboardEditorCommands.Enter,
-            );
-            const schema = { 
-                id: KeyboardEditorCommands.Enter, 
-                when: CreateContextKeyExpr.Equal('isEditorFocused', true),
-            };
-            
-            this.__registerCommand(
-                registrant, 
-                buildChainCommand(schema, [
-                    EditorCommands.insertNewLineInCodeBlock,
-                    EditorCommands.InsertEmptyParagraphAdjacentToBlock,
-                    EditorCommands.LiftEmptyTextBlock,
-                    EditorCommands.SplitBlockAtSelection,
-                ]),
-            );
+            [
+                Shortcut.fromString('Enter').toHashcode(),
+                Shortcut.fromString('Ctrl+Enter').toHashcode(),
+                Shortcut.fromString('Shift+Enter').toHashcode(),
+            ]
+            .forEach(hash => {
+                this._commands.set(hash, EditorCommandID.Enter);
+            });
+
+            this.__registerCommand(registrant, Enter);
         }
     }
 
@@ -74,3 +70,19 @@ export class EditorCommandExtension extends EditorExtension {
         registrant.registerCommand(command.schema, command.run.bind(command));
     }
 }
+
+/**
+ * @description Defines the behaviour of keypress `Enter`.
+ */
+const Enter = buildChainCommand(
+    { 
+        id: EditorCommandID.Enter, 
+        when: CreateContextKeyExpr.Equal('isEditorFocused', true),
+    }, 
+    [
+        EditorCommands.insertNewLineInCodeBlock,
+        EditorCommands.InsertEmptyParagraphAdjacentToBlock,
+        EditorCommands.LiftEmptyTextBlock,
+        EditorCommands.SplitBlockAtSelection,
+    ],
+);

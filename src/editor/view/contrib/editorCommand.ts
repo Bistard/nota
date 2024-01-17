@@ -3,13 +3,8 @@ import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseContentMatc
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
-export const enum KeyboardEditorCommands {
-    Enter = 'editor-enter',
-}
-
 abstract class EditorCommand extends Command {
-    
-    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void), view?: ProseEditorView): boolean | Promise<boolean>;
+    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
 export namespace EditorCommands {
@@ -25,14 +20,14 @@ export namespace EditorCommands {
      */
     export class insertNewLineInCodeBlock extends EditorCommand {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $head, $anchor } = state.selection;
             if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
                 return false;
             }
     
             const tr = state.tr.insertText("\n").scrollIntoView();
-            dispatch(tr);
+            dispatch?.(tr);
             
             return true;
         }
@@ -46,7 +41,7 @@ export namespace EditorCommands {
      */
     export class InsertEmptyParagraphAdjacentToBlock extends EditorCommand {
     
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
 
             // Check if the selection is not suitable for paragraph insertion.
@@ -73,7 +68,7 @@ export namespace EditorCommands {
             const transaction = state.tr.insert(insertionPosition, defaultBlockType.createAndFill()!);
             const newSelection = ProseTextSelection.create(transaction.doc, insertionPosition + 1);
             transaction.setSelection(newSelection).scrollIntoView();
-            dispatch(transaction);
+            dispatch?.(transaction);
 
             return true;
         }
@@ -87,7 +82,7 @@ export namespace EditorCommands {
      */
     export class LiftEmptyTextBlock extends EditorCommand {
     
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (!(state.selection instanceof ProseTextSelection)) {
                 return false;
             }
@@ -105,7 +100,7 @@ export namespace EditorCommands {
                 const before = cursor.before();
                 if (canSplit(state.doc, before)) {
                     const newTr = state.tr.split(before).scrollIntoView();
-                    dispatch(newTr);
+                    dispatch?.(newTr);
                     return true;
                 }
             }
@@ -118,7 +113,7 @@ export namespace EditorCommands {
             }
     
             const newTr = state.tr.lift(blockRange!, target).scrollIntoView();
-            dispatch(newTr);
+            dispatch?.(newTr);
 
             return true;
         }
@@ -131,7 +126,7 @@ export namespace EditorCommands {
      */
     export class SplitBlockAtSelection extends EditorCommand {
     
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch: ((tr: ProseTransaction) => void)): boolean {
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
     
             if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
@@ -140,7 +135,7 @@ export namespace EditorCommands {
                 }
     
                 const newTr = state.tr.split($from.pos).scrollIntoView();
-                dispatch(newTr);
+                dispatch?.(newTr);
                 return true;
             }
     
@@ -185,7 +180,7 @@ export namespace EditorCommands {
                     }
                 }
     
-                dispatch(tr.scrollIntoView());
+                dispatch?.(tr.scrollIntoView());
             }
     
             return true;
