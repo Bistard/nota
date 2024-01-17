@@ -186,6 +186,37 @@ export namespace EditorCommands {
             return true;
         }
     }
+
+    /**
+     * @description Delete the current selection.
+     */
+    export class DeleteSelection extends EditorCommand {
+
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+            if (state.selection.empty) {
+                return false;
+            }
+
+            dispatch?.(state.tr.deleteSelection().scrollIntoView());
+            return true;
+        }
+    }
+    
+    /// If the selection is empty and at the start of a textblock, try to
+    /// reduce the distance between that block and the one before it—if
+    /// there's a block directly before it that can be joined, join them.
+    /// If not, try to move the selected block closer to the next one in
+    /// the document structure by lifting it out of its parent or moving it
+    /// into a parent of the previous block. Will use the view for accurate
+    /// (bidi-aware) start-of-textblock detection if given.
+    export class JoinBackward extends EditorCommand {
+
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+            
+            // TODO
+            return false;
+        }
+    }
 }
 
 function __defaultBlockAt(match: ProseContentMatch): ProseNodeType | null {
