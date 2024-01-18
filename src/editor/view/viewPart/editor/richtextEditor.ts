@@ -13,6 +13,7 @@ export class RichtextEditor extends WriteableEditor {
         context: ViewContext,
         extensions: EditorExtensionType[],
     ) {
+        container.classList.add('rich-text');
         super(container, context, extensions);
     }
 

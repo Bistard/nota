@@ -2,7 +2,7 @@
  * prosemirror general css rules 
  */
 
-.rich-text > .ProseMirror {
+.rich-text .ProseMirror {
 	position: relative;
 
 	/** make the text are not stick to the edge */
@@ -10,7 +10,7 @@
     margin-right: 32px;
 }
 
-.rich-text > .ProseMirror {
+.rich-text .ProseMirror {
 	word-wrap: break-word;
 	white-space: pre-wrap;
 	white-space: break-spaces;
@@ -19,29 +19,29 @@
 	font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
 }
 
-.rich-text > .ProseMirror[contenteditable]:focus {
+.rich-text .ProseMirror[contenteditable]:focus {
     outline: 0px solid transparent;
 }
 
-.rich-text > .ProseMirror pre {
+.rich-text .ProseMirror pre {
 	white-space: pre-wrap;
 }
 
-.rich-text > .ProseMirror li {
+.rich-text .ProseMirror li {
 	position: relative;
 }
 
-.rich-text > .ProseMirror-hideselection *::selection { background: transparent; }
-.rich-text > .ProseMirror-hideselection *::-moz-selection { background: transparent; }
-.rich-text > .ProseMirror-hideselection { caret-color: transparent; }
+.rich-text .ProseMirror-hideselection *::selection { background: transparent; }
+.rich-text .ProseMirror-hideselection *::-moz-selection { background: transparent; }
+.rich-text .ProseMirror-hideselection { caret-color: transparent; }
 
 /* Make sure 'li' selections wrap around markers */
 
-.rich-text > .ProseMirror li.ProseMirror-selectednode {
+.rich-text .ProseMirror li.ProseMirror-selectednode {
 	outline: none;
 }
 
-.rich-text > .ProseMirror li.ProseMirror-selectednode:after {
+.rich-text .ProseMirror li.ProseMirror-selectednode:after {
 	content: "";
 	position: absolute;
 	left: -32px;
@@ -54,7 +54,7 @@
 
 /* Protect against generic img rules */
 
-.rich-text > .ProseMirror img.ProseMirror-separator {
+.rich-text .ProseMirror img.ProseMirror-separator {
 	display: inline !important;
 	border: none !important;
 	margin: 0 !important;
