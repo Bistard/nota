@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { EditorWindow } from "src/editor/common/view";
 import { EditorType, RenderEvent } from "src/editor/common/viewModel";
-import { EditorExtensionType } from "src/editor/editorWidget";
+import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
@@ -40,7 +40,7 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
 
     private readonly _container: HTMLElement;
     private readonly _ctx: ViewContext;
-    private readonly _extensions: EditorExtensionType[];
+    private readonly _extensions: EditorExtensionInfo[];
 
     private _renderMode: EditorType;
     private _editor: EditorWindow;
@@ -50,7 +50,7 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
     constructor(
         container: HTMLElement,
         context: ViewContext,
-        extensions: EditorExtensionType[],
+        extensions: EditorExtensionInfo[],
     ) {
         super();
 

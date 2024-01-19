@@ -7,7 +7,7 @@ import { EditorOptionsType } from "src/editor/common/configuration/editorConfigu
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorWindowSwitcher, IEditorWindowSwitcher } from "src/editor/view/viewPart/editor/editorSwitcher";
 import { Mutable } from "src/base/common/utilities/type";
-import { EditorExtensionType } from "src/editor/editorWidget";
+import { EditorExtensionInfo } from "src/editor/editorWidget";
 
 export class ViewContext {
     constructor(
@@ -57,7 +57,7 @@ export class EditorView extends Disposable implements IEditorView {
     constructor(
         container: HTMLElement,
         viewModel: IEditorViewModel,
-        extensions: EditorExtensionType[],
+        extensions: EditorExtensionInfo[],
         options: EditorOptionsType,
     ) {
         super();

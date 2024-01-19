@@ -352,7 +352,7 @@ class EditorContextUpdater extends Disposable {
     }
 }
 
-export type EditorExtensionType = { 
+export type EditorExtensionInfo = { 
     readonly id: string;
     readonly extension: EditorExtension;
 };
@@ -386,7 +386,7 @@ class EditorExtensionManager extends Disposable {
 
     // [public methods]
 
-    public getExtensions(): EditorExtensionType[] {
+    public getExtensions(): EditorExtensionInfo[] {
         return [...Array.from(this._extensions.entries(), ([id, extension]) => { return { id, extension }; })];
     }
 }

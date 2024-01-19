@@ -1,4 +1,4 @@
-import { EditorExtensionType } from "src/editor/editorWidget";
+import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { EditorBase } from "src/editor/view/viewPart/editor/editorBase";
 
@@ -12,7 +12,7 @@ export abstract class ReadableEditor extends EditorBase {
     constructor(
         container: HTMLElement,
         context: ViewContext,
-        extensions: EditorExtensionType[],
+        extensions: EditorExtensionInfo[],
     ) {
         super(container, context, extensions);
     }
