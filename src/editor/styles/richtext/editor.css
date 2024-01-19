@@ -8,6 +8,9 @@
 	/** make the text are not stick to the edge */
 	margin-left: 32px;
     margin-right: 32px;
+
+	width: auto;
+	height: auto;
 }
 
 .rich-text .ProseMirror {
