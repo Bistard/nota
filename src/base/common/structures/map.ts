@@ -1,5 +1,21 @@
 import { IDisposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
+import { Pair } from "src/base/common/utilities/type";
+
+/**
+ * @description Transforms an array of elements into a Map by applying a 
+ * callback function to each element of the array.
+ * @param arr The array of elements to be transformed.
+ * @param map The Map to which the transformed elements will be added.
+ * @param onEach This function is applied to each element of the array, and the 
+ * 				 results are added to the Map.
+ */
+export function fillMapFromArray<T, TKey, TValue>(arr: T[], map: Map<TKey, TValue>, onEach: (element: T) => Pair<TKey, TValue>): void {
+	for (const element of arr) {
+		const [key, value] = onEach(element);
+		map.set(key, value);
+	}
+}
 
 /**
  * @class {@link ResourceMap} is a utility class that provides Map-like 

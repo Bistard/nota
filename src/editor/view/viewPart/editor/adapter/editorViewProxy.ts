@@ -1,6 +1,7 @@
 import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { ProseEditorView, ProseEditorState, ProseNode } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseEditorState, ProseNode, ProseExtension, ProseSchema } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
+import { fillMapFromArray } from "src/base/common/structures/map";
 
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
@@ -39,17 +40,33 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     // [fields]
 
     private readonly _ctx: ViewContext;
+    
+    /**
+     * The ProseMirror view reference.
+     */
     private readonly _view: ProseEditorView;
+
+    /**
+     * Mapping from ID to view extensions.
+     */
+    private readonly _extensions: Map<string, ProseExtension>;
 
     // [constructor]
 
     constructor(
-        view: ProseEditorView,
         context: ViewContext,
+        extensions: { ID: string, extension: ProseExtension }[],
+        view: ProseEditorView,
     ) {
         super(view);
         this._view = view;
         this._ctx = context;
+        this._extensions = new Map();
+
+        fillMapFromArray(extensions, this._extensions, extensionInfo => {
+            const { ID, extension } = extensionInfo;
+            return [ID, extension];
+        });
     }
 
     // [public DOM related methods]
@@ -61,10 +78,9 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     // [public methods]
 
     public render(document: ProseNode): void {
-        const newState = ProseEditorState.create({
-            schema: this._ctx.viewModel.getSchema(),
-            doc: document,
-        });
+        const schema = this._ctx.viewModel.getSchema();
+        const extensions = this.__getCurrentViewExtensions();
+        const newState = EditorViewProxy.__createNewViewStateFrom(schema, extensions, document);
         this._view.updateState(newState);
     }
 
@@ -93,5 +109,19 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
         if (!this._view.isDestroyed) {
             this._view.destroy();
         }
+    }
+
+    // [protected helper methods]
+
+    protected __getCurrentViewExtensions(): ProseExtension[] {
+        return Array.from(this._extensions.values());
+    }
+
+    protected static __createNewViewStateFrom(schema: ProseSchema, extensions: ProseExtension[], document: ProseNode | null): ProseEditorState {
+        return ProseEditorState.create({
+            schema: schema,
+            doc: document ?? undefined,
+            plugins: extensions,
+        });
     }
 }

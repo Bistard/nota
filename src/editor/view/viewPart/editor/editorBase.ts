@@ -1,8 +1,8 @@
-import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
-import { EditorExtensionType } from "src/editor/editorWidget";
+import { ProseEditorView } from "src/editor/common/proseMirror";
+import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/viewPart/editor/adapter/editorViewProxy";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { exampleSetup } from "prosemirror-example-setup";
 
 export interface IEditorBase extends IEditorViewProxy {
     
@@ -20,23 +20,24 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     constructor(
         container: HTMLElement,
         context: ViewContext,
-        extensions: EditorExtensionType[],
+        extensions: EditorExtensionInfo[],
     ) {
         // binding the view part of the extension to the proseMirror
-        const viewExtensions = extensions.map(ext => ext.extension.getViewExtension());
         const schema = context.viewModel.getSchema();
 
+        // TEST: use our own extension once `exampleSetup` is unused
+        const viewExtensions: any[] = [] ?? extensions.map(ext => ext.extension.getViewExtension());
+        viewExtensions.push(...exampleSetup({ schema: schema, menuBar: false }));
+
         super(
+            context,
+            viewExtensions,
             new ProseEditorView(
                 container, 
                 {
-                    state: createtDefaultState(schema),
-                    plugins: [
-                        ...viewExtensions,
-                    ],
+                    state: EditorViewProxy.__createNewViewStateFrom(schema, viewExtensions, null),
                 }
             ),
-            context,
         );
 
         this._container = container;
@@ -48,11 +49,4 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
 
     // [private helper methods]
 
-}
-
-function createtDefaultState(schema: EditorSchema): ProseEditorState {
-    return ProseEditorState.create({
-        schema: schema,
-        plugins: [],
-    });
 }
