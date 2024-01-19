@@ -26,16 +26,17 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
         const schema = context.viewModel.getSchema();
 
         // TEST: use our own extension once `exampleSetup` is unused
-        const viewExtensions: any[] = [] ?? extensions.map(ext => ext.extension.getViewExtension());
-        viewExtensions.push(...exampleSetup({ schema: schema, menuBar: false }));
+        const viewExtensionInfo = extensions.map(ext => { return { id: ext.id, extension: ext.extension.getViewExtension() }; });
+        viewExtensionInfo.push(...exampleSetup({ schema: schema, menuBar: false }).map((ext, idx) => { return { id: `ext-${idx}`, extension: ext }; }));
+        const extensionArr = viewExtensionInfo.map(info => info.extension);
 
         super(
             context,
-            viewExtensions,
+            viewExtensionInfo,
             new ProseEditorView(
                 container, 
                 {
-                    state: EditorViewProxy.__createNewViewStateFrom(schema, viewExtensions, null),
+                    state: EditorViewProxy.__createNewViewStateFrom(schema, extensionArr, null),
                 }
             ),
         );

@@ -49,23 +49,23 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     /**
      * Mapping from ID to view extensions.
      */
-    private readonly _extensions: Map<string, ProseExtension>;
+    private readonly _extensionMap: Map<string, ProseExtension>;
 
     // [constructor]
 
     constructor(
         context: ViewContext,
-        extensions: { ID: string, extension: ProseExtension }[],
+        extensions: { id: string, extension: ProseExtension }[],
         view: ProseEditorView,
     ) {
         super(view);
         this._view = view;
         this._ctx = context;
-        this._extensions = new Map();
+        this._extensionMap = new Map();
 
-        fillMapFromArray(extensions, this._extensions, extensionInfo => {
-            const { ID, extension } = extensionInfo;
-            return [ID, extension];
+        fillMapFromArray(extensions, this._extensionMap, extensionInfo => {
+            const { id, extension } = extensionInfo;
+            return [id, extension];
         });
     }
 
@@ -114,7 +114,7 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     // [protected helper methods]
 
     protected __getCurrentViewExtensions(): ProseExtension[] {
-        return Array.from(this._extensions.values());
+        return Array.from(this._extensionMap.values());
     }
 
     protected static __createNewViewStateFrom(schema: ProseSchema, extensions: ProseExtension[], document: ProseNode | null): ProseEditorState {
