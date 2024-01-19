@@ -41,14 +41,14 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
     private readonly _container: HTMLElement;
     private readonly _ctx: ViewContext;
     private readonly _extensions: EditorExtensionType[];
-    
+
     private _renderMode: EditorType;
     private _editor: EditorWindow;
 
     // [constructor]
 
     constructor(
-        container: HTMLElement, 
+        container: HTMLElement,
         context: ViewContext,
         extensions: EditorExtensionType[],
     ) {
@@ -57,17 +57,12 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
         this._ctx = context;
         this._extensions = extensions;
 
-        const winContainer = document.createElement('div');
-        winContainer.className = 'editor-container';
-        this._container = winContainer;
+        this._container = this.__getEditorContainer();
 
-        const mode = context.viewModel.renderMode;
-        const editor = this.__createWindow(mode);
+        this._renderMode = context.viewModel.renderMode;
+        this._editor = this.__createWindow(this._renderMode);
 
-        this._renderMode = mode;
-        this._editor = editor;
-
-        container.appendChild(winContainer);
+        container.appendChild(this._container);
     }
 
     // [getter]
@@ -79,7 +74,7 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
     get editor(): EditorWindow {
         return this._editor;
     }
-    
+
     get renderMode(): EditorType {
         return this._renderMode;
     }
@@ -117,10 +112,10 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
     // [private helper methods]
 
     private __createWindow(mode: EditorType, oldEdtior?: EditorWindow): EditorWindow {
-        
+
         const editorArguments = <const>[this._container, this._ctx, this._extensions];
         let editor: EditorWindow;
-        
+
         switch (mode) {
             case EditorType.Plain: {
                 throw new Error('does not support plain text editor yet.');
@@ -144,5 +139,11 @@ export class EditorWindowSwitcher extends Disposable implements IEditorWindowSwi
     private __destroyCurrWindow(): void {
         this._editor.dispose();
         this._editor = undefined!;
+    }
+
+    private __getEditorContainer(): HTMLElement {
+        const winContainer = document.createElement('div');
+        winContainer.className = 'editor-container';
+        return winContainer;
     }
 }
