@@ -40,9 +40,10 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         return this.loadCustomSortOrder(fileItem);
     }
 
+    // The following TItem.parent are definitely not null, as those following
+    // function can only be called when TItem.parent is at collaped state
     public compare(a: TItem, b: TItem): number {
 
-        // FIX: what happens if `a.parent` is `null`
         const order: string[] | undefined = this._customSortOrderMap.get(a.parent!.uri);
         if (order === undefined) {
             return defaultFileItemCompareFn(a, b);
@@ -71,17 +72,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
     // APIs for fileTree Item Adding and Deleting
     public addItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        // FIX: what happens if `item.parent` is `null`
-        return this.loadCustomSortOrder(item.parent)
+        return this.loadCustomSortOrder(item.parent!)
             .andThen(() => {
-                if (!item.parent) {
-                    return ok();
-                }
-                
-                const order = this._customSortOrderMap.get(item.parent.uri);
+                const order = this._customSortOrderMap.get(item.parent!.uri);
                 if (order && !order.includes(item.name)) {
                     order.push(item.name);
-                    return this.saveCustomSortOrder(item.parent);
+                    return this.saveCustomSortOrder(item.parent!);
                 }
                 
                 return ok();
@@ -89,19 +85,14 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     }
 
     public removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        // FIX: what happens if `item.parent` is `null`
-        return this.loadCustomSortOrder(item.parent)
+        return this.loadCustomSortOrder(item.parent!)
             .andThen(() => {
-                if (!item.parent) {
-                    return ok();
-                }
-                
-                const order = this._customSortOrderMap.get(item.parent.uri);
+                const order = this._customSortOrderMap.get(item.parent!.uri);
                 if (order) {
                     const index = order.indexOf(item.name);
                     if (index > -1) {
                         order.splice(index, 1);
-                        return this.saveCustomSortOrder(item.parent);
+                        return this.saveCustomSortOrder(item.parent!);
                     }
                 }
 
@@ -140,8 +131,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             // the order file does not exist, we need to create a new one.
-            // FIX: you are stringifying `TItem[]` into string, but in `loadCustomSortOrder` you are parsing the string as `string[]` type.
-            return jsonSafeStringify(item.children, undefined, 4)
+            return jsonSafeStringify(item.children.map((item) => item.name), undefined, 4)
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
                 .map(() => orderFileURI));
