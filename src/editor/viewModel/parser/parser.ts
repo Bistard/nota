@@ -244,6 +244,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
                 continue;
             }
 
+            // Finds the corresponding Node which defines the parsing behaviour.
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
                 this._onLog.fire({
