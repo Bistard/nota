@@ -144,7 +144,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._options = this.__initOptions(options);
         
         const contextUpdater = new EditorContextUpdater(this, contextService);
-        this._extensionManager = instantiationService.createInstance(EditorExtensionManager, extensions);
+        this._extensionManager = new EditorExtensionManager(extensions, instantiationService, logService);
 
         this.__registerListeners();
         this.__register(contextUpdater);
