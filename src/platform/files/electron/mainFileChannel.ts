@@ -93,15 +93,15 @@ export class MainFileChannel implements IServerChannel {
     // [private helper methods]
 
     private async __stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
-        return Result.getOrPanic(this.fileService.stat(uri, opts));
+        return this.fileService.stat(uri, opts).unwrap();
     }
 
     private async __readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
-        return Result.getOrPanic(await this.fileService.readFile(uri, opts));
+        return await this.fileService.readFile(uri, opts).unwrap();
     }
 
     private async __readDir(uri: URI): Promise<Pair<string, FileType>[]> {
-        return Result.getOrPanic(this.fileService.readDir(uri));
+        return this.fileService.readDir(uri).unwrap();
     }
 
     /**
@@ -141,31 +141,31 @@ export class MainFileChannel implements IServerChannel {
     }
 
     private async __writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {
-        return Result.getOrPanic(this.fileService.writeFile(uri, bufferOrStream, opts));
+        return this.fileService.writeFile(uri, bufferOrStream, opts).unwrap();
     }
 
     private async __exist(uri: URI): Promise<boolean> {
-        return Result.getOrPanic(this.fileService.exist(uri));
+        return this.fileService.exist(uri).unwrap();
     }
 
     private async __createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: ICreateFileOptions): Promise<void> {
-        return Result.getOrPanic(this.fileService.createFile(uri, bufferOrStream, opts));
+        return this.fileService.createFile(uri, bufferOrStream, opts).unwrap();
     }
 
     private async __createDir(uri: URI): Promise<void> {
-        return Result.getOrPanic(this.fileService.createDir(uri));
+        return this.fileService.createDir(uri).unwrap();
     }
 
     private async __moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
-        return Result.getOrPanic(this.fileService.moveTo(from, to, overwrite));
+        return this.fileService.moveTo(from, to, overwrite).unwrap();
     }
 
     private async __copyTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
-        return Result.getOrPanic(this.fileService.copyTo(from, to, overwrite));
+        return this.fileService.copyTo(from, to, overwrite).unwrap();
     }
 
     private async __delete(uri: URI, opts?: IDeleteFileOptions): Promise<void> {
-        return Result.getOrPanic(this.fileService.delete(uri, opts));
+        return this.fileService.delete(uri, opts).unwrap();
     }
 
     private __watch(uri: URI, opts?: IWatchOptions): void {
@@ -184,13 +184,13 @@ export class MainFileChannel implements IServerChannel {
             return;
         }
         const result = this.fileService.watch(uri, opts);
-        if (result.isErr()) {
-            this.logService.warn(errorToMessage(result.error)); // REVIEW: should we throw?
-            return;
-        }
 
-        const disposable = result.data;
-        this._activeWatchers.set(raw, disposable);
+        result.match<void>(
+            disposable => this._activeWatchers.set(raw, disposable),
+            error => this.logService.warn(errorToMessage(error)),
+        );
+        
+        // TODO
     }
 
     private __unwatch(uri: URI): void {

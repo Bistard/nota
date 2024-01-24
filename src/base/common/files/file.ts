@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IReadableStream, IReadyReadableStream } from "src/base/common/files/stream";
+import { IReadyReadableStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 
@@ -75,7 +75,7 @@ export interface IFileSystemProvider {
 	readonly onDidResourceChange: Register<IRawResourceChangeEvents>;
 	readonly onDidResourceClose: Register<URI>;
 
-	watch(uri: URI, opts?: IWatchOptions): IDisposable;
+	watch(uri: URI, opts?: IWatchOptions): Promise<IDisposable>;
 
 	stat(uri: URI): Promise<IFileStat>;
 	mkdir(uri: URI): Promise<void>;

@@ -3,8 +3,8 @@ import * as chokidar from 'chokidar';
 import { Emitter } from 'src/base/common/event';
 import { URI } from 'src/base/common/files/uri';
 import { ILogService } from 'src/base/common/logger';
-import { ThrottleDebouncer } from 'src/base/common/utilities/async';
-import { ifOrDefault, Mutable } from 'src/base/common/utilities/type';
+import { EventBlocker, ThrottleDebouncer } from 'src/base/common/utilities/async';
+import { Mutable } from 'src/base/common/utilities/type';
 import { IS_LINUX } from 'src/base/common/platform';
 import { isParentOf } from 'src/base/common/files/glob';
 import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
@@ -38,22 +38,27 @@ export class Watcher extends Disposable implements IWatcher {
 
     // [public methods]
 
-    public watch(request: IWatchRequest): IDisposable {
+    public watch(request: IWatchRequest): Promise<IDisposable> {
 
         const exist = this._instances.get(request.resource);
         if (exist) {
             console.warn(`there is already a watcher on '${URI.toString(request.resource)}'.`);
-            return Disposable.NONE;
+            return Promise.resolve(Disposable.NONE);
         }
 
         const instance = new WatchInstance(this.logService, request, e => this._onDidChange.fire(e));
         instance.watch();
 
         this._instances.set(request.resource, instance);
-        return toDisposable(() => {
+        
+        
+        const blocker = new EventBlocker<void>(instance.onReady, 1000);
+        const cancel = toDisposable(() => {
             instance.close().then((uri) => { if (uri) this._onDidClose.fire(uri); });
             this._instances.delete(request.resource);
         });
+
+        return blocker.waiting().then(() => cancel);
     }
 
     public async close(): Promise<any> {
@@ -111,6 +116,10 @@ export class WatchInstance implements IWatchInstance {
 
     private readonly _request: IWatchRequest;
     private readonly _onDidChange: (event: IRawResourceChangeEvents) => void;
+    
+    private readonly _onReady = new Emitter<void>();
+    public readonly onReady = this._onReady.registerListener;
+
 
     // [constructor]
 
@@ -120,7 +129,7 @@ export class WatchInstance implements IWatchInstance {
         onDidChange: (event: IRawResourceChangeEvents) => void,
     ) {
         this._request = request;
-        (<Mutable<RegExp[]>>this._request.exclude) = ifOrDefault(this._request.exclude, []);
+        (<Mutable<RegExp[]>>this._request.exclude) = this._request.exclude ?? [];
         this._onDidChange = onDidChange;
     }
 
@@ -172,7 +181,7 @@ export class WatchInstance implements IWatchInstance {
             ignored: this._request.exclude,
             ignorePermissionErrors: false,
             ignoreInitial: true,
-            depth: this._request.recursive ? undefined : 1,
+            depth: this._request.recursive ? undefined : 0,
             usePolling: true, // issue: https://github.com/Bistard/nota/issues/149
         });
 
@@ -196,6 +205,7 @@ export class WatchInstance implements IWatchInstance {
             throw error;
         })
         .on('ready', () => {
+            this._onReady.fire();
             this.logService?.trace(`[WatchInstance] filesystem watcher is ready on: '${resource}'`);
         });
 
