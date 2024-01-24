@@ -139,6 +139,7 @@ export class FileItem implements IFileItem<FileItem> {
 
         if (cmpFn) {
             try {
+                // TODO: load order before sort
                 this._children.sort(cmpFn);
             } catch (error: any) {
                 this._children.sort();
