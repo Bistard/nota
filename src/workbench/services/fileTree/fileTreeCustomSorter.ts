@@ -67,6 +67,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             order.push(a.name);
             return defaultFileItemCompareFn(a, b);
         }
+        // TODO: save order
     }
 
     // APIs for fileTree Item Adding and Deleting

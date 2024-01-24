@@ -122,6 +122,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                         itemProvider: new FileItemProvider(),
                         renderers: [new FileItemRenderer()],
                         childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare.bind(sorter)),
+                        // TODO: Optimize, store hash code inside fileitem for fast identity check
                         identityProvider: { getID: (data: FileItem) => URI.toString(data.uri) },
 
                         // optional
