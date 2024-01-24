@@ -15,9 +15,9 @@ import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/file
 
 export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
     compare(a: TItem, b: TItem): number;
-    loadCustomSortOrder (folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
     addItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError>;
     removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
+    loadSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
@@ -38,12 +38,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     
     // [public methods]
 
-    public loadCustomSortOrder (folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        if (!this._customSortOrderMap.has(folder.uri)) {
-            return AsyncResult.ok();
-        }
-        return this.loadSortOrder(folder);
-    }
 
     // The following TItem.parent are definitely not null, as those following
     // function can only be called when TItem.parent is at collaped state
@@ -105,7 +99,17 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 return this.saveSortOrder(parentItem);
             });
     }
-    
+
+    public loadSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.findOrCreateOrderFile(folder)
+        .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
+        .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
+        .andThen(order => {
+            this._customSortOrderMap.set(folder.uri, order);
+            return ok();
+        });
+    }
+
     // [private helper methods]
 
     // TODO: more detailed documentations are needed for those private helper methods
@@ -130,16 +134,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
                 .map(() => orderFileURI));
-        });
-    }
-
-    private loadSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.findOrCreateOrderFile(folder)
-        .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
-        .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
-        .andThen(order => {
-            this._customSortOrderMap.set(folder.uri, order);
-            return ok();
         });
     }
 

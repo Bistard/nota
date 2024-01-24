@@ -154,6 +154,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             tree.onRefresh(() => {
                 // TODO
             });
+            tree.onDidExpand(async (e) => {
+                sorter.initCustomSorter(e.node.data).match(
+                    noop, 
+                    (error) => this.logService.error(error),
+                );
+            });
         };
 
         return [sorter, registerListeners];

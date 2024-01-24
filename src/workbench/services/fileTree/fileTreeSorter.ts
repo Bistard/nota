@@ -1,4 +1,6 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
+import { AsyncResult } from "src/base/common/error";
+import { FileOperationError } from "src/base/common/files/file";
 import { CompareFn } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileItem, IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
@@ -89,7 +91,13 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 break;
         }
     }
+
+    public initCustomSorter(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this._customSorter.loadSortOrder(folder);
+    }
     
     // [private helper methods]
+
+    
 }
 

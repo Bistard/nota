@@ -4,11 +4,11 @@ import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions, IMultiTreeWidgetOpts, MultiTreeWidget } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode, ITreeExpandEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Emitter, Register } from "src/base/common/event";
+import { AsyncEmitter, Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { AsyncQueue } from "src/base/common/utilities/async";
@@ -92,6 +92,11 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * Event fires before the tree starts to refresh the updated data and rendering.
      */
     readonly onRefresh: Register<void>;
+    
+    /**
+     * Event fires once the tree is expanded
+     */
+    readonly onDidExpand: Register<ITreeExpandEvent<T, TFilter>>;
 
     /**
      * @description Given the data, re-acquires the stat of the the corresponding 
@@ -290,6 +295,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     private readonly _onRefresh = this.__register(new Emitter<void>());
     public readonly onRefresh: Register<void> = this._onRefresh.registerListener;
+
+    private readonly _onDidExpand = this.__register(new AsyncEmitter<ITreeExpandEvent<T, TFilter>>());
+    public readonly onDidExpand: Register<ITreeExpandEvent<T, TFilter>> = this._onDidExpand.registerListener;
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._tree.onDidSplice; }
     get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._tree.onDidChangeCollapseState; }
@@ -559,6 +567,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return;
         }
 
+        await this._onDidExpand.fireAsync({node});
+        
         /**
          * An optional optimization that client may prevent the refresh 
          * operation is the children of the node is already resolved (up-to-date).
