@@ -348,12 +348,36 @@ export type SplitString<S extends string, D extends string> =
 export type IO<T> = () => T;
 
 /**
- * @description Mocks the given value's type.
- * @deprecated Try not to use it since it causes unnecessary runtime impact.
+ * Represents a generic reference object. This type is used to create an object 
+ * that holds a reference to an entity of type `T`.
+ * 
+ * @example
+ * // Example usage of Reference<T>
+ * // Suppose we have an interface for a User
+ * interface User {
+ *   name: string;
+ *   age: number;
+ * }
+ * 
+ * // We can then create a reference to a User object
+ * let user: User = { name: "Alice", age: 30 };
+ * let userRef: Reference<User> = { ref: user };
+ * 
+ * // This allows us to pass userRef around and modify the original user object
+ * // through this reference
+ * function updateUserAge(userRef: Reference<User>, newAge: number) {
+ *   userRef.ref.age = newAge;
+ * }
+ * 
+ * // Updating user's age via the reference
+ * updateUserAge(userRef, 35);
+ * console.log(user.age); // Outputs: 35
+ * 
+ * // The user object is updated through the userRef reference
  */
-export function mockType<T>(val: any): T {
-    return val as unknown as T;
-}
+export type Reference<T> = {
+    ref: T;
+};
 
 /**
  * @description Ensures that the provided type `T` is strictly `true`.

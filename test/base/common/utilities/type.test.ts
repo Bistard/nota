@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, Reference } from 'src/base/common/utilities/type';
 
 /* eslint-disable @typescript-eslint/ban-types */
 
@@ -397,5 +397,26 @@ suite('typescript-types-test', () => {
         type Promisified = Promisify<{ a: () => number; }>;
         const promisified: Promisified = { a: () => Promise.resolve(1) };
         // no counter example as assigning another value would be a compile error
+    });
+
+    test('Reference type', () => {
+        interface IUser {
+            name: string;
+            age: number;
+        }
+        
+        const user: IUser = { name: "Alice", age: 30 };
+        const userRef: Reference<IUser> = { ref: user };
+        
+        /**
+         * This allows us to pass userRef around and modify the original user 
+         * object through this reference.
+         */
+        function updateUserAge(userRef: Reference<IUser>, newAge: number) {
+            userRef.ref.age = newAge;
+        }
+        
+        updateUserAge(userRef, 35);
+        assert.strictEqual(user.age, 35);
     });
 });
