@@ -1,4 +1,5 @@
-import { Mutable, IO } from "src/base/common/utilities/type";
+import { IO } from "src/base/common/utilities/functional";
+import { Mutable } from "src/base/common/utilities/type";
 import { TokenEnum, MarkEnum } from "src/editor/common/markdown";
 import { ProseNodeType, ProseMarkType } from "src/editor/common/proseMirror";
 import { DocumentNode, DocumentMark } from "src/editor/viewModel/parser/documentNode";
