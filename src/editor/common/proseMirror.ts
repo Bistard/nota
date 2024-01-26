@@ -28,6 +28,7 @@ export {
     Attrs as ProseAttrs, 
     Mark as ProseMark, 
     Schema as ProseSchema,
+    ResolvedPos as ProseResolvedPos,
 } from "prosemirror-model";
 
 export interface IProseTextNode extends ProseNode {
