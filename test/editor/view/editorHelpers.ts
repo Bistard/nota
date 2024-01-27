@@ -56,6 +56,11 @@ export namespace ProseUtilsTest {
     });
 
     const defaultNodeBuilder = pipe(DocumentNodeProvider.create().register(), buildSchema, buildNodeBuilder);
+
+    const list = <NodeBuilder>defaultNodeBuilder['list']!;
+    const ul = (...children: any[]) => defaultNodes.list({ ordered: false }, ...children);
+    const li = (...children: any[]) => defaultNodes.list({ ordered: true }, ...children);
+
     export const defaultNodes = {
         doc: <NodeBuilder>defaultNodeBuilder['doc']!,
         blockquote: <NodeBuilder>defaultNodeBuilder['blockquote']!,
@@ -65,7 +70,9 @@ export namespace ProseUtilsTest {
         html: <NodeBuilder>defaultNodeBuilder['html']!,
         image: <NodeBuilder>defaultNodeBuilder['image']!,
         br: <NodeBuilder>defaultNodeBuilder['br']!,
-        list: <NodeBuilder>defaultNodeBuilder['list']!,
+        list: list,
+        ul: ul,
+        li: li,
         p: <NodeBuilder>defaultNodeBuilder['p']!,
         space: <NodeBuilder>defaultNodeBuilder['space']!,
         text: <NodeBuilder>defaultNodeBuilder['text']!,
@@ -76,7 +83,7 @@ export namespace ProseUtilsTest {
         link: <MarkBuilder>defaultNodeBuilder['link']!,
         strong: <MarkBuilder>defaultNodeBuilder['strong']!,
     };
-    
+
     /**
      * @description A quick way to build an ProseMirror editor during test 
      * environment.
