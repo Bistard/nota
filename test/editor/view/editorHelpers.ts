@@ -25,7 +25,7 @@ interface IEditorInfo extends Tag {
 
 export namespace ProseUtilsTest {
 
-    export const buildBuilder = <T extends ProseSchema>(schema: T) => builders(schema, {
+    export const buildNodeBuilder = <T extends ProseSchema>(schema: T) => builders(schema, {
         /**
          * To specify the custom node builders, it should be an object mapping 
          * names to attribute objects, which may contain a nodeType or markType 
@@ -55,7 +55,7 @@ export namespace ProseUtilsTest {
         strong: { markType: 'strong' },
     });
 
-    const defaultNodeBuilder = pipe(DocumentNodeProvider.create().register(), buildSchema, buildBuilder);
+    const defaultNodeBuilder = pipe(DocumentNodeProvider.create().register(), buildSchema, buildNodeBuilder);
     export const defaultNodes = {
         doc: <NodeBuilder>defaultNodeBuilder['doc']!,
         blockquote: <NodeBuilder>defaultNodeBuilder['blockquote']!,
