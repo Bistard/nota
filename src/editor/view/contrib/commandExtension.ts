@@ -10,6 +10,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 
 export const enum EditorCommandID {
     Enter = 'editor-enter',
+    Backspace = 'editor-backspace',
 }
 
 export class EditorCommandExtension extends EditorExtension {
@@ -63,6 +64,20 @@ export class EditorCommandExtension extends EditorExtension {
 
             this.__registerCommand(registrant, Enter);
         }
+
+        // backspace
+        {
+            [
+                Shortcut.fromString('Backspace').toHashcode(),
+                Shortcut.fromString('Shift+Backspace').toHashcode(),
+                Shortcut.fromString('Meta+Backspace').toHashcode(),
+            ]
+            .forEach(hash => {
+                this._commands.set(hash, EditorCommandID.Backspace);
+            });
+
+            this.__registerCommand(registrant, Backspace);
+        }
     }
 
     private __registerCommand(registrant: CommandRegistrant, command: Command): void {
@@ -70,9 +85,6 @@ export class EditorCommandExtension extends EditorExtension {
     }
 }
 
-/**
- * @description Defines the behaviour of keypress `Enter`.
- */
 const Enter = buildChainCommand(
     { 
         id: EditorCommandID.Enter, 
@@ -83,5 +95,17 @@ const Enter = buildChainCommand(
         EditorCommands.InsertEmptyParagraphAdjacentToBlock,
         EditorCommands.LiftEmptyTextBlock,
         EditorCommands.SplitBlockAtSelection,
+    ],
+);
+
+const Backspace = buildChainCommand(
+    { 
+        id: EditorCommandID.Backspace, 
+        when: CreateContextKeyExpr.Equal('isEditorFocused', true),
+    }, 
+    [
+        EditorCommands.DeleteSelection,
+        EditorCommands.JoinBackward,
+        EditorCommands.SelectNodeBackward,
     ],
 );

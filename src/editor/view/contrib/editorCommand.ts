@@ -1,10 +1,11 @@
-import { canSplit, liftTarget } from "prosemirror-transform";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView } from "src/editor/common/proseMirror";
+import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
+import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
-abstract class EditorCommand extends Command {
+export abstract class EditorCommand extends Command {
 
     public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
 }
@@ -27,10 +28,10 @@ export namespace EditorCommands {
             if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
                 return false;
             }
-    
+
             const tr = state.tr.insertText("\n").scrollIntoView();
             dispatch?.(tr);
-            
+
             return true;
         }
     }
@@ -42,7 +43,7 @@ export namespace EditorCommands {
      * of its parent, otherwise, it adds a paragraph after the block node.
      */
     export class InsertEmptyParagraphAdjacentToBlock extends EditorCommand {
-    
+
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
 
@@ -53,7 +54,7 @@ export namespace EditorCommands {
 
             // Determine the default block type at the current position.
             const defaultBlockType = ProseUtils.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
-            
+
             // Check if the determined block type is valid and is a textblock.
             if (!defaultBlockType || !defaultBlockType.isTextblock) {
                 return false;
@@ -75,7 +76,7 @@ export namespace EditorCommands {
             return true;
         }
     }
-    
+
     /**
      * @description Lifts an empty text block in the editor. This function 
      * checks if the cursor is positioned in an empty text block. If the block 
@@ -83,12 +84,12 @@ export namespace EditorCommands {
      * list or a quote), the function performs this action.
      */
     export class LiftEmptyTextBlock extends EditorCommand {
-    
+
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (!(state.selection instanceof ProseTextSelection)) {
                 return false;
             }
-            
+
             const { $cursor: cursor } = state.selection;
             if (!cursor || cursor.parent.content.size) {
                 return false;
@@ -106,54 +107,54 @@ export namespace EditorCommands {
                     return true;
                 }
             }
-    
+
             // Calculate the range and target for lifting the block
             const blockRange = cursor.blockRange();
             const target = blockRange && liftTarget(blockRange);
             if (target === null) {
                 return false;
             }
-    
+
             const newTr = state.tr.lift(blockRange!, target).scrollIntoView();
             dispatch?.(newTr);
 
             return true;
         }
     }
-    
+
     /**
      * @description Splits a block in the editor at the current selection. If 
      * the selection is within a block, the function divides the block into two 
      * at that point.
      */
     export class SplitBlockAtSelection extends EditorCommand {
-    
+
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
-    
+
             if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
                 if (!$from.parentOffset || !canSplit(state.doc, $from.pos)) {
                     return false;
                 }
-    
+
                 const newTr = state.tr.split($from.pos).scrollIntoView();
                 dispatch?.(newTr);
                 return true;
             }
-    
+
             if (!$from.parent.isBlock) {
                 return false;
             }
-    
+
             if (dispatch) {
                 const isAtEnd = $to.parentOffset === $to.parent.content.size;
                 const tr = state.tr;
-                
+
                 // First, delete the selection.
                 if (state.selection instanceof ProseTextSelection || state.selection instanceof ProseAllSelection) {
                     tr.deleteSelection();
                 }
-    
+
                 /**
                  * A match that represents the rules for what content is valid 
                  * after the selection (from).
@@ -162,9 +163,9 @@ export namespace EditorCommands {
                 const defaultType = $from.depth === 0 ? null : ProseUtils.getNextValidDefaultNodeType(match);
                 let types = isAtEnd && defaultType ? [{ type: defaultType }] : undefined;
                 let ifCanSplitAtPosition = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
-    
-                if (!types && 
-                    !ifCanSplitAtPosition && 
+
+                if (!types &&
+                    !ifCanSplitAtPosition &&
                     canSplit(tr.doc, tr.mapping.map($from.pos), 1, defaultType ? [{ type: defaultType }] : undefined)
                 ) {
                     if (defaultType) {
@@ -172,7 +173,7 @@ export namespace EditorCommands {
                     }
                     ifCanSplitAtPosition = true;
                 }
-    
+
                 if (ifCanSplitAtPosition) {
                     tr.split(tr.mapping.map($from.pos), 1, types);
 
@@ -184,10 +185,10 @@ export namespace EditorCommands {
                         }
                     }
                 }
-    
+
                 dispatch?.(tr.scrollIntoView());
             }
-    
+
             return true;
         }
     }
@@ -202,24 +203,272 @@ export namespace EditorCommands {
                 return false;
             }
 
-            dispatch?.(state.tr.deleteSelection().scrollIntoView());
+            const newTr = state.tr.deleteSelection().scrollIntoView();
+            dispatch?.(newTr);
             return true;
         }
     }
-    
-    /// If the selection is empty and at the start of a textblock, try to
-    /// reduce the distance between that block and the one before it—if
-    /// there's a block directly before it that can be joined, join them.
-    /// If not, try to move the selected block closer to the next one in
-    /// the document structure by lifting it out of its parent or moving it
-    /// into a parent of the previous block. Will use the view for accurate
-    /// (bidi-aware) start-of-textblock detection if given.
+
+    /**
+     * @description If the selection is empty and at the start of a textblock, 
+     * try to reduce the distance between that block and the one before it—if
+     * there's a block directly before it that can be joined, join them. If not, 
+     * try to move the selected block closer to the next one in the document 
+     * structure by lifting it out of its parent or moving it into a parent of 
+     * the previous block. Will use the view for accurate (bidi-aware) start-of
+     * -textblock detection if given.
+     */
     export class JoinBackward extends EditorCommand {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            
-            // TODO
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            const $cursor = __atBlockStart(state, view);
+            if (!$cursor) {
+                return false;
+            }
+
+            const $cut = __findCutBefore($cursor);
+
+            // If there is no node before this, try to lift.
+            if (!$cut) {
+                const range = $cursor.blockRange();
+                const target = range && liftTarget(range);
+                if (target === null) {
+                    return false;
+                }
+
+                const newTr = state.tr.lift(range!, target).scrollIntoView();
+                dispatch?.(newTr);
+
+                return true;
+            }
+
+            const before = $cut.nodeBefore!;
+
+            // Apply the joining algorithm
+            if (__deleteBarrier(state, $cut, dispatch, -1)) {
+                return true;
+            }
+
+            /**
+             * If the node below has no content and the node above is 
+             * selectable, delete the node below and select the one above.
+             */
+            if ($cursor.parent.content.size === 0 &&
+                (__textblockAt(before, "end") || ProseNodeSelection.isSelectable(before))
+            ) {
+                for (let depth = $cursor.depth; ; depth--) {
+                    const delStep = <ProseReplaceStep>replaceStep(state.doc, $cursor.before(depth), $cursor.after(depth), ProseSlice.empty);
+                    if (delStep && delStep.slice.size < delStep.to - delStep.from) {
+                        if (dispatch) {
+                            const tr = state.tr.step(delStep);
+                            tr.setSelection(__textblockAt(before, "end")
+                                ? ProseSelection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos, -1)), -1)!
+                                : ProseNodeSelection.create(tr.doc, $cut.pos - before.nodeSize));
+                            dispatch(tr.scrollIntoView());
+                        }
+                        return true;
+                    }
+                    if (depth === 1 || $cursor.getParentNodeAt(depth - 1)!.childCount > 1) {
+                        break;
+                    }
+                }
+            }
+
+            // If the node before is an atom, delete it.
+            if (before.isAtom && $cut.depth === $cursor.depth - 1) {
+                const newTr = state.tr.delete($cut.pos - before.nodeSize, $cut.pos);
+                dispatch?.(newTr.scrollIntoView());
+                return true;
+            }
+
             return false;
         }
     }
+
+    export class SelectNodeBackward extends EditorCommand {
+
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            const $head = new EditorResolvedPosition(state.selection.$head);
+            const ifEmpty = state.selection.empty;
+
+            let $cut: IEditorResolvedPosition | null = new EditorResolvedPosition($head);
+            if (!ifEmpty) {
+                return false;
+            }
+
+            if ($head.parent.isTextblock) {
+                if (view ? !view.endOfTextblock("backward", state) : $head.parentOffset > 0) {
+                    return false;
+                }
+
+                $cut = __findCutBefore($head);
+            }
+
+            const node = $cut && $cut.nodeBefore;
+            if (!node || !ProseNodeSelection.isSelectable(node)) {
+                return false;
+            }
+
+            const newSelection = ProseNodeSelection.create(state.doc, $cut!.pos - node.nodeSize);
+            const newTr = state.tr.setSelection(newSelection);
+            dispatch?.(newTr.scrollIntoView());
+
+            return true;
+        }
+    }
 }
+
+function __atBlockStart(state: ProseEditorState, view?: ProseEditorView): IEditorResolvedPosition | null {
+    const { $cursor } = <ProseTextSelection>state.selection;
+    if (!$cursor || (view ? !view.endOfTextblock("backward", state) : $cursor.parentOffset > 0)) {
+        return null;
+    }
+    return new EditorResolvedPosition($cursor);
+}
+
+function __findCutBefore($pos: IEditorResolvedPosition): IEditorResolvedPosition | null {
+    if ($pos.parent.type.spec.isolating) {
+        return null;
+    }
+
+    for (let i = $pos.depth - 1; i >= 0; i--) {
+        if ($pos.index(i) > 0) {
+            const newPos = $pos.doc.resolve($pos.before(i + 1));
+            return new EditorResolvedPosition(newPos);
+        }
+
+        if ($pos.getParentNodeAt(i)!.type.spec.isolating) {
+            break;
+        }
+    }
+
+    return null;
+}
+
+function __deleteBarrier(state: ProseEditorState, $cut: IEditorResolvedPosition, dispatch: ((tr: ProseTransaction) => void) | undefined, dir: number) {
+    const before = $cut.nodeBefore!;
+    const after = $cut.nodeAfter!; 
+    let conn, match; // TODO: type
+
+    const isolated = before.type.spec.isolating || after.type.spec.isolating;
+    if (!isolated && __joinMaybeClear(state, $cut, dispatch)) {
+        return true;
+    }
+
+    const canDelAfter = !isolated && $cut.parent.canReplace($cut.index(), $cut.index() + 1);
+    if (canDelAfter &&
+        (conn = (match = before.contentMatchAt(before.childCount)).findWrapping(after.type)) &&
+        match.matchType(conn[0] || after.type)!.validEnd) {
+        if (dispatch) {
+            const end = $cut.pos + after.nodeSize;
+            let wrap = ProseFragment.empty;
+
+            for (let i = conn.length - 1; i >= 0; i--) {
+                wrap = ProseFragment.from(conn[i].create(null, wrap));
+            }
+
+            wrap = ProseFragment.from(before.copy(wrap));
+            const tr = state.tr.step(new ReplaceAroundStep($cut.pos - 1, end, $cut.pos, end, new ProseSlice(wrap, 1, 0), conn.length, true));
+            const joinAt = end + 2 * conn.length;
+            if (canJoin(tr.doc, joinAt)) {
+                tr.join(joinAt);
+            }
+
+            dispatch(tr.scrollIntoView());
+        }
+        return true;
+    }
+
+    const selAfter = after.type.spec.isolating || (dir > 0 && isolated) ? null : ProseSelection.findFrom($cut, 1);
+    const range = selAfter && selAfter.$from.blockRange(selAfter.$to), target = range && liftTarget(range);
+    if (target !== null && target >= $cut.depth) {
+        if (dispatch) dispatch(state.tr.lift(range!, target).scrollIntoView());
+        return true;
+    }
+
+    if (canDelAfter && __textblockAt(after, "start", true) && __textblockAt(before, "end")) {
+        let at = before;
+        const wrap: ProseNode[] = [];
+        
+        for (; ;) {
+            wrap.push(at);
+            if (at.isTextblock) {
+                break;
+            }
+            at = at.lastChild!;
+        }
+        
+        let afterText = after;
+        let afterDepth = 1;
+
+        for (; !afterText.isTextblock; afterText = afterText.firstChild!) {
+            afterDepth++;
+        }
+
+        if (at.canReplace(at.childCount, at.childCount, afterText.content)) {
+            if (!dispatch) {
+                return true;
+            }
+            
+            let end = ProseFragment.empty;
+            for (let i = wrap.length - 1; i >= 0; i--) {
+                end = ProseFragment.from(wrap[i]!.copy(end));
+            }
+
+            const tr = state.tr.step(
+                new ReplaceAroundStep(
+                    $cut.pos - wrap.length, $cut.pos + after.nodeSize,
+                    $cut.pos + afterDepth, $cut.pos + after.nodeSize - afterDepth,
+                    new ProseSlice(end, wrap.length, 0), 
+                    0, 
+                    true
+                )
+            );
+            dispatch(tr.scrollIntoView());
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function __textblockAt(node: ProseNode, side: "start" | "end", only = false): boolean {
+    for (let scan: ProseNode | null = node; scan; scan = (side === "start" ? scan.firstChild : scan.lastChild)) {
+        if (scan.isTextblock) {
+            return true;
+        }
+        if (only && scan.childCount !== 1) {
+            return false;
+        }
+    }
+    return false;
+}
+
+function __joinMaybeClear(state: ProseEditorState, $pos: IEditorResolvedPosition, dispatch: ((tr: ProseTransaction) => void) | undefined): boolean {
+    const before = $pos.nodeBefore;
+    const after = $pos.nodeAfter;
+    const index = $pos.index();
+
+    if (!before || !after || !before.type.compatibleContent(after.type)) {
+        return false;
+    }
+
+    if (!before.content.size && $pos.parent.canReplace(index - 1, index)) {
+        const newTr = state.tr.delete($pos.pos - before.nodeSize, $pos.pos);
+        dispatch?.(newTr.scrollIntoView());
+        return true;
+    }
+    
+    if (!$pos.parent.canReplace(index, index + 1) || !(after.isTextblock || canJoin(state.doc, $pos.pos))) {
+        return false;
+    }
+
+    const newTr = state.tr
+        .clearIncompatible($pos.pos, before.type, before.contentMatchAt(before.childCount))
+        .join($pos.pos)
+        .scrollIntoView();
+
+    dispatch?.(newTr);
+    return true;
+}
+
