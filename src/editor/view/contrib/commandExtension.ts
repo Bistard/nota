@@ -26,7 +26,6 @@ export class EditorCommandExtension extends EditorExtension {
     constructor(
         @IRegistrantService registrantService: IRegistrantService,
         @ICommandService commandService: ICommandService,
-        
     ) {
         super();
         this._commands = new Map();
