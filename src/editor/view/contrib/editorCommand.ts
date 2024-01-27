@@ -1,9 +1,11 @@
 import { canSplit, liftTarget } from "prosemirror-transform";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseContentMatch, ProseTextSelection, ProseNodeSelection, ProseNodeType, ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseUtils } from "src/editor/common/proseUtility";
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
 abstract class EditorCommand extends Command {
+
     public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
@@ -50,7 +52,7 @@ export namespace EditorCommands {
             }
 
             // Determine the default block type at the current position.
-            const defaultBlockType = __defaultBlockAt($to.parent.contentMatchAt($to.indexAfter()));
+            const defaultBlockType = ProseUtils.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
             
             // Check if the determined block type is valid and is a textblock.
             if (!defaultBlockType || !defaultBlockType.isTextblock) {
@@ -152,9 +154,12 @@ export namespace EditorCommands {
                     tr.deleteSelection();
                 }
     
-                // Determine the default type for the split, if applicable
+                /**
+                 * A match that represents the rules for what content is valid 
+                 * after the selection (from).
+                 */
                 const match = $from.node(-1).contentMatchAt($from.indexAfter(-1));
-                const defaultType = $from.depth === 0 ? null : __defaultBlockAt(match);
+                const defaultType = $from.depth === 0 ? null : ProseUtils.getNextValidDefaultNodeType(match);
                 let types = isAtEnd && defaultType ? [{ type: defaultType }] : undefined;
                 let ifCanSplitAtPosition = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
     
@@ -217,14 +222,4 @@ export namespace EditorCommands {
             return false;
         }
     }
-}
-
-function __defaultBlockAt(match: ProseContentMatch): ProseNodeType | null {
-    for (let i = 0; i < match.edgeCount; i++) {
-        const { type } = match.edge(i);
-        if (type.isTextblock && !type.hasRequiredAttrs()) {
-            return type;
-        }
-    }
-    return null;
 }

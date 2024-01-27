@@ -6,12 +6,13 @@ import { ProseNode, ProseResolvedPos } from "src/editor/common/proseMirror";
  */
 export interface IEditorResolvedPosition extends Omit<
     ProseResolvedPos, 
-    'node' // use `getCurrNode` or `getParentNodeAt` instead
+    'node' // better use `getCurrNode` or `getParentNodeAt` instead
 > {
 
     /**
      * @description The exact same API as {@link getParentNodeAt}. Except making
      * depth = this.depth.
+     * @note Wrapper of `this.node()`.
      */
     getCurrNode(): ProseNode;
 
@@ -19,6 +20,7 @@ export interface IEditorResolvedPosition extends Omit<
      * @description Retrieves a parent node from the document structure at a 
      *              specified depth level relative to the root.
      * 
+     * @note Wrapper of `this.node()`.
      * @note The depth is measured from the root of the document, where the root 
      *       node (usually the document itself) is at depth 0. This method allows 
      *       you to navigate the document tree and access ancestor nodes at 

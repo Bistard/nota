@@ -56,8 +56,8 @@ export class DocumentNodeProvider {
                 // nodes
                 provider.registerNode(new Space());
                 provider.registerNode(new Text());
-                provider.registerNode(new Heading());
                 provider.registerNode(new Paragraph());
+                provider.registerNode(new Heading());
                 provider.registerNode(new Blockquote());
                 provider.registerNode(new HorizontalRule());
                 provider.registerNode(new CodeBlock());
