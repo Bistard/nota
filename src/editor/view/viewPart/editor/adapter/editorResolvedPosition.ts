@@ -4,10 +4,7 @@ import { ProseNode, ProseResolvedPos } from "src/editor/common/proseMirror";
 /**
  * An interface only for {@link EditorResolvedPosition}.
  */
-export interface IEditorResolvedPosition extends Omit<
-    ProseResolvedPos, 
-    'node' // better use `getCurrNode` or `getParentNodeAt` instead
-> {
+export interface IEditorResolvedPosition extends ProseResolvedPos {
 
     /**
      * @description The exact same API as {@link getParentNodeAt}. Except making

@@ -1,11 +1,16 @@
 import { Node as ProseNode } from "prosemirror-model";
 
+export {
+    ReplaceStep as ProseReplaceStep
+} from "prosemirror-transform";
+
 export { 
     EditorState as ProseEditorState,
     NodeSelection as ProseNodeSelection,
     Transaction as ProseTransaction,
     Plugin as ProseExtension,
     Command as ProseCommand,
+    Selection as ProseSelection,
     AllSelection as ProseAllSelection,
     TextSelection as ProseTextSelection,
 } from "prosemirror-state";
@@ -27,6 +32,7 @@ export {
     MarkType as ProseMarkType, 
     Attrs as ProseAttrs, 
     Mark as ProseMark, 
+    Fragment as ProseFragment,
     Schema as ProseSchema,
     ResolvedPos as ProseResolvedPos,
 } from "prosemirror-model";
