@@ -39,7 +39,7 @@ export class EditorCommandExtension extends EditorExtension {
                 return;
             }
 
-            commandService.executeCommand(name, event.view.state, event.view.dispatch, event.event);
+            commandService.executeCommand(name, event.view.state, event.view.dispatch, event.view);
         });
 
         this.__registerEditorCommands(registrantService);
