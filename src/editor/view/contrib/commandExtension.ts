@@ -1,6 +1,6 @@
 import { Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands } from "src/editor/view/contrib/editorCommand";
+import { EditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command, buildChainCommand } from "src/platform/command/common/command";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ICommandService } from "src/platform/command/common/commandService";
