@@ -707,12 +707,21 @@ export interface IThrottler {
 }
 
 /**
- * @class A throttler runs the first task immediately. All the new tasks queued 
- * after added the first task and before it finishes only the last queued task 
- * will be invoked once the first task has done.
+ * @class A Throttler class that efficiently manages the execution of queued tasks.
+ * Tasks are managed as follows:
+ * - If no task is currently running, the queued task is executed immediately.
+     * - If a task is already in progress, the new task will be scheduled to run 
+	 * after the current task completes.
+     * - If multiple tasks are queued while a task is running, only the most 
+	 * recently queued task will be executed next, discarding all previously queued tasks. 
  * 
  * It is designed for limiting actions over a set amount of time. It may prevent
  * performance goes down during a busy period.
+ * 
+ * @example
+ * Queue Task1 								 // Task1 executes immediately.
+ * Queue Task2, Task3 before Task1 completes // only Task 3 executes once Task1 completes
+ * 											 // Task2 is discarded
  * 
  * @template T The type of the return value of the queued tasks.
  */
