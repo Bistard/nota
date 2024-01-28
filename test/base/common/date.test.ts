@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { Time, TimeUnit } from "src/base/common/date";
 
-suite.only('Time-test', function () {
+suite('Time-test', function () {
     
     test('Converts seconds to milliseconds correctly', function () {
         const time = new Time(TimeUnit.Seconds, 1);
