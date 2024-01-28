@@ -649,6 +649,8 @@ export interface IUnbufferedScheduler<T> extends IDisposable {
  * @class The only difference compares to {@link Scheduler} is that, it does not
  * store the previous scheduled events into buffer. Only one event will be 
  * scheduled at a time.
+ * @note Call schedule() first after new a UnbufferedScheduler to launch the
+ * setTimeout
  */
 export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 
