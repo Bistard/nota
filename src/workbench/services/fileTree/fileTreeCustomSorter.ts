@@ -1,5 +1,3 @@
-import { error } from "console";
-import { resolveAny } from "dns";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { AsyncResult, ok } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/files/buffer";
@@ -9,12 +7,18 @@ import { jsonSafeStringify, jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { ResourceMap } from "src/base/common/structures/map";
-import { Arrays } from "src/base/common/utilities/array";
+import { Scheduler, UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+
+const enum ResourceType {
+    Accessed,
+    Scheduler,
+    Order
+}
 
 export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
 
@@ -65,7 +69,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // [fields]
 
     // TODO: need a detailed documentation on this field
-    private readonly _customSortOrderMap: ResourceMap<string[]> = new ResourceMap();
+    private readonly _customSortOrderMap: ResourceMap<[boolean, UnbufferedScheduler<URI>, string[]]> = new ResourceMap();
+    private readonly delayTime: number = 300000;
 
     // [constructor]
 
@@ -83,11 +88,11 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // function can only be called when TItem.parent is at collaped state
     public compare(a: TItem, b: TItem): number {
 
-        const order: string[] | undefined = this._customSortOrderMap.get(a.parent!.uri);
+        const order = this.getOrderOf(a.parent!.uri);
         if (order === undefined) {
             return defaultFileItemCompareFn(a, b);
         }
-        
+
         const indexA = order.indexOf(a.name);
         const indexB = order.indexOf(b.name);
 
@@ -125,7 +130,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     public addItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.loadSortOrder(item.parent!)
             .andThen(() => {
-                const order = this._customSortOrderMap.get(item.parent!.uri);
+                const order = this.getOrderOf(item.parent!.uri);
                 order!.splice(index, 0, item.name);
                 return this.saveSortOrder(item.parent!);
             });
@@ -134,7 +139,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     public removeItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.loadSortOrder(item.parent!)
             .andThen(() => {
-                const order = this._customSortOrderMap.get(item.parent!.uri);
+                const order = this.getOrderOf(item.parent!.uri);
                 order!.splice(index, 1);
                 return this.saveSortOrder(item.parent!);
             });
@@ -142,7 +147,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     public updateItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.loadSortOrder(item.parent!)
             .andThen(() => {
-                const order = this._customSortOrderMap.get(item.parent!.uri);
+                const order = this.getOrderOf(item.parent!.uri);
                 order![index] = item.name;
                 return this.saveSortOrder(item.parent!);
             });
@@ -156,7 +161,21 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .andThen(() => {
                 const parentUri = parentItem.uri;
                 const updatedSortOrder = newItems.map(item => item.name);
-                this._customSortOrderMap.set(parentUri, updatedSortOrder);
+                 const scheduler = new UnbufferedScheduler<URI>(this.delayTime, 
+                (event => {
+                    const resource = this._customSortOrderMap.get(parentUri);
+                    if (resource === undefined) {
+                        return;
+                    }
+                    if (resource[ResourceType.Accessed] === true) {
+                        scheduler.schedule(parentUri);
+                        resource[ResourceType.Accessed] = false;
+                    } else {
+                        this._customSortOrderMap.delete(parentUri);
+                    }
+                }));
+                this._customSortOrderMap.set(parentUri, [false, scheduler, updatedSortOrder]);
+                scheduler.schedule(parentUri);
                 return this.saveSortOrder(parentItem);
             });
     }
@@ -200,15 +219,38 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
         .andThen(order => {
-            this._customSortOrderMap.set(folder.uri, order);
+            const scheduler = new UnbufferedScheduler<URI>(this.delayTime, 
+                (event => {
+                    const resource = this._customSortOrderMap.get(folder.uri);
+                    if (resource === undefined) {
+                        return;
+                    }
+                    if (resource[ResourceType.Accessed] === true) {
+                        scheduler.schedule(folder.uri);
+                        resource[ResourceType.Accessed] = false;
+                    } else {
+                        this._customSortOrderMap.delete(folder.uri);
+                    }
+                }));
+            this._customSortOrderMap.set(folder.uri, [false, scheduler, order]);
+            scheduler.schedule(folder.uri);
             return ok();
         });
     }
 
     private saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.findOrCreateOrderFile(folder)
-        .andThen(orderFileURI => jsonSafeStringify(this._customSortOrderMap.get(folder.uri), undefined, 4)
+        .andThen(orderFileURI => jsonSafeStringify(this.getOrderOf(folder.uri), undefined, 4)
             .toAsync()
             .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify)))));
+    }
+
+    private getOrderOf(uri: URI): string[] | undefined{
+        const resource = this._customSortOrderMap.get(uri);
+        if (resource === undefined) {
+            return undefined;
+        }
+        resource[ResourceType.Accessed] = true;
+        return resource[ResourceType.Order];
     }
 }
