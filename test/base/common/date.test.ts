@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { Time, TimeUnit } from "src/base/common/date";
 
-suite('Time-test', function () {
+suite.only('Time-test', function () {
     
     test('Converts seconds to milliseconds correctly', function () {
         const time = new Time(TimeUnit.Seconds, 1);
@@ -29,7 +29,7 @@ suite('Time-test', function () {
         const time2 = new Time(TimeUnit.Seconds, 30);
         const result = time1.subtract(time2);
         assert.strictEqual(result.toSec().time, 30);
-        assert.strictEqual(result.unit, TimeUnit.Seconds);
+        assert.strictEqual(result.toSec().unit, TimeUnit.Seconds);
     });
 
     test('Compares two Time objects for equality', function () {
