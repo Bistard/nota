@@ -92,8 +92,8 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         }
     }
 
-    public initCustomSorter(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this._customSorter.loadSortOrder(folder);
+    public initCustomSorter(folder: TItem): void {
+        this._customSorter.loadSortOrderWithoutError(folder);
     }
     
     // [private helper methods]

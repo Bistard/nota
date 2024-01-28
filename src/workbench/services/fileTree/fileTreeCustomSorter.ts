@@ -1,3 +1,4 @@
+import { error } from "console";
 import { resolveAny } from "dns";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { AsyncResult, ok } from "src/base/common/error";
@@ -5,6 +6,8 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { jsonSafeStringify, jsonSafeParse } from "src/base/common/json";
+import { ILogService } from "src/base/common/logger";
+import { noop } from "src/base/common/performance";
 import { ResourceMap } from "src/base/common/structures/map";
 import { Arrays } from "src/base/common/utilities/array";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
@@ -14,10 +17,45 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
 export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
+
+    /**
+     * @description Compares two file tree items based on a custom sort order or
+     * the default comparison function if no custom order is defined.
+     * @param a The first file tree item
+     * @param b The second file tree item
+     * @returns negative, 0, positive int if a is ahead, same place, after b 
+     */
     compare(a: TItem, b: TItem): number;
+
+    /**
+     * @description Adds a file tree item to the custom sort order at the 
+     * specified index.
+     */
     addItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError>;
-    removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
-    loadSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
+
+    /**
+     * @description Removes a file tree item from the custom sort order at the 
+     * specified index
+     */
+    removeItem(item: TItem, index:number): AsyncResult<void, FileOperationError | SyntaxError>;
+
+    /**
+     * @description Updates a file tree item from the custom sort order at the 
+     * specified index
+     */
+    updateItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError>;
+
+    /**
+     * @description Synchronizes the custom sort order with a current set of 
+     * file tree items.
+     */
+    syncOrderFile(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError>;
+
+    /**
+     * @description Attempts to load the custom sort order for a folder, logging
+     *  errors without throwing them.
+     */
+    loadSortOrderWithoutError(folder: TItem): void;
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
@@ -32,12 +70,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     constructor(
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
     }
     
     // [public methods]
-
 
     // The following TItem.parent are definitely not null, as those following
     // function can only be called when TItem.parent is at collaped state
@@ -56,18 +94,29 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         } 
         else if (indexA !== -1) {
             order.push(b.name);
+            this.saveSortOrder(a.parent!).match(
+                noop,
+                (error => this.logService.error(error))
+            );
             return CompareOrder.First;
         } 
         else if (indexB !== -1) {
             order.push(a.name);
+            this.saveSortOrder(a.parent!).match(
+                noop,
+                (error => this.logService.error(error))
+            );
             return CompareOrder.Second;
         } 
         else {
             order.push(b.name);
             order.push(a.name);
+            this.saveSortOrder(a.parent!).match(
+                noop,
+                (error => this.logService.error(error))
+            );
             return defaultFileItemCompareFn(a, b);
         }
-        // TODO: save order
     }
 
     // APIs for fileTree Item Adding and Deleting
@@ -80,18 +129,27 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             });
     }
 
-    public removeItem(item: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+    public removeItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.loadSortOrder(item.parent!)
             .andThen(() => {
                 const order = this._customSortOrderMap.get(item.parent!.uri);
-                Arrays.remove(order!, item.name);
+                order!.splice(index, 1);
                 return this.saveSortOrder(item.parent!);
             });
+    }
+    public updateItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.loadSortOrder(item.parent!)
+            .andThen(() => {
+                const order = this._customSortOrderMap.get(item.parent!.uri);
+                order![index] = item.name;
+                return this.saveSortOrder(item.parent!);
+            });
+
     }
 
     // TODO: compare the given array with the exsiting order array
     // Updates custom sort order items based on provided array of new items
-    public updateSortOrder(parentItem: TItem, newItems: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
+    public syncOrderFile(parentItem: TItem, newItems: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.loadSortOrder(parentItem)
             .andThen(() => {
                 const parentUri = parentItem.uri;
@@ -101,16 +159,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             });
     }
 
-    public loadSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.findOrCreateOrderFile(folder)
-        .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
-        .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
-        .andThen(order => {
-            this._customSortOrderMap.set(folder.uri, order);
-            return ok();
-        });
+    public loadSortOrderWithoutError(folder: TItem): void{
+        this.loadSortOrder(folder).match(
+            noop,
+            (error => this.logService.error(error))
+        );
     }
-
+    
     // [private helper methods]
 
     // TODO: more detailed documentations are needed for those private helper methods
@@ -135,6 +190,16 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
                 .map(() => orderFileURI));
+        });
+    }
+
+    private loadSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.findOrCreateOrderFile(folder)
+        .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
+        .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
+        .andThen(order => {
+            this._customSortOrderMap.set(folder.uri, order);
+            return ok();
         });
     }
 

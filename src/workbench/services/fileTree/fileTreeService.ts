@@ -16,9 +16,9 @@ import { IBrowserEnvironmentService } from "src/platform/environment/common/envi
 import { AsyncResult, ok } from "src/base/common/error";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
-import { noop } from "src/base/common/performance";
 import { Pair } from "src/base/common/utilities/type";
 import { FileOperationError } from "src/base/common/files/file";
+import { noop } from "src/base/common/performance";
 
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
@@ -156,10 +156,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 // TODO
             });
             tree.onDidExpand(async (e) => {
-                sorter.initCustomSorter(e.node.data).match(
-                    noop, 
-                    (error) => this.logService.error(error),
-                );
+                sorter.initCustomSorter(e.node.data);
             });
         };
 
