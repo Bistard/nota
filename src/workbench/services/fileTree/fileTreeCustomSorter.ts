@@ -1,3 +1,4 @@
+import { Time, TimeUnit } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { AsyncResult, ok } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/files/buffer";
@@ -7,19 +8,25 @@ import { jsonSafeStringify, jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { ResourceMap } from "src/base/common/structures/map";
-import { Scheduler, UnbufferedScheduler } from "src/base/common/utilities/async";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
+/**
+ * @internal
+ */
 const enum ResourceType {
     Accessed,
     Scheduler,
     Order
 }
 
+/**
+ * An interface only for {@link FileTreeCustomSorter}
+ */
 export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
 
     /**
@@ -69,8 +76,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // [fields]
 
     // TODO: need a detailed documentation on this field
-    private readonly _customSortOrderMap: ResourceMap<[boolean, UnbufferedScheduler<URI>, string[]]> = new ResourceMap();
-    private readonly delayTime: number = 300000;
+    private readonly _customSortOrderMap: ResourceMap<[boolean, UnbufferedScheduler<URI>, string[]]>;
+    private readonly _delay: Time;
 
     // [constructor]
 
@@ -80,6 +87,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         @ILogService private readonly logService: ILogService,
     ) {
         super();
+        this._customSortOrderMap = new ResourceMap();
+        this._delay = new Time(TimeUnit.Minutes, 5);
     }
     
     // [public methods]
@@ -151,7 +160,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 order![index] = item.name;
                 return this.saveSortOrder(item.parent!);
             });
-
     }
 
     // TODO: compare the given array with the exsiting order array
@@ -161,7 +169,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .andThen(() => {
                 const parentUri = parentItem.uri;
                 const updatedSortOrder = newItems.map(item => item.name);
-                 const scheduler = new UnbufferedScheduler<URI>(this.delayTime, 
+                 const scheduler = new UnbufferedScheduler<URI>(this._delay.toMs().time, 
                 (event => {
                     const resource = this._customSortOrderMap.get(parentUri);
                     if (resource === undefined) {
@@ -219,7 +227,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
         .andThen(order => {
-            const scheduler = new UnbufferedScheduler<URI>(this.delayTime, 
+            const scheduler = new UnbufferedScheduler<URI>(this._delay.toMs().time, 
                 (event => {
                     const resource = this._customSortOrderMap.get(folder.uri);
                     if (resource === undefined) {

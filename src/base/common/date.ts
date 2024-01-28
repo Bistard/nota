@@ -21,9 +21,11 @@ export const enum TimeUnit {
     Minutes      = 'min',
 }
 
-
 /**
- * @description Represents a time value in a specific unit.
+ * @description Represents a time value in a specific unit. Can be easily 
+ * converted into other unit representation.
+ * 
+ * @note The purpose of this data structure is mainly to increase readability.
  */
 export class Time {
 
