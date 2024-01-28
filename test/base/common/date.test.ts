@@ -28,7 +28,7 @@ suite('Time-test', function () {
         const time1 = new Time(TimeUnit.Seconds, 60);
         const time2 = new Time(TimeUnit.Seconds, 30);
         const result = time1.subtract(time2);
-        assert.strictEqual(result.time, 30);
+        assert.strictEqual(result.toSec().time, 30);
         assert.strictEqual(result.unit, TimeUnit.Seconds);
     });
 
