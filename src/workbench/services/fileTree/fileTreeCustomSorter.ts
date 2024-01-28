@@ -48,6 +48,8 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     /**
      * @description Synchronizes the custom sort order with a current set of 
      * file tree items.
+     * @param folder The folder to be synced
+     * @param currentFiles an unordered array of current files under the folder
      */
     syncOrderFile(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError>;
 
