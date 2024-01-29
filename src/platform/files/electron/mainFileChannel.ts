@@ -140,7 +140,7 @@ export class MainFileChannel implements IServerChannel {
         return emitter.registerListener;
     }
 
-    private async __writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {
+    private async __writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts: IWriteFileOptions): Promise<void> {
         return this.fileService.writeFile(uri, bufferOrStream, opts).unwrap();
     }
 
