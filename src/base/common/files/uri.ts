@@ -7,6 +7,7 @@ import { CharCode } from "src/base/common/utilities/char";
 import * as paths from "src/base/common/files/path";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
+import { isParentOf } from "src/base/common/files/glob";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -183,7 +184,6 @@ export class URI implements IURI {
 	 * ```
 	 */
 	public static fromFile(path: string): URI {
-
 		let authority = _empty;
 
 		// normalize to fwd-slashes on windows,
@@ -229,6 +229,18 @@ export class URI implements IURI {
 		}
 
 		return URI.with(uri, { path: newPath });
+	}
+
+	/**
+	 * @description If the candidate is the parent of the given uri.
+	 * @param uri The given uri.
+	 * @param candidate The possible parent of the given uri.
+	 * @param ignoreCase Make it case insensitive.
+	 */
+	public static isParentOf(uri: URI, candidate: URI, ignoreCase?: boolean): boolean {
+		const uriStr = URI.toFsPath(uri);
+		const candidateStr = URI.toFsPath(candidate);
+		return isParentOf(uriStr, candidateStr, ignoreCase);
 	}
 
 	/**

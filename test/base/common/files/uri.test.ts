@@ -652,4 +652,28 @@ suite('URI-test', () => {
 		assert.strictEqual(URI.toString(URI.parse('http://user@[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html')), 'http://user@[fedc:ba98:7654:3210:fedc:ba98:7654:3210]:80/index.html');
 		assert.strictEqual(URI.toString(URI.parse('http://us[er@[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html')), 'http://us%5Ber@[fedc:ba98:7654:3210:fedc:ba98:7654:3210]:80/index.html');
 	});
+
+	test('isParentOf', () => {
+		assert.ok(URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:')));
+		assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:')));
+		assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo')));
+		assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo\\bar')));
+		assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\foo'), URI.fromFile('c:\\foo\\bar')));
+		assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:\\foo\\bar')));
+		
+		
+		assert.ok(URI.isParentOf(URI.parse('foo//bar'), URI.parse('foo')));
+		assert.ok(URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo')));
+		assert.ok(URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo//foo')));
+		assert.ok(!URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo//foo//bar')));
+		assert.ok(!URI.isParentOf(URI.parse('foo//foo//foo'), URI.parse('foo//foo//bar')));
+		assert.ok(!URI.isParentOf(URI.parse('foo//foo'), URI.parse('foo//foo//bar')));
+		
+		assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
+		assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
+		assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo')));
+		assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+		assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+		assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+	});
 });
