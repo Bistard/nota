@@ -8,6 +8,7 @@ import { jsonSafeStringify, jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { ResourceMap } from "src/base/common/structures/map";
+import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
@@ -22,6 +23,13 @@ const enum ResourceType {
     Accessed,
     Scheduler,
     Order
+}
+
+export const enum OrderChangeType {
+    Add,
+    Remove,
+    Update,
+    Swap
 }
 
 /**
@@ -39,22 +47,9 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     compare(a: TItem, b: TItem): number;
 
     /**
-     * @description Adds a file tree item to the custom sort order at the 
-     * specified index.
+     * @description TODO:
      */
-    addItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError>;
-
-    /**
-     * @description Removes a file tree item from the custom sort order at the 
-     * specified index
-     */
-    removeItem(item: TItem, index:number): AsyncResult<void, FileOperationError | SyntaxError>;
-
-    /**
-     * @description Updates a file tree item from the custom sort order at the 
-     * specified index
-     */
-    updateItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    orderChange(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
 
     /**
      * @description Synchronizes the custom sort order with a current set of 
@@ -156,29 +151,16 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     }
 
     // APIs for fileTree Item Adding and Deleting
-    public addItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
+    // item.parent is gurrented not undefined
+    public orderChange(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
+        const order = this._customSortOrderMap.has(item.parent!.uri);
+        if (order === true) {
+            this.__changeOrderBasedOnType(changeType, item, index1, index2);
+            return this.__saveSortOrder(item.parent!);
+        }
         return this.__loadSortOrder(item.parent!)
             .andThen(() => {
-                const order = this.__getOrderOf(item.parent!.uri)!;
-                order.splice(index, 0, item.name);
-                return this.__saveSortOrder(item.parent!);
-            });
-    }
-
-    public removeItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.__loadSortOrder(item.parent!)
-            .andThen(() => {
-                const order = this.__getOrderOf(item.parent!.uri)!;
-                order.splice(index, 1);
-                return this.__saveSortOrder(item.parent!);
-            });
-    }
-    
-    public updateItem(item: TItem, index: number): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.__loadSortOrder(item.parent!)
-            .andThen(() => {
-                const order = this.__getOrderOf(item.parent!.uri)!;
-                order[index] = item.name;
+                this.__changeOrderBasedOnType(changeType, item, index1, index2);
                 return this.__saveSortOrder(item.parent!);
             });
     }
@@ -290,5 +272,26 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
         resource[ResourceType.Accessed] = true;
         return resource[ResourceType.Order];
+    }
+
+    private __changeOrderBasedOnType(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): void {
+        const order = this.__getOrderOf(item.parent!.uri)!;
+        switch (changeType) {
+            case OrderChangeType.Add:
+                order.splice(index1, 0, item.name);
+                break;
+            case OrderChangeType.Remove:
+                order.splice(index1, 1);
+                break;
+            case OrderChangeType.Swap:
+                if (index2 === undefined) {
+                    return;
+                }
+                Arrays.swap(order, index1, index2);
+                break;
+            case OrderChangeType.Update:
+                order[index1] = item.name;
+                break;
+        }
     }
 }
