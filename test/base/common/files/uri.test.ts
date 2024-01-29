@@ -693,4 +693,40 @@ suite('URI-test', () => {
 			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo'), URI.fromFile('file:///foo/:foo//foo//bar')));
 		}
 	});
+
+	test('equals', () => {
+		const fileURI = IS_WINDOWS ? URI.fromFile('c:\\foo\\bar') : URI.fromFile('/foo/bar');
+		const fileURI2 = IS_WINDOWS ? URI.fromFile('C:\\foo\\Bar') : URI.fromFile('/foo/Bar');
+		
+		assert.strictEqual(URI.equals(fileURI, fileURI, true), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI, false), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI, false), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI2, true), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI2, false), false);
+		
+		const fileURI3 = URI.parse('foo://server:453/foo/bar');
+		const fileURI4 = URI.parse('foo://server:453/foo/Bar');
+		assert.strictEqual(URI.equals(fileURI3, fileURI3, true), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI3, false), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI3, false), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI4, true), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI4, false), false);
+
+		assert.strictEqual(URI.equals(fileURI, fileURI3, true), false);
+
+		assert.strictEqual(URI.equals(URI.parse('file://server'), URI.parse('file://server/'), true), true);
+		assert.strictEqual(URI.equals(URI.parse('http://server'), URI.parse('http://server/'), true), true);
+		assert.strictEqual(URI.equals(URI.parse('foo://server'), URI.parse('foo://server/'), true), false); // only selected scheme have / as the default path
+		assert.strictEqual(URI.equals(URI.parse('foo://server/foo'), URI.parse('foo://server/foo/'), true), false);
+		assert.strictEqual(URI.equals(URI.parse('foo://server/foo'), URI.parse('foo://server/foo?'), true), true);
+
+		const fileURI5 = URI.parse('foo://server:453/foo/bar?q=1');
+		const fileURI6 = URI.parse('foo://server:453/foo/bar#xy');
+
+		assert.strictEqual(URI.equals(fileURI5, fileURI5, true), true);
+		assert.strictEqual(URI.equals(fileURI5, fileURI3, true), false);
+		assert.strictEqual(URI.equals(fileURI6, fileURI6, true), true);
+		assert.strictEqual(URI.equals(fileURI6, fileURI5, true), false);
+		assert.strictEqual(URI.equals(fileURI6, fileURI3, true), false);
+	});
 });
