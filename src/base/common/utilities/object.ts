@@ -5,6 +5,8 @@ import { DeepReadonly, isNullable, isObject, isPrimitive } from "src/base/common
  * 'overwrite' allows to control if existing properties on the destination 
  * should be overwritten or not.
  * @default overwrite true
+ * 
+ * @note Non-object type will be ignored.
  */
 export function mixin<T>(destination: any, source: any, overwrite: boolean = true): T {
 	if (isObject(destination) === false) {

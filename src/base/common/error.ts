@@ -814,7 +814,7 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err: ${errorToMessage(this.error)}`);
+        panic(this.error);
     }
 
     public unwrapOr(error: T): T {
@@ -860,32 +860,13 @@ export class Err<T, E> implements IResult<T, E> {
  * @remark `panic` is for situations where the error is unrecoverable and the 
  * program cannot proceed further. Use it very carefully.
  * 
- * @param messageOrError - The error message to be thrown.
- * @throws Will throw an error with the provided message.
+ * @param messageOrError - The error to be thrown.
+ * @throws Will throw an error.
  * @returns This function never returns normally; always throws an error.
  */
-export function panic(messageOrError: string | Error): never {
-    if (messageOrError instanceof Error) {
-        // eslint-disable-next-line local/code-no-throw
-        throw messageOrError;
-    }
-    
+export function panic(error: any): never {
     // eslint-disable-next-line local/code-no-throw
-    PanicError.stackTraceLimit = Infinity;
-    throw new PanicError(messageOrError);
-}
-
-export class PanicError extends Error {
-
-    public readonly type = ErrorType.Panic;
-
-    constructor(message: string) {
-        super(message);
-    }
-}
-
-export function isPanicError(error: any): error is PanicError {
-    return error && error.type === ErrorType.Panic;
+    throw error;
 }
 
 /**

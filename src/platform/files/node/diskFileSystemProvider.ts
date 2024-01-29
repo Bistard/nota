@@ -208,7 +208,7 @@ export class DiskFileSystemProvider extends Disposable implements
             const stat = await this.stat(from);
 
             if (await fileExists(toPath) && opts.overwrite === false) {
-                throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.UNKNOWN);
+                throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.FILE_EXISTS);
             }
 
             if (stat.type === FileType.DIRECTORY) {
