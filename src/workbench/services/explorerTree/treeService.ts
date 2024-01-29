@@ -3,6 +3,8 @@ import { AsyncResult } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IService } from "src/platform/instantiation/common/decorator";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
+import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
 
 export const enum TreeMode {
     Classic = 'classic',
@@ -11,7 +13,7 @@ export const enum TreeMode {
 /**
  * The base interface for any tree services.
  */
-export interface ITreeService<T> extends IDisposable, IService {
+export interface ITreeService<T extends FileItem> extends IDisposable, IService {
     /**
      * The parent container of the current tree view. `undefined` if the tree is 
      * not opened yet.
@@ -30,9 +32,9 @@ export interface ITreeService<T> extends IDisposable, IService {
     readonly isOpened: boolean;
 
     /**
-     * Fires when a file / page is selected (not opened yet).
+     * Fires when a file / folder is selected (not opened yet).
      */
-    onSelect: Register<any>; // TODO
+    onSelect: Register<IFileTreeOpenEvent<T>>;
 
     /**
      * // TODO

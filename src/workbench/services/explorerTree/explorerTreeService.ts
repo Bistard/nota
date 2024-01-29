@@ -13,11 +13,11 @@ import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEv
 import { createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
-import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, errorToMessage, ok } from "src/base/common/error";
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
-export interface IExplorerTreeService extends ITreeService<IFileTreeOpenEvent<FileItem> | any> {
+export interface IExplorerTreeService extends ITreeService<FileItem> {
 
     /**
      * The displaying tree mode.
@@ -34,7 +34,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [event]
 
-    private readonly _onSelect = this.__register(new RelayEmitter<unknown>());
+    private readonly _onSelect = this.__register(new RelayEmitter<IFileTreeOpenEvent<FileItem>>());
     public readonly onSelect = this._onSelect.registerListener;
 
     // [field]
@@ -48,7 +48,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private readonly classicTreeService: IFileTreeService;
 
     private _currTreeDisposable?: IDisposable;
-    private _currentTreeService?: ITreeService<unknown>;
+    private _currentTreeService?: ITreeService<FileItem>;
     private _onDidResourceChangeScheduler?: IScheduler<IResourceChangeEvent>;
 
     private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
