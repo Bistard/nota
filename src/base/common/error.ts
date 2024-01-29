@@ -156,7 +156,7 @@ const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for mo
  * 
  * @note This function never throws.
  */
-export function errorToMessage(error: any, verbose: boolean = false): string {
+export function errorToMessage(error: any, verbose: boolean = true): string {
     if (!error) {
         return UNKNOWN_MESSAGE;
     }
@@ -871,6 +871,7 @@ export function panic(messageOrError: string | Error): never {
     }
     
     // eslint-disable-next-line local/code-no-throw
+    PanicError.stackTraceLimit = Infinity;
     throw new PanicError(messageOrError);
 }
 
