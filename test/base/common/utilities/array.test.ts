@@ -11,6 +11,12 @@ suite('array-test', () => {
         assert.strictEqual(Arrays.clear([[], 1, 2, 3, 'abc', [true, false, { value: null }]]).length, 0);
     });
 
+    test('swap', () => {
+        assert.deepStrictEqual(Arrays.swap([], 0, 1), []);
+        assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 3), [1, 2, 3]);
+        assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 2), [3, 2, 1]);
+    });
+
     test('remove', () => {
         const arr = [1, 1, 2, 3, 4, 5];
         assert.deepStrictEqual(Arrays.remove(arr, 1), [1, 2, 3, 4, 5]);

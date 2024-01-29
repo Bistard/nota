@@ -15,6 +15,18 @@ export namespace Arrays {
     }
 
     /**
+     * @description Swap element at index1 with element at index2
+     */
+    export function swap<T>(array: T[], index1: number, index2: number): void {
+        if (array[index1] === undefined || array[index2] === undefined) {
+            return;
+        }
+        const temp = array[index1]!;
+        array[index1] = array[index2]!;
+        array[index2] = temp;
+    }
+
+    /**
      * @description Whether the given value exsits in the given array.
      */
     export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {
