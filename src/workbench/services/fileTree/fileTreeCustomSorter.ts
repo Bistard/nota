@@ -68,12 +68,14 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * @description Attempts to load the custom sort order for a given folder.
      * Errors will be logged out instead of returned as Result.
      */
-    safeLoadSortOrder(folder: TItem): void;
+    safeLoadSortOrder(folder: TItem): Promise<void>;
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
     
     // [fields]
+
+    private readonly _orderRootPath: URI;
 
     // TODO: need a detailed documentation on this field
     private readonly _customSortOrderMap: ResourceMap<[boolean, UnbufferedScheduler<URI>, string[]]>;
@@ -89,6 +91,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         super();
         this._customSortOrderMap = new ResourceMap();
         this._delay = new Time(TimeUnit.Minutes, 5);
+        this._orderRootPath = URI.join(this.environmentService.userDataPath, '.wisp', 'sortings');
     }
     
     // [public methods]
@@ -196,7 +199,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 const updatedSortOrder = existingOrder.filter(item => newItemNames.has(item))
                     .concat(newItems.filter(item => !existingItemSet.has(item.name)).map(item => item.name));
     
-                const scheduler = (resource && resource[ResourceType.Scheduler]) ?? new UnbufferedScheduler<URI>(this._delay.toMs().time, 
+                const scheduler = resource?.[ResourceType.Scheduler] ?? new UnbufferedScheduler<URI>(this._delay.toMs().time, 
                     () => {
                         const res = this._customSortOrderMap.get(parentUri);
                         if (res && res[ResourceType.Accessed] === true) {
@@ -230,7 +233,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     private __findOrCreateOrderFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
         const hashCode = generateMD5Hash(URI.toString(folder.uri));
         const orderFileName = hashCode + ".json";
-        const orderFileURI = URI.join(this.environmentService.userDataPath, hashCode.slice(0, 2), orderFileName);
+        const orderFileURI = URI.join(this._orderRootPath, hashCode.slice(0, 2), orderFileName);
 
         return this.fileService.exist(orderFileURI)
         .andThen(existed => {
@@ -276,7 +279,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         return this.__findOrCreateOrderFile(folder)
         .andThen(orderFileURI => jsonSafeStringify(this.__getOrderOf(folder.uri), undefined, 4) // TODO
             .toAsync()
-            .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify)))));
+            .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify), { create: false, overwrite: true, }))));
     }
 
     private __getOrderOf(uri: URI): string[] | undefined {

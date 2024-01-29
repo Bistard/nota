@@ -1,9 +1,7 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/error";
-import { FileOperationError } from "src/base/common/files/file";
 import { CompareFn } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { FileItem, IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 /**
@@ -93,8 +91,8 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         }
     }
 
-    public initCustomSorter(folder: TItem): void {
-        this._customSorter.safeLoadSortOrder(folder);
+    public async initCustomSorter(folder: TItem): Promise<void> {
+        return this._customSorter.safeLoadSortOrder(folder);
     }
     
     // [private helper methods]

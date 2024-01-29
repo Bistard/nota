@@ -97,10 +97,17 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
         
-        // make sure the root directory exists first
-        return this.fileService.stat(root, { resolveChildren: true })
+        /**
+         * Make sure the root directory exists first.
+         * Only resolving the direct children of the root, indicates we are 
+         * always collapsing the tree at the beginning.
+         */
+        return this.fileService.stat(root, { 
+            resolveChildren: true,
+            resolveChildrenRecursive: false,
+        })
 
-        // build the tree
+        // start building the tree
         .andThen(rootStat => {
             
             // retrieve tree configurations
@@ -109,7 +116,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
             };
 
-            // build sorter
+            // construct sorter and initialize it after
             const [sorter, registerSorterListeners] = this.__initSorter();
             this.__register(sorter);
 
@@ -162,8 +169,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             tree.onRefresh(() => {
                 // TODO
             });
-            tree.onDidExpand(async (e) => {
-                sorter.initCustomSorter(e.node.data);
+            tree.onDidExpand(async e => {
+                await sorter.initCustomSorter(e.node.data);
             });
         };
 
