@@ -146,19 +146,19 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         await this._tree.expand(targetOver);
 
         /**
-         * Iterate every drop items and try to move to the destination. If any
-         * existed files or folders found at the destination, a window will pop
-         * up and ask for user permission if to overwrite.
+         * Iterate every selecting items and try to move to the destination. If 
+         * any existing files or folders found at the destination, a window will 
+         * pop up and ask for user permission if to overwrite.
          */
         for (const dragItem of currentDragItems) {
-            const targetURI = URI.join(targetOver.uri, dragItem.name);
-            await this.fileService.moveTo(dragItem.uri, targetURI)
+            const destination = URI.join(targetOver.uri, dragItem.name);
+            await this.fileService.moveTo(dragItem.uri, destination)
                 .map(() => {})
                 .orElse(error => {
                     
                     if (error.code === FileOperationErrorType.FILE_EXISTS) {
                         // TODO: pop up a window for confirm about should we overwrite
-                        this.logService.warn('target already exists at', URI.toString(targetURI));
+                        this.logService.warn('target already exists at', URI.toString(destination));
                         return ok();
                     }
                     
