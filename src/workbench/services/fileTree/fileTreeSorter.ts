@@ -10,6 +10,7 @@ import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/servi
  * An interface only for {@link FileTreeSorter}.
  */
 export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDisposable {
+    
     compare(a: TItem, b: TItem): number;
     setType(sortType: FileSortType): void;
     setOrder(sortOrder: FileSortOrder): void;
@@ -93,7 +94,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     }
 
     public initCustomSorter(folder: TItem): void {
-        this._customSorter.loadSortOrderWithoutError(folder);
+        this._customSorter.safeLoadSortOrder(folder);
     }
     
     // [private helper methods]
