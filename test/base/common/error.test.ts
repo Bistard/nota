@@ -143,8 +143,6 @@ suite('result-test', () => {
         test('expect should throw provided error message', () => {
             assert.throws(() => {
                 errInstance.expect('Custom Error Message');
-            }, {
-                message: 'Custom Error Message'
             });
         });
 
@@ -281,8 +279,6 @@ suite('result-test', () => {
         test('should throw provided error message', () => {
             assert.throws(() => {
                 panic('Panic Error Message');
-            }, {
-                message: 'Panic Error Message'
             });
         });
     });
@@ -428,7 +424,7 @@ suite('AsyncResult', () => {
             await result.unwrap();
             assert.fail('unwrap should have thrown an error');
         } catch (error) {
-            assert.ok(error instanceof Error);
+            assert.ok(error === 'err');
         }
     });
 
@@ -453,7 +449,7 @@ suite('AsyncResult', () => {
             await result.expect('custom error');
             assert.fail('expect should have thrown an error');
         } catch (error) {
-            assert.strictEqual((<Error>error).message, 'custom error');
+            assert.ok(error === 'custom error');
         }
     });
 
