@@ -168,25 +168,31 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         return this.loadSortOrder(parentItem)
             .andThen(() => {
                 const parentUri = parentItem.uri;
-                const updatedSortOrder = newItems.map(item => item.name);
-                 const scheduler = new UnbufferedScheduler<URI>(this._delay.toMs().time, 
-                (event => {
-                    const resource = this._customSortOrderMap.get(parentUri);
-                    if (resource === undefined) {
-                        return;
-                    }
-                    if (resource[ResourceType.Accessed] === true) {
+                const resource = this._customSortOrderMap.get(parentUri);
+                // Use an empty array if the resource is undefined
+                const existingOrder = resource ? resource[ResourceType.Order] : [];
+                const newItemNames = new Set(newItems.map(item => item.name));
+                const existingItemSet = new Set(existingOrder);
+    
+                // Update the sort order
+                const updatedSortOrder = existingOrder.filter(item => newItemNames.has(item))
+                    .concat(newItems.filter(item => !existingItemSet.has(item.name)).map(item => item.name));
+    
+                const scheduler = resource ? resource[ResourceType.Scheduler] : new UnbufferedScheduler<URI>(this._delay.toMs().time, 
+                (event) => {
+                    const res = this._customSortOrderMap.get(parentUri);
+                    if (res && res[ResourceType.Accessed] === true) {
                         scheduler.schedule(parentUri);
-                        resource[ResourceType.Accessed] = false;
+                        res[ResourceType.Accessed] = false;
                     } else {
                         this._customSortOrderMap.delete(parentUri);
                     }
-                }));
+                });
                 this._customSortOrderMap.set(parentUri, [false, scheduler, updatedSortOrder]);
                 scheduler.schedule(parentUri);
                 return this.saveSortOrder(parentItem);
             });
-    }
+    }   
 
     public loadSortOrderWithoutError(folder: TItem): void{
         this.loadSortOrder(folder).match(
