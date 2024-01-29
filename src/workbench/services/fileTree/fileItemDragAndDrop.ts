@@ -9,7 +9,7 @@ import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { err, ok } from "src/base/common/error";
-import { FileOperationError, FileOperationErrorType, IResolvedFileStat } from "src/base/common/files/file";
+import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time, TimeUnit } from "src/base/common/date";
 
 /**
@@ -117,15 +117,20 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         // dropping target is invalid
         if (!targetOver || !targetIndex) {
             // TODO when dropping on no target, should check for if dropping at the root.
-            console.log('no target');
             return;
         }
 
         /**
-         * If dropping items to itself, we do nothing. 
-         * e.g. dropping folder to itself.
+         * Either following case cannot perform drop operation:
+         *  - One of the selecting item is dropping to itself.
+         *  - One of the selecting item is dropping to its direct parent.
          */
-        if (currentDragItems.some(dragItem => dragItem.id === targetOver.id)) {
+        const cannotDrop = currentDragItems.some(dragItem => {
+            return dragItem.id === targetOver.id ||
+                URI.equals(URI.dirname(dragItem.uri), targetOver.uri);
+        });
+
+        if (cannotDrop) {
             return;
         }
 
@@ -134,7 +139,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
-        console.log('onDragDrop');
+        console.log('onDragDrop'); // TEST
 
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
@@ -146,7 +151,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          * up and ask for user permission if to overwrite.
          */
         for (const dragItem of currentDragItems) {
-            
             const targetURI = URI.join(targetOver.uri, dragItem.name);
             await this.fileService.moveTo(dragItem.uri, targetURI)
                 .map(() => {})
