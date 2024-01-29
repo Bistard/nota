@@ -654,13 +654,21 @@ suite('URI-test', () => {
 	});
 
 	test('isParentOf', () => {
-		assert.ok(URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:')));
-		assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:')));
-		assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo')));
-		assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo\\bar')));
-		assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\foo'), URI.fromFile('c:\\foo\\bar')));
-		assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:\\foo\\bar')));
-		
+		if (IS_WINDOWS) {
+			assert.ok(URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:')));
+			assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:')));
+			assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo\\bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\foo'), URI.fromFile('c:\\foo\\bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:\\foo\\bar')));
+		} else {
+			assert.ok(URI.isParentOf(URI.fromFile('/foo'), URI.fromFile('')));
+			assert.ok(URI.isParentOf(URI.fromFile('/foo/bar'), URI.fromFile('')));
+			assert.ok(URI.isParentOf(URI.fromFile('/foo/bar'), URI.fromFile('/foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('/foo/bar'), URI.fromFile('/foo/bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('/foo/foo'), URI.fromFile('/foo/bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('/foo'), URI.fromFile('/foo/bar')));
+		}
 		
 		assert.ok(URI.isParentOf(URI.parse('foo//bar'), URI.parse('foo')));
 		assert.ok(URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo')));
@@ -669,11 +677,20 @@ suite('URI-test', () => {
 		assert.ok(!URI.isParentOf(URI.parse('foo//foo//foo'), URI.parse('foo//foo//bar')));
 		assert.ok(!URI.isParentOf(URI.parse('foo//foo'), URI.parse('foo//foo//bar')));
 		
-		assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
-		assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
-		assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo')));
-		assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
-		assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
-		assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+		if (IS_WINDOWS) {
+			assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+		} else {
+			assert.ok(URI.isParentOf(URI.fromFile('file:///foo/:foo//bar'), URI.fromFile('file:///foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//bar'), URI.fromFile('file:///foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//bar'), URI.fromFile('file:///foo/:foo//foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//bar'), URI.fromFile('file:///foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//foo'), URI.fromFile('file:///foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo'), URI.fromFile('file:///foo/:foo//foo//bar')));
+		}
 	});
 });
