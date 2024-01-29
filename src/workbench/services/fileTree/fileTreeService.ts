@@ -70,15 +70,15 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [public mehtods]
 
     public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
-        const [sorter, registerSorterListeners] = this.__initSorter();
-        this.__register(sorter);
-        
-        return this.__initTree(container, root, sorter)
-        .andThen(async tree => {
-            registerSorterListeners(tree);
-
-            await tree.refresh();
-        });
+        return this.__initTree(container, root)
+            .andThen(async tree => {
+                
+                /**
+                 * After the tree is constructed, refresh tree to fetch the 
+                 * latest data for the first time.
+                 */
+                await tree.refresh();
+            });
     }
 
     public layout(height?: number | undefined): void {
@@ -95,7 +95,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     // [private helper methods]
 
-    private __initTree(container: HTMLElement, root: URI, sorter: FileTreeSorter<FileItem>): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
+    private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
         
         // make sure the root directory exists first
         return this.fileService.stat(root, { resolveChildren: true })
@@ -108,6 +108,10 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
                 include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
             };
+
+            // build sorter
+            const [sorter, registerSorterListeners] = this.__initSorter();
+            this.__register(sorter);
 
             // initially construct the entire file system hierarchy
             const rootItem = new FileItem(rootStat, null, noop, filterOpts, sorter.compare.bind(sorter));
@@ -135,8 +139,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
             // bind the dnd with the tree
             dndProvider.bindWithTree(tree);
-
+            
+            // enable sorter after tree is constructed
+            registerSorterListeners(tree);
             this._tree = tree;
+
             return ok(tree);
         });
     }   
