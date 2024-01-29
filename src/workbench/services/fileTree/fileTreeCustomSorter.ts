@@ -94,59 +94,48 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // The following TItem.parent are definitely not null, as those following
     // function can only be called when TItem.parent is at collaped state
     public compare(a: TItem, b: TItem): number {
-        const parent = a.parent!;
+        if (a.type === b.type) {
+            const parent = a.parent!;
 
-        const order = this.__getOrderOf(parent.uri);
-        if (order === undefined) {
-            return defaultFileItemCompareFn(a, b);
-        }
-
-        const indexA = order.indexOf(a.name);
-        const indexB = order.indexOf(b.name);
-
-        // FIX: shouldn't be invoked for every compare. Only invoked when the parent is compared entirely.
-        const saveOrderAsync = (item: TItem) => {
-            this.__saveSortOrder(item).match(
-                noop,
-                error => this.logService.error(error),
-            );
-        };
-
-        /**
-         * Both item are found in the order, we compare them easily.
-         */
-        if (indexA !== -1 && indexB !== -1) {
-            return indexA - indexB;
-        } 
-        /**
-         * Item B order info is not found, we put B at the end by default.
-         */
-        else if (indexA !== -1) {
-            order.push(b.name);
-            saveOrderAsync(parent);
-            return CompareOrder.First;
-        } 
-        /**
-         * Item A order info is not found, we put A at the end by default.
-         */
-        else if (indexB !== -1) {
-            order.push(a.name);
-            saveOrderAsync(parent);
-            return CompareOrder.Second;
-        } 
-        /**
-         * Both items are not found, item A and B will be sort as default.
-         * @see defaultFileItemCompareFn
-         */
-        else {
-            const defaultRes = defaultFileItemCompareFn(a, b);
-            if (defaultRes < 0) {
-                order.push(a.name); order.push(b.name);
-            } else {
-                order.push(b.name); order.push(a.name);
+            const order = this.__getOrderOf(parent.uri);
+            if (order === undefined) {
+                return defaultFileItemCompareFn(a, b);
             }
-            saveOrderAsync(parent);
-            return defaultFileItemCompareFn(a, b);
+
+            const indexA = order.indexOf(a.name);
+            const indexB = order.indexOf(b.name);
+
+            /**
+             * Both item are found in the order, we compare them easily.
+             */
+            if (indexA !== -1 && indexB !== -1) {
+                return indexA - indexB;
+            } 
+            /**
+             * Item B order info is not found, we put B at the end by default.
+             */
+            else if (indexA !== -1) {
+                this.logService.error("ItemA is missing in custom order file");
+                return CompareOrder.First;
+            } 
+            /**
+             * Item A order info is not found, we put A at the end by default.
+             */
+            else if (indexB !== -1) {
+                this.logService.error("ItemB is missing in custom order file");
+                return CompareOrder.Second;
+            } 
+            /**
+             * Both items are not found, item A and B will be sort as default.
+             * @see defaultFileItemCompareFn
+             */
+            else {
+                return defaultFileItemCompareFn(a, b);
+            }
+        } else if (a.isDirectory()) {
+            return CompareOrder.First;
+        } else {
+            return CompareOrder.Second;
         }
     }
 
