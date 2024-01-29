@@ -7,6 +7,10 @@ import { Mutable } from "src/base/common/utilities/type";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
+import { ILogService } from "src/base/common/logger";
+import { err, ok } from "src/base/common/error";
+import { FileOperationError, FileOperationErrorType, IResolvedFileStat } from "src/base/common/files/file";
+import { Time, TimeUnit } from "src/base/common/date";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -18,7 +22,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
 
-    private static readonly EXPAND_DELAY = 300;
+    private static readonly EXPAND_DELAY = new Time(TimeUnit.Milliseconds, 600);
     private readonly _delayExpand: Scheduler<{ item: FileItem, index: number; }>;
     /**
      * When dragging over an item, this array is a temporary place to store the 
@@ -29,10 +33,11 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     // [constructor]
 
     constructor(
-        private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
+        @IFileService private readonly fileService: IFileService,
     ) {
 
-        this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async (event) => {
+        this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY.toMs().time, async event => {
             const { item, index } = event[0]!;
             await this._tree.expand(item);
             this._dragSelections = this._tree.selectRecursive(item, index);
@@ -107,17 +112,57 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         return true;
     }
 
-    public onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): void {
+    public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
 
         // dropping target is invalid
         if (!targetOver || !targetIndex) {
+            // TODO when dropping on no target, should check for if dropping at the root.
+            console.log('no target');
             return;
         }
 
-        // expand immediately
-        this._delayExpand.cancel(true);
-        this._tree.expand(targetOver);
+        /**
+         * If dropping items to itself, we do nothing. 
+         * e.g. dropping folder to itself.
+         */
+        if (currentDragItems.some(dragItem => dragItem.id === targetOver.id)) {
+            return;
+        }
 
+        // dropping on files does nothing for now
+        if (targetOver.isFile()) {
+            return;
+        }
+
+        console.log('onDragDrop');
+
+        // expand folder immediately when drops
+        this._delayExpand.cancel(true);
+        await this._tree.expand(targetOver);
+
+        /**
+         * Iterate every drop items and try to move to the destination. If any
+         * existed files or folders found at the destination, a window will pop
+         * up and ask for user permission if to overwrite.
+         */
+        for (const dragItem of currentDragItems) {
+            
+            const targetURI = URI.join(targetOver.uri, dragItem.name);
+            await this.fileService.moveTo(dragItem.uri, targetURI)
+                .map(() => {})
+                .orElse(error => {
+                    
+                    if (error.code === FileOperationErrorType.FILE_EXISTS) {
+                        // TODO: pop up a window for confirm about should we overwrite
+                        this.logService.warn('target already exists at', URI.toString(targetURI));
+                        return ok();
+                    }
+                    
+                    return err(error);
+                })
+                .unwrap();
+        }
+        
         this.__removeDragSelections();
     }
 
@@ -138,8 +183,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         if (this._dragSelections.length === 0) {
             return;
         }
-
-        console.log('[removed drag selections]');
 
         const currSelections = this._tree.getSelections();
         const updatedSelections = Arrays.relativeComplement(this._dragSelections, currSelections);

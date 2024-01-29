@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, isNullable } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -864,7 +864,12 @@ export class Err<T, E> implements IResult<T, E> {
  * @throws Will throw an error.
  * @returns This function never returns normally; always throws an error.
  */
-export function panic(error: any): never {
+export function panic(error: unknown): never {
+    if (isNullable(error)) {
+        // eslint-disable-next-line local/code-no-throw
+        throw new Error('unknown panic error');
+    }
+    
     // eslint-disable-next-line local/code-no-throw
     throw error;
 }

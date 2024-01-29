@@ -4,6 +4,7 @@ import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
+import { memoize } from "src/base/common/memoization";
 import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 
@@ -11,6 +12,9 @@ import { IFileService } from "src/platform/files/common/fileService";
  * An interface only for {@link FileItem}.
  */
 export interface IFileItem<TItem extends IFileItem<TItem>> {
+
+    /** The unique representation of the target. */
+    readonly id: string;
 
     /** The {@link URI} of the target. */
     readonly uri: URI;
@@ -122,9 +126,7 @@ export class FileItem implements IFileItem<FileItem> {
     ) {
         this._stat = stat;
         this._parent = parent;
-        if (!cmpFn) {
-            cmpFn = defaultFileItemCompareFn;
-        }
+        cmpFn ??= defaultFileItemCompareFn;
 
         if (stat.children) {
             this._isResolved = true;
@@ -149,6 +151,9 @@ export class FileItem implements IFileItem<FileItem> {
     }
 
     // [get method]
+
+    @memoize
+    get id(): string { return URI.toString(this.uri); }
 
     get uri(): URI { return this._stat.uri; }
 
