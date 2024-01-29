@@ -634,7 +634,7 @@ export class ServerBase extends Disposable implements IChannelServer {
          * event.
          */
         this.__register(onClientConnect((event: IClientConnectEvent) => {
-            this.logService?.debug(`[ServerBase] client on connection with ID: ${event.clientID}`);
+            this.logService?.debug('ServerBase', `client on connection`, { ID: event.clientID });
             const protocol = event.protocol;
 
             /**
@@ -666,7 +666,7 @@ export class ServerBase extends Disposable implements IChannelServer {
                 onClientDisconnect(() => {
                     channelServer.dispose();
                     this._connections.delete(connection);
-                    this.logService?.debug(`[ServerBase] client on disconnect with ID: ${event.clientID}`);
+                    this.logService?.debug('ServerBase', `client on disconnect.`, { ID: event.clientID });
                 });
             });
         }));

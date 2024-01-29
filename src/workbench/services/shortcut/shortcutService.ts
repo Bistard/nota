@@ -16,7 +16,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyExpr";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
-import { AsyncResult, Ok, Result, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, Result, err, errorToMessage, ok } from "src/base/common/error";
 import { FileOperationError } from "src/base/common/files/file";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
@@ -162,8 +162,8 @@ export class ShortcutService extends Disposable implements IShortcutService {
             { create: true, overwrite: true, unlock: true }
         ))
         .match(
-            () => this.logService.info(`Window ID - ${this.environmentService.windowID} - shortcut configuration saved at ${URI.toString(this._resource)}`),
-            (error) => this.logService.error(`Window ID - ${this.environmentService.windowID} - shortcut configuration failed to save at ${URI.toString(this._resource)}`, errorToMessage(error)),
+            () => this.logService.info('ShortcutService', 'shortcut configuration saved.', { WindowID: this.environmentService.windowID, at: URI.toString(this._resource) }),
+            (error) => this.logService.error('ShortcutService', 'shortcut configuration failed to save.', error, { at: URI.toString(this._resource) }),
         );
     }
 
@@ -172,7 +172,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         return this.fileService.exist(this._resource)
         .andThen<DataBuffer | void, FileOperationError>(exist => {
             if (!exist) {
-                this.logService.debug(`shortcut configuration cannot found at ${URI.toString(this._resource)}`);
+                this.logService.debug('ShortcutService', `shortcut configuration cannot found.`, { at: URI.toString(this._resource) });
                 return ok();
             }
 
@@ -195,13 +195,13 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 return ok();
             }
             
-            this.logService.debug(`shortcut configuration loaded at '${URI.toString(this._resource)}'`);
+            this.logService.debug('ShortcutService', `shortcut configuration loaded.`, { at: URI.toString(this._resource) });
 
             for (const { commandID, shortcut: name, when, weight } of configuration) {
                 const load = this.__loadCommandBy(commandID, name, when, weight);
                 load.match(
-                    () => this.logService.trace(`Shortcut registered: '${commandID} (${name})'`),
-                    (error) => this.logService.warn(`Shortcut failed to register: '${commandID} (${name})'. Reason: ${errorToMessage(error)}`)
+                    () => this.logService.trace('ShortcutService', `Shortcut registered: '${commandID} (${name})'`),
+                    (error) => this.logService.warn('ShortcutService', `Shortcut failed to register: '${commandID} (${name})'.`, { error: error })
                 );
             }
 
@@ -223,7 +223,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
              * the third party to have the chance to be notified.
              */
             if (weight === ShortcutWeight.ExternalExtension) {
-                this.logService.info(`The shortcut '${commandID} (${name})' that binds with the command '${commandID}' that is already registered.`);
+                this.logService.info('ShortcutService', `The shortcut '${commandID} (${name})' that binds with the command '${commandID}' that is already registered.`, { commandID: commandID, name: name, });
             }
 
             return ok();

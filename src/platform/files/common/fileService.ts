@@ -153,6 +153,7 @@ export class FileService extends Disposable implements IFileService {
 
     constructor(@ILogService private readonly logService: ILogService) {
         super();
+        logService.trace('FileService', 'FileService constructed.');
     }
 
     /***************************************************************************
@@ -164,7 +165,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace(`[FileService] stop watching on '${URI.toString(uri)}'`);
+            this.logService.trace('FileService', `stop watching at:`, { at: URI.toString(uri) });
 
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
@@ -173,6 +174,8 @@ export class FileService extends Disposable implements IFileService {
                 this._onDidAllResourceClosed.fire();
             }
         }));
+
+        this.logService.trace('FileService', 'Provider registered.', { scheme: scheme });
     }
 
     public getProvider(scheme: string | Schemas): IFileSystemProvider | undefined {
@@ -316,11 +319,11 @@ export class FileService extends Disposable implements IFileService {
 
     public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
         if (this._activeWatchers.has(uri)) {
-            this.logService.warn('[FileService] duplicate watching on the same resource', URI.toString(uri));
+            this.logService.warn('FileService', 'duplicate watching on the same resource.', { URI: URI.toString(uri) });
             return AsyncResult.ok(Disposable.NONE);
         }
 
-        this.logService.trace(`[FileService] Watching on '${URI.toString(uri)}'`);
+        this.logService.trace('FileService', `Start watching on file...`, { URI: URI.toString(uri) });
 
         const get = this.__getProvider(uri);
         if (get.isErr()) {

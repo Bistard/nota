@@ -14,8 +14,9 @@ export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, I
  * array.
  * @param service The desired {@link IEnvironmentService}.
  */
-export function getAllEnvironments(service: IEnvironmentService): string[] {
-    const result: string[] = [];
+export function getAllEnvironments(service: IEnvironmentService): Record<string, string> {
+    const result = {};
+
     let value: any;
     iterProp(service, (propName) => {
         if (propName !== 'constructor' && typeof service[propName] !== 'function') {
@@ -29,7 +30,8 @@ export function getAllEnvironments(service: IEnvironmentService): string[] {
             else {
                 value = propVal;
             }
-            result.push(`${propName}: ${value}`);
+
+            result[propName] = value;
         }
     }, -1);
     return result;

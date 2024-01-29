@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, IDisposable, disposeAll } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IScheduler, Scheduler } from "src/base/common/utilities/async";
@@ -13,8 +13,8 @@ import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEv
 import { createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
-import { AsyncResult, errorToMessage, ok } from "src/base/common/error";
 import { Time, TimeUnit } from "src/base/common/date";
+import { AsyncResult, ok } from "src/base/common/error";
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
@@ -168,7 +168,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         const result = this.fileService.watch(root, { recursive: true });
         result.match<void>(
             (disposable) => disposables.register(disposable),
-            error => this.logService.warn(errorToMessage(error)),
+            error => this.logService.warn('ExplorerTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
         );
         
         disposables.register(this._onDidResourceChangeScheduler);
