@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { after, before } from 'mocha';
+import { INSTANT_TIME, Time, TimeUnit } from 'src/base/common/date';
 import { Emitter, Event, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { URI } from 'src/base/common/files/uri';
@@ -173,15 +174,15 @@ suite('IPC-test', function () {
 			const messages: string[] = [];
 
 			ipcService.onPong(msg => messages.push(msg));
-			await delayFor(0);
+			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, []);
 			service.ping('hello');
-			await delayFor(0);
+			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello']);
 			service.ping('world');
-			await delayFor(0);
+			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello', 'world']);
 		});
@@ -232,15 +233,15 @@ suite('IPC-test', function () {
 			const messages: string[] = [];
 
 			ipcService.onPong(msg => messages.push(msg));
-			await delayFor(0);
+			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, []);
 			service.ping('hello');
-			await delayFor(0);
+			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello']);
 			service.ping('world');
-			await delayFor(0);
+			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello', 'world']);
 		});
@@ -268,10 +269,10 @@ suite('IPC-test', function () {
 			const ipcService2 = new TestClientChannel(client2.getChannel('channel'));
 			ipcService2.onPong(() => client2GotPinged = true);
 
-			await delayFor(1);
+			await delayFor(new Time(TimeUnit.Milliseconds, 1));
 			service.ping('hello');
 
-			await delayFor(1);
+			await delayFor(new Time(TimeUnit.Milliseconds, 1));
 			assert.ok(client1GotPinged);
 			assert.ok(client2GotPinged);
 

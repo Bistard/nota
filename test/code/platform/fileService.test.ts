@@ -15,6 +15,7 @@ import { listenStream } from 'src/base/common/files/stream';
 import { directoryExists } from 'src/base/node/io';
 import { ResourceChangeType } from 'src/platform/files/common/watcher';
 import { IS_LINUX } from 'src/base/common/platform';
+import { Time, TimeUnit } from 'src/base/common/date';
 
 suite('FileService-disk-test', () => {
 
@@ -420,14 +421,14 @@ suite('FileService-disk-test', () => {
         
         const unwatch = await service.watch(dir, { recursive: true }).unwrap();
 
-        const first = new EventBlocker(service.onDidResourceChange, 10000);
+        const first = new EventBlocker(service.onDidResourceChange, new Time(TimeUnit.Milliseconds, 10000));
         await service.createFile(URI.join(dir, 'nest-file1'), DataBuffer.alloc(0)).unwrap();
         
         const events = await first.waiting();
         assert.ok(events.wrap().affect(dir));
         unwatch.dispose();
 
-        const second = new EventBlocker(service.onDidResourceChange, 100);
+        const second = new EventBlocker(service.onDidResourceChange, new Time(TimeUnit.Milliseconds, 100));
         await service.delete(URI.join(dir, 'nest-file1')).unwrap();
         
         return assert.rejects(() => second.waiting());

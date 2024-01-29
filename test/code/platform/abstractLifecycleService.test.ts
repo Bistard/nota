@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { INSTANT_TIME } from 'src/base/common/date';
 import { delayFor } from 'src/base/common/utilities/async';
 import { AbstractLifecycleService } from 'src/platform/lifecycle/common/abstractLifecycleService';
 import { NullLogger } from 'test/utils/testService';
@@ -31,12 +32,12 @@ suite('abstract-lifecycle-service-test', () => {
         service.when(TestPhase.Phase1).then(() => currPhase.push(TestPhase.Phase1));
 
         service.setPhase(TestPhase.Phase1);
-        await delayFor(0, () => assert.strictEqual(currPhase[0], TestPhase.Phase1));
+        await delayFor(INSTANT_TIME, () => assert.strictEqual(currPhase[0], TestPhase.Phase1));
 
         service.when(TestPhase.Phase2).then(() => currPhase.push(TestPhase.Phase2));
         service.when(TestPhase.Phase3).then(() => currPhase.push(TestPhase.Phase3));
 
         service.setPhase(TestPhase.Phase3);
-        await delayFor(0, () => assert.strictEqual(currPhase[1], TestPhase.Phase3));
+        await delayFor(INSTANT_TIME, () => assert.strictEqual(currPhase[1], TestPhase.Phase3));
     });
 });

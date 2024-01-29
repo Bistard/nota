@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { afterEach, before } from 'mocha';
+import { Time, TimeUnit } from 'src/base/common/date';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { IS_LINUX } from 'src/base/common/platform';
@@ -105,7 +106,7 @@ suite('watcher-test', () => {
             recursive: false,
         });
 
-        const blocker = new EventBlocker<IRawResourceChangeEvents>(watcher.onDidChange, 10);
+        const blocker = new EventBlocker<IRawResourceChangeEvents>(watcher.onDidChange, new Time(TimeUnit.Milliseconds, 10));
         await fileService.writeFile(fileURI, DataBuffer.fromString('hello world'), { create: true, overwrite: true, }).unwrap();
         
         return assert.rejects(() => blocker.waiting())

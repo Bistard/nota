@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from "electron";
+import { Time, TimeUnit } from "src/base/common/date";
 import { errorToMessage } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
@@ -119,7 +120,8 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
         await Promise.race([
             // ensure wait no more than 1s.
-            delayFor(1000),
+            delayFor(new Time(TimeUnit.Seconds, 1)),
+            
             // try to kill all the windows
             (async () => {
                 for (const window of BrowserWindow.getAllWindows()) {

@@ -37,7 +37,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         @IFileService private readonly fileService: IFileService,
     ) {
 
-        this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY.toMs().time, async event => {
+        this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
             const { item, index } = event[0]!;
             await this._tree.expand(item);
             this._dragSelections = this._tree.selectRecursive(item, index);

@@ -170,7 +170,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 const updatedSortOrder = existingOrder.filter(item => newItemNames.has(item))
                     .concat(newItems.filter(item => !existingItemSet.has(item.name)).map(item => item.name));
     
-                const scheduler = resource?.[ResourceType.Scheduler] ?? new UnbufferedScheduler<URI>(this._delay.toMs().time, 
+                const scheduler = resource?.[ResourceType.Scheduler] ?? new UnbufferedScheduler<URI>(this._delay, 
                     () => {
                         const res = this._customSortOrderMap.get(parentUri);
                         if (res && res[ResourceType.Accessed] === true) {
@@ -227,7 +227,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
         .andThen(order => {
-            const scheduler = new UnbufferedScheduler<URI>(this._delay.toMs().time, 
+            const scheduler = new UnbufferedScheduler<URI>(this._delay, 
                 (event => {
                     const resource = this._customSortOrderMap.get(folder.uri);
                     if (resource === undefined) {

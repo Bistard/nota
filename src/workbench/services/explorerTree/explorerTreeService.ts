@@ -14,6 +14,7 @@ import { createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { AsyncResult, errorToMessage, ok } from "src/base/common/error";
+import { Time, TimeUnit } from "src/base/common/date";
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
@@ -51,7 +52,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private _currentTreeService?: ITreeService<FileItem>;
     private _onDidResourceChangeScheduler?: IScheduler<IResourceChangeEvent>;
 
-    private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
+    private static readonly ON_RESOURCE_CHANGE_DELAY = new Time(TimeUnit.Milliseconds, 100);
 
     // [constructor]
 

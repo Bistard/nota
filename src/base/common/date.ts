@@ -92,3 +92,5 @@ export class Time {
         return this.toMs().time === time.toMs().time;
     }
 }
+
+export const INSTANT_TIME = new Time(TimeUnit.Milliseconds, 0);

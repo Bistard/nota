@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { INSTANT_TIME } from 'src/base/common/date';
 import { delayFor } from 'src/base/common/utilities/async';
 import { FakeAsync, IFakeAsyncOptions } from 'test/utils/fakeAsync';
 import { FakeConsole } from 'test/utils/fakeConsole';
@@ -46,14 +47,14 @@ suite('FakeAsync-test', () => {
 
     test('run function with enable option false', async () => {
         let counter = 0;
-        const incrementCounter = async () => delayFor(0, () => counter++);
+        const incrementCounter = async () => delayFor(INSTANT_TIME, () => counter++);
         await FakeAsync.run(incrementCounter, { enable: false });
         assert.strictEqual(counter, 1);
     });
 
     test('run function with enable option true', async () => {
         let counter = 0;
-        const incrementCounter = async () => delayFor(0, () => counter++);
+        const incrementCounter = async () => delayFor(INSTANT_TIME, () => counter++);
         await FakeAsync.run(incrementCounter, { enable: true });
         assert.strictEqual(counter, 1);
     });

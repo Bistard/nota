@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { before } from 'mocha';
+import { INSTANT_TIME } from 'src/base/common/date';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { LogLevel, parseToLogLevel } from 'src/base/common/logger';
 import { delayFor } from 'src/base/common/utilities/async';
@@ -130,19 +131,19 @@ suite('LoggerService', () => {
 
             // consturct logger from client side
             const browserLogger = browserLoggerService.createLogger(URI.fromFile('base'), { name: 'test.log' });
-            await delayFor(0);
+            await delayFor(INSTANT_TIME);
             assert.ok((await fileService.exist(URI.fromFile('base/test.log')).unwrap()));
             const mainLogger = loggerService.getLogger(URI.fromFile('base'));
             assert.ok(mainLogger);
 
             // log from client side
             browserLogger.info('hello world');
-            await delayFor(0);
+            await delayFor(INSTANT_TIME);
             await assertLastLineLogMessage(LogLevel.INFO, 'hello world');
 
             // ignore log from client side
             browserLogger.trace('hello world again');
-            await delayFor(0);
+            await delayFor(INSTANT_TIME);
             await assertLastLineLogMessage(LogLevel.INFO, 'hello world');
         });
     });
