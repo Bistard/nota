@@ -115,14 +115,14 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
              * Item B order info is not found, we put B at the end by default.
              */
             else if (indexA !== -1) {
-                this.logService.error("ItemA is missing in custom order file");
+                this.logService.error('FileTreeCustomSorter', 'ItemA is missing in custom order file');
                 return CompareOrder.First;
             } 
             /**
              * Item A order info is not found, we put A at the end by default.
              */
             else if (indexB !== -1) {
-                this.logService.error("ItemB is missing in custom order file");
+                this.logService.error('FileTreeCustomSorter', 'ItemB is missing in custom order file');
                 return CompareOrder.Second;
             } 
             /**
@@ -191,7 +191,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         await this.__loadSortOrder(folder)
         .match(
             noop,
-            (error => this.logService.error(error))
+            (error => this.logService.error('FileTreeCustomSorter', `Cannot load custom sort order at: '${folder.id}'`, error))
         );
     }
     
