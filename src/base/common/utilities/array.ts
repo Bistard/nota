@@ -17,13 +17,18 @@ export namespace Arrays {
     /**
      * @description Swap element at index1 with element at index2
      */
-    export function swap<T>(array: T[], index1: number, index2: number): void {
-        if (array[index1] === undefined || array[index2] === undefined) {
-            return;
+    export function swap<T>(array: T[], index1: number, index2: number): T[] {
+        const item1 = array[index1];
+        const item2 = array[index2];
+
+        if (item1 === undefined || item2 === undefined) {
+            return array;
         }
-        const temp = array[index1]!;
-        array[index1] = array[index2]!;
-        array[index2] = temp;
+
+        array[index1] = item2;
+        array[index2] = item1;
+
+        return array;
     }
 
     /**
