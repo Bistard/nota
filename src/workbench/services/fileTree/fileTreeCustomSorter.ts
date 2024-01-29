@@ -148,43 +148,43 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             return this.__saveSortOrder(item.parent!);
         }
         return this.__loadSortOrder(item.parent!)
-            .andThen(() => {
-                this.__changeOrderBasedOnType(changeType, item, index1, index2);
-                return this.__saveSortOrder(item.parent!);
-            });
+        .andThen(() => {
+            this.__changeOrderBasedOnType(changeType, item, index1, index2);
+            return this.__saveSortOrder(item.parent!);
+        });
     }
 
     // TODO: compare the given array with the exsiting order array
     // Updates custom sort order items based on provided array of new items
     public syncOrderFile(parentItem: TItem, newItems: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.__loadSortOrder(parentItem)
-            .andThen(() => {
-                const parentUri = parentItem.uri;
-                const resource = this._customSortOrderMap.get(parentUri);
-                // Use an empty array if the resource is undefined
-                const existingOrder = resource ? resource[ResourceType.Order] : [];
-                const newItemNames = new Set(newItems.map(item => item.name));
-                const existingItemSet = new Set(existingOrder);
-    
-                // Update the sort order
-                const updatedSortOrder = existingOrder.filter(item => newItemNames.has(item))
-                    .concat(newItems.filter(item => !existingItemSet.has(item.name)).map(item => item.name));
-    
-                const scheduler = resource?.[ResourceType.Scheduler] ?? new UnbufferedScheduler<URI>(this._delay, 
-                    () => {
-                        const res = this._customSortOrderMap.get(parentUri);
-                        if (res && res[ResourceType.Accessed] === true) {
-                            scheduler.schedule(parentUri);
-                            res[ResourceType.Accessed] = false;
-                        } else {
-                            this._customSortOrderMap.delete(parentUri);
-                        }
-                    },
-                );
-                this._customSortOrderMap.set(parentUri, [false, scheduler, updatedSortOrder]);
-                scheduler.schedule(parentUri);
-                return this.__saveSortOrder(parentItem);
-            });
+        .andThen(() => {
+            const parentUri = parentItem.uri;
+            const resource = this._customSortOrderMap.get(parentUri);
+            // Use an empty array if the resource is undefined
+            const existingOrder = resource ? resource[ResourceType.Order] : [];
+            const newItemNames = new Set(newItems.map(item => item.name));
+            const existingItemSet = new Set(existingOrder);
+
+            // Update the sort order
+            const updatedSortOrder = existingOrder.filter(item => newItemNames.has(item))
+                .concat(newItems.filter(item => !existingItemSet.has(item.name)).map(item => item.name));
+
+            const scheduler = resource?.[ResourceType.Scheduler] ?? new UnbufferedScheduler<URI>(this._delay, 
+                () => {
+                    const res = this._customSortOrderMap.get(parentUri);
+                    if (res && res[ResourceType.Accessed] === true) {
+                        scheduler.schedule(parentUri);
+                        res[ResourceType.Accessed] = false;
+                    } else {
+                        this._customSortOrderMap.delete(parentUri);
+                    }
+                },
+            );
+            this._customSortOrderMap.set(parentUri, [false, scheduler, updatedSortOrder]);
+            scheduler.schedule(parentUri);
+            return this.__saveSortOrder(parentItem);
+        });
     }   
 
     public async safeLoadSortOrder(folder: TItem): Promise<void> {
