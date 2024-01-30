@@ -1,4 +1,4 @@
-import { Register, RelayEmitter } from "src/base/common/event";
+import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
