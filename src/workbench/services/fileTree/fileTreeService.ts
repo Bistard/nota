@@ -1,4 +1,4 @@
-import { Register } from "src/base/common/event";
+import { Register, RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -44,18 +44,21 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     // [event]
 
-    get onSelect(): Register<IFileTreeOpenEvent<FileItem>> {
-        return this._tree!.onSelect;
-    }
-
+    private readonly _onSelect = this.__register(new RelayEmitter<IFileTreeOpenEvent<FileItem>>());
+    public readonly onSelect = this._onSelect.registerListener;
+    
     // [getter]
 
     get container(): HTMLElement | undefined {
-        return (this._tree ? this._tree.DOMElement : undefined);
+        return this._tree?.DOMElement;
     }
 
     get root(): URI | undefined {
-        return (this._tree ? this._tree.root.uri : undefined);
+        return this._tree?.root.uri;
+    }
+
+    get rootItem(): FileItem | undefined {
+        return this._tree?.root;
     }
 
     get isOpened(): boolean {
@@ -67,7 +70,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
         return this.__initTree(container, root)
             .andThen(async tree => {
-                
+                this._onSelect.setInput(tree.onSelect);
+
                 /**
                  * After the tree is constructed, refresh tree to fetch the 
                  * latest data for the first time.

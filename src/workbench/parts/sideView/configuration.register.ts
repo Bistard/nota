@@ -1,4 +1,3 @@
-import { TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
@@ -34,10 +33,6 @@ export const rendererSideViewConfigurationRegister = createRegister(
                         ['explorer']: {
                             type: 'object',
                             properties: {
-                                ['mode']: {
-                                    type: 'string',
-                                    default: TreeMode.Classic,
-                                },
                                 ['include']: {
                                     type: 'array',
                                     default: ['^\\..*'],

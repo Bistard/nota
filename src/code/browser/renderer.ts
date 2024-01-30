@@ -49,13 +49,14 @@ import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { IExplorerTreeService, ExplorerTreeService } from "src/workbench/services/explorerTree/explorerTreeService";
+import { ExplorerTreeService } from "src/workbench/services/explorerTree/explorerTreeService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
 import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
+import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 
 /**
  * @class This is the main entry of the renderer process.

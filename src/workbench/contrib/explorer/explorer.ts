@@ -10,7 +10,6 @@ import { ILogService } from 'src/base/common/logger';
 import { IWorkbenchService } from 'src/workbench/services/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
-import { IExplorerTreeService } from 'src/workbench/services/explorerTree/explorerTreeService';
 import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
@@ -26,6 +25,7 @@ import { RGBA } from 'src/base/common/color';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
+import { IExplorerTreeService } from 'src/workbench/services/explorerTree/treeService';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
