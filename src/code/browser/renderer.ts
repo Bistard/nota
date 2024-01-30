@@ -7,7 +7,7 @@ import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
-import { initExposedElectronAPIs } from "src/platform/electron/browser/global";
+import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
@@ -82,6 +82,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
+
+            if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
+                Error.stackTraceLimit = Infinity;
+            }
 
             // register microservices
             this.rendererServiceRegistrations();

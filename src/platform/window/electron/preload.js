@@ -136,7 +136,7 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
-		windowConfiguration: configuration,
+		WIN_CONFIGURATION: configuration,
 	};
 
 	if (process.contextIsolated === true) {
