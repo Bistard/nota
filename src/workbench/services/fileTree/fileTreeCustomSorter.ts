@@ -94,48 +94,36 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // The following TItem.parent are definitely not null, as those following
     // function can only be called when TItem.parent is at collaped state
     public compare(a: TItem, b: TItem): number {
-        if (a.type === b.type) {
-            const parent = a.parent!;
+        const parent = a.parent!;
 
-            const order = this.__getOrderOf(parent.uri);
-            if (order === undefined) {
-                return defaultFileItemCompareFn(a, b);
-            }
+        const order = this.__getOrderOf(parent.uri);
+        if (order === undefined) {
+            return defaultFileItemCompareFn(a, b);
+        }
 
-            const indexA = order.indexOf(a.name);
-            const indexB = order.indexOf(b.name);
+        const indexA = order.indexOf(a.name);
+        const indexB = order.indexOf(b.name);
 
-            /**
-             * Both item are found in the order, we compare them easily.
-             */
-            if (indexA !== -1 && indexB !== -1) {
-                return indexA - indexB;
-            } 
-            /**
-             * Item B order info is not found, we put B at the end by default.
-             */
-            else if (indexA !== -1) {
-                this.logService.error('FileTreeCustomSorter', 'ItemA is missing in custom order file');
-                return CompareOrder.First;
-            } 
-            /**
-             * Item A order info is not found, we put A at the end by default.
-             */
-            else if (indexB !== -1) {
-                this.logService.error('FileTreeCustomSorter', 'ItemB is missing in custom order file');
-                return CompareOrder.Second;
-            } 
-            /**
-             * Both items are not found, item A and B will be sort as default.
-             * @see defaultFileItemCompareFn
-             */
-            else {
-                return defaultFileItemCompareFn(a, b);
-            }
-        } else if (a.isDirectory()) {
+        // Both item are found in the order, we compare them easily.
+        if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+        } 
+        // Item B order info is not found, we put B at the end by default.
+        else if (indexA !== -1) {
+            this.logService.error('FileTreeCustomSorter', 'ItemA is missing in custom order file');
             return CompareOrder.First;
-        } else {
+        } 
+        // Item A order info is not found, we put A at the end by default.
+        else if (indexB !== -1) {
+            this.logService.error('FileTreeCustomSorter', 'ItemB is missing in custom order file');
             return CompareOrder.Second;
+        } 
+        /**
+         * Both items are not found, item A and B will be sort as default.
+         * @see defaultFileItemCompareFn
+         */
+        else {
+            return defaultFileItemCompareFn(a, b);
         }
     }
 

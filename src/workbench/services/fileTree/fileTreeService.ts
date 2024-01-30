@@ -19,6 +19,9 @@ import { Pair } from "src/base/common/utilities/type";
 import { FileOperationError } from "src/base/common/files/file";
 import { noop } from "src/base/common/performance";
 
+/**
+ * An interface only for {@link FileTreeService}.
+ */
 export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
 }
