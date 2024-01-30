@@ -132,17 +132,16 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          *  - dropping to its direct parent.
          *  - dropping to its child folder.
          */
-        const cannotDrop = currentDragItems.some(dragItem => {
+        const anyCannotDrop = currentDragItems.some(dragItem => {
             const destination = URI.join(targetOver.uri, dragItem.name);
 
-            return dragItem.id === targetOver.id                // dropping to itself
-                || URI.equals(dragItem.uri, destination)        // dropping to its current location
-                || URI.isParentOf(targetOver.uri, dragItem.uri) // dropping to its child folder
+            return dragItem === targetOver
+                || URI.equals(dragItem.uri, destination)
+                || URI.isParentOf(targetOver.uri, dragItem.uri)
             ;
         });
 
-        if (cannotDrop) {
-            console.log('skiped');
+        if (anyCannotDrop) {
             return;
         }
 
