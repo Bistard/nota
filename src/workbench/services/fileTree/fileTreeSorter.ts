@@ -29,7 +29,8 @@ export const enum FileSortOrder {
 }
 
 /**
- * @class // TODO
+ * @class This sorter supports different ways to sort file items. See more 
+ * details at {@link FileSortType} and {@link FileSortOrder}.
  */
 export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeSorter<TItem> {
 

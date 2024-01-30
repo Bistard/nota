@@ -23,9 +23,6 @@ export interface IFileTreeService extends ITreeService<FileItem> {
     // noop
 }
 
-/**
- * // TODO
- */
 export class FileTreeService extends Disposable implements IFileTreeService {
 
     declare _serviceMarker: undefined;
@@ -88,7 +85,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     }
 
     public async close(): Promise<void> {
-        // TODO
+        
     }
 
     // [private helper methods]

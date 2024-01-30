@@ -835,7 +835,6 @@ class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
     }
 
     public negate(): ContextKeyExpr {
-        // TODO
         throw new Error('Context key expression IN does not support negate.');
     }
 
@@ -875,7 +874,6 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
     }
 
     public negate(): ContextKeyExpr {
-        // TODO
         throw new Error('Context key expression REGEX does not support negate.');
     }
 

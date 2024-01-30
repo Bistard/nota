@@ -55,7 +55,6 @@ export interface IWindowInstance extends Disposable {
 
     load(configuration: IWindowConfiguration): Promise<void>;
 
-    // TODO: complete
     toggleFullScreen(force?: boolean): void;
 
     close(): void;
@@ -133,7 +132,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     }
 
     public toggleFullScreen(force?: boolean): void {
-
+        // TODO: complete
     }
 
     public close(): void {

@@ -26,11 +26,9 @@ export class BrowserFileChannel extends Disposable implements IFileService {
     private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());
     public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
-    // TODO
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
     public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
 
-    // TODO
     private readonly _onDidAllResourceClosed = this.__register(new Emitter<void>());
     public readonly onDidAllResourceClosed = this._onDidAllResourceClosed.registerListener;
 

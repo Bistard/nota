@@ -12,7 +12,8 @@ export interface ITreeFilterResult<TFilter> {
 }
 
 /**
- * // TODO
+ * A tree filter provider decides whether the given item should be visible or 
+ * filtered.
  */
 export interface ITreeFilterProvider<T, TFilter> {
 

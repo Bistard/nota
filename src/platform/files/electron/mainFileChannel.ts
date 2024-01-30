@@ -188,8 +188,6 @@ export class MainFileChannel implements IServerChannel {
             disposable => this._activeWatchers.set(raw, disposable),
             error => this.logService.error('MainFileChannel', 'Cannot watch the resource.', error, { URI: URI.toString(uri) }),
         );
-        
-        // TODO
     }
 
     private __unwatch(uri: URI): void {

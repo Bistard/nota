@@ -26,9 +26,6 @@ export interface IExplorerTreeService extends ITreeService<FileItem> {
     readonly mode: TreeMode;
 }
 
-/**
- * // TODO
- */
 export class ExplorerTreeService extends Disposable implements IExplorerTreeService {
 
     declare _serviceMarker: undefined;

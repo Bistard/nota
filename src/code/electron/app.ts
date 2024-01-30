@@ -113,8 +113,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
-        // TODO: update-service
-
         // main-window-serivce
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
@@ -123,8 +121,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
-
-        // TODO: notebook-group-service
 
         // lookup-service
         appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService, []));

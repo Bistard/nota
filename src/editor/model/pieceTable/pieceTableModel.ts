@@ -104,7 +104,6 @@ export class PieceTableModel extends Disposable implements IPieceTableModel {
     //         const oper = rawOperations[i]!;
     //     }
 
-    //     // TODO
     //     return {
     //         changes: []
     //     };

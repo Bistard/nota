@@ -28,8 +28,15 @@ import { IEditorService } from 'src/workbench/parts/workspace/editor/editorServi
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 
 /**
- * // TODO
- * @class
+ * @class Represents an Explorer view within a workbench, providing a UI 
+ * component to navigate and manage the file system hierarchy. 
+ * 
+ * The view includes functionality such as opening files and directories, 
+ * displaying the current directory's contents, and integrating with other 
+ * services like the editor and theme services to enhance the user experience.
+ * 
+ * This class extends `SideView`, allowing it to be used as a side panel
+ * within the application's layout.
  */
 export class ExplorerView extends SideView implements IExplorerViewService {
 
@@ -46,7 +53,6 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-
     private readonly _toolbar = new Toolbar();
 
     // [event]

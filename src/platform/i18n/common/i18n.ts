@@ -118,7 +118,6 @@ export interface II18nService extends IService {
     trans(section: Section, key: string, interpolation?: { [key: string]: string; }): string;
     trans(section: Section, key: string, interpolation?: string[] | { [key: string]: string; }): string;
 
-    // TODO
     /**
      * reload current locale.
      */
@@ -301,7 +300,6 @@ export class i18n implements II18nService {
     }
 
     public async reloadLocale(): Promise<void> {
-        // TODO
         throw new Error('does not support reload locale yet.');
     }
 

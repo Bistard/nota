@@ -248,10 +248,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     
         // utilities && tools
         registerService(IContextService, new ServiceDescriptor(ContextService, []));
-        registerService(INotificationService, new ServiceDescriptor(NotificationService, [])); // TODO: notificationService
-        // TODO: performanceService
-        // TODO: folderTreeService
-        // TODO: notebookTreeService
+        registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
     }
 
     private __registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
