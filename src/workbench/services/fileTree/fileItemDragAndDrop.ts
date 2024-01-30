@@ -120,22 +120,29 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
-        /**
-         * Either following case cannot perform drop operation:
-         *  - One of the selecting item is dropping to itself.
-         *  - One of the selecting item is dropping to its direct parent.
-         */
-        const cannotDrop = currentDragItems.some(dragItem => {
-            return dragItem.id === targetOver.id ||
-                URI.equals(URI.dirname(dragItem.uri), targetOver.uri);
-        });
-
-        if (cannotDrop) {
+        // dropping on files does nothing for now
+        if (targetOver.isFile()) {
             return;
         }
 
-        // dropping on files does nothing for now
-        if (targetOver.isFile()) {
+        /**
+         * Either following case cannot perform drop operation if one of the 
+         * selecting item is:
+         *  - dropping to itself.
+         *  - dropping to its direct parent.
+         *  - dropping to its child folder.
+         */
+        const cannotDrop = currentDragItems.some(dragItem => {
+            const destination = URI.join(targetOver.uri, dragItem.name);
+
+            return dragItem.id === targetOver.id                // dropping to itself
+                || URI.equals(dragItem.uri, destination)        // dropping to its current location
+                || URI.isParentOf(targetOver.uri, dragItem.uri) // dropping to its child folder
+            ;
+        });
+
+        if (cannotDrop) {
+            console.log('skiped');
             return;
         }
 
