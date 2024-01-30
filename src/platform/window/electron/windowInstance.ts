@@ -88,8 +88,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        private readonly configuration: IWindowConfiguration,
         private readonly creationConfig: IWindowCreationOptions,
+        private readonly additionalConfiguration: IWindowConfiguration,
         @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
@@ -103,7 +103,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
         
-        if (this.environmentService.CLIArguments['open-devtools'] === true) {
+        
+        if (additionalConfiguration["open-devtools"] === true) {
             this._window.webContents.openDevTools({ mode: 'detach', activate: true });
         }
         

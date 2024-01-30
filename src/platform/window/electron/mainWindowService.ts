@@ -34,6 +34,11 @@ export interface IMainWindowService extends Disposable, IService {
     getWindowByID(id: number): IWindowInstance | undefined;
 
     /**
+     * @description Closes the window with corresponding ID.
+     */
+    closeWindowByID(id: number): void;
+
+    /**
      * @description Returns the number of running window.
      */
     windowCount(): number;
@@ -107,6 +112,15 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return newWindow;
     }
 
+    public closeWindowByID(id: number): void {
+        const window = this.getWindowByID(id);
+        if (!window) {
+            return;
+        }
+
+        window.close();
+    }
+
     // [private methods]
 
     private registerListeners(): void {
@@ -172,11 +186,11 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     // [private helper methods]
 
-    private __openInNewWindow(options: IWindowCreationOptions, configuration: IWindowConfiguration): IWindowInstance {
+    private __openInNewWindow(options: IWindowCreationOptions, additionalConfiguration: IWindowConfiguration): IWindowInstance {
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,
-            configuration,
             options,
+            additionalConfiguration,
         );
 
         this._windows.push(newWindow);

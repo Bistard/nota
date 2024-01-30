@@ -22,7 +22,7 @@ import { ILookupPaletteService, LookupPaletteService } from "src/platform/lookup
 import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
-import { DEFAULT_HTML } from "src/platform/window/common/window";
+import { DEFAULT_HTML, INSPECTOR_HTML } from "src/platform/window/common/window";
 import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
@@ -194,7 +194,39 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private afterFirstWindow(provider: IServiceProvider): void {
-        // TODO
+        
+        if (this.environmentService.CLIArguments.inspector === true 
+            || this.environmentService.CLIArguments.inspector === 'true'
+        ) {
+            this.openDebugInspectorWindow(provider);
+        }
+    }
+
+    private openDebugInspectorWindow(provider: IServiceProvider): void {
+        const mainWindowService = provider.getOrCreateService(IMainWindowService);
+
+        const window: IWindowInstance = mainWindowService.open({
+            CLIArgv: this.environmentService.CLIArguments,
+            loadFile: INSPECTOR_HTML,
+            displayOptions: {
+                width: 600,
+                height: 200,
+                minWidth: 600,
+                minHeight: 200,
+                resizable: true,
+            },
+            "open-devtools": false,
+        });
+
+        /**
+         * Whenever all the other windows are closed, we also need to close the
+         * inspector window.
+         */
+        mainWindowService.onDidCloseWindow(() => {
+            if (mainWindowService.windowCount() === 1) {
+                mainWindowService.closeWindowByID(window.id);
+            }
+        });
     }
 
     // [private helper methods]

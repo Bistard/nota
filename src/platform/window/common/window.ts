@@ -8,6 +8,7 @@ export const enum ArgumentKey {
 }
 
 export const DEFAULT_HTML = './src/index.html';
+export const INSPECTOR_HTML = './src/code/browser/inspector/index.html';
 
 export const enum WindowDisplayMode {
     Normal,

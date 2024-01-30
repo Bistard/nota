@@ -144,7 +144,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         return [
             this.#constructMainProcess(Object.assign({}, baseConfiguration)),
             this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
-            // this.#consturctLookupProcess(Object.assign({}, baseConfiguration)),
+            this.#consturctInspectorProcess(Object.assign({}, baseConfiguration)),
         ];
     }
 
@@ -186,17 +186,17 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         return rendererConfiguration;
     }
 
-    #consturctLookupProcess(baseConfiguration) {
+    #consturctInspectorProcess(baseConfiguration) {
         const lookupConfiguraion = 
             Object.assign(
                 baseConfiguration, 
                 {
                     target: 'electron-renderer',
                     entry: {
-                        renderer: './src/code/browser/lookup/browser.lookup.ts',
+                        renderer: './src/code/browser/inspector/renderer.inspector.ts',
                     },
                     output: {
-                        filename: '[name]-lookup-bundle.js',
+                        filename: '[name]-inspector-bundle.js',
                         path: path.resolve(this.#cwd, this.#distPath)
                     },
                 },
