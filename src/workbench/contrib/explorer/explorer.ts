@@ -164,12 +164,10 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     private async __onApplicationClose(): Promise<void> {
 
         // save the last opened workspace root path.
-        if (this.explorerTreeService.root) {
-            const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace)).unwrap());
-        } else {
-            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '').unwrap());
-        }
+        const openedWorkspace = this.explorerTreeService.root 
+            ? URI.toString(URI.join(this.explorerTreeService.root, '|directory'))
+            : '';
+        await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace).unwrap();
     }
 
     private __unloadCurrentView(): void {
