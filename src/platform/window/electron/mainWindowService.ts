@@ -7,10 +7,11 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions } from "src/platform/window/common/window";
+import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
+import { mixin } from "src/base/common/utilities/object";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -43,7 +44,10 @@ export interface IMainWindowService extends Disposable, IService {
      */
     windowCount(): number;
 
-    open(options: IWindowCreationOptions): IWindowInstance;
+    /**
+     * @description Open a window by the given options.
+     */
+    open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance;
 }
 
 /**
@@ -103,10 +107,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return this._windows.length;
     }
 
-    public open(options: IWindowCreationOptions): IWindowInstance {
+    public open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
         this.logService.trace('MainWindowService', 'trying to open a window...');
 
-        const newWindow = this.doOpen(options);
+        const newWindow = this.doOpen(optionalConfiguration);
 
         this.logService.trace('MainWindowService', 'window opened.');
         return newWindow;
@@ -127,14 +131,14 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // noop
     }
 
-    private doOpen(opts: IWindowCreationOptions): IWindowInstance {
+    private doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
 
         let window: IWindowInstance = undefined!;
 
         // get openning URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
-        if (opts.uriToOpen && opts.uriToOpen.length > 0) {
-            const resolveResult = UriToOpenResolver.resolve(opts.uriToOpen);
+        if (optionalConfiguration.uriToOpen && optionalConfiguration.uriToOpen.length > 0) {
+            const resolveResult = UriToOpenResolver.resolve(optionalConfiguration.uriToOpen);
             uriToOpenConfiguration = resolveResult[0];
 
             // logging any errored openning URIs
@@ -148,33 +152,43 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             }
         }
 
-        /**
-         * Important window configuration that relies on previous state of the 
-         * application (provided opts, app config, environment and so on). This
-         * configuration will be passed as an additional argument when creating
-         * a `BrowserWindow`.
-         */
-        const configuration: IWindowConfiguration = {
+        const defaultConfiguration: IWindowCreationOptions = {
             /** {@link ICLIArguments} */
-            _: opts._ ?? this.mainEnvironmentService.CLIArguments._,
-            log: opts.log ?? this.mainEnvironmentService.CLIArguments.log,
-            'open-devtools': opts['open-devtools'] ?? this.mainEnvironmentService.CLIArguments['open-devtools'],
+            _: this.mainEnvironmentService.CLIArguments._,
+            log: this.mainEnvironmentService.CLIArguments.log,
+            'open-devtools': this.mainEnvironmentService.CLIArguments['open-devtools'],
+            inspector: undefined,
 
             /** {@link IEnvironmentOpts} */
-            isPackaged: opts.isPackaged ?? this.mainEnvironmentService.isPackaged,
-            appRootPath: opts.appRootPath ?? this.mainEnvironmentService.appRootPath,
-            tmpDirPath: opts.tmpDirPath ?? this.mainEnvironmentService.tmpDirPath,
-            userDataPath: opts.userDataPath ?? this.mainEnvironmentService.userDataPath,
-            userHomePath: opts.userHomePath ?? this.mainEnvironmentService.userHomePath,
+            isPackaged: this.mainEnvironmentService.isPackaged,
+            appRootPath: this.mainEnvironmentService.appRootPath,
+            tmpDirPath: this.mainEnvironmentService.tmpDirPath,
+            userDataPath: this.mainEnvironmentService.userDataPath,
+            userHomePath: this.mainEnvironmentService.userHomePath,
 
             // window configuration
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
+
+            loadFile: DEFAULT_HTML,
+            CLIArgv: this.mainEnvironmentService.CLIArguments,
+            displayOptions: defaultDisplayState(),
+            
+            uriToOpen: [],
+            forceNewWindow: false,
+            hostWindowID: undefined,
         };
 
+        /**
+         * Important window configuration that relies on previous state of the 
+         * application (provided opts, app config, environment and so on). This
+         * configuration will be passed when creating a `BrowserWindow`.
+         */
+        const configuration: IWindowCreationOptions = mixin(optionalConfiguration, defaultConfiguration, false);
+
         // open a new window instance
-        window = this.__openInNewWindow(opts, configuration);
+        window = this.__openInNewWindow(configuration);
         (<Mutable<typeof configuration>>configuration).windowID = window.id;
 
         // load window
@@ -186,11 +200,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     // [private helper methods]
 
-    private __openInNewWindow(options: IWindowCreationOptions, additionalConfiguration: IWindowConfiguration): IWindowInstance {
+    private __openInNewWindow(configuration: IWindowCreationOptions): IWindowInstance {
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,
-            options,
-            additionalConfiguration,
+            configuration,
         );
 
         this._windows.push(newWindow);

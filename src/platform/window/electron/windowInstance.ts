@@ -7,7 +7,7 @@ import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey, DEFAULT_HTML } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
@@ -88,8 +88,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        private readonly creationConfig: IWindowCreationOptions,
-        private readonly additionalConfiguration: IWindowConfiguration,
+        private readonly configuration: IWindowCreationOptions,
         @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
@@ -99,12 +98,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         super();
         logService.trace('WindowInstance', 'WindowInstance constructing...');
         
-        const displayOptions = creationConfig.displayOptions || defaultDisplayState();
+        const displayOptions = configuration.displayOptions;
         this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
         
-        
-        if (additionalConfiguration["open-devtools"] === true) {
+        if (configuration["open-devtools"] === true) {
             this._window.webContents.openDevTools({ mode: 'detach', activate: true });
         }
         
@@ -129,7 +127,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         this._configurationIpcAccessible.updateData(configuration);
 
-        return this._window.loadFile(this.creationConfig.loadFile ?? DEFAULT_HTML);
+        return this._window.loadFile(this.configuration.loadFile);
     }
 
     public toggleFullScreen(force?: boolean): void {
