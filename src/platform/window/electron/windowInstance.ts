@@ -83,7 +83,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
      * It is still required for potential reloading request so that it cannot
      * be disposed after loading.
      */
-    private readonly _configurationIpcAccessible: IIpcAccessible<IWindowConfiguration> = createIpcAccessible();
+    private readonly _configurationIpcAccessible = createIpcAccessible<IWindowConfiguration>();
 
     // [constructor]
 
@@ -162,11 +162,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                 preload: resolve(join(__dirname, 'preload.js')),
 
                 /**
-                 * Node.js is only available in main / preload process.
-                 * Node.js us also be available in the renderer process.
-                 * Thus a preload.js is needed.
-                 * 
-                 * Absolute path needed.
+                 * false: Node.js is only available in main / preload process.
+                 * true:  Node.js will also be available in the renderer process.
+                 *          Thus a preload.js is needed.
                  */
                 nodeIntegration: false,
 
@@ -200,7 +198,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         };
 
         // frame
-        if (!IS_MAC) {
+        if (!IS_MAC && displayOpts.frameless) {
             browserOption.frame = false;
         }
 

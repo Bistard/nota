@@ -188,6 +188,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
             uriToOpen: uriToOpen,
+            displayOptions: {
+                frameless: true,
+            }
         });
 
         return window;
@@ -214,6 +217,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
                 minWidth: 600,
                 minHeight: 200,
                 resizable: true,
+                frameless: false,
             },
             "open-devtools": false,
         });

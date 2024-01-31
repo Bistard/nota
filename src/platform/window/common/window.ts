@@ -31,13 +31,17 @@ export interface IWindowDisplayOpts {
     y?: number;
     readonly resizable?: boolean;
     readonly mode?: WindowDisplayMode;
+    readonly frameless?: boolean;
 }
 
 export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
     return {
         width: 1024,
         height: 768,
-        mode: mode
+        mode: mode,
+
+        resizable: true,
+        frameless: false,
     };
 }
 
@@ -97,6 +101,9 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
      */
     readonly uriToOpen: URI[];
     readonly forceNewWindow: boolean;          // TODO: unused
-    /** If under any existed windows operation. */
+    
+    /** 
+     * If under any existed windows operation. 
+     */
     readonly hostWindowID: number | undefined; // TODO: unused
 }
