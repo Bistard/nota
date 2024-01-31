@@ -277,7 +277,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
         return this._ongoingBeforeQuitParticipants.then(async () => {
             this._ongoingBeforeQuitParticipants = undefined;
-            this.logService.info('MainLifecycleService', 'Broadcasting `quit` successed.');
+            this.logService.info('MainLifecycleService', 'Broadcasting `quit` completed.');
             await this.logService.flush();
         });
     }

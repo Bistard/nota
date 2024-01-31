@@ -272,16 +272,14 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(
-            addDisposableListener(tag, EventType.click, () => {
-                this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-                    .then(path => {
-                        if (path.length > 0) {
-                            this.open(URI.fromFile(path.at(-1)!));
-                        }
-                    });
-            }
-            ));
+        disposables.register(addDisposableListener(tag, EventType.click, () => {
+            this.dialogService.openDirectoryDialog({ title: 'open a directory' })
+            .then(path => {
+                if (path.length > 0) {
+                    this.open(URI.fromFile(path.at(-1)!));
+                }
+            });
+        }));
     }
 
     private __registerNonEmptyViewListeners(view: HTMLElement): void {

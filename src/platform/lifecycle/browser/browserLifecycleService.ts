@@ -55,6 +55,14 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
         await this.__fireWillQuit();
 
+        this.logService.trace('BrowserLifecycleService', 'Broadcasting the application is about to quit...');
+
+        /**
+         * Making sure all the logging message from the browser side is 
+         * correctly sending to the main process.
+         */
+        await this.logService.flush();
+
         return this.hostService.closeWindow();
     }
 
@@ -75,7 +83,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         });
 
         this._ongoingQuitParticipants = (async () => {
-            this.logService.trace('BrowserLifecycleService', 'willQuit settling ongoing particiants before quit...');
+            this.logService.trace('BrowserLifecycleService', 'willQuit settling ongoing participants before quit...');
         
             const results = await participants.allSettled();
             results.forEach(res => {
@@ -84,13 +92,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
                 }
             });
 
-            this.logService.trace('BrowserLifecycleService', 'willQuit particiants all settled.');
-            
-            /**
-             * Making sure all the logging message from the browser side is 
-             * correctly sending to the main process.
-             */
-            await this.logService.flush();
+            this.logService.trace('BrowserLifecycleService', 'willQuit participants all settled.');
         })();
 
         await this._ongoingQuitParticipants;
