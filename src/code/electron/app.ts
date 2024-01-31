@@ -1,6 +1,6 @@
 import * as electron from "electron";
 import { Disposable } from "src/base/common/dispose";
-import { ErrorHandler, errorToMessage } from "src/base/common/error";
+import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID } from "src/base/node/uuid";
@@ -18,7 +18,6 @@ import { IMainWindowService, MainWindowService } from "src/platform/window/elect
 import { ILoggerService } from "src/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
-import { ILookupPaletteService, LookupPaletteService } from "src/platform/lookup/electron/lookupPaletteService";
 import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
@@ -122,9 +121,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
-        // lookup-service
-        appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService, []));
-
         this.logService.trace('App', 'Application services constructed.');
         return appInstantiationService;
     }
@@ -161,20 +157,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // life-cycle-service: READY
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
-
-        // set-up lookup-palette-service
-        mainWindowService.onDidOpenWindow(() => {
-            if (mainWindowService.windowCount() === 1) {
-                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
-                lookupPaletteService.enable();
-            }
-        });
-        mainWindowService.onDidCloseWindow(() => {
-            if (mainWindowService.windowCount() === 0) {
-                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
-                lookupPaletteService.disable();
-            }
-        });
 
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
