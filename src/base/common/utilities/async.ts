@@ -66,8 +66,6 @@ export async function delayFor(time: Time, callback?: ITask<void>): Promise<void
  * a group. This provides a structured way to join individual promises together 
  * and handle their settled results in a collective manner.
  * 
- * @note {@link allSettled} will never rejects.
- * 
  * @example
  * const joinable = new JoinablePromise();
  * joinable.join(someAsyncFunction());
@@ -102,10 +100,22 @@ export class JoinablePromise {
 	}
 
 	/**
+	 * @description Creates a Promise that is resolved with an array of results 
+	 * when all of the provided Promises resolve or reject.
 	 * @note This method never rejects.
 	 */
 	public async allSettled(): Promise<PromiseSettledResult<any>[]> {
 		return Promise.allSettled(this._participants);
+	}
+
+	/**
+	 * @description Creates a Promise that is resolved with an array of results 
+	 * when all of the provided Promises resolve, or rejected when any Promise 
+	 * is rejected.
+	 * @returns 
+	 */
+	public async all(): Promise<any[]> {
+		return Promise.all(this._participants);
 	}
 }
 

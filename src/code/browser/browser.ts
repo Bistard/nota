@@ -42,15 +42,6 @@ export class BrowserInstance implements IBrowser {
             // save user configurations on quite
             this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save()));
         });
-
-        // when the window is about to quit
-        this.lifecycleService.onWillQuit(e => {
-            /**
-             * Making sure all the logging message from the browser side is 
-             * correctly sending to the main process.
-             */
-            e.join(this.logService.flush().then(() => this.logService.dispose()));
-        });
     }
 
 }

@@ -1,4 +1,5 @@
 import { ILogService } from "src/base/common/logger";
+import { JoinablePromise } from "src/base/common/utilities/async";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService } from "src/platform/instantiation/common/decorator";
@@ -33,7 +34,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
     // [field]
 
-    private _ongoingQuitPromise?: Promise<void>;
+    private _ongoingQuitParticipants?: Promise<void>;
 
     // [constructor]
 
@@ -61,30 +62,39 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
     private async __fireWillQuit(): Promise<void> {
 
-        if (this._ongoingQuitPromise) {
-            return this._ongoingQuitPromise;
+        if (this._ongoingQuitParticipants) {
+            return this._ongoingQuitParticipants;
         }
 
         // notify all listeners
         this.logService.trace('BrowserLifecycleService', 'willQuit');
-        const participants: PromiseLike<unknown>[] = [];
+        const participants = new JoinablePromise();
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
-            join: participant => participants.push(participant),
+            join: participant => participants.join(participant),
         });
 
-        this._ongoingQuitPromise = (async () => {
-            // we need to ensure all the participants have completed their jobs.
-            try {
-                this.logService.trace('BrowserLifecycleService', 'willQuit AllSettled on-going...');
-                await Promise.allSettled(participants);
-            } catch (error: any) {
-                this.logService.error('BrowserLifecycleService', 'participants error encountered.', error);
-            }
+        this._ongoingQuitParticipants = (async () => {
+            this.logService.trace('BrowserLifecycleService', 'willQuit settling ongoing particiants before quit...');
+        
+            const results = await participants.allSettled();
+            results.forEach(res => {
+                if (res.status === 'rejected') {
+                    this.logService.error('BrowserLifecycleService', '`onWillQuit` participant fails.', res.reason);
+                }
+            });
+
+            this.logService.trace('BrowserLifecycleService', 'willQuit particiants all settled.');
+            
+            /**
+             * Making sure all the logging message from the browser side is 
+             * correctly sending to the main process.
+             */
+            await this.logService.flush();
         })();
 
-        await this._ongoingQuitPromise;
-        this._ongoingQuitPromise = undefined;
+        await this._ongoingQuitParticipants;
+        this._ongoingQuitParticipants = undefined;
     }
 }
 
