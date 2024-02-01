@@ -125,6 +125,9 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
+        // TODO: var can be removed at TS 5.4 which has better TCFA
+        const target = targetOver;
+
         /**
          * Either following case cannot perform drop operation if one of the 
          * selecting item is:
@@ -133,10 +136,10 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          *  - dropping to its child folder.
          */
         const anyCannotDrop = currentDragItems.some(dragItem => {
-            const destination = URI.join(targetOver.uri, dragItem.name);
-            return dragItem === targetOver
+            const destination = URI.join(target.uri, dragItem.name);
+            return dragItem === target
                 || URI.equals(dragItem.uri, destination)
-                || URI.isParentOf(targetOver.uri, dragItem.uri)
+                || URI.isParentOf(target.uri, dragItem.uri)
             ;
         });
 
@@ -146,7 +149,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
-        await this._tree.expand(targetOver);
+        await this._tree.expand(target);
 
         /**
          * Iterate every selecting items and try to move to the destination. If 
@@ -154,7 +157,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          * pop up and ask for user permission if to overwrite.
          */
         for (const dragItem of currentDragItems) {
-            const destination = URI.join(targetOver.uri, dragItem.name);
+            const destination = URI.join(target.uri, dragItem.name);
             await this.fileService.moveTo(dragItem.uri, destination)
                 .map(() => {})
                 .orElse(error => {
