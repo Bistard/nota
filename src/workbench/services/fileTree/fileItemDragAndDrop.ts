@@ -99,7 +99,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         }
 
         if (!targetOver || !targetIndex) {
-            this.__removeDragSelections();
             this._delayExpand.cancel(true);
             return;
         }
@@ -107,13 +106,14 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): boolean {
         if (!targetOver || !targetIndex) {
-            this.__removeDragSelections();
             this._delayExpand.cancel(true);
         }
         return true;
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
+
+        console.log('current drag items', currentDragItems.map(item => item.id));
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
@@ -125,8 +125,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
-        const target = targetOver;
-
         /**
          * Either following case cannot perform drop operation if one of the 
          * selecting item is:
@@ -135,10 +133,10 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          *  - dropping to its child folder.
          */
         const anyCannotDrop = currentDragItems.some(dragItem => {
-            const destination = URI.join(target.uri, dragItem.name);
-            return dragItem === target
+            const destination = URI.join(targetOver.uri, dragItem.name);
+            return dragItem === targetOver
                 || URI.equals(dragItem.uri, destination)
-                || URI.isParentOf(target.uri, dragItem.uri)
+                || URI.isParentOf(targetOver.uri, dragItem.uri)
             ;
         });
 
@@ -148,7 +146,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
-        await this._tree.expand(target);
+        await this._tree.expand(targetOver);
 
         /**
          * Iterate every selecting items and try to move to the destination. If 
@@ -156,7 +154,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          * pop up and ask for user permission if to overwrite.
          */
         for (const dragItem of currentDragItems) {
-            const destination = URI.join(target.uri, dragItem.name);
+            const destination = URI.join(targetOver.uri, dragItem.name);
             await this.fileService.moveTo(dragItem.uri, destination)
                 .map(() => {})
                 .orElse(error => {
