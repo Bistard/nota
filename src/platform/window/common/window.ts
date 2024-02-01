@@ -36,8 +36,8 @@ export interface IWindowDisplayOpts {
 
 export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
     return {
-        width: 1024,
-        height: 768,
+        width: 1440,
+        height: 1024,
         mode: mode,
 
         resizable: true,
