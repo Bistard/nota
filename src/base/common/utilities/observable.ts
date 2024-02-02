@@ -1,51 +1,13 @@
-import { Constructor } from "src/base/common/utilities/type";
+import { Callable, Constructor } from "src/base/common/utilities/type";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { getCurrTimeStamp } from "src/base/common/date";
 
-const OB_KEY = '$OB$properties';
-
-// Property decorator to mark properties as observable
-export function observable(target: any, propertyKey: string) {
-    if (!target[OB_KEY]) {
-        target[OB_KEY] = [];
-    }
-    target[OB_KEY].push(propertyKey);
-}
-
-// Class decorator to wrap instances in a proxy
-export function ObservableClass<T extends Constructor>(ctor: T): T {
-    const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
-
-    return class extends ctor {
-        constructor(...args: any[]) {
-            super(...args);
-
-            // proxy
-            return new Proxy(this, {
-                set: (target: this, prop: string, value: any): boolean => {
-                    if (target[OB_KEY]?.includes(prop)) {
-                        const oldValue = target[prop];
-                        ObservableUtils.log(className, prop, oldValue, value);
-                    }
-                    target[prop] = value;
-                    return true;
-                }
-            });
-        }
-    };
-}
-
-namespace ObservableUtils {
-
-    export function log(className: string, property: string | symbol, oldValue: any, newValue: any): void {
-        
-        // [timestamp] className - Property: oldValue => newValue
-        let logMessage = `[${getCurrTimeStamp()}] ${className} - ${String(property)}: `;
-        logMessage += `${oldValue} => ${newValue}`;
-        console.log(logMessage);
-    }
-}
+/**
+ * {@link Observable}
+ * {@link observe}
+ * {@link observable}
+ */
 
 /**
  * An interface only for {@link Observable}.
@@ -68,7 +30,7 @@ export interface IObservable<T extends object> {
      * @param cb The callback to be invoked when a change is detected.
      * @returns An IDisposable object that can be used to unregister the observer.
      */
-    on<TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], cb: IObserver<T[TKey]>): IDisposable;
+    on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[], cb: ObserverType<TType, T[TKey]>): IDisposable;
 
     /**
      * @description Cleans up the observable by removing all observers. After 
@@ -98,6 +60,15 @@ export const enum ObserveType {
     Call = 'call',
 }
 
+export type ObserverType<TType extends ObserveType, T> = 
+    TType extends ObserveType.Set
+        ? (oldValue: T, newValue: T) => void
+        : TType extends ObserveType.Get
+            ? (value: T) => void
+            : TType extends ObserveType.Call
+                ? (T extends Callable<any, any> ? Callable<Parameters<T>, void> : never)
+                : never;
+
 /**
  * @class Implements an observable object that allows clients to listen to 
  * changes on its direct properties.
@@ -109,7 +80,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [fields]
 
-    private _observers: Map<string, IObserver<any>[]>;
+    private _observers: Map<string, any[]>;
     private readonly _proxy: T;
 
     // [constructor]
@@ -127,7 +98,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], cb: IObserver<T[TKey]>): IDisposable {
+    public on<TType extends ObserveType, TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], cb: ObserverType<TType, T[TKey]>): IDisposable {
         const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
         const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
 
@@ -177,18 +148,18 @@ export class Observable<T extends {}> implements IObservable<T> {
                 // function proxy
                 if (typeof value === 'function') {
                     return function (...args: any[]) {
-                        observable.__notify(ObserveType.Call, prop, args, null);
-                        return value.apply(observable, args);
+                        observable.__notify(ObserveType.Call, prop, args);
+                        return value.apply(observable, ...args);
                     };
                 }
 
-                observable.__notify(ObserveType.Get, prop, value, value);
+                observable.__notify(ObserveType.Get, prop, value);
                 return value;
             },
         });
     }
 
-    private __notify<T>(type: ObserveType, propKey: string | symbol, prevVal: T, newVal: T): void {
+    private __notify(type: ObserveType, propKey: string | symbol, ...args: any[]): void {
         const compositeKey = `${String(propKey)}:${type}`;
         
         for (const [registeredKey, observers] of this._observers.entries()) {
@@ -197,7 +168,7 @@ export class Observable<T extends {}> implements IObservable<T> {
             }
 
             for (const observer of observers) {
-                observer(prevVal, newVal);
+                observer(...args);
             }
         }
     }

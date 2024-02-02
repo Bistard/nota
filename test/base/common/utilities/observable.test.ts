@@ -36,10 +36,9 @@ suite('Observable-test', function() {
         const proxy = observable.getProxy();
     
         // Register an observer for 'get' operations on 'bar'
-        observable.on(ObserveType.Get, 'bar', (prevVal, newVal) => {
-            changes.push({ prevVal, newVal });
-            assert.strictEqual(prevVal, 1);
-            assert.strictEqual(newVal, 1);
+        observable.on(ObserveType.Get, 'bar', (currVal) => {
+            changes.push({ prevVal: currVal, newVal: currVal });
+            assert.strictEqual(currVal, 1);
             done();
         });
     
@@ -65,8 +64,7 @@ suite('Observable-test', function() {
     test('Observing foo calls', function(done) {
         const proxy = observable.getProxy();
 
-        observable.on(ObserveType.Call, 'foo', (args, _) => {
-            assert.deepStrictEqual(args, []);
+        observable.on(ObserveType.Call, 'foo', () => {
             done();
         });
 
