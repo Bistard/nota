@@ -149,7 +149,7 @@ export class Observable<T extends {}> implements IObservable<T> {
                 if (typeof value === 'function') {
                     return function (...args: any[]) {
                         observable.__notify(ObserveType.Call, prop, args);
-                        return value.apply(observable, ...args);
+                        return value.apply(observable, args);
                     };
                 }
 
