@@ -98,7 +98,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TType extends ObserveType, TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], cb: ObserverType<TType, T[TKey]>): IDisposable {
+    public on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[], cb: ObserverType<TType, T[TKey]>): IDisposable {
         const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
         const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
 
@@ -171,5 +171,49 @@ export class Observable<T extends {}> implements IObservable<T> {
                 observer(...args);
             }
         }
+    }
+}
+
+const OB_KEY = '$OB$properties';
+
+export function observe(target: any, propertyKey: string): void {
+    if (!target[OB_KEY]) {
+        target[OB_KEY] = [];
+    }
+    target[OB_KEY].push(propertyKey);
+}
+
+export function observable<T extends Constructor>(ctor: T): T {
+    const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
+
+    return class extends ctor {
+        constructor(...args: any[]) {
+            super(...args);
+
+            // proxy
+            return new Proxy(this, {
+                
+                set: (target: this, prop: string | symbol, value: any, receiver: any): boolean => {
+                    if (target[OB_KEY]?.includes(prop)) {
+                        const oldValue = Reflect.get(target, prop, receiver);
+                        ObservableUtils.log(className, prop, oldValue, value);
+                    }
+                    
+                    const result = Reflect.set(target, prop, value, receiver);
+                    return result;
+                }
+            });
+        }
+    };
+}
+
+namespace ObservableUtils {
+
+    export function log(className: string, property: string | symbol, oldValue: any, newValue: any): void {
+        
+        // [timestamp] className - Property: oldValue => newValue
+        let logMessage = `[${getCurrTimeStamp()}] ${className} - ${String(property)}: `;
+        logMessage += `${oldValue} => ${newValue}`;
+        console.log(logMessage);
     }
 }
