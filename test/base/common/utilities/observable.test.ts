@@ -9,34 +9,33 @@ suite('Observable-test', function() {
         foo: () => string;
     };
 
-    let observable: IObservable<TestObject>;
-    let observedObject: TestObject;
+    let ob: IObservable<TestObject>;
     let changes: Array<{ prevVal: any; newVal: any; }>;
 
     beforeEach(() => {
-        observedObject = { 
+        const observedObject: TestObject = { 
             bar: 1, 
             foo: function() { return 'original'; } 
         };
-        observable = new Observable(observedObject);
+        ob = new Observable(observedObject);
         changes = [];
     });
 
     afterEach(() => {
-        observable.dispose();
+        ob.dispose();
     });
 
     test('Proxy returns expected initial values', function() {
-        const proxy = observable.getProxy();
+        const proxy = ob.getProxy();
         assert.strictEqual(proxy.bar, 1);
         assert.strictEqual(proxy.foo(), 'original');
     });
 
     test('Observing property access (get operations)', function(done) {
-        const proxy = observable.getProxy();
+        const proxy = ob.getProxy();
     
         // Register an observer for 'get' operations on 'bar'
-        observable.on(ObserveType.Get, 'bar', (currVal) => {
+        ob.on(ObserveType.Get, 'bar', (currVal) => {
             changes.push({ prevVal: currVal, newVal: currVal });
             assert.strictEqual(currVal, 1);
             done();
@@ -49,9 +48,9 @@ suite('Observable-test', function() {
     });
 
     test('Observing property changes', function(done) {
-        const proxy = observable.getProxy();
+        const proxy = ob.getProxy();
 
-        observable.on(ObserveType.Set, 'bar', (prevVal, newVal) => {
+        ob.on(ObserveType.Set, 'bar', (prevVal, newVal) => {
             changes.push({ prevVal, newVal });
             assert.strictEqual(prevVal, 1);
             assert.strictEqual(newVal, 2);
@@ -62,23 +61,44 @@ suite('Observable-test', function() {
     });
 
     test('Observing foo calls', function(done) {
-        const proxy = observable.getProxy();
+        const proxy = ob.getProxy();
 
-        observable.on(ObserveType.Call, 'foo', () => {
+        ob.on(ObserveType.Call, 'foo', () => {
             done();
         });
 
         proxy.foo();
     });
 
-    test('Dispose removes all observers', function() {
-        const proxy = observable.getProxy();
+    test('Observing for any changes on given ObserveType', function() {
+        const ob = new Observable({ 
+            bar: 1,
+            foo: 'hello', 
+        });
+        const proxy = ob.getProxy();
 
-        observable.on(ObserveType.Set, 'bar', (prevVal, newVal) => {
+
+        const changes: any[] = [];
+        ob.on(ObserveType.Set, '', (prevVal, newVal) => {
+            changes.push([prevVal, newVal]);
+        });
+
+        proxy.bar = 2;
+        proxy.foo = 'world';
+
+        assert.strictEqual(changes.length, 2);
+        assert.deepStrictEqual(changes[0], [1, 2]);
+        assert.deepStrictEqual(changes[1], ['hello', 'world']);
+    });
+
+    test('Dispose removes all observers', function() {
+        const proxy = ob.getProxy();
+
+        ob.on(ObserveType.Set, 'bar', (prevVal, newVal) => {
             changes.push({ prevVal, newVal });
         });
 
-        observable.dispose();
+        ob.dispose();
 
         proxy.bar = 2; // Should not trigger the observer
 

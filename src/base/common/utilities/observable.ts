@@ -1,7 +1,6 @@
-import { Callable, Constructor } from "src/base/common/utilities/type";
+import { Callable } from "src/base/common/utilities/type";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
-import { getCurrTimeStamp } from "src/base/common/date";
 
 /**
  * {@link Observable}
@@ -26,11 +25,12 @@ export interface IObservable<T extends object> {
      * 
      * @template TKey The type of the keys of the properties to observe.
      * @param type The type of operation to observe.
-     * @param propKeys The property key or keys to observe.
+     * @param propKeys The property key or keys to observe. When '' is given, it
+     *                 will observe on any propKeys on the given TType.
      * @param cb The callback to be invoked when a change is detected.
      * @returns An IDisposable object that can be used to unregister the observer.
      */
-    on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[], cb: ObserverType<TType, T[TKey]>): IDisposable;
+    on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey]>): IDisposable;
 
     /**
      * @description Cleans up the observable by removing all observers. After 
@@ -71,7 +71,7 @@ export type ObserverType<TType extends ObserveType, T> =
 
 /**
  * @class Implements an observable object that allows clients to listen to 
- * changes on its direct properties.
+ * changes on an underlying object of its direct properties.
  * @template T The type of the underlying object being observed.
  * 
  * @note Changes in the original object WILL NOT trigger the changes.
@@ -80,6 +80,14 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [fields]
 
+    /**
+     * Mapping from: 
+     *      compositeKey (e.g. `propName:{@link ObserveType}`, or `foo:call` 
+     *                    which means observing on function call on the method 
+     *                    named foo)
+     * to
+     *      callback functions (e.g. {@link ObserverType})
+     */
     private _observers: Map<string, any[]>;
     private readonly _proxy: T;
 
@@ -98,7 +106,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[], cb: ObserverType<TType, T[TKey]>): IDisposable {
+    public on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey]>): IDisposable {
         const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
         const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
 
@@ -128,32 +136,32 @@ export class Observable<T extends {}> implements IObservable<T> {
     // [private helper methods]
 
     private __createProxy(target: T): T {
-        
+
         // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const observable = this;
+        const that = this;
         
         return new Proxy<T>(target, {
             
-            set: (obj: T, prop: string | symbol, value: any, receiver): boolean => {
+            set: (obj: T, prop: string | symbol, value: any, receiver: any): boolean => {
                 const prevVal = Reflect.get(obj, prop, receiver);
                 const result = Reflect.set(obj, prop, value, receiver);
                 
-                observable.__notify(ObserveType.Set, prop, prevVal, value);
+                that.__notify(ObserveType.Set, prop, prevVal, value);
                 return result;
             },
             
-            get: (obj: T, prop: string | symbol, receiver: any) => {
+            get: (obj: T, prop: string | symbol, receiver: any): any => {
                 const value = Reflect.get(obj, prop, receiver);
                 
                 // function proxy
                 if (typeof value === 'function') {
                     return function (...args: any[]) {
-                        observable.__notify(ObserveType.Call, prop, args);
-                        return value.apply(observable, args);
+                        that.__notify(ObserveType.Call, prop, args);
+                        return value.apply(that, args);
                     };
                 }
 
-                observable.__notify(ObserveType.Get, prop, value);
+                that.__notify(ObserveType.Get, prop, value);
                 return value;
             },
         });
@@ -163,7 +171,16 @@ export class Observable<T extends {}> implements IObservable<T> {
         const compositeKey = `${String(propKey)}:${type}`;
         
         for (const [registeredKey, observers] of this._observers.entries()) {
-            if (compositeKey !== registeredKey) {
+            
+            // universal observer
+            if (registeredKey === `:${type}`) {
+                for (const observer of observers) {
+                    observer(...args);
+                }
+                continue;
+            }
+            
+            if (registeredKey !== compositeKey) {
                 continue;
             }
 
@@ -171,49 +188,5 @@ export class Observable<T extends {}> implements IObservable<T> {
                 observer(...args);
             }
         }
-    }
-}
-
-const OB_KEY = '$OB$properties';
-
-export function observe(target: any, propertyKey: string): void {
-    if (!target[OB_KEY]) {
-        target[OB_KEY] = [];
-    }
-    target[OB_KEY].push(propertyKey);
-}
-
-export function observable<T extends Constructor>(ctor: T): T {
-    const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
-
-    return class extends ctor {
-        constructor(...args: any[]) {
-            super(...args);
-
-            // proxy
-            return new Proxy(this, {
-                
-                set: (target: this, prop: string | symbol, value: any, receiver: any): boolean => {
-                    if (target[OB_KEY]?.includes(prop)) {
-                        const oldValue = Reflect.get(target, prop, receiver);
-                        ObservableUtils.log(className, prop, oldValue, value);
-                    }
-                    
-                    const result = Reflect.set(target, prop, value, receiver);
-                    return result;
-                }
-            });
-        }
-    };
-}
-
-namespace ObservableUtils {
-
-    export function log(className: string, property: string | symbol, oldValue: any, newValue: any): void {
-        
-        // [timestamp] className - Property: oldValue => newValue
-        let logMessage = `[${getCurrTimeStamp()}] ${className} - ${String(property)}: `;
-        logMessage += `${oldValue} => ${newValue}`;
-        console.log(logMessage);
     }
 }
