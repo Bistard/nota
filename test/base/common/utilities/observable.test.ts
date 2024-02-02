@@ -32,6 +32,23 @@ suite('Observable-test', function() {
         assert.strictEqual(proxy.foo(), 'original');
     });
 
+    test('Observing property access (get operations)', function(done) {
+        const proxy = observable.getProxy();
+    
+        // Register an observer for 'get' operations on 'bar'
+        observable.on(ObserveType.Get, 'bar', (prevVal, newVal) => {
+            changes.push({ prevVal, newVal });
+            assert.strictEqual(prevVal, 1);
+            assert.strictEqual(newVal, 1);
+            done();
+        });
+    
+        const value = proxy.bar;
+    
+        assert.strictEqual(value, 1);
+        assert.strictEqual(changes.length, 1);
+    });
+
     test('Observing property changes', function(done) {
         const proxy = observable.getProxy();
 

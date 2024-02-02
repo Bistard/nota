@@ -1,5 +1,51 @@
+import { Constructor } from "src/base/common/utilities/type";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
+import { getCurrTimeStamp } from "src/base/common/date";
+
+const OB_KEY = '$OB$properties';
+
+// Property decorator to mark properties as observable
+export function observable(target: any, propertyKey: string) {
+    if (!target[OB_KEY]) {
+        target[OB_KEY] = [];
+    }
+    target[OB_KEY].push(propertyKey);
+}
+
+// Class decorator to wrap instances in a proxy
+export function ObservableClass<T extends Constructor>(ctor: T): T {
+    const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
+
+    return class extends ctor {
+        constructor(...args: any[]) {
+            super(...args);
+
+            // proxy
+            return new Proxy(this, {
+                set: (target: this, prop: string, value: any): boolean => {
+                    if (target[OB_KEY]?.includes(prop)) {
+                        const oldValue = target[prop];
+                        ObservableUtils.log(className, prop, oldValue, value);
+                    }
+                    target[prop] = value;
+                    return true;
+                }
+            });
+        }
+    };
+}
+
+namespace ObservableUtils {
+
+    export function log(className: string, property: string | symbol, oldValue: any, newValue: any): void {
+        
+        // [timestamp] className - Property: oldValue => newValue
+        let logMessage = `[${getCurrTimeStamp()}] ${className} - ${String(property)}: `;
+        logMessage += `${oldValue} => ${newValue}`;
+        console.log(logMessage);
+    }
+}
 
 /**
  * An interface only for {@link Observable}.
@@ -19,10 +65,10 @@ export interface IObservable<T extends object> {
      * @template TKey The type of the keys of the properties to observe.
      * @param type The type of operation to observe.
      * @param propKeys The property key or keys to observe.
-     * @param onChange The callback to be invoked when a change is detected.
+     * @param cb The callback to be invoked when a change is detected.
      * @returns An IDisposable object that can be used to unregister the observer.
      */
-    on<TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], onChange: IObserver<T[TKey]>): IDisposable;
+    on<TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], cb: IObserver<T[TKey]>): IDisposable;
 
     /**
      * @description Cleans up the observable by removing all observers. After 
@@ -81,7 +127,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], onChange: IObserver<T[TKey]>): IDisposable {
+    public on<TKey extends keyof T>(type: ObserveType, propKeys: TKey | TKey[], cb: IObserver<T[TKey]>): IDisposable {
         const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
         const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
 
@@ -91,14 +137,14 @@ export class Observable<T extends {}> implements IObservable<T> {
                 ob = [];
                 this._observers.set(key, ob);
             }
-            ob.push(onChange);
+            ob.push(cb);
         }
         
         return toDisposable(() => {
             for (const key of strKeys) {
                 const ob = this._observers.get(key);
                 if (ob) {
-                    Arrays.remove(ob!, onChange);
+                    Arrays.remove(ob!, cb);
                 }
             }
         });
@@ -114,7 +160,6 @@ export class Observable<T extends {}> implements IObservable<T> {
         
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const observable = this;
-        
         
         return new Proxy<T>(target, {
             
