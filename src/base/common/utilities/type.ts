@@ -411,6 +411,11 @@ export function isBoolean(obj: any): obj is boolean {
     return typeof obj === 'boolean';
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function isFunction(obj: any): obj is Function {
+    return typeof obj === 'function';
+}
+
 /**
  * @description If the given value is an object in general speaking (does not
  * count as `array`, `null`, {@link RegExp} or {@link Date}).

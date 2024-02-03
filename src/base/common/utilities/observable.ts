@@ -1,6 +1,7 @@
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, Constructor, isFunction, isObject } from "src/base/common/utilities/type";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
+import { getCurrTimeStamp } from "src/base/common/date";
 
 /**
  * {@link Observable}
@@ -30,7 +31,7 @@ export interface IObservable<T extends object> {
      * @param cb The callback to be invoked when a change is detected.
      * @returns An IDisposable object that can be used to unregister the observer.
      */
-    on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey]>): IDisposable;
+    on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey], typeof propKeys>): IDisposable;
 
     /**
      * @description Cleans up the observable by removing all observers. After 
@@ -54,27 +55,49 @@ export interface IObserver<T> {
  * Enumerates the types of operations that can be observed on an {@link Observable} 
  * object.
  */
-export const enum ObserveType {
-    Set  = 'set',
-    Get  = 'get',
-    Call = 'call',
-}
+export type ObserveType = 'set' | 'get' | 'call';
 
-export type ObserverType<TType extends ObserveType, T> = 
-    TType extends ObserveType.Set
+export type ObserverType<TType extends ObserveType, T, TKey> = 
+    TKey extends ''
+    ? TType extends 'set'
+        ? (propKey: string, oldValue: T, newValue: T) => void
+        : TType extends 'get'
+            ? (propKey: string, value: T) => void
+            : TType extends 'call'
+                ? (T extends Callable<any, any> ? Callable<[propKey: string, ...Parameters<T>], void> : never)
+                : never
+    : TType extends 'set'
         ? (oldValue: T, newValue: T) => void
-        : TType extends ObserveType.Get
+        : TType extends 'get'
             ? (value: T) => void
-            : TType extends ObserveType.Call
+            : TType extends 'call'
                 ? (T extends Callable<any, any> ? Callable<Parameters<T>, void> : never)
                 : never;
 
 /**
  * @class Implements an observable object that allows clients to listen to 
  * changes on an underlying object of its direct properties.
- * @template T The type of the underlying object being observed.
  * 
+ * @template T The type of the underlying object being observed.
  * @note Changes in the original object WILL NOT trigger the changes.
+ * 
+ * @example
+ * ```ts
+ * interface IUser {
+ *   name: string;
+ *   age: number;
+ * }
+ * 
+ * const observable = new Observable<IUser>({ name: 'John Doe', age: 30 });
+ * const user = observable.getProxy();
+ * 
+ * observable.on('set', 'name', (oldName, newName) => {
+ *   console.log(`User name changed from ${oldName} to ${newName}`);
+ * });
+ * 
+ * // Triggers the callback and logs: "User name changed from John Doe to Jane Doe"
+ * user.name = 'Jane Doe';
+ * ```
  */
 export class Observable<T extends {}> implements IObservable<T> {
 
@@ -106,7 +129,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey]>): IDisposable {
+    public on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey], typeof propKeys>): IDisposable {
         const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
         const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
 
@@ -137,16 +160,13 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     private __createProxy(target: T): T {
 
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const that = this;
-        
         return new Proxy<T>(target, {
             
             set: (obj: T, prop: string | symbol, value: any, receiver: any): boolean => {
                 const prevVal = Reflect.get(obj, prop, receiver);
                 const result = Reflect.set(obj, prop, value, receiver);
                 
-                that.__notify(ObserveType.Set, prop, prevVal, value);
+                this.__notify('set', prop, prevVal, value);
                 return result;
             },
             
@@ -155,13 +175,13 @@ export class Observable<T extends {}> implements IObservable<T> {
                 
                 // function proxy
                 if (typeof value === 'function') {
-                    return function (...args: any[]) {
-                        that.__notify(ObserveType.Call, prop, args);
-                        return value.apply(that, args);
+                    return (...args: any[]) => {
+                        this.__notify('call', prop, args);
+                        return value.apply(this, args);
                     };
                 }
 
-                that.__notify(ObserveType.Get, prop, value);
+                this.__notify('get', prop, value);
                 return value;
             },
         });
@@ -175,7 +195,7 @@ export class Observable<T extends {}> implements IObservable<T> {
             // universal observer
             if (registeredKey === `:${type}`) {
                 for (const observer of observers) {
-                    observer(...args);
+                    observer(String(propKey), ...args);
                 }
                 continue;
             }

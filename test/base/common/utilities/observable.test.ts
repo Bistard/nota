@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { afterEach, beforeEach } from 'mocha';
-import { IObservable, Observable, ObserveType } from 'src/base/common/utilities/observable';
+import { IObservable, Observable } from 'src/base/common/utilities/observable';
 
 suite('Observable-test', function() {
     
@@ -35,7 +35,7 @@ suite('Observable-test', function() {
         const proxy = ob.getProxy();
     
         // Register an observer for 'get' operations on 'bar'
-        ob.on(ObserveType.Get, 'bar', (currVal) => {
+        ob.on('get', 'bar', (currVal) => {
             changes.push({ prevVal: currVal, newVal: currVal });
             assert.strictEqual(currVal, 1);
             done();
@@ -50,7 +50,7 @@ suite('Observable-test', function() {
     test('Observing property changes', function(done) {
         const proxy = ob.getProxy();
 
-        ob.on(ObserveType.Set, 'bar', (prevVal, newVal) => {
+        ob.on('set', 'bar', (prevVal, newVal) => {
             changes.push({ prevVal, newVal });
             assert.strictEqual(prevVal, 1);
             assert.strictEqual(newVal, 2);
@@ -63,7 +63,7 @@ suite('Observable-test', function() {
     test('Observing foo calls', function(done) {
         const proxy = ob.getProxy();
 
-        ob.on(ObserveType.Call, 'foo', () => {
+        ob.on('call', 'foo', () => {
             done();
         });
 
@@ -79,22 +79,22 @@ suite('Observable-test', function() {
 
 
         const changes: any[] = [];
-        ob.on(ObserveType.Set, '', (prevVal, newVal) => {
-            changes.push([prevVal, newVal]);
+        ob.on('set', '', (propKey, prevVal, newVal) => {
+            changes.push([propKey, prevVal, newVal]);
         });
 
         proxy.bar = 2;
         proxy.foo = 'world';
 
         assert.strictEqual(changes.length, 2);
-        assert.deepStrictEqual(changes[0], [1, 2]);
-        assert.deepStrictEqual(changes[1], ['hello', 'world']);
+        assert.deepStrictEqual(changes[0], ['bar', 1, 2]);
+        assert.deepStrictEqual(changes[1], ['foo', 'hello', 'world']);
     });
 
     test('Dispose removes all observers', function() {
         const proxy = ob.getProxy();
 
-        ob.on(ObserveType.Set, 'bar', (prevVal, newVal) => {
+        ob.on('set', 'bar', (prevVal, newVal) => {
             changes.push({ prevVal, newVal });
         });
 
@@ -104,4 +104,5 @@ suite('Observable-test', function() {
 
         assert.strictEqual(changes.length, 0);
     });
+
 });
