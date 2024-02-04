@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import { afterEach, beforeEach } from 'mocha';
-import { IObservable, Observable } from 'src/base/common/utilities/observable';
+import { deepCopy, mixin } from 'src/base/common/utilities/object';
+import { IObservable, Observable, ObserveType, createDefaultObserver, observable, observe } from 'src/base/common/utilities/observable';
 
 suite('Observable-test', function() {
-    
     type TestObject = {
         bar: number;
         foo: () => string;
@@ -117,5 +117,272 @@ suite('Observable-test', function() {
 
         assert.strictEqual(changes.length, 0);
     });
+});
 
+suite('observable-test', () => {
+
+    let history: { 
+        className: string, 
+        property: string, 
+        action: ObserveType, 
+        from: any, 
+        to: any, 
+        value: any, 
+        ret: any, 
+        args?: any[],
+    }[] = [];
+    
+    const TEST_OBSERVER = createDefaultObserver(
+        function testObserver(message: string, ...param: any[]): void {
+        
+            const className: string = param[0]!;
+            const property: string = param[1]!;
+            const action: ObserveType = param[2]!;
+            const params = param.slice(3);
+
+            let from: any, to: any, value: any, args: any[] | undefined, ret: any;
+            if (action === 'get') {
+                value = params[0];
+            } else if (action === 'set') {
+                from = params[0];
+                to = params[1];
+            } else if (action === 'call') {
+                ret = params[0];
+                args = params[1];
+            }
+            
+            const his: typeof history[0] = { className, property, action, from, to, value, ret, args };
+            !value && delete his.value;
+            !from && delete his.from;
+            !to && delete his.to;
+            !ret && delete his.ret;
+            !args && delete his.args;
+            history.push(his);
+        }
+    );
+
+    beforeEach(() => {
+        history = [];
+    });
+
+    class PeopleSample {
+        public name: string = 'Chris';
+        public ages = {
+            age: 18,
+            grow() { return this.age++; }
+        };
+        public hello() { return 'world'; }
+    }
+
+    test('Observing simple property changes and access', () => {
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['set', 'get'])
+            public name: string = 'Chris';
+        }
+
+        const person = new People();
+
+        person.name = 'Alex';     // Trigger 'set'
+        const name = person.name; // Trigger 'get'
+
+        assert.strictEqual(name, 'Alex');
+        assert.strictEqual(history.length, 2);
+
+        const base = { className: 'People', property: 'name' };
+        
+        assert.deepStrictEqual(history[0], mixin(deepCopy(base), { action: 'set', from: 'Chris', to: 'Alex' }));
+        assert.deepStrictEqual(history[1], mixin(deepCopy(base), { action: 'get', value: 'Alex' }));
+    });
+    
+    test('Duplicate observing doesn"t work', () => {
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['set', 'set'])
+            public name: string = 'Chris';
+        }
+
+        const person = new People();
+        person.name = 'Alex';     // Trigger 'set'
+
+        assert.strictEqual(history.length, 1);
+
+        const base = { className: 'People', property: 'name' };
+        assert.deepStrictEqual(history[0], mixin(deepCopy(base), { action: 'set', from: 'Chris', to: 'Alex' }));
+    });
+
+    test('Non-decorated properties should not trigger observations', () => {
+        @observable(TEST_OBSERVER)
+        class People {
+            public name: string = 'Chris';
+        }
+
+        const person = new People();
+
+        person.name = 'Alex';
+        const name = person.name;
+
+        assert.strictEqual(name, 'Alex');
+        assert.strictEqual(history.length, 0); // NOT TRIGGER
+    });
+
+    test('Observing direct function call under the class', () => {
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['call'])
+            public hello(): string { return 'world'; }
+            @observe(['call'])
+            public echo(input: string): string { return input; }
+        }
+
+        const person = new People();
+        person.hello();
+        person.echo('again');
+
+        assert.strictEqual(history.length, 2);
+        const base = { className: 'People', action: 'call' };
+
+        assert.deepStrictEqual(history[0], mixin(deepCopy(base), { property: 'hello', args: [], ret: 'world' }));
+        assert.deepStrictEqual(history[1], mixin(deepCopy(base), { property: 'echo', args: ['again'], ret: 'again' }));
+    });
+
+    test('Non-decorated methods should not be observed', () => {
+        @observable(TEST_OBSERVER)
+        class People {
+            public hello(): string { return 'world'; }
+            public echo(input: string): string { return input; }
+        }
+
+        const person = new People();
+        person.hello();
+        person.echo('again');
+
+        assert.strictEqual(history.length, 0);
+    });
+
+    test('Observing "get" on direct property that is an object', () => {
+        const innerAge = {
+            age: 18,
+        };
+        
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['get'])
+            public ages = innerAge;
+        }
+
+        const person = new People();
+        person.ages;
+        person.ages.age;
+
+        assert.strictEqual(history.length, 3);
+        const base = { className: 'People', action: 'get' };
+        
+        // person.ages
+        assert.deepStrictEqual(history[0], mixin(deepCopy(base), { property: 'ages', value: innerAge }));
+        
+        // person.ages.age
+        assert.deepStrictEqual(history[1], mixin(deepCopy(base), { property: 'ages', value: innerAge }));
+        assert.deepStrictEqual(history[2], mixin(deepCopy(base), { property: 'ages.age', value: 18 }));
+    });
+    
+    test('Observing "set" on direct property that is an object', () => {
+        const innerAge = {
+            age: 18,
+        };
+        
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['set'])
+            public ages = innerAge;
+        }
+
+        const person = new People();
+        person.ages.age = 19;
+
+        assert.strictEqual(history.length, 1);
+        const base = { className: 'People', action: 'set' };
+        
+        assert.deepStrictEqual(history[0], mixin(deepCopy(base), { property: 'ages.age', from: 18, to: 19 }));
+    });
+    
+    test('Observing "set" and "get" on direct property that is an object', () => {
+        const innerAge = {
+            age: 18,
+        };
+        
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['set', 'get'])
+            public ages = innerAge;
+        }
+
+        const person = new People();
+        person.ages.age = 19;
+
+        assert.strictEqual(history.length, 2);
+        const base = { className: 'People', };
+        
+        assert.deepStrictEqual(history[0], mixin(deepCopy(base), { action: 'get', property: 'ages', value: innerAge }));
+        assert.deepStrictEqual(history[1], mixin(deepCopy(base), { action: 'set', property: 'ages.age', from: 18, to: 19 }));
+    });
+    
+    test('"get" for direct object property with method, altering reference', () => {
+        const innerAge = {
+            grow() {}
+        };
+        
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['get'])
+            public ages = innerAge;
+        }
+
+        const person = new People();
+        person.ages;
+
+        assert.strictEqual(history.length, 1);
+
+        /**
+         * Since function from {@link Observable} will be wrapped, the history 
+         * one is not the same as the original one.
+         */
+        assert.notDeepStrictEqual(history[0]?.value, innerAge);
+    });
+
+    function rmFn(obj: object) {
+        return Object.entries(obj).reduce((acc, [key, value]) => {
+            if (typeof value !== 'function') {
+                acc[key] = value;
+            }
+            return acc;
+        }, {});
+    }
+
+    test('Observing "call" on direct property that is an object', () => {
+        const innerAge = {
+            age: 18,
+            grow() { return ++this.age; }
+        };
+        
+        @observable(TEST_OBSERVER)
+        class People {
+            @observe(['set', 'get', 'call'])
+            public ages = innerAge;
+        }
+
+        const person = new People();
+        person.ages.grow();
+
+        {
+            history[0]!['value'] = rmFn(history[0]?.value);
+            history.splice(4); // delete reduntant history during rmFn
+        }
+
+        assert.strictEqual(history.length, 4);
+        assert.deepStrictEqual(history[0], { className: 'People', action: 'get', property: 'ages', value: rmFn(innerAge) });
+        assert.deepStrictEqual(history[1], { className: 'People', action: 'get', property: 'ages.age', value: 18 });
+        assert.deepStrictEqual(history[2], { className: 'People', action: 'set', property: 'ages.age', from: 18, to: 19 });
+        assert.deepStrictEqual(history[3], { className: 'People', action: 'call', property: 'ages.grow', ret:19, args: [] });
+    });
 });
