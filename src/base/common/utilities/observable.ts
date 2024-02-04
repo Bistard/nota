@@ -247,7 +247,7 @@ export function observe(types: NonEmptyArray<ObserveType>) {
         if (!target[OB_KEY]) {
             target[OB_KEY] = [];
         }
-        target[OB_KEY].push({ propKey: String(propKey), unique });
+        target[OB_KEY].push({ propKey: String(propKey), types: unique });
     };
 }
 
