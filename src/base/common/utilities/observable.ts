@@ -1,4 +1,4 @@
-import { Callable, Constructor, Or, isFunction, isObject } from "src/base/common/utilities/type";
+import { Callable, Constructor, NonEmptyArray, Or, isFunction, isObject } from "src/base/common/utilities/type";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { getCurrTimeStamp } from "src/base/common/date";
@@ -221,18 +221,66 @@ export class Observable<T extends {}> implements IObservable<T> {
 const OB_KEY = '$OB$properties';
 type ObserveList = { propKey: string, types: ObserveType[] }[];
 
-// TODO: require the array must be at least length 1
-export function observe(types: ObserveType[]) {
-    types = Arrays.unique(types);
+/**
+ * @description Decorator function for tagging class properties that should be 
+ * observed. 
+ * 
+ * @param types - An array of {@link ObserveType} to be observed on the property.
+ * @returns A decorator function that takes a target class and a property key 
+ *          and applies the observation configuration to it.
+ * 
+ * @example
+ * ```ts
+ * @observable()
+ * class MyClass {
+ *   @observe(['set', 'get'])
+ *   myProperty = {};
+ * }
+ * 
+ * // The 'myProperty' will be observed for 'set' and 'get' operations.
+ * ```
+ */
+export function observe(types: NonEmptyArray<ObserveType>) {
+    const unique = Arrays.unique(types);
     
     return function(target: any, propKey: string | symbol): void {
         if (!target[OB_KEY]) {
             target[OB_KEY] = [];
         }
-        target[OB_KEY].push({ propKey: String(propKey), types });
+        target[OB_KEY].push({ propKey: String(propKey), unique });
     };
 }
 
+/**
+ * @description Class decorator function that transforms the specified class to 
+ * make its properties observable based on the {@link observe} decorator. 
+ * 
+ * @nmote It replaces direct object properties marked with {@link observe} with 
+ * {@link Observable} instances, allowing changes to these properties to be 
+ * observed.
+ * 
+ * @param {typeof DEFAULT_OBSERVER} [observer=DEFAULT_OBSERVER] - Optional. A 
+ *      custom observer function that overrides the default behavior for 
+ *      handling observed property changes. It receives information about the 
+ *      class name, property being observed, the type of observation, and the 
+ *      parameters involved in the observation.
+ * @returns A class decorator function that takes a target class and returns a 
+ *          new class with observable properties.
+ * 
+ * @example
+ * ```ts
+ * @observable()
+ * class MyClass {
+ *   @observe(['set'])
+ *   myProperty = {};
+ *   @observe(['get'])
+ *   mySecondProperty = 5;
+ * }
+ * 
+ * // Instances of MyClass will have 'myProperty' as an observable property, 
+ * // observing 'set' operations.
+ * ```
+ */
 export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSERVER) {
     
     // TODO: ! can be omit when ts is updated to 5.4

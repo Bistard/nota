@@ -268,6 +268,11 @@ export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
 export type NestedArray<T> = (T | NestedArray<T>)[];
 
 /**
+ * Represent a non-empty array of type T.
+ */
+export type NonEmptyArray<T> = [T, ...T[]];
+
+/**
  * make every parameter of an object and its sub-objects recursively as readonly.
  * 
  * @note related built-in type: {@link Readonly}.
