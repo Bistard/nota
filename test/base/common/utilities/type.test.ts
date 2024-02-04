@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or } from 'src/base/common/utilities/type';
 
 /* eslint-disable @typescript-eslint/ban-types */
 
@@ -139,6 +139,31 @@ suite('typescript-types-test', () => {
     test('Negate type', () => {
         checkTrue<Negate<false>>();
         checkFalse<Negate<true>>();
+    });
+
+    test('IsNever type', () => {
+        checkTrue<IsNever<never>>();
+        checkFalse<IsNever<undefined>>();
+        checkFalse<IsNever<null>>();
+        checkFalse<IsNever<''>>();
+        checkFalse<IsNever<0>>();
+        checkFalse<IsNever<[]>>();
+        checkFalse<IsNever<{}>>();
+        checkFalse<IsNever<'hello world'>>();
+    });
+    
+    test('Or type', () => {
+        checkTrue<Or<never, true>>();
+        checkTrue<Or<null, true>>();
+        checkTrue<Or<undefined, true>>();
+        
+        checkFalse<Or<never, false>>();
+        checkFalse<Or<null, false>>();
+        checkFalse<Or<undefined, false>>();
+        
+        checkTrue<Or<true, false>>();
+        checkTrue<Or<true, null>>();
+        checkTrue<Or<true, undefined>>();
     });
 
     test('AnyOf type', () => {

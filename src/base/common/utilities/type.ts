@@ -172,6 +172,11 @@ export type IsTruthy<T> = T extends '' | [] | false | 0 ? false : T extends {} ?
 export type Negate<T> = T extends boolean ? (T extends true ? false : true) : never;
 
 /**
+ * Returns E type only if T is `null`, `undefined` or `never`.
+ */
+export type Or<T, E> = IsNever<T> extends true ? E : T extends (null | undefined) ? E : T;
+
+/**
  * Determines if the given type T is string.
  */
 export type IsString<T> = T extends string ? true : false;
@@ -211,6 +216,11 @@ export type IsObject<T> = T extends Dictionary<string, any> ? true : false;
 export type IsAny<T> = 0 extends (1 & T) ? true : false;
 
 /**
+ * Determines if the given type T is never.
+ */
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+/**
  * Compares two types `T` and `U` for strict equality.
  *
  * Returns `true` if the types are strictly equal, otherwise returns `false`.
@@ -233,7 +243,7 @@ export type AreEqual<X, Y> =
     (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
- * Determines if the given array contains any truthy values.
+ * Returns a boolean that determines if the given array contains any truthy values.
  */
 export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
 
