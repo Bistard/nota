@@ -139,25 +139,22 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TType extends ObserveType, TKey extends keyof T | null>(type: TType, propKeys: TKey | TKey[] | '', cb: GetObserver<TType, T, TKey>): IDisposable {
-        const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
-        const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
+    public on<TType extends ObserveType, TKey extends keyof T | null>(type: TType, propKey: TKey, cb: GetObserver<TType, T, TKey>): IDisposable {
+        
+        // composite key
+        const composite = `${String(propKey)}:${type}`;
 
-        for (const key of strKeys) {
-            let ob = this._observers.get(key);
-            if (!ob) {
-                ob = [];
-                this._observers.set(key, ob);
-            }
-            ob.push(cb);
+        let ob = this._observers.get(composite);
+        if (!ob) {
+            ob = [];
+            this._observers.set(composite, ob);
         }
+        ob.push(cb);
         
         return toDisposable(() => {
-            for (const key of strKeys) {
-                const ob = this._observers.get(key);
-                if (ob) {
-                    Arrays.remove(ob!, cb);
-                }
+            const ob = this._observers.get(composite);
+            if (ob) {
+                Arrays.remove(ob!, cb);
             }
         });
     }
@@ -185,7 +182,7 @@ export class Observable<T extends {}> implements IObservable<T> {
                 // function proxy
                 if (isFunction(value)) {
                     return (...args: any[]) => {
-                        const ret = value.apply(this, args);
+                        const ret = value.apply(receiver, args);
                         this.__notify('call', prop, ret, args);
                         return ret;
                     };
@@ -203,7 +200,7 @@ export class Observable<T extends {}> implements IObservable<T> {
         for (const [registeredKey, observers] of this._observers.entries()) {
             
             // universal observer
-            if (registeredKey === `:${type}`) {
+            if (registeredKey === `${String(null)}:${type}`) {
                 for (const observer of observers) {
                     observer(String(propKey), ...args);
                 }
@@ -276,10 +273,9 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                         observer!(className, `${propKey}.${subKey}`, 'get', [val]);
                     });
 
-                    // TODO
-                    Arrays.exist(types, 'call') && ob.on('call', null, (fn, ret, ...rest: any) => {
-
-                    });
+                    Arrays.exist(types, 'call') && ob.on('call', null, <any>((fn: string, ret: any, ...rest: any[]) => {
+                        observer!(className, `${propKey}.${fn}`, 'call', [ret, ...rest]);
+                    }));
                 }
 
                 // proxy instance over the original instance
@@ -308,7 +304,6 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                         }
         
                         if (isTagged(String(propKey), 'get')) {
-                            console.log(value);
                             observer!(className, String(propKey), 'get', [value]);
                         }
 

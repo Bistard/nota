@@ -92,7 +92,7 @@ suite('Observable-test', function() {
 
 
         const changes: any[] = [];
-        ob.on('set', '', (propKey, prevVal, newVal) => {
+        ob.on('set', null, (propKey, prevVal, newVal) => {
             changes.push([propKey, prevVal, newVal]);
         });
 
