@@ -63,7 +63,20 @@ suite('Observable-test', function() {
     test('Observing foo calls', function(done) {
         const proxy = ob.getProxy();
 
-        ob.on('call', 'foo', () => {
+        ob.on('call', 'foo', (ret) => {
+            assert.strictEqual(ret, 'original');
+            done();
+        });
+
+        proxy.foo();
+    });
+    
+    test('Observing any calls', function(done) {
+        const proxy = ob.getProxy();
+
+        ob.on('call', null, (propKey, ret) => {
+            assert.strictEqual(propKey, 'foo');
+            assert.strictEqual(ret, 'original');
             done();
         });
 

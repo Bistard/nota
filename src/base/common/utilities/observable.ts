@@ -1,4 +1,4 @@
-import { Callable, Constructor, isFunction, isObject } from "src/base/common/utilities/type";
+import { Callable, Constructor, Or, isFunction, isObject } from "src/base/common/utilities/type";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { getCurrTimeStamp } from "src/base/common/date";
@@ -26,12 +26,12 @@ export interface IObservable<T extends object> {
      * 
      * @template TKey The type of the keys of the properties to observe.
      * @param type The type of operation to observe.
-     * @param propKeys The property key or keys to observe. When '' is given, it
-     *                 will observe on any propKeys on the given TType.
+     * @param propKey The property key to observe. When '' is given, it will 
+     *                 observe on any propKey on the given TType.
      * @param cb The callback to be invoked when a change is detected.
      * @returns An IDisposable object that can be used to unregister the observer.
      */
-    on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey], typeof propKeys>): IDisposable;
+    on<TType extends ObserveType, TKey extends keyof T | null>(type: TType, propKey: TKey, cb: GetObserver<TType, T, TKey>): IDisposable;
 
     /**
      * @description Cleans up the observable by removing all observers. After 
@@ -57,21 +57,22 @@ export interface IObserver<T> {
  */
 export type ObserveType = 'set' | 'get' | 'call';
 
+export type GetObserver<TType extends ObserveType, T extends object, TKey extends keyof T | null> = ObserverType<TType, T[Or<NonNullable<TKey>, keyof T>], TKey>;
 export type ObserverType<TType extends ObserveType, T, TKey> = 
-    TKey extends ''
+    TKey extends null
     ? TType extends 'set'
         ? (propKey: string, oldValue: T, newValue: T) => void
         : TType extends 'get'
             ? (propKey: string, value: T) => void
             : TType extends 'call'
-                ? (T extends Callable<any, any> ? Callable<[propKey: string, ...Parameters<T>], void> : never)
+                ? (T extends Callable<any, any> ? Callable<[propKey: string, ret: ReturnType<T>, ...rest: Parameters<T>], void> : never)
                 : never
     : TType extends 'set'
         ? (oldValue: T, newValue: T) => void
         : TType extends 'get'
             ? (value: T) => void
             : TType extends 'call'
-                ? (T extends Callable<any, any> ? Callable<Parameters<T>, void> : never)
+                ? (T extends Callable<any, any> ? Callable<[ret: ReturnType<T>, ...rest: Parameters<T>], void> : never)
                 : never;
 
 /**
@@ -129,7 +130,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 
     // [public methods]
 
-    public on<TType extends ObserveType, TKey extends keyof T>(type: TType, propKeys: TKey | TKey[] | '', cb: ObserverType<TType, T[TKey], typeof propKeys>): IDisposable {
+    public on<TType extends ObserveType, TKey extends keyof T | null>(type: TType, propKeys: TKey | TKey[] | '', cb: GetObserver<TType, T, TKey>): IDisposable {
         const keys = Array.isArray(propKeys) ? propKeys : [propKeys];
         const strKeys = keys.map(key => `${String(key)}:${type}`); // composite key
 
@@ -165,7 +166,6 @@ export class Observable<T extends {}> implements IObservable<T> {
             set: (obj: T, prop: string | symbol, value: any, receiver: any): boolean => {
                 const prevVal = Reflect.get(obj, prop, receiver);
                 const result = Reflect.set(obj, prop, value, receiver);
-                
                 this.__notify('set', prop, prevVal, value);
                 return result;
             },
@@ -174,10 +174,11 @@ export class Observable<T extends {}> implements IObservable<T> {
                 const value = Reflect.get(obj, prop, receiver);
                 
                 // function proxy
-                if (typeof value === 'function') {
+                if (isFunction(value)) {
                     return (...args: any[]) => {
-                        this.__notify('call', prop, args);
-                        return value.apply(this, args);
+                        const ret = value.apply(this, args);
+                        this.__notify('call', prop, ret, args);
+                        return ret;
                     };
                 }
 
