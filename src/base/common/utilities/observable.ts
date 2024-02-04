@@ -57,8 +57,17 @@ export interface IObserver<T> {
  */
 export type ObserveType = 'set' | 'get' | 'call';
 
+/**
+ * A very complex type, which essentially returns a type that represents a 
+ * callback (observer). Given different {@link TType}, returns different callback
+ * type.
+ * 
+ * In additions, if {@link TKey} is null, which means the observer is watching
+ * changes in any properties. Every type of callback will have an extra 
+ * parameter called `propKey` that indicates the changing property name.
+ */
 export type GetObserver<TType extends ObserveType, T extends object, TKey extends keyof T | null> = ObserverType<TType, T[Or<NonNullable<TKey>, keyof T>], TKey>;
-export type ObserverType<TType extends ObserveType, T, TKey> = 
+type ObserverType<TType extends ObserveType, T, TKey> = 
     TKey extends null
     ? TType extends 'set'
         ? (propKey: string, oldValue: T, newValue: T) => void
@@ -211,3 +220,155 @@ export class Observable<T extends {}> implements IObservable<T> {
         }
     }
 }
+
+const OB_KEY = '$OB$properties';
+type ObserveList = { propKey: string, types: ObserveType[] }[];
+
+// TODO: require the array must be at least length 1
+export function observe(types: ObserveType[]) {
+    types = Arrays.unique(types);
+    
+    return function(target: any, propKey: string | symbol): void {
+        if (!target[OB_KEY]) {
+            target[OB_KEY] = [];
+        }
+        target[OB_KEY].push({ propKey: String(propKey), types });
+    };
+}
+
+export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSERVER) {
+    
+    // TODO: ! can be omit when ts is updated to 5.4
+    observer ??= DEFAULT_OBSERVER;
+
+    return function(ctor: T): T {
+        const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
+
+        return class extends ctor {
+            constructor(...args: any[]) {
+                super(...args);
+
+                /**
+                 * Base constructor completed, we will check every object property 
+                 * that is tagged by {@link observe}. Replace those plain objects 
+                 * with {@link Observable}.
+                 */
+                const observeList: ObserveList = this[OB_KEY] ?? [];
+                const isTagged = (propKey: string, type: ObserveType) => {
+                    return !!observeList.find(observed => observed.propKey === propKey && observed.types.includes(type));
+                };
+
+                for (const { propKey, types } of observeList) {
+                    const propValue = Reflect.get(this, propKey);
+
+                    if (!isObject(propValue)) {
+                        continue;
+                    }
+
+                    const ob = new Observable(propValue);
+                    Reflect.set(this, propKey, ob.getProxy());
+
+                    Arrays.exist(types, 'set') && ob.on('set', null, (subKey, oldVal, newVal) => {
+                        observer!(className, `${propKey}.${subKey}`, 'set', [oldVal, newVal]);
+                    });
+                    
+                    Arrays.exist(types, 'get') && ob.on('get', null, (subKey, val) => {
+                        observer!(className, `${propKey}.${subKey}`, 'get', [val]);
+                    });
+
+                    // TODO
+                    Arrays.exist(types, 'call') && ob.on('call', null, (fn, ret, ...rest: any) => {
+
+                    });
+                }
+
+                // proxy instance over the original instance
+                return new Proxy(this, {
+                    
+                    set: (target: this, propKey: string | symbol, value: any, receiver: any): boolean => {
+                        
+                        if (isTagged(String(propKey), 'set')) {
+                            const oldValue = Reflect.get(target, propKey, receiver);
+                            observer!(className, String(propKey), 'set', [oldValue, value]);
+                        }
+                        
+                        const result = Reflect.set(target, propKey, value, receiver);
+                        return result;
+                    },
+
+                    get: (target: this, propKey: string | symbol, receiver: any): any => {
+                        const value: any = Reflect.get(target, propKey, receiver);
+
+                        if (isFunction(value) && isTagged(String(propKey), 'call')) {
+                            return (...args: any[]) => {
+                                const ret = value.apply(receiver, args);
+                                observer!(className, String(propKey), 'call', [ret, args]);
+                                return ret;
+                            };
+                        }
+        
+                        if (isTagged(String(propKey), 'get')) {
+                            console.log(value);
+                            observer!(className, String(propKey), 'get', [value]);
+                        }
+
+                        return value;
+                    },
+                });
+            }
+
+            /**
+             * @internal
+             * @defaults Testing purpose
+             */
+            public __getObserveList(): ObserveList {
+                return this[OB_KEY];
+            }
+        };
+    };
+}
+
+export const createDefaultObserver = (handleMessage?: (message: string, ...args: any[]) => void) => 
+    function defaultObserver<TType extends ObserveType>(className: string, property: string, type: TType, param: any[]): void {
+            
+        let message = `[${getCurrTimeStamp().slice(0, -4)}] [${className}] `;
+
+        if (type === 'get') {
+            const value = param[0];
+
+            /**
+             * Any direct property of an {@link observable} class that is an 
+             * object gets converted into an {@link Observable}. This conversion 
+             * invokes `Symbol(Symbol.toPrimitive)` when attempting to stringify 
+             * the object. 
+             * 
+             * To ensure clean and readable logging, objects will not be printed 
+             * under any cases.
+             */
+            const stringify = isObject(value) ? '[object Object]' : value;
+            message += `[GET] Property: '${property}' value: '${stringify}'`;
+        }
+
+        else if (type === 'set') {
+            const oldValue = param[0];
+            const newValue = param[1];
+            message += `[SET] Property: '${property}' From: '${oldValue}' To: '${newValue}'`;
+        }
+
+        else if (type === 'call') {
+            const returnValue = param[0];
+            const params = param.slice(1);
+            message += `[CALL] Function: '${property}' Arguments: [${params}] Return: ${returnValue}`;
+        }
+        
+        // not provided message, we simply print it.
+        if (!handleMessage) {
+            console.log(message);
+            return;
+        }
+        
+        // handler provided, we pass the data to it.
+        handleMessage(message, className, property, type, ...param);
+    };
+    
+export const DEFAULT_OBSERVER = createDefaultObserver(console.log);
