@@ -1,8 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IEditorExtension } from "src/editor/common/extension/editorExtension";
-import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
@@ -12,6 +10,9 @@ export const enum EditorType {
     Rich = 'rich-text',
 }
 
+/**
+ * The interface is only for {@link EditorViewModel}.
+ */
 export interface IEditorViewModel extends Disposable {
 
     /**
@@ -19,17 +20,14 @@ export interface IEditorViewModel extends Disposable {
      */
     readonly renderMode: EditorType;
 
-    readonly model: IEditorModel;
-
     /**
      * Fires when a log is about happen.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
-    readonly onRender: Register<IRenderEvent>;
+    readonly onLog: Register<ILogEvent>;
+    readonly onRender: Register<RenderEvent>;
     readonly onDidRenderModeChange: Register<EditorType>;
 
     getSchema(): EditorSchema;
-    getExtensions(): IEditorExtension[];
 
     /**
      * @description Updates the options of the editor view model.
@@ -38,6 +36,9 @@ export interface IEditorViewModel extends Disposable {
     updateOptions(options: Partial<IEditorViewModelOptions>): void;
 }
 
+/**
+ * The option for {@link EditorViewModel}.
+ */
 export interface IEditorViewModelOptions {
 
     /**
@@ -63,7 +64,7 @@ export interface IEditorViewModelOptions {
  * Type of event to indicate how to render the data from the text model into the 
  * view.
  */
-export type IRenderEvent = IRenderPlainEvent | IRenderSplitEvent | IRenderRichEvent;
+export type RenderEvent = IRenderPlainEvent | IRenderSplitEvent | IRenderRichEvent;
 
 export interface IRenderPlainEvent {
     

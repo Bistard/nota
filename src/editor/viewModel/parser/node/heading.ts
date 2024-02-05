@@ -17,7 +17,7 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
-            content: 'inline*',
+            content: '(text | image)*',
             defining: true,
             attrs: { 
                 level: { default: 1 } 
@@ -30,7 +30,7 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
                 { tag: 'h5', attrs: { level: 5 } },
                 { tag: 'h6', attrs: { level: 6 } },
             ],
-            toDOM(node) { return ['h' + node.attrs['level'], 0]; }
+            toDOM(node) { return ['h' + node.attrs['level'], 0]; },
         };
     }
 

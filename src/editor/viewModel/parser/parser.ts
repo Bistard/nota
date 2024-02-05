@@ -1,4 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { panic } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
@@ -6,7 +7,8 @@ import { isNullable } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
-import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { IDocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNodeProvider";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
 /**
@@ -17,7 +19,7 @@ export interface IDocumentParser {
     /**
      * Fires when the parser wish to log out a message.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
+    readonly onLog: Register<ILogEvent>;
 
     /**
      * @description Parsing the given tokens into document nodes used for 
@@ -57,7 +59,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
 
     // [event]
 
-    public readonly onLog: Register<ILogEvent<string | Error>>;
+    public readonly onLog: Register<ILogEvent>;
 
     // [constructor]
 
@@ -75,7 +77,6 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     // [public methods]
 
     public parse(tokens: EditorToken[]): ProseNode {        
-        
         this._state.parseTokens(tokens);
         const documentRoot = this._state.complete();
         this._state.clean();
@@ -111,6 +112,9 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     }
 }
 
+/**
+ * @internal
+ */
 interface IParsingNodeState {
     readonly ctor: ProseNodeType;
     children: ProseNode[];
@@ -120,12 +124,13 @@ interface IParsingNodeState {
 
 /**
  * Interface only for {@link DocumentParseState}.
+ * 
  * The {@link IDocumentNode} has full accessbility to control the parsing flow.
  * The state provides a series of methods for different tokens so that they can 
  * decide how to parse themselves correctly.
  * 
  * @implements
- * The state will invoke {@link IDocumentNode.parseFromToken} for each token
+ * The state will invoke `IDocumentNode.parseFromToken` for each token
  * internally.
  */
 export interface IDocumentParseState {
@@ -211,7 +216,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [event]
 
-    private readonly _onLog = new Emitter<ILogEvent<string | Error>>();
+    private readonly _onLog = new Emitter<ILogEvent>();
     public readonly onLog = this._onLog.registerListener;
 
     // [constructor]
@@ -239,11 +244,12 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
                 continue;
             }
 
+            // Finds the corresponding Node which defines the parsing behaviour.
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
                 this._onLog.fire({
-                    data: `cannot find any registered document nodes that matches the given token with type '${name}'`,
                     level: LogLevel.WARN,
+                    message: `Cannot find any registered document nodes that matches the given token with type: '${name}'.`,
                 });
                 continue;
             }
@@ -365,14 +371,14 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     private __getActive(): IParsingNodeState {
         if (this._actives.empty()) {
-            throw new Error('Current document parsing state has no active tokens.');
+            panic('Current document parsing state has no active tokens.');
         }
         return this._actives.top();
     }
 
     private __popActive(): IParsingNodeState {
         if (this._actives.empty()) {
-            throw new Error('Current document parsing state has no active tokens.');
+            panic('Current document parsing state has no active tokens.');
         }
         return this._actives.pop();
     }

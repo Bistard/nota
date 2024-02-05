@@ -4,7 +4,6 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { ISideViewService } from "src/workbench/parts/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
@@ -14,6 +13,9 @@ import { deepCopy } from "src/base/common/utilities/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
+import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
+import { EditorType } from 'src/editor/common/viewModel';
+import { getBuiltInExtension } from 'src/editor/common/extension/builtInExtension';
 
 export class Editor extends Component implements IEditorService {
 
@@ -37,6 +39,7 @@ export class Editor extends Component implements IEditorService {
     ) {
         super('editor', null, themeService, componentService);
         this._editorWidget = null;
+        this.logService.trace('EditorService', 'Constructed.');
     }
 
     // [getter]
@@ -48,11 +51,11 @@ export class Editor extends Component implements IEditorService {
     // [public methods]
 
     public openSource(source: URI | string): void {
-
         if (!this._editorWidget) {
             throw new Error(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
         }
 
+        
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
         this._editorWidget.open(uri);
     }
@@ -60,9 +63,7 @@ export class Editor extends Component implements IEditorService {
     // [override protected methods]
 
     protected override async _createContent(): Promise<void> {
-
         await this.lifecycleService.when(LifecyclePhase.Ready);
-
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
@@ -71,10 +72,20 @@ export class Editor extends Component implements IEditorService {
             options.baseURI = URI.toFsPath(explorerView.root);
         }
 
-        // editor widget construction
-        // FIX
-        // const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
-        // (<Mutable<EditorWidget>>this._editorWidget) = editor;
+        this.logService.debug('EditorService', 'Constructing editor...');
+
+        // editor construction
+        const editor = this.instantiationService.createInstance(
+            EditorWidget, 
+            this.element.element,
+            getBuiltInExtension(),
+            {
+                mode: EditorType.Rich,
+            },
+        );
+        this._editorWidget = editor;
+
+        this.logService.debug('EditorService', 'Editor constructed.');
     }
 
     protected override async _registerListeners(): Promise<void> {
@@ -90,7 +101,8 @@ export class Editor extends Component implements IEditorService {
         const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView) {
             explorerView.onDidOpen((e) => {
-                this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
+                // FIX
+                // this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
             });
         }
     }

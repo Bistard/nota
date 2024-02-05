@@ -19,7 +19,9 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
             group: 'block',
             content: 'inline*',
             parseDOM: [{ tag: 'p' }],
-            toDOM: () => { return ['p', 0]; }
+            toDOM: () => { 
+                return ['p', 0]; 
+            }
         };
     }
 

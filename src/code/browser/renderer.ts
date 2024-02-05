@@ -279,7 +279,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 ]
                 .forEach((register) => register(provider));
             }
-        }());
+        }(this.logService));
 
         // shortcut registrations
         service.registerRegistrant(new class extends ShortcutRegistrant {

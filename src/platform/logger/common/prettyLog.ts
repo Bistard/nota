@@ -221,6 +221,11 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
             if (value.startsWith(Schemas.FILE) || value.startsWith(Schemas.HTTP) || value.startsWith(Schemas.HTTPS)) {
                 return TextColors.setRGBColor(value, ...RGB_colors.LightBlue);
             }
+
+            if (value.length === 0) {
+                return '\'\'';
+            }
+
             return value;
         }
         case "bigint":

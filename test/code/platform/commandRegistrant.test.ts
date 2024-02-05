@@ -46,7 +46,7 @@ suite('commandRegistrant-test', () => {
         
         const registrantService = new RegistrantService(new NullLogger());
         instantiationService.register(IRegistrantService, registrantService);
-        commandRegistrant = new CommandRegistrant();
+        commandRegistrant = new CommandRegistrant(new NullLogger());
         registrantService.registerRegistrant(commandRegistrant);
 
         const commandService = new CommandService(instantiationService, new NullLogger(), registrantService);
