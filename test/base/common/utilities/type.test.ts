@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/ban-types */
+
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny } from 'src/base/common/utilities/type';
-
-/* eslint-disable @typescript-eslint/ban-types */
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -141,6 +142,31 @@ suite('typescript-types-test', () => {
         checkFalse<Negate<true>>();
     });
 
+    test('IsNever type', () => {
+        checkTrue<IsNever<never>>();
+        checkFalse<IsNever<undefined>>();
+        checkFalse<IsNever<null>>();
+        checkFalse<IsNever<''>>();
+        checkFalse<IsNever<0>>();
+        checkFalse<IsNever<[]>>();
+        checkFalse<IsNever<{}>>();
+        checkFalse<IsNever<'hello world'>>();
+    });
+    
+    test('Or type', () => {
+        checkTrue<Or<never, true>>();
+        checkTrue<Or<null, true>>();
+        checkTrue<Or<undefined, true>>();
+        
+        checkFalse<Or<never, false>>();
+        checkFalse<Or<null, false>>();
+        checkFalse<Or<undefined, false>>();
+        
+        checkTrue<Or<true, false>>();
+        checkTrue<Or<true, null>>();
+        checkTrue<Or<true, undefined>>();
+    });
+
     test('AnyOf type', () => {
         checkTrue<AnyOf<[0, "", null, 5]>>();
         checkFalse<AnyOf<[0, "", null]>>();
@@ -183,35 +209,44 @@ suite('typescript-types-test', () => {
     test('Single type', () => {
         type SingleNumber = Single<number>;
         const val: SingleNumber = [1];
-        // let notVal: SingleNumber = [1, 2]; // This should fail
+        // @ts-expect-error
+        const notVal: SingleNumber = [1, 2];
     });
 
     test('Pair type', () => {
         type NumberStringPair = Pair<number, string>;
         const pair: NumberStringPair = [1, "one"];
-        // let notPair: NumberStringPair = [1, "one", true]; // This should fail
+        // @ts-expect-error
+        const notPair: NumberStringPair = [1, "one", true];
     });
 
     test('Triple type', () => {
         type NumberStringBooleanTriple = Triple<number, string, boolean>;
         const triple: NumberStringBooleanTriple = [1, "one", true];
-        // let notTriple: NumberStringBooleanTriple = [1, "one", true, 4]; // This should fail
+        // @ts-expect-error
+        const notTriple: NumberStringBooleanTriple = [1, "one", true, 4];
     });
 
     test('Dictionary type', () => {
         type NumberDictionary = Dictionary<string, number>;
         const dic: NumberDictionary = { one: 1 };
-        // let notDic: NumberDictionary = { one: "one" }; // This should fail
+
+        // @ts-expect-error
+        const notDic: NumberDictionary = { one: "one" };
     });
 
     test('StringDictionary type', () => {
         const dic: StringDictionary<number> = { one: 1 };
-        // let notDic: StringDictionary<number> = { one: "one" }; // This should fail
+
+        // @ts-expect-error
+        const notDic: StringDictionary<number> = { one: "one" };
     });
 
     test('NumberDictionary type', () => {
         const dic: NumberDictionary<string> = { 1: "one" };
-        // let notDic: NumberDictionary<string> = { 1: 1 }; // This should fail
+
+        // @ts-expect-error
+        const notDic: NumberDictionary<string> = { 1: 1 };
     });
 
     test('Constructor type', () => {
@@ -378,7 +413,21 @@ suite('typescript-types-test', () => {
     test('NestedArray type', () => {
         type Numbers = NestedArray<number>;
         const nums: Numbers = [1, 2, [3, 4, [5, 6]]];
-        // let notNums: Numbers = [1, 2, "3", [4, 5]]; // This should fail
+        
+        // @ts-expect-error
+        const notNums: Numbers = [1, 2, "3", [4, 5]];
+    });
+
+    test('NonEmptyArray type', () => {
+        const test1: NonEmptyArray<number> = [1];                 // Should pass
+        const test2: NonEmptyArray<string> = ['first', 'second']; // Should pass
+
+        // @ts-expect-error
+        const test3: NonEmptyArray<number> = [];
+        // @ts-expect-error
+        const test4: NonEmptyArray<string> = ['first', undefined];
+        // @ts-expect-error
+        const test5: NonEmptyArray<boolean> = [true, 'notABoolean'];
     });
 
     test('Mutable type', () => {
@@ -390,7 +439,9 @@ suite('typescript-types-test', () => {
     test('MapTypes type', () => {
         type NewObject = MapTypes<{ a: string, b: number, c: boolean; }, { from: string, to: number; }>;
         const obj: NewObject = { a: 1, b: 2, c: true };
-        // let notObj: NewObject = { a: "1", b: 2, c: true }; // This should fail
+        
+        // @ts-expect-error
+        const notObj: NewObject = { a: "1", b: 2, c: true };
     });
 
     test('Promisify type', () => {

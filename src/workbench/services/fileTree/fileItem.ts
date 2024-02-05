@@ -4,13 +4,17 @@ import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { CompareFn, Mutable } from "src/base/common/utilities/type";
+import { memoize } from "src/base/common/memoization";
+import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**
  * An interface only for {@link FileItem}.
  */
-export interface IFileItem {
+export interface IFileItem<TItem extends IFileItem<TItem>> {
+
+    /** The unique representation of the target. */
+    readonly id: string;
 
     /** The {@link URI} of the target. */
     readonly uri: URI;
@@ -28,16 +32,16 @@ export interface IFileItem {
     readonly modifyTime: number;
 
     /** The parent of the target. Null if current target is the root. */
-    readonly parent: FileItem | null;
+    readonly parent: TItem | null;
 
     /** The direct children of the target. */
-    readonly children: FileItem[];
+    readonly children: TItem[];
 
     /**
      * @description Returns the root of the current target
      * @complexity O(h) - h: height of the tree.
      */
-    root(): FileItem;
+    root(): TItem;
 
     /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
@@ -69,6 +73,7 @@ export interface IFileItem {
      * item.
      * @param fileService The given {@link IFileService} for fetching the 
      * children of the current item.
+     * @param onError Make sure the error is provided to outside.
      * @param filters Providing filter options during the resolution process can 
      * prevent unnecessary performance loss compares to we filter the result 
      * after the process.
@@ -77,7 +82,7 @@ export interface IFileItem {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
+    refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -93,7 +98,7 @@ export interface IFileItem {
  * If stat is out of updated, invoking refreshChildren will automatically 
  * rebuild the whole tree structure.
  */
-export class FileItem implements IFileItem {
+export class FileItem implements IFileItem<FileItem> {
 
     // [field]
 
@@ -115,14 +120,13 @@ export class FileItem implements IFileItem {
     constructor(
         stat: IResolvedFileStat,
         parent: FileItem | null,
+        onError: (error: Error) => void,
         filters?: IFilterOpts,
         cmpFn?: CompareFn<FileItem>
     ) {
         this._stat = stat;
         this._parent = parent;
-        if (!cmpFn) {
-            cmpFn = defaultFileItemCompareFn;
-        }
+        cmpFn ??= defaultFileItemCompareFn;
 
         if (stat.children) {
             this._isResolved = true;
@@ -131,16 +135,25 @@ export class FileItem implements IFileItem {
                 if (filters && isFiltered(child.name, filters)) {
                     continue;
                 }
-                this._children.push(new FileItem(child, this));
+                this._children.push(new FileItem(child, this, onError, filters, cmpFn));
             }
         }
 
         if (cmpFn) {
-            this._children.sort(cmpFn);
+            try {
+                // TODO: load order before sort
+                this._children.sort(cmpFn);
+            } catch (error: any) {
+                this._children.sort();
+                onError(error);
+            }
         }
     }
 
     // [get method]
+
+    @memoize
+    get id(): string { return URI.toString(this.uri); }
 
     get uri(): URI { return this._stat.uri; }
 
@@ -181,7 +194,7 @@ export class FileItem implements IFileItem {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
+    public refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
         const promise = (async () => {
 
             /**
@@ -205,7 +218,7 @@ export class FileItem implements IFileItem {
             // update the children stat recursively
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
-                this._children.push(new FileItem(childStat, this, filters));
+                this._children.push(new FileItem(childStat, this, onError, filters, cmpFn));
             }
 
             if (cmpFn) {
@@ -253,8 +266,13 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
      */
     public getChildren(data: FileItem): FileItem[] | Promise<FileItem[]> {
 
+        const onError = (error: any) => {
+            this.logService.error('FileItemChildrenProvider', 'Refreshing FileItem children failed.', error);
+            return <FileItem[]>[];
+        };
+
         // refresh the children recursively
-        const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts, this.cmpFn);
+        const refreshPromise = data.refreshChildren(this.fileService, onError, this.filterOpts, this.cmpFn);
 
         // the provided item's children are already resolved, we simply return it.
         if (!AsyncResult.is(refreshPromise)) {
@@ -262,18 +280,16 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         }
 
         // the provided item's children never resolved, we wait until it resolved.
+        
         const promise = refreshPromise
         .then(
             (result) => {
                 return result.match(
                     () => data.children,
-                    error => {
-                        this.logService.error('FileItemChildrenProvider', 'Refreshing FileItem children failed.', error);
-                        return <FileItem[]>[];
-                    }
+                    error => onError(error),
                 );
             },
-            (error) => <FileItem[]>[],
+            (error) => onError(error),
         );
 
         return promise;
@@ -296,12 +312,12 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
  * @description Directory goes first, otherwise sorts in ascending, ASCII 
  * character order.
  */
-export function defaultFileItemCompareFn(a: FileItem, b: FileItem): number {
+export function defaultFileItemCompareFn<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
     if (a.type === b.type) {
-        return (a.name < b.name) ? -1 : 1;
+        return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
     } else if (a.isDirectory()) {
-        return -1;
+        return CompareOrder.First;
     } else {
-        return 1;
+        return CompareOrder.Second;
     }
 }

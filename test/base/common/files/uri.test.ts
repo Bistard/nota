@@ -652,4 +652,81 @@ suite('URI-test', () => {
 		assert.strictEqual(URI.toString(URI.parse('http://user@[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html')), 'http://user@[fedc:ba98:7654:3210:fedc:ba98:7654:3210]:80/index.html');
 		assert.strictEqual(URI.toString(URI.parse('http://us[er@[FEDC:BA98:7654:3210:FEDC:BA98:7654:3210]:80/index.html')), 'http://us%5Ber@[fedc:ba98:7654:3210:fedc:ba98:7654:3210]:80/index.html');
 	});
+
+	test('isParentOf', () => {
+		if (IS_WINDOWS) {
+			assert.ok(URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:')));
+			assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:')));
+			assert.ok(URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo\\bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo\\foo'), URI.fromFile('c:\\foo\\bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('c:\\foo'), URI.fromFile('c:\\foo\\bar')));
+		} else {
+			assert.ok(URI.isParentOf(URI.fromFile('/foo'), URI.fromFile('')));
+			assert.ok(URI.isParentOf(URI.fromFile('/foo/bar'), URI.fromFile('')));
+			assert.ok(URI.isParentOf(URI.fromFile('/foo/bar'), URI.fromFile('/foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('/foo/bar'), URI.fromFile('/foo/bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('/foo/foo'), URI.fromFile('/foo/bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('/foo'), URI.fromFile('/foo/bar')));
+		}
+		
+		assert.ok(URI.isParentOf(URI.parse('foo//bar'), URI.parse('foo')));
+		assert.ok(URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo')));
+		assert.ok(URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo//foo')));
+		assert.ok(!URI.isParentOf(URI.parse('foo//foo//bar'), URI.parse('foo//foo//bar')));
+		assert.ok(!URI.isParentOf(URI.parse('foo//foo//foo'), URI.parse('foo//foo//bar')));
+		assert.ok(!URI.isParentOf(URI.parse('foo//foo'), URI.parse('foo//foo//bar')));
+		
+		if (IS_WINDOWS) {
+			assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//bar'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///c:/foo/:foo//foo'), URI.fromFile('file:///c:/foo/:foo//foo//bar')));
+		} else {
+			assert.ok(URI.isParentOf(URI.fromFile('file:///foo/:foo//bar'), URI.fromFile('file:///foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//bar'), URI.fromFile('file:///foo/:foo')));
+			assert.ok(URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//bar'), URI.fromFile('file:///foo/:foo//foo')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//bar'), URI.fromFile('file:///foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo//foo'), URI.fromFile('file:///foo/:foo//foo//bar')));
+			assert.ok(!URI.isParentOf(URI.fromFile('file:///foo/:foo//foo'), URI.fromFile('file:///foo/:foo//foo//bar')));
+		}
+	});
+
+	test('equals', () => {
+		const fileURI = IS_WINDOWS ? URI.fromFile('c:\\foo\\bar') : URI.fromFile('/foo/bar');
+		const fileURI2 = IS_WINDOWS ? URI.fromFile('C:\\foo\\Bar') : URI.fromFile('/foo/Bar');
+		
+		assert.strictEqual(URI.equals(fileURI, fileURI, true), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI, false), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI, false), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI2, true), true);
+		assert.strictEqual(URI.equals(fileURI, fileURI2, false), false);
+		
+		const fileURI3 = URI.parse('foo://server:453/foo/bar');
+		const fileURI4 = URI.parse('foo://server:453/foo/Bar');
+		assert.strictEqual(URI.equals(fileURI3, fileURI3, true), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI3, false), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI3, false), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI4, true), true);
+		assert.strictEqual(URI.equals(fileURI3, fileURI4, false), false);
+
+		assert.strictEqual(URI.equals(fileURI, fileURI3, true), false);
+
+		assert.strictEqual(URI.equals(URI.parse('file://server'), URI.parse('file://server/'), true), true);
+		assert.strictEqual(URI.equals(URI.parse('http://server'), URI.parse('http://server/'), true), true);
+		assert.strictEqual(URI.equals(URI.parse('foo://server'), URI.parse('foo://server/'), true), false); // only selected scheme have / as the default path
+		assert.strictEqual(URI.equals(URI.parse('foo://server/foo'), URI.parse('foo://server/foo/'), true), false);
+		assert.strictEqual(URI.equals(URI.parse('foo://server/foo'), URI.parse('foo://server/foo?'), true), true);
+
+		const fileURI5 = URI.parse('foo://server:453/foo/bar?q=1');
+		const fileURI6 = URI.parse('foo://server:453/foo/bar#xy');
+
+		assert.strictEqual(URI.equals(fileURI5, fileURI5, true), true);
+		assert.strictEqual(URI.equals(fileURI5, fileURI3, true), false);
+		assert.strictEqual(URI.equals(fileURI6, fileURI6, true), true);
+		assert.strictEqual(URI.equals(fileURI6, fileURI5, true), false);
+		assert.strictEqual(URI.equals(fileURI6, fileURI3, true), false);
+	});
 });

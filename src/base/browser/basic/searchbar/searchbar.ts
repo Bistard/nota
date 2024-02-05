@@ -129,7 +129,6 @@ export class SearchBar extends Widget implements ISearchBar {
 
     protected override __registerListeners(): void {
         
-        // TODO
     }
 
     // [private helper methods]

@@ -225,6 +225,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
          * If the tree can identify the uniqueness of each node, then it is 
          * possible to reuse the old nodes instead of creating new ones.
          */
+        // TODO: preformance - avoid calling `if` all the time, we only need one `if` for just once.
         if (this._identityProvider) {
             this.__tryReuseOldNode(this._identityProvider, childrenData, node, childrenNodes, childrenNodesToRefresh);
         } else {

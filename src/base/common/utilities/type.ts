@@ -58,7 +58,7 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * 
  * The function should return:
  * - A negative number if `a` should be sorted/comes before `b`
- * - Zero if `a` and `b` are equal
+ * - A zero if `a` and `b` are equal
  * - A positive number if `a` should be sorted/comes after `b`
  *
  * @template T The type of the arguments to compare.
@@ -70,7 +70,23 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * let numbers = [3, 1, 4, 1, 5, 9];
  * numbers.sort(compareNumbers);
  */
-export type CompareFn<T> = (a: T, b: T) => number;
+export type CompareFn<T> = (a: T, b: T) => CompareOrder;
+
+/**
+ * Given two parameters `a` and `b`, determine which one goes first. `First` 
+ * indicates `a`, `second` indicates `b`.
+ */
+export const enum CompareOrder {
+    
+    /** The first parameter `a` goes first. */
+    First = -1,
+
+    /** The second parameter `b` goes first. */
+    Second = 1,
+
+    /** Items are the same. */
+    Same = 0,
+}
 
 /**
  * This type only removes `undefined`, which s more narrows than {@link NonNullable}.
@@ -156,6 +172,11 @@ export type IsTruthy<T> = T extends '' | [] | false | 0 ? false : T extends {} ?
 export type Negate<T> = T extends boolean ? (T extends true ? false : true) : never;
 
 /**
+ * Returns E type only if T is `null`, `undefined` or `never`.
+ */
+export type Or<T, E> = IsNever<T> extends true ? E : T extends (null | undefined) ? E : T;
+
+/**
  * Determines if the given type T is string.
  */
 export type IsString<T> = T extends string ? true : false;
@@ -195,6 +216,11 @@ export type IsObject<T> = T extends Dictionary<string, any> ? true : false;
 export type IsAny<T> = 0 extends (1 & T) ? true : false;
 
 /**
+ * Determines if the given type T is never.
+ */
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+/**
  * Compares two types `T` and `U` for strict equality.
  *
  * Returns `true` if the types are strictly equal, otherwise returns `false`.
@@ -217,7 +243,7 @@ export type AreEqual<X, Y> =
     (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
- * Determines if the given array contains any truthy values.
+ * Returns a boolean that determines if the given array contains any truthy values.
  */
 export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
 
@@ -240,6 +266,11 @@ export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
  * Represents T or Array of T or Array of Array of T...
  */
 export type NestedArray<T> = (T | NestedArray<T>)[];
+
+/**
+ * Represent a non-empty array of type T.
+ */
+export type NonEmptyArray<T> = [T, ...T[]];
 
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
@@ -393,6 +424,11 @@ export function isString(obj: any): obj is string {
 
 export function isBoolean(obj: any): obj is boolean {
     return typeof obj === 'boolean';
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function isFunction(obj: any): obj is Function {
+    return typeof obj === 'function';
 }
 
 /**

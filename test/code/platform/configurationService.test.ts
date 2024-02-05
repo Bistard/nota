@@ -17,6 +17,7 @@ import { delayFor } from 'src/base/common/utilities/async';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { assertAsyncResult } from 'test/utils/helpers';
+import { INSTANT_TIME } from 'src/base/common/date';
 
 suite('MainConfiguratioService-test', () => {
 
@@ -320,7 +321,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(configuration['section'], 'update user value');
 
         // in-memory is updated (main-side)
-        await delayFor(0);
+        await delayFor(INSTANT_TIME);
         assert.strictEqual(mainService.get('section'), 'update user value');
 
         await resetUserConfiguration();
@@ -395,7 +396,7 @@ suite('BrowserConfigurationService', () => {
         assert.strictEqual(configuration['section'], undefined);
 
         // in-memory is updated (main-side)
-        await delayFor(0);
+        await delayFor(INSTANT_TIME);
         assert.strictEqual(mainService.get('section'), 'default value');
 
         await resetUserConfiguration();

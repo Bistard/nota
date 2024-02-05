@@ -3,6 +3,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
+import { INSTANT_TIME, Time, TimeUnit } from "src/base/common/date";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -517,8 +518,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [constants]
 
-    public static readonly SHOW_DEPLAY = 250;
-    public static readonly HIDE_DEPLAY = 750;
+    public static readonly SHOW_DEPLAY = new Time(TimeUnit.Milliseconds, 250);
+    public static readonly HIDE_DEPLAY = new Time(TimeUnit.Milliseconds, 750);
 
     // [field]
 
@@ -558,7 +559,7 @@ export class SubmenuItem extends AbstractMenuItem {
     // [public methods]
 
     public override run(context?: unknown): void {
-        this._showScheduler.schedule(undefined, 0);
+        this._showScheduler.schedule(undefined, INSTANT_TIME);
     }
 
     /**
@@ -566,7 +567,7 @@ export class SubmenuItem extends AbstractMenuItem {
      */
     public override onClick(event: MouseEvent): void {
         DomEventHandler.stop(event, true);
-        this._showScheduler.schedule(undefined, 0);
+        this._showScheduler.schedule(undefined, INSTANT_TIME);
     }
 
     public override dispose(): void {
@@ -625,7 +626,7 @@ export class SubmenuItem extends AbstractMenuItem {
 				DomEventHandler.stop(event, true);
                 // prevent double openning
                 if (!this._delegate.isSubmenuActive()) {
-                    this._showScheduler.schedule(undefined, 0);
+                    this._showScheduler.schedule(undefined, INSTANT_TIME);
                 }
 			}
         });

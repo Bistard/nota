@@ -7,7 +7,7 @@ import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
-import { initExposedElectronAPIs } from "src/platform/electron/browser/global";
+import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
@@ -49,13 +49,14 @@ import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { IExplorerTreeService, ExplorerTreeService } from "src/workbench/services/explorerTree/explorerTreeService";
+import { ExplorerTreeService } from "src/workbench/services/explorerTree/explorerTreeService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
 import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
+import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -81,6 +82,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
+
+            if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
+                Error.stackTraceLimit = Infinity;
+            }
 
             // register microservices
             this.rendererServiceRegistrations();
@@ -248,10 +253,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     
         // utilities && tools
         registerService(IContextService, new ServiceDescriptor(ContextService, []));
-        registerService(INotificationService, new ServiceDescriptor(NotificationService, [])); // TODO: notificationService
-        // TODO: performanceService
-        // TODO: folderTreeService
-        // TODO: notebookTreeService
+        registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
     }
 
     private __registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {

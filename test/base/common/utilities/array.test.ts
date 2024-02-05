@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { Arrays } from 'src/base/common/utilities/array';
 import { Deque } from "src/base/common/structures/deque";
-import { isNumber } from 'src/base/common/utilities/type';
+import { CompareOrder, isNumber } from 'src/base/common/utilities/type';
 
 suite('array-test', () => {
 
@@ -9,6 +9,12 @@ suite('array-test', () => {
         assert.strictEqual(Arrays.clear([]).length, 0);
         assert.strictEqual(Arrays.clear([1, 2, 3]).length, 0);
         assert.strictEqual(Arrays.clear([[], 1, 2, 3, 'abc', [true, false, { value: null }]]).length, 0);
+    });
+
+    test('swap', () => {
+        assert.deepStrictEqual(Arrays.swap([], 0, 1), []);
+        assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 3), [1, 2, 3]);
+        assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 2), [3, 2, 1]);
     });
 
     test('remove', () => {
@@ -169,11 +175,11 @@ suite('array-test', () => {
         function bs (arr: number[], expect: number, expectResult: boolean) {
             const match = (value: number) => { 
                 if (value === expect) {
-                    return 0;
+                    return CompareOrder.Same;
                 } else if (value < expect) {
-                    return -1;
+                    return CompareOrder.First;
                 } else {
-                    return 1;
+                    return CompareOrder.Second;
                 }
             };
             assert.strictEqual(isNumber(Arrays.binarySearch(arr, match)), expectResult, `array: [${arr}], searchFor: ${expect}, expectResult: ${expectResult}`);

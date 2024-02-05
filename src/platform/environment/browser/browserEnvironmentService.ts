@@ -1,5 +1,5 @@
 import { ILogService } from "src/base/common/logger";
-import { windowConfiguration } from "src/platform/electron/browser/global";
+import { WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IWindowConfiguration } from "src/platform/window/common/window";
@@ -15,15 +15,15 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
     constructor(
         logService: ILogService,
     ) {
-        super(windowConfiguration, {
-            isPackaged: windowConfiguration.isPackaged,
-            appRootPath: windowConfiguration.appRootPath,
-            tmpDirPath: windowConfiguration.tmpDirPath,
-            userDataPath: windowConfiguration.userDataPath,
-            userHomePath: windowConfiguration.userDataPath,
+        super(WIN_CONFIGURATION, {
+            isPackaged: WIN_CONFIGURATION.isPackaged,
+            appRootPath: WIN_CONFIGURATION.appRootPath,
+            tmpDirPath: WIN_CONFIGURATION.tmpDirPath,
+            userDataPath: WIN_CONFIGURATION.userDataPath,
+            userHomePath: WIN_CONFIGURATION.userDataPath,
         }, logService);
 
-        this._configuration = windowConfiguration;
+        this._configuration = WIN_CONFIGURATION;
         if (this._configuration.log === 'trace') {
             this.inspect();
         }

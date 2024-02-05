@@ -1,14 +1,15 @@
-import { TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 export const enum SideViewConfiguration {
-    DefaultSideView = 'sideView.defaultView',
+    DefaultSideView       = 'sideView.defaultView',
 
-    ExplorerViewMode = 'sideView.explorer.mode',
-    ExplorerViewInclude = 'sideView.explorer.include',
-    ExplorerViewExclude = 'sideView.explorer.exclude',
+    ExplorerViewMode      = 'sideView.explorer.mode',
+    ExplorerViewInclude   = 'sideView.explorer.include',
+    ExplorerViewExclude   = 'sideView.explorer.exclude',
 
-    ExplorerFileSorting = 'sideView.explorer.fileSorting',
+    ExplorerFileSortType  = 'sideView.explorer.fileSortType',
+    ExplorerFileSortOrder = 'sideView.explorer.fileSortOrder',
 }
 
 export const rendererSideViewConfigurationRegister = createRegister(
@@ -32,10 +33,6 @@ export const rendererSideViewConfigurationRegister = createRegister(
                         ['explorer']: {
                             type: 'object',
                             properties: {
-                                ['mode']: {
-                                    type: 'string',
-                                    default: TreeMode.Classic,
-                                },
                                 ['include']: {
                                     type: 'array',
                                     default: ['^\\..*'],
@@ -44,10 +41,25 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                     type: 'array',
                                     default: [''],
                                 },
-                                ['fileSorting']: {
-                                    type: 'boolean',
-                                    default: true,
+                                ['fileSortType']: {
+                                    type: 'string',
+                                    enum: [
+                                        FileSortType.Default, 
+                                        FileSortType.ModificationTime, 
+                                        FileSortType.Alphabet, 
+                                        FileSortType.CreationTime, 
+                                        FileSortType.Custom,
+                                    ],
+                                    default: FileSortType.Default,
                                 },
+                                ['fileSortOrder']: {
+                                    type: 'string',
+                                    enum: [
+                                        FileSortOrder.Ascending,
+                                        FileSortOrder.Descending,
+                                    ],
+                                    default: FileSortOrder.Ascending,
+                                }
                             }
                         }
                     }

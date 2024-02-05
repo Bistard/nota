@@ -433,7 +433,7 @@ export function jsonSafeParse<T>(str: string): Result<T, SyntaxError> {
  *     console.error(result.unwrapErr().message); // Logs SyntaxError message
  * }
  */
-export function jsonSafeStringtify(obj: unknown, replacer?: (this: any, key: string, value: any) => any, space?: string | number): Result<string, SyntaxError> {
+export function jsonSafeStringify(obj: unknown, replacer?: (this: any, key: string, value: any) => any, space?: string | number): Result<string, SyntaxError> {
     return Result.fromThrowable(
         () => JSON.stringify(obj, replacer, space),
         error => <SyntaxError>error,

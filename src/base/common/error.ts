@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, isNullable } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -156,7 +156,7 @@ const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for mo
  * 
  * @note This function never throws.
  */
-export function errorToMessage(error: any, verbose: boolean = false): string {
+export function errorToMessage(error: any, verbose: boolean = true): string {
     if (!error) {
         return UNKNOWN_MESSAGE;
     }
@@ -814,7 +814,7 @@ export class Err<T, E> implements IResult<T, E> {
     }
 
     public unwrap(): never {
-        panic(`Tried to unwrap an Err: ${errorToMessage(this.error)}`);
+        panic(this.error);
     }
 
     public unwrapOr(error: T): T {
@@ -860,31 +860,18 @@ export class Err<T, E> implements IResult<T, E> {
  * @remark `panic` is for situations where the error is unrecoverable and the 
  * program cannot proceed further. Use it very carefully.
  * 
- * @param messageOrError - The error message to be thrown.
- * @throws Will throw an error with the provided message.
+ * @param messageOrError - The error to be thrown.
+ * @throws Will throw an error.
  * @returns This function never returns normally; always throws an error.
  */
-export function panic(messageOrError: string | Error): never {
-    if (messageOrError instanceof Error) {
+export function panic(error: unknown): never {
+    if (isNullable(error)) {
         // eslint-disable-next-line local/code-no-throw
-        throw messageOrError;
+        throw new Error('unknown panic error');
     }
     
     // eslint-disable-next-line local/code-no-throw
-    throw new PanicError(messageOrError);
-}
-
-export class PanicError extends Error {
-
-    public readonly type = ErrorType.Panic;
-
-    constructor(message: string) {
-        super(message);
-    }
-}
-
-export function isPanicError(error: any): error is PanicError {
-    return error && error.type === ErrorType.Panic;
+    throw error;
 }
 
 /**

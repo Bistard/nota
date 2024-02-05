@@ -1,4 +1,4 @@
-import { NonUndefined } from "src/base/common/utilities/type";
+import { CompareOrder, NonUndefined } from "src/base/common/utilities/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -11,6 +11,23 @@ export namespace Arrays {
      */
     export function clear<T>(array: T[]): T[] {
         array.length = 0;
+        return array;
+    }
+
+    /**
+     * @description Swap element at index1 with element at index2
+     */
+    export function swap<T>(array: T[], index1: number, index2: number): T[] {
+        const item1 = array[index1];
+        const item2 = array[index2];
+
+        if (item1 === undefined || item2 === undefined) {
+            return array;
+        }
+
+        array[index1] = item2;
+        array[index2] = item1;
+
         return array;
     }
 
@@ -369,7 +386,7 @@ export namespace Arrays {
      * value indicates the item is too right.
      * @returns The found item or undefined if not found.
      */
-    export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => number): T | undefined {
+    export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => CompareOrder): T | undefined {
 
         let l = -1;
         let r = array.length;
