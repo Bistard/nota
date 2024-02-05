@@ -8,7 +8,7 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { err, ok } from "src/base/common/error";
+import { err, ok } from "src/base/common/result";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time, TimeUnit } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";

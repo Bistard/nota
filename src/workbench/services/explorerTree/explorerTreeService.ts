@@ -11,7 +11,7 @@ import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEv
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { Time, TimeUnit } from "src/base/common/date";
-import { AsyncResult, ok } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 
 export class ExplorerTreeService extends Disposable implements IExplorerTreeService {

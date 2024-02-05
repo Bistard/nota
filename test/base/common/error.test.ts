@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { AsyncResult, Err, ErrorHandler, GetAsyncErrType, GetAsyncOkType, GetErrType, GetOkType, InitProtector, Ok, Result, err, ok, panic, tryOrDefault } from 'src/base/common/error';
+import { ErrorHandler, InitProtector, tryOrDefault } from 'src/base/common/error';
+import { AsyncResult, Err, GetAsyncErrType, GetAsyncOkType, GetErrType, GetOkType, Ok, Result, err, ok, panic } from "src/base/common/result";
 import { AreEqual, checkTrue, isString } from 'src/base/common/utilities/type';
 
 suite('error-test', () => {

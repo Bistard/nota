@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/error";
+import { AsyncResult } from "src/base/common/result";
 import { Event, NodeEventEmitter } from "src/base/common/event";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";

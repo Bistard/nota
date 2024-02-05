@@ -16,7 +16,8 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyExpr";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
-import { AsyncResult, Result, err, errorToMessage, ok } from "src/base/common/error";
+import { errorToMessage } from "src/base/common/error";
+import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';

@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult, Result, err, errorToMessage, ok } from "src/base/common/error";
+import { errorToMessage } from "src/base/common/error";
+import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, FileSystemProviderError } from "src/base/common/files/file";

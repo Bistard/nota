@@ -1,4 +1,5 @@
-import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
+import { errorToMessage } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";

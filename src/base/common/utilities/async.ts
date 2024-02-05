@@ -1,10 +1,11 @@
 import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { CancellationError, panic } from "src/base/common/error";
+import { CancellationError } from "src/base/common/error";
+import { panic } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { noop } from "src/base/common/performance";
 import { CancellationToken, ICancellable } from "src/base/common/utilities/cacellation";
-import { isNullable, isNumber } from "src/base/common/utilities/type";
+import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * {@link CancellablePromise}
