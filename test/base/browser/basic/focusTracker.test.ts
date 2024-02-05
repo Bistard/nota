@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { FocusTracker } from 'src/base/browser/basic/focusTracker';
+import { INSTANT_TIME } from 'src/base/common/date';
 import { delayFor } from 'src/base/common/utilities/async';
 
 suite('FocusTracker-test', () => {
@@ -19,7 +20,7 @@ suite('FocusTracker-test', () => {
 
         dom.blur();
         
-        await delayFor(0);
+        await delayFor(INSTANT_TIME);
         assert.strictEqual(isFocused, false);
     });
 
@@ -37,7 +38,7 @@ suite('FocusTracker-test', () => {
 
         dom.blur();
         
-        await delayFor(0);
+        await delayFor(INSTANT_TIME);
         assert.strictEqual(isFocused, false);
     });
 });

@@ -1,5 +1,6 @@
 import { sep } from "src/base/common/files/path";
 import { Character } from "src/base/common/utilities/char";
+import { CompareOrder } from "src/base/common/utilities/type";
 
 /**
  * @description If the candidate is the parent of the given path.
@@ -78,9 +79,9 @@ export function compareSubstringIgnoreCase(a: string, b: string, aStart: number 
 	const bLen = bEnd - bStart;
 
 	if (aLen < bLen) {
-		return -1;
+		return CompareOrder.First;
 	} else if (aLen > bLen) {
-		return 1;
+		return CompareOrder.Second;
 	}
 
 	return 0;
@@ -103,17 +104,17 @@ export function compareSubstring(a: string, b: string, aStart: number = 0, aEnd:
 		const codeA = a.charCodeAt(aStart);
 		const codeB = b.charCodeAt(bStart);
 		if (codeA < codeB) {
-			return -1;
+			return CompareOrder.First;
 		} else if (codeA > codeB) {
-			return 1;
+			return CompareOrder.Second;
 		}
 	}
 	const aLen = aEnd - aStart;
 	const bLen = bEnd - bStart;
 	if (aLen < bLen) {
-		return -1;
+		return CompareOrder.First;
 	} else if (aLen > bLen) {
-		return 1;
+		return CompareOrder.Second;
 	}
 	return 0;
 }

@@ -127,7 +127,6 @@ export abstract class AbstractLogger extends Disposable implements IAbstractLogg
  * {@link ILogger} prints those data types in a prettier way.
  */
 export type PrettyTypes = string | boolean | number | null | undefined | object | Array<any> | Error;
-// export type Additionals = Pair<string, PrettyTypes>[];
 export type Additionals = {
     [key: string]: PrettyTypes;
 };

@@ -13,9 +13,6 @@ export interface IWorkspaceService extends IComponent, IService {
 
 }
 
-/**
- * @class // TODO
- */
 export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     declare _serviceMarker: undefined;

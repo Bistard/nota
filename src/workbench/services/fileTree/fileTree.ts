@@ -72,7 +72,6 @@ export class FileTreeWidget<T extends FileItem, TFilter> extends AsyncTreeWidget
 
 /**
  * An interface only for {@link FileTree}.
- * // TODO
  */
 export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TFilter> {
 
@@ -91,9 +90,6 @@ export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TF
     selectRecursive(item: T, index: number): T[];
 }
 
-/**
- * @class // TODO
- */
 export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter> implements IFileTree<T, TFilter> {
 
     // [field]

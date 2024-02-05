@@ -69,7 +69,13 @@ export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
         return [isWin, isMac, isLinux, _platform];
     }();
 
-export const OperatingSystem = (IS_LINUX) ? Platform.Linux : (IS_MAC ? Platform.Mac : Platform.Windows);
+export const OPERATING_SYSTEM = (IS_LINUX) ? Platform.Linux : (IS_MAC ? Platform.Mac : Platform.Windows);
+
+/**
+ * Indicates if the current operating system is case sensitive.
+ */
+export const OS_CASE_SENSITIVE = IS_LINUX;
+
 
 export function PlatformToString(platform: Platform) {
     switch (platform) {

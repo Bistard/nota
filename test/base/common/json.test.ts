@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { IJsonSchema, IJsonSchemaValidateResult, JsonSchemaValidator, jsonSafeParse, jsonSafeStringtify } from 'src/base/common/json';
+import { IJsonSchema, IJsonSchemaValidateResult, JsonSchemaValidator, jsonSafeParse, jsonSafeStringify } from 'src/base/common/json';
 import { deepCopy } from 'src/base/common/utilities/object';
 
 suite('json-test', function () {
@@ -331,16 +331,16 @@ suite('json-test', function () {
             assert.strictEqual(data.name, 'Chris');
         });
 
-        test('jsonSafeStringtify success', () => {
+        test('jsonSafeStringify success', () => {
             const obj = { name: "John", age: 30 };
-            const str = jsonSafeStringtify(obj).unwrap();
+            const str = jsonSafeStringify(obj).unwrap();
             assert.strictEqual(str, '{"name":"John","age":30}');
         });
         
-        test('jsonSafeStringtify fail', () => {
+        test('jsonSafeStringify fail', () => {
             const cyclicObj = {};
             cyclicObj["myself"] = cyclicObj; // circular reference
-            const result = jsonSafeStringtify(cyclicObj).unwrapOr('error');
+            const result = jsonSafeStringify(cyclicObj).unwrapOr('error');
             assert.strictEqual(result, 'error');
         });
     });

@@ -216,6 +216,7 @@ export interface IOverwriteFileOptions {
 	/**
 	 * Set to `true` to overwrite a file if it exists. Will
 	 * throw an error otherwise if the file does exist.
+	 * @default false
 	 */
 	readonly overwrite?: boolean;
 }
@@ -276,11 +277,13 @@ export interface IResolveStatOptions {
 
 	/**
 	 * Resolves the stat of the direct children.
+	 * @default false
 	 */
 	readonly resolveChildren?: boolean;
 
 	/**
 	 * Resolves the stat of all the descendants.
+	 * @default false
 	 */
 	readonly resolveChildrenRecursive?: boolean;
 }

@@ -83,7 +83,7 @@
         "local/code-interface-check": "error",
         "local/code-service-marker": "error",
         "local/code-no-throw": "warn",
-        "local/code-must-handle-result": "error" // TODO
+        "local/code-must-handle-result": "error"
     },
 
     "overrides": [

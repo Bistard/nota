@@ -2233,7 +2233,6 @@ var Parser = /*#__PURE__*/function () {
 					}
 				case 'html':
 					{
-						// TODO parse inline content if parameter markdown=1
 						out += this.renderer.html(token.text);
 						continue;
 					}

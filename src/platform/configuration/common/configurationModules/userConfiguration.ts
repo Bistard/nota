@@ -15,6 +15,7 @@ import { DefaultConfiguration } from "src/platform/configuration/common/configur
 import { IFileService } from "src/platform/files/common/fileService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { Time, TimeUnit } from "src/base/common/date";
 
 type LoadConfigurationResult = 
   | { readonly ifLoaded: false, readonly raw: IConfigurationStorage }
@@ -195,7 +196,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this.fileService.watch(this._userResource).unwrap().then(cancel => this.__register(cancel));
         this.__register(Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(this._userResource))(() => reloadScheduler.schedule()));
         const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
-            100, // wait for a moment to avoid excessive reloading
+            new Time(TimeUnit.Milliseconds, 100), // wait for a moment to avoid excessive reloading
             async () => {
                 return await this.reload();
             }

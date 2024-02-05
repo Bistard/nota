@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { IDisposable } from 'src/base/common/dispose';
 import { ErrorHandler } from 'src/base/common/error';
 import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
+import { Blocker } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('event-test', () => {
@@ -286,31 +287,65 @@ suite('event-test', () => {
         assert.strictEqual(result, 300);
     });
 
+    function loopFor(count: number, cb: () => void): void {
+        for (let i = 0; i < count; i++) {
+            cb();
+        }
+    }
+
     test('asyncEmitter - all async', () => FakeAsync.run(async () => {
         let result = 0;
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);
     }));
+    
+    test('asyncEmitter - async async', () => FakeAsync.run(async () => {
+        let result = 0;
+        const loop = 100;
+        const emitter = new AsyncEmitter<void>();
+        
+        emitter.registerListener(async () => (async () => loopFor(loop, () => result++))() );
+        await emitter.fireAsync();
 
+        assert.strictEqual(result, 100);
+    }));
+    
     test('asyncEmitter - partial async', () => FakeAsync.run(async () => {
         let result = 0;
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(() => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(() => loopFor(loop, () => result++));
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);
     }));
+
+    test('asyncEmitter - delay async', async () => {
+        const emitter = new AsyncEmitter<void>();
+
+        const blocker = new Blocker<void>();
+        let onTimeout = false;
+
+        setTimeout(() => {
+            onTimeout = true;
+            blocker.resolve();
+        }, 10);
+
+        emitter.registerListener(async () => blocker.waiting());
+        await emitter.fireAsync();
+
+        assert.ok(onTimeout);
+    });
 
     test('asyncEmitter - this object replace', () => FakeAsync.run(async () => {
         let name!: string;

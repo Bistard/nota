@@ -72,7 +72,7 @@ export interface IFileService extends IDisposable, IService {
      * @description Write to the file. 
      * @note Options is set to false if it is not given.
      */
-    writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): AsyncResult<void, FileOperationError>;
+    writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts: IWriteFileOptions): AsyncResult<void, FileOperationError>;
 
     /** 
      * @description Determines if the file/directory exists. 
@@ -206,7 +206,7 @@ export class FileService extends Disposable implements IFileService {
             .andThen(provider => this.__readFileStream(provider, uri, opts));
     }
 
-    public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): AsyncResult<void, FileOperationError> {
+    public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts: IWriteFileOptions): AsyncResult<void, FileOperationError> {
         const get = this.__getWriteProvider(uri);
         if (get.isErr()) {
             return AsyncResult.err(get.error);

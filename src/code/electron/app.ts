@@ -1,6 +1,6 @@
 import * as electron from "electron";
 import { Disposable } from "src/base/common/dispose";
-import { ErrorHandler, errorToMessage } from "src/base/common/error";
+import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID } from "src/base/node/uuid";
@@ -18,11 +18,10 @@ import { IMainWindowService, MainWindowService } from "src/platform/window/elect
 import { ILoggerService } from "src/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
-import { ILookupPaletteService, LookupPaletteService } from "src/platform/lookup/electron/lookupPaletteService";
 import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
-import { DEFAULT_HTML } from "src/platform/window/common/window";
+import { DEFAULT_HTML, INSPECTOR_HTML } from "src/platform/window/common/window";
 import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
@@ -113,8 +112,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
-        // TODO: update-service
-
         // main-window-serivce
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
@@ -123,11 +120,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
-
-        // TODO: notebook-group-service
-
-        // lookup-service
-        appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService, []));
 
         this.logService.trace('App', 'Application services constructed.');
         return appInstantiationService;
@@ -166,20 +158,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // life-cycle-service: READY
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
 
-        // set-up lookup-palette-service
-        mainWindowService.onDidOpenWindow(() => {
-            if (mainWindowService.windowCount() === 1) {
-                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
-                lookupPaletteService.enable();
-            }
-        });
-        mainWindowService.onDidCloseWindow(() => {
-            if (mainWindowService.windowCount() === 0) {
-                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
-                lookupPaletteService.disable();
-            }
-        });
-
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
         const uri = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
@@ -192,13 +170,49 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
             uriToOpen: uriToOpen,
+            displayOptions: {
+                frameless: true,
+            }
         });
 
         return window;
     }
 
     private afterFirstWindow(provider: IServiceProvider): void {
-        // TODO
+        
+        if (this.environmentService.CLIArguments.inspector === true 
+            || this.environmentService.CLIArguments.inspector === 'true'
+        ) {
+            this.openDebugInspectorWindow(provider);
+        }
+    }
+
+    private openDebugInspectorWindow(provider: IServiceProvider): void {
+        const mainWindowService = provider.getOrCreateService(IMainWindowService);
+
+        const window: IWindowInstance = mainWindowService.open({
+            CLIArgv: this.environmentService.CLIArguments,
+            loadFile: INSPECTOR_HTML,
+            displayOptions: {
+                width: 600,
+                height: 200,
+                minWidth: 600,
+                minHeight: 200,
+                resizable: true,
+                frameless: false,
+            },
+            "open-devtools": false,
+        });
+
+        /**
+         * Whenever all the other windows are closed, we also need to close the
+         * inspector window.
+         */
+        mainWindowService.onDidCloseWindow(() => {
+            if (mainWindowService.windowCount() === 1) {
+                mainWindowService.closeWindowByID(window.id);
+            }
+        });
     }
 
     // [private helper methods]

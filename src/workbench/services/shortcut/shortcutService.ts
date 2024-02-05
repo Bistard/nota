@@ -15,7 +15,7 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyExpr";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { jsonSafeParse, jsonSafeStringtify } from "src/base/common/json";
+import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
 import { AsyncResult, Result, err, errorToMessage, ok } from "src/base/common/error";
 import { FileOperationError } from "src/base/common/files/file";
 
@@ -155,7 +155,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
             }
         }
 
-        return jsonSafeStringtify(keybindings, undefined, 4).toAsync()
+        return jsonSafeStringify(keybindings, undefined, 4).toAsync()
         .andThen(raw => this.fileService.writeFile(
             this._resource,
             DataBuffer.fromString(raw),

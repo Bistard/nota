@@ -3,6 +3,7 @@ import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/files/buffer";
 import { ILogService } from "src/base/common/logger";
 import { ITask } from "src/base/common/utilities/async";
+import { mixin } from "src/base/common/utilities/object";
 import { If, Pair } from "src/base/common/utilities/type";
 import { ChannelType, IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { IProtocol } from "src/platform/ipc/common/protocol";
@@ -512,14 +513,21 @@ export class ChannelServer extends Disposable implements IChannelServer {
             });
         }
         catch (err: any) {
+            
+            // construct a plain object to represent `Error`
+            const newErr = {
+                message: err.message ?? 'unknown error message',
+                name: err.name ?? 'unknown error',
+                stack: err.stack ? (err.stack.split ? err.stack.split('\n') : err.stack) : undefined,
+            };
+
+            // making sure any extra attributes from the `err` is also included
+            mixin(newErr, err);
+
             this.__sendResponse(<IPromiseRejectResponse>{
                 type: ResponseType.PromiseReject,
                 requestID: requestID,
-                dataOrError: {
-                    message: err.message ?? 'unknown error message',
-                    name: err.name ?? 'unknown error',
-                    stack: err.stack ? (err.stack.split ? err.stack.split('\n') : err.stack) : undefined,
-                },
+                dataOrError: newErr,
             });
         }
     }
