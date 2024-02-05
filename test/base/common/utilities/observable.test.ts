@@ -133,7 +133,7 @@ suite('observable-test', () => {
     }[] = [];
     
     const TEST_OBSERVER = createDefaultObserver(
-        function testObserver(message: string, ...param: any[]): void {
+        function testObserver(opts: IObserverableOptions, message: string, ...param: any[]): void {
         
             const className: string = param[0]!;
             const property: string = param[1]!;

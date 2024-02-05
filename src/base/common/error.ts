@@ -146,13 +146,6 @@ export function isExpectedError(error: any): error is ExpectedError {
     return error.type === ErrorType.Expected;
 }
 
-/**
- * @description Returns the current calling stack.
- */
-export function getCurrentStack(): string[] {
-    return (new Error()).stack?.split('\n').slice(1) ?? [];
-}
-
 const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for more details.';
 
 /**
@@ -249,3 +242,35 @@ export class InitProtector {
     }
 }
 
+export class Stacktrace {
+
+    // [fields]
+
+    private _stack: string[];
+
+    // [constructor]
+
+    constructor() {
+        const prevLimit = Error.stackTraceLimit;
+        Error.stackTraceLimit = Infinity;
+        this._stack = (new Error()).stack?.split('\n').slice(1) ?? [];
+        Error.stackTraceLimit = prevLimit;
+    }
+
+    // [getter]
+
+    public getRawTrace(): string {
+        return this._stack.join('\n');
+    }
+
+    public getTrace(): string[] {
+        return this._stack;
+    }
+
+    // [public methods]
+
+    public map(callbackfn: (value: string, index: number, array: string[]) => string, thisArg?: any): this {
+        this._stack = this._stack.map(callbackfn);
+        return this;
+    }
+}
