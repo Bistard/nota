@@ -299,9 +299,11 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  */
 export function observable<T extends Constructor>(opts?: IObserverableOptions) {
 
+    // opts 
     const observer = opts?.observer ?? DEFAULT_OBSERVER;
+    const ignoreUnderscores = opts?.ignoreUnderscores ?? true;
+    
     function isFnIgnored(propKey: string): boolean {
-        const ignoreUnderscores = opts?.ignoreUnderscores ?? true;
         return ignoreUnderscores && propKey.startsWith('_');
     }
 
