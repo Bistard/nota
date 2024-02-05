@@ -1,5 +1,9 @@
 import { Callable, isNullable } from "src/base/common/utilities/type";
 
+/**
+ * An namespace that contains a list of helper functions that relates to 
+ * {@link Result}.
+ */
 export namespace Result {
 
     /**
@@ -78,6 +82,7 @@ export namespace Result {
         return new AsyncResult(next);
     }
 }
+
 /**
  * @type {Result}
  *
@@ -119,7 +124,6 @@ export namespace Result {
  * @see {@link Ok}
  * @see {@link Err}
  */
-
 export type Result<T, E> = Ok<T, E> | Err<T, E>;
 
 export type ResultLike<T, E> = (IResult<T, E> & { data: T; error: undefined; }) | (IResult<T, E> & { error: E; data: undefined; });
@@ -129,6 +133,7 @@ export type GetErrType<R> = R extends Result<infer T, infer E> ? E : never;
 
 export type GetAsyncOkType<R> = R extends AsyncResult<infer T, infer E> ? T : never;
 export type GetAsyncErrType<R> = R extends AsyncResult<infer T, infer E> ? E : never;
+
 /**
  * An interface for {@link Ok} and {@link Err}.
  */
@@ -433,6 +438,7 @@ interface IResult<T, E> {
      */
     toAsync(): AsyncResult<T, E>;
 }
+
 /**
  * @description Creates and returns an instance of the `Ok` class with the
  * provided value. This function serves as a shorthand utility to create `Ok`
@@ -444,12 +450,12 @@ interface IResult<T, E> {
  * const successfulResult = ok(42);
  * ```
  */
-
 export function ok<T extends void, E>(): Ok<T, E>;
 export function ok<T, E>(data: T): Ok<T, E>;
 export function ok<T, E>(data?: T): Ok<T, E> {
     return new Ok(data!);
 }
+
 /**
  * @description Creates and returns an instance of the `Err` class with the
  * provided error value. This function serves as a shorthand utility to create
@@ -461,12 +467,12 @@ export function ok<T, E>(data?: T): Ok<T, E> {
  * const errorResult = err("An error occurred");
  * ```
  */
-
 export function err<T, E extends void>(): Err<T, E>;
 export function err<T, E>(error: E): Err<T, E>;
 export function err<T, E>(error?: E): Err<T, E> {
     return new Err(error!);
 }
+
 /**
  * @class Represents a successful outcome with a value of type `T`.
  *
@@ -484,7 +490,6 @@ export function err<T, E>(error?: E): Err<T, E> {
  * console.log(success.unwrap());   // 42
  * ```
  */
-
 export class Ok<T, E> implements IResult<T, E> {
 
     constructor(public readonly data: T) { }
@@ -537,6 +542,7 @@ export class Ok<T, E> implements IResult<T, E> {
         return new AsyncResult(Promise.resolve(ok(this.data)));
     }
 }
+
 /**
  * @class Represents an error outcome with a value of type `E`.
  *
@@ -557,7 +563,6 @@ export class Ok<T, E> implements IResult<T, E> {
  * console.error(error.unwrap()); // Will throw an error with the message "Something went wrong"
  * ```
  */
-
 export class Err<T, E> implements IResult<T, E> {
 
     constructor(public readonly error: E) { }
@@ -610,6 +615,7 @@ export class Err<T, E> implements IResult<T, E> {
         return new AsyncResult(Promise.resolve(err(this.error)));
     }
 }
+
 /**
  * @description Panics the program by throwing an error with the provided message.
  *
@@ -620,7 +626,6 @@ export class Err<T, E> implements IResult<T, E> {
  * @throws Will throw an error.
  * @returns This function never returns normally; always throws an error.
  */
-
 export function panic(error: unknown): never {
     if (isNullable(error)) {
         // eslint-disable-next-line local/code-no-throw
@@ -630,6 +635,7 @@ export function panic(error: unknown): never {
     // eslint-disable-next-line local/code-no-throw
     throw error;
 }
+
 /**
  * @class Represents an asynchronous operation that yields a result upon
  * completion. The `AsyncResult` class encapsulates a `Promise` which resolves
@@ -642,7 +648,6 @@ export function panic(error: unknown): never {
  * writing clean, readable asynchronous code without deeply nested callbacks or
  * complex error-handling structures.
  */
-
 export class AsyncResult<T, E> {
 
     // [field]
