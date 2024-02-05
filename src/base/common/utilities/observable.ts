@@ -218,6 +218,28 @@ export class Observable<T extends {}> implements IObservable<T> {
     }
 }
 
+/**
+ * Options for {@link observable} construction.
+ */
+export interface IObserverableOptions {
+
+    /**
+     * Callback function when observing. A custom observer function that 
+     * overrides the default behavior for handling observed property changes. 
+     * It receives information about the class name, property being observed, 
+     * the type of observation, and the parameters involved in the observation.
+     * @default DEFAULT_OBSERVER
+     */
+    observer?: typeof DEFAULT_OBSERVER;
+
+    /**
+     * If set to true, this option excludes functions with names starting with 
+     * `_` from observation.
+     * @default true
+     */
+    ignoreUnderscores?: boolean;
+}
+
 const OB_KEY = '$OB$properties';
 type ObserveList = { propKey: string, types: ObserveType[] }[];
 
@@ -255,15 +277,9 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  * @description Class decorator function that transforms the specified class to 
  * make its properties observable based on the {@link observe} decorator. 
  * 
- * @nmote It replaces direct object properties marked with {@link observe} with 
+ * @note It replaces direct object properties marked with {@link observe} with 
  * {@link Observable} instances, allowing changes to these properties to be 
  * observed.
- * 
- * @param {typeof DEFAULT_OBSERVER} [observer=DEFAULT_OBSERVER] - Optional. A 
- *      custom observer function that overrides the default behavior for 
- *      handling observed property changes. It receives information about the 
- *      class name, property being observed, the type of observation, and the 
- *      parameters involved in the observation.
  * @returns A class decorator function that takes a target class and returns a 
  *          new class with observable properties.
  * 
@@ -281,11 +297,15 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  * // observing 'set' operations.
  * ```
  */
-export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSERVER) {
-    
-    // TODO: ! can be omit when ts is updated to 5.4
-    observer ??= DEFAULT_OBSERVER;
+export function observable<T extends Constructor>(opts?: IObserverableOptions) {
 
+    const observer = opts?.observer ?? DEFAULT_OBSERVER;
+    function isFnIgnored(propKey: string): boolean {
+        const ignoreUnderscores = opts?.ignoreUnderscores ?? true;
+        return ignoreUnderscores && propKey.startsWith('_');
+    }
+
+    // return decorator
     return function(ctor: T): T {
         const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
 
@@ -322,6 +342,10 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                     });
 
                     Arrays.exist(types, 'call') && ob.on('call', null, <any>((fn: string, ret: any, ...rest: any[]) => {
+                        if (isFnIgnored(fn)) {
+                            return;
+                        }
+                        
                         observer!(className, `${propKey}.${fn}`, 'call', [ret, ...rest]);
                     }));
                 }
@@ -330,10 +354,11 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                 return new Proxy(this, {
                     
                     set: (target: this, propKey: string | symbol, value: any, receiver: any): boolean => {
-                        
-                        if (isTagged(String(propKey), 'set')) {
+                        const key = String(propKey);
+
+                        if (isTagged(key, 'set')) {
                             const oldValue = Reflect.get(target, propKey, receiver);
-                            observer!(className, String(propKey), 'set', [oldValue, value]);
+                            observer!(className, key, 'set', [oldValue, value]);
                         }
                         
                         const result = Reflect.set(target, propKey, value, receiver);
@@ -341,18 +366,19 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                     },
 
                     get: (target: this, propKey: string | symbol, receiver: any): any => {
+                        const key = String(propKey);
                         const value: any = Reflect.get(target, propKey, receiver);
 
-                        if (isFunction(value) && isTagged(String(propKey), 'call')) {
+                        if (isFunction(value) && isTagged(key, 'call') && !isFnIgnored(key)) {
                             return (...args: any[]) => {
                                 const ret = value.apply(receiver, args);
-                                observer!(className, String(propKey), 'call', [ret, args]);
+                                observer!(className, key, 'call', [ret, args]);
                                 return ret;
                             };
                         }
         
-                        if (isTagged(String(propKey), 'get')) {
-                            observer!(className, String(propKey), 'get', [value]);
+                        if (isTagged(key, 'get')) {
+                            observer!(className, key, 'get', [value]);
                         }
 
                         return value;
