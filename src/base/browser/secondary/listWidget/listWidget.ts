@@ -93,7 +93,11 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
     
-    /** Fires when the {@link IListWidget} itself is blured or focused. */
+    /** 
+     * Fires when the {@link IListWidget} itself is focused or blured. 
+     * True: focused
+     * false: blured
+     */
     get onDidChangeFocus(): Register<boolean>;
 
     /** Fires when the focused items in the {@link IListWidget} is changed. */
