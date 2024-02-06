@@ -1,6 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListViewOpts, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
+import { IListViewOpts, IViewItemChangeEvent, ListView } from "src/base/browser/secondary/listView/listView";
 import { IList } from "src/base/browser/secondary/listView/list";
 import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
@@ -14,6 +14,7 @@ import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/result";
 
 /**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
@@ -401,11 +402,11 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         }
         
         if (index < 0 || index > this.getItemCount()) {
-            throw new ListError(`splice invalid start index: ${index}`);
+            panic(`splice invalid start index: ${index}`);
         }
 
         if (deleteCount < 0) {
-            throw new ListError(`splice invalid deleteCount: ${deleteCount}`);
+            panic(`splice invalid deleteCount: ${deleteCount}`);
         }
 
         // traits react to splice
