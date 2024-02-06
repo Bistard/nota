@@ -403,21 +403,17 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.cache = new ListViewCache(this.renderers);
 
         // DOM rendering
-
         this.element.appendChild(this.listContainer);
         container.appendChild(this.element);
 
-        // disposable registration
+        // optional rendering
+        opts.layout && this.layout();
 
+        // disposable registration
         this.__register(this.scrollable);
         this.__register(this.scrollableWidget);
         this.__register(this.cache);
         this.__register(this.focusTracker);
-
-        // optional rendering
-        if (opts.layout) {
-            this.layout();
-        }
     }
 
     // [methods]

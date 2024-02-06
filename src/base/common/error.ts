@@ -127,7 +127,6 @@ export namespace ErrorHandler {
 export const enum ErrorType {
     Cancelled = 'cancelled',
     Expected = 'expected',
-    Panic = 'panic',
 }
 
 export class CancellationError extends Error {
