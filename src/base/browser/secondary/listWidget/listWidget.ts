@@ -315,9 +315,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         // construct list view
         this.view = new ListView(container, renderers, itemProvider, opts);
 
-        this.selected.getHTMLElement = item => this.view.getHTMLElement(item);
-        this.anchor.getHTMLElement = item => this.view.getHTMLElement(item);
-        this.focused.getHTMLElement = item => this.view.getHTMLElement(item);
+        [this.selected, this.anchor, this.focused]
+        .forEach(trait => trait.getHTMLElement = item => this.view.getHTMLElement(item));
 
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
