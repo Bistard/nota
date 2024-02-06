@@ -1,3 +1,4 @@
+import { errorToMessage } from "src/base/common/error";
 import { Callable, isNullable } from "src/base/common/utilities/type";
 
 /**
@@ -632,8 +633,13 @@ export function panic(error: unknown): never {
         throw new Error('unknown panic error');
     }
 
+    if (error instanceof Error) {
+        // eslint-disable-next-line local/code-no-throw
+        throw error;
+    }
+
     // eslint-disable-next-line local/code-no-throw
-    throw error;
+    throw new Error(errorToMessage(error));
 }
 
 /**
