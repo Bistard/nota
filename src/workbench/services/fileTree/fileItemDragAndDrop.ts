@@ -40,9 +40,8 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     ) {
 
         this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
-            const { item, index } = event[0]!;
+            const { item } = event[0]!;
             await this._tree.expand(item);
-            this._dragSelections = this._tree.selectRecursive(item, index);
         });
     }
 
@@ -64,12 +63,11 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
+        console.log('dragenter');
+        
         if (!targetOver || !targetIndex) {
             return;
         }
-
-        // simulate hover effect
-        this._tree.setSelections([targetOver]);
 
         // the target is not collapsible
         if (!this._tree.isCollapsible(targetOver)) {
@@ -85,7 +83,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
         // the target is already expanded, select it immediately.
         this._delayExpand.cancel(true);
-        this._dragSelections = this._tree.selectRecursive(targetOver, targetIndex);
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
@@ -114,6 +111,9 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
 
         console.log('current drag items', currentDragItems.map(item => item.id));
+
+        // TODO: ctrl + win can drop at the parent
+        // TODO: alt + mac can drop at the parent
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
