@@ -273,6 +273,11 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
 export type NonEmptyArray<T> = [T, ...T[]];
 
 /**
+ * Represent an array of type T with up to length N.
+ */
+export type BoundedArray<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : R | BoundedArray<T, N, [T, ...R]>;
+
+/**
  * make every parameter of an object and its sub-objects recursively as readonly.
  * 
  * @note related built-in type: {@link Readonly}.

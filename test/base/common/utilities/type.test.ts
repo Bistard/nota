@@ -3,7 +3,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, BoundedArray } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -428,6 +428,17 @@ suite('typescript-types-test', () => {
         const test4: NonEmptyArray<string> = ['first', undefined];
         // @ts-expect-error
         const test5: NonEmptyArray<boolean> = [true, 'notABoolean'];
+    });
+
+    test('BoundedArray type', () => {
+        let arr: BoundedArray<number, 5> = [];
+        arr = [1];
+        arr = [1, 1];
+        arr = [1, 1, 3];
+        arr = [1, 1, 3, 4];
+        arr = [1, 1, 3, 4, 5];
+        // @ts-expect-error
+        arr = [1, 1, 3, 4, 5, 6];
     });
 
     test('Mutable type', () => {
