@@ -1,5 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";

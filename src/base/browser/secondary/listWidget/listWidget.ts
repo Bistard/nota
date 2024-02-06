@@ -5,7 +5,7 @@ import { IList } from "src/base/browser/secondary/listView/list";
 import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
-import { ListTrait } from "src/base/browser/secondary/listWidget/listWidgetTrait";
+import { ListTrait, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
@@ -14,15 +14,6 @@ import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
-
-/**
- * The index changed in {@link ListTrait}.
- */
-export interface ITraitChangeEvent {
-
-    /** The new indices with the corresponding trait. */
-    indice: number[];
-}
 
 /**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
