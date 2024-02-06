@@ -237,10 +237,12 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     }
     
     private __onDragStart(data: T, userData: string, event: DragEvent): void {
-        
         if (event.dataTransfer === null) {
             return;
         }
+
+        // add tagging
+        this._view.DOMElement.classList.add('dragging');
 
         const dragItems = this._provider.getDragItems(data);
 
@@ -302,6 +304,9 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
             return;
         }
 
+        // remove tagging
+        this._view.DOMElement.classList.remove('dragging');
+
         // notify client
         event.browserEvent.preventDefault();
         this._provider.onDragDrop(event.browserEvent, dragItems, event.item, event.actualIndex);
@@ -318,6 +323,10 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnd(event: DragEvent): void {
+        
+        // remove tagging
+        this._view.DOMElement.classList.remove('dragging');
+        
         // clear dragover meatadata
         this.__clearDragoverData();
 
