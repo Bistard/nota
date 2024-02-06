@@ -37,6 +37,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
         this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
         this._disposables.register(view.onTouchstart(e => this.__onMouseDown(e)));
         this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
+        this._disposables.register(view.onDidChangeFocus(e => this.__onDidChangeFocus(e)));
     }
 
     // [public methods]
@@ -122,6 +123,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
         if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
 			this._view.setDomFocus();
 		}
+    }
+
+    private __onDidChangeFocus(isFocused: boolean): void {
+        if (!isFocused) {
+            this._view.setFocus(null);
+        }
     }
 
     /**
