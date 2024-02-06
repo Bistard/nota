@@ -47,6 +47,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
             },
         );
 
+        // Test code for `notificationServeice`, should be removed when done
         registrant.registerCommand(
             {
                 id: WorkbenchCommands.openNotification,

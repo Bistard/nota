@@ -28,7 +28,8 @@ export const rendererWorkbenchShortcutRegister = createRegister(
             weight: ShortcutWeight.Core,
             when: WorkbenchContextKey.inDevelopContext,
         });
-
+        
+        // Test code for `notificationServeice`, should be removed when done
         registrant.register({
             commandID: WorkbenchCommands.openNotification,
             shortcut: new Shortcut(true, false, false, false, KeyCode.KeyN),

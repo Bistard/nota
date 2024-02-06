@@ -26,8 +26,6 @@ import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbe
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IExplorerTreeService } from 'src/workbench/services/explorerTree/treeService';
-import { delayFor } from 'src/base/common/utilities/async';
-import { Time, TimeUnit } from 'src/base/common/date';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -175,13 +173,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         const openedWorkspace = this.explorerTreeService.root 
             ? URI.toString(URI.join(this.explorerTreeService.root, '|directory'))
             : '';
-        this.logService.debug('debug purpose', 'this is `openedWorkspace`:', { openedWorkspace: openedWorkspace });
-        
-        await delayFor(new Time(TimeUnit.Seconds, 10), () => {});
-
-        this.logService.debug('debug purpose', 'before set');
         await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace).unwrap();
-        this.logService.debug('debug purpose', 'after set');
     }
 
     private __unloadCurrentView(): void {
@@ -280,16 +272,14 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(
-            addDisposableListener(tag, EventType.click, () => {
-                this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-                    .then(path => {
-                        if (path.length > 0) {
-                            this.open(URI.fromFile(path.at(-1)!));
-                        }
-                    });
-            }
-            ));
+        disposables.register(addDisposableListener(tag, EventType.click, () => {
+            this.dialogService.openDirectoryDialog({ title: 'open a directory' })
+            .then(path => {
+                if (path.length > 0) {
+                    this.open(URI.fromFile(path.at(-1)!));
+                }
+            });
+        }));
     }
 
     private __registerNonEmptyViewListeners(view: HTMLElement): void {

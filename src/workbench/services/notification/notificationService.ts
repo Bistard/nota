@@ -54,8 +54,23 @@ export class NotificationService extends Disposable implements INotificationServ
             classes: ['notification-close-button']
         };
         const closeButton = new Button(closeButtonOptions);
+        
         this.__register(closeButton.onDidClick(() => {
-            this._parent.removeChild(notification);
+            // Make the notification invisible before removing it
+            notification.style.height = '0';
+            notification.style.marginBottom = '-10px';
+            notification.style.opacity = '0';
+            notification.style.padding = '0';
+            notification.style.borderWidth = '0';
+            notification.style.transform = 'scaleY(0)';
+    
+            // Wait for the transitions to finish before removing the element
+            notification.addEventListener('transitionend', () => {
+                // It's important to check if the notification is still part of the DOM
+                if (notification.parentNode === this._parent) {
+                    this._parent.removeChild(notification);
+                }
+            });
         }));
         
         closeButton.render(actionsContainer);
