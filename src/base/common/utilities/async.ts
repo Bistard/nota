@@ -1,10 +1,11 @@
 import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { CancellationError, panic } from "src/base/common/error";
+import { CancellationError } from "src/base/common/error";
+import { panic } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { noop } from "src/base/common/performance";
 import { CancellationToken, ICancellable } from "src/base/common/utilities/cacellation";
-import { isNullable, isNumber } from "src/base/common/utilities/type";
+import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * {@link CancellablePromise}
@@ -66,8 +67,6 @@ export async function delayFor(time: Time, callback?: ITask<void>): Promise<void
  * a group. This provides a structured way to join individual promises together 
  * and handle their settled results in a collective manner.
  * 
- * @note {@link allSettled} will never rejects.
- * 
  * @example
  * const joinable = new JoinablePromise();
  * joinable.join(someAsyncFunction());
@@ -102,10 +101,22 @@ export class JoinablePromise {
 	}
 
 	/**
+	 * @description Creates a Promise that is resolved with an array of results 
+	 * when all of the provided Promises resolve or reject.
 	 * @note This method never rejects.
 	 */
 	public async allSettled(): Promise<PromiseSettledResult<any>[]> {
 		return Promise.allSettled(this._participants);
+	}
+
+	/**
+	 * @description Creates a Promise that is resolved with an array of results 
+	 * when all of the provided Promises resolve, or rejected when any Promise 
+	 * is rejected.
+	 * @returns 
+	 */
+	public async all(): Promise<any[]> {
+		return Promise.all(this._participants);
 	}
 }
 

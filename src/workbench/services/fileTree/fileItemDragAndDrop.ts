@@ -8,7 +8,7 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { err, ok } from "src/base/common/error";
+import { err, ok } from "src/base/common/result";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time, TimeUnit } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
@@ -42,9 +42,8 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     ) {
         this.notificationService = notificationService; 
         this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
-            const { item, index } = event[0]!;
+            const { item } = event[0]!;
             await this._tree.expand(item);
-            this._dragSelections = this._tree.selectRecursive(item, index);
         });
     }
 
@@ -66,12 +65,11 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
+        console.log('dragenter');
+        
         if (!targetOver || !targetIndex) {
             return;
         }
-
-        // simulate hover effect
-        this._tree.setSelections([targetOver]);
 
         // the target is not collapsible
         if (!this._tree.isCollapsible(targetOver)) {
@@ -87,7 +85,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
         // the target is already expanded, select it immediately.
         this._delayExpand.cancel(true);
-        this._dragSelections = this._tree.selectRecursive(targetOver, targetIndex);
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
@@ -101,7 +98,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         }
 
         if (!targetOver || !targetIndex) {
-            this.__removeDragSelections();
             this._delayExpand.cancel(true);
             return;
         }
@@ -109,13 +105,17 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): boolean {
         if (!targetOver || !targetIndex) {
-            this.__removeDragSelections();
             this._delayExpand.cancel(true);
         }
         return true;
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
+
+        console.log('current drag items', currentDragItems.map(item => item.id));
+
+        // TODO: ctrl + win can drop at the parent
+        // TODO: alt + mac can drop at the parent
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
@@ -127,6 +127,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
+        // TODO: var can be removed at TS 5.4 which has better TCFA
         const target = targetOver;
 
         /**

@@ -1,5 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/error";
+import { AsyncResult } from "src/base/common/result";
 import { Register } from "src/base/common/event";
 import { FileOperationError } from "src/base/common/files/file";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -42,10 +42,10 @@ export interface IHostService extends IService {
     toggleDevTools(id?: number): Promise<void>;
     reloadWebPage(id?: number): Promise<void>;
 
-    // status-service
-    setApplicationStatus(key: StatusKey, val: any): AsyncResult<void, FileOperationError>;
-    setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): AsyncResult<void, FileOperationError>;
-    deleteApplicationStatus(key: StatusKey): AsyncResult<boolean, FileOperationError>;
+    // status-service (THOSE FUNCTIONS MIGHT THROW WHEN FAILED)
+    setApplicationStatus(key: StatusKey, val: any): Promise<void>;
+    setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void>;
+    deleteApplicationStatus(key: StatusKey): Promise<boolean>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {

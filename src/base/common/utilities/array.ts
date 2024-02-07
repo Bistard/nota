@@ -1,4 +1,4 @@
-import { NonUndefined } from "src/base/common/utilities/type";
+import { CompareOrder, NonUndefined } from "src/base/common/utilities/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -386,7 +386,7 @@ export namespace Arrays {
      * value indicates the item is too right.
      * @returns The found item or undefined if not found.
      */
-    export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => number): T | undefined {
+    export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => CompareOrder): T | undefined {
 
         let l = -1;
         let r = array.length;

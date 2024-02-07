@@ -7,10 +7,6 @@
      */
     outline: 1px solid transparent;
     outline-offset: -1px; /* make the outline placed inside the row. */
-
-    &:hover {
-        background-color: #fcf3f3;
-    }
     
     &.focused {
         outline: 1px solid #cf6060;
@@ -18,6 +14,10 @@
     
     &.selected {
         background-color: #f0e8e8;
+    }
+
+    &.hovered {
+        background-color: #fcf3f3;
     }
     
     & > .tree-list-row > .icon {

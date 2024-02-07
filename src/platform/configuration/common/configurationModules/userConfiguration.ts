@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult, InitProtector, err, errorToMessage, ok, tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { Emitter, Event } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationErrorType, FileOperationError } from "src/base/common/files/file";

@@ -1,10 +1,18 @@
 import { IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
 import { hash } from "src/base/common/utilities/hash";
 import { Numbers } from "src/base/common/utilities/number";
+
+/**
+ * The index changed in {@link ListTrait}.
+ */
+export interface ITraitChangeEvent {
+
+    /** The new indices with the corresponding trait. */
+    indice: number[];
+}
 
 /**
  * @internal

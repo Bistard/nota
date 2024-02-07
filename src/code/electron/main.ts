@@ -28,6 +28,7 @@ import { MainConfigurationService } from 'src/platform/configuration/electron/ma
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
+import { panic } from 'src/base/common/result';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -92,7 +93,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             } catch (error) {
                 // FIX: could be errors other than directory-related
                 this.__showDirectoryErrorDialog(error);
-                throw error;
+                panic(error);
             }
 
             // application run
@@ -272,11 +273,11 @@ const main = new class extends class MainProcess implements IMainProcess {
             // unexpected errors
             if (error.code !== 'EADDRINUSE') {
                 this.logService.error('MainProcess', 'unexpected error (expect EADDRINUSE)', error);
-                throw error;
+                panic(error);
             }
 
             // there is a running application, we stop the current application.
-            throw new ExpectedError('There is an application running, we are terminating...');
+            panic(new ExpectedError('There is an application running, we are terminating...'));
         }
 
         // we are the first running application under the current version.

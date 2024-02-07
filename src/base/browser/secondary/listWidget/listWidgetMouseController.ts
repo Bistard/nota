@@ -34,9 +34,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
             this._multiSelectionSupport = opts.multiSelectionSupport;
         }
 
+        this._disposables.register(view.onMouseout((e) => this.__onMouseout(e)));
+        this._disposables.register(view.onMouseover(e => this.__onMouseover(e)));
         this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
         this._disposables.register(view.onTouchstart(e => this.__onMouseDown(e)));
         this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
+        this._disposables.register(view.onDidChangeFocus(e => this.__onDidChangeFocus(e)));
     }
 
     // [public methods]
@@ -114,6 +117,18 @@ export class ListWidgetMouseController<T> implements IDisposable {
 
     // [private helper methods]
 
+    private __onMouseout(e: IListMouseEvent<T>): void {
+        this._view.setHover([]);
+    }
+
+    private __onMouseover(e: IListMouseEvent<T>): void {
+        if (e.actualIndex === undefined) {
+            return;
+        }
+
+        this._view.setHover([e.actualIndex]);
+    }
+
     /**
      * @description Focuses the event target element.
      */
@@ -122,6 +137,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
         if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
 			this._view.setDomFocus();
 		}
+    }
+
+    private __onDidChangeFocus(isFocused: boolean): void {
+        if (!isFocused) {
+            this._view.setFocus(null);
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
+import { panic } from "src/base/common/result";
 
 /**
  * The consturtor options for {@link ListView}.
@@ -403,21 +404,17 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.cache = new ListViewCache(this.renderers);
 
         // DOM rendering
-
         this.element.appendChild(this.listContainer);
         container.appendChild(this.element);
 
-        // disposable registration
+        // optional rendering
+        opts.layout && this.layout();
 
+        // disposable registration
         this.__register(this.scrollable);
         this.__register(this.scrollableWidget);
         this.__register(this.cache);
         this.__register(this.focusTracker);
-
-        // optional rendering
-        if (opts.layout) {
-            this.layout();
-        }
     }
 
     // [methods]
@@ -510,18 +507,17 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         
         if (this._splicing) {
-            throw new ListError('cannot splice recursively');
+            panic('[ListView] cannot splice recursively.');
         }
+        this._splicing = true;
 
         console.log('[ListView] rendering'); // TEST
-
-        this._splicing = true;
 
         try {
             this.__splice(index, deleteCount, items);
         } 
         catch (err) {
-            throw err;
+            panic(err);
         } 
         finally {
             this._splicing = false;
@@ -585,7 +581,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         const renderer = this.renderers.get(item.type);
         if (renderer === undefined) {
-            throw new Error(`no renderer provided for the given type: ${item.type}`);
+            panic(`no renderer provided for the given type: ${item.type}`);
         }
 
         renderer.update(item.data, index, item.row.metadata, item.size);
@@ -651,14 +647,14 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     public getItem(index: number): T {
         if (index < 0 || index >= this.items.length) {
-            throw new ListError(`invalid get item index: ${index}`);
+            panic(`invalid get item index: ${index}`);
         }
         return this.items[index]!.data;
     }
 
     public getHTMLElement(index: number): HTMLElement | null {
         if (index < 0 || index >= this.items.length) {
-            throw new ListError(`invalid get item index: ${index}`);
+            panic(`invalid get item index: ${index}`);
         }
         if (this.items[index]!.row) {
             return this.items[index]!.row!.dom;
@@ -822,7 +818,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
      * @description The auxiliary method for this.splice(). The actual splicing
      * process via this method.
      */
-    private __splice(index: number, deleteCount: number, items: T[] = []): void {
+    private __splice(index: number, deleteCount: number, items: T[] = []): T[] {
         
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         
@@ -941,14 +937,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.scrollable.setScrollSize(this.rangeTable.size());
         
         this._onDidSplice.fire();
-    }
-}
-
-/**
- * @class Type of {@link Error} used in {@link ListView} and {@link ListWidget}.
- */
-export class ListError extends Error {
-    constructor(message: string) {
-        super('ListError: ' + message);
+        return waitToDelete.map(item => item.data);
     }
 }

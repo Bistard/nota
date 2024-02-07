@@ -7,7 +7,7 @@ import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey, DEFAULT_HTML } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
@@ -83,13 +83,12 @@ export class WindowInstance extends Disposable implements IWindowInstance {
      * It is still required for potential reloading request so that it cannot
      * be disposed after loading.
      */
-    private readonly _configurationIpcAccessible: IIpcAccessible<IWindowConfiguration> = createIpcAccessible();
+    private readonly _configurationIpcAccessible = createIpcAccessible<IWindowConfiguration>();
 
     // [constructor]
 
     constructor(
-        private readonly configuration: IWindowConfiguration,
-        private readonly creationConfig: IWindowCreationOptions,
+        private readonly configuration: IWindowCreationOptions,
         @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
@@ -99,11 +98,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         super();
         logService.trace('WindowInstance', 'WindowInstance constructing...');
         
-        const displayOptions = creationConfig.displayOptions || defaultDisplayState();
+        const displayOptions = configuration.displayOptions;
         this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
         
-        if (this.environmentService.CLIArguments['open-devtools'] === true) {
+        if (configuration["open-devtools"] === true) {
             this._window.webContents.openDevTools({ mode: 'detach', activate: true });
         }
         
@@ -128,7 +127,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         this._configurationIpcAccessible.updateData(configuration);
 
-        return this._window.loadFile(this.creationConfig.loadFile ?? DEFAULT_HTML);
+        return this._window.loadFile(this.configuration.loadFile);
     }
 
     public toggleFullScreen(force?: boolean): void {
@@ -163,11 +162,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                 preload: resolve(join(__dirname, 'preload.js')),
 
                 /**
-                 * Node.js is only available in main / preload process.
-                 * Node.js us also be available in the renderer process.
-                 * Thus a preload.js is needed.
-                 * 
-                 * Absolute path needed.
+                 * false: Node.js is only available in main / preload process.
+                 * true:  Node.js will also be available in the renderer process.
+                 *          Thus a preload.js is needed.
                  */
                 nodeIntegration: false,
 
@@ -201,7 +198,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         };
 
         // frame
-        if (!IS_MAC) {
+        if (!IS_MAC && displayOpts.frameless) {
             browserOption.frame = false;
         }
 

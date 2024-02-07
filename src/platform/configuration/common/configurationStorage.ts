@@ -1,5 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Result } from "src/base/common/error";
+import { Result } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { jsonSafeStringify } from "src/base/common/json";
 import { deepCopy } from "src/base/common/utilities/object";

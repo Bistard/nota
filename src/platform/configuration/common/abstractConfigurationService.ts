@@ -1,5 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
-import { AsyncResult, InitProtector, ok, tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";

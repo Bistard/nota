@@ -172,6 +172,11 @@ export type IsTruthy<T> = T extends '' | [] | false | 0 ? false : T extends {} ?
 export type Negate<T> = T extends boolean ? (T extends true ? false : true) : never;
 
 /**
+ * Returns E type only if T is `null`, `undefined` or `never`.
+ */
+export type Or<T, E> = IsNever<T> extends true ? E : T extends (null | undefined) ? E : T;
+
+/**
  * Determines if the given type T is string.
  */
 export type IsString<T> = T extends string ? true : false;
@@ -211,6 +216,11 @@ export type IsObject<T> = T extends Dictionary<string, any> ? true : false;
 export type IsAny<T> = 0 extends (1 & T) ? true : false;
 
 /**
+ * Determines if the given type T is never.
+ */
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+/**
  * Compares two types `T` and `U` for strict equality.
  *
  * Returns `true` if the types are strictly equal, otherwise returns `false`.
@@ -233,7 +243,7 @@ export type AreEqual<X, Y> =
     (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
- * Determines if the given array contains any truthy values.
+ * Returns a boolean that determines if the given array contains any truthy values.
  */
 export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
 
@@ -256,6 +266,16 @@ export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
  * Represents T or Array of T or Array of Array of T...
  */
 export type NestedArray<T> = (T | NestedArray<T>)[];
+
+/**
+ * Represent a non-empty array of type T.
+ */
+export type NonEmptyArray<T> = [T, ...T[]];
+
+/**
+ * Represent an array of type T with up to length N.
+ */
+export type BoundedArray<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : R | BoundedArray<T, N, [T, ...R]>;
 
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
@@ -409,6 +429,11 @@ export function isString(obj: any): obj is string {
 
 export function isBoolean(obj: any): obj is boolean {
     return typeof obj === 'boolean';
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function isFunction(obj: any): obj is Function {
+    return typeof obj === 'function';
 }
 
 /**

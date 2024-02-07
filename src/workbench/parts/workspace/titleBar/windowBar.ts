@@ -7,6 +7,7 @@ import { Component } from "src/workbench/services/component/component";
 import { WindowButton } from "src/workbench/parts/workspace/titleBar/windowButton";
 import { IHostService } from "src/platform/host/common/hostService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
+import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 
 export class WindowBar extends Component {
 
@@ -16,6 +17,7 @@ export class WindowBar extends Component {
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
+        @ILifecycleService private readonly lifeCycleSerivce: IBrowserLifecycleService,
     ) {
         super('window-bar', null, themeService, componentService);
 
@@ -40,7 +42,7 @@ export class WindowBar extends Component {
             { id: 'dropdown-btn', icon: Icons.AngleDown, classes: [], fn: () => { } },
             { id: 'min-btn', icon: Icons.Minuss, classes: [], fn: () => this.hostService.minimizeWindow() },
             { id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
-            { id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.hostService.closeWindow() },
+            { id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.lifeCycleSerivce.quit() },
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new WindowButton({

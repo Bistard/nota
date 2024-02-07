@@ -87,7 +87,6 @@ export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TF
      * @note Will reveal to the item if not visible (not rendered).
      */
     select(item: T): void;
-    selectRecursive(item: T, index: number): T[];
 }
 
 export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter> implements IFileTree<T, TFilter> {
@@ -124,6 +123,9 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         this._onSelect.fire({ item: item });
     }
 
+    /**
+     * @deprecated
+     */
     public selectRecursive(item: T, index: number): T[] {
         const subTreeSize = this.getVisibleNodeCount(item);
         const toSelected: T[] = [];

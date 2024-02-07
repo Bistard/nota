@@ -2,7 +2,7 @@ import "src/base/browser/secondary/tree/tree.scss";
 import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -13,6 +13,8 @@ import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
+import { Arrays } from "src/base/common/utilities/array";
+import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 
 /**
  * @internal
@@ -84,12 +86,12 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
 
 /**
  * @internal
- * @class Similar to the {@link __ListTrait} in the {@link ListWidget}. The trait
+ * @class Similar to the {@link ListTrait} in the {@link ListWidget}. The trait
  * concept need to be exist at the tree level, since the list view does not know
  * the existance of the collapsed tree nodes.
  * 
- * T: The type of data in {@link AbstractTree}.
- * `trait` does not care about TFilter type.
+ * @template T: The type of data in {@link AbstractTree}.
+ * @note `trait` does not care about TFilter type.
  */
 class TreeTrait<T> {
 
@@ -248,6 +250,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     // [field]
 
+    /**
+     * Those traits are existed in the tree level
+     */
+
     private readonly _selected: TreeTrait<T>; // user's selection
     private readonly _anchor: TreeTrait<T>;   // user's selection start
     private readonly _focused: TreeTrait<T>;  // user's selection end
@@ -280,7 +286,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         const selectedIndex: number[] = [];
 
         /**
-         * If the inserting item has trait attribute at the tree level, it 
+         * If the inserting item has trait attributes at the tree level, it 
          * should also has trait attribute at the list level.
          */
         for (let i = 0; i < items.length; i++) {

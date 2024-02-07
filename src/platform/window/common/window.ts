@@ -8,6 +8,7 @@ export const enum ArgumentKey {
 }
 
 export const DEFAULT_HTML = './src/index.html';
+export const INSPECTOR_HTML = './src/code/browser/inspector/index.html';
 
 export const enum WindowDisplayMode {
     Normal,
@@ -30,13 +31,17 @@ export interface IWindowDisplayOpts {
     y?: number;
     readonly resizable?: boolean;
     readonly mode?: WindowDisplayMode;
+    readonly frameless?: boolean;
 }
 
 export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
     return {
-        width: 1024,
-        height: 768,
-        mode: mode
+        width: 1440,
+        height: 1024,
+        mode: mode,
+
+        resizable: true,
+        frameless: false,
     };
 }
 
@@ -66,26 +71,6 @@ export interface IUriToOpenConfiguration {
 }
 
 /**
- * Extending {@link IWindowConfiguration} so that caller can have a chance to
- * override the default settings which are defined by the current environment.
- */
-export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
-
-    /** Specify the loading html file path. Default to {@link DEFAULT_HTML} */
-    readonly loadFile?: string;
-    readonly CLIArgv?: ICLIArguments;
-    readonly displayOptions?: IWindowDisplayOpts;
-
-    /**
-     * URIs to be opened in the window, might be either workspace, directory or file.
-     */
-    readonly uriToOpen?: URI[];
-    readonly forceNewWindow?: boolean; // REVIEW: unused
-    /** If under any existed windows operation. */
-    readonly hostWindowID?: number;
-}
-
-/**
  * An interface for constructing a window (renderer process). On the base of
  * {@link IEnvironmentOpts} and {@link ICLIArguments}.
  */
@@ -95,4 +80,30 @@ export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
     readonly windowID: number;
 
     readonly uriOpenConfiguration: IUriToOpenConfiguration;
+}
+
+/**
+ * Extending {@link IWindowConfiguration} so that caller can have a chance to
+ * override the default settings which are defined by the current environment.
+ */
+export interface IWindowCreationOptions extends IWindowConfiguration {
+
+    /** 
+     * Specify the loading html file path. Default to {@link DEFAULT_HTML} 
+     */
+    readonly loadFile: string;
+    readonly CLIArgv: ICLIArguments;
+    readonly displayOptions: IWindowDisplayOpts;
+
+    /**
+     * URIs to be opened in the window, might be either workspace, directory or 
+     * file.
+     */
+    readonly uriToOpen: URI[];
+    readonly forceNewWindow: boolean;          // TODO: unused
+    
+    /** 
+     * If under any existed windows operation. 
+     */
+    readonly hostWindowID: number | undefined; // TODO: unused
 }

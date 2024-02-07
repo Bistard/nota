@@ -517,7 +517,7 @@ export class Shortcut {
         return shortcut;
     }
 
-    public toHashcode(): number {
+    public toHashcode(): ShortcutHash {
         const ctrl =  Number(this.ctrl)  << 11 >>> 0;
         const shift = Number(this.shift) << 10 >>> 0;
         const alt =   Number(this.alt)   << 9  >>> 0;
@@ -525,7 +525,7 @@ export class Shortcut {
         return ctrl + shift + alt + meta + this.key;
     }
 
-    public static fromHashcode(hashcode: number, os: Platform = PLATFORM): Shortcut {
+    public static fromHashcode(hashcode: ShortcutHash, os: Platform = PLATFORM): Shortcut {
         
         const ctrlCmd = (hashcode & BinaryShortcutMask.CtrlCmd ? true : false);
         const winCtrl = (hashcode & BinaryShortcutMask.WinCtrl ? true : false);

@@ -6,7 +6,7 @@ import { Section } from "src/platform/section";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
-import { AsyncResult, err, ok } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { jsonSafeParse } from "src/base/common/json";
 

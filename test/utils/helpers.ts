@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncResult, Result } from 'src/base/common/error';
+import { AsyncResult, Result } from "src/base/common/result";
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray } from "src/base/common/utilities/type";

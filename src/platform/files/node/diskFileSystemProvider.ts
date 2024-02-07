@@ -12,8 +12,9 @@ import { Watcher } from "src/platform/files/node/watcher";
 import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/platform/files/common/watcher";
-import { errorToMessage, panic } from "src/base/common/error";
+import { panic } from "src/base/common/result";
 import { Time, TimeUnit } from "src/base/common/date";
+import { Strings } from "src/base/common/utilities/string";
 
 export class DiskFileSystemProvider extends Disposable implements
     IFileSystemProviderWithFileReadWrite,
@@ -430,6 +431,6 @@ export class DiskFileSystemProvider extends Disposable implements
                 code = FileOperationErrorType.UNKNOWN;
         }
 
-        return new FileSystemProviderError(errorToMessage(result), code);
+        return new FileSystemProviderError(Strings.errorToMessage(result), code);
     }
 }

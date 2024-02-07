@@ -10,12 +10,12 @@ import { Random } from 'src/base/common/utilities/random';
 import { Arrays } from 'src/base/common/utilities/array';
 import { after, before } from 'mocha';
 import { Blocker, EventBlocker } from 'src/base/common/utilities/async';
-import { errorToMessage } from 'src/base/common/error';
 import { listenStream } from 'src/base/common/files/stream';
 import { directoryExists } from 'src/base/node/io';
 import { ResourceChangeType } from 'src/platform/files/common/watcher';
 import { IS_LINUX } from 'src/base/common/platform';
 import { Time, TimeUnit } from 'src/base/common/date';
+import { Strings } from 'src/base/common/utilities/string';
 
 suite('FileService-disk-test', () => {
 
@@ -261,7 +261,7 @@ suite('FileService-disk-test', () => {
                 cnt++;
             },
             onError: (error) => {
-                assert.fail(errorToMessage(error));
+                assert.fail(Strings.errorToMessage(error));
             },
             onEnd: () => {
                 assert.strictEqual(cnt, totalSize / FileService.bufferSize);

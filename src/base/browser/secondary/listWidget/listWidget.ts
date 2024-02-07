@@ -1,11 +1,11 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListViewOpts, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
+import { IListViewOpts, IViewItemChangeEvent, ListView } from "src/base/browser/secondary/listView/listView";
 import { IList } from "src/base/browser/secondary/listView/list";
 import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
-import { ListTrait } from "src/base/browser/secondary/listWidget/listWidgetTrait";
+import { ListTrait, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
@@ -14,15 +14,7 @@ import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
-
-/**
- * The index changed in {@link ListTrait}.
- */
-export interface ITraitChangeEvent {
-
-    /** The new indices with the corresponding trait. */
-    indice: number[];
-}
+import { panic } from "src/base/common/result";
 
 /**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
@@ -102,7 +94,11 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
     
-    /** Fires when the {@link IListWidget} itself is blured or focused. */
+    /** 
+     * Fires when the {@link IListWidget} itself is focused or blured. 
+     * True: focused
+     * false: blured
+     */
     get onDidChangeFocus(): Register<boolean>;
 
     /** Fires when the focused items in the {@link IListWidget} is changed. */
@@ -177,6 +173,12 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     setSelections(index: number[]): void;
 
     /**
+     * @description Sets the item with the given index as hovered.
+     * @param index The provided index. If not provided, removes the current one.
+     */
+    setHover(index: number[]): void;
+
+    /**
      * @description Returns all the indice of the selected items.
      */
     getSelections(): number[];
@@ -194,6 +196,11 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     getFocus(): number | null;
 
     /**
+     * @description Returns all the indice of the hovered items.
+     */
+    getHover(): number[];
+
+    /**
      * @description Returns all the selected items.
      */
     getSelectedItems(): T[];
@@ -207,6 +214,11 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
      * @description Returns the focused item.
      */
     getFocusedItem(): T | null;
+
+    /**
+     * @description Returns all the hovered items.
+     */
+    getHoverItems(): T[];
 
     /**
      * @description Respect to the current focused item, try to focus the first 
@@ -278,7 +290,7 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
  * behaviours.
  * 
  * Additional Functionalities:
- *  - mouse support (focus / selection)
+ *  - mouse support (focus / selection, hover)
  *  - keyboard support (enter / up / down / pageup / pagedown / escape)
  *  - drag and drop support
  */
@@ -294,6 +306,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     private readonly anchor: ListTrait<T>;
     /** Where the user's selection end. */
     private readonly focused: ListTrait<T>;
+    /** Where the user's hover. */
+    private readonly hovered: ListTrait<T>;
 
     private readonly identityProvider?: IIdentiityProivder<T>;
 
@@ -308,9 +322,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         super();
         
         // initializes all the item traits
-        this.selected = new ListTrait('selected');
-        this.anchor = new ListTrait('anchor');
-        this.focused = new ListTrait('focused');
+        this.selected = this.__register(new ListTrait('selected'));
+        this.anchor = this.__register(new ListTrait('anchor'));
+        this.focused = this.__register(new ListTrait('focused'));
+        this.hovered = this.__register(new ListTrait('hovered'));
         this.identityProvider = opts.identityProvider;
 
         // integrates all the renderers
@@ -318,11 +333,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
         // construct list view
-        this.view = new ListView(container, renderers, itemProvider, opts);
+        this.view = this.__register(new ListView(container, renderers, itemProvider, opts));
 
-        this.selected.getHTMLElement = item => this.view.getHTMLElement(item);
-        this.anchor.getHTMLElement = item => this.view.getHTMLElement(item);
-        this.focused.getHTMLElement = item => this.view.getHTMLElement(item);
+        [this.selected, this.anchor, this.focused, this.hovered]
+        .forEach(trait => trait.getHTMLElement = item => this.view.getHTMLElement(item));
 
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
@@ -341,11 +355,6 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             const dndController = this.__createDndController(opts);
             this.__register(dndController);
         }
-
-        this.__register(this.view);
-        this.__register(this.selected);
-        this.__register(this.focused);
-        this.__register(this.anchor);
     }
 
     // [getter / setter]
@@ -393,11 +402,11 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         }
         
         if (index < 0 || index > this.getItemCount()) {
-            throw new ListError(`splice invalid start index: ${index}`);
+            panic(`splice invalid start index: ${index}`);
         }
 
         if (deleteCount < 0) {
-            throw new ListError(`splice invalid deleteCount: ${deleteCount}`);
+            panic(`splice invalid deleteCount: ${deleteCount}`);
         }
 
         // traits react to splice
@@ -457,6 +466,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         this.selected.set(indice);
     }
 
+    public setHover(indice: number[]): void {
+        this.hovered.set(indice);
+    }
+
     public getSelections(): number[] {
         return this.selected.items();
     }
@@ -469,6 +482,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     public getFocus(): number | null {
         const indice = this.focused.items();
         return indice.length ? indice[0]! : null;
+    }
+
+    public getHover(): number[] {
+        return this.hovered.items();
     }
 
     public getSelectedItems(): T[] {
@@ -484,6 +501,11 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     public getFocusedItem(): T | null {
         const indice = this.focused.items();
         return indice.length ? this.view.getItem(indice[0]!) : null;
+    }
+
+    public getHoverItems(): T[] {
+        const indice = this.hovered.items();
+        return indice.map(index => this.view.getItem(index));
     }
 
     public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {

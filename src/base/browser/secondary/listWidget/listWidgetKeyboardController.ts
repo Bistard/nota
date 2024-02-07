@@ -115,6 +115,7 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
         if (this._view.getSelections().length) {
             this._view.setSelections([]);
             this._view.setAnchor(null);
+            this._view.setHover([]);
 			this._view.setDomFocus();
         }
     }

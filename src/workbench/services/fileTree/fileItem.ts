@@ -1,5 +1,5 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
-import { AsyncResult, Result, err, ok } from "src/base/common/error";
+import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
