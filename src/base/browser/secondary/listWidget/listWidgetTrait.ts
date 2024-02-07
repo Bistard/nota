@@ -3,7 +3,6 @@ import { IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
 import { hash } from "src/base/common/utilities/hash";
-import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * The index changed in {@link ListTrait}.
@@ -38,8 +37,6 @@ export class ListTrait<T> implements IDisposable {
     /** For fast querying */
     private indicesSet?: Set<number>;
     private indice: number[];
-    private length: number;
-    private _getHTMLElement!: (index: number) => HTMLElement | null;
 
     // [constructor]
 
@@ -47,14 +44,9 @@ export class ListTrait<T> implements IDisposable {
         this.traitID = trait;
         this.renderer = new ListTraitRenderer(this);
         this.indice = [];
-        this.length = 0;
     }
 
     // [public method]
-
-    set getHTMLElement(value: (index: number) => HTMLElement | null) {
-        this._getHTMLElement = value;
-    }
 
     /**
      * @description Sets the given items with the current trait.
@@ -70,18 +62,18 @@ export class ListTrait<T> implements IDisposable {
         const toUnrender = Arrays.relativeComplement(indice, oldIndice);
         const toRender = Arrays.relativeComplement(oldIndice, indice);
 
-        if (this._getHTMLElement) {
-            for (const index of toUnrender) {
-                const item = this._getHTMLElement(index);
-                item?.classList.toggle(this.traitID, false);
-            }
-    
-            for (const index of toRender) {
-                const item = this._getHTMLElement(index);
-                item?.classList.toggle(this.traitID, true);
-            }
-        }
+        /**
+         * Since the trait is manually `set` by the client. We need to trigger
+         * the rendering update manually.
+         */
+        this.renderer.manuallyUpdateCurrElementsBy(toUnrender, element => {
+            element.classList.toggle(this.traitID, false);
+        });
         
+        this.renderer.manuallyUpdateCurrElementsBy(toRender, element => {
+            element.classList.toggle(this.traitID, true);
+        });
+
         if (fire) {
             this._onDidChange.fire({ indice });
         }
@@ -121,7 +113,6 @@ export class ListTrait<T> implements IDisposable {
      * needs to react to the splice operation.
      */
     public splice(index: number, deleteCount: number, ifReInserted: readonly boolean[]): void {
-        deleteCount = Numbers.clamp(deleteCount, 0, this.length - index);
 
         const insertOffset = ifReInserted.length - deleteCount;
         const deleteStart = index;
@@ -148,7 +139,6 @@ export class ListTrait<T> implements IDisposable {
             }
         }
 
-        const newLength = this.length + insertOffset;
         const sortedIndice = 
         [
             ...beforeDeleteIndice,
@@ -156,8 +146,9 @@ export class ListTrait<T> implements IDisposable {
             ...afterDeleteIndice,
         ];
 
+        this.renderer.splice(index, deleteCount, ifReInserted.length);
+
         this.set(sortedIndice);
-        this.length = newLength;
     }
 
     /**
@@ -169,6 +160,9 @@ export class ListTrait<T> implements IDisposable {
     }
 }
 
+/**
+ * Represent the element that is already rendered under the corresponding trait.
+ */
 type IListRenderedElement<T> = {
     readonly metadata: T;
     index: number;
@@ -193,7 +187,11 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
      * as a trait.
      */
     private readonly _trait: ListTrait<T>;
-    private _rendered: IListRenderedElement<HTMLElement>[] = [];
+    
+    /**
+     * Stores currently rendered elements that has this trait.
+     */
+    private _currRendered: IListRenderedElement<HTMLElement>[] = [];
 
     // [constructor]
 
@@ -209,16 +207,15 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
     }
 
     public update(item: T, index: number, data: HTMLElement, size?: number): void {
+        const renderedBefore = this._currRendered.find(rendered => rendered.metadata === data);
         
-        /**
-         * Stores each upcoming item if it is rendered for the first time.
-         */
-        const existedIndex = this._rendered.findIndex(rendered => data === rendered.metadata);
-        if (existedIndex !== -1) {
-            const rendered = this._rendered[existedIndex]!;
-            rendered.index = index;
-        } else {
-            this._rendered.push({ metadata: data, index: index });
+        // this data was rendered before, update its current idx.
+        if (renderedBefore) {
+            renderedBefore.index = index;
+        } 
+        // rendered for the 1st time
+        else {
+            this._currRendered.push({ metadata: data, index: index });
         }
 
         // If the updating item has the trait, we update with the trait.
@@ -231,7 +228,7 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
         const start = index;
         const end = start + deleteCount;
 
-        for (const existedRendered of this._rendered) {
+        for (const existedRendered of this._currRendered) {
             if (existedRendered.index < start) {
                 rendered.push(existedRendered);
             }
@@ -243,7 +240,23 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
             }
         }
 
-        this._rendered = rendered;
+        this._currRendered = rendered;
+    }
+
+    /**
+     * @description Invoking this function to manually update the already 
+     * rendered trait. If the index in the provided `indice` is not rendered 
+     * yet, it will be ignored.
+     * 
+     * @param indice The indice you want to update.
+     * @param onRender The callback when there are matching index.
+     */
+    public manuallyUpdateCurrElementsBy(indice: number[], onRender: (element: HTMLElement, index: number) => void): void {
+        for (const { metadata, index } of this._currRendered) {
+            if (Arrays.exist(indice, index)) {
+                onRender(metadata, index);
+            }
+        }
     }
 
     public dispose(element: HTMLElement): void {

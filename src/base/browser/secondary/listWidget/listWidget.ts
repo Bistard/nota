@@ -15,6 +15,7 @@ import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/result";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
@@ -329,14 +330,11 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         this.identityProvider = opts.identityProvider;
 
         // integrates all the renderers
-        const baseRenderers = [this.selected.renderer, this.focused.renderer];
+        const baseRenderers = [this.selected.renderer, this.focused.renderer, this.hovered.renderer];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
         // construct list view
         this.view = this.__register(new ListView(container, renderers, itemProvider, opts));
-
-        [this.selected, this.anchor, this.focused, this.hovered]
-        .forEach(trait => trait.getHTMLElement = item => this.view.getHTMLElement(item));
 
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
@@ -589,6 +587,12 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     private __traitSplice(index: number, deleteCount: number, items: readonly T[]): void {
         
         for (const trait of [this.anchor, this.focused, this.selected]) {
+            
+            /**
+             * An array of boolean with the same length of {@link items}. Each
+             * boolean indicates if the newly item was already having this trait.  
+             * If true, means the item is about to re-insert.
+             */
             const reinserted: boolean[] = [];
             
             /**
@@ -613,14 +617,13 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
                 
                 for (const newTraitItem of items) {
                     const id = this.identityProvider.getID(newTraitItem);
-                    const ifExisted = (prevIDs.indexOf(id) !== -1);
+                    const ifExisted = Arrays.exist(prevIDs, id);
                     reinserted.push(ifExisted);
                 }
             }
 
             // trait update
             trait.splice(index, deleteCount, reinserted);
-            trait.renderer.splice(index, deleteCount, reinserted.length);
         }
     }
 
