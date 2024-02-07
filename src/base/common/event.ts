@@ -120,7 +120,7 @@ export interface IEmitterOptions {
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` has the type T.
  * 
- * @throws The unexpected caught by fire() error will be caught by {@link ErrorHandler}.
+ * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     

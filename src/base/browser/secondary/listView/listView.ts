@@ -13,7 +13,6 @@ import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
 import { panic } from "src/base/common/result";
-import { ErrorHandler } from "src/base/common/error";
 
 /**
  * The consturtor options for {@link ListView}.
@@ -508,8 +507,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         
         if (this._splicing) {
-            ErrorHandler.onUnexpectedError('[ListView] cannot splice recursively.');
-            return;
+            panic('[ListView] cannot splice recursively.');
         }
         this._splicing = true;
 

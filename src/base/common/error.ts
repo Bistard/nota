@@ -1,6 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Result, err, ok, panic } from "src/base/common/result";
 import { Arrays } from "src/base/common/utilities/array";
+import { mixin } from "src/base/common/utilities/object";
 import { Strings } from "src/base/common/utilities/string";
 
 type IErrorCallback = (error: any) => void;
@@ -193,6 +194,39 @@ function __stackToMessage(stack: any): string {
         return stack;
     }
 }
+
+/**
+ * @description Since `Error` instance has some weird behaviour and cannot be 
+ * transfered through IPC properly. Using this function to convert an `Error` to 
+ * a plain object that simulates the original `Error`.
+ * 
+ * @param error The original Error
+ * @returns A plain object that simulates the original `Error`. The object will
+ *          be tagged by {@link IpcErrorTag}.
+ */
+export function toIPCTransferableError(error?: Error): Error | undefined {
+    if (!error) {
+        return undefined;
+    }
+
+    // construct a plain object to represent `Error`
+    const newErr = {
+        [IpcErrorTag]: null,
+        message: error.message ?? 'unknown error message',
+        name: error.name ?? 'unknown error',
+        stack: error.stack ?? undefined,
+    };
+
+    // making sure any extra attributes from the `error` is also included.
+    mixin(newErr, error, false);
+
+    return <Error>newErr;
+}
+
+/**
+ * Give client a chance to distinguish between the real Error.
+ */
+export const IpcErrorTag = '__$ipcTransferable';
 
 /**
  * @description Executes the given function and returns its result. If an error 
