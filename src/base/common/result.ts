@@ -1,4 +1,4 @@
-import { errorToMessage } from "src/base/common/error";
+import { Strings } from "src/base/common/utilities/string";
 import { Callable, isNullable } from "src/base/common/utilities/type";
 
 /**
@@ -639,7 +639,7 @@ export function panic(error: unknown): never {
     }
 
     // eslint-disable-next-line local/code-no-throw
-    throw new Error(errorToMessage(error));
+    throw new Error(Strings.errorToMessage(error));
 }
 
 /**

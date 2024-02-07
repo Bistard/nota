@@ -1,5 +1,4 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { errorToMessage } from "src/base/common/error";
 import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
@@ -13,6 +12,7 @@ import { Iterable } from "src/base/common/utilities/iterable";
 import { Mutable, Pair } from "src/base/common/utilities/type";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { Strings } from "src/base/common/utilities/string";
 
 export const IFileService = createService<IFileService>('file-service');
 
@@ -192,7 +192,7 @@ export class FileService extends Disposable implements IFileService {
         .toAsync()
         .andThen(async provider => <const>[await provider.stat(uri), provider])
         .andThen(([stat, provider]) => this.__resolveStat(uri, provider, stat, opts))
-        .mapErr((error) => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
+        .mapErr((error) => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)));
     }
 
     public readFile(uri: URI, opts?: IReadFileOptions): AsyncResult<DataBuffer, FileOperationError> {
@@ -250,7 +250,7 @@ export class FileService extends Disposable implements IFileService {
             .andThen(provider => provider.stat(uri))
             .andThen(() => ok(true))
             .orElse(() => ok(false))
-            .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
+            .mapErr(error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)));
     }
 
     public createFile(
@@ -267,7 +267,7 @@ export class FileService extends Disposable implements IFileService {
         return this.__getProvider(uri)
             .toAsync()
             .andThen(provider => provider.readdir(uri))
-            .mapErr(error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)));
+            .mapErr(error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)));
     }
 
     public createDir(uri: URI): AsyncResult<void, FileOperationError> {
@@ -315,7 +315,7 @@ export class FileService extends Disposable implements IFileService {
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return this.__validateDelete(uri, opts)
             .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
-            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error))));
+            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'. Reason: ${Strings.errorToMessage(error)}`, getFileErrorCode(error))));
     }
 
     public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
@@ -334,7 +334,7 @@ export class FileService extends Disposable implements IFileService {
 
         const result = Result.fromThrowable(
             () => provider.watch(uri, opts),
-            error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+            error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
         );
         
         if (result.isErr()) {
@@ -343,7 +343,7 @@ export class FileService extends Disposable implements IFileService {
 
         return Result.fromPromise(
             () => result.unwrap(),
-            error => new FileOperationError(`Cannot watch at target: '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, FileOperationErrorType.UNKNOWN))
+            error => new FileOperationError(`Cannot watch at target: '${URI.toString(uri)}'. Reason: ${Strings.errorToMessage(error)}`, FileOperationErrorType.UNKNOWN))
         .andThen(disposable => {
             this._activeWatchers.set(uri, disposable);
             return ok(disposable);
@@ -481,7 +481,7 @@ export class FileService extends Disposable implements IFileService {
             // write through a provider
             return Result.fromPromise(
                 async () => { await provider.writeFile(uri, buffer.buffer, { create: opts?.create ?? false, overwrite: opts?.overwrite ?? false, unlock: opts?.unlock ?? false }); },
-                error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+                error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
             );    
         })());
     }
@@ -495,7 +495,7 @@ export class FileService extends Disposable implements IFileService {
     {
         return Result.fromPromise(
             async () => await provider.open(uri, { create: true, unlock: opts?.unlock ?? false }),
-            error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+            error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
         )
         .andThen(fd => {
             const blocker = new Blocker<void>();
@@ -528,7 +528,7 @@ export class FileService extends Disposable implements IFileService {
 
             return Result.fromPromise(
                 () => blocker.waiting().finally(() => provider.close(fd)),
-                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}. Reason: ${errorToMessage(error)}`, getFileErrorCode(error)),
+                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}. Reason: ${Strings.errorToMessage(error)}`, getFileErrorCode(error)),
             );
         });
     }
@@ -589,7 +589,7 @@ export class FileService extends Disposable implements IFileService {
 
             const res = await Result.fromPromise(
                 async () => provider.mkdir(path),
-                error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+                error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
             );
 
             if (res.isErr()) {
@@ -628,7 +628,7 @@ export class FileService extends Disposable implements IFileService {
 
             const dirResult = await Result.fromPromise(
                 () => provider.readdir(uri),
-                error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+                error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
             );
             
             if (dirResult.isErr()) {
@@ -733,7 +733,7 @@ export class FileService extends Disposable implements IFileService {
             } 
             return Result.fromPromise(
                 () => fromProvider.copy(from, to, { overwrite: !!overwrite }),
-                error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+                error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
             );
         });
     }
@@ -803,7 +803,7 @@ export class FileService extends Disposable implements IFileService {
     {
         return Result.fromPromise(
             () => provider.stat(uri),
-            error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
+            error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
         )
         .andThen(stat => {
             if (!stat) {
