@@ -238,7 +238,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // universal on unexpected error hanlding callback
         const onUnexpectedError = (error: any, additionalMessage?: any) => {
             if (this.logService) {
-                this.logService.error('Renderer', `On unexpected error!!! ${additionalMessage}`, error);
+                this.logService.error('Renderer', `On unexpected error!!! ${additionalMessage ?? ''}`, error);
             } else {
                 console.error(error);
             }

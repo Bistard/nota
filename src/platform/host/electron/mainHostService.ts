@@ -164,16 +164,16 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.webContents.reload();
     }
 
-    public setApplicationStatus(key: StatusKey, val: any): AsyncResult<void, FileOperationError> {
-        return this.statusService.set(key, val);
+    public setApplicationStatus(key: StatusKey, val: any): Promise<void> {
+        return this.statusService.set(key, val).unwrap();
     }
 
-    public setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): AsyncResult<void, FileOperationError> {
-        return this.statusService.setLot(items);
+    public setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void> {
+        return this.statusService.setLot(items).unwrap();
     }
 
-    public deleteApplicationStatus(key: StatusKey): AsyncResult<boolean, FileOperationError> {
-        return this.statusService.delete(key);
+    public deleteApplicationStatus(key: StatusKey): Promise<boolean> {
+        return this.statusService.delete(key).unwrap();
     }
 
     // [private helper methods]
