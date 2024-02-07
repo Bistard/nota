@@ -57,6 +57,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 // Showing the notification module on bottom-right
                 const notificationService = provider.getOrCreateService(INotificationService);
                 notificationService.notify({
+                    title: 'Sample Notification',
                     message: 'This is a sample notification message.',
                     actions: [
                         {
@@ -69,7 +70,6 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     ]
                 });
                 notificationService.notify({
-                    title: 'iCloud Storage Full', // Separate title for the notification
                     message: 'Your notes will no longer sync and may be lost. Upgrade your iCloud storage or turn iCloud sync off in Nota settings.',
                     actions: [
                         {

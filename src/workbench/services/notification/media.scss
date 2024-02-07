@@ -23,6 +23,7 @@
 
 .notification {
     z-index: 2;
+    position: relative;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.21);
     border-radius: 4px;
@@ -46,6 +47,17 @@
     }
 }
 
+.notification-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.notification-message {
+    // Add styles for the message here. If you want it less prominent than the title, consider:
+    font-weight: normal;
+    color: rgba(0, 0, 0, 0.95); // a slightly dimmed color for the message text
+}
+
 .notification-content {
     flex: 1;
     min-width: 0;
@@ -61,6 +73,9 @@
 
 .notification-close-button {
     z-index: 999;
+    position: absolute;
+    top: 15px;
+    right: 6px;
     font-size: 0.8em;
     line-height: 1;
     margin-left: 7px;

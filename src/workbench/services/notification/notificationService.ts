@@ -3,7 +3,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Button, IButtonOptions} from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
-import { Result, err } from 'src/base/common/error';
+import { panic } from 'src/base/common/result';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -38,7 +38,7 @@ export class NotificationService extends Disposable implements INotificationServ
     }
 
     public error(error: string | Error): void {
-        throw new Error('Error method not implemented.'); 
+        panic('Error method not implemented.'); 
     }
 
     public notify(options: INotificationOptions): void {
@@ -47,7 +47,21 @@ export class NotificationService extends Disposable implements INotificationServ
         
         const content = document.createElement('div');
         content.className = 'notification-content';
-        content.textContent = options.message;
+
+
+        // Create and style the title
+        if (options.title) {
+            const title = document.createElement('div');
+            title.className = 'notification-title';
+            title.innerHTML = `<strong>${options.title}</strong><br>`;
+            content.appendChild(title);
+        }
+        const message = document.createElement('div');
+        message.className = 'notification-message';
+        message.textContent = options.message;
+        content.appendChild(message);
+
+        // content.textContent = options.message;
 
         const actionsContainer = document.createElement('div');
         actionsContainer.className = 'notification-actions';
