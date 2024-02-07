@@ -86,8 +86,11 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
                 this._view.setAnchor(newFoused);
                 this._view.reveal(newFoused, undefined);
             }
-            this._view.setDomFocus();
+        } else {
+            this._view.setFocus(0);
         }
+
+        this._view.setDomFocus();
     }
 
     protected __onDownArrow(e: IStandardKeyboardEvent): void {
@@ -97,8 +100,11 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
                 this._view.setAnchor(newFoused);
                 this._view.reveal(newFoused, undefined);
             }
-            this._view.setDomFocus();
+        } else {
+            this._view.setFocus(0);
         }
+
+        this._view.setDomFocus();
     }
 
     protected __onPageupArrow(e: IStandardKeyboardEvent): void {
@@ -117,6 +123,11 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
             this._view.setAnchor(null);
             this._view.setHover([]);
 			this._view.setDomFocus();
+            return;
+        }
+
+        if (!this._view.getSelections().length) {
+            this._view.setFocus(null);
         }
     }
 }
