@@ -4,16 +4,11 @@
     z-index: 1;
     position: fixed;
     bottom: 20px;
-    right: 20px;
+    right: 15px;
     display: flex;
     flex-direction: column;
     gap: 10px; // Spacing between notifications
-    width: 250px;
-    .notification {
-        margin-bottom: 5px;
-        transition: 0.3s ease-in-out;
-
-    }
+    width: 300px;
 }
 
 @keyframes fadeOut {
@@ -40,16 +35,21 @@
     transition: opacity 0.3s, transform 0.3s; // No need for margin-bottom transition
     will-change: opacity, transform; // Optimizes for animations
     overflow: hidden;
+    &:hover {
+        background-color: rgb(255, 250, 250);
+        box-shadow: 0 0 0 0.8px rgb(199, 58, 73);
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(199, 58, 73, 0.21);
+        .notification-content {
+            font-weight: 600;
+        }
+    }
 }
 
 .notification-content {
-    z-index: 999;
     flex: 1;
     min-width: 0;
     word-wrap: break-word;
-    &:hover {
-        color: rgb(90, 90, 90);
-    }
 }
 
 .notification-actions {
@@ -69,11 +69,13 @@
     color: black;
     cursor: pointer;
     &:hover {
-        color: rgb(44, 154, 117);
+        box-shadow: 0 0 0 0.5px rgb(199, 58, 73);
+        border-radius: 2px;
+        background-color: rgb(255, 245, 246);
     }
 }
 
-@media only screen and (max-width: 640px) {
+@media only screen and (max-width: 670px) {
     .notification-container {
         display: none;
     }

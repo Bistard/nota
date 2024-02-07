@@ -3,6 +3,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Button, IButtonOptions} from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
+import { Result, err } from 'src/base/common/error';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -13,6 +14,7 @@ export interface INotificationService extends IDisposable, IService {
 }
 
 export interface INotificationOptions {
+    title?: string;
     message: string;
     actions?: INotificationAction[];
 }
@@ -36,12 +38,13 @@ export class NotificationService extends Disposable implements INotificationServ
     }
 
     public error(error: string | Error): void {
-        throw new Error('Error method not implemented.');
+        throw new Error('Error method not implemented.'); 
     }
 
     public notify(options: INotificationOptions): void {
         const notification = document.createElement('div');
         notification.className = 'notification';
+        
         const content = document.createElement('div');
         content.className = 'notification-content';
         content.textContent = options.message;
@@ -63,10 +66,9 @@ export class NotificationService extends Disposable implements INotificationServ
             notification.style.padding = '0';
             notification.style.borderWidth = '0';
             notification.style.transform = 'scaleY(0)';
-    
+            
             // Wait for the transitions to finish before removing the element
             notification.addEventListener('transitionend', () => {
-                // It's important to check if the notification is still part of the DOM
                 if (notification.parentNode === this._parent) {
                     this._parent.removeChild(notification);
                 }
@@ -80,17 +82,21 @@ export class NotificationService extends Disposable implements INotificationServ
 
         // Buttons for any additional actions
         
-        // options.actions?.forEach((action) => {
-        //     const buttonOptions: IButtonOptions = {
-        //         icon: Icons.Check,
-        //         classes: ['notification-close-button']
-        //     };
-        //     const actionButton = new Button(buttonOptions);
-        //     this.__register(actionButton.onDidClick(() => {
-        //         action.callback();
-        //         this._parent.removeChild(notification);
-        //     }));
-        //     actionButton.render(actionsContainer); // Render the action button
+        // Iterate over the provided actions and create a button for each
+        // options.actions?.forEach((action, index) => {
+        // // Ensure no more than three buttons are created
+        //     if (index < 3) {
+        //         const buttonOptions: IButtonOptions = {
+        //             label: action.label,
+        //         };
+        //         const actionButton = new Button(buttonOptions);
+        //         this.__register(actionButton.onDidClick(() => {
+        //             action.callback();
+        //             // Optional: Close the notification when an action button is clicked
+        //             // this._parent.removeChild(notification);
+        //         }));
+        //         actionButton.render(actionsContainer); // Render the action button
+        //     }
         // });
 
         const notificationContainer = this._parent.querySelector('.notification-container');

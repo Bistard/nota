@@ -69,7 +69,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     ]
                 });
                 notificationService.notify({
-                    message: 'This is another long sample notification message. Testing code~',
+                    title: 'iCloud Storage Full', // Separate title for the notification
+                    message: 'Your notes will no longer sync and may be lost. Upgrade your iCloud storage or turn iCloud sync off in Nota settings.',
                     actions: [
                         {
                             label: 'Close',
