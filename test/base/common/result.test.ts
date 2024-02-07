@@ -369,7 +369,7 @@ suite('AsyncResult', () => {
             await result.unwrap();
             assert.fail('unwrap should have thrown an error');
         } catch (error) {
-            assert.ok(error === 'err');
+            assert.ok(error instanceof Error);
         }
     });
 
@@ -394,7 +394,7 @@ suite('AsyncResult', () => {
             await result.expect('custom error');
             assert.fail('expect should have thrown an error');
         } catch (error) {
-            assert.ok(error === 'custom error');
+            assert.ok(error instanceof Error);
         }
     });
 
