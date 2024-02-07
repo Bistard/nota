@@ -110,8 +110,6 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
 
-        console.log('current drag items', currentDragItems.map(item => item.id));
-
         // TODO: ctrl + win can drop at the parent
         // TODO: alt + mac can drop at the parent
 

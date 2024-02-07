@@ -1,6 +1,6 @@
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
@@ -121,13 +121,13 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
         if (this._view.getSelections().length) {
             this._view.setSelections([]);
             this._view.setAnchor(null);
-            this._view.setHover([]);
 			this._view.setDomFocus();
             return;
         }
 
         if (!this._view.getSelections().length) {
             this._view.setFocus(null);
+            this._view.setAnchor(null);
         }
     }
 }

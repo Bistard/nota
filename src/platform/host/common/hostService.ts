@@ -1,7 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/result";
 import { Register } from "src/base/common/event";
-import { FileOperationError } from "src/base/common/files/file";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { StatusKey } from "src/platform/status/common/status";
 
