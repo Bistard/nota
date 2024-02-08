@@ -87,13 +87,14 @@ export class NotificationService extends Disposable implements INotificationServ
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
             this.closeNotification(notification);
+            notification.remove();
         }));
         closeButton.render(closeButtonContainer);
     
         // Append the close button container at the top right of the notification
         notification.appendChild(closeButtonContainer);
     
-        // Create a separate container for custom action buttons
+        // Separate container for custom action buttons
         const customActionsContainer = document.createElement('div');
         customActionsContainer.className = 'notification-custom-actions';
     
@@ -102,9 +103,9 @@ export class NotificationService extends Disposable implements INotificationServ
             if (index < 3) { // Ensure no more than three buttons are created
                 const buttonOptions: IButtonOptions = {
                     label: action.label,
-                    backgroundColor: action.backgroundColor, // Use the new backgroundColor property
-                    textColor: action.textColor, // Use the new textColor property
-                    classes: ['custom-action-button'], // Add a class for custom styling
+                    backgroundColor: action.backgroundColor,
+                    textColor: action.textColor,
+                    classes: ['custom-action-button'],
                 };
                 const actionButton = new Button(buttonOptions);
                 this.__register(actionButton.onDidClick(() => {
@@ -112,7 +113,8 @@ export class NotificationService extends Disposable implements INotificationServ
                     // Optional: Close the notification when an action button is clicked
                     // this.closeNotification(notification);
                 }));
-                actionButton.render(customActionsContainer); // Render the action button
+                actionButton.render(document.createElement('div'));
+                customActionsContainer.appendChild(actionButton.element);
             }
         });
 
@@ -149,7 +151,6 @@ export class NotificationService extends Disposable implements INotificationServ
         });
     }
     
-
     public confirm(title: string, message: string): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             const result = window.confirm(`${title}\n\n${message}`);

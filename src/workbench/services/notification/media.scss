@@ -20,7 +20,7 @@
     padding: 16px;
     margin-bottom: 5px;
     display: flex;
-    flex-direction: column; // Changed to column to stack content and actions vertically
+    flex-direction: column;
     max-width: 250px; // Width for notifications
     transition: opacity 0.3s, transform 0.3s;
     will-change: opacity, transform; // Optimizes for animations
@@ -75,13 +75,13 @@
 .notification-custom-actions {
     display: flex;
     justify-content: flex-end;
-    padding-right: 7px; // adjust to modify the position of the rightest action button
 }
 
 .custom-action-button {
     z-index: 999;
     padding: 0.1px 8px; 
-    padding-bottom: 6px;
+    padding-bottom: 2px;
+    padding-top: 2px;
     font-weight: 600;
     line-height: 25px;
     margin-top: 10px;
@@ -92,10 +92,9 @@
     &:hover {
         opacity: 0.8;
     }
-}
-
-.custom-action-button:last-child {
-    margin-right: -6px !important; // Adjust this value and use !important to ensure it takes precedence
+    &:last-child {
+        margin-right: -6px !important; // ensure it takes precedence
+    }
 }
 
 @media only screen and (max-width: 670px) {
