@@ -7,6 +7,9 @@ import { panic } from 'src/base/common/result';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
+/**
+ * An interface only for {@link NotificationService}.
+ */
 export interface INotificationService extends IDisposable, IService {
     error(error: string | Error): void;
     confirm(title: string, message: string): Promise<boolean>;
@@ -28,13 +31,17 @@ export interface INotificationAction {
 
 export class NotificationService extends Disposable implements INotificationService {
 
-    private readonly _parent: HTMLElement;
     declare _serviceMarker: undefined;
+    private readonly _parent: HTMLElement;
+    private readonly _container: HTMLElement;
     
     constructor(parent: HTMLElement = document.body) {
         super();
         this._parent = parent;
+        
         const element = document.createElement('div');
+        this._container = element;
+
         element.className = 'notification-container';
         this._parent.appendChild(element);
     }
@@ -54,7 +61,7 @@ export class NotificationService extends Disposable implements INotificationServ
         content.className = 'notification-content';
     
         // Create and style the title
-        if (options.title) {
+        if (options.title !== undefined) {
             const title = document.createElement('div');
             title.className = 'notification-title';
             title.innerHTML = `<strong>${options.title}</strong><br>`;
@@ -121,11 +128,8 @@ export class NotificationService extends Disposable implements INotificationServ
             notification.appendChild(customActionsContainer);
         }
     
-        // Add the notification to the notification container
-        const notificationContainer = this._parent.querySelector('.notification-container');
-        if (notificationContainer) {
-            notificationContainer.appendChild(notification);
-        }
+        // Add the notification to the notification container (actual rendering)
+        this._container.appendChild(notification);
     }
     
     private closeNotification(notification: HTMLElement): void {

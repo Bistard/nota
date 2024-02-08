@@ -25,11 +25,11 @@
     transition: opacity 0.3s, transform 0.3s;
     will-change: opacity, transform; // Optimizes for animations
     overflow: hidden;
-}
 
-.notification:hover {
-    background-color: rgb(255, 250, 250);
-    box-shadow: 0 0 0 0.8px rgb(199, 58, 73), 0 2px 4px rgba(199, 58, 73, 0.21);
+    &:hover {
+        background-color: rgb(255, 250, 250);
+        box-shadow: 0 0 0 0.8px rgb(199, 58, 73), 0 2px 4px rgba(199, 58, 73, 0.21);
+    }
 }
 
 .notification-title {
