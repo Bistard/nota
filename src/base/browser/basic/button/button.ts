@@ -18,7 +18,23 @@ export interface IButtonOptions {
      * A list of class names for the button to be added when rendering.
      */
     readonly classes?: string[];
+
+    /** 
+     * The text label for the button.
+     */
+    readonly label?: string;
+
+    /** 
+     * The background color of the button.
+     */
+    readonly backgroundColor?: string;
+
+    /** 
+     * The text color of the button.
+     */
+    readonly textColor?: string;
 }
+
 
 export interface IButton extends IWidget {
     
@@ -84,11 +100,21 @@ export class Button extends Widget implements IButton {
     // [protected override methods]
 
     protected override __render(): void {
-        
         // set icon if provided
         if (this._opts?.icon) {
             const iconElement = createIcon(this._opts.icon);
             this.element.appendChild(iconElement);
+        }
+        // set label if provided
+        if (this._opts?.label) {
+            this.element.textContent = this._opts.label;
+        }
+        // set styles if provided
+        if (this._opts?.backgroundColor) {
+            this.element.style.backgroundColor = this._opts.backgroundColor;
+        }
+        if (this._opts?.textColor) {
+            this.element.style.color = this._opts.textColor;
         }
     }
 

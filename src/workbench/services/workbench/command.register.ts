@@ -60,26 +60,36 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     title: 'Sample Notification',
                     message: 'This is a sample notification message.',
                     actions: [
+                        // {
+                        //     label: 'Close',
+                        //     backgroundColor: '#107c10', // Green background for the "Close" button
+                        //     textColor: '#FFFFFF', // White text color for the "Close" button
+                        //     callback: () => {
+                        //         // Logic to close the notification
+                        //     }
+                        // },
                         {
-                            label: 'Close',
+                            label: 'Learn more',
+                            backgroundColor: 'rgb(199, 58, 73)', // Blue background for the "Learn more" button
+                            textColor: '#FFFFFF', // White text color for the "Learn more" button
                             callback: () => {
-                                // Logic to close the notification
+                                // Logic to handle "Learn more" action
                             }
-                        },
+                        }
                         // ... other actions ...
                     ]
                 });
                 notificationService.notify({
                     message: 'Your notes will no longer sync and may be lost. Upgrade your iCloud storage or turn iCloud sync off in Nota settings.',
-                    actions: [
-                        {
-                            label: 'Close',
-                            callback: () => {
-                                // Logic to close the notification
-                            }
-                        },
-                        // ... other actions ...
-                    ]
+                    // actions: [
+                    //     {
+                    //         label: 'Close',
+                    //         callback: () => {
+                    //             // Logic to close the notification
+                    //         }
+                    //     },
+                    //     // ... other actions ...
+                    // ]
                 });
             },
         );

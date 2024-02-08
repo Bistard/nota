@@ -11,16 +11,6 @@
     width: 300px;
 }
 
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-        visibility: hidden;
-    }
-}
-
 .notification {
     z-index: 2;
     position: relative;
@@ -28,23 +18,18 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.21);
     border-radius: 4px;
     padding: 16px;
-    margin-bottom: 5px; 
+    margin-bottom: 5px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start; // Keep the close button aligned with the 1st line of text
-    max-width: 250px; // width for notifications
-    transition: opacity 0.3s, transform 0.3s; // No need for margin-bottom transition
+    flex-direction: column; // Changed to column to stack content and actions vertically
+    max-width: 250px; // Width for notifications
+    transition: opacity 0.3s, transform 0.3s;
     will-change: opacity, transform; // Optimizes for animations
     overflow: hidden;
-    &:hover {
-        background-color: rgb(255, 250, 250);
-        box-shadow: 0 0 0 0.8px rgb(199, 58, 73);
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(199, 58, 73, 0.21);
-        .notification-content {
-            font-weight: 600;
-        }
-    }
+}
+
+.notification:hover {
+    background-color: rgb(255, 250, 250);
+    box-shadow: 0 0 0 0.8px rgb(199, 58, 73), 0 2px 4px rgba(199, 58, 73, 0.21);
 }
 
 .notification-title {
@@ -53,9 +38,8 @@
 }
 
 .notification-message {
-    // Add styles for the message here. If you want it less prominent than the title, consider:
     font-weight: normal;
-    color: rgba(0, 0, 0, 0.95); // a slightly dimmed color for the message text
+    color: rgba(0, 0, 0, 0.95);
 }
 
 .notification-content {
@@ -64,10 +48,8 @@
     word-wrap: break-word;
 }
 
-.notification-actions {
-    z-index: 999;
+.notification-close-container {
     display: flex;
-    align-items: center;
     justify-content: flex-end;
 }
 
@@ -87,6 +69,27 @@
         box-shadow: 0 0 0 0.5px rgb(199, 58, 73);
         border-radius: 2px;
         background-color: rgb(255, 245, 246);
+    }
+}
+
+.notification-custom-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.custom-action-button {
+    z-index: 999;
+    padding: 0.1px 8px; 
+    padding-bottom: 6px;
+    font-weight: 600;
+    line-height: 25px;
+    margin-top: 10px;
+    margin-left: 5px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    &:hover {
+        opacity: 0.8;
     }
 }
 
