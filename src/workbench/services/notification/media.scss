@@ -59,7 +59,7 @@
     top: 15px;
     right: 6px;
     font-size: 0.8em;
-    line-height: 1;
+    line-height: 0.7;
     margin-left: 7px;
     margin-top: 0;
     padding: 4px;
@@ -75,6 +75,7 @@
 .notification-custom-actions {
     display: flex;
     justify-content: flex-end;
+    padding-right: 7px; // adjust to modify the position of the rightest action button
 }
 
 .custom-action-button {
@@ -91,6 +92,10 @@
     &:hover {
         opacity: 0.8;
     }
+}
+
+.custom-action-button:last-child {
+    margin-right: -6px !important; // Adjust this value and use !important to ensure it takes precedence
 }
 
 @media only screen and (max-width: 670px) {
