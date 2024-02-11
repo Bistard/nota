@@ -280,8 +280,8 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
 }
 
 /**
- * @class A {@link ListWidget} is built on top of {@link ListView}, with extra 
- * features.
+ * @class A {@link ListWidget} is built on top of {@link ListView}, with more
+ * firendly user interaction features.
  * 
  * The widget presets a list of behaviours on mouse / keyboard support. Such as
  * pressing SHIFT will able to mutl-select in range, pressing escape key will
@@ -324,12 +324,12 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         
         // initializes all the item traits
         this.selected = this.__register(new ListTrait('selected'));
-        this.anchor = this.__register(new ListTrait('anchor'));
-        this.focused = this.__register(new ListTrait('focused'));
-        this.hovered = this.__register(new ListTrait('hovered'));
+        this.anchor   = this.__register(new ListTrait('anchor'));
+        this.focused  = this.__register(new ListTrait('focused'));
+        this.hovered  = this.__register(new ListTrait('hovered'));
         this.identityProvider = opts.identityProvider;
 
-        // integrates all the renderers
+        // integrates all the renderers (anchor is invisible, no renderer needed)
         const baseRenderers = [this.selected.renderer, this.focused.renderer, this.hovered.renderer];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         

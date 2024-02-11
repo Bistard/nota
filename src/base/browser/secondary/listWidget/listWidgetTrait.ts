@@ -34,16 +34,18 @@ export class ListTrait<T> implements IDisposable {
     private readonly _onDidChange = new Emitter<ITraitChangeEvent>();
     public readonly onDidChange = this._onDidChange.registerListener;
 
-    /** For fast querying */
-    private indicesSet?: Set<number>;
-    private indice: number[];
+    /**
+     * Storing all the indice of the elements who has this trait.
+     */
+    private _indice: number[];
+    private _queryCache?: Set<number>;
 
     // [constructor]
 
     constructor(trait: string) {
         this.traitID = trait;
         this.renderer = new ListTraitRenderer(this);
-        this.indice = [];
+        this._indice = [];
     }
 
     // [public method]
@@ -54,10 +56,9 @@ export class ListTrait<T> implements IDisposable {
      * @param fire If fires the onDidChange event.
      */
     public set(indice: number[], fire: boolean = true): void {
-        
-        const oldIndice = this.indice;
-        this.indice = indice;
-        this.indicesSet = undefined;
+        const oldIndice = this._indice;
+        this._indice = indice;
+        this._queryCache = undefined;
 
         const toUnrender = Arrays.relativeComplement(indice, oldIndice);
         const toRender = Arrays.relativeComplement(oldIndice, indice);
@@ -83,14 +84,14 @@ export class ListTrait<T> implements IDisposable {
      * @description Returns how many items has such trait.
      */
     public size(): number {
-        return this.indice.length;
+        return this._indice.length;
     }
 
     /**
      * @description Returns all the indice of items with the current trait.
      */
     public items(): number[] {
-        return this.indice;
+        return this._indice;
     }
 
     /**
@@ -99,11 +100,11 @@ export class ListTrait<T> implements IDisposable {
      * @param index The index of the item.
      */
     public has(index: number): boolean {
-        if (!this.indicesSet) {
-            this.indicesSet = new Set();
-            this.indice.forEach(index => this.indicesSet!.add(index));
+        if (!this._queryCache) {
+            this._queryCache = new Set();
+            this._indice.forEach(index => this._queryCache!.add(index));
         }
-        return this.indicesSet.has(index);
+        return this._queryCache.has(index);
     }
 
     /**
@@ -112,6 +113,7 @@ export class ListTrait<T> implements IDisposable {
      * has a trait or causes the location change of the existed traits). Trait
      * needs to react to the splice operation.
      */
+    // TODO: improve performance: reduce array iteration (https://github.com/microsoft/vscode/commit/b0bcc33d34f504d0bef88cdb1514bb9eecc93bd6)
     public splice(index: number, deleteCount: number, ifReInserted: readonly boolean[]): void {
 
         const insertOffset = ifReInserted.length - deleteCount;
@@ -122,7 +124,7 @@ export class ListTrait<T> implements IDisposable {
         const insertedIndice: number[] = [];
         const afterDeleteIndice: number[] = [];
         
-        for (const idx of this.indice) {
+        for (const idx of this._indice) {
             // all the existed traits before the splice should not change
             if (idx < deleteStart) {
                 beforeDeleteIndice.push(idx);
@@ -156,7 +158,7 @@ export class ListTrait<T> implements IDisposable {
      */
     public dispose(): void {
         this._onDidChange.dispose();
-        this.indice = [];
+        this._indice = [];
     }
 }
 
@@ -189,7 +191,7 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
     private readonly _trait: ListTrait<T>;
     
     /**
-     * Stores currently rendered elements that has this trait.
+     * Stores all the currently rendered elements.
      */
     private _currRendered: IListRenderedElement<HTMLElement>[] = [];
 

@@ -252,7 +252,7 @@ const OB_KEY = '$OB$properties';
 type ObserveList = { propKey: string, types: ObserveType[] }[];
 
 export const DEFAULT_OBSERVER = createDefaultObserver();
-const DEFAULT_OBSERVER_OPTS: IObserverableOptions = {
+const DEFAULT_OBSERVABLE_OPTS: IObserverableOptions = {
     observer: DEFAULT_OBSERVER,
     ignoreUnderscores: true,
     stackTrace: false,
@@ -312,9 +312,9 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  * // observing 'set' operations.
  * ```
  */
-export function observable<T extends Constructor>(options: IObserverableOptions = DEFAULT_OBSERVER_OPTS) {
+export function observable<T extends Constructor>(options: IObserverableOptions = DEFAULT_OBSERVABLE_OPTS) {
 
-    const opts = mixin<Required<IObserverableOptions>>(options, DEFAULT_OBSERVER_OPTS, false);
+    const opts = mixin<Required<IObserverableOptions>>(options, DEFAULT_OBSERVABLE_OPTS, false);
     const observer = opts.observer;
     function isFnIgnored(propKey: string): boolean {
         return opts.ignoreUnderscores && propKey.startsWith('_');
