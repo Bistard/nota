@@ -623,6 +623,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             }
 
             // trait update
+            trait.renderer.splice(index, deleteCount, reinserted.length);
             trait.splice(index, deleteCount, reinserted);
         }
     }
