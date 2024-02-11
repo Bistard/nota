@@ -226,6 +226,15 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
         // the rest work
         super.__onMouseClick(e);
     }
+
+    protected override __onMouseover(e: IListMouseEvent<ITreeNode<T, TFilter>>): void {
+        if (e.item === undefined) {
+            return;
+        }
+
+        const location = this._tree.getNodeLocation(e.item);
+        this._tree.setHover(location, false);
+    }
 }
 
 /**
@@ -257,6 +266,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
     private readonly _selected: TreeTrait<T>; // user's selection
     private readonly _anchor: TreeTrait<T>;   // user's selection start
     private readonly _focused: TreeTrait<T>;  // user's selection end
+    private readonly _hovered: TreeTrait<T>;  // user's hover
 
     // [constructor]
 
@@ -270,6 +280,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._focused = new TreeTrait();
         this._anchor = new TreeTrait();
         this._selected = new TreeTrait();
+        this._hovered = new TreeTrait();
     }
 
     // [public method]
@@ -284,6 +295,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         let focusedIndex = -1;
         let anchorIndex = -1;
         const selectedIndex: number[] = [];
+        const hoverIndex: number[] = [];
 
         /**
          * If the inserting item has trait attributes at the tree level, it 
@@ -303,6 +315,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
             if (this._selected.has(item)) {
                 selectedIndex.push(index + i);
             }
+    
+            if (this._hovered.has(item)) {
+                hoverIndex.push(index + i);
+            }
         }
 
         /**
@@ -318,7 +334,12 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         }
 
         if (selectedIndex.length > 0) {
-            super.setSelections(selectedIndex);
+            super.setSelections(Arrays.unique([...super.getSelections(), ...selectedIndex]));
+        }
+
+        if (hoverIndex.length > 0) {
+            console.log('after splice - hover:', Arrays.unique([...super.getHover(), ...hoverIndex]));
+            super.setHover(Arrays.unique([...super.getHover(), ...hoverIndex]));
         }
     }
 
@@ -334,6 +355,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._anchor.onDidSplice(e, identityProvider);
         this._focused.onDidSplice(e, identityProvider);
         this._selected.onDidSplice(e, identityProvider);
+        this._hovered.onDidSplice(e, identityProvider);
     }
 
     // [public override methods]
@@ -353,6 +375,13 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._selected.set(indice.map(idx => this.getItem(idx)));
     }
 
+    public override setHover(indice: number[], recursive?: boolean): void {
+        super.setHover(indice);
+        this._hovered.set(indice.map(idx => this.getItem(idx)));
+
+        // TODO: set hover recursively
+    }
+
     public getFocusData(): T | null {
         return this._focused.get()[0] ?? null;
     }
@@ -363,6 +392,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     public getSelectionData(): T[] {
         return this._selected.get();
+    }
+
+    public getHoverData(): T[] {
+        return this._hovered.get();
     }
 
     // [protected override methods]
@@ -617,6 +650,18 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     getSelections(): T[];
 
     /**
+     * @description Sets the given item as hovered.
+     * @param recursive When sets to true, the visible children of that item 
+     *                  will also be hovered.
+     */
+    setHover(item: TRef, recursive: boolean): void;
+
+    /**
+     * @description Returns the hovered items.
+     */
+    getHover(): T[];
+
+    /**
      * @description Get the total visible subtree node count of the given node (
      * including itself).
      * @param item The root of the subtree.
@@ -842,6 +887,15 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._view.setSelections(indice);
     }
 
+    public setHover(item: TRef, recursive: boolean): void {
+        const index = this._model.getNodeListIndex(item);
+        if (index === -1) {
+            // not visible in the list view level.
+            return;
+        }
+        this._view.setHover([index], recursive);
+    }
+
     public getAnchor(): T | null {
         return this._view.getAnchorData();
     }
@@ -852,6 +906,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public getSelections(): T[] {
         return this._view.getSelectionData();
+    }
+
+    public getHover(): T[] {
+        return this._view.getHoverData();
     }
 
     public getVisibleNodeCount(item: TRef): number {

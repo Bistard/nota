@@ -497,6 +497,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return this._tree.getSelections();
     }
 
+    public setHover(item: T, recursive: boolean): void {
+        this._tree.setHover(item, recursive);
+    }
+
+    public getHover(): T[] {
+        return this._tree.getHover();
+    }
+
     public getVisibleNodeCount(item: T): number {
         return this._tree.getVisibleNodeCount(item);
     }

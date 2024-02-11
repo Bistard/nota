@@ -586,7 +586,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      */
     private __traitSplice(index: number, deleteCount: number, items: readonly T[]): void {
         
-        for (const trait of [this.anchor, this.focused, this.selected]) {
+        for (const trait of [this.anchor, this.focused, this.selected, this.hovered]) {
             
             /**
              * An array of boolean with the same length of {@link items}. Each

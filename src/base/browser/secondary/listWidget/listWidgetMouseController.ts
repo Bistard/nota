@@ -11,6 +11,7 @@ import { Arrays } from "src/base/common/utilities/array";
  *  - when to focus DOM
  *  - when to focus item
  *  - when to select item(s)
+ *  - when to hover item(s)
  * 
  * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
@@ -55,6 +56,17 @@ export class ListWidgetMouseController<T> implements IDisposable {
             return false;
         }
         return true;
+    }
+
+    protected __onMouseout(e: IListMouseEvent<T>): void {
+        this._view.setHover([]);
+    }
+
+    protected __onMouseover(e: IListMouseEvent<T>): void {
+        if (e.actualIndex === undefined) {
+            return;
+        }
+        this._view.setHover([e.actualIndex]);
     }
 
     /**
@@ -116,18 +128,6 @@ export class ListWidgetMouseController<T> implements IDisposable {
     }
 
     // [private helper methods]
-
-    private __onMouseout(e: IListMouseEvent<T>): void {
-        this._view.setHover([]);
-    }
-
-    private __onMouseover(e: IListMouseEvent<T>): void {
-        if (e.actualIndex === undefined) {
-            return;
-        }
-
-        this._view.setHover([e.actualIndex]);
-    }
 
     /**
      * @description Focuses the event target element.
