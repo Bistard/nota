@@ -3,7 +3,6 @@ import { RegistrantType, createRegister } from "src/platform/registrant/common/r
 
 export const enum WorkbenchConfiguration {
     DisplayLanguage = 'workbench.language',
-    ColorTheme = 'workbench.colorTheme',
     KeyboardScreenCast = 'workbench.keyboardScreenCast',
 }
 
