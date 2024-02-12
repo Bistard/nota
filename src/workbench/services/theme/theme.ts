@@ -49,7 +49,7 @@ export abstract class Themable extends Disposable {
     constructor(themeService: IThemeService) {
         super();
         this.themeService = themeService;
-        this._theme = this.themeService.getTheme();
+        this._theme = this.themeService.getCurrTheme();
         this.__register(themeService.onDidChangeTheme(newTheme => this.__onThemeChange(newTheme)));
     }
 

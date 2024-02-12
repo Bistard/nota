@@ -29,7 +29,7 @@ export interface IThemeService extends IService {
     /**
      * @description Get the current color theme ({@link IColorTheme}).
      */
-    getTheme(): IColorTheme;
+    getCurrTheme(): IColorTheme;
 
     /**
      * @description Changes the current theme to the new one.
@@ -37,10 +37,11 @@ export interface IThemeService extends IService {
      *           as a JSON file for theme data. If id is an string, it will be
      *           considered as the JSON file name to read at the {@link themeRootPath}.
      * 
+     * @note This will fire {@link onDidChangeTheme} once successful.
      * @note When the AsyncResult is resolved as ok, means the new theme is 
      *       loaded successfully and returned. Otherwise an Error must encountered.
      */
-    changeThemeTo(id: string): AsyncResult<IColorTheme, Error>;
+    changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error>;
 }
 
 /**
@@ -73,11 +74,11 @@ export class ThemeService extends Disposable implements IThemeService {
     
     // [public methods]
 
-    public getTheme(): IColorTheme {
+    public getCurrTheme(): IColorTheme {
         throw new Error("Method not implemented.");
     }
     
-    public changeThemeTo(id: string): AsyncResult<IColorTheme, Error> {
+    public changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error> {
         throw new Error("Method not implemented.");
     }
 }
