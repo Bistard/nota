@@ -123,22 +123,6 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         this._onSelect.fire({ item: item });
     }
 
-    /**
-     * @deprecated
-     */
-    public selectRecursive(item: T, index: number): T[] {
-        const subTreeSize = this.getVisibleNodeCount(item);
-        const toSelected: T[] = [];
-        for (let i = 0; i < subTreeSize; i++) {
-            const currIndex = index + i;
-            const item = this.getItem(currIndex);
-            toSelected.push(item);
-        }
-
-        this.setSelections(toSelected);
-        return toSelected;
-    }
-
     // [protected override method]
 
     protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeWidget<T, TFilter> {
