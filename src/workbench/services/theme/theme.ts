@@ -11,6 +11,14 @@ export const enum ColorThemeType {
 }
 
 /**
+ * A list of preset themes.
+ */
+export const enum PresetColorTheme {
+    LightModern = 'lightModern',
+    DarkModern = 'DarkModern',
+}
+
+/**
  * A {@link IColorTheme} is a data structure that is consructed from a valid
  * JSON file. It contains color data for every UI components.
  */

@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { IColorTheme } from "src/workbench/services/theme/theme";
+import { PresetColorTheme, IColorTheme } from "src/workbench/services/theme/theme";
 import { APP_DIR_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { URI } from "src/base/common/files/uri";
@@ -8,6 +8,8 @@ import { AsyncResult } from "src/base/common/result";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
+import { InitProtector } from "src/base/common/error";
+import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -39,9 +41,19 @@ export interface IThemeService extends IService {
      * 
      * @note This will fire {@link onDidChangeTheme} once successful.
      * @note When the AsyncResult is resolved as ok, means the new theme is 
-     *       loaded successfully and returned. Otherwise an Error must encountered.
+     *       loaded successfully and returned. Otherwise an Error must 
+     *       encountered.
      */
     changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error>;
+
+    /**
+     * @description Initializes the theme service. Set the current theme to 
+     * either:
+     *      1. the theme ID that is written in the configuration file, or
+     *      2. preset one.
+     * @note This will only be invoked when the application get started.
+     */
+    init(): AsyncResult<void, Error>;
 }
 
 /**
@@ -60,6 +72,8 @@ export class ThemeService extends Disposable implements IThemeService {
 
     public readonly themeRootPath: URI;
 
+    private readonly _initProtector: InitProtector;
+
     // [constructor]
 
     constructor(
@@ -69,6 +83,7 @@ export class ThemeService extends Disposable implements IThemeService {
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
+        this._initProtector = new InitProtector();
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
     }
     
@@ -79,6 +94,17 @@ export class ThemeService extends Disposable implements IThemeService {
     }
     
     public changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error> {
+        throw new Error("Method not implemented.");
+    }
+
+    public init(): AsyncResult<void, Error> {
+        this._initProtector.init('Cannot init twice').unwrap();
+
+        const themeID = this.configurationService.get<string>(
+            WorkbenchConfiguration.ColorTheme, // user settings
+            PresetColorTheme.LightModern,      // default
+        );
+
         throw new Error("Method not implemented.");
     }
 }
