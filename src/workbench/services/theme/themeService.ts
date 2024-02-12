@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { PresetColorTheme, IColorTheme } from "src/workbench/services/theme/theme";
+import { PresetColorTheme } from "src/workbench/services/theme/theme";
 import { APP_DIR_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { URI } from "src/base/common/files/uri";
@@ -10,6 +10,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -73,6 +74,7 @@ export class ThemeService extends Disposable implements IThemeService {
     public readonly themeRootPath: URI;
 
     private readonly _initProtector: InitProtector;
+    private readonly _presetThemes: IColorTheme[];
 
     // [constructor]
 
@@ -84,6 +86,7 @@ export class ThemeService extends Disposable implements IThemeService {
     ) {
         super();
         this._initProtector = new InitProtector();
+        this._presetThemes = [];
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
     }
     
@@ -100,11 +103,20 @@ export class ThemeService extends Disposable implements IThemeService {
     public init(): AsyncResult<void, Error> {
         this._initProtector.init('Cannot init twice').unwrap();
 
+        /**
+         * // TODO: this._presetThemes
+         * Since preset colorThemes are only present in memory (not in disk). We
+         * need to initialize every preset color themes in the beginning.
+         */
+
         const themeID = this.configurationService.get<string>(
             WorkbenchConfiguration.ColorTheme, // user settings
             PresetColorTheme.LightModern,      // default
         );
 
+        // TODO: read the color theme from the disk by `themeID` at this.themeRootPath
+        // TODO: since the color theme is read from the disk, it can be corrupted, what happened if missing any color?
+        
         throw new Error("Method not implemented.");
     }
 }

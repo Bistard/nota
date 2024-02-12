@@ -51,7 +51,6 @@ export const enum ASNIBackgroundColor {
 
 export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
 
-
 export namespace TextColors {
 	/**
 	 * @description Sets the ANSI foreground and background colors for a given 

@@ -1,5 +1,5 @@
-import { RGBA } from "src/base/common/color";
 import { Disposable } from "src/base/common/dispose";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 
 /**
@@ -16,34 +16,6 @@ export const enum ColorThemeType {
 export const enum PresetColorTheme {
     LightModern = 'lightModern',
     DarkModern = 'DarkModern',
-}
-
-/**
- * A {@link IColorTheme} is a data structure that is consructed from a valid
- * JSON file. It contains color data for every UI components.
- */
-export interface IColorTheme {
-    
-    /**
-     * The type of the theme. This is useful to categorize themes.
-     */
-    readonly type: ColorThemeType;
-
-    /**
-     * The name of the theme.
-     */
-    readonly name: string;
-
-    /**
-     * The description of the theme. No descriptions if not provided.
-     */
-    readonly description?: string;
-
-    /**
-	 * @description Resolves the color of the given color identifier. 
-	 * @param id the id of the color.
-	 */
-    getColor(id: string): RGBA;
 }
 
 /**
