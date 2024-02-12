@@ -50,12 +50,10 @@ export function repeat(round: number, fn: (index: number) => void): void {
 export async function delayFor(time: Time, callback?: ITask<void>): Promise<void> {
     return new Promise(
 		(resolve, reject) => setTimeout(() => {
-			if (callback) {
-				try {
-					callback();
-				} catch (error) {
-					reject();
-				}
+			try {
+				callback?.();
+			} catch (error) {
+				reject();
 			}
 			resolve();
 		}, time.toMs().time)
