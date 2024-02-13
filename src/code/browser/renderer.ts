@@ -15,7 +15,7 @@ import { ILoggerService } from "src/platform/logger/common/abstractLoggerService
 import { IFileService } from "src/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
-import { ErrorHandler } from "src/base/common/error";
+import { ErrorHandler, tryOrDefault } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
@@ -238,7 +238,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // universal on unexpected error hanlding callback
         const onUnexpectedError = (error: any, additionalMessage?: any) => {
             if (this.logService) {
-                this.logService.error('Renderer', `On unexpected error!!! ${additionalMessage ?? ''}`, error);
+                const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));
+                this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
             } else {
                 console.error(error);
             }
