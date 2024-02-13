@@ -10,7 +10,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { err, ok } from "src/base/common/result";
 import { FileOperationErrorType } from "src/base/common/files/file";
-import { Time, TimeUnit } from "src/base/common/date";
+import { Time } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 
 /**
@@ -23,7 +23,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
 
-    private static readonly EXPAND_DELAY = new Time(TimeUnit.Milliseconds, 600);
+    private static readonly EXPAND_DELAY = Time.ms(600);
     private readonly _delayExpand: Scheduler<{ item: FileItem, index: number; }>;
     /**
      * When dragging over an item, this array is a temporary place to store the 
@@ -46,7 +46,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
              * @hack A brief pause to ensure the rendering triggered by the 
              * `expand` operation has fully completed.
              */
-            await delayFor(new Time(TimeUnit.Milliseconds, 10), () => this._tree.setHover(item, true));
+            await delayFor(Time.ms(10), () => this._tree.setHover(item, true));
         });
     }
 
