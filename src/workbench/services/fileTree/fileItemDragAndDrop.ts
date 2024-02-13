@@ -70,7 +70,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
         console.log('dragenter');
         
-        if (!targetOver || !targetIndex) {
+        if (!targetOver || targetIndex === undefined) {
             return;
         }
 
@@ -107,14 +107,14 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
-        if (!targetOver || !targetIndex) {
+        if (!targetOver || targetIndex === undefined) {
             this._delayExpand.cancel(true);
             return;
         }
     }
 
     public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): boolean {
-        if (!targetOver || !targetIndex) {
+        if (!targetOver || targetIndex === undefined) {
             this._delayExpand.cancel(true);
         }
         return true;
