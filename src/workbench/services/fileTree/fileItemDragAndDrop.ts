@@ -2,7 +2,7 @@ import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/
 import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { Arrays } from "src/base/common/utilities/array";
-import { Scheduler } from "src/base/common/utilities/async";
+import { Scheduler, delayFor } from "src/base/common/utilities/async";
 import { Mutable } from "src/base/common/utilities/type";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
@@ -38,10 +38,15 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         @IFileService private readonly fileService: IFileService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
     ) {
-
         this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
             const { item } = event[0]!;
             await this._tree.expand(item);
+            
+            /**
+             * @hack A brief pause to ensure the rendering triggered by the 
+             * `expand` operation has fully completed.
+             */
+            await delayFor(new Time(TimeUnit.Milliseconds, 10), () => this._tree.setHover(item, true));
         });
     }
 
@@ -59,7 +64,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     }
 
     public onDragStart(event: DragEvent): void {
-
+        
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
@@ -72,16 +77,23 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         // the target is not collapsible
         if (!this._tree.isCollapsible(targetOver)) {
             this._delayExpand.cancel(true);
+
+            if (targetOver.parent && !targetOver.parent.isRoot()) {
+                this._tree.setHover(targetOver.parent, true);
+            }
+
             return;
         }
 
         // the target is collapsed thus it requies a delay of expanding
         if (this._tree.isCollapsed(targetOver)) {
+            this._tree.setHover(targetOver, false);
             this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
             return;
         }
 
-        // the target is already expanded, select it immediately.
+        // the target is already expanded
+        this._tree.setHover(targetOver, true);
         this._delayExpand.cancel(true);
     }
 

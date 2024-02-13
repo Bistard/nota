@@ -338,7 +338,6 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         }
 
         if (hoverIndex.length > 0) {
-            console.log('after splice - hover:', Arrays.unique([...super.getHover(), ...hoverIndex]));
             super.setHover(Arrays.unique([...super.getHover(), ...hoverIndex]));
         }
     }
@@ -375,11 +374,9 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._selected.set(indice.map(idx => this.getItem(idx)));
     }
 
-    public override setHover(indice: number[], recursive?: boolean): void {
+    public override setHover(indice: number[]): void {
         super.setHover(indice);
         this._hovered.set(indice.map(idx => this.getItem(idx)));
-
-        // TODO: set hover recursively
     }
 
     public getFocusData(): T | null {
@@ -893,7 +890,17 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
             // not visible in the list view level.
             return;
         }
-        this._view.setHover([index], recursive);
+
+        const indice: number[] = [index];
+        if (recursive) {
+            const subTreeSize = this.getVisibleNodeCount(item);
+            for (let i = 1; i < subTreeSize; i++) {
+                const currIndex = index + i;
+                indice.push(currIndex);
+            }
+        }
+
+        this._view.setHover(indice);
     }
 
     public getAnchor(): T | null {

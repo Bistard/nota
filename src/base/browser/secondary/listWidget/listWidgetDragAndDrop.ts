@@ -260,6 +260,9 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         
         this._currDragItems = dragItems;
 
+        // reset hovering
+        this._view.setHover([]);
+
         this._provider.onDragStart(event);
     }
 
@@ -323,10 +326,9 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnd(event: DragEvent): void {
-        
         // remove tagging
         this._view.DOMElement.classList.remove('dragging');
-        
+
         // clear dragover meatadata
         this.__clearDragoverData();
 
