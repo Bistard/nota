@@ -44,6 +44,12 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
     root(): TItem;
 
     /**
+     * @description Determines if the current item is root.
+     * @complexity O(1)
+     */
+    isRoot(): boolean;
+
+    /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
      * @complexity O(1)
      */
@@ -176,6 +182,10 @@ export class FileItem implements IFileItem<FileItem> {
             return this;
         }
         return this._parent.root();
+    }
+
+    public isRoot(): boolean {
+        return !this._parent;
     }
 
     public isDirectory(): boolean {
