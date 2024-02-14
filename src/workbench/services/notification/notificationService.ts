@@ -23,18 +23,29 @@ export interface INotificationOptions {
 }
 
 export interface INotificationAction {
-    label: string;
-    callback: () => void;
-    backgroundColor?: string;
-    textColor?: string;
+    readonly label: string;
+    run: () => void;
+    
+    // styles
+    readonly notificationBackground?: string;
+    readonly notificationForeground?: string;
 }
 
+/**
+ * @class Provides notification services, such as displaying error messages, 
+ * notifications, and confirmation dialogs.
+ */
 export class NotificationService extends Disposable implements INotificationService {
 
     declare _serviceMarker: undefined;
+
+    // [fields]
+
     private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
     
+    // [constructor]
+
     constructor(parent: HTMLElement = document.body) {
         super();
         this._parent = parent;
@@ -45,6 +56,8 @@ export class NotificationService extends Disposable implements INotificationServ
         element.className = 'notification-container';
         this._parent.appendChild(element);
     }
+
+    // [public methods]
 
     public error(error: string | Error): void {
         panic('Error method not implemented.'); 
@@ -99,8 +112,6 @@ export class NotificationService extends Disposable implements INotificationServ
             notification.remove();
         }));
         closeButton.render(closeButtonContainer);
-    
-        // Append the close button container at the top right of the notification
         notification.appendChild(closeButtonContainer);
     }
     
@@ -113,16 +124,13 @@ export class NotificationService extends Disposable implements INotificationServ
             if (index < 3) { // Ensure no more than three buttons are created
                 const buttonOptions: IButtonOptions = {
                     label: action.label,
-                    backgroundColor: action.backgroundColor,
-                    textColor: action.textColor,
+                    buttonBackground: action.notificationBackground,
+                    buttonForeground: action.notificationForeground,
                     classes: ['custom-action-button'],
                 };
                 const actionButton = new Button(buttonOptions);
-                this.__register(actionButton.onDidClick(() => {
-                    action.callback();
-                    // Optional: Close the notification when an action button is clicked
-                    // this.closeNotification(notification);
-                }));
+                this.__register(actionButton.onDidClick(() => action.run()));
+
                 actionButton.render(document.createElement('div'));
                 customActionsContainer.appendChild(actionButton.element);
             }

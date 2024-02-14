@@ -27,12 +27,12 @@ export interface IButtonOptions {
     /** 
      * The background color of the button.
      */
-    readonly backgroundColor?: string;
+    readonly buttonBackground?: string;
 
-    /** 
-     * The text color of the button.
+    /**
+     * The foreground color of the button. (e.g text color)
      */
-    readonly textColor?: string;
+    readonly buttonForeground?: string;
 }
 
 
@@ -105,16 +105,18 @@ export class Button extends Widget implements IButton {
             const iconElement = createIcon(this._opts.icon);
             this.element.appendChild(iconElement);
         }
+        
         // set label if provided
         if (this._opts?.label) {
             this.element.textContent = this._opts.label;
         }
+
         // set styles if provided
-        if (this._opts?.backgroundColor) {
-            this.element.style.backgroundColor = this._opts.backgroundColor;
+        if (this._opts?.buttonBackground) {
+            this.element.style.backgroundColor = this._opts.buttonBackground;
         }
-        if (this._opts?.textColor) {
-            this.element.style.color = this._opts.textColor;
+        if (this._opts?.buttonForeground) {
+            this.element.style.color = this._opts.buttonForeground;
         }
     }
 
