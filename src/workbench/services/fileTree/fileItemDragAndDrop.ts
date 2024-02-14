@@ -13,6 +13,7 @@ import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { INotificationService } from "src/workbench/services/notification/notificationService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -38,6 +39,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
+        @INotificationService private readonly notificationService: INotificationService,
     ) {
         this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
             const { item } = event[0]!;
@@ -155,18 +157,27 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
          * pop up and ask for user permission if to overwrite.
          */
         for (const dragItem of currentDragItems) {
-            const destination = URI.join(target.uri, dragItem.name);
+            console.log("loop", dragItem.id);
+            const destination = URI.join(targetOver.uri, dragItem.name);
             await this.fileService.moveTo(dragItem.uri, destination)
                 .map(() => {})
-                .orElse(error => {
-                    
+                .orElse(async (error) => {
                     if (error.code === FileOperationErrorType.FILE_EXISTS) {
-                        // TODO: pop up a window for confirm about should we overwrite
                         this.logService.warn('target already exists at', URI.toString(destination));
-                        return ok();
+                        const shouldOverwrite = await this.notificationService.confirm(
+                            'Overwrite Warning',
+                            `An item named ${dragItem.name} already exists in this location. Do you want to replace it with the one you're moving?`
+                        );
+                        if (shouldOverwrite) {
+                            // Use moveTo with overwrite set to true to overwrite the file
+                            await this.fileService.moveTo(dragItem.uri, destination, true)
+                                .then(() => ok(), (moveError) => err(moveError)); // Handle the result of moveTo
+                            return;
+                        } else {
+                            throw new Error('Overwrite cancelled by user');
+                        }
                     }
-                    
-                    return err(error);
+                    throw error;
                 })
                 .unwrap();
         }
