@@ -511,8 +511,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         }
         this._splicing = true;
 
-        console.log('[ListView] rendering'); // TEST
-
         try {
             this.__splice(index, deleteCount, items);
         } 

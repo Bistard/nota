@@ -212,8 +212,6 @@ export class FileItem implements IFileItem<FileItem> {
              * before.
              */
             if (this._isResolved === false) {
-                console.log('[item] resolving children'); // TEST
-                
                 const resolving = await fileService.stat(this._stat.uri, { resolveChildren: true });
 
                 if (resolving.isErr()) {

@@ -169,10 +169,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const registerListeners = (tree: IFileTree<FileItem, void>) => {
             tree.onRefresh(() => {
                 // TODO
-                console.log('[FileTreeService] onRefresh');
             });
             tree.onDidExpand(async e => {
-                console.log('[FileTreeService] onDidExpand');
                 // await sorter.initCustomSorter(e.node.data);
             });
         };
