@@ -3,6 +3,7 @@ import { addDisposableListener, DomUtility, EventType } from "src/base/browser/b
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 import { requestAnimate } from "src/base/browser/basic/animation";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * An interface that provides drag and drop support (dnd).
@@ -108,7 +109,8 @@ class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider
 
     public getDragItems(currItem: T): T[] {
         const selected = this.view.getSelectedItems();
-        if (selected.length > 0) {
+        // Only return selections when the user is dragging one of the selections
+        if (Arrays.exist(selected, currItem)) {
             return selected;
         }
         return [currItem];
@@ -316,6 +318,8 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnter(event: IListDragEvent<T>): void {
+        // reset hovering
+        this._view.setHover([]);
         // notify client
         this._provider.onDragEnter(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
     }
