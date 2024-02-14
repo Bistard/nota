@@ -1,3 +1,4 @@
+import "src/workbench/services/fileTree/media.scss";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { AsyncTree, AsyncTreeWidget, IAsyncTree, IAsyncTreeOptions, IAsyncTreeWidgetOpts } from "src/base/browser/secondary/tree/asyncTree";
 import { MultiTreeKeyboardController } from "src/base/browser/secondary/tree/multiTree";
@@ -106,6 +107,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         opts: IFileTreeOptions<T, TFilter>,
     ) {
         super(container, rootData, opts);
+        this.DOMElement.classList.add('file-tree');
         this.__register(this.onClick(e => this.__onClick(e)));
     }
 

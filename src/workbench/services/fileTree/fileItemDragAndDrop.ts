@@ -12,6 +12,7 @@ import { err, ok } from "src/base/common/result";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -68,11 +69,15 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
+        const isDroppable = this.__isDroppable(currentDragItems, targetOver);
+        
+        if (isDroppable) {
+            this.__checkIfDropOnEntireTree(targetOver);
+        }
+
         if (!targetOver || targetIndex === undefined) {
             return;
         }
-
-        const isDroppable = this.__isDroppable(currentDragItems, targetOver);
 
         // the target is not collapsible
         if (!this._tree.isCollapsible(targetOver)) {
@@ -171,6 +176,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public onDragEnd(event: DragEvent): void {
         this._delayExpand.cancel(true);
+        this._dragFeedbackDisposable.dispose();
         this.__removeDragSelections();
     }
 
@@ -230,5 +236,21 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         });
 
         return !anyCannotDrop;
+    }
+
+    
+    /**
+     * @description Special handling: drop entire tree animation
+     */
+    private _dragFeedbackDisposable: IDisposable = Disposable.NONE;
+    private __checkIfDropOnEntireTree(targetOver?: FileItem): void {
+        this._dragFeedbackDisposable.dispose();
+
+        if (!targetOver || targetOver.parent?.isRoot()) {
+            this._tree.DOMElement.classList.add('on-drop-target');
+            this._dragFeedbackDisposable = toDisposable(() => {
+                this._tree.DOMElement.classList.remove('on-drop-target');
+            });
+        }
     }
 }
