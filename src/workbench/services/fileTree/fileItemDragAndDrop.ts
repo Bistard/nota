@@ -164,7 +164,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
                     
                     // only expect `FILE_EXISTS` error
                     if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                        panic(error);
+                        panic(error); // TODO: pop up an error window
                     }
 
                     // ask permission for the user
