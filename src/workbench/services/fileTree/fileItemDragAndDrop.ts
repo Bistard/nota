@@ -23,7 +23,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
 
-    private static readonly EXPAND_DELAY = Time.ms(600);
+    private static readonly EXPAND_DELAY = Time.ms(500);
     private readonly _delayExpand: Scheduler<{ item: FileItem, index: number; }>;
     /**
      * When dragging over an item, this array is a temporary place to store the 
@@ -68,17 +68,17 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
-        console.log('dragenter');
-        
         if (!targetOver || targetIndex === undefined) {
             return;
         }
+
+        const isDroppable = this.__isDroppable(currentDragItems, targetOver);
 
         // the target is not collapsible
         if (!this._tree.isCollapsible(targetOver)) {
             this._delayExpand.cancel(true);
 
-            if (targetOver.parent && !targetOver.parent.isRoot()) {
+            if (targetOver.parent && !targetOver.parent.isRoot() && isDroppable) {
                 this._tree.setHover(targetOver.parent, true);
             }
 
@@ -86,15 +86,17 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         }
 
         // the target is collapsed thus it requies a delay of expanding
-        if (this._tree.isCollapsed(targetOver)) {
+        if (this._tree.isCollapsed(targetOver) && isDroppable) {
             this._tree.setHover(targetOver, false);
             this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
             return;
         }
 
         // the target is already expanded
-        this._tree.setHover(targetOver, true);
         this._delayExpand.cancel(true);
+        if (isDroppable) {
+            this._tree.setHover(targetOver, true);
+        }
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
@@ -121,45 +123,26 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
-
-        // TODO: ctrl + win can drop at the parent
-        // TODO: alt + mac can drop at the parent
-
-        // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
             targetOver = this.explorerTreeService.rootItem!;
         }
 
-        // dropping on files does nothing for now
         if (targetOver.isFile()) {
-            return;
+            targetOver = targetOver.parent!;
         }
 
         // TODO: var can be removed at TS 5.4 which has better TCFA
         const target = targetOver;
-
-        /**
-         * Either following case cannot perform drop operation if one of the 
-         * selecting item is:
-         *  - dropping to itself.
-         *  - dropping to its direct parent.
-         *  - dropping to its child folder.
-         */
-        const anyCannotDrop = currentDragItems.some(dragItem => {
-            const destination = URI.join(target.uri, dragItem.name);
-            return dragItem === target
-                || URI.equals(dragItem.uri, destination)
-                || URI.isParentOf(target.uri, dragItem.uri)
-            ;
-        });
-
-        if (anyCannotDrop) {
+        const isDroppable = this.__isDroppable(currentDragItems, target);
+        if (!isDroppable) {
             return;
         }
 
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
-        await this._tree.expand(target);
+        if (!target.isRoot()) {
+            await this._tree.expand(target);
+        }
 
         /**
          * Iterate every selecting items and try to move to the destination. If 
@@ -209,5 +192,43 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
         this._tree.setSelections(updatedSelections);
         this._dragSelections = [];
+    }
+
+    private __isDroppable(currentDragItems: FileItem[], targetOver?: FileItem): boolean {
+
+        // dropping on no targets, meanning we are dropping at the parent.
+        if (!targetOver) {
+            targetOver = this.explorerTreeService.rootItem!;
+        }
+
+        /**
+         * Since we are dropping to a file, it can be treated as essentially 
+         * dropping at its parent directory.
+         */
+        if (targetOver.isFile()) {
+            return this.__isDroppable(currentDragItems, targetOver.parent ?? undefined);
+        }
+
+        const targetDir = targetOver;
+
+        // TODO: ctrl + win can drop at the parent
+        // TODO: alt + mac can drop at the parent
+
+        /**
+         * Either following case cannot perform drop operation if one of the 
+         * selecting item is:
+         *  - dropping to itself.
+         *  - dropping to its direct parent.
+         *  - dropping to its child folder.
+         */
+        const anyCannotDrop = currentDragItems.some(dragItem => {
+            const destination = URI.join(targetDir.uri, dragItem.name);
+            return dragItem === targetDir
+                || URI.equals(dragItem.uri, destination)
+                || URI.isParentOf(targetDir.uri, dragItem.uri)
+            ;
+        });
+
+        return !anyCannotDrop;
     }
 }
