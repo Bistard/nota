@@ -2,6 +2,7 @@ import { IHostService } from "src/platform/host/common/hostService";
 import { ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { INotificationService } from "../notification/notificationService";
+import { RGBA } from "src/base/common/color";
 
 export const enum WorkbenchCommands {
     toggleDevTool = 'toggle-develop-tool',
@@ -62,17 +63,17 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     actions: [
                         {
                             label: 'Close',
-                            backgroundColor: 'RGB(135, 135, 135)', // Green background for the "Close" button
-                            textColor: '#FFFFFF', // White text color for the "Close" button
-                            callback: () => {
+                            notificationBackground: new RGBA(135, 135, 135).toString(),
+                            notificationForeground: '#FFFFFF', // White text color for the "Close" button
+                            run: () => {
                                 // Logic to close the notification
                             }
                         },
                         {
                             label: 'Learn more',
-                            backgroundColor: 'rgb(199, 58, 73)', // Blue background for the "Learn more" button
-                            textColor: '#FFFFFF', // White text color for the "Learn more" button
-                            callback: () => {
+                            notificationBackground: new RGBA(199, 58, 73).toString(),
+                            notificationForeground: '#FFFFFF', // White text color for the "Learn more" button
+                            run: () => {
                                 // Logic to handle "Learn more" action
                             }
                         }
@@ -84,7 +85,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     // actions: [
                     //     {
                     //         label: 'Close',
-                    //         callback: () => {
+                    //         run: () => {
                     //             // Logic to close the notification
                     //         }
                     //     },
