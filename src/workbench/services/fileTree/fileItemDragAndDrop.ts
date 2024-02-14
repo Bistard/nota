@@ -70,7 +70,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
         const isDroppable = this.__isDroppable(currentDragItems, targetOver);
-        
+
         if (isDroppable) {
             this.__checkIfDropOnEntireTree(targetOver);
         }
@@ -79,7 +79,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
             return;
         }
 
-        // the target is not collapsible
+        // the target is not collapsible (file)
         if (!this._tree.isCollapsible(targetOver)) {
             this._delayExpand.cancel(true);
 
@@ -243,14 +243,21 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
      * @description Special handling: drop entire tree animation
      */
     private _dragFeedbackDisposable: IDisposable = Disposable.NONE;
-    private __checkIfDropOnEntireTree(targetOver?: FileItem): void {
+    private __checkIfDropOnEntireTree(targetOver?: FileItem): boolean {
         this._dragFeedbackDisposable.dispose();
 
-        if (!targetOver || targetOver.parent?.isRoot()) {
+        const dropAtEmpty = !targetOver;
+        const dropAtRootDirectChild = targetOver && targetOver.parent?.isRoot();
+        const ensureTargetIsNotDir = targetOver && !this._tree.isCollapsible(targetOver);
+
+        if (dropAtEmpty || (dropAtRootDirectChild && ensureTargetIsNotDir)) {
             this._tree.DOMElement.classList.add('on-drop-target');
             this._dragFeedbackDisposable = toDisposable(() => {
                 this._tree.DOMElement.classList.remove('on-drop-target');
             });
+            return true;
         }
+
+        return false;   
     }
 }
