@@ -67,24 +67,9 @@ export class NotificationService extends Disposable implements INotificationServ
         const notification = document.createElement('div');
         notification.className = 'notification';
     
-        const content = document.createElement('div');
-        content.className = 'notification-content';
-    
-        // Create and style the title
-        if (options.title !== undefined) {
-            const title = document.createElement('div');
-            title.className = 'notification-title';
-            title.innerHTML = `<strong>${options.title}</strong><br>`;
-            content.appendChild(title);
-        }
-    
-        const message = document.createElement('div');
-        message.className = 'notification-message';
-        message.textContent = options.message;
-        content.appendChild(message);
-    
-        notification.appendChild(content);
-    
+        // Render the content part
+        this.__renderContent(notification, options);
+
         // Render the close button
         this.__renderCloseButton(notification);
     
@@ -93,11 +78,31 @@ export class NotificationService extends Disposable implements INotificationServ
             this.__renderCustomActionButtons(options.actions, notification);
         }
     
-        // Add the notification to the notification container (actual rendering)
+        // actual rendering
         this._container.appendChild(notification);
     }
+
+    private __renderContent(container: HTMLElement, opts: INotificationOptions): void {
+        const content = document.createElement('div');
+        content.className = 'notification-content';
     
-    private __renderCloseButton(notification: HTMLElement): void {
+        // Create and style the title
+        if (opts.title !== undefined) {
+            const title = document.createElement('div');
+            title.className = 'notification-title';
+            title.innerHTML = `<strong>${opts.title}</strong><br>`;
+            content.appendChild(title);
+        }
+    
+        const message = document.createElement('div');
+        message.className = 'notification-message';
+        message.textContent = opts.message;
+        content.appendChild(message);
+
+        container.appendChild(content);
+    }
+    
+    private __renderCloseButton(container: HTMLElement): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
     
@@ -108,20 +113,20 @@ export class NotificationService extends Disposable implements INotificationServ
     
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
-            this.closeNotification(notification);
-            notification.remove();
+            this.closeNotification(container);
+            container.remove();
         }));
         closeButton.render(closeButtonContainer);
-        notification.appendChild(closeButtonContainer);
+        container.appendChild(closeButtonContainer);
     }
     
-    private __renderCustomActionButtons(actions: INotificationAction[], notification: HTMLElement): void {
+    private __renderCustomActionButtons(actions: INotificationAction[], container: HTMLElement): void {
         const customActionsContainer = document.createElement('div');
         customActionsContainer.className = 'notification-custom-actions';
     
-        // Iterate over the provided actions and create a button for each
         actions.forEach((action, index) => {
-            if (index < 3) { // Ensure no more than three buttons are created
+            // Ensure no more than three buttons are created
+            if (index < 3) {
                 const buttonOptions: IButtonOptions = {
                     label: action.label,
                     buttonBackground: action.notificationBackground,
@@ -137,10 +142,10 @@ export class NotificationService extends Disposable implements INotificationServ
         });
     
         // Append the custom actions container at the bottom of the notification
-        if (customActionsContainer.hasChildNodes()) { // Only append if there are action buttons
+        if (customActionsContainer.hasChildNodes()) {
             customActionsContainer.style.alignSelf = 'flex-end';
             customActionsContainer.style.paddingTop = '10px'; // spaces between msgs and btns
-            notification.appendChild(customActionsContainer);
+            container.appendChild(customActionsContainer);
         }
     }  
     
