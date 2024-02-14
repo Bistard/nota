@@ -53,9 +53,6 @@ export class NotificationService extends Disposable implements INotificationServ
     public notify(options: INotificationOptions): void {
         const notification = document.createElement('div');
         notification.className = 'notification';
-        notification.style.display = 'flex';
-        notification.style.flexDirection = 'column';
-        notification.style.justifyContent = 'space-between';
     
         const content = document.createElement('div');
         content.className = 'notification-content';
@@ -75,7 +72,19 @@ export class NotificationService extends Disposable implements INotificationServ
     
         notification.appendChild(content);
     
-        // Create a container for the close button
+        // Render the close button
+        this.__renderCloseButton(notification);
+    
+        // Render custom action buttons
+        if (options.actions && options.actions.length) {
+            this.__renderCustomActionButtons(options.actions, notification);
+        }
+    
+        // Add the notification to the notification container (actual rendering)
+        this._container.appendChild(notification);
+    }
+    
+    private __renderCloseButton(notification: HTMLElement): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
     
@@ -93,13 +102,14 @@ export class NotificationService extends Disposable implements INotificationServ
     
         // Append the close button container at the top right of the notification
         notification.appendChild(closeButtonContainer);
+    }
     
-        // Separate container for custom action buttons
+    private __renderCustomActionButtons(actions: INotificationAction[], notification: HTMLElement): void {
         const customActionsContainer = document.createElement('div');
         customActionsContainer.className = 'notification-custom-actions';
     
         // Iterate over the provided actions and create a button for each
-        options.actions?.forEach((action, index) => {
+        actions.forEach((action, index) => {
             if (index < 3) { // Ensure no more than three buttons are created
                 const buttonOptions: IButtonOptions = {
                     label: action.label,
@@ -117,31 +127,16 @@ export class NotificationService extends Disposable implements INotificationServ
                 customActionsContainer.appendChild(actionButton.element);
             }
         });
-
-        customActionsContainer.style.display = 'flex';
-        customActionsContainer.style.justifyContent = 'flex-end';
-        customActionsContainer.style.alignItems = 'center';
-        customActionsContainer.style.gap = '3px';
-        
+    
         // Append the custom actions container at the bottom of the notification
         if (customActionsContainer.hasChildNodes()) { // Only append if there are action buttons
             customActionsContainer.style.alignSelf = 'flex-end';
             customActionsContainer.style.paddingTop = '10px'; // spaces between msgs and btns
             notification.appendChild(customActionsContainer);
         }
-    
-        // Add the notification to the notification container (actual rendering)
-        this._container.appendChild(notification);
-    }
+    }  
     
     private closeNotification(notification: HTMLElement): void {
-        // Make the notification invisible before removing it
-        notification.style.height = '0';
-        notification.style.marginBottom = '-10px';
-        notification.style.opacity = '0';
-        notification.style.padding = '0';
-        notification.style.borderWidth = '0';
-        notification.style.transform = 'scaleY(0)';
     
         // Wait for the transitions to finish before removing the element
         notification.addEventListener('transitionend', () => {
@@ -157,6 +152,4 @@ export class NotificationService extends Disposable implements INotificationServ
             resolve(result);
         });
     }
-
-    // private helper methods for managing notifications here
 }
