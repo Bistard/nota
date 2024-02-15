@@ -222,6 +222,20 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     getHoverItems(): T[];
 
     /**
+     * @description Returns the height of the item in DOM.
+     * @param index The index of the item.
+     */
+    getItemHeight(index: number): number;
+
+    /**
+     * @description Returns the DOM's position of the item with the given index
+     * relatives to the viewport. If the item is not *entirely* visible in the 
+     * viewport, -1 will be returned.
+     * @param index The index of the item.
+     */
+    getItemRenderTop(index: number): number;
+
+    /**
      * @description Respect to the current focused item, try to focus the first 
      * item forward by a given step `next` that matches the filter function.
      * @param next The step number. @default 1
@@ -446,6 +460,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return this.view.getItem(index);
     }
 
+    public getItemIndex(item: T): number {
+        return this.view.getItemIndex(item);
+    }
+
     public isItemVisible(index: number): boolean {
         return this.view.isItemVisible(index);
     }
@@ -504,6 +522,14 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     public getHoverItems(): T[] {
         const indice = this.hovered.items();
         return indice.map(index => this.view.getItem(index));
+    }
+
+    public getItemHeight(index: number): number {
+        return this.view.getItemHeight(index);
+    }
+
+    public getItemRenderTop(index: number): number {
+        return this.view.getItemRenderTop(index);
     }
 
     public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {

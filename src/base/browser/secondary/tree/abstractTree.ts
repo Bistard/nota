@@ -677,6 +677,26 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @param index The index of the item.
      */
     getItem(index: number): T;
+
+    /**
+     * @description Returns the rendering index of the item with the given item.
+     * @param item The actual item.
+     */
+    getItemIndex(item: TRef): number;
+
+    /**
+     * @description Returns the height of the item in DOM.
+     * @param index The index of the item.
+     */
+    getItemHeight(index: number): number;
+
+    /**
+     * @description Returns the DOM's position of the item with the given index
+     * relatives to the viewport. If the item is not *entirely* visible in the 
+     * viewport, -1 will be returned.
+     * @param index The index of the item.
+     */
+    getItemRenderTop(index: number): number;
 }
 
 /**
@@ -942,6 +962,19 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public getItem(index: number): T {
         return this._view.getItem(index).data;
+    }
+
+    public getItemIndex(item: TRef): number {
+        const node = this._model.getNode(item);
+        return this._view.getItemIndex(node);
+    }
+
+    public getItemHeight(index: number): number {
+        return this._view.getItemHeight(index);
+    }
+
+    public getItemRenderTop(index: number): number {
+        return this._view.getItemRenderTop(index);
     }
 
     // [methods - general]

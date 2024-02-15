@@ -650,6 +650,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         return this.items[index]!.data;
     }
 
+    public getItemIndex(item: T): number {
+        return this.items.findIndex(eachItem => eachItem.data === item);
+    }
+
     public getHTMLElement(index: number): HTMLElement | null {
         if (index < 0 || index >= this.items.length) {
             panic(`invalid get item index: ${index}`);

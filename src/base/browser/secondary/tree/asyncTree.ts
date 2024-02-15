@@ -516,6 +516,18 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     public getItem(index: number): T {
         return this._tree.getItem(index);
     }
+    
+    public getItemIndex(item: T): number {
+        return this._tree.getItemIndex(item);
+    }
+
+    public getItemHeight(index: number): number {
+        return this._tree.getItemHeight(index);
+    }
+
+    public getItemRenderTop(index: number): number {
+        return this._tree.getItemRenderTop(index);
+    }
 
     public setDomFocus(): void {
         this._tree.setDomFocus();
