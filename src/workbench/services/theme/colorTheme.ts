@@ -53,7 +53,11 @@ export class ColorTheme implements IColorTheme {
         this.description = description;
         
         this._colors = {};
-        // TODO: init `this._colors` with `rawObj`
+        // init `this._colors` with `rawObj`
+        Object.keys(rawObj).forEach(key => {
+            const colorValue = rawObj[key];
+            this._colors[key] = new RGBA(colorValue.r, colorValue.g, colorValue.b, colorValue.a);
+        });
     }
     
     public getColor(id: string): RGBA | undefined {

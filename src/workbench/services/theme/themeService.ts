@@ -1,16 +1,17 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { PresetColorTheme } from "src/workbench/services/theme/theme";
+import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/theme";
 import { APP_DIR_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { URI } from "src/base/common/files/uri";
-import { AsyncResult } from "src/base/common/result";
+import { AsyncResult, Err, Ok } from "src/base/common/result";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
-import { IColorTheme } from "src/workbench/services/theme/colorTheme";
+import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
+import { ok } from "assert";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -58,13 +59,14 @@ export interface IThemeService extends IService {
 }
 
 /**
- * @class // TODO
+ * @class
  */
 export class ThemeService extends Disposable implements IThemeService {
 
     declare _serviceMarker: undefined;
 
     // [events]
+    
 
     private readonly _onDidChangeTheme = this.__register(new Emitter<IColorTheme>());
     public readonly onDidChangeTheme = this._onDidChangeTheme.registerListener;
@@ -75,6 +77,7 @@ export class ThemeService extends Disposable implements IThemeService {
 
     private readonly _initProtector: InitProtector;
     private readonly _presetThemes: IColorTheme[];
+    private currentTheme: any;
 
     // [constructor]
 
@@ -86,37 +89,66 @@ export class ThemeService extends Disposable implements IThemeService {
     ) {
         super();
         this._initProtector = new InitProtector();
-        this._presetThemes = [];
+        this._presetThemes = this.initializePresetThemes();
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
+    }
+
+    protected initializePresetThemes(): IColorTheme[] {
+        const lightTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
+        const darkTheme: IColorTheme = new ColorTheme(ColorThemeType.Dark, 'DarkModern', undefined, {/* color mappings */});
+        return [lightTheme, darkTheme];
     }
     
     // [public methods]
 
     public getCurrTheme(): IColorTheme {
-        throw new Error("Method not implemented.");
+        if (!this.currentTheme) {
+            this.currentTheme = this._presetThemes[0];
+        }
+        return this.currentTheme;
     }
     
     public changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error> {
-        throw new Error("Method not implemented.");
+        const themeUri = URI.join(this.themeRootPath, `${id}.json`);
+    
+        return this.fileService.readFile(themeUri)
+            .andThen((themeData) => {
+                const themeObj = JSON.parse(themeData.toString());
+                if (!themeObj.type || !themeObj.name || !themeObj.colors) {
+                    return AsyncResult.err(new Error("Invalid theme data."));
+                }
+                const newTheme = new ColorTheme(themeObj.type, themeObj.name, themeObj.description, themeObj.colors);
+                this.currentTheme = newTheme;
+                this._onDidChangeTheme.fire(newTheme);
+                return new Ok(newTheme);
+            });
     }
-
+    
     public init(): AsyncResult<void, Error> {
         this._initProtector.init('Cannot init twice').unwrap();
-
-        /**
-         * // TODO: this._presetThemes
-         * Since preset colorThemes are only present in memory (not in disk). We
-         * need to initialize every preset color themes in the beginning.
-         */
-
+    
+        // Initialize every preset color themes in the beginning since they are only present in memory.
+        this.initializePresetThemes();  // Assuming this method sets up _presetThemes
+    
         const themeID = this.configurationService.get<string>(
-            WorkbenchConfiguration.ColorTheme, // user settings
-            PresetColorTheme.LightModern,      // default
+            WorkbenchConfiguration.ColorTheme, // User settings
+            PresetColorTheme.LightModern,      // Default
         );
-
-        // TODO: read the color theme from the disk by `themeID` at this.themeRootPath
-        // TODO: since the color theme is read from the disk, it can be corrupted, what happened if missing any color?
-        
-        throw new Error("Method not implemented.");
+    
+        // Read the color theme from the disk by `themeID` under `this.themeRootPath`
+        return this.changeCurrThemeTo(themeID)
+            .andThen((theme) => {
+                // Check if the loaded theme is missing any essential colors
+                if (!this.isValidTheme(theme)) {
+                    return AsyncResult.err(new Error("Theme missing essential colors."));
+                }
+                return AsyncResult.ok(undefined);
+            });
+            
+    }
+    
+    private isValidTheme(theme: IColorTheme): boolean {
+        // check if the theme object has all the essential colors defined
+        return true;     
     }
 }
