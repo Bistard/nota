@@ -11,6 +11,7 @@ import { Arrays } from "src/base/common/utilities/array";
  *  - when to focus DOM
  *  - when to focus item
  *  - when to select item(s)
+ *  - when to hover item(s)
  * 
  * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
@@ -34,9 +35,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
             this._multiSelectionSupport = opts.multiSelectionSupport;
         }
 
+        this._disposables.register(view.onMouseout((e) => this.__onMouseout(e)));
+        this._disposables.register(view.onMouseover(e => this.__onMouseover(e)));
         this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
         this._disposables.register(view.onTouchstart(e => this.__onMouseDown(e)));
         this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
+        this._disposables.register(view.onDidChangeFocus(e => this.__onDidChangeFocus(e)));
     }
 
     // [public methods]
@@ -52,6 +56,17 @@ export class ListWidgetMouseController<T> implements IDisposable {
             return false;
         }
         return true;
+    }
+
+    protected __onMouseout(e: IListMouseEvent<T>): void {
+        this._view.setHover([]);
+    }
+
+    protected __onMouseover(e: IListMouseEvent<T>): void {
+        if (e.actualIndex === undefined) {
+            return;
+        }
+        this._view.setHover([e.actualIndex]);
     }
 
     /**
@@ -122,6 +137,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
         if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
 			this._view.setDomFocus();
 		}
+    }
+
+    private __onDidChangeFocus(isFocused: boolean): void {
+        if (!isFocused) {
+            this._view.setFocus(null);
+        }
     }
 
     /**

@@ -1,6 +1,5 @@
 import * as assert from 'assert';
 import { before, after } from 'mocha';
-import { errorToMessage } from 'src/base/common/error';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { ByteSize, FileType } from 'src/base/common/files/file';
 import { listenStream } from 'src/base/common/files/stream';
@@ -20,6 +19,7 @@ import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger, TestIPC, TestURI } from 'test/utils/testService';
 import * as fs from 'fs';
 import { directoryExists } from 'src/base/node/io';
+import { Strings } from 'src/base/common/utilities/string';
 
 suite('FileChannel-test (IPC)', () => {
 
@@ -289,7 +289,7 @@ suite('FileChannel-test (IPC)', () => {
                 buffers.push(buffer);
             },
             onError: error => {
-                assert.fail(errorToMessage(error));
+                assert.fail(Strings.errorToMessage(error));
             },
             onEnd: async () => {
                 const content = DataBuffer.concat(buffers).toString();

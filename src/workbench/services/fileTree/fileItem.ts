@@ -1,5 +1,5 @@
 import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
-import { AsyncResult, Result, err, ok } from "src/base/common/error";
+import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError, FileType, IResolvedFileStat } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
@@ -42,6 +42,12 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * @complexity O(h) - h: height of the tree.
      */
     root(): TItem;
+
+    /**
+     * @description Determines if the current item is root.
+     * @complexity O(1)
+     */
+    isRoot(): boolean;
 
     /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
@@ -178,6 +184,10 @@ export class FileItem implements IFileItem<FileItem> {
         return this._parent.root();
     }
 
+    public isRoot(): boolean {
+        return !this._parent;
+    }
+
     public isDirectory(): boolean {
         return this._stat.type === FileType.DIRECTORY;
     }
@@ -202,8 +212,6 @@ export class FileItem implements IFileItem<FileItem> {
              * before.
              */
             if (this._isResolved === false) {
-                console.log('[item] resolving children'); // TEST
-                
                 const resolving = await fileService.stat(this._stat.uri, { resolveChildren: true });
 
                 if (resolving.isErr()) {

@@ -1,4 +1,14 @@
 
+/**
+ * Represents all the falsy value in JavaScript.
+ */
+export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;
+
+/**
+ * Represent any times that is other than falsy time.
+ */
+export type NonFalsy<T> = T extends Falsy ? never : T;
+
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
@@ -271,6 +281,11 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
  * Represent a non-empty array of type T.
  */
 export type NonEmptyArray<T> = [T, ...T[]];
+
+/**
+ * Represent an array of type T with up to length N.
+ */
+export type BoundedArray<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : R | BoundedArray<T, N, [T, ...R]>;
 
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.

@@ -1,10 +1,11 @@
-import { AsyncResult, err, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { jsonSafeParse } from "src/base/common/json";
-import { Dictionary, If, ifOrDefault } from "src/base/common/utilities/type";
+import { Dictionary, If } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * An interface only for {@link DiskStorage}.
@@ -104,7 +105,7 @@ class DiskStorageBase {
 
         let i = 0;
         for (i = 0; i < keys.length; i++) {
-            const val = ifOrDefault(this._storage[keys[i]!], defaultVal[i] ?? undefined!!);
+            const val = this._storage[keys[i]!] ?? defaultVal[i] ?? undefined!;
             result.push(val);
         }
 
@@ -208,7 +209,7 @@ class DiskStorageBase {
                 this._storage = parsed;
                 return ok(false);
             })
-            .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
+            .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${Strings.errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
     }
 
     private __onInitReadError(error: FileOperationError): AsyncResult<boolean, FileOperationError> {
@@ -263,7 +264,7 @@ export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage<tr
             if (this._storage[key] === val) {
                 return AsyncResult.ok();
             }
-            this._storage[key] = ifOrDefault(val, undefined!!);
+            this._storage[key] = val ?? undefined!;
             save = true;
         }
 
@@ -322,7 +323,7 @@ export class SyncDiskStorage extends DiskStorageBase implements IDiskStorage<fal
             if (this._storage[key] === val) {
                 return;
             }
-            this._storage[key] = ifOrDefault(val, undefined!!);
+            this._storage[key] = val ?? undefined!;
         }
     }
 

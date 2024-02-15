@@ -10,8 +10,8 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
-import { Time, TimeUnit } from "src/base/common/date";
-import { AsyncResult, ok } from "src/base/common/error";
+import { Time } from "src/base/common/date";
+import { AsyncResult, ok } from "src/base/common/result";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 
 export class ExplorerTreeService extends Disposable implements IExplorerTreeService {
@@ -31,7 +31,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private _currTreeDisposable?: DisposableManager;
 
     private _onDidResourceChangeScheduler?: IScheduler<IResourceChangeEvent>;
-    private static readonly ON_RESOURCE_CHANGE_DELAY = new Time(TimeUnit.Milliseconds, 100);
+    private static readonly ON_RESOURCE_CHANGE_DELAY = Time.ms(100);
 
     // [constructor]
 

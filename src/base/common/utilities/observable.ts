@@ -2,6 +2,8 @@ import { Callable, Constructor, NonEmptyArray, Or, isFunction, isObject } from "
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Arrays } from "src/base/common/utilities/array";
 import { getCurrTimeStamp } from "src/base/common/date";
+import { mixin } from "src/base/common/utilities/object";
+import { Stacktrace } from "src/base/common/error";
 
 /**
  * {@link Observable}
@@ -218,8 +220,43 @@ export class Observable<T extends {}> implements IObservable<T> {
     }
 }
 
+/**
+ * Options for {@link observable} construction.
+ */
+export interface IObserverableOptions {
+
+    /**
+     * Callback function when observing. A custom observer function that 
+     * overrides the default behavior for handling observed property changes. 
+     * It receives information about the class name, property being observed, 
+     * the type of observation, and the parameters involved in the observation.
+     * @default DEFAULT_OBSERVER
+     */
+    observer?: typeof DEFAULT_OBSERVER;
+
+    /**
+     * If set to true, this option excludes functions with names starting with 
+     * `_` from observation.
+     * @default true
+     */
+    ignoreUnderscores?: boolean;
+
+    /**
+     * Enable stacktrace when observing.
+     * @default false
+     */
+    stackTrace?: boolean;
+}
+
 const OB_KEY = '$OB$properties';
 type ObserveList = { propKey: string, types: ObserveType[] }[];
+
+export const DEFAULT_OBSERVER = createDefaultObserver();
+const DEFAULT_OBSERVABLE_OPTS: IObserverableOptions = {
+    observer: DEFAULT_OBSERVER,
+    ignoreUnderscores: true,
+    stackTrace: false,
+};
 
 /**
  * @description Decorator function for tagging class properties that should be 
@@ -255,15 +292,9 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  * @description Class decorator function that transforms the specified class to 
  * make its properties observable based on the {@link observe} decorator. 
  * 
- * @nmote It replaces direct object properties marked with {@link observe} with 
+ * @note It replaces direct object properties marked with {@link observe} with 
  * {@link Observable} instances, allowing changes to these properties to be 
  * observed.
- * 
- * @param {typeof DEFAULT_OBSERVER} [observer=DEFAULT_OBSERVER] - Optional. A 
- *      custom observer function that overrides the default behavior for 
- *      handling observed property changes. It receives information about the 
- *      class name, property being observed, the type of observation, and the 
- *      parameters involved in the observation.
  * @returns A class decorator function that takes a target class and returns a 
  *          new class with observable properties.
  * 
@@ -281,11 +312,15 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  * // observing 'set' operations.
  * ```
  */
-export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSERVER) {
-    
-    // TODO: ! can be omit when ts is updated to 5.4
-    observer ??= DEFAULT_OBSERVER;
+export function observable<T extends Constructor>(options: IObserverableOptions = DEFAULT_OBSERVABLE_OPTS) {
 
+    const opts = mixin<Required<IObserverableOptions>>(options, DEFAULT_OBSERVABLE_OPTS, false);
+    const observer = opts.observer;
+    function isFnIgnored(propKey: string): boolean {
+        return opts.ignoreUnderscores && propKey.startsWith('_');
+    }
+
+    // return decorator
     return function(ctor: T): T {
         const className = ctor.toString().match(/\w+/g)?.[1] || 'UnknownClass';
 
@@ -314,15 +349,19 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                     Reflect.set(this, propKey, ob.getProxy());
 
                     Arrays.exist(types, 'set') && ob.on('set', null, (subKey, oldVal, newVal) => {
-                        observer!(className, `${propKey}.${subKey}`, 'set', [oldVal, newVal]);
+                        observer(opts, className, `${propKey}.${subKey}`, 'set', [oldVal, newVal]);
                     });
                     
                     Arrays.exist(types, 'get') && ob.on('get', null, (subKey, val) => {
-                        observer!(className, `${propKey}.${subKey}`, 'get', [val]);
+                        observer(opts, className, `${propKey}.${subKey}`, 'get', [val]);
                     });
 
                     Arrays.exist(types, 'call') && ob.on('call', null, <any>((fn: string, ret: any, ...rest: any[]) => {
-                        observer!(className, `${propKey}.${fn}`, 'call', [ret, ...rest]);
+                        if (isFnIgnored(fn)) {
+                            return;
+                        }
+                        
+                        observer(opts, className, `${propKey}.${fn}`, 'call', [ret, ...rest]);
                     }));
                 }
 
@@ -330,10 +369,11 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                 return new Proxy(this, {
                     
                     set: (target: this, propKey: string | symbol, value: any, receiver: any): boolean => {
-                        
-                        if (isTagged(String(propKey), 'set')) {
+                        const key = String(propKey);
+
+                        if (isTagged(key, 'set')) {
                             const oldValue = Reflect.get(target, propKey, receiver);
-                            observer!(className, String(propKey), 'set', [oldValue, value]);
+                            observer(opts, className, key, 'set', [oldValue, value]);
                         }
                         
                         const result = Reflect.set(target, propKey, value, receiver);
@@ -341,18 +381,19 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
                     },
 
                     get: (target: this, propKey: string | symbol, receiver: any): any => {
+                        const key = String(propKey);
                         const value: any = Reflect.get(target, propKey, receiver);
 
-                        if (isFunction(value) && isTagged(String(propKey), 'call')) {
+                        if (isFunction(value) && isTagged(key, 'call') && !isFnIgnored(key)) {
                             return (...args: any[]) => {
                                 const ret = value.apply(receiver, args);
-                                observer!(className, String(propKey), 'call', [ret, args]);
+                                observer(opts, className, key, 'call', [ret, args]);
                                 return ret;
                             };
                         }
         
-                        if (isTagged(String(propKey), 'get')) {
-                            observer!(className, String(propKey), 'get', [value]);
+                        if (isTagged(key, 'get')) {
+                            observer(opts, className, key, 'get', [value]);
                         }
 
                         return value;
@@ -371,9 +412,9 @@ export function observable<T extends Constructor>(observer?: typeof DEFAULT_OBSE
     };
 }
 
-export const createDefaultObserver = (handleMessage?: (message: string, ...args: any[]) => void) => 
-    function defaultObserver<TType extends ObserveType>(className: string, property: string, type: TType, param: any[]): void {
-            
+export function createDefaultObserver (handleMessage?: (opts: IObserverableOptions, message: string, ...args: any[]) => void) { 
+    return function defaultObserver<TType extends ObserveType>(opts: IObserverableOptions, className: string, property: string, type: TType, param: any[]): void {
+        
         let message = `[${getCurrTimeStamp().slice(0, -4)}] [${className}] `;
 
         if (type === 'get') {
@@ -407,11 +448,13 @@ export const createDefaultObserver = (handleMessage?: (message: string, ...args:
         // not provided message, we simply print it.
         if (!handleMessage) {
             console.log(message);
+            if (opts.stackTrace === true) {
+                console.log(`    Stacktrace:\n`, new Stacktrace().getRawTrace());
+            }
             return;
         }
         
         // handler provided, we pass the data to it.
-        handleMessage(message, className, property, type, ...param);
+        handleMessage(opts, message, className, property, type, ...param);
     };
-    
-export const DEFAULT_OBSERVER = createDefaultObserver(console.log);
+}

@@ -9,7 +9,7 @@ import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { Arrays } from "src/base/common/utilities/array";
 import { JsonSchemaValidator } from "src/base/common/json";
-import { AsyncResult, err, ok } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 

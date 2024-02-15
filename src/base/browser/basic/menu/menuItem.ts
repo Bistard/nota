@@ -3,7 +3,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
-import { INSTANT_TIME, Time, TimeUnit } from "src/base/common/date";
+import { INSTANT_TIME, Time } from "src/base/common/date";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -518,8 +518,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [constants]
 
-    public static readonly SHOW_DEPLAY = new Time(TimeUnit.Milliseconds, 250);
-    public static readonly HIDE_DEPLAY = new Time(TimeUnit.Milliseconds, 750);
+    public static readonly SHOW_DEPLAY = Time.ms(250);
+    public static readonly HIDE_DEPLAY = Time.ms(750);
 
     // [field]
 

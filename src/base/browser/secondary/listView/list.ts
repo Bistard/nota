@@ -121,6 +121,12 @@ export interface IList<T> {
     getItem(index: number): T;
 
     /**
+     * @description Returns the rendering index of the item with the given item.
+     * @param item The actual item.
+     */
+    getItemIndex(item: T): number;
+
+    /**
      * @description Returns the rendering index of the item with the given actual
      * index. If not found, -1 will be returned.
      * @param actualIndex The actual index of the item in the list view.

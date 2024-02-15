@@ -1,3 +1,4 @@
+import "src/workbench/services/fileTree/media.scss";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { AsyncTree, AsyncTreeWidget, IAsyncTree, IAsyncTreeOptions, IAsyncTreeWidgetOpts } from "src/base/browser/secondary/tree/asyncTree";
 import { MultiTreeKeyboardController } from "src/base/browser/secondary/tree/multiTree";
@@ -87,7 +88,6 @@ export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TF
      * @note Will reveal to the item if not visible (not rendered).
      */
     select(item: T): void;
-    selectRecursive(item: T, index: number): T[];
 }
 
 export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter> implements IFileTree<T, TFilter> {
@@ -107,6 +107,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         opts: IFileTreeOptions<T, TFilter>,
     ) {
         super(container, rootData, opts);
+        this.DOMElement.classList.add('file-tree');
         this.__register(this.onClick(e => this.__onClick(e)));
     }
 
@@ -122,19 +123,6 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         this.setSelections([item]);
 
         this._onSelect.fire({ item: item });
-    }
-
-    public selectRecursive(item: T, index: number): T[] {
-        const subTreeSize = this.getVisibleNodeCount(item);
-        const toSelected: T[] = [];
-        for (let i = 0; i < subTreeSize; i++) {
-            const currIndex = index + i;
-            const item = this.getItem(currIndex);
-            toSelected.push(item);
-        }
-
-        this.setSelections(toSelected);
-        return toSelected;
     }
 
     // [protected override method]

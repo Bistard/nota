@@ -1,10 +1,11 @@
 import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { CancellationError, panic } from "src/base/common/error";
+import { CancellationError } from "src/base/common/error";
+import { panic } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { noop } from "src/base/common/performance";
 import { CancellationToken, ICancellable } from "src/base/common/utilities/cacellation";
-import { isNullable, isNumber } from "src/base/common/utilities/type";
+import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * {@link CancellablePromise}
@@ -49,12 +50,10 @@ export function repeat(round: number, fn: (index: number) => void): void {
 export async function delayFor(time: Time, callback?: ITask<void>): Promise<void> {
     return new Promise(
 		(resolve, reject) => setTimeout(() => {
-			if (callback) {
-				try {
-					callback();
-				} catch (error) {
-					reject();
-				}
+			try {
+				callback?.();
+			} catch (error) {
+				reject();
 			}
 			resolve();
 		}, time.toMs().time)

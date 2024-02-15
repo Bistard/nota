@@ -29,13 +29,19 @@ export const enum TimeUnit {
  */
 export class Time {
 
+    // [fields]
+
     private readonly _unit: TimeUnit;
     private readonly _time: number;
+
+    // [constructor]
 
     constructor(unit: TimeUnit, time: number) {
         this._unit = unit;
         this._time = time;
     }
+
+    // [getter]
 
     get unit(): TimeUnit {
         return this._unit;
@@ -44,6 +50,22 @@ export class Time {
     get time(): number {
         return this._time;
     }
+
+    // [public static methods]
+
+    public static ms(time: number): Time {
+        return new Time(TimeUnit.Milliseconds, time);
+    }
+    
+    public static sec(time: number): Time {
+        return new Time(TimeUnit.Seconds, time);
+    }
+    
+    public static min(time: number): Time {
+        return new Time(TimeUnit.Minutes, time);
+    }
+
+    // [public methods]
 
     public toString(): string {
         return `${this.time} ${this._unit}`;

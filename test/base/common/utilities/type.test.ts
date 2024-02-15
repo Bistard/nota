@@ -3,7 +3,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, BoundedArray, Falsy, NonFalsy } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -115,6 +115,48 @@ suite('type-test', () => {
 });
 
 suite('typescript-types-test', () => {
+
+    test('Falsy type', () => {
+        // Tests for Falsy - asserting that these should not error as they are Falsy types
+        const falsyFalse: Falsy = false;
+        const falsyNull: Falsy = null;
+        const falsyUndefined: Falsy = undefined;
+        const falsyZero: Falsy = 0;
+        const falsyNegativeZero: Falsy = -0;
+        const falsyBigIntZero: Falsy = 0n;
+        const falsyEmptyString: Falsy = '';
+
+        // @ts-expect-error
+        let expectErr: Falsy = 5;
+        // @ts-expect-error
+        expectErr = true;
+        // @ts-expect-error
+        expectErr = 'hi';
+        // @ts-expect-error
+        expectErr = {};
+        // @ts-expect-error
+        expectErr = [];
+    });
+
+    test('Non-Falsy type', () => {
+        // Should pass
+        const nonFalsyString: NonFalsy<string> = 'hello';
+        const nonFalsyNumber: NonFalsy<number> = 123;
+        const nonFalsyObject: NonFalsy<object> = {};
+        const nonFalsyArray: NonFalsy<number[]> = [];
+
+        // Should fail
+        // @ts-expect-error
+        const nonFalsyFalse: NonFalsy<false> = false;
+        // @ts-expect-error
+        const nonFalsyNull: NonFalsy<null> = null;
+        // @ts-expect-error
+        const nonFalsyUndefined: NonFalsy<undefined> = undefined;
+        // @ts-expect-error
+        const nonFalsyZero: NonFalsy<0> = 0;
+        // @ts-expect-error
+        const nonFalsyEmptyString: NonFalsy<''> = '';
+    });
 
     test('DightInString type', () => {
         const digit: DightInString = '5';
@@ -428,6 +470,17 @@ suite('typescript-types-test', () => {
         const test4: NonEmptyArray<string> = ['first', undefined];
         // @ts-expect-error
         const test5: NonEmptyArray<boolean> = [true, 'notABoolean'];
+    });
+
+    test('BoundedArray type', () => {
+        let arr: BoundedArray<number, 5> = [];
+        arr = [1];
+        arr = [1, 1];
+        arr = [1, 1, 3];
+        arr = [1, 1, 3, 4];
+        arr = [1, 1, 3, 4, 5];
+        // @ts-expect-error
+        arr = [1, 1, 3, 4, 5, 6];
     });
 
     test('Mutable type', () => {

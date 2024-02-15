@@ -1,6 +1,6 @@
 import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
-import { tryOrDefault } from "src/base/common/error";
+import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
 import { Schemas } from "src/base/common/files/uri";
 import { Additionals, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
@@ -123,15 +123,19 @@ function getErrorString(color: boolean, error: any): string {
      */
     
     // no errors
-    if (error === undefined) {
+    if (error === undefined || error === null) {
         return '';
     }
 
-    if (!(error instanceof Error)) {
+    if (!(error instanceof Error) && !(error[IpcErrorTag] === null)) {
         return `    ${tryPaintValue(1, color, 'error', error)}`;
     }
 
-    const stackLines = error.stack ? error.stack.split('\n') : [];
+    const stackLines: string[] = error.stack
+        ? error.stack.split 
+            ? error.stack.split('\n') // array of string
+            : error.stack             // already a string
+        : [];                         // no stacks
     let maxLength = 0;
 
     // Find the maximum length of the lines

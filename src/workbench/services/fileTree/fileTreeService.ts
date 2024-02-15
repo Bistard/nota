@@ -12,7 +12,7 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-import { AsyncResult, ok } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Pair } from "src/base/common/utilities/type";
@@ -169,10 +169,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const registerListeners = (tree: IFileTree<FileItem, void>) => {
             tree.onRefresh(() => {
                 // TODO
-                console.log('[FileTreeService] onRefresh');
             });
             tree.onDidExpand(async e => {
-                console.log('[FileTreeService] onDidExpand');
                 // await sorter.initCustomSorter(e.node.data);
             });
         };

@@ -15,7 +15,7 @@ import { ILoggerService } from "src/platform/logger/common/abstractLoggerService
 import { IFileService } from "src/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
-import { ErrorHandler } from "src/base/common/error";
+import { ErrorHandler, tryOrDefault } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
@@ -76,16 +76,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
     // [public method]
 
     public async run(): Promise<void> {
-        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
-
         let instantiaionService: IInstantiationService | undefined;
+
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
 
-            if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
-                Error.stackTraceLimit = Infinity;
-            }
+            // ensure we handle almost every errors properly
+            this.initErrorHandler();
 
             // register microservices
             this.rendererServiceRegistrations();
@@ -111,7 +109,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // try to log out the error message
             if (instantiaionService) {
                 try {
-                    const logService = instantiaionService.getService(ILogService);
+                    const logService = instantiaionService.getOrCreateService(ILogService);
                     logService.error('renderer', 'error encountered', error);
                 } catch { }
             }
@@ -228,6 +226,39 @@ const renderer = new class extends class RendererInstance extends Disposable {
         .unwrap();
         
         this.logService.trace('renderer', 'All core renderer services are initialized successfully.');
+    }
+
+    private initErrorHandler(): void {
+
+        // only enable infinity stack trace when needed for performance issue.
+        if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
+            Error.stackTraceLimit = Infinity;
+        }
+        
+        // universal on unexpected error hanlding callback
+        const onUnexpectedError = (error: any, additionalMessage?: any) => {
+            if (this.logService) {
+                const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));
+                this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
+            } else {
+                console.error(error);
+            }
+        };
+
+        // case1
+        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
+
+        // case2
+        window.onerror = (message, source, lineno, colno, error) => {
+            onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
+            return true; // prevent default handling (log to console)
+        };
+
+        // case3
+        window.onunhandledrejection = (event: PromiseRejectionEvent) => {
+            onUnexpectedError(event.reason, 'unexpected rejection');
+            event.preventDefault(); // prevent default handling (log to console)
+        };
     }
 
     private rendererServiceRegistrations(): void {

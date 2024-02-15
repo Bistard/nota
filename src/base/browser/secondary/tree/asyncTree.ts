@@ -1,5 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
@@ -496,6 +497,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return this._tree.getSelections();
     }
 
+    public setHover(item: T, recursive: boolean): void {
+        this._tree.setHover(item, recursive);
+    }
+
+    public getHover(): T[] {
+        return this._tree.getHover();
+    }
+
     public getVisibleNodeCount(item: T): number {
         return this._tree.getVisibleNodeCount(item);
     }
@@ -506,6 +515,18 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getItem(index: number): T {
         return this._tree.getItem(index);
+    }
+    
+    public getItemIndex(item: T): number {
+        return this._tree.getItemIndex(item);
+    }
+
+    public getItemHeight(index: number): number {
+        return this._tree.getItemHeight(index);
+    }
+
+    public getItemRenderTop(index: number): number {
+        return this._tree.getItemRenderTop(index);
     }
 
     public setDomFocus(): void {
@@ -563,7 +584,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          */
         if (node.collapsed) {
             this._tree.triggerOnDidSplice({ inserted: [e.node] });
-            console.log('[item] skip refresh operation since it is collapsing.'); // TEST
             return;
         }
 
@@ -575,7 +595,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          */
         if (this._tree.isChildrenResolved(node.data)) {
             this._tree.triggerOnDidSplice({ inserted: [e.node] });
-            console.log('[item] already resolved, skip when expand.'); // TEST
             return;
         }
 

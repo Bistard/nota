@@ -1,6 +1,6 @@
-import { Time, TimeUnit } from "src/base/common/date";
+import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult, ok } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
@@ -85,7 +85,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     ) {
         super();
         this._customSortOrderMap = new ResourceMap();
-        this._delay = new Time(TimeUnit.Minutes, 5);
+        this._delay = Time.min(5);
         this._orderRootPath = URI.join(this.environmentService.userDataPath, '.wisp', 'sortings');
     }
     
