@@ -22,6 +22,8 @@ export function executeOnce<T extends Callable<any[], any>>(fn: T): T {
  * `execute()` is only allowed after a `reactivate()` call, ensuring a 
  * controlled, one-time execution for each activation cycle.
  * 
+ * @note By default, it is deactivated.
+ * 
  * @example
  * const reactivator = new Reactivator(() => console.log('Default action'));
  * reactivator.execute(); // No action, since `reactivate` hasn't been invoked.
@@ -34,13 +36,17 @@ export class Reactivator {
     private _isActivated: boolean;
     private _defaultFn?: () => void;
 
-    constructor(defaultCallback: () => void) {
+    constructor(defaultCallback?: () => void) {
         this._isActivated = false;
         this._defaultFn = defaultCallback;
     }
 
     public reactivate(): void {
         this._isActivated = true;
+    }
+
+    public deactivate(): void {
+        this._isActivated = false;
     }
 
     public execute(fn?: () => void): void {

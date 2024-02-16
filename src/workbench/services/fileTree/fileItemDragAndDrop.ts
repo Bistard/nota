@@ -18,6 +18,7 @@ import { DomUtility } from "src/base/browser/basic/dom";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { Reactivator } from "src/base/common/utilities/function";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -37,6 +38,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
      */
     private _dragSelections: FileItem[] = [];
 
+    private readonly _hoverHandler: Reactivator;
     private readonly _insertionIndicator?: RowInsertionIndicator;
 
     // [constructor]
@@ -49,6 +51,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super();
+
+        this._hoverHandler = new Reactivator();
 
         // only enable insertion indicator during custom sortering
         const sortOrder = configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
@@ -89,39 +93,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
-        const isDroppable = this.__isDroppable(currentDragItems, targetOver);
-
-        if (isDroppable) {
-            this.__checkIfDropOnEntireTree(targetOver);
-        }
-
-        if (!targetOver || targetIndex === undefined) {
-            return;
-        }
-
-        // the target is not collapsible (file)
-        if (!this._tree.isCollapsible(targetOver)) {
-            this._delayExpand.cancel(true);
-
-            if (targetOver.parent && !targetOver.parent.isRoot() && isDroppable) {
-                this._tree.setHover(targetOver.parent, true);
-            }
-
-            return;
-        }
-
-        // the target is collapsed thus it requies a delay of expanding
-        if (this._tree.isCollapsed(targetOver) && isDroppable) {
-            this._tree.setHover(targetOver, false);
-            this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
-            return;
-        }
-
-        // the target is already expanded
-        this._delayExpand.cancel(true);
-        if (isDroppable) {
-            this._tree.setHover(targetOver, true);
-        }
+        this._hoverHandler.reactivate();
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
@@ -141,13 +113,55 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 
     public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): boolean {
-        if (!targetOver || targetIndex === undefined) {
-            this._delayExpand.cancel(true);
+        const isDroppable = this.__isDroppable(currentDragItems, targetOver);
+
+        // special case: dropover the root
+        const dropOnRoot = this.__checkIfDropOnRoot(targetOver);
+        if (isDroppable && dropOnRoot) {
+            return true;
         }
 
-        console.log('dragover'); // TEST
+        // cannot drop at no targets
+        if (!targetOver || targetIndex === undefined) {
+            return false;
+        }
+
+        /**
+         * Row insertion need to be checked on every single 'over
+.         */
         const isHandled = this._insertionIndicator?.handleRowInsertion(event, targetIndex);
-        
+
+        /**
+         * Hovering check do not need to be checked on every single 'over'. Only
+         * needed after envery `enter`.
+         */
+        this._hoverHandler.execute(() => {
+            
+            // the target is not collapsible (file)
+            if (!this._tree.isCollapsible(targetOver)) {
+                this._delayExpand.cancel(true);
+    
+                if (targetOver.parent && !targetOver.parent.isRoot() && isDroppable) {
+                    this._tree.setHover(targetOver.parent, true);
+                }
+    
+                return;
+            }
+    
+            // the target is collapsed thus it requies a delay of expanding
+            if (this._tree.isCollapsed(targetOver) && isDroppable) {
+                this._tree.setHover(targetOver, false);
+                this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
+                return;
+            }
+    
+            // the target is already expanded
+            this._delayExpand.cancel(true);
+            if (isDroppable) {
+                this._tree.setHover(targetOver, true);
+            }
+        });
+
         return true;
     }
 
@@ -162,11 +176,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // TODO: var can be removed at TS 5.4 which has better TCFA
         const target = targetOver;
-        const isDroppable = this.__isDroppable(currentDragItems, target);
-        if (!isDroppable) {
-            return;
-        }
-
+        
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
         if (!target.isRoot()) {
@@ -209,6 +219,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this._delayExpand.cancel(true);
         
         this._dragFeedbackDisposable.dispose();
+        this._hoverHandler.deactivate();
         this._insertionIndicator?.clear();
 
         this.__removeDragSelections();
@@ -278,7 +289,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
      * @description Special handling: drop entire tree animation
      */
     private _dragFeedbackDisposable: IDisposable = Disposable.NONE;
-    private __checkIfDropOnEntireTree(targetOver?: FileItem): boolean {
+    private __checkIfDropOnRoot(targetOver?: FileItem): boolean {
         this._dragFeedbackDisposable.dispose();
 
         const dropAtEmpty = !targetOver;
