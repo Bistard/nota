@@ -14,12 +14,16 @@ import { Time } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { DomUtility } from "src/base/browser/basic/dom";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
+import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
  * for {@link FileTree}.
  */
-export class FileItemDragAndDropProvider implements IListDragAndDropProvider<FileItem> {
+export class FileItemDragAndDropProvider extends Disposable implements IListDragAndDropProvider<FileItem> {
 
     // [field]
 
@@ -33,6 +37,8 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
      */
     private _dragSelections: FileItem[] = [];
 
+    private readonly _insertionIndicator?: RowInsertionIndicator;
+
     // [constructor]
 
     constructor(
@@ -40,7 +46,18 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         @IFileService private readonly fileService: IFileService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
         @INotificationService private readonly notificationService: INotificationService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
+        super();
+
+        // only enable insertion indicator during custom sortering
+        const sortOrder = configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+        if (sortOrder === FileSortType.Custom) {
+            this._insertionIndicator = this.__register(new RowInsertionIndicator());
+            // TODO: self update on configuration change
+        }
+
+        // expand callback init
         this._delayExpand = new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
             const { item } = event[0]!;
             await this._tree.expand(item);
@@ -51,6 +68,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
              */
             await delayFor(Time.ms(10), () => this._tree.setHover(item, true));
         });
+        this.__register(this._delayExpand);
     }
 
     // [public methods]
@@ -126,6 +144,10 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         if (!targetOver || targetIndex === undefined) {
             this._delayExpand.cancel(true);
         }
+
+        console.log('dragover'); // TEST
+        const isHandled = this._insertionIndicator?.handleRowInsertion(event, targetIndex);
+        
         return true;
     }
 
@@ -185,7 +207,10 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public onDragEnd(event: DragEvent): void {
         this._delayExpand.cancel(true);
+        
         this._dragFeedbackDisposable.dispose();
+        this._insertionIndicator?.clear();
+
         this.__removeDragSelections();
     }
 
@@ -193,6 +218,7 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
 
     public bindWithTree(tree: IFileTree<FileItem, FuzzyScore>): void {
         (<Mutable<typeof tree>>this._tree) = tree;
+        this._insertionIndicator?.bindWithTree(tree);
     }
 
     // [private helper methods]
@@ -268,5 +294,102 @@ export class FileItemDragAndDropProvider implements IListDragAndDropProvider<Fil
         }
 
         return false;   
+    }
+}
+
+interface IInsersionResult {
+    /** Where should the insertion be rendered. */
+    readonly renderTop: number;
+}
+
+class RowInsertionIndicator extends Disposable {
+
+    // [fields]
+
+    private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
+    private _insertionFeedbackDisposable: IDisposable;
+        
+    // [constructor]
+
+    constructor() {
+        super();
+        this._insertionFeedbackDisposable = Disposable.NONE;
+    }
+
+    public bindWithTree(tree: IFileTree<FileItem, FuzzyScore>): void {
+        (<Mutable<typeof tree>>this._tree) = tree;
+    }
+
+    // [public methods]
+
+    public clear(): void {
+        this._insertionFeedbackDisposable.dispose();
+    }
+    
+    public handleRowInsertion(event: DragEvent, targetIndex: number | undefined): boolean {
+        this.__derender();
+
+        const result = this.__isInsertionApplicable(event, targetIndex);
+        if (result) {
+            this.__renderInsertionAt(result);
+            return true;
+        }
+
+        return false;
+    }
+
+    // [private helper methods]
+
+    private __derender(): void {
+        this._insertionFeedbackDisposable.dispose();
+    }
+
+    private __isInsertionApplicable(event: DragEvent, targetIndex: number | undefined): IInsersionResult | undefined {
+        if (targetIndex === undefined) {
+            return undefined;
+        }
+
+        const index = targetIndex;
+
+        const currentItemTop = this._tree.getItemRenderTop(index);        
+        const currentItemBottom = currentItemTop + this._tree.getItemHeight(index);
+
+        const mouseY = event.clientY - DomUtility.Attrs.getViewportTop(this._tree.DOMElement);
+        
+        const thershold = 10;
+        const isNearTop = Math.abs(mouseY - currentItemTop) <= thershold;
+        const isNearBot = Math.abs(mouseY - currentItemBottom) <= thershold;
+        
+        {
+            // TEST
+            console.log(mouseY);
+            console.log({ currentItemTop, currentItemBottom });
+            console.log({ isNearTop, isNearBot });
+        }
+
+        if (!isNearTop && !isNearBot) {
+            return undefined;
+        }
+
+        const renderTop = isNearTop ? currentItemTop : currentItemBottom;
+        return {
+            renderTop: renderTop - 2,
+        };
+    }
+
+    private __renderInsertionAt(result: IInsersionResult | undefined): void {
+        if (!result) {
+            return;
+        }
+        
+        // rendering
+        const insertionElement = document.createElement('div');
+        insertionElement.className = 'row-insertion';
+        insertionElement.style.top = `${result.renderTop}px`;
+        this._tree.DOMElement.appendChild(insertionElement);
+
+        this._insertionFeedbackDisposable = toDisposable(() => {
+            insertionElement.remove();
+        });
     }
 }
