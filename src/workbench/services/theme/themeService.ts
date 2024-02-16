@@ -11,7 +11,7 @@ import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
-import { ok } from "assert";
+import { jsonSafeParse } from "src/base/common/json";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -77,7 +77,7 @@ export class ThemeService extends Disposable implements IThemeService {
 
     private readonly _initProtector: InitProtector;
     private readonly _presetThemes: IColorTheme[];
-    private currentTheme: any;
+    private currentTheme: IColorTheme;
 
     // [constructor]
 
@@ -90,21 +90,14 @@ export class ThemeService extends Disposable implements IThemeService {
         super();
         this._initProtector = new InitProtector();
         this._presetThemes = this.initializePresetThemes();
+        this.currentTheme = this.initializeCurrentThemes();
+
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
     }
 
-    protected initializePresetThemes(): IColorTheme[] {
-        const lightTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
-        const darkTheme: IColorTheme = new ColorTheme(ColorThemeType.Dark, 'DarkModern', undefined, {/* color mappings */});
-        return [lightTheme, darkTheme];
-    }
-    
     // [public methods]
 
     public getCurrTheme(): IColorTheme {
-        if (!this.currentTheme) {
-            this.currentTheme = this._presetThemes[0];
-        }
         return this.currentTheme;
     }
     
@@ -113,14 +106,11 @@ export class ThemeService extends Disposable implements IThemeService {
     
         return this.fileService.readFile(themeUri)
             .andThen((themeData) => {
-                const themeObj = JSON.parse(themeData.toString());
-                if (!themeObj.type || !themeObj.name || !themeObj.colors) {
-                    return AsyncResult.err(new Error("Invalid theme data."));
-                }
+                const themeObj = JSON.parse(themeData.toString()).unwrap();
                 const newTheme = new ColorTheme(themeObj.type, themeObj.name, themeObj.description, themeObj.colors);
                 this.currentTheme = newTheme;
                 this._onDidChangeTheme.fire(newTheme);
-                return new Ok(newTheme);
+                return AsyncResult.ok(newTheme);
             });
     }
     
@@ -128,7 +118,7 @@ export class ThemeService extends Disposable implements IThemeService {
         this._initProtector.init('Cannot init twice').unwrap();
     
         // Initialize every preset color themes in the beginning since they are only present in memory.
-        this.initializePresetThemes();  // Assuming this method sets up _presetThemes
+        // this.initializePresetThemes();  // Assuming this method sets up _presetThemes
     
         const themeID = this.configurationService.get<string>(
             WorkbenchConfiguration.ColorTheme, // User settings
@@ -142,13 +132,24 @@ export class ThemeService extends Disposable implements IThemeService {
                 if (!this.isValidTheme(theme)) {
                     return AsyncResult.err(new Error("Theme missing essential colors."));
                 }
-                return AsyncResult.ok(undefined);
+                return AsyncResult.ok();
             });
             
     }
-    
+
+    private initializeCurrentThemes(): IColorTheme {
+        const currentTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
+        return currentTheme;
+    }
+
+    private initializePresetThemes(): IColorTheme[] {
+        const lightTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
+        const darkTheme: IColorTheme = new ColorTheme(ColorThemeType.Dark, 'DarkModern', undefined, {/* color mappings */});
+        return [lightTheme, darkTheme];
+    }
+
     private isValidTheme(theme: IColorTheme): boolean {
-        // check if the theme object has all the essential colors defined
+        // TODO: check if the theme object has all the essential colors defined
         return true;     
     }
 }
