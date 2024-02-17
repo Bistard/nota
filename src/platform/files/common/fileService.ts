@@ -13,6 +13,7 @@ import { Mutable, Pair } from "src/base/common/utilities/type";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Strings } from "src/base/common/utilities/string";
+import { noop } from "src/base/common/performance";
 
 export const IFileService = createService<IFileService>('file-service');
 
@@ -636,29 +637,17 @@ export class FileService extends Disposable implements IFileService {
             }
 
             const children = dirResult.unwrap();
-            const resolvedChildren = await Promise.all(
-                children.map(async ([name, _type]) => {
-                    const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
-
-                    const statResult = await Result.fromPromise(
-                        () => provider.stat(childUri)
-                    );
-
-                    if (statResult.isErr()) {
-                        return undefined;
-                    }
-                    
-                    const childStat = statResult.unwrap();
-                    const recursive = await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
-                    if (recursive.isErr()) {
-                        return undefined;
-                    }
-
-                    return recursive.unwrap();
-                })
-            );
-
-            (<Mutable<Iterable<IResolvedFileStat>>>resolved.children) = Iterable.filter(resolvedChildren, (child) => !!child);
+            const resolvedChildren: IResolvedFileStat[] = [];
+            
+            // recursively resolve children stat
+            for (const [name, _type] of children) {
+                const childUri = URI.join(uri, name);
+                await Result.fromPromise(() => provider.stat(childUri))
+                    .andThen(childStat => this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive }))
+                    .match(stat => resolvedChildren.push(stat), noop);
+            }
+            
+            (<Mutable<typeof resolved.children>>resolved.children) = resolvedChildren;
         }
 
         return ok(resolved);
