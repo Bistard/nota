@@ -12,6 +12,7 @@ import { InitProtector } from "src/base/common/error";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
+import { Dictionary } from "src/base/common/utilities/type";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -33,7 +34,7 @@ export interface IThemeService extends IService {
     /**
      * @description Get the current color theme ({@link IColorTheme}).
      */
-    getCurrTheme(): IColorTheme;
+    getCurrTheme(): AsyncResult<IColorTheme, Error>;
 
     /**
      * @description Changes the current theme to the new one.
@@ -56,6 +57,16 @@ export interface IThemeService extends IService {
      * @note This will only be invoked when the application get started.
      */
     init(): AsyncResult<void, Error>;
+}
+
+/**
+ * An interface only for {@link RawThemeJsonReadingData}
+ */
+export interface IRawThemeJsonReadingData {
+    readonly type: ColorThemeType;
+    readonly name: string;
+    readonly description: string;
+    readonly colors: Dictionary<string, string>;
 }
 
 /**
@@ -90,15 +101,21 @@ export class ThemeService extends Disposable implements IThemeService {
         super();
         this._initProtector = new InitProtector();
         this._presetThemes = this.initializePresetThemes();
-        this.currentTheme = this.initializeCurrentThemes();
+        this.currentTheme = undefined!;
+
+        // const registrant: any;
+        // registrant.getAllRegisteredColors();
 
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
     }
 
     // [public methods]
 
-    public getCurrTheme(): IColorTheme {
-        return this.currentTheme;
+    public getCurrTheme(): AsyncResult<IColorTheme, Error> {
+        if (!this._initProtector.init) {
+            return AsyncResult.err(new Error("Theme has not been initialized."));
+        }
+        return AsyncResult.ok(this.currentTheme);
     }
     
     public changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error> {
@@ -106,19 +123,28 @@ export class ThemeService extends Disposable implements IThemeService {
     
         return this.fileService.readFile(themeUri)
             .andThen((themeData) => {
-                const themeObj = JSON.parse(themeData.toString()).unwrap();
-                const newTheme = new ColorTheme(themeObj.type, themeObj.name, themeObj.description, themeObj.colors);
-                this.currentTheme = newTheme;
-                this._onDidChangeTheme.fire(newTheme);
-                return AsyncResult.ok(newTheme);
+                const themeObj = jsonSafeParse(themeData.toString()).unwrap();
+                if (this.isValidTheme(themeObj)) {
+                    const newTheme = new ColorTheme(
+                        themeObj.type,
+                        themeObj.name,
+                        themeObj.description,
+                        themeObj.colors
+                    );
+                    this.currentTheme = newTheme;
+                    this._onDidChangeTheme.fire(newTheme);
+                    return AsyncResult.ok(newTheme);
+                }
+                return AsyncResult.err(new Error("Invalid theme object"));
             });
     }
+    
     
     public init(): AsyncResult<void, Error> {
         this._initProtector.init('Cannot init twice').unwrap();
     
         // Initialize every preset color themes in the beginning since they are only present in memory.
-        // this.initializePresetThemes();  // Assuming this method sets up _presetThemes
+        this.initializePresetThemes();
     
         const themeID = this.configurationService.get<string>(
             WorkbenchConfiguration.ColorTheme, // User settings
@@ -129,6 +155,7 @@ export class ThemeService extends Disposable implements IThemeService {
         return this.changeCurrThemeTo(themeID)
             .andThen((theme) => {
                 // Check if the loaded theme is missing any essential colors
+                // TODO: don't need this, change later
                 if (!this.isValidTheme(theme)) {
                     return AsyncResult.err(new Error("Theme missing essential colors."));
                 }
@@ -137,10 +164,7 @@ export class ThemeService extends Disposable implements IThemeService {
             
     }
 
-    private initializeCurrentThemes(): IColorTheme {
-        const currentTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
-        return currentTheme;
-    }
+    // [private methods]
 
     private initializePresetThemes(): IColorTheme[] {
         const lightTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
@@ -148,7 +172,7 @@ export class ThemeService extends Disposable implements IThemeService {
         return [lightTheme, darkTheme];
     }
 
-    private isValidTheme(theme: IColorTheme): boolean {
+    private isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
         // TODO: check if the theme object has all the essential colors defined
         return true;     
     }
