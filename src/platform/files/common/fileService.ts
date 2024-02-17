@@ -3,12 +3,11 @@ import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, FileSystemProviderError } from "src/base/common/files/file";
-import { basename, dirname, join } from "src/base/common/files/path";
+import { basename, dirname } from "src/base/common/files/path";
 import { bufferToStream, IReadableStream, IReadyReadableStream, listenStream, newWriteableBufferStream, readFileIntoStream, readFileIntoStreamAsync, streamToBuffer, toReadyStream, transformStream } from "src/base/common/files/stream";
 import { isAbsoluteURI, Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
-import { Iterable } from "src/base/common/utilities/iterable";
 import { Mutable, Pair } from "src/base/common/utilities/type";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -616,7 +615,7 @@ export class FileService extends Disposable implements IFileService {
         return new AsyncResult((async () => {
 
         // the resolved file stat
-        const resolved: IResolvedFileStat = {
+        const resolved: Mutable<IResolvedFileStat> = {
             ...stat,
             name: basename(URI.toFsPath(uri)),
             uri: uri,
@@ -626,7 +625,6 @@ export class FileService extends Disposable implements IFileService {
 
         // resolves the children if needed
         if (stat.type === FileType.DIRECTORY && opts && (opts.resolveChildren || opts.resolveChildrenRecursive)) {
-
             const dirResult = await Result.fromPromise(
                 () => provider.readdir(uri),
                 error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
@@ -647,7 +645,7 @@ export class FileService extends Disposable implements IFileService {
                     .match(stat => resolvedChildren.push(stat), noop);
             }
             
-            (<Mutable<typeof resolved.children>>resolved.children) = resolvedChildren;
+            resolved.children = resolvedChildren;
         }
 
         return ok(resolved);
