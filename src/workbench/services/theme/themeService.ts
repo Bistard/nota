@@ -4,7 +4,7 @@ import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/t
 import { APP_DIR_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { URI } from "src/base/common/files/uri";
-import { AsyncResult, Err, Ok } from "src/base/common/result";
+import { AsyncResult, Err, Ok, panic } from "src/base/common/result";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
@@ -34,7 +34,7 @@ export interface IThemeService extends IService {
     /**
      * @description Get the current color theme ({@link IColorTheme}).
      */
-    getCurrTheme(): AsyncResult<IColorTheme, Error>;
+    getCurrTheme(): IColorTheme;
 
     /**
      * @description Changes the current theme to the new one.
@@ -111,11 +111,11 @@ export class ThemeService extends Disposable implements IThemeService {
 
     // [public methods]
 
-    public getCurrTheme(): AsyncResult<IColorTheme, Error> {
-        if (!this._initProtector.init) {
-            return AsyncResult.err(new Error("Theme has not been initialized."));
+    public getCurrTheme(): IColorTheme {
+        if (!this._initProtector.isInit) {
+            panic("Theme has not been initialized!");
         }
-        return AsyncResult.ok(this.currentTheme);
+        return this.currentTheme;
     }
     
     public changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error> {
