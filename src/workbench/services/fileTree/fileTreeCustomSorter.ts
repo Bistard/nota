@@ -14,15 +14,6 @@ import { CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
-/**
- * @internal
- */
-const enum Resources {
-    Accessed,
-    Scheduler,
-    Order
-}
-
 export const enum OrderChangeType {
     Add,
     Remove,
@@ -36,24 +27,51 @@ export const enum OrderChangeType {
 export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
 
     /**
-     * @description Compares two file tree items based on a custom sort order or
-     * the default comparison function if no custom order is defined.
-     * @param a The first file tree item
-     * @param b The second file tree item
-     * @returns negative, 0, positive int if a is ahead, same place, after b 
+     * @description Compares two file tree items to determine their relative 
+     * order. The comparison is based on a custom sort order defined in the 
+     * metadata. If no custom order is specified, a default comparison function 
+     * is used.
+     * 
+     * @param a The first file tree item to compare.
+     * @param b The second file tree item to compare.
+     * @returns A negative value if `a` should appear before `b`, 
+     *          zero if their order is equivalent,
+     *          or a positive value if `a` should appear after `b`.
      */
-    compare(a: TItem, b: TItem): number;
+    compare(a: TItem, b: TItem): CompareOrder;
 
     /**
-     * @description // TODO
+     * @description Modifies the metadata based on the specified change type, 
+     * such as adding, removing, updating, or swapping items in the custom order.
+     * 
+     * @param changeType The type of change to apply to the order metadata.
+     * @param item The file tree item that is subject to the change.
+     * @param index1 The primary index at which the change should be applied.
+     * @param index2 An optional secondary index used for operations like swapping.
      */
     changeMetadataBy(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
 
     /**
-     * @description // TODO
-     * @note Only invoke this when the folder is never synced (first time call)
+     * @description Synchronizes the metadata for a given folder with the 
+     * current state of its files on disk. 
+     * @param folder The folder whose metadata needs to be synchronized with its 
+     *               disk state.
+     * 
+     * @note This method aligns the metadata's custom sort order with the 
+     *       current file arrangement on disk.
+     * @note Invoke this only when the folder's metadata is not yet loaded into 
+     *       memory.
      */
     syncMetadataWithDiskState(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
+}
+
+/**
+ * @internal
+ */
+const enum Resources {
+    Accessed,
+    Scheduler,
+    Order
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
@@ -114,7 +132,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
     }
 
-    // item.parent is gurrented not undefined
     public changeMetadataBy(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
         const parent = item.parent!;
         
@@ -263,6 +280,18 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
     }
 
+    /**
+     * @description Computes and returns the metadata URI for a given resource URI by 
+     * generating a hash from the resource URI and using it to construct a 
+     * structured file path within the metadata directory.
+     * 
+     * @example
+     * Assuming:
+     *      - `_metadataRootPath` is '/metadata' 
+     *      - and the uri is 'https://example.com/path'
+     * The resulting metadata URI might be '/metadata/3f/4c9b6f3a.json', if 
+     * assuming the hash is '3f4c9b6f3a'.
+     */
     private __computeMetadataURI(uri: URI): URI {
         const hashCode = generateMD5Hash(URI.toString(uri));
         const orderFileName = hashCode.slice(2) + '.json';
