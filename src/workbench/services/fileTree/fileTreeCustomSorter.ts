@@ -6,13 +6,11 @@ import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { jsonSafeStringify, jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
-import { noop } from "src/base/common/performance";
 import { ResourceMap } from "src/base/common/structures/map";
 import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
-import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 
@@ -73,14 +71,14 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // [constructor]
 
     constructor(
-        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
+        orderRootPath: URI,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._orderCache = new ResourceMap();
         this._delay = Time.min(5);
-        this._orderRootPath = URI.join(this.environmentService.appConfigurationPath, 'sortings');
+        this._orderRootPath = orderRootPath;
     }
     
     // [public methods]

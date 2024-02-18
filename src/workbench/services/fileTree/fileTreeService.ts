@@ -160,11 +160,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
         const fileSortOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
 
-        const sorter = new FileTreeSorter(
-            this.instantiationService,
-            fileSortType,
-            fileSortOrder,
-        );
+        const sorter = this.instantiationService.createInstance(FileTreeSorter, fileSortType, fileSortOrder);
 
         const registerListeners = (tree: IFileTree<FileItem, void>) => {
             tree.onRefresh(() => {

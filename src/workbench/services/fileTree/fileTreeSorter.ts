@@ -1,5 +1,7 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
+import { URI } from "src/base/common/files/uri";
 import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
+import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
@@ -44,16 +46,19 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     // [constructor]
 
     constructor(
-        instantiationService: IInstantiationService,
         sortType: FileSortType,
         sortOrder: FileSortOrder,
+        @IInstantiationService instantiationService: IInstantiationService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
 
         this._compare = defaultFileItemCompareFn;
         this._sortType = sortType;
         this._sortOrder = sortOrder;
-        this._customSorter = instantiationService.createInstance(FileTreeCustomSorter);
+
+        const orderRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
+        this._customSorter = instantiationService.createInstance(FileTreeCustomSorter, orderRoot);
         
         this.switchTo(sortType, sortOrder);
     }
