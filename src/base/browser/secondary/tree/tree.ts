@@ -1,6 +1,15 @@
 import { Register } from "src/base/common/event";
 
 /**
+ * Fires when the tree is about to refresh.
+ */
+export interface ITreeRefreshEvent<T, TFilter> {
+    
+    /** The corresponding tree node. */
+    readonly node: ITreeNode<T, TFilter>;
+}
+
+/**
  * Type of event when the {@link IIndexTreeModelBase} splice did happen.
  */
 export interface ITreeSpliceEvent<T, TFilter> {
@@ -15,7 +24,7 @@ export interface ITreeSpliceEvent<T, TFilter> {
 export interface ITreeCollapseStateChangeEvent<T, TFilter> {
     
     /** The corresponding tree node. */
-    node: ITreeNode<T, TFilter>;
+    readonly node: ITreeNode<T, TFilter>;
 }
 
 /**

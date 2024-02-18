@@ -139,10 +139,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
              */
             await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
-        
-        catch (err) {
-            throw err;
-        }
 
         finally {
             // Marking the current node refreshing state is finished.
@@ -158,23 +154,17 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      */
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
 
-        let childrenPromise: Promise<T[]>;
+        let resolveChildren: Promise<T[]>;
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
 
         if (asyncNode.collapsible === false) {
-            childrenPromise = Promise.resolve([]);
+            resolveChildren = Promise.resolve([]);
         } else {
-            childrenPromise = this.__getChildren(asyncNode);
+            resolveChildren = this.__getChildren(asyncNode);
         }
 
-        try {
-            const children = await childrenPromise;
-            return this.__setChildren(asyncNode, children);
-        } 
-        
-        catch (err) {
-            throw err;
-        }
+        const children = await resolveChildren;
+        return this.__setChildren(asyncNode, children);
     }
 
     /**

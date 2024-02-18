@@ -41,6 +41,9 @@ export function getPerf(): IPerfMark[] {
     return marks;
 }
 
+/**
+ * @description No operations. Act as a placeholder.
+ */
 export function noop(): void {
     // noop
 }

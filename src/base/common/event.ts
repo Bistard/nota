@@ -364,6 +364,9 @@ export class AsyncEmitter<T> extends Emitter<T> {
         }
     }
 
+    override get registerListener(): AsyncRegister<T> {
+        return super.registerListener;
+    }
 }
 
 /**
