@@ -7,6 +7,7 @@ import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
+import { tryOrDefault } from "src/base/common/error";
 
 /**
  * An interface only for {@link FileItem}.
@@ -97,7 +98,7 @@ export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
     /**
      * @description What happens when error encounters.
      */
-    onError: (error: Error) => void;
+    onError: (error: unknown) => void;
     
     /**
      * @description A filter options that provides ability to filter out unwanted
@@ -212,7 +213,7 @@ export class FileItem implements IFileItem<FileItem> {
         }
 
         if (children.length && cmp) {
-            await opts.beforeCmp?.(root);
+            await tryOrDefault(null, () => opts.beforeCmp?.(root), opts.onError);
             children.sort(cmp);
         }
         
@@ -279,7 +280,7 @@ export class FileItem implements IFileItem<FileItem> {
             }
 
             if (this._children.length && opts.cmp) {
-                await opts.beforeCmp?.(this);
+                await tryOrDefault(null, () => opts.beforeCmp?.(this), opts.onError);
                 this._children.sort(opts.cmp);
             }
 

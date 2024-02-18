@@ -15,7 +15,6 @@ import { SideViewConfiguration } from "src/workbench/parts/sideView/configuratio
 import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
-import { Pair } from "src/base/common/utilities/type";
 import { FileOperationError } from "src/base/common/files/file";
 import { noop } from "src/base/common/performance";
 
@@ -123,7 +122,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             this.__register(sorter);
 
             const fileItemResolveOpts: IFileItemResolveOptions<FileItem> = { 
-                onError: noop, 
+                onError: error => this.logService.error('FileItem', 'Encounters an error when resolving FileItem recursively', error), 
                 cmp: sorter.compare.bind(sorter), 
                 beforeCmp: async folder => __syncSorterMetadataBy(sorter, folder),
                 filters: filterOpts,
