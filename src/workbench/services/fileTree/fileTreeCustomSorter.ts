@@ -17,7 +17,7 @@ import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/file
 /**
  * @internal
  */
-const enum ResourceType {
+const enum Resources {
     Accessed,
     Scheduler,
     Order
@@ -45,40 +45,39 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     compare(a: TItem, b: TItem): number;
 
     /**
-     * @description TODO:
+     * @description // TODO
      */
-    orderChange(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
+    changeMetadataBy(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
 
     /**
-     * @description Synchronizes the custom sort order with a current set of 
-     * file tree items.
-     * @param folder The folder to be synced
-     * @param currentFiles an unordered array of current files under the folder
+     * @description // TODO
      */
-    syncOrderFile(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    syncMetadataWithDiskState(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
     
     // [fields]
 
-    private readonly _orderRootPath: URI;
-
-    // TODO: need a detailed documentation on this field
-    private readonly _orderCache: ResourceMap<[boolean, UnbufferedScheduler<URI>, string[]]>;
-    private readonly _delay: Time;
+    private readonly _metadataRootPath: URI;
+    private readonly _metadataCache: ResourceMap<[
+        accessedRecent: boolean,                // [0]
+        clearTimeout: UnbufferedScheduler<URI>, // [1]
+        orders: string[],                       // [2]
+    ]>;
+    private readonly _cacheClearDelay: Time;
 
     // [constructor]
 
     constructor(
-        orderRootPath: URI,
+        metadataRootPath: URI,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
         super();
-        this._orderCache = new ResourceMap();
-        this._delay = Time.min(5);
-        this._orderRootPath = orderRootPath;
+        this._metadataCache = new ResourceMap();
+        this._cacheClearDelay = Time.min(5);
+        this._metadataRootPath = metadataRootPath;
     }
     
     // [public methods]
@@ -88,7 +87,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     public compare(a: TItem, b: TItem): CompareOrder {
         const parent = a.parent!;
 
-        const order = this.__getOrderFromCache(parent.uri);
+        const order = this.__getMetadataFromCache(parent.uri);
         if (order === undefined) {
             return defaultFileItemCompareFn(a, b);
         }
@@ -102,28 +101,25 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         } 
         // Item B order info is not found, we put B at the end by default.
         else if (indexA !== -1) {
-            this.logService.error('FileTreeCustomSorter', 'ItemA is missing in custom order file');
+            this.logService.warn('FileTreeCustomSorter', 'ItemA is missing in custom order file');
             return CompareOrder.First;
         } 
         // Item A order info is not found, we put A at the end by default.
         else if (indexB !== -1) {
-            this.logService.error('FileTreeCustomSorter', 'ItemB is missing in custom order file');
+            this.logService.warn('FileTreeCustomSorter', 'ItemB is missing in custom order file');
             return CompareOrder.Second;
         } 
-        /**
-         * Both items are not found, item A and B will be sort as default.
-         * @see defaultFileItemCompareFn
-         */
+        // Both items are not found, item A and B will be sort as default.
         else {
             return defaultFileItemCompareFn(a, b);
         }
     }
 
     // item.parent is gurrented not undefined
-    public orderChange(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
+    public changeMetadataBy(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
         const parent = item.parent!;
         
-        const order = this._orderCache.has(parent.uri);
+        const order = this._metadataCache.has(parent.uri);
         if (order === true) {
             this.__changeOrderBasedOnType(changeType, item, index1, index2);
             return this.__saveSortOrder(parent);
@@ -138,58 +134,60 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
     // TODO: compare the given array with the exsiting order array
     // Updates custom sort order items based on provided array of new items
-    public syncOrderFile(parentItem: TItem, newItems: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.__loadOrderIntoCache(parentItem) // FIX: `new UnbufferedScheduler` already constructed here
+    public syncMetadataWithDiskState(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
+        return this.__loadOrderIntoCache(folder) // FIX: `new UnbufferedScheduler` already constructed here
         .andThen(() => {
-            const parentUri = parentItem.uri;
-            const resource = this._orderCache.get(parentUri);
+            const parentUri = folder.uri;
+            const resource = this._metadataCache.get(parentUri);
             
             // Use an empty array if the resource is undefined
-            const existingOrder = resource ? resource[ResourceType.Order] : [];
-            const newItemNames = new Set(newItems.map(item => item.name));
-            const existingItemSet = new Set(existingOrder);
+            const existingOrder = resource ? resource[Resources.Order] : [];
+            const inCacheItems = new Set(existingOrder);
+            const inDiskItems = new Set(currentFiles.map(item => item.name));
 
             // Update the sort order
-            const updatedSortOrder = existingOrder.filter(item => newItemNames.has(item))
-                .concat(newItems.filter(item => !existingItemSet.has(item.name)).map(item => item.name));
+            // TODO: perf - too many array iteration here, should be able to optimize.
+            // TODO: bad readability
+            const updatedSortOrder = existingOrder.filter(item => inDiskItems.has(item))
+                .concat(currentFiles.filter(item => !inCacheItems.has(item.name)).map(item => item.name));
 
             // FIX: duplicate creating `new UnbufferedScheduler`
-            const scheduler = resource?.[ResourceType.Scheduler] ?? new UnbufferedScheduler<URI>(this._delay, 
+            const scheduler = resource?.[Resources.Scheduler] ?? new UnbufferedScheduler<URI>(this._cacheClearDelay, 
                 () => {
-                    const res = this._orderCache.get(parentUri);
-                    if (res && res[ResourceType.Accessed] === true) {
+                    const res = this._metadataCache.get(parentUri);
+                    if (res && res[Resources.Accessed] === true) {
                         scheduler.schedule(parentUri);
-                        res[ResourceType.Accessed] = false;
+                        res[Resources.Accessed] = false;
                     } else {
-                        this._orderCache.delete(parentUri);
+                        this._metadataCache.delete(parentUri);
                     }
                 },
             );
-            this._orderCache.set(parentUri, [false, scheduler, updatedSortOrder]);
+            this._metadataCache.set(parentUri, [false, scheduler, updatedSortOrder]);
             scheduler.schedule(parentUri);
 
-            return this.__saveSortOrder(parentItem);
+            return this.__saveSortOrder(folder);
         });
     }   
     
     // [private helper methods]
 
-    private __getOrderFromCache(uri: URI): string[] | undefined {
-        const resource = this._orderCache.get(uri);
+    private __getMetadataFromCache(uri: URI): string[] | undefined {
+        const resource = this._metadataCache.get(uri);
         if (resource === undefined) {
             return undefined;
         }
 
-        resource[ResourceType.Accessed] = true;
-        return resource[ResourceType.Order];
+        resource[Resources.Accessed] = true;
+        return resource[Resources.Order];
     }
 
     // fileItem's order file will be stored in userDataPath
     // Its order file's name is the md5hash of fileItem.uri path.
-    private __findOrCreateOrderFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
+    private __findOrCreateMetadataFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
         const hashCode = generateMD5Hash(URI.toString(folder.uri));
         const orderFileName = hashCode + ".json"; // TODO: the first two character should be sliced for better perf
-        const orderFileURI = URI.join(this._orderRootPath, hashCode.slice(0, 2), orderFileName);
+        const orderFileURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
 
         return this.fileService.exist(orderFileURI)
         .andThen(existed => {
@@ -210,26 +208,26 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     private __loadOrderIntoCache(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         // bug: what if the loading target is already in the memory? Why would I need to read again from the disk
         
-        return this.__findOrCreateOrderFile(folder)
+        return this.__findOrCreateMetadataFile(folder)
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
         .andThen(order => {
 
             // FIX: duplicate creating `new UnbufferedScheduler`
-            const scheduler = new UnbufferedScheduler<URI>(this._delay, 
+            const scheduler = new UnbufferedScheduler<URI>(this._cacheClearDelay, 
                 (() => {
-                    const resource = this._orderCache.get(folder.uri);
+                    const resource = this._metadataCache.get(folder.uri);
                     if (resource === undefined) {
                         return;
                     }
-                    if (resource[ResourceType.Accessed] === true) {
-                        resource[ResourceType.Accessed] = false;
+                    if (resource[Resources.Accessed] === true) {
+                        resource[Resources.Accessed] = false;
                         scheduler.schedule(folder.uri);
                     } else {
-                        this._orderCache.delete(folder.uri);
+                        this._metadataCache.delete(folder.uri);
                     }
                 }));
-            this._orderCache.set(folder.uri, [false, scheduler, order]);
+            this._metadataCache.set(folder.uri, [false, scheduler, order]);
             scheduler.schedule(folder.uri);
             return ok();
         });
@@ -238,14 +236,14 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     private __saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         // bug: what if the saving target is already in the memory? Why would I need to write again to the disk
         
-        return this.__findOrCreateOrderFile(folder)
-        .andThen(orderFileURI => jsonSafeStringify(this.__getOrderFromCache(folder.uri), undefined, 4) // TODO
+        return this.__findOrCreateMetadataFile(folder)
+        .andThen(orderFileURI => jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4) // TODO
             .toAsync()
             .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify), { create: false, overwrite: true, }))));
     }
 
     private __changeOrderBasedOnType(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): void {
-        const order = this.__getOrderFromCache(item.parent!.uri)!;
+        const order = this.__getMetadataFromCache(item.parent!.uri)!;
         switch (changeType) {
             case OrderChangeType.Add:
                 order.splice(index1, 0, item.name);
