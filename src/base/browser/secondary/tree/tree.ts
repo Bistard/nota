@@ -19,15 +19,6 @@ export interface ITreeCollapseStateChangeEvent<T, TFilter> {
 }
 
 /**
- * Fires when a tree node expands/collapse
- */
-export interface ITreeExpandEvent<T, TFilter> {
-    
-    /** The corresponding tree node. */
-    node: ITreeNode<T, TFilter>;
-}
-
-/**
  * An internal data structure for {@link ITreeModel}. Represents each tree node
  * in a tree-like structure.
  * 

@@ -170,9 +170,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             tree.onRefresh(() => {
                 // TODO
             });
-            tree.onDidExpand(async e => {
-                
-            });
         };
 
         return [sorter, registerListeners];
