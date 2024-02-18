@@ -82,9 +82,9 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     // [fields]
 
-    private _compare: CompareFn<TItem>;
-    private readonly _sortType: FileSortType;
-    private readonly _sortOrder: FileSortOrder;
+    private _compare!: CompareFn<TItem>;
+    private _sortType!: FileSortType;
+    private _sortOrder!: FileSortOrder;
     private readonly _customSorter: IFileTreeCustomSorter<TItem>;
     
     // [constructor]
@@ -96,11 +96,6 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
-
-        this._compare = defaultFileItemCompareFn;
-        this._sortType = sortType;
-        this._sortOrder = sortOrder;
-
         const orderRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
         this._customSorter = instantiationService.createInstance(FileTreeCustomSorter, orderRoot);
         
@@ -124,7 +119,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     // [public methods]
 
     public setType(sortType: FileSortType): boolean {
-        if (sortType === this._sortType) {
+        if (this._sortType === sortType) {
             return false;
         }
         this.__switchTo(sortType, this._sortOrder);
@@ -132,7 +127,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     }
 
     public setOrder(sortOrder: FileSortOrder): boolean {
-        if (sortOrder === this._sortOrder) {
+        if (this._sortOrder === sortOrder) {
             return false;
         }
         this.__switchTo(this._sortType, sortOrder);
@@ -154,6 +149,9 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     // [private helper methods]
 
     private __switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void {
+        this._sortType = sortType;
+        this._sortOrder = sortOrder;
+
         switch (sortType) {
             case FileSortType.Default:
                 this._compare = defaultFileItemCompareFn;
