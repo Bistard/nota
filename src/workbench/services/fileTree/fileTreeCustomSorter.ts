@@ -69,7 +69,7 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
  * @internal
  */
 const enum Resources {
-    Accessed,
+    Accessed, // TODO: useless
     Scheduler,
     Order
 }
@@ -162,25 +162,44 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             const resource = this._metadataCache.get(parentUri)!;
             const existingOrder = resource[Resources.Order];
 
+            // faster lookups
             const inCacheItems = new Set(existingOrder);
             const inDiskItems = new Set(currentFiles.map(item => item.name));
+            
+            const updatedSortOrder: string[] = [];
+            let hasChanges = false;
 
-            // Update the sort order
-            // TODO: perf - too many array iteration here, should be able to optimize.
-            // TODO: bad readability
-            const updatedSortOrder = existingOrder.filter(item => inDiskItems.has(item))
-                .concat(currentFiles.filter(item => !inCacheItems.has(item.name)).map(item => item.name));
+            // Keep items from the cache if they exist on disk
+            for (const item of existingOrder) {
+                if (inDiskItems.has(item)) {
+                    updatedSortOrder.push(item);
+                    continue;
+                } 
+                // found an item in cache that's not on disk
+                hasChanges = true; 
+            }
 
-            // update to the cache
+            // Add new items from disk that are not in cache
+            for (const file of currentFiles) {
+                if (!inCacheItems.has(file.name)) {
+                    updatedSortOrder.push(file.name);
+                    // found a new item on disk that is not in cache
+                    hasChanges = true;
+                }
+            }
+
+            // Update the cache only if there are changes
+            if (!hasChanges) {
+                return AsyncResult.ok();
+            }
+
             resource[Resources.Order] = updatedSortOrder;
             resource[Resources.Accessed] = false;
-            resource[Resources.Scheduler].schedule(parentUri); // reschedule
-
-            // TODO: if no changes, no need to save to disk.
+            resource[Resources.Scheduler].schedule(parentUri);
 
             return this.__saveSortOrder(folder);
         });
-    }   
+    }
     
     // [private helper methods]
 
