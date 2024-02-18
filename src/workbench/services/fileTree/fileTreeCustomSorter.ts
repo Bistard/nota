@@ -186,7 +186,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     // Its order file's name is the md5hash of fileItem.uri path.
     private __findOrCreateMetadataFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
         const hashCode = generateMD5Hash(URI.toString(folder.uri));
-        const orderFileName = hashCode + ".json"; // TODO: the first two character should be sliced for better perf
+        const orderFileName = hashCode.slice(2) + '.json';
         const orderFileURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
 
         return this.fileService.exist(orderFileURI)
