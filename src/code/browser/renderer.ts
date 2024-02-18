@@ -57,6 +57,7 @@ import { INotificationService, NotificationService } from "src/workbench/service
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
+import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -280,7 +281,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IThemeService, new ServiceDescriptor(ThemeService, []));
         registerService(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService, []));
         registerService(IContextMenuService, new ServiceDescriptor(ContextMenuService, []));
-    
+              
         // utilities && tools
         registerService(IContextService, new ServiceDescriptor(ContextService, []));
         registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
@@ -324,6 +325,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // reviver
         service.registerRegistrant(new ReviverRegistrant());
+
+        // color
+        service.registerRegistrant(new ColorRegistrant());
 
         // initialize all the registrations
         service.init();

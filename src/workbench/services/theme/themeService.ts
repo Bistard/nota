@@ -13,6 +13,8 @@ import { WorkbenchConfiguration } from "src/code/browser/configuration.register"
 import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary } from "src/base/common/utilities/type";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -61,6 +63,9 @@ export interface IThemeService extends IService {
 
 /**
  * An interface only for {@link RawThemeJsonReadingData}
+ * 
+ * @description A valid theme .json file should have four keys: 1. Theme type 
+ * 2. Name of the theme 3. theme description 4. colors used in the theme
  */
 export interface IRawThemeJsonReadingData {
     readonly type: ColorThemeType;
@@ -95,6 +100,7 @@ export class ThemeService extends Disposable implements IThemeService {
     constructor(
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
@@ -102,9 +108,9 @@ export class ThemeService extends Disposable implements IThemeService {
         this._initProtector = new InitProtector();
         this._presetThemes = this.initializePresetThemes();
         this.currentTheme = undefined!;
-
-        // const registrant: any;
-        // registrant.getAllRegisteredColors();
+        
+        const registrant = registrantService.getRegistrant(RegistrantType.Color);
+        registrant.getAllRegisteredColors();
 
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
     }
