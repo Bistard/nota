@@ -119,7 +119,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             };
 
             // construct sorter and initialize it after
-            const sorter = this.__register(this.__initSorter());
+            const [sorter, registerSorterListener] = this.__initSorter();
+            this.__register(sorter);
 
             const fileItemResolveOpts: IFileItemResolveOptions<FileItem> = { 
                 onError: noop, 
@@ -153,18 +154,39 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
             // bind the dnd with the tree
             dndProvider.bindWithTree(tree);
-            
+            registerSorterListener(tree);
+
             this._tree = tree;
             return tree;
         });
     }   
 
-    private __initSorter(): FileTreeSorter<FileItem> {
+    private __initSorter(): [sorter: FileTreeSorter<FileItem>, register: (tree: IFileTree<FileItem, void>) => void] {
         const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
         const fileSortOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
 
         const sorter = this.instantiationService.createInstance(FileTreeSorter, fileSortType, fileSortOrder);
-        return sorter;
+
+        const register = (tree: IFileTree<FileItem, void>) => {
+            // configuration auto update
+            this.configurationService.onDidConfigurationChange(e => {
+                if (e.affect(SideViewConfiguration.ExplorerFileSortType)) {
+                    const newType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+                    if (sorter.setType(newType)) {
+                        tree.refresh();
+                    }
+                }
+                
+                if (e.affect(SideViewConfiguration.ExplorerFileSortOrder)) {
+                    const newOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
+                    if (sorter.setOrder(newOrder)) {
+                        tree.refresh();
+                    }
+                }
+            });
+        };
+
+        return [sorter, register];
     }
 }
 

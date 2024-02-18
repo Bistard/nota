@@ -15,8 +15,8 @@ export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDispos
     readonly sortType: FileSortType;
 
     compare(a: TItem, b: TItem): number;
-    setType(sortType: FileSortType): void;
-    setOrder(sortOrder: FileSortOrder): void;
+    setType(sortType: FileSortType): boolean;
+    setOrder(sortOrder: FileSortOrder): boolean;
     switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void;
 
     getCustomSorter(): IFileTreeCustomSorter<TItem>;
@@ -84,12 +84,20 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     // [public methods]
 
-    public setType(sortType: FileSortType): void {
+    public setType(sortType: FileSortType): boolean {
+        if (sortType === this._sortType) {
+            return false;
+        }
         this.switchTo(sortType, this._sortOrder);
+        return true;
     }
 
-    public setOrder(sortOrder: FileSortOrder): void {
+    public setOrder(sortOrder: FileSortOrder): boolean {
+        if (sortOrder === this._sortOrder) {
+            return false;
+        }
         this.switchTo(this._sortType, sortOrder);
+        return true;
     }
 
     public switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void {
