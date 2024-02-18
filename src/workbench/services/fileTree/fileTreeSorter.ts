@@ -11,10 +11,15 @@ import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/servi
  */
 export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDisposable {
     
+    readonly sortOrder: FileSortOrder;
+    readonly sortType: FileSortType;
+
     compare(a: TItem, b: TItem): number;
     setType(sortType: FileSortType): void;
     setOrder(sortOrder: FileSortOrder): void;
     switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void;
+
+    getCustomSorter(): IFileTreeCustomSorter<TItem>;
 }
 
 export const enum FileSortType {
@@ -65,6 +70,14 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     // [getter]
 
+    get sortOrder(): FileSortOrder {
+        return this._sortOrder;
+    }
+
+    get sortType(): FileSortType {
+        return this._sortType;
+    }
+
     public compare(a: TItem, b: TItem): CompareOrder {
         return this._compare(a, b);
     }
@@ -98,9 +111,9 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 break;
         }
     }
-    
-    // [private helper methods]
 
-    
+    public getCustomSorter(): IFileTreeCustomSorter<TItem> {
+        return this._customSorter;
+    }
 }
 

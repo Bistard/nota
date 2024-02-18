@@ -1,8 +1,8 @@
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { IFileTreeOpenEvent, FileTree, IFileTree as IFileTree } from "src/workbench/services/fileTree/fileTree";
+import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileItemChildrenProvider, FileItem as FileItem } from "src/workbench/services/fileTree/fileItem";
+import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
 import { ITreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
@@ -119,15 +119,17 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             };
 
             // construct sorter and initialize it after
-            const [sorter, registerSorterListeners] = this.__initSorter();
-            this.__register(sorter);
+            const sorter = this.__register(this.__initSorter());
+
+            const fileItemResolveOpts: IFileItemResolveOptions<FileItem> = { 
+                onError: noop, 
+                cmp: sorter.compare.bind(sorter), 
+                beforeCmp: async folder => __syncSorterMetadataBy(sorter, folder),
+                filters: filterOpts,
+            };
 
             // initially construct the entire file system hierarchy
-            const root = await FileItem.resolve(rootStat, null, { 
-                onError: noop, 
-                cmpFn: sorter.compare.bind(sorter), 
-                filters: filterOpts,
-            });
+            const root = await FileItem.resolve(rootStat, null, fileItemResolveOpts);
 
             // init tree
             const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider));
@@ -138,7 +140,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                     {
                         itemProvider: new FileItemProvider(),
                         renderers: [new FileItemRenderer()],
-                        childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, filterOpts, sorter.compare.bind(sorter)),
+                        childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, fileItemResolveOpts),
                         identityProvider: { getID: (data: FileItem) => data.id },
 
                         // optional
@@ -152,26 +154,25 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             // bind the dnd with the tree
             dndProvider.bindWithTree(tree);
             
-            // enable sorter after tree is constructed
-            registerSorterListeners(tree);
             this._tree = tree;
-
             return tree;
         });
     }   
 
-    private __initSorter(): Pair<FileTreeSorter<FileItem>, (tree: IFileTree<FileItem, void>) => void> {
+    private __initSorter(): FileTreeSorter<FileItem> {
         const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
         const fileSortOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
 
         const sorter = this.instantiationService.createInstance(FileTreeSorter, fileSortType, fileSortOrder);
-
-        const registerListeners = (tree: IFileTree<FileItem, void>) => {
-            tree.onRefresh(() => {
-                // TODO
-            });
-        };
-
-        return [sorter, registerListeners];
+        return sorter;
     }
+}
+
+async function __syncSorterMetadataBy(sorter: FileTreeSorter<FileItem>, folder: FileItem): Promise<void> {
+    if (sorter.sortType !== FileSortType.Custom) {
+        return;
+    }
+    
+    const customSorter = sorter.getCustomSorter();
+    await customSorter.syncMetadataWithDiskState(folder).unwrap();
 }

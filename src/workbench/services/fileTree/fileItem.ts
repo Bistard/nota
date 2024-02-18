@@ -84,7 +84,7 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
+    refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<TItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Forgets all the children of the current item.
@@ -92,7 +92,7 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
     forgetChildren(): void;
 }
 
-export interface IFileItemResolveOptions {
+export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
 
     /**
      * @description What happens when error encounters.
@@ -109,7 +109,14 @@ export interface IFileItemResolveOptions {
      * @description Provide a compare function that provides ability to decide
      * the order of every folder children.
      */
-    cmpFn?: CompareFn<FileItem>;
+    cmp?: CompareFn<FileItem>;
+
+    /**
+     * @description Provide a chance that client can be notified before every
+     * compare.
+     * @param folder The folder which children is about to sort.
+     */
+    beforeCmp?: (folder: TItem) => void | Promise<void>;
 }
 
 /**
@@ -184,11 +191,11 @@ export class FileItem implements IFileItem<FileItem> {
     public static async resolve(
         stat: IResolvedFileStat, 
         parent: FileItem | null,
-        opts: IFileItemResolveOptions,
+        opts: IFileItemResolveOptions<FileItem>,
     ): Promise<FileItem> 
     {
         const filters = opts.filters;
-        const cmp = opts.cmpFn;
+        const cmp = opts.cmp;
         
         const children: FileItem[] = [];
         const root = new FileItem(stat, parent, children);
@@ -204,7 +211,8 @@ export class FileItem implements IFileItem<FileItem> {
             }
         }
 
-        if (cmp) {
+        if (children.length && cmp) {
+            await opts.beforeCmp?.(root);
             children.sort(cmp);
         }
         
@@ -240,7 +248,7 @@ export class FileItem implements IFileItem<FileItem> {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions): AsyncResult<void, FileOperationError> {
+    public refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<FileItem>): AsyncResult<void, FileOperationError> {
         const promise = (async () => {
 
             /**
@@ -270,8 +278,9 @@ export class FileItem implements IFileItem<FileItem> {
                 this._children.push(child);
             }
 
-            if (opts.cmpFn) {
-                this._children.sort(opts.cmpFn);
+            if (this._children.length && opts.cmp) {
+                await opts.beforeCmp?.(this);
+                this._children.sort(opts.cmp);
             }
 
             return ok<void, FileOperationError>();
@@ -298,8 +307,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
     constructor(
         private readonly logService: ILogService,
         private readonly fileService: IFileService,
-        private readonly filterOpts?: IFilterOpts,
-        private readonly cmpFn: CompareFn<FileItem> = defaultFileItemCompareFn,
+        private readonly opts: IFileItemResolveOptions<FileItem>,
     ) { }
 
     // [public methods]
@@ -321,7 +329,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         };
 
         // refresh the children recursively
-        const refreshPromise = data.refreshChildren(this.fileService, { onError, filters: this.filterOpts, cmpFn: this.cmpFn });
+        const refreshPromise = data.refreshChildren(this.fileService, this.opts);
 
         // the provided item's children are already resolved, we simply return it.
         if (!AsyncResult.is(refreshPromise)) {
