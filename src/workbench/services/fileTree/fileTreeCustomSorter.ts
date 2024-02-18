@@ -182,16 +182,14 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * @returns A URI points to either the existing file or the newly created one.
      */
     private __findOrCreateMetadataFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
-        const hashCode = generateMD5Hash(URI.toString(folder.uri));
-        const orderFileName = hashCode.slice(2) + '.json';
-        const orderFileURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
+        const metadataURI = this.__computeMetadataURI(folder.uri);
 
-        return this.fileService.exist(orderFileURI)
+        return this.fileService.exist(metadataURI)
         .andThen(existed => {
 
             // order file founded, we do nothing.
             if (existed) {
-                return ok(orderFileURI);
+                return ok(metadataURI);
             }
 
             // the order file does not exist, we need to create a new one.
@@ -202,8 +200,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             // write to disk with the default order
             return jsonSafeStringify(defaultOrder, undefined, 4)
             .toAsync()
-            .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
-                .map(() => orderFileURI));
+            .andThen(parsed => this.fileService.createFile(metadataURI, DataBuffer.fromString(parsed))
+                .map(() => metadataURI));
         });
     }
 
@@ -235,15 +233,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
+    /**
+     * @note MAKE SURE the metadata of the given folder is already in cache.
+     */
     private __saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {        
-        
-        // TODO: exist?
-        
-        // BUG: non-exist in memory when invoking this function
-        return this.__findOrCreateMetadataFile(folder)
-        .andThen(orderFileURI => jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4)
-            .toAsync()
-            .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify), { create: false, overwrite: true, }))));
+        const metadataURI = this.__computeMetadataURI(folder.uri);
+        return jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4).toAsync()
+            .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: false, overwrite: true, }));
     }
 
     private __changeOrderBasedOnType(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): void {
@@ -265,5 +261,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 order[index1] = item.name;
                 break;
         }
+    }
+
+    private __computeMetadataURI(uri: URI): URI {
+        const hashCode = generateMD5Hash(URI.toString(uri));
+        const orderFileName = hashCode.slice(2) + '.json';
+        const metadataURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
+        return metadataURI;
     }
 }
