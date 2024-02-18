@@ -1,5 +1,5 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
-import { CompareFn } from "src/base/common/utilities/type";
+import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
@@ -36,7 +36,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     // [fields]
 
-    private _compare: CompareFn<TItem> = defaultFileItemCompareFn;
+    private _compare: CompareFn<TItem>;
     private readonly _sortType: FileSortType;
     private readonly _sortOrder: FileSortOrder;
     private readonly _customSorter: IFileTreeCustomSorter<TItem>;
@@ -49,6 +49,8 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         sortOrder: FileSortOrder,
     ) {
         super();
+
+        this._compare = defaultFileItemCompareFn;
         this._sortType = sortType;
         this._sortOrder = sortOrder;
         this._customSorter = instantiationService.createInstance(FileTreeCustomSorter);
@@ -58,7 +60,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     // [getter]
 
-    public compare(a: TItem, b: TItem): number {
+    public compare(a: TItem, b: TItem): CompareOrder {
         return this._compare(a, b);
     }
 

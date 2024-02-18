@@ -12,7 +12,7 @@ import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-import { AsyncResult, ok } from "src/base/common/result";
+import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Pair } from "src/base/common/utilities/type";
@@ -110,7 +110,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         })
 
         // start building the tree
-        .andThen(rootStat => {
+        .andThen(async rootStat => {
             
             // retrieve tree configurations
             const filterOpts: IFilterOpts = {
@@ -123,14 +123,14 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             this.__register(sorter);
 
             // initially construct the entire file system hierarchy
-            const rootItem = new FileItem(rootStat, null, noop, filterOpts, sorter.compare.bind(sorter));
+            const root = await FileItem.build(rootStat, null, noop, sorter.compare.bind(sorter), filterOpts);
 
             // init tree
             const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider));
             const tree = this.__register(
                 new FileTree<FileItem, FuzzyScore>(
                     container,
-                    rootItem,
+                    root,
                     {
                         itemProvider: new FileItemProvider(),
                         renderers: [new FileItemRenderer()],
@@ -152,7 +152,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             registerSorterListeners(tree);
             this._tree = tree;
 
-            return ok(tree);
+            return tree;
         });
     }   
 

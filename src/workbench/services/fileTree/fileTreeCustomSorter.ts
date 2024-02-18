@@ -86,7 +86,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         super();
         this._customSortOrderMap = new ResourceMap();
         this._delay = Time.min(5);
-        this._orderRootPath = URI.join(this.environmentService.userDataPath, '.wisp', 'sortings');
+        this._orderRootPath = URI.join(this.environmentService.appConfigurationPath, 'sortings');
     }
     
     // [public methods]

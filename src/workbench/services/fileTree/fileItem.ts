@@ -111,7 +111,7 @@ export class FileItem implements IFileItem<FileItem> {
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
     /** An array to store the children and will be updated during the refresh. */
-    private _children: FileItem[] = [];
+    private _children: FileItem[];
     /** the parent of the current item. */
     private _parent: FileItem | null = null;
 
@@ -123,36 +123,19 @@ export class FileItem implements IFileItem<FileItem> {
 
     // [constructor]
 
-    constructor(
+    /**
+     * Private constructor: use {@link FileItem.build} instead.
+     */
+    private constructor(
         stat: IResolvedFileStat,
         parent: FileItem | null,
-        onError: (error: Error) => void,
-        filters?: IFilterOpts,
-        cmpFn?: CompareFn<FileItem>
+        children: FileItem[],
     ) {
         this._stat = stat;
         this._parent = parent;
-        cmpFn ??= defaultFileItemCompareFn;
-
+        this._children = children;
         if (stat.children) {
             this._isResolved = true;
-
-            for (const child of stat.children) {
-                if (filters && isFiltered(child.name, filters)) {
-                    continue;
-                }
-                this._children.push(new FileItem(child, this, onError, filters, cmpFn));
-            }
-        }
-
-        if (cmpFn) {
-            try {
-                // TODO: load order before sort
-                this._children.sort(cmpFn);
-            } catch (error: any) {
-                this._children.sort();
-                onError(error);
-            }
         }
     }
 
@@ -174,6 +157,37 @@ export class FileItem implements IFileItem<FileItem> {
     get parent(): FileItem | null { return this._parent; }
 
     get children(): FileItem[] { return this._children; }
+
+    // [public static method]
+
+    public static async build(
+        stat: IResolvedFileStat, 
+        parent: FileItem | null,
+        onError: (error: Error) => void,
+        cmpFn?: CompareFn<FileItem>,
+        filters?: IFilterOpts,
+    ): Promise<FileItem> {
+        
+        const children: FileItem[] = [];
+        const root = new FileItem(stat, parent, children);
+        
+        if (stat.children) {
+            for (const childStat of stat.children) {
+                if (filters && isFiltered(childStat.name, filters)) {
+                    continue;
+                }
+
+                const child = await FileItem.build(childStat, root, onError, cmpFn, filters);
+                children.push(child);
+            }
+        }
+
+        if (cmpFn) {
+            children.sort(cmpFn);
+        }
+        
+        return root;
+    }
 
     // [public method]
 
@@ -226,7 +240,8 @@ export class FileItem implements IFileItem<FileItem> {
             // update the children stat recursively
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
-                this._children.push(new FileItem(childStat, this, onError, filters, cmpFn));
+                const child = await FileItem.build(childStat, this, onError, cmpFn, filters);
+                this._children.push(child);
             }
 
             if (cmpFn) {
