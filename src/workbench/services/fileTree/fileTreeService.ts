@@ -171,7 +171,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 // TODO
             });
             tree.onDidExpand(async e => {
-                // await sorter.initCustomSorter(e.node.data);
+                
             });
         };
 

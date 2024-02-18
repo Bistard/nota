@@ -93,10 +93,6 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 break;
         }
     }
-
-    public async initCustomSorter(folder: TItem): Promise<void> {
-        return this._customSorter.safeLoadSortOrder(folder);
-    }
     
     // [private helper methods]
 

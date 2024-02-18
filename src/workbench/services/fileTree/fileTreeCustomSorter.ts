@@ -58,12 +58,6 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * @param currentFiles an unordered array of current files under the folder
      */
     syncOrderFile(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError>;
-
-    /**
-     * @description Attempts to load the custom sort order for a given folder.
-     * Errors will be logged out instead of returned as Result.
-     */
-    safeLoadSortOrder(folder: TItem): Promise<void>;
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
@@ -127,25 +121,27 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
     }
 
-    // APIs for fileTree Item Adding and Deleting
     // item.parent is gurrented not undefined
     public orderChange(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
-        const order = this._orderCache.has(item.parent!.uri);
+        const parent = item.parent!;
+        
+        const order = this._orderCache.has(parent.uri);
         if (order === true) {
             this.__changeOrderBasedOnType(changeType, item, index1, index2);
-            return this.__saveSortOrder(item.parent!);
+            return this.__saveSortOrder(parent);
         }
-        return this.__loadOrderIntoCache(item.parent!)
+
+        return this.__loadOrderIntoCache(parent)
         .andThen(() => {
             this.__changeOrderBasedOnType(changeType, item, index1, index2);
-            return this.__saveSortOrder(item.parent!);
+            return this.__saveSortOrder(parent);
         });
     }
 
     // TODO: compare the given array with the exsiting order array
     // Updates custom sort order items based on provided array of new items
     public syncOrderFile(parentItem: TItem, newItems: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.__loadOrderIntoCache(parentItem)
+        return this.__loadOrderIntoCache(parentItem) // FIX: `new UnbufferedScheduler` already constructed here
         .andThen(() => {
             const parentUri = parentItem.uri;
             const resource = this._orderCache.get(parentUri);
@@ -177,14 +173,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             return this.__saveSortOrder(parentItem);
         });
     }   
-
-    public async safeLoadSortOrder(folder: TItem): Promise<void> {
-        await this.__loadOrderIntoCache(folder)
-        .match(
-            noop,
-            (error => this.logService.error('FileTreeCustomSorter', `Cannot load custom sort order at: '${folder.id}'`, error))
-        );
-    }
     
     // [private helper methods]
 
