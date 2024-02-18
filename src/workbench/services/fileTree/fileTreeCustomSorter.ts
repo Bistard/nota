@@ -51,8 +51,9 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
 
     /**
      * @description // TODO
+     * @note Only invoke this when the folder is never synced (first time call)
      */
-    syncMetadataWithDiskState(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    syncMetadataWithDiskState(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
 export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
@@ -61,7 +62,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
     private readonly _metadataRootPath: URI;
     private readonly _metadataCache: ResourceMap<[
-        accessedRecent: boolean,                // [0]
+        recentAccessed: boolean,                // [0]
         clearTimeout: UnbufferedScheduler<URI>, // [1]
         orders: string[],                       // [2]
     ]>;
@@ -75,15 +76,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         @ILogService private readonly logService: ILogService,
     ) {
         super();
+        this._metadataRootPath = metadataRootPath;
         this._metadataCache = new ResourceMap();
         this._cacheClearDelay = Time.min(5);
-        this._metadataRootPath = metadataRootPath;
     }
     
     // [public methods]
 
-    // The following TItem.parent are definitely not null, as those following
-    // function can only be called when TItem.parent is at collaped state
     public compare(a: TItem, b: TItem): CompareOrder {
         const parent = a.parent!;
 
@@ -132,16 +131,20 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
-    // TODO: compare the given array with the exsiting order array
-    // Updates custom sort order items based on provided array of new items
-    public syncMetadataWithDiskState(folder: TItem, currentFiles: TItem[]): AsyncResult<void, FileOperationError | SyntaxError> {
-        return this.__loadOrderIntoCache(folder) // FIX: `new UnbufferedScheduler` already constructed here
+    public syncMetadataWithDiskState(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+        const inCache = this._metadataCache.get(folder.uri);
+        if (inCache) {
+            return AsyncResult.ok();
+        }
+        
+        return this.__loadOrderIntoCache(folder)
         .andThen(() => {
             const parentUri = folder.uri;
-            const resource = this._metadataCache.get(parentUri);
+            const currentFiles = folder.children;
             
-            // Use an empty array if the resource is undefined
-            const existingOrder = resource ? resource[Resources.Order] : [];
+            const resource = this._metadataCache.get(parentUri)!;
+            const existingOrder = resource[Resources.Order];
+
             const inCacheItems = new Set(existingOrder);
             const inDiskItems = new Set(currentFiles.map(item => item.name));
 
@@ -151,20 +154,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             const updatedSortOrder = existingOrder.filter(item => inDiskItems.has(item))
                 .concat(currentFiles.filter(item => !inCacheItems.has(item.name)).map(item => item.name));
 
-            // FIX: duplicate creating `new UnbufferedScheduler`
-            const scheduler = resource?.[Resources.Scheduler] ?? new UnbufferedScheduler<URI>(this._cacheClearDelay, 
-                () => {
-                    const res = this._metadataCache.get(parentUri);
-                    if (res && res[Resources.Accessed] === true) {
-                        scheduler.schedule(parentUri);
-                        res[Resources.Accessed] = false;
-                    } else {
-                        this._metadataCache.delete(parentUri);
-                    }
-                },
-            );
-            this._metadataCache.set(parentUri, [false, scheduler, updatedSortOrder]);
-            scheduler.schedule(parentUri);
+            // update to the cache
+            resource[Resources.Order] = updatedSortOrder;
+            resource[Resources.Accessed] = false;
+            resource[Resources.Scheduler].schedule(parentUri); // reschedule
+
+            // TODO: if no changes, no need to save to disk.
 
             return this.__saveSortOrder(folder);
         });
@@ -182,8 +177,10 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         return resource[Resources.Order];
     }
 
-    // fileItem's order file will be stored in userDataPath
-    // Its order file's name is the md5hash of fileItem.uri path.
+    /**
+     * @description Check if the given folder has corresponding metadata file.
+     * @returns A URI points to either the existing file or the newly created one.
+     */
     private __findOrCreateMetadataFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
         const hashCode = generateMD5Hash(URI.toString(folder.uri));
         const orderFileName = hashCode.slice(2) + '.json';
@@ -210,15 +207,15 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
+    /**
+     * @description Only invoke this function when the corresponding folder has
+     * no cache in the memory.
+     */
     private __loadOrderIntoCache(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        // bug: what if the loading target is already in the memory? Why would I need to read again from the disk
-        
         return this.__findOrCreateMetadataFile(folder)
         .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
         .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
         .andThen(order => {
-
-            // FIX: duplicate creating `new UnbufferedScheduler`
             const scheduler = new UnbufferedScheduler<URI>(this._cacheClearDelay, 
                 (() => {
                     const resource = this._metadataCache.get(folder.uri);
@@ -238,11 +235,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
-    private __saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
-        // bug: what if the saving target is already in the memory? Why would I need to write again to the disk
+    private __saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {        
         
+        // TODO: exist?
+        
+        // BUG: non-exist in memory when invoking this function
         return this.__findOrCreateMetadataFile(folder)
-        .andThen(orderFileURI => jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4) // TODO
+        .andThen(orderFileURI => jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4)
             .toAsync()
             .andThen((stringify => this.fileService.writeFile(orderFileURI, DataBuffer.fromString(stringify), { create: false, overwrite: true, }))));
     }
