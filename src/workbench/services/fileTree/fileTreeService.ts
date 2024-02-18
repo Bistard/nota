@@ -123,7 +123,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             this.__register(sorter);
 
             // initially construct the entire file system hierarchy
-            const root = await FileItem.build(rootStat, null, noop, sorter.compare.bind(sorter), filterOpts);
+            const root = await FileItem.resolve(rootStat, null, { 
+                onError: noop, 
+                cmpFn: sorter.compare.bind(sorter), 
+                filters: filterOpts,
+            });
 
             // init tree
             const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider));

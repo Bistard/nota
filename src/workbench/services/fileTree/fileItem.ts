@@ -79,21 +79,37 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * item.
      * @param fileService The given {@link IFileService} for fetching the 
      * children of the current item.
-     * @param onError Make sure the error is provided to outside.
-     * @param filters Providing filter options during the resolution process can 
-     * prevent unnecessary performance loss compares to we filter the result 
-     * after the process.
-     * @param cmpFn A compare function to sort the children.
+     * @param opts Options for building {@link FiteItem} when refreshing.
      * @cimplexity 
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
+    refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
      * @description Forgets all the children of the current item.
      */
     forgetChildren(): void;
+}
+
+export interface IFileItemResolveOptions {
+
+    /**
+     * @description What happens when error encounters.
+     */
+    onError: (error: Error) => void;
+    
+    /**
+     * @description A filter options that provides ability to filter out unwanted
+     * file items.
+     */
+    readonly filters?: IFilterOpts;
+
+    /**
+     * @description Provide a compare function that provides ability to decide
+     * the order of every folder children.
+     */
+    cmpFn?: CompareFn<FileItem>;
 }
 
 /**
@@ -159,30 +175,37 @@ export class FileItem implements IFileItem<FileItem> {
 
     // [public static method]
 
-    public static async build(
+    /**
+     * @description Resolving a tree-like structure of {@link FileItem} based on
+     * the given {@link IResolvedFileStat}.
+     * @returns A resolved {@link FileItem} that corresponds to the provided 
+     *          resolved stat.
+     */
+    public static async resolve(
         stat: IResolvedFileStat, 
         parent: FileItem | null,
-        onError: (error: Error) => void,
-        cmpFn?: CompareFn<FileItem>,
-        filters?: IFilterOpts,
-    ): Promise<FileItem> {
+        opts: IFileItemResolveOptions,
+    ): Promise<FileItem> 
+    {
+        const filters = opts.filters;
+        const cmp = opts.cmpFn;
         
         const children: FileItem[] = [];
         const root = new FileItem(stat, parent, children);
-        
+
         if (stat.children) {
             for (const childStat of stat.children) {
                 if (filters && isFiltered(childStat.name, filters)) {
                     continue;
                 }
 
-                const child = await FileItem.build(childStat, root, onError, cmpFn, filters);
+                const child = await FileItem.resolve(childStat, root, opts);
                 children.push(child);
             }
         }
 
-        if (cmpFn) {
-            children.sort(cmpFn);
+        if (cmp) {
+            children.sort(cmp);
         }
         
         return root;
@@ -217,7 +240,7 @@ export class FileItem implements IFileItem<FileItem> {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
+    public refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions): AsyncResult<void, FileOperationError> {
         const promise = (async () => {
 
             /**
@@ -239,12 +262,12 @@ export class FileItem implements IFileItem<FileItem> {
             // update the children stat recursively
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
-                const child = await FileItem.build(childStat, this, onError, cmpFn, filters);
+                const child = await FileItem.resolve(childStat, this, opts);
                 this._children.push(child);
             }
 
-            if (cmpFn) {
-                this._children.sort(cmpFn);
+            if (opts.cmpFn) {
+                this._children.sort(opts.cmpFn);
             }
 
             return ok<void, FileOperationError>();
@@ -294,7 +317,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         };
 
         // refresh the children recursively
-        const refreshPromise = data.refreshChildren(this.fileService, onError, this.filterOpts, this.cmpFn);
+        const refreshPromise = data.refreshChildren(this.fileService, { onError, filters: this.filterOpts, cmpFn: this.cmpFn });
 
         // the provided item's children are already resolved, we simply return it.
         if (!AsyncResult.is(refreshPromise)) {
