@@ -159,13 +159,13 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 this._compare = defaultFileItemCompareFn;
                 break;
             case FileSortType.Alphabet:
-                this._compare = undefined!; // TODO
+                this._compare = sortOrder === FileSortOrder.Ascending ? compareByNameAsc : compareByNameDesc;
                 break;
             case FileSortType.CreationTime:
-                this._compare = undefined!; // TODO
+                this._compare = sortOrder === FileSortOrder.Ascending ? compareByCreationTimeAsc : compareByCreationTimeDesc;
                 break;
             case FileSortType.ModificationTime:
-                this._compare = undefined!; // TODO
+                this._compare = sortOrder === FileSortOrder.Ascending ? compareByModificationTimeAsc : compareByModificationTimeDesc;
                 break;
             case FileSortType.Custom:
                 this._compare = this._customSorter.compare.bind(this._customSorter);
@@ -174,3 +174,29 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     }
 }
 
+// Alphabetical
+function compareByNameAsc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+    return a.name.localeCompare(b.name);
+}
+
+function compareByNameDesc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+    return b.name.localeCompare(a.name);
+}
+
+// Creation time
+function compareByCreationTimeAsc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+    return a.createTime - b.createTime;
+}
+
+function compareByCreationTimeDesc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+    return b.createTime - a.createTime;
+}
+
+// Modification time
+function compareByModificationTimeAsc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+    return a.modifyTime - b.modifyTime;
+}
+
+function compareByModificationTimeDesc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+    return b.modifyTime - a.modifyTime;
+}

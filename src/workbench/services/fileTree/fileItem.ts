@@ -366,7 +366,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
 }
 
 /**
- * @description Directory goes first, otherwise sorts in ascending, ASCII 
+ * @description Directory goes first, files sorts in ascending, ASCII
  * character order.
  */
 export function defaultFileItemCompareFn<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
