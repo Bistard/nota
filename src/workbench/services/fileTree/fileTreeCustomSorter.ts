@@ -69,7 +69,6 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
  * @internal
  */
 const enum Resources {
-    Accessed, // TODO: useless
     Scheduler,
     Order
 }
@@ -80,7 +79,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
     private readonly _metadataRootPath: URI;
     private readonly _metadataCache: ResourceMap<[
-        recentAccessed: boolean,                // [0]
         clearTimeout: UnbufferedScheduler<URI>, // [1]
         orders: string[],                       // [2]
     ]>;
@@ -141,7 +139,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             return this.__saveSortOrder(parent);
         }
 
-        return this.__loadOrderIntoCache(parent)
+        return this.__loadMetadataIntoCache(parent)
         .andThen(() => {
             this.__changeOrderBasedOnType(changeType, item, index1, index2);
             return this.__saveSortOrder(parent);
@@ -154,7 +152,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             return AsyncResult.ok();
         }
         
-        return this.__loadOrderIntoCache(folder)
+        return this.__loadMetadataIntoCache(folder)
         .andThen(() => {
             const parentUri = folder.uri;
             const currentFiles = folder.children;
@@ -194,7 +192,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             resource[Resources.Order] = updatedSortOrder;
-            resource[Resources.Accessed] = false;
             resource[Resources.Scheduler].schedule(parentUri);
 
             return this.__saveSortOrder(folder);
@@ -209,7 +206,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             return undefined;
         }
 
-        resource[Resources.Accessed] = true;
+        resource[Resources.Scheduler].schedule(uri);
         return resource[Resources.Order];
     }
 
@@ -245,28 +242,19 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * @description Only invoke this function when the corresponding folder has
      * no cache in the memory.
      */
-    private __loadOrderIntoCache(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+    private __loadMetadataIntoCache(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.__findOrCreateMetadataFile(folder)
-        .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
-        .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
-        .andThen(order => {
-            const scheduler = new UnbufferedScheduler<URI>(this._cacheClearDelay, 
-                (() => {
-                    const resource = this._metadataCache.get(folder.uri);
-                    if (resource === undefined) {
-                        return;
-                    }
-                    if (resource[Resources.Accessed] === true) {
-                        resource[Resources.Accessed] = false;
-                        scheduler.schedule(folder.uri);
-                    } else {
-                        this._metadataCache.delete(folder.uri);
-                    }
-                }));
-            this._metadataCache.set(folder.uri, [false, scheduler, order]);
-            scheduler.schedule(folder.uri);
-            return ok();
-        });
+            .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
+            .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
+            .andThen(order => {
+                const scheduler = new UnbufferedScheduler<URI>(
+                    this._cacheClearDelay, 
+                    () => this._metadataCache.delete(folder.uri),
+                );
+                this._metadataCache.set(folder.uri, [scheduler, order]);
+                scheduler.schedule(folder.uri);
+                return ok();
+            });
     }
 
     /**
@@ -275,7 +263,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     private __saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {        
         const metadataURI = this.__computeMetadataURI(folder.uri);
         return jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4).toAsync()
-            .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: false, overwrite: true, }));
+            .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: true, overwrite: true, }));
     }
 
     private __changeOrderBasedOnType(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): void {
