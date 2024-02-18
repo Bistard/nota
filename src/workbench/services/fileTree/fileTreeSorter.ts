@@ -7,21 +7,8 @@ import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/file
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 /**
- * An interface only for {@link FileTreeSorter}.
+ * Enum for specifying the type of sorting to apply to files/folders.
  */
-export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDisposable {
-    
-    readonly sortOrder: FileSortOrder;
-    readonly sortType: FileSortType;
-
-    compare(a: TItem, b: TItem): number;
-    setType(sortType: FileSortType): boolean;
-    setOrder(sortOrder: FileSortOrder): boolean;
-    switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void;
-
-    getCustomSorter(): IFileTreeCustomSorter<TItem>;
-}
-
 export const enum FileSortType {
     Default = 'default',
     Alphabet = 'alphabet',
@@ -30,9 +17,61 @@ export const enum FileSortType {
     Custom = 'custom',
 }
 
+/**
+ * Enum for defining the order in which files/folders are sorted.
+ */
 export const enum FileSortOrder {
     Ascending = 'ascending',
     Descending = 'descending',
+}
+
+/**
+ * An interface only for {@link FileTreeSorter}.
+ */
+export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDisposable {
+    
+    /**
+     * The current sorting order.
+     */
+    readonly sortOrder: FileSortOrder;
+    
+    /**
+     * The current sorting type.
+     */
+    readonly sortType: FileSortType;
+
+    /**
+    * @description A function that compares two {@link TItem} objects. The 
+    * comparison logic adapts dynamically according to the {@link sortOrder} and 
+    * {@link sortType}.
+    */
+    compare(a: TItem, b: TItem): CompareOrder;
+    
+    /**
+    * @description Updates the current {@link FileSortType} to the specified 
+    * type.
+    * @returns A boolean indicating whether the update was successful.
+    */
+    setType(sortType: FileSortType): boolean;
+
+    /**
+    * @description Updates the current {@link FileSortOrder} to the specified 
+    * order. 
+    * @returns A boolean indicating whether the update was successful.
+    */
+    setOrder(sortOrder: FileSortOrder): boolean;
+
+    /**
+     * @description Updates the sorting settings to the specified type and order.
+     * @returns A boolean indicating whether the update was successful.
+     */
+    switchTo(sortType: FileSortType, sortOrder: FileSortOrder): boolean;
+
+    /**
+     * @internal
+     * @description Exposing the internal custom sorter to the client.
+     */
+    getCustomSorter(): IFileTreeCustomSorter<TItem>;
 }
 
 /**
@@ -88,7 +127,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         if (sortType === this._sortType) {
             return false;
         }
-        this.switchTo(sortType, this._sortOrder);
+        this.__switchTo(sortType, this._sortOrder);
         return true;
     }
 
@@ -96,11 +135,25 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         if (sortOrder === this._sortOrder) {
             return false;
         }
-        this.switchTo(this._sortType, sortOrder);
+        this.__switchTo(this._sortType, sortOrder);
         return true;
     }
 
-    public switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void {
+    public switchTo(sortType: FileSortType, sortOrder: FileSortOrder): boolean {
+        if (this._sortType === sortType && this._sortOrder === sortOrder) {
+            return false;
+        }
+        this.__switchTo(sortType, sortOrder);
+        return true;
+    }
+
+    public getCustomSorter(): IFileTreeCustomSorter<TItem> {
+        return this._customSorter;
+    }
+
+    // [private helper methods]
+
+    private __switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void {
         switch (sortType) {
             case FileSortType.Default:
                 this._compare = defaultFileItemCompareFn;
@@ -118,10 +171,6 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 this._compare = this._customSorter.compare.bind(this._customSorter);
                 break;
         }
-    }
-
-    public getCustomSorter(): IFileTreeCustomSorter<TItem> {
-        return this._customSorter;
     }
 }
 

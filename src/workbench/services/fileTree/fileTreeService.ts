@@ -170,16 +170,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const register = (tree: IFileTree<FileItem, void>) => {
             // configuration auto update
             this.configurationService.onDidConfigurationChange(e => {
-                if (e.affect(SideViewConfiguration.ExplorerFileSortType)) {
+                if (e.affect(SideViewConfiguration.ExplorerFileSortType) ||
+                    e.affect(SideViewConfiguration.ExplorerFileSortOrder)
+                ) {
                     const newType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
-                    if (sorter.setType(newType)) {
-                        tree.refresh();
-                    }
-                }
-                
-                if (e.affect(SideViewConfiguration.ExplorerFileSortOrder)) {
                     const newOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
-                    if (sorter.setOrder(newOrder)) {
+                    if (sorter.switchTo(newType, newOrder)) {
                         tree.refresh();
                     }
                 }
