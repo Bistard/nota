@@ -198,7 +198,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             // the order file does not exist, we need to create a new one.
-            return jsonSafeStringify(folder.children.map(item => item.name), undefined, 4)
+            const defaultOrder = [...folder.children]
+                .sort(defaultFileItemCompareFn)
+                .map(item => item.name);
+            
+            // write to disk with the default order
+            return jsonSafeStringify(defaultOrder, undefined, 4)
             .toAsync()
             .andThen(parsed => this.fileService.createFile(orderFileURI, DataBuffer.fromString(parsed))
                 .map(() => orderFileURI));
