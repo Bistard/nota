@@ -262,6 +262,10 @@ export class FileItem implements IFileItem<FileItem> {
             // update the children stat recursively
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
+                if (opts.filters && isFiltered(childStat.name, opts.filters)) {
+                    continue;
+                }
+
                 const child = await FileItem.resolve(childStat, this, opts);
                 this._children.push(child);
             }

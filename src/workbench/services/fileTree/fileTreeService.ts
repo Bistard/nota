@@ -114,8 +114,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             
             // retrieve tree configurations
             const filterOpts: IFilterOpts = {
-                exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
-                include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
+                exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).filter(s => !!s).map(s => new RegExp(s)),
+                include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).filter(s => !!s).map(s => new RegExp(s)),
             };
 
             // construct sorter and initialize it after
