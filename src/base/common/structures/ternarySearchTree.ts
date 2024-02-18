@@ -1,5 +1,6 @@
 import { compareSubstring, compareSubstringIgnoreCase } from "src/base/common/files/glob";
 import { URI } from "src/base/common/files/uri";
+import { panic } from "src/base/common/result";
 import { CharCode } from "src/base/common/utilities/char";
 import { IIterable } from "src/base/common/utilities/iterable";
 import { Random } from "src/base/common/utilities/random";
@@ -224,7 +225,7 @@ export class UriIterator implements IKeyIterator<URI> {
 			return compareSubstring(input, this._value.fragment);
 		}
         
-        throw new Error();
+        panic(`[TenarySearchTree] reaching unknown state: '${this._states[this._statesIdx]}'`);
     }
 
     public currItem(): string {
@@ -248,7 +249,7 @@ export class UriIterator implements IKeyIterator<URI> {
 			return this._value.fragment;
 		}
         
-        throw new Error();
+        panic(`[TenarySearchTree] reaching unknown state: '${this._states[this._statesIdx]}'`);
     }
 
     public hasNext(): boolean {
