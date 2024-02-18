@@ -279,9 +279,9 @@ suite('event-test', () => {
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
         emitter.fire();
 
         assert.strictEqual(result, 300);
@@ -322,9 +322,9 @@ suite('event-test', () => {
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(() => loopFor(loop, () => result++));
         emitter.registerListener(async () => loopFor(loop, () => result++));
-        emitter.registerListener(() => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);
