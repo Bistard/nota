@@ -1,11 +1,10 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions, IMultiTreeWidgetOpts, MultiTreeWidget } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode, ITreeRefreshEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode, ITreeRefreshEvent, ITreeTraitChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
@@ -300,9 +299,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemSelection; }
-    get onDidChangeItemHover(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemHover; }
+    
+    get onDidChangeItemFocus(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemSelection; }
+    get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemHover; }
     
     get onClick(): Register<ITreeMouseEvent<T>> { return this._tree.onClick; }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return this._tree.onDoubleclick; }

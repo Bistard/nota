@@ -313,3 +313,9 @@ export interface ITreeContextmenuEvent<T> {
     /** The browser target of the contextmenu if any. */
     target: HTMLElement | undefined;
 }
+
+export interface ITreeTraitChangeEvent<T> {
+
+    /** The items which the corresponding trait has changed */
+    data: T[];
+}

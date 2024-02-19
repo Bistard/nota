@@ -1,11 +1,11 @@
 import "src/base/browser/secondary/tree/tree.scss";
-import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent, ITreeTraitChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Event, Register, RelayEmitter } from "src/base/common/event";
+import { Emitter, Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
@@ -100,6 +100,11 @@ class TreeTrait<T> {
     private _nodes = new Set<ITreeNode<T, any>>();
     private _nodesDataCache?: T[];
 
+    // [event]
+
+    private readonly _onDidChange = new Emitter<ITreeTraitChangeEvent<T>>();
+    public readonly onDidChange = this._onDidChange.registerListener;
+
     // [constructor]
 
     constructor() {}
@@ -113,6 +118,9 @@ class TreeTrait<T> {
         for (const node of nodes) {
             this._nodes.add(node);
         }
+
+        const getData = () => this.get();
+        this._onDidChange.fire({ get data(): T[] { return getData(); }  });
     }
 
     public get(): T[] {
@@ -360,23 +368,39 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
     // [public override methods]
 
     public override setFocus(index: number | null): void {
-        this._focused.set(index !== null ? [this.getItem(index)] : []);
         super.setFocus(index);
+        this._focused.set(index !== null ? [this.getItem(index)] : []);
     }
 
     public override setAnchor(index: number | null): void {
-        this._anchor.set(index !== null ? [this.getItem(index)] : []);
         super.setAnchor(index);
+        this._anchor.set(index !== null ? [this.getItem(index)] : []);
     }
 
     public override setSelections(indice: number[]): void {
-        this._selected.set(indice.map(idx => this.getItem(idx)));
         super.setSelections(indice);
+        this._selected.set(indice.map(idx => this.getItem(idx)));
     }
 
     public override setHover(indice: number[]): void {
         this._hovered.set(indice.map(idx => this.getItem(idx)));
         super.setHover(indice);
+    }
+
+    public override focusPrev(prev: number = 1, fullLoop?: boolean, match?: ((item: ITreeNode<T, TFilter>) => boolean) | undefined): number {
+        const index = super.focusPrev(prev, fullLoop, match);
+        if (index !== -1) {
+            this._focused.set([this.getItem(index)]);
+        }
+        return index;
+    }
+
+    public override focusNext(next: number = 1, fullLoop?: boolean, match?: ((item: ITreeNode<T, TFilter>) => boolean) | undefined): number {
+        const index = super.focusNext(next, fullLoop, match);
+        if (index !== -1) {
+            this._focused.set([this.getItem(index)]);
+        }
+        return index;
     }
 
     public getFocusData(): T | null {
@@ -393,6 +417,24 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     public getHoverData(): T[] {
         return this._hovered.get();
+    }
+
+    // [public helper methods (internal)]
+
+    public exposeSelectionTreeTrait(): TreeTrait<T> {
+        return this._selected;
+    }
+
+    public exposeAnchorTreeTrait(): TreeTrait<T> {
+        return this._anchor;
+    }
+
+    public exposeFocusedTreeTrait(): TreeTrait<T> {
+        return this._focused;
+    }
+
+    public exposeHoveredTreeTrait(): TreeTrait<T> {
+        return this._hovered;
     }
 
     // [protected override methods]
@@ -452,17 +494,17 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * Fires when the focused tree nodes in the {@link IAbstractTree} is changed.
      */
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
+    get onDidChangeItemFocus(): Register<ITreeTraitChangeEvent<T>>;
 
     /**
      * Fires when the selected tree nodes in the {@link IAbstractTree} is changed.
      */
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
+    get onDidChangeItemSelection(): Register<ITreeTraitChangeEvent<T>>;
 
     /** 
      * Fires when the hovered items in the {@link IAbstractTree} is changed. 
      */
-    get onDidChangeItemHover(): Register<ITraitChangeEvent>;
+    get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>>;
 
     /**
      * Fires when the tree node in the {@link IAbstractTree} is clicked.
@@ -817,9 +859,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemSelection; }
-    get onDidChangeItemHover(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemHover; }
+
+    get onDidChangeItemFocus(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeFocusedTreeTrait().onDidChange; }
+    get onDidChangeItemSelection(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeSelectionTreeTrait().onDidChange; }
+    get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeHoveredTreeTrait().onDidChange; }
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }

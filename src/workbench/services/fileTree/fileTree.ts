@@ -130,7 +130,6 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
     // [public methods]
 
     public select(item: T): void {
-
         if (!this.isItemVisible(item)) {
             this.reveal(item);
         }
