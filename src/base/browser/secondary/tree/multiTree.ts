@@ -8,6 +8,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { isPrimitive } from "src/base/common/utilities/type";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { panic } from "src/base/common/result";
 
 /**
  * An interface only for {@link MultiTreeBase}.
@@ -123,7 +124,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
     protected override __createKeyboardController(opts: IMultiTreeWidgetOpts<T, TFilter>): MultiTreeKeyboardController<T, TFilter> {
-        return new MultiTreeKeyboardController(this, opts.tree);
+        return new MultiTreeKeyboardController<T, TFilter>(this, opts.tree);
     }
 }
 
@@ -151,7 +152,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         opts: IMultiTreeOptions<T, TFilter> = {}
     ) {
         if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
-            throw new Error('mutli tree does not support primitive types');
+            panic('[MultiTreeBase] does not support primitive types');
         }
         super(container, rootData, renderers, itemProvider, opts);
     }

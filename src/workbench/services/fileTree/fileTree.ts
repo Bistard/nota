@@ -128,7 +128,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
     // [protected override method]
 
     protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeWidget<T, TFilter> {
-        return new FileTreeWidget(container, renderers, itemProvider, opts);
+        return new FileTreeWidget<T, TFilter>(container, renderers, itemProvider, opts);
     }
 
     // [private helper method]

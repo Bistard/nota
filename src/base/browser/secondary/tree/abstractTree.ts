@@ -648,9 +648,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
 
     /**
      * @description Sets the given item as hovered.
+     * @param item The item to be hovered. If null, means to clean all the 
+     *             current hovers.
      * @param recursive When sets to true, the visible children of that item 
      *                  will also be hovered.
      */
+    setHover(item: null): void;
     setHover(item: TRef, recursive: boolean): void;
 
     /**
@@ -904,7 +907,12 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._view.setSelections(indice);
     }
 
-    public setHover(item: TRef, recursive: boolean): void {
+    public setHover(item: TRef | null, recursive?: boolean): void {
+        if (!item) {
+            this._view.setHover([]);
+            return;
+        }
+        
         const index = this._model.getNodeListIndex(item);
         if (index === -1) {
             // not visible in the list view level.

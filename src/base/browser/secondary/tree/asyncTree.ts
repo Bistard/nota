@@ -492,7 +492,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return this._tree.getSelections();
     }
 
-    public setHover(item: T, recursive: boolean): void {
+    public setHover(item: null): void;
+    public setHover(item: T, recursive: boolean): void;
+    public setHover(item: T | null, recursive?: boolean): void {
         this._tree.setHover(item, recursive);
     }
 

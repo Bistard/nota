@@ -16,7 +16,6 @@ import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileOperationError } from "src/base/common/files/file";
-import { noop } from "src/base/common/performance";
 
 /**
  * An interface only for {@link FileTreeService}.
