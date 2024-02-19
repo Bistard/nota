@@ -28,6 +28,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     // [field]
 
+    /** make sure {@link bindWithTree} is called before access. */
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
 
     private static readonly EXPAND_DELAY = Time.ms(500);
@@ -37,9 +38,20 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
      * Used to detect if 'onDragOver' is hovering on the same position, to avoid
      * duplicate calculations.
      */
-    private readonly _prevDragOverState: { event?: DragEvent, handleByRowInsertion: boolean, isDroppable: boolean };
+    private readonly _prevDragOverState: { 
+        event?: DragEvent,              // previous event for comparsion
+        handledByRowInsertion: boolean, // is handled by row insertion previously
+        isDroppable: boolean,           // the previous droppability
+    };
 
+    /**
+     * An executor specifically for hovering handle logic
+     */
     private readonly _hoverHandler: Reactivator;
+    
+    /**
+     * An executor for row insertion handle logic
+     */
     private _insertionIndicator?: RowInsertionIndicator;
 
     // [constructor]
@@ -53,7 +65,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     ) {
         super();
 
-        this._prevDragOverState = { event: undefined, handleByRowInsertion: false, isDroppable: true };
+        this._prevDragOverState = { event: undefined, handledByRowInsertion: false, isDroppable: true };
         this._hoverHandler = new Reactivator();
         this.__initRowInsertion();
 
@@ -132,7 +144,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          */
         const isHandled = this._insertionIndicator?.handleRowInsertion(event, targetIndex);
         if (isHandled) {
-            this._prevDragOverState.handleByRowInsertion = true;
+            this._prevDragOverState.handledByRowInsertion = true;
 
             /**
              * Clean the possible hovering effect which remained by the previous
@@ -156,10 +168,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          * a standard drag over state where the item is not being inserted 
          * between rows.
          */
-        if (this._prevDragOverState.handleByRowInsertion) {
+        if (this._prevDragOverState.handledByRowInsertion) {
             this._hoverHandler.reactivate();
         }
-        this._prevDragOverState.handleByRowInsertion = false;
+        this._prevDragOverState.handledByRowInsertion = false;
 
         // special case: drop on root
         const dropOnRoot = this.__isDropOnRoot(targetOver);
