@@ -116,14 +116,14 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             return { allowDrop: prevResult };
         }
         
-        const isDroppable = this.__isDroppable(event, currentDragItems, targetOver);
-        this._prevDragOverState.isDroppable = isDroppable;
+        const droppable = this.__isDroppable(event, currentDragItems, targetOver);
+        this._prevDragOverState.isDroppable = droppable.allowDrop;
         
         // derender every single time
         this._insertionIndicator?.derender();
         this.__derenderDropOnRootEffect();
 
-        if (!isDroppable) {
+        if (!droppable.allowDrop) {
             return { allowDrop: false };
         }
 
@@ -144,7 +144,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 this._tree.setHover(null);
             }
 
-            return { allowDrop: true };
+            return droppable;
         }
 
         /**
@@ -164,7 +164,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // special case: drop on root
         const dropOnRoot = this.__isDropOnRoot(targetOver);
         if (dropOnRoot) {
-            return { allowDrop: true };
+            return droppable;
         }
 
         // Since not dropping on the root, it is not allow to drop on no targets.
@@ -191,7 +191,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             }
     
             // the target is collapsed thus it requies a delay of expanding
-            if (this._tree.isCollapsed(targetOver) && isDroppable) {
+            if (this._tree.isCollapsed(targetOver)) {
                 this._tree.setHover(targetOver, false);
                 this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
                 return;
@@ -202,7 +202,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             this._tree.setHover(targetOver, true);
         });
 
-        return { allowDrop: true };
+        return droppable;
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
@@ -328,7 +328,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         return undefined;
     }
 
-    private __isDroppable(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): boolean {
+    private __isDroppable(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): IDragOverResult {
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
@@ -345,7 +345,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         const targetDir = targetOver;
 
         if (__isCopyAction(event)) {
-            return true;
+            return { allowDrop: true, effect: DragOverEffect.Copy };
         }
 
         /**
@@ -363,7 +363,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             ;
         });
 
-        return !anyCannotDrop;
+        return { allowDrop: !anyCannotDrop, effect: DragOverEffect.Move };
     }
 
     /**
