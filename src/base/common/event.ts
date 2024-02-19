@@ -23,8 +23,12 @@ import { Callable } from "src/base/common/utilities/type";
  * the required event type will be returned as a parameter.
  */
 export type Listener<E> = (e: E) => any;
-
 export type AsyncListener<E> = (e: E) => Promise<any>;
+
+/**
+ * Retrieve the event type T from the {@link Register}.
+ */
+export type GetEventType<R> = R extends Register<infer T> ? T : never;
 
 /**
  * @readonly A register is essentially a function that registers a listener to 
@@ -520,9 +524,12 @@ export namespace Event {
      * event register that fires whenever any of the provided events fires.
      * @param registers The provided a series of event registers.
      * @returns The new event register.
+     * 
+     * @note Supports heterogeneous `Register<T>` types, combining them into a 
+     * single register with a union of their event types.
      */
-    export function any<T>(registers: Register<T>[]): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
+    export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
+        const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
             const allDiposables = registers.map(register => register(listener, disposables, thisArgs));
             const parentDisposable = toDisposable(() => disposeAll(allDiposables));
             return parentDisposable;            

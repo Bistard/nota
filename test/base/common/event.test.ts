@@ -444,7 +444,7 @@ suite('event-test', () => {
         const emitter2 = new Emitter<number>();
         const emitter3 = new Emitter<number>();
 
-        const newEmitter = Event.any<number>([emitter1.registerListener, emitter2.registerListener, emitter3.registerListener]);
+        const newEmitter = Event.any([emitter1.registerListener, emitter2.registerListener, emitter3.registerListener]);
 
         let result = -1;
         const disposable = newEmitter(e => {
