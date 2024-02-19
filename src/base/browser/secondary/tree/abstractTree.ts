@@ -3,7 +3,7 @@ import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITree
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
@@ -53,11 +53,11 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
         }
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): boolean {
+    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): IDragOverResult {
         if (this.dnd.onDragOver) {
             return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
-        return false;
+        return { allowDrop: false };
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): void {

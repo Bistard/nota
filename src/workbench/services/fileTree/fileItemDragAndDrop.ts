@@ -1,4 +1,4 @@
-import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { Scheduler, delayFor } from "src/base/common/utilities/async";
@@ -108,15 +108,15 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): boolean {
-        
+    public onDragOver(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): IDragOverResult {
+
         // good perf
         const prevResult = this.__isDragOverUnchanged(event);
         if (prevResult !== undefined) {
-            return prevResult;
+            return { allowDrop: prevResult };
         }
         
-        const isDroppable = this.__isDroppable(currentDragItems, targetOver);
+        const isDroppable = this.__isDroppable(event, currentDragItems, targetOver);
         this._prevDragOverState.isDroppable = isDroppable;
         
         // derender every single time
@@ -124,7 +124,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this.__derenderDropOnRootEffect();
 
         if (!isDroppable) {
-            return false;
+            return { allowDrop: false };
         }
 
         /**
@@ -144,7 +144,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 this._tree.setHover(null);
             }
 
-            return true;
+            return { allowDrop: true };
         }
 
         /**
@@ -164,13 +164,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // special case: drop on root
         const dropOnRoot = this.__isDropOnRoot(targetOver);
         if (dropOnRoot) {
-            return true;
+            return { allowDrop: true };
         }
 
         // Since not dropping on the root, it is not allow to drop on no targets.
         if (!targetOver || targetIndex === undefined) {
             this._prevDragOverState.isDroppable = false;
-            return false;
+            return { allowDrop: false };
         }
 
         /**
@@ -202,7 +202,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             this._tree.setHover(targetOver, true);
         });
 
-        return true;
+        return { allowDrop: true };
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
@@ -219,7 +219,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
-        if (!target.isRoot()) {
+        if (!target.isRoot() && this._tree.isCollapsible(target)) {
             await this._tree.expand(target);
         }
 
