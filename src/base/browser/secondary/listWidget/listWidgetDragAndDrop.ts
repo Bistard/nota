@@ -57,6 +57,8 @@ export interface IListDragAndDropProvider<T> {
      * @param currentDragItems The current dragging items.
      * @param targetOver The list target of the current drag event.
      * @param targetIndex The index of the list target of the current drag event.
+     * 
+     * @Note This method is called frequently, efficiency does matter here.
      */
     onDragOver?(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): IDragOverResult;
 
