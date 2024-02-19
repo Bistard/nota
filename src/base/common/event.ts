@@ -3,6 +3,7 @@ import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } 
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/utilities/async";
 import { Callable } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/result";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -153,7 +154,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         
         // cannot register to a disposed emitter
         if (this._disposed) {
-            throw new Error('emitter is already disposed, cannot register a new listener.');
+            panic('emitter is already disposed, cannot register a new listener.');
         }
 
         this._register ??= (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
