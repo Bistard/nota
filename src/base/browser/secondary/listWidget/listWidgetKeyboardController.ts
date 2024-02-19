@@ -80,26 +80,28 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     }
 
     protected __onUpArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            const newFoused = this._view.focusPrev(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-        } else {
+        if (this._view.getFocus() === null) {
             this._view.setFocus(0);
+            return;
+        }
+
+        const newFoused = this._view.focusPrev(1, false, undefined);
+        if (newFoused !== -1) {
+            this._view.setAnchor(newFoused);
+            this._view.reveal(newFoused, undefined);
         }
     }
 
     protected __onDownArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            const newFoused = this._view.focusNext(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-        } else {
+        if (this._view.getFocus() === null) {
             this._view.setFocus(0);
+            return;
+        }
+        
+        const newFoused = this._view.focusNext(1, false, undefined);
+        if (newFoused !== -1) {
+            this._view.setAnchor(newFoused);
+            this._view.reveal(newFoused, undefined);
         }
     }
 
@@ -115,9 +117,7 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
 
     protected __onEscape(e: IStandardKeyboardEvent): void {
         if (this._view.getSelections().length > 0) {
-            console.log('before escape set empty selection');
             this._view.setSelections([]);
-            console.log('after escape set empty selection');
             this._view.setAnchor(null);
 			return;
         }
