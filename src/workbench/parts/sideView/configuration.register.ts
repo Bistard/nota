@@ -10,6 +10,7 @@ export const enum SideViewConfiguration {
 
     ExplorerFileSortType  = 'sideView.explorer.fileSortType',
     ExplorerFileSortOrder = 'sideView.explorer.fileSortOrder',
+    ExplorerconfirmDragAndDrop = 'sideView.explorer.confirmDragAndDrop',
 }
 
 export const rendererSideViewConfigurationRegister = createRegister(
@@ -59,7 +60,11 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                         FileSortOrder.Descending,
                                     ],
                                     default: FileSortOrder.Ascending,
-                                }
+                                },
+                                ['confirmDragAndDrop']: {
+                                    type: 'boolean',
+                                    default: true,
+                                },
                             }
                         }
                     }

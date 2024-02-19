@@ -93,11 +93,13 @@ export interface IFileService extends IDisposable, IService {
 
     /** 
      * @description Moves a file/directory to a new location described by a given URI. 
+     * @note No action is taken if the 'from' and 'to' are identical.
      */
     moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
 
     /** 
      * @description Copys a file/directory to a new location. 
+     * @note No action is taken if the 'from' and 'to' are identical.
      */
     copyTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
 
@@ -716,7 +718,7 @@ export class FileService extends Disposable implements IFileService {
         
         .andThen(() => {
             if (!hasCopyCapability(fromProvider)) {
-                return err(new FileOperationError(`Unable to move / copy to the target path ${URI.toString(to)} because the provider does not provide move / copy functionality.`, FileOperationErrorType.OTHERS));
+                return err(new FileOperationError(`Unable to copy to the target path ${URI.toString(to)} because the provider does not provide copy functionality.`, FileOperationErrorType.OTHERS));
             } 
             return Result.fromPromise(
                 () => fromProvider.copy(from, to, { overwrite: !!overwrite }),
