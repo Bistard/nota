@@ -7,8 +7,8 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { ok, panic } from "src/base/common/result";
-import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
+import { panic } from "src/base/common/result";
+import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
@@ -398,7 +398,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             
             let destination = URI.join(targetOver.uri, dragItem.name);
             if (URI.equals(dragItem.uri, destination)) {
-                destination = URI.join(targetOver.uri, `${dragItem.name}_copy`);
+                destination = URI.join(targetOver.uri, `${dragItem.basename}_copy${dragItem.extname}`);
             }
             
             await this.fileService.copyTo(dragItem.uri, destination).match(

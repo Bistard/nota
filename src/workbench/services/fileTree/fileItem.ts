@@ -8,20 +8,40 @@ import { memoize } from "src/base/common/memoization";
 import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { tryOrDefault } from "src/base/common/error";
+import { parse } from "src/base/common/files/path";
 
 /**
  * An interface only for {@link FileItem}.
  */
 export interface IFileItem<TItem extends IFileItem<TItem>> {
 
-    /** The unique representation of the target. */
+    /** 
+     * The unique representation of the target. 
+     */
     readonly id: string;
 
-    /** The {@link URI} of the target. */
+    /** 
+     * The {@link URI} of the target. 
+     */
     readonly uri: URI;
 
-    /** The name of the target. */
+    /** 
+     * The name of the target. 
+     * @example file.js
+     */
     readonly name: string;
+    
+    /** 
+     * The basename of the target without the extension name. 
+     * @example file.js -> file
+     */
+    readonly basename: string;
+    
+    /** 
+     * The extension name of the target. 
+     * @example file.js -> .js
+     */
+    readonly extname: string;
 
     /** The type of the target. */
     readonly type: FileType;
@@ -170,6 +190,12 @@ export class FileItem implements IFileItem<FileItem> {
     get uri(): URI { return this._stat.uri; }
 
     get name(): string { return this._stat.name; }
+    
+    @memoize
+    get basename(): string { return parse(this._stat.name).name; }
+
+    @memoize
+    get extname(): string { return parse(this._stat.name).ext; }
 
     get type(): FileType { return this._stat.type; }
 
