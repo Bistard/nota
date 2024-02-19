@@ -98,7 +98,7 @@ class TreeTrait<T> {
     // [field]
 
     private _nodes = new Set<ITreeNode<T, any>>();
-    private _nodesDataCache?: T[];
+    private _nodesCache?: T[];
 
     // [event]
 
@@ -112,7 +112,7 @@ class TreeTrait<T> {
     // [public methods]
 
     public set(nodes: ITreeNode<T, any>[]): void {
-        this._nodesDataCache = undefined;
+        this._nodesCache = undefined;
         this._nodes = new Set();
         
         for (const node of nodes) {
@@ -124,12 +124,12 @@ class TreeTrait<T> {
     }
 
     public get(): T[] {
-        if (!this._nodesDataCache) {
+        if (!this._nodesCache) {
             const cache: T[] = [];
             this._nodes.forEach(node => cache.push(node.data));
-            this._nodesDataCache = cache;
+            this._nodesCache = cache;
         }
-        return this._nodesDataCache;
+        return this._nodesCache;
     }
 
     public has(nodes: ITreeNode<T, any>): boolean {
@@ -144,7 +144,7 @@ class TreeTrait<T> {
          * traits.
          */
         if (!identityProvider) {
-            this._nodesDataCache = undefined;
+            this._nodesCache = undefined;
             this._nodes.clear();
             return;
         }

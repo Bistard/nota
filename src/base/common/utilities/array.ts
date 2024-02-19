@@ -409,4 +409,28 @@ export namespace Arrays {
 
         return undefined;
     }
+
+    /**
+     * @description Converts a Set to an array. If a converter function is 
+     * provided, it applies the function to each item of the set before adding 
+     * it to the resulting array.
+     * 
+     * @param set The set to convert to an array.
+     * @param converter Converts each item of the set from type `T1` to type `T2`.
+     * @returns An array of elements.
+     */
+    export function fromSet<T>(set: Set<T>): T[];
+    export function fromSet<T1, T2>(set: Set<T1>, converter: (item: T1) => T2): T2[];
+    export function fromSet<T1, T2>(set: Set<any>, converter?: (item: T1) => T2): T2[] {
+        if (!converter) {
+            return [...set];
+        }
+
+        const arr: T2[] = [];
+        for (const item of set) {
+            arr.push(converter(item));
+        }
+
+        return arr;
+    }
 }
