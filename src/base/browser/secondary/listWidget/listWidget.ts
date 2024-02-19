@@ -108,6 +108,9 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     /** Fires when the selected items in the {@link IListWidget} is changed. */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
 
+    /** Fires when the hovered items in the {@link IListWidget} is changed. */
+    get onDidChangeItemHover(): Register<ITraitChangeEvent>;
+
     /** Fires when the item in the {@link IListWidget} is clicked. */
     get onClick(): Register<IListMouseEvent<T>>;
     
@@ -378,6 +381,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this.selected.onDidChange; }
+    get onDidChangeItemHover(): Register<ITraitChangeEvent> { return this.hovered.onDidChange; }
     get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
     get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }

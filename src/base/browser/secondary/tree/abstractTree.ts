@@ -459,6 +459,11 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
 
+    /** 
+     * Fires when the hovered items in the {@link IAbstractTree} is changed. 
+     */
+    get onDidChangeItemHover(): Register<ITraitChangeEvent>;
+
     /**
      * Fires when the tree node in the {@link IAbstractTree} is clicked.
      */
