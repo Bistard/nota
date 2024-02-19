@@ -468,4 +468,34 @@ export namespace Arrays {
         }
         return arr;
     }
+
+    /**
+     * @description Converts the keys of an object into an array.
+     * @param obj The object whose keys are to be converted into an array.
+     * @returns An array of the object's keys.
+     */
+    export function fromObjectKeys<T extends object>(obj: T): (keyof T)[] {
+        return Object.keys(obj) as (keyof T)[];
+    }
+
+    /**
+     * @description Converts the values of an object into an array.
+     * @param obj The object whose values are to be converted into an array.
+     * @returns An array of the object's values.
+     */
+    export function fromObjectValues<T>(obj: Record<string, T>): T[] {
+        return Object.values(obj);
+    }
+
+    /**
+     * @description Converts the entries (key-value pairs) of an object into an
+     * array of tuples.
+     * @param obj The object whose entries are to be converted into an array of 
+     *            tuples.
+     * @returns An array of tuples, where each tuple is a [key, value] pair from 
+     *          the object.
+     */
+    export function fromObjectEntries<T>(obj: Record<string, T>): [string, T][] {
+        return Object.entries(obj);
+    }
 }
