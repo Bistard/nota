@@ -5,7 +5,7 @@
 	height: 100%;
 	width: 100%;
 	white-space: nowrap;
-	outline: 0 !important;
+	outline: 0;
 
 	.list-view-container {
 		position: relative;
@@ -32,7 +32,7 @@
 .list-drag-image {
 	position: absolute;
 	display: inline-block;
-	background-color: rgb(211, 211, 211);
+	background-color: rgb(235, 235, 235);
 	font-size: 12px;
 	padding: 1px 7px;
 	border-radius: 10px;

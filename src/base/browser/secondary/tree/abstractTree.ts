@@ -360,23 +360,23 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
     // [public override methods]
 
     public override setFocus(index: number | null): void {
-        super.setFocus(index);
         this._focused.set(index !== null ? [this.getItem(index)] : []);
+        super.setFocus(index);
     }
 
     public override setAnchor(index: number | null): void {
-        super.setAnchor(index);
         this._anchor.set(index !== null ? [this.getItem(index)] : []);
+        super.setAnchor(index);
     }
 
     public override setSelections(indice: number[]): void {
-        super.setSelections(indice);
         this._selected.set(indice.map(idx => this.getItem(idx)));
+        super.setSelections(indice);
     }
 
     public override setHover(indice: number[]): void {
-        super.setHover(indice);
         this._hovered.set(indice.map(idx => this.getItem(idx)));
+        super.setHover(indice);
     }
 
     public getFocusData(): T | null {
@@ -819,6 +819,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemFocus; }
     get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemSelection; }
+    get onDidChangeItemHover(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemHover; }
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }

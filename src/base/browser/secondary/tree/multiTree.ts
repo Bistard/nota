@@ -108,7 +108,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
     // [protected override methods]
 
     protected override __onEnter(e: IStandardKeyboardEvent): void {
-        super.__onEnter(e); 
+        super.__onEnter(e);
         
         const anchor = this._view.getAnchorData();
         if (anchor) {

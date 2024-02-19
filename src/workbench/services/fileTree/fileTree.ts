@@ -4,9 +4,10 @@ import { AsyncTree, AsyncTreeWidget, IAsyncTree, IAsyncTreeOptions, IAsyncTreeWi
 import { MultiTreeKeyboardController } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
+import { DomUtility } from "src/base/browser/basic/dom";
 
 export interface IFileTreeOpenEvent<T extends FileItem> {
     readonly item: T;
@@ -109,6 +110,21 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         super(container, rootData, opts);
         this.DOMElement.classList.add('file-tree');
         this.__register(this.onClick(e => this.__onClick(e)));
+
+        /**
+         * Only focus the entire tree when:
+         *      1. no any traits exists or
+         *      2. the tree is focused.
+         */
+        this.__register(Event.any([
+            this.onDidChangeItemFocus,
+            this.onDidChangeItemSelection,
+            this.onDidChangeFocus
+        ])(() => {
+            const noTraits = (this.getFocus() === null && this.getSelections().length === 0);
+            const isFocused = DomUtility.Elements.isElementFocused(this.DOMElement);
+            this.DOMElement.classList.toggle('focused', noTraits && isFocused);
+        }));
     }
 
     // [public methods]

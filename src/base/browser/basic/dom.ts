@@ -2,6 +2,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { HexColor } from "src/base/common/color";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { panic } from "src/base/common/result";
 import { Dimension, IDomBox } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
 
@@ -337,7 +338,7 @@ export namespace DomUtility
 		export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
 			const element = (target ?? event.currentTarget) as HTMLElement | null;
 			if (element === null) {
-				throw new Error('invalid event target');
+				panic('invalid event target');
 			}
 			const box: DOMRect = element.getBoundingClientRect();
 			return [
@@ -372,7 +373,7 @@ export namespace DomUtility
 				return new Dimension(DocElement.clientWidth, DocElement.clientHeight);
 			}
 
-			throw new Error('Unable to figure out browser width and height');
+			panic('Unable to figure out browser width and height');
 		}
 
 		export function isInViewport(element: HTMLElement): boolean {
@@ -408,7 +409,7 @@ export namespace DomUtility
 		}
 
 		/**
-		 * @description Determines if the given node is in the dom tree.
+		 * @description Determines if the given node is in the DOM tree.
 		 */
 		export function ifInDomTree(node: Node): boolean {
 			return node.isConnected;
@@ -424,6 +425,13 @@ export namespace DomUtility
 				currElement = currElement.shadowRoot.activeElement;
 			}
 			return currElement ?? undefined;
+		}
+
+		/**
+		 * @description Check if the given element is focused in the DOM tree.
+		 */
+		export function isElementFocused(element: Element | EventTarget | undefined | null): boolean {
+			return getActiveElement() === element;
 		}
 
 		/**

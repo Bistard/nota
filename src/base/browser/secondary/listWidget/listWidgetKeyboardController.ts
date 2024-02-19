@@ -89,8 +89,6 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
         } else {
             this._view.setFocus(0);
         }
-
-        this._view.setDomFocus();
     }
 
     protected __onDownArrow(e: IStandardKeyboardEvent): void {
@@ -103,8 +101,6 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
         } else {
             this._view.setFocus(0);
         }
-
-        this._view.setDomFocus();
     }
 
     protected __onPageupArrow(e: IStandardKeyboardEvent): void {
@@ -118,14 +114,15 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     }
 
     protected __onEscape(e: IStandardKeyboardEvent): void {
-        if (this._view.getSelections().length) {
+        if (this._view.getSelections().length > 0) {
+            console.log('before escape set empty selection');
             this._view.setSelections([]);
+            console.log('after escape set empty selection');
             this._view.setAnchor(null);
-			this._view.setDomFocus();
-            return;
+			return;
         }
 
-        if (!this._view.getSelections().length) {
+        if (this._view.getSelections().length === 0) {
             this._view.setFocus(null);
             this._view.setAnchor(null);
         }
