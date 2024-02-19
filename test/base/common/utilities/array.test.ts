@@ -207,6 +207,19 @@ suite('array-test', () => {
         bsArr([0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 100]);
     });
 
+    test('fromIterable without converter', function() {
+        const inputArray = [1, 2, 3];
+        const expectedOutput = [1, 2, 3];
+        assert.deepStrictEqual(Arrays.fromIterable(inputArray), expectedOutput);
+    });
+
+    test('fromIterable with converter', function() {
+        const inputArray = ['1', '2', '3'];
+        const converter = (item: string) => parseInt(item);
+        const expectedOutput = [1, 2, 3];
+        assert.deepStrictEqual(Arrays.fromIterable(inputArray, converter), expectedOutput);
+    });
+
     test('fromSet without converter', function() {
         const inputSet = new Set([1, 2, 3]);
         const expectedOutput = [1, 2, 3];
@@ -218,5 +231,19 @@ suite('array-test', () => {
         const converter = (item: number) => item.toString();
         const expectedOutput = ['1', '2', '3'];
         assert.deepStrictEqual(Arrays.fromSet(inputSet, converter), expectedOutput);
+    });
+
+    test('fromMap without converter', function() {
+        const inputMap = new Map([['a', 1], ['b', 2], ['c', 3]]);
+        const converter = (value: number, key: string) => `${key}${value}`;
+        const expectedOutput = ['a1', 'b2', 'c3'];
+        assert.deepStrictEqual(Arrays.fromMap(inputMap, converter), expectedOutput);
+    });
+
+    test('fromMap with converter', function() {
+        const inputMap = new Map();
+        const converter = (value: any, key: any) => `${key}${value}`;
+        const expectedOutput: string[] = [];
+        assert.deepStrictEqual(Arrays.fromMap(inputMap, converter), expectedOutput);
     });
 });

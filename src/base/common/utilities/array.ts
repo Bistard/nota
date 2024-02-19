@@ -411,6 +411,25 @@ export namespace Arrays {
     }
 
     /**
+     * @description Converts an iterable to an array. If a converter function is 
+     * provided, it applies the function to each item of the iterable before adding 
+     * it to the resulting array.
+     * 
+     * @param iterable The iterable to convert to an array.
+     * @param converter Converts each item of the iterable from type `T1` to 
+     *                  type `T2`.
+     * @returns An array of elements.
+     */
+    export function fromIterable<T>(iterable: Iterable<T>): T[];
+    export function fromIterable<T1, T2>(iterable: Iterable<T1>, converter: (item: T1) => T2): T2[];
+    export function fromIterable<T1, T2>(iterable: Iterable<any>, converter?: (item: T1) => T2): T2[] {
+        if (!converter) {
+            return Array.from(iterable);
+        }
+        return Array.from(iterable, item => converter(item));
+    }
+
+    /**
      * @description Converts a Set to an array. If a converter function is 
      * provided, it applies the function to each item of the set before adding 
      * it to the resulting array.
@@ -431,6 +450,22 @@ export namespace Arrays {
             arr.push(converter(item));
         }
 
+        return arr;
+    }
+
+    /**
+     * @description Converts a Map's entries to an array of values based on the 
+     * provided converter function.
+     * 
+     * @param map The Map to convert to an array.
+     * @param converter A converter function.
+     * @returns An array of elements produced by applying the converter.
+     */
+    export function fromMap<K, V, T>(map: Map<K, V>, converter: (value: V, key: K) => T): T[] {
+        const arr: T[] = [];
+        for (const [key, value] of map) {
+            arr.push(converter(value, key));
+        }
         return arr;
     }
 }
