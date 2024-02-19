@@ -14,7 +14,6 @@ import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTre
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Arrays } from "src/base/common/utilities/array";
-import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 
 /**
  * @internal
@@ -125,9 +124,7 @@ class TreeTrait<T> {
 
     public get(): T[] {
         if (!this._nodesCache) {
-            const cache: T[] = [];
-            this._nodes.forEach(node => cache.push(node.data));
-            this._nodesCache = cache;
+            this._nodesCache = Arrays.fromSet(this._nodes, node => node.data);
         }
         return this._nodesCache;
     }
