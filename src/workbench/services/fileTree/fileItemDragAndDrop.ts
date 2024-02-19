@@ -1,4 +1,4 @@
-import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { DragOverEffect, IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { Scheduler, delayFor } from "src/base/common/utilities/async";
@@ -18,7 +18,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
-import { ICoordinate } from "src/base/common/utilities/size";
+import { IS_MAC } from "src/base/common/platform";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -37,7 +37,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
      * Used to detect if 'onDragOver' is hovering on the same position, to avoid
      * duplicate calculations.
      */
-    private readonly _prevDragOverState: ICoordinate & { handleByRowInsertion: boolean, isDroppable: boolean };
+    private readonly _prevDragOverState: { event?: DragEvent, handleByRowInsertion: boolean, isDroppable: boolean };
 
     private readonly _hoverHandler: Reactivator;
     private _insertionIndicator?: RowInsertionIndicator;
@@ -53,7 +53,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     ) {
         super();
 
-        this._prevDragOverState = { x: -1, y: -1, handleByRowInsertion: false, isDroppable: true };
+        this._prevDragOverState = { event: undefined, handleByRowInsertion: false, isDroppable: true };
         this._hoverHandler = new Reactivator();
         this.__initRowInsertion();
 
@@ -214,13 +214,15 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             targetOver = targetOver.parent!;
         }
 
-        // TODO: var can be removed at TS 5.4 which has better TCFA
-        const target = targetOver;
-        
         // expand folder immediately when drops
         this._delayExpand.cancel(true);
-        if (!target.isRoot() && this._tree.isCollapsible(target)) {
-            await this._tree.expand(target);
+        if (!targetOver.isRoot() && this._tree.isCollapsible(targetOver)) {
+            await this._tree.expand(targetOver);
+        }
+
+        if (__isCopyAction(event)) {
+            this.__handleOnDragDrop(currentDragItems, targetOver, DragOverEffect.Copy);
+            return;
         }
 
         /**
@@ -301,20 +303,32 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         });
     }
 
+    /**
+     * @description Checks if the dragover event's position remains unchanged. 
+     * Returns the previous droppability status if unchanged; otherwise, returns 
+     * `undefined` to signal a position change.
+     */
     private __isDragOverUnchanged(event: DragEvent): boolean | undefined {
-        if (this._prevDragOverState?.x === event.clientX &&
-            this._prevDragOverState?.y === event.clientY
+        const prevEvent = this._prevDragOverState.event;
+        if (!prevEvent) {
+            return undefined;
+        }
+        
+        // those variables are key to identify whether the event is unchanged.
+        if (prevEvent.x === event.clientX &&
+            prevEvent.y === event.clientY && 
+            prevEvent.ctrlKey === prevEvent.ctrlKey &&
+            prevEvent.altKey === prevEvent.altKey
         ) {
             return this._prevDragOverState.isDroppable;
         }
         
-        this._prevDragOverState.x = event.clientX;
-        this._prevDragOverState.y = event.clientY;
-
+        // changed
+        this._prevDragOverState.event = event;
         return undefined;
     }
 
-    private __isDroppable(currentDragItems: FileItem[], targetOver?: FileItem): boolean {
+    private __isDroppable(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): boolean {
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
@@ -326,13 +340,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          * dropping at its parent directory.
          */
         if (targetOver.isFile()) {
-            return this.__isDroppable(currentDragItems, targetOver.parent ?? undefined);
+            return this.__isDroppable(event, currentDragItems, targetOver.parent ?? undefined);
         }
-
         const targetDir = targetOver;
 
-        // TODO: ctrl + win can drop at the parent
-        // TODO: alt + mac can drop at the parent
+        if (__isCopyAction(event)) {
+            return true;
+        }
 
         /**
          * Either following case cannot perform drop operation if one of the 
@@ -352,7 +366,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         return !anyCannotDrop;
     }
 
-    
     /**
      * @description Special handling: drop entire tree animation
      */
@@ -379,6 +392,14 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         return false;   
     }
+
+    private __handleOnDragDrop(currentDragItems: FileItem[], targetOver: FileItem, action: DragOverEffect): void {
+        // TODO: complete
+    }
+}
+
+function __isCopyAction(event: DragEvent): boolean {
+    return (event.ctrlKey && !IS_MAC) || (event.altKey && IS_MAC);
 }
 
 interface IInsertionResult {
