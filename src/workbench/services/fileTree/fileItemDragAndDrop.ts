@@ -1,7 +1,6 @@
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
-import { Arrays } from "src/base/common/utilities/array";
 import { Scheduler, delayFor } from "src/base/common/utilities/async";
 import { Mutable } from "src/base/common/utilities/type";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
@@ -33,12 +32,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private static readonly EXPAND_DELAY = Time.ms(500);
     private readonly _delayExpand: Scheduler<{ item: FileItem, index: number; }>;
-    /**
-     * When dragging over an item, this array is a temporary place to store the 
-     * hoving subtree items. Used for unselecting them when the drag is over.
-     */
-    // todo: double check if this is still needed
-    private _dragSelections: FileItem[] = [];
 
     /**
      * Used to detect if 'onDragOver' is hovering on the same position, to avoid
@@ -258,8 +251,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 })
                 .unwrap();
         }
-        
-        this.__removeDragSelections();
     }
 
     public onDragEnd(event: DragEvent): void {
@@ -268,8 +259,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this._dragOnRootDisposable.dispose();
         this._hoverHandler.deactivate();
         this._insertionIndicator?.derender();
-
-        this.__removeDragSelections();
     }
 
     public override dispose(): void {
@@ -323,18 +312,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this._prevDragOverState.y = event.clientY;
 
         return undefined;
-    }
-
-    private __removeDragSelections(): void {
-        if (this._dragSelections.length === 0) {
-            return;
-        }
-
-        const currSelections = this._tree.getSelections();
-        const updatedSelections = Arrays.relativeComplement(this._dragSelections, currSelections);
-
-        this._tree.setSelections(updatedSelections);
-        this._dragSelections = [];
     }
 
     private __isDroppable(currentDragItems: FileItem[], targetOver?: FileItem): boolean {
