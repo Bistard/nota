@@ -252,13 +252,15 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
 		event.dataTransfer.setData('text/plain', userData);
         
         // set the drag image
-        const tag = this._provider.getDragTag(dragItems);
-        const dragImage = document.createElement('div');
-        dragImage.className = 'list-drag-image';
-        dragImage.innerHTML = tag;
-        document.body.appendChild(dragImage);
-        event.dataTransfer.setDragImage(dragImage, -10, -10);
-        setTimeout(() => document.body.removeChild(dragImage), 0);
+        {
+            const tag = this._provider.getDragTag(dragItems);
+            const dragImage = document.createElement('div');
+            dragImage.className = 'list-drag-image';
+            dragImage.innerHTML = tag;
+            document.body.appendChild(dragImage);
+            event.dataTransfer.setDragImage(dragImage, -10, -10);
+            setTimeout(() => document.body.removeChild(dragImage), 0);
+        }
         
         this._currDragItems = dragItems;
 
@@ -284,6 +286,7 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         const allowDrop = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
         this._allowDrop = allowDrop;
         if (!allowDrop) {
+            event.browserEvent.dataTransfer.dropEffect = 'none';
             return;
         }
 
