@@ -9,7 +9,6 @@ import { ILogService } from "src/base/common/logger";
 import { ResourceMap } from "src/base/common/structures/map";
 import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
-import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
@@ -92,11 +91,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         orders: string[],                       // [2]
     ]>;
     private readonly _cacheClearDelay: Time;
+    private readonly _hash: (input: string) => string;
 
     // [constructor]
 
     constructor(
         metadataRootPath: URI,
+        hash: (input: string) => string,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
@@ -104,6 +105,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         this._metadataRootPath = metadataRootPath;
         this._metadataCache = new ResourceMap();
         this._cacheClearDelay = Time.min(5);
+        this._hash = hash;
     }
     
     // [public methods]
@@ -311,7 +313,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * assuming the hash is '3f4c9b6f3a'.
      */
     private __computeMetadataURI(uri: URI): URI {
-        const hashCode = generateMD5Hash(URI.toString(uri));
+        const hashCode = this._hash(URI.toString(uri));
         const orderFileName = hashCode.slice(2) + '.json';
         const metadataURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
         return metadataURI;

@@ -1,5 +1,6 @@
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
+import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -97,7 +98,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     ) {
         super();
         const orderRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
-        this._customSorter = instantiationService.createInstance(FileTreeCustomSorter, orderRoot);
+        this._customSorter = instantiationService.createInstance(FileTreeCustomSorter, orderRoot, generateMD5Hash);
         
         this.switchTo(sortType, sortOrder);
     }
