@@ -219,6 +219,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             return undefined;
         }
 
+        // TODO: perf - use recentAccess instead of simply schedule out, setTimeout is really time consuming
         resource[Resources.Scheduler].schedule(uri);
         return resource[Resources.Order];
     }
@@ -285,10 +286,10 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             case OrderChangeType.Add:
                 order.splice(index1!, 0, item.name);
                 break;
-            case OrderChangeType.Remove: {
+            case OrderChangeType.Remove:
                 Arrays.remove(order, item.name, index1);
                 break;
-            } case OrderChangeType.Swap:
+            case OrderChangeType.Swap:
                 Arrays.swap(order, index1!, index2!);
                 break;
             case OrderChangeType.Update:
