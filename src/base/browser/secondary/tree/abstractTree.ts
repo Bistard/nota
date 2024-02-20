@@ -141,10 +141,16 @@ class TreeTrait<T> {
          * traits.
          */
         if (!identityProvider) {
-            this._nodesCache = undefined;
-            this._nodes.clear();
+            this.set([]);
             return;
         }
+
+        /**
+         * // bug
+         * I think there is a bug in the rest of the fn, since `deleted` nodes 
+         * will not be fired by the splice event. It is not easy to detect if 
+         * any of the current nodes that is deleted.
+         */
 
         /**
          * Use identity provider to keep any existed nodes if they are 
@@ -671,6 +677,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     getAnchor(): T | null;
 
     /**
+     * @description Returns the anchored item indice only in the ListView 
+     * perspective. 
+     */
+    getViewAnchor(): number | null;
+
+    /**
      * @description Sets the given item as focused.
      */
     setFocus(item: TRef): void;
@@ -681,6 +693,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     getFocus(): T | null;
 
     /**
+     * @description Returns the focused item indice only in the ListView 
+     * perspective. 
+     */
+    getViewFocus(): number | null;
+
+    /**
      * @description Sets the given a series of items as selected.
      */
     setSelections(items: TRef[]): void;
@@ -689,6 +707,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @description Returns the selected items.
      */
     getSelections(): T[];
+
+    /**
+     * @description Returns the selected item indice only in the ListView 
+     * perspective. 
+     */
+    getViewSelections(): number[];
 
     /**
      * @description Sets the given item as hovered.
@@ -704,6 +728,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @description Returns the hovered items.
      */
     getHover(): T[];
+
+    /**
+     * @description Returns the hovered item indice only in the ListView 
+     * perspective. 
+     */
+    getViewHover(): number[];
 
     /**
      * @description Get the total visible subtree node count of the given node (
@@ -991,6 +1021,22 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public getHover(): T[] {
         return this._view.getHoverData();
+    }
+    
+    public getViewAnchor(): number | null {
+        return this._view.getAnchor();
+    }
+
+    public getViewFocus(): number | null {
+        return this._view.getFocus();
+    }
+
+    public getViewSelections(): number[] {
+        return this._view.getSelections();
+    }
+
+    public getViewHover(): number[] {
+        return this._view.getHover();
     }
 
     public getVisibleNodeCount(item: TRef): number {

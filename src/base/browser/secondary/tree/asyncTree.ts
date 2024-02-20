@@ -476,6 +476,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     public getAnchor(): T | null {
         return this._tree.getAnchor();
     }
+    
+    public getViewAnchor(): number | null {
+        return this._tree.getViewAnchor();
+    }
 
     public setFocus(item: T): void {
         this._tree.setFocus(item);
@@ -484,6 +488,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     public getFocus(): T | null {
         return this._tree.getFocus();
     }
+    
+    public getViewFocus(): number | null {
+        return this._tree.getViewFocus();
+    }
 
     public setSelections(items: T[]): void {
         this._tree.setSelections(items);
@@ -491,6 +499,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getSelections(): T[] {
         return this._tree.getSelections();
+    }
+    
+    public getViewSelections(): number[] {
+        return this._tree.getViewSelections();
     }
 
     public setHover(item: null): void;
@@ -501,6 +513,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getHover(): T[] {
         return this._tree.getHover();
+    }
+    
+    public getViewHover(): number[] {
+        return this._tree.getViewHover();
     }
 
     public getVisibleNodeCount(item: T): number {
