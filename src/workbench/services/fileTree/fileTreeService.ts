@@ -131,7 +131,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             const root = await FileItem.resolve(rootStat, null, fileItemResolveOpts);
 
             // init tree
-            const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider));
+            const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider, sorter));
             const tree = this.__register(
                 new FileTree<FileItem, FuzzyScore>(
                     container,

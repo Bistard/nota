@@ -16,7 +16,7 @@ import { INotificationService } from "src/workbench/services/notification/notifi
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
-import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
 import { noop } from "src/base/common/performance";
@@ -33,31 +33,33 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
 
     private static readonly EXPAND_DELAY = Time.ms(500);
-    private readonly _delayExpand: Scheduler<{ item: FileItem, index: number; }>;
+    private readonly _pendingExpand: Scheduler<{ item: FileItem, index: number; }>;
 
     /**
      * Used to detect if 'onDragOver' is hovering on the same position, to avoid
      * duplicate calculations.
      */
     private readonly _prevDragOverState: { 
-        event?: DragEvent,              // previous event for comparsion
-        handledByRowInsertion: boolean, // is handled by row insertion previously
-        isDroppable: boolean,           // the previous droppability
+        event?: DragEvent,                           // previous event for later comparsion usage
+        handledByInsertion: IInsertionResult | null, // is handled by row insertion previously
+        isDroppable: boolean,                        // the previous droppability
     };
 
     /**
      * An executor specifically for hovering handle logic
      */
-    private readonly _hoverHandler: Reactivator;
+    private readonly _hoverController: Reactivator;
     
     /**
      * An executor for row insertion handle logic
      */
-    private _insertionIndicator?: RowInsertionIndicator;
+    private _insertionController?: RowInsertionController;
+    private readonly _sorter: IFileTreeSorter<FileItem>;
 
     // [constructor]
 
     constructor(
+        sorter: IFileTreeSorter<FileItem>,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
@@ -65,12 +67,9 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super();
-
-        this._prevDragOverState = { event: undefined, handledByRowInsertion: false, isDroppable: true };
-        this._hoverHandler = new Reactivator();
-        this.__initRowInsertion();
-
-        this._delayExpand = this.__register(
+        this._sorter = sorter;
+        this._prevDragOverState = { event: undefined, handledByInsertion: null, isDroppable: true };
+        this._pendingExpand = this.__register(
             new Scheduler(FileItemDragAndDropProvider.EXPAND_DELAY, async event => {
                 const { item } = event[0]!;
                 await this._tree.expand(item);
@@ -82,6 +81,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 await delayFor(Time.ms(10), () => this._tree.setHover(item, true));
             })
         );
+
+        // controller initialization
+        this._hoverController = new Reactivator();
+        this.__initInsertionController();
     }
 
     // [public methods]
@@ -102,7 +105,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
-        this._hoverHandler.reactivate();
+        this._hoverController.reactivate();
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): void {
@@ -116,7 +119,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
 
         if (!targetOver || targetIndex === undefined) {
-            this._delayExpand.cancel(true);
+            this._pendingExpand.cancel(true);
             return;
         }
     }
@@ -133,7 +136,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this._prevDragOverState.isDroppable = droppable.allowDrop;
         
         // derender every single time
-        this._insertionIndicator?.derender();
+        this._insertionController?.derender();
         this.__derenderDropOnRootEffect();
 
         if (!droppable.allowDrop) {
@@ -143,16 +146,16 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         /**
          * Row insertion need to be checked on every single 'onDragOver'.
          */
-        const isHandled = this._insertionIndicator?.handleRowInsertion(event, targetIndex);
-        if (isHandled) {
-            this._prevDragOverState.handledByRowInsertion = true;
+        const insertionResult = this._insertionController?.attemptInsert(event, targetIndex);
+        if (insertionResult) {
+            this._prevDragOverState.handledByInsertion = insertionResult;
 
             /**
              * Clean the possible hovering effect which remained by the previous
              * 'onDragOver'. Avoid having 'row insertion' and 'hover' effect at
              * the same time.
              */
-            this._delayExpand.cancel(true);
+            this._pendingExpand.cancel(true);
             if (this._tree.getHover().length > 0) {
                 this._tree.setHover(null);
             }
@@ -169,10 +172,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          * a standard drag over state where the item is not being inserted 
          * between rows.
          */
-        if (this._prevDragOverState.handledByRowInsertion) {
-            this._hoverHandler.reactivate();
+        if (this._prevDragOverState.handledByInsertion) {
+            this._hoverController.reactivate();
         }
-        this._prevDragOverState.handledByRowInsertion = false;
+        this._prevDragOverState.handledByInsertion = null;
 
         // special case: drop on root
         const dropOnRoot = this.__isDropOnRoot(targetOver);
@@ -190,11 +193,11 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          * Hovering check do not need to be checked on every single 'onDragOver'. 
          * Only needed after every `onDragEnter`.
          */
-        this._hoverHandler.execute(() => {
+        this._hoverController.execute(() => {
 
             // the target is not collapsible (file)
             if (!this._tree.isCollapsible(targetOver)) {
-                this._delayExpand.cancel(true);
+                this._pendingExpand.cancel(true);
     
                 if (targetOver.parent && !targetOver.parent.isRoot()) {
                     this._tree.setHover(targetOver.parent, true);
@@ -206,12 +209,12 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             // the target is collapsed thus it requies a delay of expanding
             if (this._tree.isCollapsed(targetOver)) {
                 this._tree.setHover(targetOver, false);
-                this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
+                this._pendingExpand.schedule({ item: targetOver, index: targetIndex }, true);
                 return;
             }
     
             // the target is already expanded
-            this._delayExpand.cancel(true);
+            this._pendingExpand.cancel(true);
             this._tree.setHover(targetOver, true);
         });
 
@@ -219,6 +222,20 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
+        
+        /**
+         * 'row insertion' drop handling logic
+         */
+        if (this._prevDragOverState.handledByInsertion) {
+            // TODO: confirmDragAndDrop
+            await this.__performDropInsertion(currentDragItems, targetOver);
+            return;
+        }
+
+        /**
+         * 'general hovering' drop handling logic
+         */
+        
         if (!targetOver) {
             targetOver = this.explorerTreeService.rootItem!;
         }
@@ -228,7 +245,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
 
         // expand folder immediately when drops
-        this._delayExpand.cancel(true);
+        this._pendingExpand.cancel(true);
         if (!targetOver.isRoot() && this._tree.isCollapsible(targetOver)) {
             await this._tree.expand(targetOver);
         }
@@ -238,44 +255,44 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             await this.__confirmDragAndDrop();
         }
 
-        if (__isCopyAction(event)) {
-            return await this.__handleOnDropCopy(currentDragItems, targetOver);
+        if (__isCopyOperation(event)) {
+            return await this.__performDropCopy(currentDragItems, targetOver);
         }
 
-        await this.__handleOnDropMove(currentDragItems, targetOver);
+        await this.__performDropMove(currentDragItems, targetOver);
     }
 
     public onDragEnd(event: DragEvent): void {
-        this._delayExpand.cancel(true);
+        this._pendingExpand.cancel(true);
         
         this._dragOnRootDisposable.dispose();
-        this._hoverHandler.deactivate();
-        this._insertionIndicator?.derender();
+        this._hoverController.deactivate();
+        this._insertionController?.derender();
     }
 
     public override dispose(): void {
         super.dispose();
-        this._insertionIndicator?.dispose();
+        this._insertionController?.dispose();
     }
 
     // [public helper methods]
 
     public bindWithTree(tree: IFileTree<FileItem, FuzzyScore>): void {
         (<Mutable<typeof tree>>this._tree) = tree;
-        this._insertionIndicator?.bindWithTree(tree);
+        this._insertionController?.bindWithTree(tree);
     }
 
     // [private helper methods]
 
-    private __initRowInsertion(): void {
+    private __initInsertionController(): void {
         
         // only enable insertion indicator during custom sortering
         const setIndicatorBy = (order: FileSortType) => {
             if (order === FileSortType.Custom) {
-                this._insertionIndicator ??= new RowInsertionIndicator();
+                this._insertionController ??= new RowInsertionController();
             } else {
-                this._insertionIndicator?.dispose();
-                this._insertionIndicator = undefined;
+                this._insertionController?.dispose();
+                this._insertionController = undefined;
             }
         };
 
@@ -334,7 +351,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
         const targetDir = targetOver;
 
-        if (__isCopyAction(event)) {
+        if (__isCopyOperation(event)) {
             return { allowDrop: true, effect: DragOverEffect.Copy };
         }
 
@@ -387,7 +404,61 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // TODO
     }
 
-    private async __handleOnDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
+    private async __performDropInsertion(currentDragItems: FileItem[], targetOver?: FileItem): Promise<void> {
+        
+        const insertionResult = this._prevDragOverState.handledByInsertion;
+        if (!insertionResult) {
+            return;
+        }
+
+        // If no specific target is given, insert at the end within the root item.
+        if (!targetOver) {
+            targetOver = this.explorerTreeService.rootItem!;
+            await this.__performDropMove(currentDragItems, targetOver);
+            return;
+        }
+
+        /**
+         * Determine the appropriate insertion point for the currently dragging
+         * items based on the current insertion:
+         *      - If inserting above the 'targetOver', move to a position that 
+         *          above it.
+         *      - If inserting below the 'targetOver', the moving destination is
+         *        simly 'targetOver'.
+         */
+        const targetAbove = (() => {
+            if (insertionResult.near === 'bottom') {
+                return targetOver;
+            } else {
+                const aboveItemIdx = this._tree.getItemIndex(targetOver) - 1;
+                return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
+            }
+        })();
+
+        // TEST
+        console.log('targetAbove:', targetAbove.basename);
+
+        /**
+         * The dragging items should be the same level of 'dragAbove'. The only
+         * exception is if the 'dragAbove' is a directory, we drop the dragging
+         * items at as the first children of that directory.
+         * 
+         * Sorting metadata need to be changed before perform the actual move
+         * action.
+         */
+        // TODO
+        if (this._tree.isCollapsible(targetAbove)) {
+            
+        } else {
+            
+        }
+
+        // the actual move
+        // TODO: disabled for now
+        // await this.__performDropMove(currentDragItems, targetAbove);
+    }
+
+    private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
 
         /**
          * Iterate every selecting items and try to copy to the destination. If
@@ -408,7 +479,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
     }
     
-    private async __handleOnDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
+    private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
         /**
          * Iterate every selecting items and try to move to the destination. If 
@@ -449,23 +520,34 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 }
 
-function __isCopyAction(event: DragEvent): boolean {
+function __isCopyOperation(event: DragEvent): boolean {
     return (event.ctrlKey && !IS_MAC) || (event.altKey && IS_MAC);
 }
 
 interface IInsertionResult {
     
+    /**
+     * Is the insertion near the top or bottom of the target.
+     */
+    readonly near: 'top' | 'bottom';
+
     /** 
      * Where should the insertion be rendered. 
      */
     readonly renderTop: number;
 }
 
-class RowInsertionIndicator extends Disposable {
+/**
+ * @internal
+ * @class Specifically for handling row insertion handling logic.
+ */
+class RowInsertionController extends Disposable {
 
     // [fields]
 
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
+    
+    /** The dom element for row insertion displaying */
     private _rowDisposable: IDisposable;
         
     // [constructor]
@@ -490,13 +572,17 @@ class RowInsertionIndicator extends Disposable {
         this.__derender();
     }
     
-    public handleRowInsertion(event: DragEvent, targetIndex: number | undefined): boolean {
+    /**
+     * @description Returns a result type indicates the attemptation successed,
+     * otherwise return false.
+     */
+    public attemptInsert(event: DragEvent, targetIndex: number | undefined): IInsertionResult | false {
         this.__derender();
 
         const result = this.__isInsertionApplicable(event, targetIndex);
         if (result) {
             this.__renderInsertionAt(result);
-            return true;
+            return result;
         }
 
         return false;
@@ -530,6 +616,7 @@ class RowInsertionIndicator extends Disposable {
 
         const renderTop = isNearTop ? currentItemTop : currentItemBottom;
         return {
+            near: isNearTop ? 'top' : 'bottom',
             renderTop: renderTop - 2,
         };
     }
