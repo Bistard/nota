@@ -36,8 +36,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     private readonly _pendingExpand: Scheduler<{ item: FileItem, index: number; }>;
 
     /**
-     * Used to detect if 'onDragOver' is hovering on the same position, to avoid
-     * duplicate calculations.
+     * Storing the previous 'onDragOver' state for performance and logic 
+     * handling purpose.
      */
     private readonly _prevDragOverState: { 
         event?: DragEvent,                           // previous event for later comparsion usage
@@ -97,7 +97,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         if (items.length === 1) {
             return items[0]!.name;
         }
-        return String(`${items.length} selections`);
+        return String(`Total ${items.length} selections`);
     }
 
     public onDragStart(event: DragEvent): void {
