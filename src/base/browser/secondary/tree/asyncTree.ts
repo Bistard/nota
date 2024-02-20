@@ -555,8 +555,12 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         this._tree.rerender(data);
     }
 
-    public size(): number {
-        return this._tree.size();
+    public treeSize(): number {
+        return this._tree.treeSize();
+    }
+
+    public viewSize(onlyVisible?: boolean): number {
+        return this._tree.viewSize(onlyVisible);
     }
 
     // [protected override method]

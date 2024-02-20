@@ -52,6 +52,14 @@ export interface IList<T> {
     rerender(): void;
 
     /**
+     * @description Provides the count of items currently in the view. By 
+     * default, it counts all items, including those not rendered.
+     * @param onlyVisible When true, counts only the items that are currently 
+     *                    rendered and visible.
+     */
+    viewSize(onlyVisible?: boolean): number;
+
+    /**
      * @description Deletes an amount of elements in the {@link IListView} at 
      * the given index, if necessary, inserts the provided items after the given 
      * index.
@@ -108,11 +116,6 @@ export interface IList<T> {
     getVisibleRange(): IRange;
 
     // [Item Related Methods]
-
-    /** 
-     * @description The number of items in the view (including unrendered ones).
-     */
-    getItemCount(): number;
 
     /**
      * @description Returns the item at given index.

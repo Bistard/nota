@@ -573,6 +573,14 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      */
     filter(visibleOnly?: boolean): void;
 
+    /**
+     * @description Provides the count of items currently in the view. By 
+     * default, it counts all items, including those not rendered.
+     * @param onlyVisible When true, counts only the items that are currently 
+     *                    rendered and visible.
+     */
+    viewSize(onlyVisible?: boolean): number;
+
     // [method - tree]
 
     /**
@@ -1105,6 +1113,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public filter(visibleOnly?: boolean): void {
         this._model.filter(visibleOnly);
+    }
+
+    public viewSize(onlyVisible: boolean = false): number {
+        return this._view.viewSize(onlyVisible);
     }
 
     // [private helper methods]
