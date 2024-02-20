@@ -49,11 +49,11 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * @param index1 The primary index at which the change should be applied.
      * @param index2 An optional secondary index used for operations like swapping.
      */
-    changeMetadataBy(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
+    updateMetadata(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
 
     /**
-     * @description Synchronizes the metadata for a given folder with the 
-     * current state of its files on disk. 
+     * @description Synchronizes the metadata in the cache for a given folder 
+     * with the current state of its files on disk. 
      * @param folder The folder whose metadata needs to be synchronized with its 
      *               disk state.
      * 
@@ -62,7 +62,7 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * @note Invoke this only when the folder's metadata is not yet loaded into 
      *       memory.
      */
-    syncMetadataWithDiskState(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
+    syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
 /**
@@ -130,7 +130,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
     }
 
-    public changeMetadataBy(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
+    public updateMetadata(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
         const parent = item.parent!;
         
         const order = this._metadataCache.has(parent.uri);
@@ -146,7 +146,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
-    public syncMetadataWithDiskState(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
+    public syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {
         const inCache = this._metadataCache.get(folder.uri);
         if (inCache) {
             return AsyncResult.ok();
