@@ -8,7 +8,7 @@ import { TreeLike, isNullable } from 'src/base/common/utilities/type';
 import { IFileService } from 'src/platform/files/common/fileService';
 import { FileTreeNode, buildFileTree } from 'test/utils/helpers';
 
-suite('buildFileTree Tests', () => {
+suite('buildFileTree-test', () => {
 
     let fileService: IFileService;
     const createdPaths: Set<string> = new Set();

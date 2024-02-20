@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { FileType } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
-import { AsyncResult, Result } from "src/base/common/result";
+import { AsyncResult, Result, panic } from "src/base/common/result";
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray, TreeLike } from "src/base/common/utilities/type";
@@ -46,13 +46,6 @@ export namespace Context {
     }
 }
 
-export function assertResult<T, E>(result: Result<T, E>): T {
-    if (result.isErr()) {
-        assert.fail();
-    }
-    return result.data;
-}
-
 /**
  * @deprecated This function acts exactly like `.unwrap()` method.
  */
@@ -69,8 +62,8 @@ export async function assertAsyncResult<T, E>(result: AsyncResult<T, E>): Promis
  * @description Returns a useless but simple object except that whatever you do 
  * to it will not throw any errors.
  */
-export function nullObject(): any {
-    return new Proxy({}, {
+export function nullObject<T = any>(): T {
+    return <T>new Proxy({}, {
         get: () => nullObject,
 		set: () => true,
     });
@@ -95,7 +88,7 @@ export function shouldThrow(fn: () => void): void {
     }
 
     if (noThrow) {
-        throw new Error(`The function "${fn}" should throws an exception.`);
+        panic(`The function "${fn}" should throws an exception.`);
     }
 }
 
@@ -147,14 +140,14 @@ export function generateTreeLike<TLeaf>(
 ): [NestedArray<TLeaf>, number] {
     let nodeCount = 0;
 
-    const __aux = (parent: NestedArray<TLeaf>, depth: number): NestedArray<TLeaf> => {
+    const dfs = (parent: NestedArray<TLeaf>, depth: number): NestedArray<TLeaf> => {
         // the deeper the node, the less likely the children can have.
         const childrenCnt = 1 + Random.int(size / depth);
 
         repeat(childrenCnt, () => {
             // the deeper the node, the more likely the node is a leaf.
             if (Random.maybe(1 / depth)) {
-                parent.push(__aux([], depth + 1));
+                parent.push(dfs([], depth + 1));
             } else {
                 parent.push(createLeaf());
             }
@@ -165,7 +158,7 @@ export function generateTreeLike<TLeaf>(
     };
     
     return [
-        __aux([], 1),
+        dfs([], 1),
         nodeCount,
     ];
 }
