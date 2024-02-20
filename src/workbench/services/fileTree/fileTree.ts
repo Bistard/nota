@@ -113,7 +113,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
 
         /**
          * Only focus the entire tree when:
-         *      1. no any traits exists or
+         *      1. no any traits exists in the view or
          *      2. the tree is focused.
          */
         this.__register(Event.any([
@@ -121,7 +121,8 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
             this.onDidChangeItemSelection,
             this.onDidChangeFocus
         ])(() => {
-            const noTraits = (this.getFocus() === null && this.getSelections().length === 0);
+            // REVIEW: perf - this fn triggered very frequently
+            const noTraits = (this.getViewFocus() === null && this.getViewSelections().length === 0);
             const isFocused = DomUtility.Elements.isElementFocused(this.DOMElement);
             this.DOMElement.classList.toggle('focused', noTraits && isFocused);
         }));

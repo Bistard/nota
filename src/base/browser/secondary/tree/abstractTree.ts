@@ -672,12 +672,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setAnchor(item: TRef): void;
 
     /**
-     * @description Returns the anchor item.
+     * @description Returns the anchor item in the tree perspective.
      */
     getAnchor(): T | null;
 
     /**
-     * @description Returns the anchored item indice only in the ListView 
+     * @description Returns the anchor item indice only in the ListView 
      * perspective. 
      */
     getViewAnchor(): number | null;
@@ -688,7 +688,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setFocus(item: TRef): void;
 
     /**
-     * @description Returns the focused item.
+     * @description Returns the focused item in the tree perspective.
      */
     getFocus(): T | null;
 
@@ -704,7 +704,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setSelections(items: TRef[]): void;
 
     /**
-     * @description Returns the selected items.
+     * @description Returns the selected items in the tree perspective.
      */
     getSelections(): T[];
 
@@ -725,7 +725,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setHover(item: TRef, recursive: boolean): void;
 
     /**
-     * @description Returns the hovered items.
+     * @description Returns the hovered items in the tree perspective.
      */
     getHover(): T[];
 
