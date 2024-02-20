@@ -46,10 +46,19 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * 
      * @param changeType The type of change to apply to the order metadata.
      * @param item The file tree item that is subject to the change.
-     * @param index1 The primary index at which the change should be applied.
-     * @param index2 An optional secondary index used for operations like swapping.
+     * @param index1 For 'Add' and 'Update', this is the index where the item is 
+     *               added or updated. For 'Remove', it's the index of the item 
+     *               to remove, and it's optional. For 'Swap', it's the index of 
+     *               the first item to be swapped.
+     * @param index2 For 'Swap', this is the index of the second item to be 
+     *               swapped with the first. Not used for other change types.
+     * 
+     * @panic when missing the provided index1 or index2.
      */
-    updateMetadata(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError>
+    updateMetadata(changeType: OrderChangeType.Add, item: TItem, index1: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    updateMetadata(changeType: OrderChangeType.Remove, item: TItem, index1?: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    updateMetadata(changeType: OrderChangeType.Update, item: TItem, index1: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    updateMetadata(changeType: OrderChangeType.Swap, item: TItem, index1: number, index2: number): AsyncResult<void, FileOperationError | SyntaxError>;
 
     /**
      * @description Synchronizes the metadata in the cache for a given folder 
@@ -130,7 +139,11 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
     }
 
-    public updateMetadata(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): AsyncResult<void, FileOperationError | SyntaxError> {
+    public updateMetadata(changeType: OrderChangeType.Add, item: TItem, index1: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadata(changeType: OrderChangeType.Remove, item: TItem, index1?: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadata(changeType: OrderChangeType.Update, item: TItem, index1: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadata(changeType: OrderChangeType.Swap, item: TItem, index1: number, index2: number): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadata(changeType: OrderChangeType, item: TItem, index1?: number, index2?: number): AsyncResult<void, FileOperationError | SyntaxError> {
         const parent = item.parent!;
         
         const order = this._metadataCache.has(parent.uri);
@@ -266,23 +279,20 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: true, overwrite: true, }));
     }
 
-    private __changeOrderBasedOnType(changeType: OrderChangeType, item: TItem, index1: number, index2: number | undefined): void {
+    private __changeOrderBasedOnType(changeType: OrderChangeType, item: TItem, index1?: number, index2?: number): void {
         const order = this.__getMetadataFromCache(item.parent!.uri)!;
         switch (changeType) {
             case OrderChangeType.Add:
-                order.splice(index1, 0, item.name);
+                order.splice(index1!, 0, item.name);
                 break;
-            case OrderChangeType.Remove:
-                order.splice(index1, 1);
+            case OrderChangeType.Remove: {
+                Arrays.remove(order, item.name, index1);
                 break;
-            case OrderChangeType.Swap:
-                if (index2 === undefined) {
-                    return;
-                }
-                Arrays.swap(order, index1, index2);
+            } case OrderChangeType.Swap:
+                Arrays.swap(order, index1!, index2!);
                 break;
             case OrderChangeType.Update:
-                order[index1] = item.name;
+                order[index1!] = item.name;
                 break;
         }
     }
