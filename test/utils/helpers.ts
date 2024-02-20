@@ -257,30 +257,32 @@ export type FileTreeNode = {
 export async function buildFileTree<T extends FileTreeNode>(fileService: IFileService, rootURI: URI, opts: IBuildFileTreeOptions, tree: TreeLike<T>): Promise<void> {
 
     // Helper function to create a file or directory based on the node type
-    async function createNode(uri: URI, node: T): Promise<void> {
+    async function createNode(baseURI: URI, node: T): Promise<void> {
+        const target = URI.join(baseURI, node.name);
+        
         // dir
         if (node.type === FileType.DIRECTORY) {
-            await fileService.createDir(uri).unwrap();
+            await fileService.createDir(target).unwrap();
             return;
         }
 
         // file
         const data = node.data;
         const buffer = typeof data === 'string' ? DataBuffer.fromString(data) : data;
-        await fileService.createFile(uri, buffer, { overwrite: opts.overwrite }).unwrap();
+        await fileService.createFile(target, buffer, { overwrite: opts.overwrite }).unwrap();
     }
 
     // dfs
-    async function dfs(currentURI: URI, treeNode: TreeLike<T>): Promise<void> {
-        await createNode(currentURI, treeNode.value);
+    async function dfs(baseURI: URI, treeNode: TreeLike<T>): Promise<void> {
+        await createNode(baseURI, treeNode.value);
+        baseURI = URI.join(baseURI, treeNode.value.name);
 
-        if (!treeNode.children || treeNode.children.length === 0) {
+        if (!treeNode.children || !treeNode.children.length || treeNode.value.type !== FileType.DIRECTORY) {
             return;
         }
 
         for (const child of treeNode.children) {
-            const childURI = URI.join(currentURI, child.value.name);
-            await dfs(childURI, child); // Recursively build the tree
+            await dfs(baseURI, child);
         }
     }
 

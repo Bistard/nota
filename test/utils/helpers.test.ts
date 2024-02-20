@@ -11,41 +11,40 @@ import { FileTreeNode, buildFileTree } from 'test/utils/helpers';
 suite('buildFileTree-test', () => {
 
     let fileService: IFileService;
-    const createdPaths: Set<string> = new Set();
-    const createdFileContents = new Map<string, string>();
+    const createdDirs: Set<string> = new Set();
+    const createdFiles = new Map<string, string>();
 
     const rootURI = URI.fromFile('/root');
 
     before(() => {
         fileService = <any>{
             createDir: (uri: URI) => {
-                createdPaths.add(uri.toString());
-                return AsyncResult.ok(Promise.resolve());
+                createdDirs.add(URI.toString(uri));
+                return AsyncResult.ok();
             },
             createFile: (uri: URI, buffer: DataBuffer) => {
-                const strURI = uri.toString();
-                createdPaths.add(strURI);
-                createdFileContents.set(strURI, buffer.toString());
-                return AsyncResult.ok(Promise.resolve());
+                const strURI = URI.toString(uri);
+                createdFiles.set(strURI, buffer.toString());
+                return AsyncResult.ok();
             },
         };
     });
 
     beforeEach(() => {
-        createdPaths.clear();
-        createdFileContents.clear();
+        createdDirs.clear();
+        createdFiles.clear();
     });
 
     function assertDir(uri: URI): void {
-        const strURI = uri.toString();
-        assert.ok(createdPaths.has(strURI), `Directory '${strURI}' should exist`);
+        const strURI = URI.toString(uri);
+        assert.ok(createdDirs.has(strURI), `Directory '${strURI}' should exist`);
     }
     
     async function assertFile(uri: URI, data?: string): Promise<void> {
-        const strURI = uri.toString();
-        assert.ok(createdPaths.has(strURI), `File '${strURI}' should exist`);
+        const strURI = URI.toString(uri);
+        assert.ok(createdFiles.has(strURI), `File '${strURI}' should exist`);
         if (!isNullable(data)) {
-            assert.strictEqual(createdFileContents.get(strURI), data, `File content for '${strURI}' does not match`);
+            assert.strictEqual(createdFiles.get(strURI), data, `File content for '${strURI}' does not match`);
         }
     }
 
