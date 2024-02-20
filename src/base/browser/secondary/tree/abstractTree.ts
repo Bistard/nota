@@ -760,6 +760,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * @description Returns the item at given index.
      * @param index The index of the item.
+     * @panic
      */
     getItem(index: number): T;
 

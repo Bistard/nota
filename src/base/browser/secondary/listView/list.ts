@@ -120,6 +120,7 @@ export interface IList<T> {
     /**
      * @description Returns the item at given index.
      * @param index The index of the item.
+     * @panic 
      */
     getItem(index: number): T;
 
