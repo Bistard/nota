@@ -1,8 +1,12 @@
 import * as assert from 'assert';
+import { DataBuffer } from 'src/base/common/files/buffer';
+import { FileType } from 'src/base/common/files/file';
+import { URI } from 'src/base/common/files/uri';
 import { AsyncResult, Result } from "src/base/common/result";
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
-import { NestedArray } from "src/base/common/utilities/type";
+import { NestedArray, TreeLike } from "src/base/common/utilities/type";
+import { IFileService } from 'src/platform/files/common/fileService';
 
 let _hitCount = 0;
 
@@ -235,4 +239,58 @@ export function printNaryTreeLike<TNode>(
     };
 
     __print(root, '', false);
+}
+
+export interface IBuildFileTreeOptions {
+    readonly overwrite?: boolean;
+}
+
+export type FileTreeNode = {
+    readonly name: string;
+    readonly type: FileType;
+    readonly data?: string | DataBuffer;
+};
+
+/**
+ * @description Asynchronously builds a file tree starting from a given root URI 
+ * using the provided file service. Each node in the tree represents either a 
+ * file or a directory.
+ * @param fileService The file service.
+ * @param rootURI The base URI representing the root directory where the tree 
+ *                will be built.
+ * @param opts Options for the file tree building process.
+ * @param tree The tree structure representing the file system to build.
+ */
+export async function buildFileTree<T extends FileTreeNode>(fileService: IFileService, rootURI: URI, opts: IBuildFileTreeOptions, tree: TreeLike<T>): Promise<void> {
+
+    // Helper function to create a file or directory based on the node type
+    async function createNode(uri: URI, node: T): Promise<void> {
+        // dir
+        if (node.type === FileType.DIRECTORY) {
+            await fileService.createDir(uri).unwrap();
+            return;
+        }
+
+        // file
+        const data = node.data;
+        const buffer = typeof data === 'string' ? DataBuffer.fromString(data) : data;
+        await fileService.createFile(uri, buffer, { overwrite: opts.overwrite }).unwrap();
+    }
+
+    // dfs
+    async function dfs(currentURI: URI, treeNode: TreeLike<T>): Promise<void> {
+        await createNode(currentURI, treeNode.value);
+
+        if (!treeNode.children || treeNode.children.length === 0) {
+            return;
+        }
+
+        for (const child of treeNode.children) {
+            const childURI = URI.join(currentURI, child.value.name);
+            await dfs(childURI, child); // Recursively build the tree
+        }
+    }
+
+    // Start building the tree from the root
+    await dfs(rootURI, tree);
 }

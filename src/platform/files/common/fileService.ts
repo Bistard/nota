@@ -88,6 +88,7 @@ export interface IFileService extends IDisposable, IService {
 
     /** 
      * @description Creates a directory described by a given URI. 
+     * @note No action is taken if the 'uri' is already existed.
      */
     createDir(uri: URI): AsyncResult<void, FileOperationError>;
 
