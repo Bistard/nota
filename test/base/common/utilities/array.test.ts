@@ -22,6 +22,11 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.remove(arr, 1), [2, 3, 4, 5]);
         assert.deepStrictEqual(Arrays.remove(arr, 1), [2, 3, 4, 5]);
         assert.deepStrictEqual(Arrays.remove(arr, 5), [2, 3, 4]);
+
+        // with provided index
+        assert.deepStrictEqual(Arrays.remove(arr, 2, 0), [3, 4]);
+        assert.deepStrictEqual(Arrays.remove(arr, 4, 1), [3]);
+        assert.deepStrictEqual(Arrays.remove(arr, 100, 0), []);
     });
 
     test('fill', () => {

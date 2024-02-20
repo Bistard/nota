@@ -61,10 +61,12 @@ export namespace Arrays {
      * modify the original array).
      * @param array The given array.
      * @param item The item to be removed.
+     * @param index The optional index of the removing item in the target array.
+     *              When the index is provided, the provided item doesn't matter.
      * @returns Returns the same array.
      */
-    export function remove<T>(array: T[], item: T): T[] {
-        const find = array.indexOf(item);
+    export function remove<T>(array: T[], item: T, index?: number): T[] {
+        const find = index ?? array.indexOf(item);
         if (find !== -1) {
             array.splice(find, 1);
         }
