@@ -263,10 +263,10 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
             .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
             .andThen(order => {
-                const scheduler = new UnbufferedScheduler<URI>(
+                const scheduler = this.__register(new UnbufferedScheduler<URI>(
                     this._cacheClearDelay, 
                     () => this._metadataCache.delete(folder.uri),
-                );
+                ));
                 this._metadataCache.set(folder.uri, [scheduler, order]);
                 scheduler.schedule(folder.uri);
                 return ok();
@@ -315,6 +315,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     private __computeMetadataURI(uri: URI): URI {
         const hashCode = this._hash(URI.toString(uri));
         const orderFileName = hashCode.slice(2) + '.json';
+        // console.log('(internal hash) uri:', URI.toString(uri));
+        // console.log('(internal hash) hash:', hashCode);
         const metadataURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
         return metadataURI;
     }
