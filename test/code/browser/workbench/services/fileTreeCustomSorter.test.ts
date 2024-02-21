@@ -10,7 +10,7 @@ import { FileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem } from 'src/workbench/services/fileTree/fileItem';
 import { FileTreeCustomSorter, OrderChangeType } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
-import { FileTreeNode, buildFileTree, findFileItemByPath, printFileItem, printFileStat } from 'test/utils/helpers';
+import { FileTreeNode, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 
 suite('fileTreeCustomSorter-test', () => {
@@ -26,7 +26,7 @@ suite('fileTreeCustomSorter-test', () => {
         await fileService.createDir(rootURI).unwrap();
     }
 
-    // Always refresh the tree structure to the file system hierarchy
+    // Always refresh the tree structure to the file system hierarchy befor every test
     async function refreshFileSystem() {
         const tree: TreeLike<FileTreeNode> = {
             value: {
@@ -49,7 +49,7 @@ suite('fileTreeCustomSorter-test', () => {
             ],
         };
 
-        // build the file tree hierarchy first
+        // build the file tree hierarchy
         sorter?.dispose();
         sorter = new FileTreeCustomSorter(rootURI, hash, fileService, new NullLogger());
         await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, tree);
@@ -84,7 +84,7 @@ suite('fileTreeCustomSorter-test', () => {
         return root;
     }
 
-    function __getHashMetadata(folder: URI): URI {
+    function getMetadataURI(folder: URI): URI {
         const root = rootURI;
         const rawHash = hash(URI.toString(folder));
 
@@ -92,22 +92,33 @@ suite('fileTreeCustomSorter-test', () => {
         const metadataName = rawHash.slice(2);
 
         const metadataURI = URI.join(root, subDir, `${metadataName}.json`);
-
         return metadataURI;
+    }
+
+    /** Only for testing purpose */
+    class TestUtil {
+        
+        public static async printRootStat(): Promise<void> {
+            const rootStat = await fileService.stat(rootURI, { resolveChildren: true, resolveChildrenRecursive: true }).unwrap();
+            printFileStat(rootStat);
+        }
+        public static async getMetadataContent(folder: URI): Promise<string> {
+            return (await fileService.readFile(getMetadataURI(folder)).unwrap()).toString();
+        }
     }
 
     /**
      * @description Check if the given folder has its corresponding metadata 
      * file in the disk. Not just checking the existance, but also checking the 
      * actual data in that metadata file.
-     * @param folder The metadata corresponding folder name.
-     * @param exist If the folder should has corresponding metadata.
-     * @param order The actual data in the metadata.
+     * @param folder The metadata corresponding to the folder name.
+     * @param exist If the folder should has a corresponding metadata.
+     * @param order The actual data in the metadata file.
      */
     async function assertMetadataInDisk(folder: URI, exist: false): Promise<void>;
     async function assertMetadataInDisk(folder: URI, exist: true, order: string[]): Promise<void>;
     async function assertMetadataInDisk(folder: URI, exist: boolean, order?: string[]): Promise<void> {
-        const metadataURI = __getHashMetadata(folder);
+        const metadataURI = getMetadataURI(folder);
 
         // check metadata existance first
         assert.strictEqual(exist, await fileService.exist(metadataURI).unwrap(), `'${URI.toString(folder)}' metadata does not match existance. Expect '${exist}'`);
@@ -125,8 +136,8 @@ suite('fileTreeCustomSorter-test', () => {
         assert.ok(Arrays.exactEquals(actualOrders, expectOrders), `'${URI.toString(folder)}' orders are not exactly equal`);
     }
 
-    async function updateMetadataManually(folder: URI, order: string[]): Promise<void> {
-        const metadataURI = __getHashMetadata(folder);
+    async function updateMetadataToDiskManually(folder: URI, order: string[]): Promise<void> {
+        const metadataURI = getMetadataURI(folder);
         const buffer = DataBuffer.fromString(JSON.stringify(order));
         await fileService.writeFile(metadataURI, buffer, { overwrite: true, create: true }).unwrap();
     }
@@ -162,7 +173,7 @@ suite('fileTreeCustomSorter-test', () => {
 
         test('manually update the metadata to achieve "file goes first"', async () => {
             // update manually
-            await updateMetadataManually(
+            await updateMetadataToDiskManually(
                 URI.join(rootURI, 'root'),
                 ['file1', 'file2', 'file3', 'folder1', 'folder2', ],
             );
@@ -179,4 +190,120 @@ suite('fileTreeCustomSorter-test', () => {
         });
     });
 
+    suite('Cache to Disk (updateMetadata)', () => {
+
+        before(() => init());
+        beforeEach(async () => refreshFileSystem());
+        after(async () => cleanCache());
+
+        // assert function
+        async function assertUpdateAction(opts: {
+            action: (root: FileItem) => Promise<void>;
+            assertFn: (newRoot: FileItem) => Promise<void>;
+        }): Promise<void> 
+        {
+            // before action is applied
+            const root = await buildFileItem(rootURI);
+            await opts.action(root);
+
+            // after action is applied
+            const newRoot = await buildFileItem(rootURI);
+            await opts.assertFn(newRoot);
+        }
+
+        test('Remove: Verify Metadata After Item Removal', async () => {
+            await assertUpdateAction({
+                action: async root => {
+                    // 'folder1'
+                    const item = findFileItemByPath(root, [0])!;
+                    assert.strictEqual(item.name, 'folder1');
+
+                    // remove
+                    await sorter.updateMetadata(OrderChangeType.Remove, item, 0).unwrap();
+                },
+                assertFn: async () => {
+                    await assertMetadataInDisk(
+                        URI.join(rootURI, 'root'), 
+                        true,
+                        ['folder2', 'file1', 'file2', 'file3'],
+                    );
+                },
+            });
+        });
+
+        test('Swap: Confirm Metadata Reflects Swap Operation', async () => {
+            await assertUpdateAction({
+                action: async root => {
+                    // 'folder1'
+                    const item = findFileItemByPath(root, [0])!;
+                    assert.strictEqual(item.name, 'folder1');
+
+                    // Swap
+                    await sorter.updateMetadata(OrderChangeType.Swap, item, 0, 1).unwrap();
+                },
+                assertFn: async () => {
+                    await assertMetadataInDisk(
+                        URI.join(rootURI, 'root'), 
+                        true,
+                        ['folder2', 'folder1', 'file1', 'file2', 'file3'],
+                    );
+                },
+            });
+        });
+        
+        test('Add: Ensure Metadata After Item Addition', async () => {
+            await assertUpdateAction({
+                action: async root => {
+                    const uri = URI.join(rootURI, 'root', 'folder3');
+
+                    // create 'folder3' in the disk
+                    await fileService.createDir(uri).unwrap();
+
+                    // 'folder3'
+                    const folder3 = new FileItem(
+                        await fileService.stat(uri).unwrap(),
+                        root,
+                        [],
+                    );
+
+                    // Swap
+                    await sorter.updateMetadata(OrderChangeType.Add, folder3, 2).unwrap();
+                },
+                assertFn: async () => {
+                    await assertMetadataInDisk(
+                        URI.join(rootURI, 'root'), 
+                        true,
+                        ['folder1', 'folder2', 'folder3', 'file1', 'file2', 'file3'],
+                    );
+                },
+            });
+        });
+        
+        test('Update: Check Metadata After Item Rename', async () => {
+            await assertUpdateAction({
+                action: async root => {
+                    const from = URI.join(rootURI, 'root', 'folder2');
+                    const to = URI.join(rootURI, 'root', 'folder3');
+
+                    // move from 'folder2' to 'folder3'
+                    const toStat = await fileService.moveTo(from, to).unwrap();
+
+                    // 'folder3'
+                    const folder3 = new FileItem(toStat, root, []);
+
+                    // Update
+                    await sorter.updateMetadata(OrderChangeType.Update, folder3, 1).unwrap();
+                },
+                assertFn: async () => {
+                    await assertMetadataInDisk(
+                        URI.join(rootURI, 'root'), 
+                        true,
+                        ['folder1', 'folder3', 'file1', 'file2', 'file3'],
+                    );
+                },
+            });
+        });
+
+
+    });
 });

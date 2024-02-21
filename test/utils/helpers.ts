@@ -297,7 +297,7 @@ export async function buildFileTree<T extends FileTreeNode>(fileService: IFileSe
     
     // clean the entire root if needed
     if (opts.cleanRoot) {
-        await fileService.delete(rootURI).unwrap();
+        await fileService.delete(rootURI, { recursive: true }).unwrap();
     }
 
     // Helper function to create a file or directory based on the node type
@@ -332,4 +332,29 @@ export async function buildFileTree<T extends FileTreeNode>(fileService: IFileSe
 
     // Start building the tree from the root
     await dfs(rootURI, tree);
+}
+
+/**
+ * @description Finds a nested FileItem within a hierarchical structure based on 
+ * a given path of indices.
+ * 
+ * This function traverses the hierarchy of FileItem objects, navigating down 
+ * through children at each level according to the provided `path`. If any level 
+ * does not exist, the function returns `undefined`.
+ * 
+ * @param item The root item from which to start the search.
+ * @param path An array of indices representing the path to the desired FileItem.
+ * @returns The FileItem at the specified path, or `undefined` if not found.
+ */
+export function findFileItemByPath(item: FileItem, location: number[]): FileItem | undefined {
+
+    for (const index of location) {
+        const child = item.children[index];
+        if (!child) {
+            return undefined;
+        }
+        item = child;
+    }
+
+    return item;
 }
