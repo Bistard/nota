@@ -99,4 +99,58 @@ suite('buildFileTree-test', () => {
         await assertFile(URI.join(rootURI, 'parentDir', 'file1.txt'), 'Content 1');
         await assertFile(URI.join(rootURI, 'parentDir', 'file2.txt'), 'Content 2');
     });
+
+    test('Should accurately create complex nested file and directory structure', async () => {
+        /**
+         * root
+         * ├─file1
+         * ├─file2
+         * ├─folder1
+         * |  ├─folder1_file1
+         * |  ├─folder1_file2
+         * |  └─folder1_file3
+         * ├─file3
+         * └─folder2
+         */
+        const tree: TreeLike<FileTreeNode> = {
+            value: {
+                name: 'root',
+                type: FileType.DIRECTORY,
+            },
+            children: [
+                { value: { name: 'file1', type: FileType.FILE, data: 'Data for file1' } },
+                { value: { name: 'file2', type: FileType.FILE, data: 'Data for file2' } },
+                {
+                    value: { name: 'folder1', type: FileType.DIRECTORY },
+                    children: [
+                        { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
+                        { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
+                        { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+                    ],
+                },
+                { value: { name: 'file3', type: FileType.FILE, data: 'Data for file3' } },
+                { value: { name: 'folder2', type: FileType.DIRECTORY } },
+            ],
+        };
+
+        await buildFileTree(fileService, rootURI, {}, tree);
+        const root = URI.join(rootURI, 'root');
+
+        // Assert root directory and immediate children (files and folders)
+        assertDir(URI.join(root));
+        await assertFile(URI.join(root, 'file1'), 'Data for file1');
+        await assertFile(URI.join(root, 'file2'), 'Data for file2');
+        assertDir(URI.join(root, 'folder1'));
+        await assertFile(URI.join(root, 'file3'), 'Data for file3');
+        assertDir(URI.join(root, 'folder2'));
+
+        // Assert contents of folder1
+        assertDir(URI.join(root, 'folder1'));
+        await assertFile(URI.join(root, 'folder1', 'folder1_file1'), 'Data for folder1_file1');
+        await assertFile(URI.join(root, 'folder1', 'folder1_file2'), 'Data for folder1_file2');
+        await assertFile(URI.join(root, 'folder1', 'folder1_file3'), 'Data for folder1_file3');
+
+        // folder2 should be empty but exist
+        assertDir(URI.join(rootURI, 'root', 'folder2'));
+    });
 });

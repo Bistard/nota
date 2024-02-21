@@ -2,11 +2,12 @@ import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { FileType } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
-import { AsyncResult, Result, panic } from "src/base/common/result";
+import { AsyncResult, panic } from "src/base/common/result";
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray, TreeLike } from "src/base/common/utilities/type";
 import { IFileService } from 'src/platform/files/common/fileService';
+import { FileItem } from 'src/workbench/services/fileTree/fileItem';
 
 let _hitCount = 0;
 
@@ -232,6 +233,21 @@ export function printNaryTreeLike<TNode>(
     };
 
     __print(root, '', false);
+}
+
+/**
+ * @description Prints the file structure starting from the given 'root' 
+ * FileItem. This is a specialized usage of {@link printNaryTreeLike} function 
+ * tailored for printing file items.
+ * @param root The root of the file structure to be printed.
+ */
+export function printFileItem(root: FileItem): void {
+    printNaryTreeLike(
+        root,
+        node => node.name,
+        node => node.children.length > 0,
+        node => node.children,
+    );
 }
 
 export interface IBuildFileTreeOptions {
