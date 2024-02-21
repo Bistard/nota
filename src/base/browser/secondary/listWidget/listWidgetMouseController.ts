@@ -169,7 +169,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
             Math.max(toFocused, anchor) + 1
         );
         const currSelection = this._view.getSelections().sort((a, b) => a - b);
-        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insert(currSelection, anchor)), anchor);
+        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insertSorted(currSelection, anchor)), anchor);
         if (!contiguousRange.length) {
             return;
         }
