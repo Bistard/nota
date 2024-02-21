@@ -146,6 +146,8 @@ export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
  * 
  * If stat is out of updated, invoking refreshChildren will automatically 
  * rebuild the whole tree structure.
+ * 
+ * @note Use {@link FileItem.resolve} to build the hierarchy.
  */
 export class FileItem implements IFileItem<FileItem> {
 
@@ -167,9 +169,9 @@ export class FileItem implements IFileItem<FileItem> {
     // [constructor]
 
     /**
-     * Private constructor: use {@link FileItem.build} instead.
+     * Use {@link FileItem.build} instead. Do not construct 
      */
-    private constructor(
+    constructor(
         stat: IResolvedFileStat,
         parent: FileItem | null,
         children: FileItem[],
@@ -238,6 +240,7 @@ export class FileItem implements IFileItem<FileItem> {
             }
         }
 
+        // empty folder will not be notified
         if (children.length && cmp) {
             await tryOrDefault(null, () => opts.beforeCmp?.(root), opts.onError);
             children.sort(cmp);

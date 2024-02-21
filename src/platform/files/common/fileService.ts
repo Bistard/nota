@@ -775,7 +775,7 @@ export class FileService extends Disposable implements IFileService {
         // Assert provider
         const provider = this._providers.get(uri.scheme);
         if (!provider) {
-            return err(new FileOperationError(`no provider found given ${uri.scheme}`, FileOperationErrorType.OTHERS));
+            return err(new FileOperationError(`no provider found for the given schema: '${uri.scheme}'`, FileOperationErrorType.OTHERS));
         }
 
         return ok(provider);
