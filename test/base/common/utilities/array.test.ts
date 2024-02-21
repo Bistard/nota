@@ -29,6 +29,37 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.remove(arr, 100, 0), []);
     });
 
+    suite('removeByIndex', function() {
+        
+        test('should remove single element from array', function() {
+            const array = [1, 2, 3, 4];
+            const indices = [2];
+            Arrays.removeByIndex(array, indices);
+            assert.deepStrictEqual(array, [1, 2, 4]);
+        });
+
+        test('should remove multiple elements from array', function() {
+            const array = ['a', 'b', 'c', 'd', 'e'];
+            const indices = [1, 3];
+            Arrays.removeByIndex(array, indices);
+            assert.deepStrictEqual(array, ['a', 'c', 'e']);
+        });
+
+        test('should handle empty indices array', function() {
+            const array = [10, 20, 30];
+            const indices = [];
+            Arrays.removeByIndex(array, indices);
+            assert.deepStrictEqual(array, [10, 20, 30]);
+        });
+
+        test('should ignore out-of-bound indices', function() {
+            const array = [5, 6, 7];
+            const indices = [-1, 3, 5];
+            Arrays.removeByIndex(array, indices);
+            assert.deepStrictEqual(array, [5, 6, 7]);
+        });
+    });
+
     test('fill', () => {
         assert.deepStrictEqual(Arrays.fill('hello', 0), []);
         assert.deepStrictEqual(Arrays.fill('hello', 1), ['hello']);

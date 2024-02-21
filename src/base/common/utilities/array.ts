@@ -7,7 +7,7 @@ export namespace Arrays {
 
     /**
      * @description Clear an array.
-     * @returns A reference to the same array.
+     * @returns Returns the same array.
      */
     export function clear<T>(array: T[]): T[] {
         array.length = 0;
@@ -15,7 +15,8 @@ export namespace Arrays {
     }
 
     /**
-     * @description Swap element at index1 with element at index2
+     * @description Swap element at index1 with element at index2.
+     * @returns Returns the same array.
      */
     export function swap<T>(array: T[], index1: number, index2: number): T[] {
         const item1 = array[index1];
@@ -42,6 +43,7 @@ export namespace Arrays {
      * @description Fills an array with data with n times.
      * @param data The data to be filled.
      * @param size The size of the array.
+     * @returns Returns the same array.
      */
     export function fill<T>(data: T, size: number): T[] {
         return Array(size).fill(data);
@@ -51,14 +53,15 @@ export namespace Arrays {
      * @description Returns a new elements of an array that removed all the 
      * falsy elements.
      * @param array The given array.
+     * @returns Returns the same array.
      */
     export function coalesce<T>(array: ReadonlyArray<T | undefined | null>): T[] {
         return <T[]>array.filter(e => !!e);
     }
 
     /**
-     * @description Try to removes the first given item from the given array (will 
-     * modify the original array).
+     * @description Try to removes the first given item from the given array (
+     * will mutate the original array).
      * @param array The given array.
      * @param item The item to be removed.
      * @param index The optional index of the removing item in the target array.
@@ -74,17 +77,42 @@ export namespace Arrays {
     }
 
     /**
+     * @description Removes elements from an array at the specified indices. The 
+     * original array is mutated.
+     * 
+     * @param array The given array.
+     * @param indice An array of indices at which elements should be removed. 
+     *               Indices do not need to be in any particular order.
+     * @returns Returns the same array.
+     */
+    export function removeByIndex<T>(array: T[], indice: number[]): T[] {
+        
+        // Sort the indexes in descending order
+        indice = indice.sort((a, b) => b - a);
+
+        for (const index of indice) {
+            if (index >= 0 && index < array.length) {
+                array.splice(index, 1);
+            }
+        }
+
+        return array;
+    }
+
+    /**
      * @description Reversely iterate the given array.
      * @param array The given array.
      * @param each The visit callback for each element in array. Returns true to
      *             break the iteration.
+     * @returns Returns the same array.
      */
-    export function reverseIterate<T>(array: T[], each: (element: T, index: number) => boolean | void | undefined): void {
+    export function reverseIterate<T>(array: T[], each: (element: T, index: number) => boolean | void | undefined): T[] {
         for (let idx = array.length - 1; idx >= 0; idx--) {
             if (each(array[idx]!, idx) === true) {
                 break;
             }
         }
+        return array;
     }
 
     /**
@@ -95,6 +123,7 @@ export namespace Arrays {
      * @param cmp The compare function. 
      *                  true -> `a` before `b`
      *                  false -> `a` after `b`
+     * @returns Returns the same array.
      */
     export function insert<T>(sorted: T[], insert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): T[] {
 
