@@ -1,3 +1,4 @@
+import { panic } from "src/base/common/result";
 import { CompareOrder, NonUndefined } from "src/base/common/utilities/type";
 
 /**
@@ -77,11 +78,11 @@ export namespace Arrays {
     }
 
     /**
-     * @description Removes elements from an array at the specified indices. The 
+     * @description Removes elements from an array at the specified indice. The 
      * original array is mutated.
      * 
      * @param array The given array.
-     * @param indice An array of indices at which elements should be removed. 
+     * @param indice An array of indice at which elements should be removed. 
      *               Indices do not need to be in any particular order.
      * @returns Returns the same array.
      */
@@ -144,6 +145,54 @@ export namespace Arrays {
         
         sorted.splice(i, 0, insert);
         return sorted;
+    }
+
+    /**
+     * @description Inserts multiple arrays of elements into the original array 
+     * at specified indice. 
+     * 
+     * @note Each index in the `indice` array refers to a position in the 
+     * original array before any insertions. The original array is mutated.
+     * 
+     * @param array The array to be inserted.
+     * @param indice An array of indice where each array of elements from the 
+     *               `elements` parameter will be inserted.
+     * @param elements An array of arrays, where each inner array contains 
+     *                 elements to be inserted at the corresponding index in the 
+     *                 `indice` array.
+     * @returns The original array.
+     * @example
+     * const originalArray = [1, 3];
+     * insertByIndex(originalArray, [0, 1, 2], [[0], [2], [4]]);
+     * console.log(originalArray); // Output: [0, 1, 2, 3, 4]
+     */
+    export function insertByIndex<T>(array: T[], indice: number[], elements: T[][]): T[] {
+        
+        // validate input lengths
+        if (indice.length !== elements.length) {
+            panic("[insertByIndex] The lengths of 'indice' and 'elements' arrays does not match");
+        }
+
+        // offset to adjust insertion points
+        let totalInserted = 0;
+
+        indice.forEach((index, i) => {
+            const adjustedIndex = index + totalInserted;
+            const toInsert = elements[i]!;
+
+            // Check if the adjusted index is within the bounds of the array after previous insertions
+            if (adjustedIndex > array.length) {
+                panic("[insertByIndex] Index out of bounds after adjustments");
+            }
+
+            // Insert the elements at the adjusted index
+            array.splice(adjustedIndex, 0, ...toInsert);
+
+            // Update the total number of elements inserted
+            totalInserted += toInsert.length;
+        });
+
+        return array;
     }
 
     /**

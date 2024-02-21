@@ -88,6 +88,49 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.insert([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
+    suite('insertByIndex', function() {
+        
+        test('Insert single elements at different positions', function() {
+          const originalArray = [1, 3];
+          const result = Arrays.insertByIndex(originalArray, [0, 2], [[0], [4]]);
+          assert.deepEqual(result, [0, 1, 3, 4]);
+        });
+      
+        test('Insert multiple elements at a single position', function() {
+          const originalArray = [1, 3];
+          const result = Arrays.insertByIndex(originalArray, [1], [[2, 2.5]]);
+          assert.deepEqual(result, [1, 2, 2.5, 3]);
+        });
+      
+        test('Insert elements at consecutive positions', function() {
+          const originalArray = ['a', 'd'];
+          const result = Arrays.insertByIndex(originalArray, [1, 2], [['b', 'c'], ['e']]);
+          assert.deepEqual(result, ['a', 'b', 'c', 'd', 'e']);
+        });
+      
+        test('Insert with no elements (no-op)', function() {
+          const originalArray = [10, 20];
+          const result = Arrays.insertByIndex(originalArray, [], []);
+          assert.deepEqual(result, [10, 20]);
+        });
+      
+        test('Insert at the end of the array', function() {
+          const originalArray = [1, 2];
+          const result = Arrays.insertByIndex(originalArray, [2], [[3]]);
+          assert.deepEqual(result, [1, 2, 3]);
+        });
+      
+        test('Attempt insert with mismatched indice and elements length', function() {
+          const originalArray = [1, 2, 3];
+          assert.throws(() => Arrays.insertByIndex(originalArray, [1], [[4], [5]]));
+        });
+      
+        test('Attempt insert out of bounds', function() {
+          const originalArray = [1, 2, 3];
+          assert.throws(() => Arrays.insertByIndex(originalArray, [4], [[5]]));
+        });
+      });
+
     test('exactEquals', () => {
         const ref = [1, 2, 3];
         assert.strictEqual(Arrays.exactEquals([], []), true);
