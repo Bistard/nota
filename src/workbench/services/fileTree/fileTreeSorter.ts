@@ -1,5 +1,8 @@
+import { Time } from "src/base/common/date";
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
+import { panic } from "src/base/common/result";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
@@ -70,7 +73,8 @@ export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDispos
 
     /**
      * @internal
-     * @description Exposing the internal custom sorter to the client.
+     * @description Exposing the internal custom sorter. Only invoke this if you
+     * know what you are doing exactly.
      */
     getCustomSorter(): IFileTreeCustomSorter<TItem>;
 }
@@ -86,20 +90,28 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     private _compare!: CompareFn<TItem>;
     private _sortType!: FileSortType;
     private _sortOrder!: FileSortOrder;
-    private readonly _customSorter: IFileTreeCustomSorter<TItem>;
+    
+    private _customSorter?: IFileTreeCustomSorter<TItem>;
+    
+    /**
+     * A scheduler that prevent potential extra calculations if the 
+     * {@link FileSortType} is switching frequently within a given time.
+     */
+    private readonly _pendingCustomSorterDisposable: UnbufferedScheduler<void>;
     
     // [constructor]
 
     constructor(
         sortType: FileSortType,
         sortOrder: FileSortOrder,
-        @IInstantiationService instantiationService: IInstantiationService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
-        const orderRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
-        this._customSorter = instantiationService.createInstance(FileTreeCustomSorter, orderRoot, generateMD5Hash);
-        
+        this._pendingCustomSorterDisposable = new UnbufferedScheduler(Time.sec(10), () => {
+            this._customSorter?.dispose();
+            this._customSorter = undefined;
+        });
         this.switchTo(sortType, sortOrder);
     }
 
@@ -144,14 +156,25 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     }
 
     public getCustomSorter(): IFileTreeCustomSorter<TItem> {
+        if (!this._customSorter) {
+            panic(`[FileItemOrder] customSorter is undefined. Current sorting type is: '${this._sortType}'`);
+        }
         return this._customSorter;
     }
 
     // [private helper methods]
 
+    /**
+     * Ensure the new type and order are different than the current one when
+     * invoking this method.
+     */
     private __switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void {
         this._sortType = sortType;
         this._sortOrder = sortOrder;
+
+        if (sortType !== FileSortType.Custom) {
+            this._pendingCustomSorterDisposable.schedule();
+        }
 
         switch (sortType) {
             case FileSortType.Default:
@@ -166,9 +189,17 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
             case FileSortType.ModificationTime:
                 this._compare = sortOrder === FileSortOrder.Ascending ? compareByModificationTimeAsc : compareByModificationTimeDesc;
                 break;
-            case FileSortType.Custom:
+            case FileSortType.Custom: {
+                this._pendingCustomSorterDisposable.cancel();
+                if (this._customSorter) {
+                    break;
+                }
+
+                const metadataRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
+                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, metadataRoot, generateMD5Hash);
                 this._compare = this._customSorter.compare.bind(this._customSorter);
                 break;
+            }
         }
     }
 }
