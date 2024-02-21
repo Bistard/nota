@@ -251,6 +251,14 @@ export function printFileItem(root: FileItem): void {
 }
 
 export interface IBuildFileTreeOptions {
+    /**
+     * If clean all the existing files/folders before build.
+     */
+    readonly cleanRoot?: boolean;
+
+    /**
+     * When creating file, if allow to overwrite the existing file.
+     */
     readonly overwrite?: boolean;
 }
 
@@ -271,6 +279,11 @@ export type FileTreeNode = {
  * @param tree The tree structure representing the file system to build.
  */
 export async function buildFileTree<T extends FileTreeNode>(fileService: IFileService, rootURI: URI, opts: IBuildFileTreeOptions, tree: TreeLike<T>): Promise<void> {
+    
+    // clean the entire root if needed
+    if (opts.cleanRoot) {
+        await fileService.delete(rootURI).unwrap();
+    }
 
     // Helper function to create a file or directory based on the node type
     async function createNode(baseURI: URI, node: T): Promise<void> {

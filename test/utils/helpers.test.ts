@@ -101,17 +101,6 @@ suite('buildFileTree-test', () => {
     });
 
     test('Should accurately create complex nested file and directory structure', async () => {
-        /**
-         * root
-         * ├─file1
-         * ├─file2
-         * ├─folder1
-         * |  ├─folder1_file1
-         * |  ├─folder1_file2
-         * |  └─folder1_file3
-         * ├─file3
-         * └─folder2
-         */
         const tree: TreeLike<FileTreeNode> = {
             value: {
                 name: 'root',
@@ -152,5 +141,31 @@ suite('buildFileTree-test', () => {
 
         // folder2 should be empty but exist
         assertDir(URI.join(rootURI, 'root', 'folder2'));
+    });
+
+    test('Should clean root before building tree if cleanRoot is true', async () => {
+        
+        // Pre-populate with some files and directories
+        createdDirs.add(URI.join(rootURI, 'preExistingDir').toString());
+        createdFiles.set(URI.join(rootURI, 'preExistingFile.txt').toString(), 'Pre-existing content');
+
+        const tree: TreeLike<FileTreeNode> = {
+            value: {
+                name: 'root',
+                type: FileType.DIRECTORY,
+            },
+            children: [
+                { value: { name: 'newFile.txt', type: FileType.FILE, data: 'New file content' } },
+            ],
+        };
+
+        await buildFileTree(fileService, rootURI, { cleanRoot: true }, tree);
+
+        // Assert pre-existing files and directories are removed
+        assert.ok(!createdDirs.has(URI.join(rootURI, 'preExistingDir').toString()), 'Pre-existing directory should be removed');
+        assert.ok(!createdFiles.has(URI.join(rootURI, 'preExistingFile.txt').toString()), 'Pre-existing file should be removed');
+
+        // Assert new file is created
+        await assertFile(URI.join(rootURI, 'newFile.txt'), 'New file content');
     });
 });
