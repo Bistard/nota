@@ -73,19 +73,19 @@ suite('array-test', () => {
         assert.deepStrictEqual(newArr, arr.reverse());
     });
 
-    test('insert', () => {
-        assert.deepStrictEqual(Arrays.insert([], 3), [3]);
-        assert.deepStrictEqual(Arrays.insert([1], 3), [1, 3]);
-        assert.deepStrictEqual(Arrays.insert([1], 0), [0, 1]);
-        assert.deepStrictEqual(Arrays.insert([1, 3, 5], 9), [1, 3, 5, 9]);
-        assert.deepStrictEqual(Arrays.insert([1, 3, 5], 0), [0, 1, 3, 5]);
-        assert.deepStrictEqual(Arrays.insert([1, 5, 9], 7), [1, 5, 7, 9]);
-        assert.deepStrictEqual(Arrays.insert([1, 5, 9], 13), [1, 5, 9, 13]);
-        assert.deepStrictEqual(Arrays.insert([1, 5, 9], 0), [0, 1, 5, 9]);
-        assert.deepStrictEqual(Arrays.insert([3, 3, 3], 0), [0, 3, 3, 3]);
-        assert.deepStrictEqual(Arrays.insert([3, 3, 3], 6), [3, 3, 3, 6]);
-        assert.deepStrictEqual(Arrays.insert([0, 3, 3, 3], 1), [0, 1, 3, 3, 3]);
-        assert.deepStrictEqual(Arrays.insert([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
+    test('insertSorted', () => {
+        assert.deepStrictEqual(Arrays.insertSorted([], 3), [3]);
+        assert.deepStrictEqual(Arrays.insertSorted([1], 3), [1, 3]);
+        assert.deepStrictEqual(Arrays.insertSorted([1], 0), [0, 1]);
+        assert.deepStrictEqual(Arrays.insertSorted([1, 3, 5], 9), [1, 3, 5, 9]);
+        assert.deepStrictEqual(Arrays.insertSorted([1, 3, 5], 0), [0, 1, 3, 5]);
+        assert.deepStrictEqual(Arrays.insertSorted([1, 5, 9], 7), [1, 5, 7, 9]);
+        assert.deepStrictEqual(Arrays.insertSorted([1, 5, 9], 13), [1, 5, 9, 13]);
+        assert.deepStrictEqual(Arrays.insertSorted([1, 5, 9], 0), [0, 1, 5, 9]);
+        assert.deepStrictEqual(Arrays.insertSorted([3, 3, 3], 0), [0, 3, 3, 3]);
+        assert.deepStrictEqual(Arrays.insertSorted([3, 3, 3], 6), [3, 3, 3, 6]);
+        assert.deepStrictEqual(Arrays.insertSorted([0, 3, 3, 3], 1), [0, 1, 3, 3, 3]);
+        assert.deepStrictEqual(Arrays.insertSorted([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
     suite('insertByIndex', function() {
