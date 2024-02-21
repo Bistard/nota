@@ -54,6 +54,7 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * 
      * @panic when missing the provided index1 or index2.
      */
+    // TODO: support mutiple actions with the same type able to be applied at the same time.
     updateMetadata(changeType: OrderChangeType.Add, item: TItem, index1: number): AsyncResult<void, FileOperationError | SyntaxError>;
     updateMetadata(changeType: OrderChangeType.Remove, item: TItem, index1?: number): AsyncResult<void, FileOperationError | SyntaxError>;
     updateMetadata(changeType: OrderChangeType.Update, item: TItem, index1: number): AsyncResult<void, FileOperationError | SyntaxError>;
@@ -85,6 +86,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     
     // [fields]
 
+    /**
+     * The root path for all metadata directories.
+     */
     private readonly _metadataRootPath: URI;
     private readonly _metadataCache: ResourceMap<[
         clearTimeout: UnbufferedScheduler<URI>, // [1]
@@ -277,7 +281,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      */
     private __saveSortOrder(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError> {        
         const metadataURI = this.__computeMetadataURI(folder.uri);
-        return jsonSafeStringify(this.__getMetadataFromCache(folder.uri), undefined, 4).toAsync()
+        const metadata = this.__getMetadataFromCache(folder.uri)!;
+        
+        return jsonSafeStringify(metadata, undefined, 4).toAsync()
             .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: true, overwrite: true, }));
     }
 
@@ -314,8 +320,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     private __computeMetadataURI(uri: URI): URI {
         const hashCode = this._hash(URI.toString(uri));
         const orderFileName = hashCode.slice(2) + '.json';
-        // console.log('(internal hash) uri:', URI.toString(uri));
-        // console.log('(internal hash) hash:', hashCode);
         const metadataURI = URI.join(this._metadataRootPath, hashCode.slice(0, 2), orderFileName);
         return metadataURI;
     }

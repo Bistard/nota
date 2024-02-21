@@ -405,7 +405,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 
     private async __performDropInsertion(currentDragItems: FileItem[], targetOver?: FileItem): Promise<void> {
-        
+        if (this._sorter.sortType !== FileSortType.Custom) {
+            return;
+        }
+
         const insertionResult = this._prevDragOverState.handledByInsertion;
         if (!insertionResult) {
             return;
