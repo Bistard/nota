@@ -120,28 +120,28 @@ export namespace Arrays {
      * @description Inserts the given item into the sorted array while 
      * maintaining its sorted order. The original array is mutated.
      * @param sorted The sorted array.
-     * @param item The item to be inserted.
+     * @param toInsert The item to be inserted.
      * @param cmp The compare function used to determine the sort order.
      *             Returns true if `a` is before `b`, false otherwise.
      * @returns Returns the same array.
      */
-    export function insertSorted<T>(sorted: T[], item: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): T[] {
+    export function insertSorted<T>(sorted: T[], toInsert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): T[] {
         if (sorted.length === 0) {
-            sorted.push(item);
+            sorted.push(toInsert);
             return sorted;
         }
 
         let i = 0;
         for (i = 0; i < sorted.length; i++) {
-            const item = sorted[i]!;
+            const currItem = sorted[i]!;
 
-            if (cmp(item, item)) {
-                sorted.splice(i, 0, item);
+            if (cmp(toInsert, currItem)) {
+                sorted.splice(i, 0, toInsert);
                 return sorted;
             }
         }
 
-        sorted.splice(i, 0, item);
+        sorted.splice(i, 0, toInsert);
         return sorted;
     }
 
