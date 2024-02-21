@@ -27,6 +27,25 @@ suite('buildFileTree-test', () => {
                 createdFiles.set(strURI, buffer.toString());
                 return AsyncResult.ok();
             },
+            delete: (uri: URI) => {
+                const strURI = URI.toString(uri);
+                
+                // delete dir
+                for (const existDir of createdDirs) {
+                    if (existDir.startsWith(strURI)) {
+                        createdDirs.delete(existDir);
+                    }
+                }
+
+                // delete file
+                for (const [file, content] of createdFiles) {
+                    if (file.startsWith(strURI)) {
+                        createdFiles.delete(file);
+                    }
+                }
+
+                return AsyncResult.ok();
+            },
         };
     });
 
@@ -146,8 +165,8 @@ suite('buildFileTree-test', () => {
     test('Should clean root before building tree if cleanRoot is true', async () => {
         
         // Pre-populate with some files and directories
-        createdDirs.add(URI.join(rootURI, 'preExistingDir').toString());
-        createdFiles.set(URI.join(rootURI, 'preExistingFile.txt').toString(), 'Pre-existing content');
+        createdDirs.add(URI.toString(URI.join(rootURI, 'preExistingDir')));
+        createdFiles.set(URI.toString(URI.join(rootURI, 'preExistingFile.txt')), 'Pre-existing content');
 
         const tree: TreeLike<FileTreeNode> = {
             value: {
@@ -162,10 +181,10 @@ suite('buildFileTree-test', () => {
         await buildFileTree(fileService, rootURI, { cleanRoot: true }, tree);
 
         // Assert pre-existing files and directories are removed
-        assert.ok(!createdDirs.has(URI.join(rootURI, 'preExistingDir').toString()), 'Pre-existing directory should be removed');
-        assert.ok(!createdFiles.has(URI.join(rootURI, 'preExistingFile.txt').toString()), 'Pre-existing file should be removed');
+        assert.ok(!createdDirs.has(URI.toString(URI.join(rootURI, 'preExistingDir'))), 'Pre-existing directory should be removed');
+        assert.ok(!createdFiles.has(URI.toString(URI.join(rootURI, 'preExistingFile.txt'))), 'Pre-existing file should be removed');
 
         // Assert new file is created
-        await assertFile(URI.join(rootURI, 'newFile.txt'), 'New file content');
+        await assertFile(URI.join(rootURI, 'root', 'newFile.txt'), 'New file content');
     });
 });

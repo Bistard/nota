@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/files/buffer';
-import { FileType } from 'src/base/common/files/file';
+import { FileType, IResolvedFileStat } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
 import { AsyncResult, panic } from "src/base/common/result";
 import { repeat } from "src/base/common/utilities/async";
@@ -233,6 +233,21 @@ export function printNaryTreeLike<TNode>(
     };
 
     __print(root, '', false);
+}
+
+/**
+ * @description Prints the resolved stat structure starting from the given 
+ * 'stat'. This is a specialized usage of {@link printNaryTreeLike} function 
+ * tailored for printing {@link IResolvedFileStat}.
+ * @param root The root of the file stat to be printed.
+ */
+export function printFileStat(stat: IResolvedFileStat): void {
+    printNaryTreeLike(
+        stat,
+        stat => stat.name,
+        stat => [...(stat.children ?? [])].length > 0,
+        stat => [...(stat.children ?? [])],
+    );
 }
 
 /**
