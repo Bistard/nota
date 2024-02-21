@@ -5,7 +5,6 @@ import { panic } from "src/base/common/result";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
-import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
@@ -88,8 +87,10 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     // [fields]
 
     private _compare!: CompareFn<TItem>;
+    
     private _sortType!: FileSortType;
     private _sortOrder!: FileSortOrder;
+    private readonly _metadataRootPath: URI;
     
     private _customSorter?: IFileTreeCustomSorter<TItem>;
     
@@ -104,10 +105,11 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     constructor(
         sortType: FileSortType,
         sortOrder: FileSortOrder,
+        metadataRootPath: URI,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
+        this._metadataRootPath = metadataRootPath;
         this._pendingCustomSorterDisposable = new UnbufferedScheduler(Time.sec(10), () => {
             this._customSorter?.dispose();
             this._customSorter = undefined;
@@ -195,7 +197,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                     break;
                 }
 
-                const metadataRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
+                const metadataRoot = URI.join(this._metadataRootPath, 'sortings');
                 this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, {
                     metadataRootPath: metadataRoot,
                     hash: generateMD5Hash,

@@ -16,6 +16,7 @@ import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileOperationError } from "src/base/common/files/file";
+import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 
 /**
  * An interface only for {@link FileTreeService}.
@@ -35,10 +36,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [constructor]
 
     constructor(
-        @IConfigurationService private readonly configurationService: IConfigurationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
     }
@@ -163,7 +165,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
         const fileSortOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
 
-        const sorter = this.instantiationService.createInstance(FileTreeSorter, fileSortType, fileSortOrder);
+        const sorter = this.instantiationService.createInstance(
+            FileTreeSorter, 
+            fileSortType, 
+            fileSortOrder, 
+            this.environmentService.appConfigurationPath,
+        );
 
         const register = (tree: IFileTree<FileItem, void>) => {
             // configuration auto update
