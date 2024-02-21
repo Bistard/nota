@@ -671,14 +671,14 @@ export class FileService extends Disposable implements IFileService {
         return this.__validateMoveOrCopy(to, overwrite)
         
         .andThen(exist => {
-            if (exist && overwrite) {
+            if (exist) {
                 return this.delete(to, { recursive: true });
             }
             return AsyncResult.ok<void, FileOperationError>();
         })
         
         .andThen(() => {
-            const toUriDir = URI.fromFile(dirname(URI.toFsPath(to)));
+            const toUriDir = URI.dirname(to);
             return this.__mkdirRecursive(toProvider, toUriDir);
         })
         

@@ -147,14 +147,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     public updateMetadata(changeType: OrderChangeType.Swap, item: TItem, index1: number, index2: number): AsyncResult<void, FileOperationError | SyntaxError>;
     public updateMetadata(changeType: OrderChangeType, item: TItem, index1?: number, index2?: number): AsyncResult<void, FileOperationError | SyntaxError> {
         const parent = item.parent!;
+        const inCache = this._metadataCache.has(parent.uri);
         
-        const order = this._metadataCache.has(parent.uri);
-        if (order === true) {
-            this.__changeOrderBasedOnType(changeType, item, index1, index2);
-            return this.__saveSortOrder(parent);
-        }
+        const preparation = inCache 
+            ? AsyncResult.ok<void, FileOperationError | SyntaxError>()
+            : this.__loadMetadataIntoCache(parent);
 
-        return this.__loadMetadataIntoCache(parent)
+        return preparation
         .andThen(() => {
             this.__changeOrderBasedOnType(changeType, item, index1, index2);
             return this.__saveSortOrder(parent);
