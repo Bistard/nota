@@ -9,9 +9,9 @@ import { ILogService } from "src/base/common/logger";
 import { ResourceMap } from "src/base/common/structures/map";
 import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
-import { CompareOrder } from "src/base/common/utilities/type";
+import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
-import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 
 export const enum OrderChangeType {
     Add,
@@ -74,6 +74,12 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | SyntaxError>;
 }
 
+export interface IFileTreeCustomSorterOptions<TItem extends IFileItem<TItem>> {
+    readonly metadataRootPath: URI;
+    readonly hash: (input: string) => string;
+    readonly defaultComparator: CompareFn<TItem>;
+}
+
 /**
  * @internal
  */
@@ -96,20 +102,21 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     ]>;
     private readonly _cacheClearDelay: Time;
     private readonly _hash: (input: string) => string;
+    private readonly _defaultComparator: CompareFn<TItem>;
 
     // [constructor]
 
     constructor(
-        metadataRootPath: URI,
-        hash: (input: string) => string,
+        opts: IFileTreeCustomSorterOptions<TItem>,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
         super();
-        this._metadataRootPath = metadataRootPath;
+        this._metadataRootPath = opts.metadataRootPath;
         this._metadataCache = new ResourceMap();
         this._cacheClearDelay = Time.min(5);
-        this._hash = hash;
+        this._hash = opts.hash;
+        this._defaultComparator = opts.defaultComparator;
     }
     
     // [public methods]
@@ -119,7 +126,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
         const order = this.__getMetadataFromCache(parent.uri);
         if (order === undefined) {
-            return defaultFileItemCompareFn(a, b);
+            return this._defaultComparator(a, b);
         }
 
         const indexA = order.indexOf(a.name);
@@ -141,7 +148,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         } 
         // Both items are not found, item A and B will be sort as default.
         else {
-            return defaultFileItemCompareFn(a, b);
+            return this._defaultComparator(a, b);
         }
     }
 
@@ -246,7 +253,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
             // the order file does not exist, we need to create a new one.
             const defaultOrder = [...folder.children]
-                .sort(defaultFileItemCompareFn)
+                .sort(this._defaultComparator)
                 .map(item => item.name);
             
             // write to disk with the default order

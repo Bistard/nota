@@ -9,6 +9,7 @@ import { TreeLike } from 'src/base/common/utilities/type';
 import { FileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem } from 'src/workbench/services/fileTree/fileItem';
+import { defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileTreeCustomSorter, OrderChangeType } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
 import { FileTreeNode, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
@@ -51,7 +52,11 @@ suite('fileTreeCustomSorter-test', () => {
 
         // build the file tree hierarchy
         sorter?.dispose();
-        sorter = new FileTreeCustomSorter(rootURI, hash, fileService, new NullLogger());
+        sorter = new FileTreeCustomSorter({
+            metadataRootPath: rootURI,
+            hash: hash,
+            defaultComparator: defaultFileItemCompareFn,
+        }, fileService, new NullLogger());
         await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, tree);
     }
 

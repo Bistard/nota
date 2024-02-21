@@ -7,7 +7,7 @@ import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IFileItem, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileItem";
+import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 /**
@@ -178,7 +178,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
         switch (sortType) {
             case FileSortType.Default:
-                this._compare = defaultFileItemCompareFn;
+                this._compare = sortOrder === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
                 break;
             case FileSortType.Alphabet:
                 this._compare = sortOrder === FileSortOrder.Ascending ? compareByNameAsc : compareByNameDesc;
@@ -196,11 +196,45 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 }
 
                 const metadataRoot = URI.join(this.environmentService.appConfigurationPath, 'sortings');
-                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, metadataRoot, generateMD5Hash);
+                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, {
+                    metadataRootPath: metadataRoot,
+                    hash: generateMD5Hash,
+                    defaultComparator: (...args) => {
+                        const cmp = this.sortOrder === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
+                        return cmp(...args);
+                    },
+                });
                 this._compare = this._customSorter.compare.bind(this._customSorter);
                 break;
             }
         }
+    }
+}
+
+/**
+ * @description Directory goes first, files sorts in ascending, ASCII
+ * character order.
+ */
+export const defaultFileItemCompareFn = defaultFileItemCompareFnAsc;
+
+// Default
+function defaultFileItemCompareFnAsc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
+    if (a.type === b.type) {
+        return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
+    } else if (a.isDirectory()) {
+        return CompareOrder.First;
+    } else {
+        return CompareOrder.Second;
+    }
+}
+
+function defaultFileItemCompareFnDesc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
+    if (a.type === b.type) {
+        return (a.name < b.name) ? CompareOrder.Second : CompareOrder.First;
+    } else if (a.isDirectory()) {
+        return CompareOrder.First;
+    } else {
+        return CompareOrder.Second;
     }
 }
 

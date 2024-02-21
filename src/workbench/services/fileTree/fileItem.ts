@@ -5,7 +5,7 @@ import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
+import { CompareFn, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { tryOrDefault } from "src/base/common/error";
 import { parse } from "src/base/common/files/path";
@@ -392,19 +392,5 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
 
     public collapseByDefault(data: FileItem): boolean {
         return true;
-    }
-}
-
-/**
- * @description Directory goes first, files sorts in ascending, ASCII
- * character order.
- */
-export function defaultFileItemCompareFn<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
-    if (a.type === b.type) {
-        return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
-    } else if (a.isDirectory()) {
-        return CompareOrder.First;
-    } else {
-        return CompareOrder.Second;
     }
 }
