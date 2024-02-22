@@ -5,6 +5,25 @@ import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/list
 import { requestAnimate } from "src/base/browser/basic/animation";
 import { Arrays } from "src/base/common/utilities/array";
 
+export const enum DragOverEffect {
+    Move,
+    Copy,
+}
+
+export interface IDragOverResult {
+    
+    /**
+     * Is the dragover event is allowed to be dropped.
+     */
+    readonly allowDrop: boolean;
+
+    /**
+     * The action of the dragover.
+     * @default DragOverEffect.Move
+     */
+    readonly effect?: DragOverEffect;
+}
+
 /**
  * An interface that provides drag and drop support (dnd).
  */
@@ -33,14 +52,15 @@ export interface IListDragAndDropProvider<T> {
     /**
      * @description Invokes when {@link EventType.dragover} happens which 
      * indicates a dragged item is being dragged over a valid drop target, every 
-     * few hundred milliseconds. It returns a boolean indicates if allow to drop 
-     * the current selected items on the target.
+     * few hundred milliseconds.
      * @param event The current drag event.
      * @param currentDragItems The current dragging items.
      * @param targetOver The list target of the current drag event.
      * @param targetIndex The index of the list target of the current drag event.
+     * 
+     * @Note This method is called frequently, efficiency does matter here.
      */
-    onDragOver?(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): boolean;
+    onDragOver?(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): IDragOverResult;
 
     /**
      * @description Invokes when {@link EventType.dragenter} happens which 
@@ -128,11 +148,11 @@ class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider
         this.dnd.onDragStart?.(event);
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): boolean {
+    public onDragOver(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): IDragOverResult {
         if (this.dnd.onDragOver) {
             return this.dnd.onDragOver(event, currentDragItems, targetOver, targetIndex);
         }
-        return false;
+        return { allowDrop: false };
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): void {
@@ -252,13 +272,15 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
 		event.dataTransfer.setData('text/plain', userData);
         
         // set the drag image
-        const tag = this._provider.getDragTag(dragItems);
-        const dragImage = document.createElement('div');
-        dragImage.className = 'list-drag-image';
-        dragImage.innerHTML = tag;
-        document.body.appendChild(dragImage);
-        event.dataTransfer.setDragImage(dragImage, -10, -10);
-        setTimeout(() => document.body.removeChild(dragImage), 0);
+        {
+            const tag = this._provider.getDragTag(dragItems);
+            const dragImage = document.createElement('div');
+            dragImage.className = 'list-drag-image';
+            dragImage.innerHTML = tag;
+            document.body.appendChild(dragImage);
+            event.dataTransfer.setDragImage(dragImage, -10, -10);
+            setTimeout(() => document.body.removeChild(dragImage), 0);
+        }
         
         this._currDragItems = dragItems;
 
@@ -281,14 +303,20 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         }
         
         // notify client
-        const allowDrop = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
-        this._allowDrop = allowDrop;
-        if (!allowDrop) {
+        const result = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+        this._allowDrop = result.allowDrop;
+        
+        if (!result.allowDrop) {
+            event.browserEvent.dataTransfer.dropEffect = 'none';
             return;
         }
 
         // set drop type
-        event.browserEvent.dataTransfer.dropEffect = 'move';
+        if (result.effect === DragOverEffect.Copy) {
+            event.browserEvent.dataTransfer.dropEffect = 'copy';
+        } else {
+            event.browserEvent.dataTransfer.dropEffect = 'move';
+        }
     }
 
     private __onDragDrop(event: IListDragEvent<T>): void {

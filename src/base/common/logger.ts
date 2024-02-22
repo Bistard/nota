@@ -148,8 +148,8 @@ export interface ILogger extends IAbstractLogger {
     debug(reporter: string, message: string, additional?: Additionals): void;
     info(reporter: string, message: string, additional?: Additionals): void;
     warn(reporter: string, message: string, additional?: Additionals): void;
-    error(reporter: string, message: string, error?: Error, additional?: Additionals): void;
-    fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void;
+    error(reporter: string, message: string, error?: any, additional?: Additionals): void;
+    fatal(reporter: string, message: string, error?: any, additional?: Additionals): void;
     flush(): Promise<void>;
 }
 
@@ -252,13 +252,13 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
         }
     }
 
-    public error(reporter: string, message: string, error?: Error, additional?: Additionals): void {
+    public error(reporter: string, message: string, error?: any, additional?: Additionals): void {
         for (const logger of this._loggers) {
             logger.error(reporter, message, error, additional);
         }
     }
 
-    public fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void {
+    public fatal(reporter: string, message: string, error?: any, additional?: Additionals): void {
         for (const logger of this._loggers) {
             logger.fatal(reporter, message, error, additional);
         }
@@ -271,7 +271,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
     }
 }
 
-export type BufferLoggerBufferType = { level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals; };
+export type BufferLoggerBufferType = { level: LogLevel, reporter: string, message: string, error?: any, additional?: Additionals; };
 
 /**
  * @description Buffer logger may wraps antoher {@link ILogger} at anytime. If
@@ -312,11 +312,11 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         this.__log(LogLevel.WARN, reporter, message, undefined, additional);
     }
 
-    public error(reporter: string, message: string, error?: Error, additional?: Additionals): void {
+    public error(reporter: string, message: string, error?: any, additional?: Additionals): void {
         this.__log(LogLevel.ERROR, reporter, message, error, additional);
     }
 
-    public fatal(reporter: string, message: string, error?: Error, additional?: Additionals): void {
+    public fatal(reporter: string, message: string, error?: any, additional?: Additionals): void {
         this.__log(LogLevel.FATAL, reporter, message, error, additional);
     }
 
@@ -327,7 +327,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
 
     // [protected helper methods]
 
-    protected __log(level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals): void {
+    protected __log(level: LogLevel, reporter: string, message: string, error?: any, additional?: Additionals): void {
         this._buffer.push({ level: level, reporter, message, error, additional });
         if (this._logger) {
             this.__flushBuffer();
@@ -342,7 +342,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     }
 }
 
-export function defaultLog(logger: ILogger, level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals): void {
+export function defaultLog(logger: ILogger, level: LogLevel, reporter: string, message: string, error?: any, additional?: Additionals): void {
     switch (level) {
         case LogLevel.TRACE:
             logger.trace(reporter, message, additional);

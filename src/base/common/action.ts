@@ -26,6 +26,9 @@ export interface IAction extends IDisposable {
     run(args?: any): unknown;
 }
 
+/**
+ * Options for constructing an {@link Action}.
+ */
 export interface IActionOptions {
     readonly id: string;
     readonly enabled: boolean;

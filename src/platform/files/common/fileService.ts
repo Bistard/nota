@@ -3,16 +3,16 @@ import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, FileSystemProviderError } from "src/base/common/files/file";
-import { basename, dirname, join } from "src/base/common/files/path";
+import { basename, dirname } from "src/base/common/files/path";
 import { bufferToStream, IReadableStream, IReadyReadableStream, listenStream, newWriteableBufferStream, readFileIntoStream, readFileIntoStreamAsync, streamToBuffer, toReadyStream, transformStream } from "src/base/common/files/stream";
 import { isAbsoluteURI, Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
-import { Iterable } from "src/base/common/utilities/iterable";
 import { Mutable, Pair } from "src/base/common/utilities/type";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Strings } from "src/base/common/utilities/string";
+import { noop } from "src/base/common/performance";
 
 export const IFileService = createService<IFileService>('file-service');
 
@@ -88,16 +88,19 @@ export interface IFileService extends IDisposable, IService {
 
     /** 
      * @description Creates a directory described by a given URI. 
+     * @note No action is taken if the 'uri' is already existed.
      */
     createDir(uri: URI): AsyncResult<void, FileOperationError>;
 
     /** 
      * @description Moves a file/directory to a new location described by a given URI. 
+     * @note No action is taken if the 'from' and 'to' are identical.
      */
     moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
 
     /** 
      * @description Copys a file/directory to a new location. 
+     * @note No action is taken if the 'from' and 'to' are identical.
      */
     copyTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
 
@@ -615,7 +618,7 @@ export class FileService extends Disposable implements IFileService {
         return new AsyncResult((async () => {
 
         // the resolved file stat
-        const resolved: IResolvedFileStat = {
+        const resolved: Mutable<IResolvedFileStat> = {
             ...stat,
             name: basename(URI.toFsPath(uri)),
             uri: uri,
@@ -625,7 +628,6 @@ export class FileService extends Disposable implements IFileService {
 
         // resolves the children if needed
         if (stat.type === FileType.DIRECTORY && opts && (opts.resolveChildren || opts.resolveChildrenRecursive)) {
-
             const dirResult = await Result.fromPromise(
                 () => provider.readdir(uri),
                 error => new FileOperationError(Strings.errorToMessage(error), getFileErrorCode(error)),
@@ -636,29 +638,17 @@ export class FileService extends Disposable implements IFileService {
             }
 
             const children = dirResult.unwrap();
-            const resolvedChildren = await Promise.all(
-                children.map(async ([name, _type]) => {
-                    const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
-
-                    const statResult = await Result.fromPromise(
-                        () => provider.stat(childUri)
-                    );
-
-                    if (statResult.isErr()) {
-                        return undefined;
-                    }
-                    
-                    const childStat = statResult.unwrap();
-                    const recursive = await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
-                    if (recursive.isErr()) {
-                        return undefined;
-                    }
-
-                    return recursive.unwrap();
-                })
-            );
-
-            (<Mutable<Iterable<IResolvedFileStat>>>resolved.children) = Iterable.filter(resolvedChildren, (child) => !!child);
+            const resolvedChildren: IResolvedFileStat[] = [];
+            
+            // recursively resolve children stat
+            for (const [name, _type] of children) {
+                const childUri = URI.join(uri, name);
+                await Result.fromPromise(() => provider.stat(childUri))
+                    .andThen(childStat => this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive }))
+                    .match(stat => resolvedChildren.push(stat), noop);
+            }
+            
+            resolved.children = resolvedChildren;
         }
 
         return ok(resolved);
@@ -681,14 +671,14 @@ export class FileService extends Disposable implements IFileService {
         return this.__validateMoveOrCopy(to, overwrite)
         
         .andThen(exist => {
-            if (exist && overwrite) {
+            if (exist) {
                 return this.delete(to, { recursive: true });
             }
             return AsyncResult.ok<void, FileOperationError>();
         })
         
         .andThen(() => {
-            const toUriDir = URI.fromFile(dirname(URI.toFsPath(to)));
+            const toUriDir = URI.dirname(to);
             return this.__mkdirRecursive(toProvider, toUriDir);
         })
         
@@ -729,7 +719,7 @@ export class FileService extends Disposable implements IFileService {
         
         .andThen(() => {
             if (!hasCopyCapability(fromProvider)) {
-                return err(new FileOperationError(`Unable to move / copy to the target path ${URI.toString(to)} because the provider does not provide move / copy functionality.`, FileOperationErrorType.OTHERS));
+                return err(new FileOperationError(`Unable to copy to the target path ${URI.toString(to)} because the provider does not provide copy functionality.`, FileOperationErrorType.OTHERS));
             } 
             return Result.fromPromise(
                 () => fromProvider.copy(from, to, { overwrite: !!overwrite }),
@@ -785,7 +775,7 @@ export class FileService extends Disposable implements IFileService {
         // Assert provider
         const provider = this._providers.get(uri.scheme);
         if (!provider) {
-            return err(new FileOperationError(`no provider found given ${uri.scheme}`, FileOperationErrorType.OTHERS));
+            return err(new FileOperationError(`no provider found for the given schema: '${uri.scheme}'`, FileOperationErrorType.OTHERS));
         }
 
         return ok(provider);

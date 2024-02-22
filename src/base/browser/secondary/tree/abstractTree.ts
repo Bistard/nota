@@ -1,11 +1,11 @@
 import "src/base/browser/secondary/tree/tree.scss";
-import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent, ITreeTraitChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Event, Register, RelayEmitter } from "src/base/common/event";
+import { Emitter, Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
@@ -14,7 +14,6 @@ import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTre
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Arrays } from "src/base/common/utilities/array";
-import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 
 /**
  * @internal
@@ -53,11 +52,11 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
         }
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): boolean {
+    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): IDragOverResult {
         if (this.dnd.onDragOver) {
             return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
-        return false;
+        return { allowDrop: false };
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): void {
@@ -98,7 +97,12 @@ class TreeTrait<T> {
     // [field]
 
     private _nodes = new Set<ITreeNode<T, any>>();
-    private _nodesDataCache?: T[];
+    private _nodesCache?: T[];
+
+    // [event]
+
+    private readonly _onDidChange = new Emitter<ITreeTraitChangeEvent<T>>();
+    public readonly onDidChange = this._onDidChange.registerListener;
 
     // [constructor]
 
@@ -107,21 +111,22 @@ class TreeTrait<T> {
     // [public methods]
 
     public set(nodes: ITreeNode<T, any>[]): void {
-        this._nodesDataCache = undefined;
+        this._nodesCache = undefined;
         this._nodes = new Set();
         
         for (const node of nodes) {
             this._nodes.add(node);
         }
+
+        const getData = () => this.get();
+        this._onDidChange.fire({ get data(): T[] { return getData(); }  });
     }
 
     public get(): T[] {
-        if (!this._nodesDataCache) {
-            const cache: T[] = [];
-            this._nodes.forEach(node => cache.push(node.data));
-            this._nodesDataCache = cache;
+        if (!this._nodesCache) {
+            this._nodesCache = Arrays.fromSet(this._nodes, node => node.data);
         }
-        return this._nodesDataCache;
+        return this._nodesCache;
     }
 
     public has(nodes: ITreeNode<T, any>): boolean {
@@ -136,10 +141,16 @@ class TreeTrait<T> {
          * traits.
          */
         if (!identityProvider) {
-            this._nodesDataCache = undefined;
-            this._nodes.clear();
+            this.set([]);
             return;
         }
+
+        /**
+         * // bug
+         * I think there is a bug in the rest of the fn, since `deleted` nodes 
+         * will not be fired by the splice event. It is not easy to detect if 
+         * any of the current nodes that is deleted.
+         */
 
         /**
          * Use identity provider to keep any existed nodes if they are 
@@ -375,8 +386,24 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
     }
 
     public override setHover(indice: number[]): void {
-        super.setHover(indice);
         this._hovered.set(indice.map(idx => this.getItem(idx)));
+        super.setHover(indice);
+    }
+
+    public override focusPrev(prev: number = 1, fullLoop?: boolean, match?: ((item: ITreeNode<T, TFilter>) => boolean) | undefined): number {
+        const index = super.focusPrev(prev, fullLoop, match);
+        if (index !== -1) {
+            this._focused.set([this.getItem(index)]);
+        }
+        return index;
+    }
+
+    public override focusNext(next: number = 1, fullLoop?: boolean, match?: ((item: ITreeNode<T, TFilter>) => boolean) | undefined): number {
+        const index = super.focusNext(next, fullLoop, match);
+        if (index !== -1) {
+            this._focused.set([this.getItem(index)]);
+        }
+        return index;
     }
 
     public getFocusData(): T | null {
@@ -393,6 +420,24 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     public getHoverData(): T[] {
         return this._hovered.get();
+    }
+
+    // [public helper methods (internal)]
+
+    public exposeSelectionTreeTrait(): TreeTrait<T> {
+        return this._selected;
+    }
+
+    public exposeAnchorTreeTrait(): TreeTrait<T> {
+        return this._anchor;
+    }
+
+    public exposeFocusedTreeTrait(): TreeTrait<T> {
+        return this._focused;
+    }
+
+    public exposeHoveredTreeTrait(): TreeTrait<T> {
+        return this._hovered;
     }
 
     // [protected override methods]
@@ -452,12 +497,17 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * Fires when the focused tree nodes in the {@link IAbstractTree} is changed.
      */
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
+    get onDidChangeItemFocus(): Register<ITreeTraitChangeEvent<T>>;
 
     /**
      * Fires when the selected tree nodes in the {@link IAbstractTree} is changed.
      */
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
+    get onDidChangeItemSelection(): Register<ITreeTraitChangeEvent<T>>;
+
+    /** 
+     * Fires when the hovered items in the {@link IAbstractTree} is changed. 
+     */
+    get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>>;
 
     /**
      * Fires when the tree node in the {@link IAbstractTree} is clicked.
@@ -522,6 +572,14 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @note The method will modify the tree structure.
      */
     filter(visibleOnly?: boolean): void;
+
+    /**
+     * @description Provides the count of items currently in the view. By 
+     * default, it counts all items, including those not rendered.
+     * @param onlyVisible When true, counts only the items that are currently 
+     *                    rendered and visible.
+     */
+    viewSize(onlyVisible?: boolean): number;
 
     // [method - tree]
 
@@ -622,9 +680,15 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setAnchor(item: TRef): void;
 
     /**
-     * @description Returns the anchor item.
+     * @description Returns the anchor item in the tree perspective.
      */
     getAnchor(): T | null;
+
+    /**
+     * @description Returns the anchor item indice only in the ListView 
+     * perspective. 
+     */
+    getViewAnchor(): number | null;
 
     /**
      * @description Sets the given item as focused.
@@ -632,9 +696,15 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setFocus(item: TRef): void;
 
     /**
-     * @description Returns the focused item.
+     * @description Returns the focused item in the tree perspective.
      */
     getFocus(): T | null;
+
+    /**
+     * @description Returns the focused item indice only in the ListView 
+     * perspective. 
+     */
+    getViewFocus(): number | null;
 
     /**
      * @description Sets the given a series of items as selected.
@@ -642,21 +712,36 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     setSelections(items: TRef[]): void;
 
     /**
-     * @description Returns the selected items.
+     * @description Returns the selected items in the tree perspective.
      */
     getSelections(): T[];
 
     /**
+     * @description Returns the selected item indice only in the ListView 
+     * perspective. 
+     */
+    getViewSelections(): number[];
+
+    /**
      * @description Sets the given item as hovered.
+     * @param item The item to be hovered. If null, means to clean all the 
+     *             current hovers.
      * @param recursive When sets to true, the visible children of that item 
      *                  will also be hovered.
      */
+    setHover(item: null): void;
     setHover(item: TRef, recursive: boolean): void;
 
     /**
-     * @description Returns the hovered items.
+     * @description Returns the hovered items in the tree perspective.
      */
     getHover(): T[];
+
+    /**
+     * @description Returns the hovered item indice only in the ListView 
+     * perspective. 
+     */
+    getViewHover(): number[];
 
     /**
      * @description Get the total visible subtree node count of the given node (
@@ -675,6 +760,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * @description Returns the item at given index.
      * @param index The index of the item.
+     * @panic
      */
     getItem(index: number): T;
 
@@ -809,8 +895,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemSelection; }
+
+    get onDidChangeItemFocus(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeFocusedTreeTrait().onDidChange; }
+    get onDidChangeItemSelection(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeSelectionTreeTrait().onDidChange; }
+    get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeHoveredTreeTrait().onDidChange; }
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
@@ -904,7 +992,12 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._view.setSelections(indice);
     }
 
-    public setHover(item: TRef, recursive: boolean): void {
+    public setHover(item: TRef | null, recursive?: boolean): void {
+        if (!item) {
+            this._view.setHover([]);
+            return;
+        }
+        
         const index = this._model.getNodeListIndex(item);
         if (index === -1) {
             // not visible in the list view level.
@@ -937,6 +1030,22 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public getHover(): T[] {
         return this._view.getHoverData();
+    }
+    
+    public getViewAnchor(): number | null {
+        return this._view.getAnchor();
+    }
+
+    public getViewFocus(): number | null {
+        return this._view.getFocus();
+    }
+
+    public getViewSelections(): number[] {
+        return this._view.getSelections();
+    }
+
+    public getViewHover(): number[] {
+        return this._view.getHover();
     }
 
     public getVisibleNodeCount(item: TRef): number {
@@ -1005,6 +1114,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public filter(visibleOnly?: boolean): void {
         this._model.filter(visibleOnly);
+    }
+
+    public viewSize(onlyVisible: boolean = false): number {
+        return this._view.viewSize(onlyVisible);
     }
 
     // [private helper methods]

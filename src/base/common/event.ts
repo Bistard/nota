@@ -3,6 +3,7 @@ import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } 
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/utilities/async";
 import { Callable } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/result";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -23,8 +24,12 @@ import { Callable } from "src/base/common/utilities/type";
  * the required event type will be returned as a parameter.
  */
 export type Listener<E> = (e: E) => any;
-
 export type AsyncListener<E> = (e: E) => Promise<any>;
+
+/**
+ * Retrieve the event type T from the {@link Register}.
+ */
+export type GetEventType<R> = R extends Register<infer T> ? T : never;
 
 /**
  * @readonly A register is essentially a function that registers a listener to 
@@ -149,7 +154,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         
         // cannot register to a disposed emitter
         if (this._disposed) {
-            throw new Error('emitter is already disposed, cannot register a new listener.');
+            panic('emitter is already disposed, cannot register a new listener.');
         }
 
         this._register ??= (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
@@ -364,6 +369,9 @@ export class AsyncEmitter<T> extends Emitter<T> {
         }
     }
 
+    override get registerListener(): AsyncRegister<T> {
+        return super.registerListener;
+    }
 }
 
 /**
@@ -517,9 +525,12 @@ export namespace Event {
      * event register that fires whenever any of the provided events fires.
      * @param registers The provided a series of event registers.
      * @returns The new event register.
+     * 
+     * @note Supports heterogeneous `Register<T>` types, combining them into a 
+     * single register with a union of their event types.
      */
-    export function any<T>(registers: Register<T>[]): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
+    export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
+        const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
             const allDiposables = registers.map(register => register(listener, disposables, thisArgs));
             const parentDisposable = toDisposable(() => disposeAll(allDiposables));
             return parentDisposable;            

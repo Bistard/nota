@@ -2,6 +2,7 @@ import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IIndexTreeModelOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceOptions, IIndexTreeModelBase, IFlexIndexTreeModel, FlexIndexTreeModel } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
+import { panic } from "src/base/common/result";
 
 /**
  * An interface only for {@link IMultiTreeModelBase}.
@@ -105,7 +106,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
     public getNode(item: T): ITreeNode<T, TFilter> {
         const node = this._nodes.get(item);
         if (!node) {
-            throw new Error('provided item not found in the tree');
+            panic('[MultiTreeModelBase] provided item not found in the tree');
         }
         return node;
     }
@@ -156,16 +157,10 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
      * @param item The provided item.
      */
     protected __getNodeLocation(item: T): number[] {
-
         if (item === this.root) {
             return [];
         }
-
-        const treeNode = this._nodes.get(item);
-        if (!treeNode) {
-            throw new Error('provided tree node not found.');
-        }
-
+        const treeNode = this.getNode(item);
         return this._model.getNodeLocation(treeNode);
     }
 

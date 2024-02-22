@@ -380,6 +380,14 @@ export type SplitString<S extends string, D extends string> =
     S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
 
 /**
+ * Represent a tree-like structure in object.
+ */
+export type TreeLike<T> = {
+    value: T;
+    children?: TreeLike<T>[];
+};
+
+/**
  * @description Mocks the given value's type.
  * @deprecated Try not to use it since it causes unnecessary runtime impact.
  */

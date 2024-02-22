@@ -1,3 +1,4 @@
+import { panic } from "src/base/common/result";
 import { CompareOrder, NonUndefined } from "src/base/common/utilities/type";
 
 /**
@@ -7,7 +8,7 @@ export namespace Arrays {
 
     /**
      * @description Clear an array.
-     * @returns A reference to the same array.
+     * @returns Returns the same array.
      */
     export function clear<T>(array: T[]): T[] {
         array.length = 0;
@@ -15,7 +16,8 @@ export namespace Arrays {
     }
 
     /**
-     * @description Swap element at index1 with element at index2
+     * @description Swap element at index1 with element at index2.
+     * @returns Returns the same array.
      */
     export function swap<T>(array: T[], index1: number, index2: number): T[] {
         const item1 = array[index1];
@@ -42,6 +44,7 @@ export namespace Arrays {
      * @description Fills an array with data with n times.
      * @param data The data to be filled.
      * @param size The size of the array.
+     * @returns Returns the same array.
      */
     export function fill<T>(data: T, size: number): T[] {
         return Array(size).fill(data);
@@ -51,23 +54,49 @@ export namespace Arrays {
      * @description Returns a new elements of an array that removed all the 
      * falsy elements.
      * @param array The given array.
+     * @returns Returns the same array.
      */
     export function coalesce<T>(array: ReadonlyArray<T | undefined | null>): T[] {
         return <T[]>array.filter(e => !!e);
     }
 
     /**
-     * @description Try to removes the first given item from the given array (will 
-     * modify the original array).
+     * @description Try to removes the first given item from the given array (
+     * will mutate the original array).
      * @param array The given array.
      * @param item The item to be removed.
+     * @param index The optional index of the removing item in the target array.
+     *              When the index is provided, the provided item doesn't matter.
      * @returns Returns the same array.
      */
-    export function remove<T>(array: T[], item: T): T[] {
-        const find = array.indexOf(item);
+    export function remove<T>(array: T[], item: T, index?: number): T[] {
+        const find = index ?? array.indexOf(item);
         if (find !== -1) {
             array.splice(find, 1);
         }
+        return array;
+    }
+
+    /**
+     * @description Removes elements from an array at the specified indice. The 
+     * original array is mutated.
+     * 
+     * @param array The given array.
+     * @param indice An array of indice at which elements should be removed. 
+     *               Indices do not need to be in any particular order.
+     * @returns Returns the same array.
+     */
+    export function removeByIndex<T>(array: T[], indice: number[]): T[] {
+        
+        // Sort the indexes in descending order
+        indice = indice.sort((a, b) => b - a);
+
+        for (const index of indice) {
+            if (index >= 0 && index < array.length) {
+                array.splice(index, 1);
+            }
+        }
+
         return array;
     }
 
@@ -76,43 +105,87 @@ export namespace Arrays {
      * @param array The given array.
      * @param each The visit callback for each element in array. Returns true to
      *             break the iteration.
+     * @returns Returns the same array.
      */
-    export function reverseIterate<T>(array: T[], each: (element: T, index: number) => boolean | void | undefined): void {
+    export function reverseIterate<T>(array: T[], each: (element: T, index: number) => boolean | void | undefined): T[] {
         for (let idx = array.length - 1; idx >= 0; idx--) {
             if (each(array[idx]!, idx) === true) {
                 break;
             }
         }
+        return array;
     }
 
     /**
-     * @description Insert the given item to the sorted array in a sort way. The
-     * method mutates the original array and returns a reference to the same one.
+     * @description Inserts the given item into the sorted array while 
+     * maintaining its sorted order. The original array is mutated.
      * @param sorted The sorted array.
-     * @param insert The given item.
-     * @param cmp The compare function. 
-     *                  true -> `a` before `b`
-     *                  false -> `a` after `b`
+     * @param toInsert The item to be inserted.
+     * @param cmp The compare function used to determine the sort order.
+     *             Returns true if `a` is before `b`, false otherwise.
+     * @returns Returns the same array.
      */
-    export function insert<T>(sorted: T[], insert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): T[] {
-
+    export function insertSorted<T>(sorted: T[], toInsert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): T[] {
         if (sorted.length === 0) {
-            sorted.push(insert);
+            sorted.push(toInsert);
             return sorted;
         }
 
         let i = 0;
         for (i = 0; i < sorted.length; i++) {
-            const item = sorted[i]!;
+            const currItem = sorted[i]!;
 
-            if (cmp(insert, item) === true) {
-                sorted.splice(i, 0, insert);
+            if (cmp(toInsert, currItem)) {
+                sorted.splice(i, 0, toInsert);
                 return sorted;
             }
         }
-        
-        sorted.splice(i, 0, insert);
+
+        sorted.splice(i, 0, toInsert);
         return sorted;
+    }
+
+    /**
+     * @description Inserts multiple arrays of elements into the original array 
+     * at specified indice. 
+     * 
+     * @note Each index in the `indice` array refers to a position in the 
+     * original array before any insertions. The original array is mutated.
+     * 
+     * @param array The array to be inserted.
+     * @param indice An array of indice where each array of elements from the 
+     *               `elements` parameter will be inserted.
+     * @param elements An array of arrays, where each inner array contains 
+     *                 elements to be inserted at the corresponding index in the 
+     *                 `indice` array.
+     * @returns The original array.
+     * @example
+     * const originalArray = [1, 3];
+     * insertByIndex(originalArray, [0, 1, 2], [[0], [2], [4]]);
+     * console.log(originalArray); // Output: [0, 1, 2, 3, 4]
+     */
+    export function insertByIndex<T>(array: T[], indice: number[], elements: T[][]): T[] {
+        
+        if (indice.length !== elements.length) {
+            panic("[insertByIndex] The lengths of 'indice' and 'elements' arrays does not match");
+        }
+
+        // offset to adjust insertion points
+        let totalInserted = 0;
+
+        indice.forEach((index, i) => {
+            const adjustedIndex = index + totalInserted;
+            const toInsert = elements[i]!;
+
+            if (adjustedIndex > array.length) {
+                panic("[insertByIndex] Index out of bounds after adjustments");
+            }
+
+            array.splice(adjustedIndex, 0, ...toInsert);
+            totalInserted += toInsert.length;
+        });
+
+        return array;
     }
 
     /**
@@ -408,5 +481,94 @@ export namespace Arrays {
         }
 
         return undefined;
+    }
+
+    /**
+     * @description Converts an iterable to an array. If a converter function is 
+     * provided, it applies the function to each item of the iterable before adding 
+     * it to the resulting array.
+     * 
+     * @param iterable The iterable to convert to an array.
+     * @param converter Converts each item of the iterable from type `T1` to 
+     *                  type `T2`.
+     * @returns An array of elements.
+     */
+    export function fromIterable<T>(iterable: Iterable<T>): T[];
+    export function fromIterable<T1, T2>(iterable: Iterable<T1>, converter: (item: T1) => T2): T2[];
+    export function fromIterable<T1, T2>(iterable: Iterable<any>, converter?: (item: T1) => T2): T2[] {
+        if (!converter) {
+            return Array.from(iterable);
+        }
+        return Array.from(iterable, item => converter(item));
+    }
+
+    /**
+     * @description Converts a Set to an array. If a converter function is 
+     * provided, it applies the function to each item of the set before adding 
+     * it to the resulting array.
+     * 
+     * @param set The set to convert to an array.
+     * @param converter Converts each item of the set from type `T1` to type `T2`.
+     * @returns An array of elements.
+     */
+    export function fromSet<T>(set: Set<T>): T[];
+    export function fromSet<T1, T2>(set: Set<T1>, converter: (item: T1) => T2): T2[];
+    export function fromSet<T1, T2>(set: Set<any>, converter?: (item: T1) => T2): T2[] {
+        if (!converter) {
+            return [...set];
+        }
+
+        const arr: T2[] = [];
+        for (const item of set) {
+            arr.push(converter(item));
+        }
+
+        return arr;
+    }
+
+    /**
+     * @description Converts a Map's entries to an array of values based on the 
+     * provided converter function.
+     * 
+     * @param map The Map to convert to an array.
+     * @param converter A converter function.
+     * @returns An array of elements produced by applying the converter.
+     */
+    export function fromMap<K, V, T>(map: Map<K, V>, converter: (value: V, key: K) => T): T[] {
+        const arr: T[] = [];
+        for (const [key, value] of map) {
+            arr.push(converter(value, key));
+        }
+        return arr;
+    }
+
+    /**
+     * @description Converts the keys of an object into an array.
+     * @param obj The object whose keys are to be converted into an array.
+     * @returns An array of the object's keys.
+     */
+    export function fromObjectKeys<T extends object>(obj: T): (keyof T)[] {
+        return Object.keys(obj) as (keyof T)[];
+    }
+
+    /**
+     * @description Converts the values of an object into an array.
+     * @param obj The object whose values are to be converted into an array.
+     * @returns An array of the object's values.
+     */
+    export function fromObjectValues<T>(obj: Record<string, T>): T[] {
+        return Object.values(obj);
+    }
+
+    /**
+     * @description Converts the entries (key-value pairs) of an object into an
+     * array of tuples.
+     * @param obj The object whose entries are to be converted into an array of 
+     *            tuples.
+     * @returns An array of tuples, where each tuple is a [key, value] pair from 
+     *          the object.
+     */
+    export function fromObjectEntries<T>(obj: Record<string, T>): [string, T][] {
+        return Object.entries(obj);
     }
 }
