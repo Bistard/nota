@@ -3,7 +3,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, BoundedArray, Falsy, NonFalsy } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, BoundedArray, Falsy, NonFalsy, ArrayType, Flatten } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -226,6 +226,33 @@ suite('typescript-types-test', () => {
             Pop<[1, 2, 3, 4]>, 
             [1, 2, 3]
         >>();
+    });
+
+    test('ArrayType', () => {
+        checkTrue<AreEqual<ArrayType<number[]>, number>>();
+        checkTrue<AreEqual<ArrayType<string[]>, string>>();
+        checkTrue<AreEqual<ArrayType<(number | string)[]>, (number | string)>>();
+        checkTrue<AreEqual<ArrayType<(1 | 2)[]>, (1 | 2)>>();
+        checkTrue<AreEqual<ArrayType<{ num: 5 }[]>, { num: 5 }>>();
+        checkTrue<AreEqual<ArrayType<undefined[]>, undefined>>();
+        checkTrue<AreEqual<ArrayType<never[]>, never>>();
+    });
+
+    test('Flatten', () => {
+        checkTrue<AreEqual<Flatten<number[][]>, number[]>>();
+        checkTrue<AreEqual<Flatten<string[][]>, string[]>>();
+        checkTrue<AreEqual<Flatten<(number | string)[][]>, (number | string)[]>>();
+        checkTrue<AreEqual<Flatten<undefined[][]>, undefined[]>>();
+        checkTrue<AreEqual<Flatten<null[][]>, null[]>>();
+        checkTrue<AreEqual<Flatten<never[][]>, never[]>>();
+        checkTrue<AreEqual<Flatten<any[][]>, any[]>>();
+        
+        checkTrue<AreEqual<Flatten<number[][][]>, number[][]>>();
+        checkTrue<AreEqual<Flatten<number[][][][]>, number[][][]>>();
+        
+        checkTrue<AreEqual<Flatten<[number[], string[]]>, [number, string]>>();
+        checkTrue<AreEqual<Flatten<[number[][], string[][]]>, [number[], string[]]>>();
+        checkTrue<AreEqual<Flatten<[number[], string[][]]>, [number, string[]]>>();
     });
 
     test('DeepReadonly type', () => {

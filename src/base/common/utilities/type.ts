@@ -87,7 +87,7 @@ export type CompareFn<T> = (a: T, b: T) => CompareOrder;
  * indicates `a`, `second` indicates `b`.
  */
 export const enum CompareOrder {
-    
+
     /** The first parameter `a` goes first. */
     First = -1,
 
@@ -253,6 +253,11 @@ export type AreEqual<X, Y> =
     (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
+ * Get the array type from a given Array. Given 'number[]' will return 'number'.
+ */
+export type ArrayType<T extends any[]> = T[number];
+
+/**
  * Returns a boolean that determines if the given array contains any truthy values.
  */
 export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
@@ -266,6 +271,11 @@ export type Push<Arr extends any[], V> = [...Arr, V];
  * Pop the end of the array (require non empty).
  */
 export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? Rest : never;
+
+/**
+ * Converts a two-dimensional array type to a one-dimensional array type.
+ */
+export type Flatten<Arr extends readonly any[][]> = { [Key in keyof Arr]: ArrayType<Arr[Key]> };
 
 /**
  * Concatenate two arrays.
