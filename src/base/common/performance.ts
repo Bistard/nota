@@ -176,8 +176,9 @@ export namespace PerfUtils {
          * functions over a number of iterations and logs the performance 
          * metrics for each function.
          */
-        export function compareInIterations(
-            functions: { name: string; fn: () => void }[],
+        export function compareInIterations<TArgs extends any[]>(
+            functions: { name: string; fn: (...args: TArgs) => void }[],
+            getArgs: () => TArgs,
             iterations: number,
             opts?: IPerfIterationOptions
         ): IPerfIterationResults
@@ -191,8 +192,11 @@ export namespace PerfUtils {
             }));
 
             for (let i = 0; i < iterations; i++) {
+                const args = getArgs();
+
                 functions.forEach((func, index) => {
-                    const result = measure(`${func.name} - ${i + 1}`, func.fn, opts?.threshold);
+                    const composeFn = () => func.fn(...args);
+                    const result = measure(`${func.name} - ${i + 1}`, composeFn, opts?.threshold);
                     const cache = results[index]!;
 
                     cache.results.push(result);
@@ -289,8 +293,9 @@ export namespace PerfUtils {
          * functions over a number of iterations and logs the performance 
          * metrics for each function.
          */
-        export async function compareInIterations(
-            functions: { name: string; fn: () => Promise<void> }[],
+        export async function compareInIterations<TArgs extends any[]>(
+            functions: { name: string; fn: (...args: TArgs) => Promise<void> }[],
+            getArgs: () => TArgs,
             iterations: number,
             opts?: IPerfIterationOptions
         ): Promise<IPerfIterationResults>
@@ -304,8 +309,11 @@ export namespace PerfUtils {
             }));
 
             for (let i = 0; i < iterations; i++) {
+                const args = getArgs();
+
                 await Promise.all(functions.map(async (func, index) => {
-                    const result = await measure(`${func.name} - ${i + 1}`, func.fn, opts?.threshold);
+                    const composeFn = () => func.fn(...args);
+                    const result = await measure(`${func.name} - ${i + 1}`, composeFn, opts?.threshold);
                     const cache = results[index]!;
 
                     cache.results.push(result);
