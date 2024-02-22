@@ -8,16 +8,27 @@ import { IRegistrant, RegistrantType } from "src/platform/registrant/common/regi
 export interface IColorRegistrant extends IRegistrant<RegistrantType> {
     
     /**
-     * @description Register a color for a {@link location} in the theme
-     * {@link themeID}.
+     * Registers a color associated with a specific location within a given theme.
+     *
+     * @param themeID The unique identifier for the theme.
+     * @param location The specific location within the theme to which the color will 
+     * be applied.
+     * @param color The RGBA color value to be registered for the specified location 
+     * within the theme.
      */
     registerColor(themeID: string, location: string, color: RGBA): void;
-    
+
     /**
-     * @description Return list of all registered colors.
+     * Retrieves a list of all colors registered for a given theme.
+     *
+     * @returns An array of string representations for each registered color, detailing
+     * the theme, location, and RGBA value.
      */
     getAllRegisteredColors(): string[];
+    
+    // registerTemplate(location: string): void;
 
+    getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA>;
 }
 
 export class ColorRegistrant implements IColorRegistrant{
@@ -28,20 +39,46 @@ export class ColorRegistrant implements IColorRegistrant{
 
     /**
      * A map that stores all the registered colors.
+     * The outer dictionary's keys are theme IDs, and each value is another dictionary
+     * where the keys are locations and the values are RGBA colors.
      */
-    // private readonly _colors = Map<Location, IColorItems>;
+    private readonly _colors: Dictionary<string, Dictionary<string, RGBA>> = {};
+
+    private readonly _template = new Set<string>();
 
     // [public methods]
 
     public initRegistrations(): void {
         // noop
+        
     }
 
     public registerColor(themeID: string, location: string, color: RGBA): void {
-        throw new Error("Method not implemented.");
+        if (!this._colors[themeID]) {
+            this._colors[themeID] = {};
+        }
+        this._colors[themeID]![location] = color;
     }
-
+    
     public getAllRegisteredColors(): string[] {
-        throw new Error("Method not implemented.");
+        const allColors: string[] = [];
+
+        for (const themeID in this._colors) {
+            const locations = this._colors[themeID];       
+            for (const location in locations) {
+                const color = locations[location];
+                if (color) {
+                    const colorString = `Theme: ${themeID}, Location: ${location}, Color: rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+                    allColors.push(colorString);
+                }
+            }
+        }
+        return allColors;
+    } 
+
+    public getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA> {
+        // Check if the themeID exists in the registry and return its colors if present; 
+        // otherwise, return an empty dictionary.
+        return this._colors[themeID] || {};
     }
 }

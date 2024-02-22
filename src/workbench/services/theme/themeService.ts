@@ -12,9 +12,11 @@ import { InitProtector } from "src/base/common/error";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
-import { Dictionary } from "src/base/common/utilities/type";
+import { Dictionary, isObject } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { ColorRegistrant } from "./colorRegistrant";
+import { ok } from "assert";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -49,7 +51,7 @@ export interface IThemeService extends IService {
      *       loaded successfully and returned. Otherwise an Error must 
      *       encountered.
      */
-    changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error>;
+    switchTo(id: string): Promise<IColorTheme>;
 
     /**
      * @description Initializes the theme service. Set the current theme to 
@@ -91,9 +93,10 @@ export class ThemeService extends Disposable implements IThemeService {
 
     public readonly themeRootPath: URI;
 
+    private readonly _registrant: ColorRegistrant;
     private readonly _initProtector: InitProtector;
-    private readonly _presetThemes: IColorTheme[];
-    private currentTheme: IColorTheme;
+    private readonly _presetThemes: Map<string, IColorTheme>;
+    private _currentTheme?: IColorTheme;
 
     // [constructor]
 
@@ -106,11 +109,9 @@ export class ThemeService extends Disposable implements IThemeService {
     ) {
         super();
         this._initProtector = new InitProtector();
-        this._presetThemes = this.initializePresetThemes();
-        this.currentTheme = undefined!;
-        
-        const registrant = registrantService.getRegistrant(RegistrantType.Color);
-        registrant.getAllRegisteredColors();
+        this._presetThemes = new Map<string, IColorTheme>();
+        this._currentTheme = undefined;
+        this._registrant = registrantService.getRegistrant(RegistrantType.Color);
 
         this.themeRootPath = URI.join(environmentService.appRootPath, APP_DIR_NAME, 'theme');
     }
@@ -118,33 +119,49 @@ export class ThemeService extends Disposable implements IThemeService {
     // [public methods]
 
     public getCurrTheme(): IColorTheme {
-        if (!this._initProtector.isInit) {
+        if (!this._currentTheme) {
             panic("Theme has not been initialized!");
         }
-        return this.currentTheme;
+        return this._currentTheme;
     }
-    
-    public changeCurrThemeTo(id: string): AsyncResult<IColorTheme, Error> {
+
+    public switchTo(id: string): Promise<IColorTheme> {
         const themeUri = URI.join(this.themeRootPath, `${id}.json`);
     
+        // Start by reading the file
         return this.fileService.readFile(themeUri)
+            // Use andThen to process the theme data if the read is successful
             .andThen((themeData) => {
                 const themeObj = jsonSafeParse(themeData.toString()).unwrap();
-                if (this.isValidTheme(themeObj)) {
+                if (this.__isValidTheme(themeObj)) {
                     const newTheme = new ColorTheme(
                         themeObj.type,
                         themeObj.name,
                         themeObj.description,
                         themeObj.colors
                     );
-                    this.currentTheme = newTheme;
+                    this._currentTheme = newTheme;
                     this._onDidChangeTheme.fire(newTheme);
                     return AsyncResult.ok(newTheme);
                 }
                 return AsyncResult.err(new Error("Invalid theme object"));
-            });
+            })
+            .match(
+                (newTheme) => {
+                    return newTheme;
+                },
+                (error) => {
+                    if (!this._currentTheme) {
+                        // If there's no current theme, use a preset theme
+                        const presetTheme = this._presetThemes[0];
+                        this._currentTheme = presetTheme;
+                        this._onDidChangeTheme.fire(presetTheme);
+                        return presetTheme;
+                    }
+                    return this._currentTheme;
+                }
+            );
     }
-    
     
     public init(): AsyncResult<void, Error> {
         this._initProtector.init('Cannot init twice').unwrap();
@@ -156,30 +173,52 @@ export class ThemeService extends Disposable implements IThemeService {
             WorkbenchConfiguration.ColorTheme, // User settings
             PresetColorTheme.LightModern,      // Default
         );
-    
-        // Read the color theme from the disk by `themeID` under `this.themeRootPath`
-        return this.changeCurrThemeTo(themeID)
-            .andThen((theme) => {
-                // Check if the loaded theme is missing any essential colors
-                // TODO: don't need this, change later
-                if (!this.isValidTheme(theme)) {
-                    return AsyncResult.err(new Error("Theme missing essential colors."));
-                }
-                return AsyncResult.ok();
-            });
-            
+
+        this.switchTo(themeID);
+        return AsyncResult.ok();
     }
 
     // [private methods]
-
+    
     private initializePresetThemes(): IColorTheme[] {
-        const lightTheme: IColorTheme = new ColorTheme(ColorThemeType.Light, 'lightModern', undefined, {/* color mappings */});
-        const darkTheme: IColorTheme = new ColorTheme(ColorThemeType.Dark, 'DarkModern', undefined, {/* color mappings */});
-        return [lightTheme, darkTheme];
+
+        const lightModernRawColor = this._registrant.getRegisteredColorsBy('lightModern');
+        if (this.__isValidTheme(lightModernRawColor)) {
+            const lightModernTheme = new ColorTheme(
+                lightModernRawColor.type,
+                lightModernRawColor.name,
+                lightModernRawColor.description,
+                lightModernRawColor.colors
+            );
+            this._presetThemes.set(lightModernRawColor.name, lightModernTheme);
+        }
+        
+        const darkModernRawColor = this._registrant.getRegisteredColorsBy('darkModern');
+        if (this.__isValidTheme(darkModernRawColor)) {
+            const darkModernTheme = new ColorTheme(
+                darkModernRawColor.type,
+                darkModernRawColor.name,
+                darkModernRawColor.description,
+                darkModernRawColor.colors
+            );
+            this._presetThemes.set(darkModernRawColor.name, darkModernTheme);
+        }
+        return Array.from(this._presetThemes.values());
     }
 
-    private isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
-        // TODO: check if the theme object has all the essential colors defined
-        return true;     
+    private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
+
+        if (!isObject(rawData)|| rawData === null) {
+            return false;
+        }
+    
+        // TODO: getTemplate() in colorRegistrant.ts
+        // compare 'lightModernRawColor' with 'this._registrant.getTemplate'
+        const data = rawData as IRawThemeJsonReadingData;
+        return typeof data.type === 'string' &&
+               typeof data.name === 'string' &&
+               typeof data.description === 'string' &&
+               typeof data.colors === 'object' && data.colors !== null &&
+               Object.keys(data.colors).every(key => typeof data.colors[key] === 'string');  
     }
 }
