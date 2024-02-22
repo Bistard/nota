@@ -525,4 +525,12 @@ suite('event-test', () => {
         listener1.dispose();
         listener2.dispose();
     });
+
+    test('event.runAndListen', () => {
+        const emitter = new Emitter<void>();
+        let cnt = 0;
+        Event.runAndListen(emitter.registerListener, () => cnt++); // cnt: 1
+        emitter.fire(); // cnt: 2
+        assert.strictEqual(cnt, 2);
+    });
 });
