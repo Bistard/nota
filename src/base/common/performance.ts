@@ -378,19 +378,18 @@ export namespace PerfUtils {
         // show fastest
         console.log(`- Overall, '${results.fastest.name}' is fastest on average.`);
         
-        // display percentage for only comparing two functions.
-        if (results.results.length === 2) {
-            const fn1 = results.results[0]!;
-            const fn2 = results.results[1]!;
-            const fasterBy = Math.abs(fn1.averageTime - fn2.averageTime);
+        
+        const fastestAve = results.fastest.averageTime;
+        console.log(`- On average, it takes: ${fastestAve.toFixed(timePrecision)} ms`);
 
-            const avgTimeDifference = Math.abs(fn1.averageTime - fn2.averageTime);
-            const percentageFaster = (avgTimeDifference / Math.max(fn1.averageTime, fn2.averageTime)) * 100;
-            console.log(`- On average, faster by: ${fasterBy.toFixed(timePrecision)} ms (${percentageFaster.toFixed(2)}%)`);
-        }
-        // general case
-        else {
-            console.log(`- On average, it takes: ${results.fastest.averageTime.toFixed(timePrecision)} ms`);
+        for (const result of results.results) {
+            if (result.name === results.fastest.name) {
+                continue;
+            }
+
+            const avgTimeDiff = result.averageTime - fastestAve;
+            const percentageFaster = (avgTimeDiff / result.averageTime) * 100;
+            console.log(`- Faster than '${result.name}' by: ${avgTimeDiff.toFixed(timePrecision)} ms  (${percentageFaster.toFixed(2)}%)`);
         }
         
         console.log('\n');
