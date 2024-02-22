@@ -114,41 +114,46 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.insertSorted([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
-    suite('insertByIndex', function () {
-
-        test('Insert single elements at different positions', function () {
-            const originalArray = [1, 3];
-            const result = Arrays.insertByIndex(originalArray, [0, 2], [[0], [4]]);
-            assert.deepEqual(result, [0, 1, 3, 4]);
+    suite('insertSequence', function () {
+        
+        test('should insert elements at specified index', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 2, [4, 5]);
+            assert.deepStrictEqual(result, [1, 2, 4, 5, 3]);
         });
-
-        test('Insert multiple elements at a single position', function () {
-            const originalArray = [1, 3];
-            const result = Arrays.insertByIndex(originalArray, [1], [[2, 2.5]]);
-            assert.deepEqual(result, [1, 2, 2.5, 3]);
+    
+        test('should insert elements at the start when index is 0', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 0, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5, 1, 2, 3]);
         });
-
-        test('Insert elements at consecutive positions', function () {
-            const originalArray = ['a', 'd'];
-            const result = Arrays.insertByIndex(originalArray, [1, 2], [['b', 'c'], ['e']]);
-            assert.deepEqual(result, ['a', 'b', 'c', 'd', 'e']);
+    
+        test('should append elements when index is equal to array length', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 3, [4, 5]);
+            assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
         });
-
-        test('Insert with no elements (no-op)', function () {
-            const originalArray = [10, 20];
-            const result = Arrays.insertByIndex(originalArray, [], []);
-            assert.deepEqual(result, [10, 20]);
+    
+        test('should insert elements at the end when index is negative and absolute value is less than array length', function () {
+            const result = Arrays.insertSequence([1, 2, 3], -1, [4, 5]);
+            assert.deepStrictEqual(result, [1, 2, 4, 5, 3]);
         });
-
-        test('Insert at the end of the array', function () {
-            const originalArray = [1, 2];
-            const result = Arrays.insertByIndex(originalArray, [2], [[3]]);
-            assert.deepEqual(result, [1, 2, 3]);
+    
+        test('should insert elements at the start when index is negative and absolute value is greater than or equal to array length', function () {
+            const result = Arrays.insertSequence([1, 2, 3], -4, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5, 1, 2, 3]);
         });
-
-        test('Attempt insert with mismatched indice and elements length', function () {
-            const originalArray = [1, 2, 3];
-            assert.throws(() => Arrays.insertByIndex(originalArray, [1], [[4], [5]]));
+    
+        test('should handle empty array with non-negative index', function () {
+            const result = Arrays.insertSequence([], 0, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5]);
+        });
+    
+        test('should handle empty array with negative index', function () {
+            const result = Arrays.insertSequence([], -1, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5]);
+        });
+    
+        test('should handle insertion of empty elements array', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 2, []);
+            assert.deepStrictEqual(result, [1, 2, 3]);
         });
     });
 

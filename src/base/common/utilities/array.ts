@@ -155,44 +155,35 @@ export namespace Arrays {
     }
 
     /**
-     * @description Inserts multiple arrays of elements into the original array 
-     * at specified indice. 
+     * @description Inserts the specified elements into an array at the given 
+     * index, modifying the original array.
      * 
-     * @note Each index in the `indice` array refers to a position in the 
-     * original array before any insertions. The original array is mutated.
+     * @param array The given array be inserted.
+     * @param index The index at which the new elements should be inserted. If 
+     *              the index is negative, the elements will be inserted from 
+     *              the end of the array.
+     * @param elements The elements to be inserted.
+     * @returns Returns the same array.
      * 
-     * @param array The array to be inserted.
-     * @param indice An array of indice where each array of elements from the 
-     *               `elements` parameter will be inserted.
-     * @param elements An array of arrays, where each inner array contains 
-     *                 elements to be inserted at the corresponding index in the 
-     *                 `indice` array.
-     * @returns The original array.
      * @example
-     * const originalArray = [1, 3];
-     * insertByIndex(originalArray, [0, 1, 2], [[0], [2], [4]]);
-     * console.log(originalArray); // Output: [0, 1, 2, 3, 4]
+     * ```ts
+     * // Inserts elements [4, 5] at index 2 in array [1, 2, 3]
+     * insertSequence([1, 2, 3], 2, [4, 5]); // => [1, 2, 4, 5, 3]
+     * ```
      */
-    export function insertByIndex<T>(array: T[], indice: number[], elements: T[][]): T[] {
+    export function insertSequence<T>(array: T[], index: number, elements: T[]): T[] {
+        const startIdx = __getActualStartIndex(array, index);
+        const originalLength = array.length;
+        const newItemsLength = elements.length;
+        array.length = originalLength + newItemsLength;
         
-        if (indice.length !== elements.length) {
-            panic("[insertByIndex] The lengths of 'indice' and 'elements' arrays does not match");
+        for (let i = originalLength - 1; i >= startIdx; i--) {
+            array[i + newItemsLength] = array[i]!;
         }
-
-        // offset to adjust insertion points
-        let totalInserted = 0;
-
-        indice.forEach((index, i) => {
-            const adjustedIndex = index + totalInserted;
-            const toInsert = elements[i]!;
-
-            if (adjustedIndex > array.length) {
-                panic("[insertByIndex] Index out of bounds after adjustments");
-            }
-
-            array.splice(adjustedIndex, 0, ...toInsert);
-            totalInserted += toInsert.length;
-        });
+    
+        for (let i = 0; i < newItemsLength; i++) {
+            array[i + startIdx] = elements[i]!;
+        }
 
         return array;
     }
@@ -579,5 +570,13 @@ export namespace Arrays {
      */
     export function fromObjectEntries<T>(obj: Record<string, T>): [string, T][] {
         return Object.entries(obj);
+    }
+}
+
+function __getActualStartIndex<T>(array: T[], index: number): number {
+    if (index < 0) {
+        return Math.max(index + array.length, 0);
+    } else {
+        return Math.min(index, array.length);
     }
 }
