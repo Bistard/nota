@@ -4,7 +4,7 @@ import { URI } from "src/base/common/files/uri";
 import { panic } from "src/base/common/result";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
-import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
+import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
@@ -86,7 +86,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     // [fields]
 
-    private _compare!: CompareFn<TItem>;
+    private _compare!: Comparator<TItem>;
     
     private _sortType!: FileSortType;
     private _sortOrder!: FileSortOrder;

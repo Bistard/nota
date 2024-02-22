@@ -5,7 +5,7 @@ import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { CompareFn, Mutable } from "src/base/common/utilities/type";
+import { Comparator, Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { tryOrDefault } from "src/base/common/error";
 import { parse } from "src/base/common/files/path";
@@ -130,7 +130,7 @@ export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
      * @description Provide a compare function that provides ability to decide
      * the order of every folder children.
      */
-    cmp?: CompareFn<FileItem>;
+    cmp?: Comparator<FileItem>;
 
     /**
      * @description Provide a chance that client can be notified before every

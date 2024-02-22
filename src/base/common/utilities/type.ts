@@ -25,7 +25,7 @@ export type Dictionary<K extends string | number | symbol, V> = Record<K, V>;
 export type StringDictionary<V> = Record<string, V>;
 
 /**
- * A string dictionary (alias for `Record<number, V>`).
+ * A number dictionary (alias for `Record<number, V>`).
  */
 export type NumberDictionary<V> = Record<number, V>;
 
@@ -61,7 +61,7 @@ export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...
 export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => TInstance;
 
 /**
- * `CompareFn` is a type representing a generic comparison function.
+ * `Comparator` is a type representing a generic comparison function.
  * This function takes two arguments of the same type and returns a number.
  * Typically, this function is used for sorting or comparing values in data 
  * structures.
@@ -74,13 +74,13 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * @template T The type of the arguments to compare.
  *
  * @example
- * // Here is an example of using `CompareFn` with numbers.
- * let compareNumbers: CompareFn<number>;
+ * // Here is an example of using `Comparator` with numbers.
+ * let compareNumbers: Comparator<number>;
  * compareNumbers = (a, b) => a - b;
  * let numbers = [3, 1, 4, 1, 5, 9];
  * numbers.sort(compareNumbers);
  */
-export type CompareFn<T> = (a: T, b: T) => CompareOrder;
+export type Comparator<T> = (a: T, b: T) => CompareOrder;
 
 /**
  * Given two parameters `a` and `b`, determine which one goes first. `First` 
