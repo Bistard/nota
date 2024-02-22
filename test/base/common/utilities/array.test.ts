@@ -16,6 +16,32 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 2), [3, 2, 1]);
     });
 
+    suite('tail function tests', function() {
+        
+        test('should return the last element of a non-empty array', function() {
+            const inputArray = [1, 2, 3, 4, 5];
+            const expectedOutput = 5;
+            assert.strictEqual(Arrays.tail(inputArray), expectedOutput);
+        });
+    
+        test('should return the third element from the end when n=2', function() {
+            const inputArray = [1, 2, 3, 4, 5];
+            const expectedOutput = 3;
+            assert.strictEqual(Arrays.tail(inputArray, 2), expectedOutput);
+        });
+    
+        test('should return undefined for an empty array', function() {
+            const inputArray: number[] = [];
+            const expectedOutput = undefined;
+            assert.strictEqual(Arrays.tail(inputArray), expectedOutput);
+        });
+    
+        test('should throw an error if n is larger than array size', function() {
+            const inputArray = [1, 2, 3];
+            assert.throws(() => Arrays.tail(inputArray, 5), Error);
+        });
+    });
+
     test('remove', () => {
         const arr = [1, 1, 2, 3, 4, 5];
         assert.deepStrictEqual(Arrays.remove(arr, 1), [1, 2, 3, 4, 5]);

@@ -41,6 +41,15 @@ export namespace Arrays {
     }
 
     /**
+     * @description Returns the last element of an array.
+     * @param array The array.
+     * @param n Which element from the end (default is zero).
+     */
+    export function tail<T>(array: T[], n: number = 0): T {
+        return array[array.length - (1 + n)]!;
+    }
+
+    /**
      * @description Fills an array with data with n times.
      * @param data The data to be filled.
      * @param size The size of the array.
