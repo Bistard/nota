@@ -164,10 +164,8 @@ export namespace PerfUtils {
             const perfMark2 = measure(name2, fn2, threshold);
 
             const fasterFn = perfMark1.time < perfMark2.time ? name1 : name2;
-            const fasterBy = perfMark1.time < perfMark2.time
-                ? perfMark2.time - perfMark1.time
-                : perfMark1.time - perfMark2.time;
-            
+            const fasterBy = Math.abs(perfMark1.time - perfMark2.time);
+
             const result = {
                 whoIsFaster: fasterFn,
                 fasterBy: fasterBy,
@@ -287,10 +285,8 @@ export namespace PerfUtils {
             const perfMark2 = await measure(name2, fn2, threshold);
 
             const fasterFn = perfMark1.time < perfMark2.time ? name1 : name2;
-            const fasterBy = perfMark1.time < perfMark2.time
-                ? perfMark2.time - perfMark1.time
-                : perfMark1.time - perfMark2.time;
-            
+            const fasterBy = Math.abs(perfMark1.time - perfMark2.time);
+
             const result = {
                 whoIsFaster: fasterFn,
                 fasterBy: fasterBy,
@@ -388,11 +384,16 @@ export namespace PerfUtils {
         console.log('<--- Performance Comparison Result --->');
         
         console.log(`- '${result.whoIsFaster}' is faster.`);
-        console.log(`- Faster by: ${result.fasterBy} ms`);
+        
+        const percentageFaster = (result.fasterBy / Math.max(result.fn1.time, result.fn2.time)) * 100;
+        console.log(`- Faster by: ${result.fasterBy} ms (${percentageFaster.toFixed(2)}%)`);
+
+        console.log('\n');
         
         console.log(`- ${result.fn1.stage}: ${result.fn1.time} ms`);
         console.log(`- ${result.fn2.stage}: ${result.fn2.time} ms`);
-        
+    
+    
         console.log('<---             End               --->');
     }
 
@@ -400,8 +401,13 @@ export namespace PerfUtils {
         console.log('<--- Performance Iteration Results --->');
     
         console.log(`- Overall, '${results.whoIsFaster}' is faster on average.`);
-        console.log(`- Faster by: ${results.fasterBy.toFixed(timePrecision)} ms\n`);
-    
+        
+        const avgTimeDifference = Math.abs(results.fn1.averageTime - results.fn2.averageTime);
+        const percentageFaster = (avgTimeDifference / Math.max(results.fn1.averageTime, results.fn2.averageTime)) * 100;
+        console.log(`- On average, faster by: ${results.fasterBy.toFixed(timePrecision)} ms (${percentageFaster.toFixed(2)}%)`);
+
+        console.log('\n');
+
         console.log(`'${results.fn1.name}' Metrics:`);
         console.log(`- Total Time: ${results.fn1.totalTime.toFixed(timePrecision)} ms`);
         console.log(`- Average Time: ${results.fn1.averageTime.toFixed(timePrecision)} ms`);
