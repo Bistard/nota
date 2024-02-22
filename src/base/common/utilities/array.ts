@@ -166,7 +166,6 @@ export namespace Arrays {
      */
     export function insertByIndex<T>(array: T[], indice: number[], elements: T[][]): T[] {
         
-        // validate input lengths
         if (indice.length !== elements.length) {
             panic("[insertByIndex] The lengths of 'indice' and 'elements' arrays does not match");
         }
@@ -178,15 +177,11 @@ export namespace Arrays {
             const adjustedIndex = index + totalInserted;
             const toInsert = elements[i]!;
 
-            // Check if the adjusted index is within the bounds of the array after previous insertions
             if (adjustedIndex > array.length) {
                 panic("[insertByIndex] Index out of bounds after adjustments");
             }
 
-            // Insert the elements at the adjusted index
             array.splice(adjustedIndex, 0, ...toInsert);
-
-            // Update the total number of elements inserted
             totalInserted += toInsert.length;
         });
 
