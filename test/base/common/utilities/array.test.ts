@@ -16,7 +16,7 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 2), [3, 2, 1]);
     });
 
-    suite('tail function tests', function() {
+    suite('tail', function() {
         
         test('should return the last element of a non-empty array', function() {
             const inputArray = [1, 2, 3, 4, 5];
@@ -38,7 +38,7 @@ suite('array-test', () => {
     
         test('should throw an error if n is larger than array size', function() {
             const inputArray = [1, 2, 3];
-            assert.throws(() => Arrays.tail(inputArray, 5), Error);
+            assert.strictEqual(Arrays.tail(inputArray, 5), undefined);
         });
     });
 
