@@ -1,5 +1,5 @@
 import { panic } from "src/base/common/result";
-import { CompareOrder, NonUndefined } from "src/base/common/utilities/type";
+import { ArrayType, CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -69,6 +69,40 @@ export namespace Arrays {
      */
     export function coalesce<T>(array: ReadonlyArray<T | undefined | null>): T[] {
         return <T[]>array.filter(e => !!e);
+    }
+
+    /**
+     * @description Iterates over multiple arrays in parallel, forEach is 
+     * applied to each corresponding item from each array.
+     * 
+     * @param arrays An array of arrays, inner arrays must have the same length.
+     * @param forEach Executed for each set of parallel elements.
+     * 
+     * @panic If the inner arrays are not of the same length.
+     * 
+     * @example
+     * const nums = [1, 2, 3];
+     * const strs = ['one', 'two', 'three'];
+     * const bools = [true, false, true];
+     * 
+     * parallelEach([nums, strs, bools], (num, str, bool) => {
+     *   console.log(`Number: ${num}, String: '${str}', Boolean: ${bool}`);
+     * });
+     */
+    export function parallelEach<TArrays extends any[][]>(arrays: [...TArrays], forEach: (...elements: Flatten<TArrays>) => void): void {
+        if (arrays.length === 0) {
+            return;
+        }
+
+        if (!arrays.every(array => array.length === arrays[0]!.length)) {
+            panic('[parallelEach] All arrays must have the same length');
+        }
+    
+        const arrayLength = arrays[0]!.length;
+        for (let i = 0; i < arrayLength; i++) {
+            const args: any = arrays.map(array => array[i]!);
+            forEach(...args);
+        }
     }
 
     /**

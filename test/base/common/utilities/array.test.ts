@@ -92,6 +92,47 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.fill('hello', 5), ['hello', 'hello', 'hello', 'hello', 'hello']);
     });
 
+    suite('parallelEach', function() {
+        
+        test('should iterate over multiple arrays in parallel', function() {
+          const nums = [1, 2, 3];
+          const strs = ['one', 'two', 'three'];
+          const bools = [true, false, true];
+      
+          const result: Array<[number, string, boolean]> = [];
+      
+          Arrays.parallelEach([nums, strs, bools], (num, str, bool) => {
+            result.push([num, str, bool]);
+          });
+      
+          assert.deepStrictEqual(result, [
+            [1, 'one', true],
+            [2, 'two', false],
+            [3, 'three', true]
+          ]);
+        });
+      
+        test('should handle empty array of arrays', function() {
+          const result: any[] = [];
+      
+          Arrays.parallelEach([], () => {
+            result.push([]);
+          });
+      
+          assert.deepStrictEqual(result, []);
+        });
+      
+        test('should throw error when inner arrays are not of the same length', function() {
+          const nums = [1, 2, 3];
+          const strs = ['one', 'two'];
+          const bools = [true, false, true];
+      
+          assert.throws(() => {
+            Arrays.parallelEach([nums, strs, bools], () => {});
+          }, /All arrays must have the same length/);
+        });
+      });
+
     test('reverseIterate', () => {
         const arr = [1, 2, 3, 4, 5];
         const newArr: number[] = [];

@@ -364,7 +364,7 @@ export namespace PerfUtils {
     }
 
     function __logPerfCompareResult(result: IPerfCompareResult): void {
-        console.log('<--- Performance Comparison Result --->');
+        console.log('<--- Performance Comparison Result --->\n');
         
         console.log(`- '${result.fastest}' is faster.`);
         
@@ -377,11 +377,11 @@ export namespace PerfUtils {
         console.log(`- ${result.fn2.stage}: ${result.fn2.time} ms`);
     
     
-        console.log('<---             End               --->');
+        console.log('\n<---             End               --->');
     }
 
     function __logPerfIterationResults(results: IPerfIterationResults, timePrecision: number = 6): void {
-        console.log('<--- Performance Iteration Results --->');
+        console.log('<--- Performance Iteration Results --->\n');
     
         // show fastest
         console.log(`- Overall, '${results.fastest.name}' is fastest on average.`);
