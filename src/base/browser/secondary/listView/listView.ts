@@ -12,7 +12,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * The consturtor options for {@link ListView}.

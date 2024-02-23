@@ -2,7 +2,7 @@ import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IIndexTreeModelOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceOptions, IIndexTreeModelBase, IFlexIndexTreeModel, FlexIndexTreeModel } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link IMultiTreeModelBase}.

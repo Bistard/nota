@@ -1,7 +1,7 @@
 import { Time } from "src/base/common/date";
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { Comparator, CompareOrder } from "src/base/common/utilities/type";

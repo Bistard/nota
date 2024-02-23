@@ -1,8 +1,8 @@
 import { compareSubstring, compareSubstringIgnoreCase } from "src/base/common/files/glob";
 import { URI } from "src/base/common/files/uri";
-import { panic } from "src/base/common/result";
 import { CharCode } from "src/base/common/utilities/char";
 import { IIterable } from "src/base/common/utilities/iterable";
+import { panic } from "src/base/common/utilities/panic";
 import { Random } from "src/base/common/utilities/random";
 import { isNonNullable } from "src/base/common/utilities/type";
 

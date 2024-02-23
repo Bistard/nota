@@ -1,4 +1,4 @@
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { Callable } from "src/base/common/utilities/type";
 
 /**

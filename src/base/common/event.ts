@@ -3,7 +3,7 @@ import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } 
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/utilities/async";
 import { Callable } from "src/base/common/utilities/type";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 

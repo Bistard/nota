@@ -12,7 +12,7 @@ import { Watcher } from "src/platform/files/node/watcher";
 import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/platform/files/common/watcher";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { Time } from "src/base/common/date";
 import { Strings } from "src/base/common/utilities/string";
 

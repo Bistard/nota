@@ -1,4 +1,4 @@
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";

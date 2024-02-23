@@ -1,5 +1,5 @@
-import { panic } from "src/base/common/result";
-import { ArrayType, CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
+import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.

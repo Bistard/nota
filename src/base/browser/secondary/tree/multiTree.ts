@@ -8,7 +8,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { isPrimitive } from "src/base/common/utilities/type";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link MultiTreeBase}.

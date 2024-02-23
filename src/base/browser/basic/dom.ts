@@ -2,7 +2,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { HexColor } from "src/base/common/color";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { Dimension, IDomBox } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
 

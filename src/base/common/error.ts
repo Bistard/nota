@@ -1,6 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Result, err, ok, panic } from "src/base/common/result";
+import { Result, err, ok } from "src/base/common/result";
 import { mixin } from "src/base/common/utilities/object";
+import { panic } from "src/base/common/utilities/panic";
 import { Strings } from "src/base/common/utilities/string";
 
 type IErrorCallback = (error: any) => void;
