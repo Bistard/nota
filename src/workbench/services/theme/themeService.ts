@@ -131,6 +131,7 @@ export class ThemeService extends Disposable implements IThemeService {
         if (presetTheme) {
             this._currentTheme = presetTheme;
             this._onDidChangeTheme.fire(presetTheme);
+            this.updateDynamicCSSRules();
             return Promise.resolve(presetTheme);
         }
 
@@ -148,6 +149,7 @@ export class ThemeService extends Disposable implements IThemeService {
                     );
                     this._currentTheme = newTheme;
                     this._onDidChangeTheme.fire(newTheme);
+                    this.updateDynamicCSSRules();
                     return AsyncResult.ok(newTheme);
                 }
                 return AsyncResult.err(new Error(`Error loading theme from URI: ${themeUri.toString()}`));
@@ -164,6 +166,7 @@ export class ThemeService extends Disposable implements IThemeService {
                         const presetTheme = this._presetThemes[0];
                         this._currentTheme = presetTheme;
                         this._onDidChangeTheme.fire(presetTheme);
+                        this.updateDynamicCSSRules();
                         return presetTheme;
                     }
                     return this._currentTheme;
@@ -203,20 +206,48 @@ export class ThemeService extends Disposable implements IThemeService {
         }    
         return Array.from(this._presetThemes.values());
     }
-    
-    private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
 
-        if (!isObject(rawData)) {
+    private updateDynamicCSSRules() {
+        const themeData = this.getCurrTheme(); 
+        const cssRules = new Set<string>();
+
+        // Generate CSS variables for each color in the theme
+        Object.entries(themeData.getColor).forEach(([colorName, colorValue]) => {
+            const cssVarName = `--${colorName}`; // Convert color name to CSS variable name
+            cssRules.add(`:root { ${cssVarName}: ${colorValue}; }`); // Add rule to set variable
+        });
+        const cssString = Array.from(cssRules).join('\n');
+        this.applyRules(cssString, themeData.name); 
+    }
+
+    private applyRules(styleSheetContent: string, rulesClassName: string): void {
+        const themeStyles = document.head.getElementsByClassName(rulesClassName);
+    
+        if (themeStyles.length === 0) {
+            // If no existing <style> element for the theme, create a new one
+            const elStyle = document.createElement('style');
+            elStyle.className = rulesClassName;
+            elStyle.textContent = styleSheetContent;
+            document.head.appendChild(elStyle);
+        } else {
+            // If a <style> element already exists, update its content
+            (themeStyles[0] as HTMLStyleElement).textContent = styleSheetContent;
+        }
+    }
+      
+    private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
+        if (typeof rawData !== 'object' || rawData === null) {
             return false;
         }
     
-        // TODO: getTemplate() in colorRegistrant.ts
-        // compare 'lightModernRawColor' with 'this._registrant.getTemplate'
         const data = rawData as IRawThemeJsonReadingData;
+        const template = this._registrant.getTemplate();
+    
         return typeof data.type === 'string' &&
                typeof data.name === 'string' &&
                typeof data.description === 'string' &&
                typeof data.colors === 'object' && data.colors !== null &&
-               Object.keys(data.colors).every(key => typeof data.colors[key] === 'string');  
+               // Ensure every required color location is present
+               [...template].every(location => typeof data.colors[location] === 'string');
     }
 }

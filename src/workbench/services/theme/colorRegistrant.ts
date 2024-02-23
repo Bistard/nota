@@ -18,9 +18,6 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
      */
     registerColor(themeID: string, location: string, color: RGBA): void;
 
-    
-    // registerTemplate(location: string): void;
-
     /**
      * Retrieves a list of all colors registered for a given theme.
      *
@@ -28,6 +25,21 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
      * @returns A dictionary mapping locations to RGBA color values for the theme.
      */
     getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA>;
+
+    /**
+     * Registers a location as part of a theme template.
+     * 
+     * @param location The location within the theme that needs to be included in 
+     * the template.
+     */
+    registerTemplate(location: string): void;
+
+    /**
+     * Retrieves the set of all locations that are part of the theme template.
+     * 
+     * @returns A set containing all the locations that have been registered.
+     */
+    getTemplate(): Set<string>;
 }
 
 export class ColorRegistrant implements IColorRegistrant{
@@ -48,8 +60,7 @@ export class ColorRegistrant implements IColorRegistrant{
     // [public methods]
 
     public initRegistrations(): void {
-        // noop
-        
+        // noop    
     }
 
     public registerColor(themeID: string, location: string, color: RGBA): void {
@@ -60,8 +71,15 @@ export class ColorRegistrant implements IColorRegistrant{
     }
 
     public getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA> {
-        // Check if the themeID exists in the registry and return its colors if present; 
-        // otherwise, return an empty dictionary.
+        // Check if the themeID exists in the registry
         return this._colors[themeID] || {};
+    }
+
+    public registerTemplate(location: string): void {
+        this._template.add(location);
+    }
+
+    public getTemplate(): Set<string> {
+        return new Set(this._template);
     }
 }
