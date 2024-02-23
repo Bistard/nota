@@ -308,7 +308,7 @@ export class InstantiationService implements IInstantiationService {
 
             if (roots.length === 0) {
                 if (!dependencyGraph.isEmpty()) {
-                    throw Error('[DI] dependency cycle happens');
+                    panic('[DI] dependency cycle happens');
                 }
                 break;
             }

@@ -1,10 +1,12 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
+import { panic } from "src/base/common/utilities/panic";
 import { isNumber } from "src/base/common/utilities/type";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -18,6 +20,7 @@ export const enum ShortcutWeight {
 }
 
 interface IShortcutBase {
+    
     /**
      * The id of the command. It indicates which command the shortcut is binding
      * to. When shortcut is triggered, the application will try to lookup by the
@@ -107,17 +110,6 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
     register(registration: IShortcutRegistration): IDisposable;
 
     /**
-     * @description Except a general registration, you may also register a 
-     * shortcut alongs with a new command which will be also registered into
-     * {@link ICommandRegistrant}.
-     * @param registration The shortcut registration with command information.
-     * @returns A disposable to unregister the shortcut itself. 
-     * 
-     * @note When unregistering, the command will not be unregistered.
-     */
-    registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable;
-
-    /**
      * @description Check if the command is already registered with the given
      * shortcut.
      * @param shortcut The given shortcut or the hashcode.
@@ -147,7 +139,6 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
     public readonly type = RegistrantType.Shortcut;
 
     private static _shortcutID = 0;
-    private readonly _commandRegistrant: ICommandRegistrant;
 
     /**
      * A map that stores all the registered shortcuts. Mapping from the hash 
@@ -159,15 +150,14 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
     // [constructor]
 
-    constructor(commandRegistrant: ICommandRegistrant) {
+    constructor() {
         this._shortcuts = new Map();
-        this._commandRegistrant = commandRegistrant;
     }
 
     // [public methods]
 
-    public initRegistrations(): void {
-        // noop
+    public initRegistrations(provider: IServiceProvider): void {
+        rendererWorkbenchShortcutRegister(provider);
     }
 
     public register(registration: IShortcutRegistration): IDisposable {
@@ -188,7 +178,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
          */
         const commandID = registration.commandID;
         if (items.commands.has(commandID)) {
-            throw new Error(`There exists a command with ID '${commandID}' that is already registered`);
+            panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
         }
 
         // registere the shortcut
@@ -211,19 +201,6 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
                 }
             }
         });
-    }
-
-    public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
-        const unregister = this.register(registration);
-        this._commandRegistrant.registerCommandBasic(
-            {
-                id: registration.commandID,
-                command: registration.command,
-                description: registration.description,
-                overwrite: registration.overwrite,
-            }
-        );
-        return unregister;
     }
 
     public isRegistered(shortcut: Shortcut | ShortcutHash, commandID: string): boolean {

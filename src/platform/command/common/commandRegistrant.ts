@@ -1,5 +1,5 @@
-import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Mutable } from "src/base/common/utilities/type";
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Command, CommandImplementation } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
@@ -26,7 +26,7 @@ export interface ICommandEvent {
 export interface ICommandBasicSchema {
 
     /**
-     * The name of the command for later access.
+     * The name of the command.
      */
     readonly id: string;
 
@@ -92,8 +92,13 @@ export class CommandRegistrant implements ICommandRegistrant {
         // noop
     }
 
-    public initRegistrations(): void {
-        // noop
+    public initRegistrations(provider: IServiceProvider): void {
+        
+        /**
+         * Since the {@link CommandRegistrant} is constructed in both main
+         * and renderer process. Do not register here unless it is shared in 
+         * both processes.
+         */
     }
 
     public registerCommandBasic(schema: ICommandBasicSchema): IDisposable {
@@ -115,6 +120,10 @@ export class CommandRegistrant implements ICommandRegistrant {
     }
 
     public registerCommand(command: Command): IDisposable {
+        const id = command.id;
+        
+        
+        
         return undefined!;
     }
 

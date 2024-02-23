@@ -33,7 +33,7 @@ suite('shortcutService-test', () => {
         contextService = new ContextService();
         
         commandRegistrant = new CommandRegistrant();
-        shortcutRegistrant = new ShortcutRegistrant(commandRegistrant);
+        shortcutRegistrant = new ShortcutRegistrant();
         
         const registrantService = new RegistrantService(new NullLogger());
         registrantService.registerRegistrant(commandRegistrant);

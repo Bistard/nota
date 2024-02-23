@@ -35,10 +35,7 @@ import { IRegistrantService, RegistrantService } from "src/platform/registrant/c
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { rendererSideViewConfigurationRegister } from "src/workbench/parts/sideView/configuration.register";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
-import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
-import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
-import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
@@ -57,6 +54,7 @@ import { INotificationService, NotificationService } from "src/workbench/service
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
+import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -133,7 +131,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
         instantiationService.register(IRegistrantService, registrantService);
-        this.__registrantRegistrations(instantiationService, registrantService);
+        this.initRegistrant(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
@@ -287,47 +285,47 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
     }
 
-    private __registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
+    private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
         
-        // configuration registrations
-        service.registerRegistrant(new class extends ConfigurationRegistrant {
-            public override initRegistrations(): void {
-                super.initRegistrations();
+        /**
+         * DO NOT change the registration orders, orders does matter here.
+         */
+        registrant.registerRegistrant(this.initConfigurationRegistrant(service));
+        registrant.registerRegistrant(service.createInstance(ShortcutRegistrant));
+        registrant.registerRegistrant(this.initCommandRegistrant(service));
+        registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
+
+        // initialize all the registrations
+        registrant.init(service);
+    }
+
+    private initConfigurationRegistrant(service: IInstantiationService): ConfigurationRegistrant {
+        class BrowserConfigurationRegistrant extends ConfigurationRegistrant {
+            public override initRegistrations(provider: IServiceProvider): void {
+                super.initRegistrations(provider);
                 [
                     rendererWorkbenchConfigurationRegister,
                     rendererSideViewConfigurationRegister,
                 ]
-                .forEach((register) => register(provider));
+                .forEach(register => register(provider));
             }
-        }());
+        }
 
-        // command registrations
-        service.registerRegistrant(new class extends CommandRegistrant {
-            public override initRegistrations(): void {
-                super.initRegistrations();
+        return service.createInstance(BrowserConfigurationRegistrant);
+    }
+    
+    private initCommandRegistrant(service: IInstantiationService): CommandRegistrant {
+        class BrowserCommandRegistrant extends CommandRegistrant {
+            public override initRegistrations(provider: IServiceProvider): void {
+                super.initRegistrations(provider);
                 [
                     rendererWorkbenchCommandRegister,
                 ]
-                .forEach((register) => register(provider));
+                .forEach(register => register(provider));
             }
-        }());
-
-        // shortcut registrations
-        service.registerRegistrant(new class extends ShortcutRegistrant {
-            public override initRegistrations(): void {
-                super.initRegistrations();
-                [
-                    rendererWorkbenchShortcutRegister,
-                ]
-                .forEach((register) => register(provider));
-            }
-        }(service.getRegistrant(RegistrantType.Command)));
-
-        // reviver
-        service.registerRegistrant(new ReviverRegistrant());
-
-        // initialize all the registrations
-        service.init();
+        }
+        
+        return service.createInstance(BrowserCommandRegistrant);
     }
 }
 { };

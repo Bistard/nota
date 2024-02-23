@@ -20,6 +20,7 @@ import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger, TestIPC, TestURI } from 'test/utils/testService';
 import { directoryExists } from 'src/base/node/io';
 import { errorToMessage } from 'src/base/common/utilities/panic';
+import { InstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 suite('FileChannel-test (IPC)', () => {
 
@@ -43,7 +44,7 @@ suite('FileChannel-test (IPC)', () => {
         const logService = new NullLogger();
         const registrantService = new RegistrantService(logService);
         registrantService.registerRegistrant(new ReviverRegistrant());
-        registrantService.init();
+        registrantService.init(new InstantiationService());
 
         mainService = new FileService(logService);
         mainService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
