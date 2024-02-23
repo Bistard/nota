@@ -4,7 +4,7 @@ import { ContextKeyExpr, CreateContextKeyExpr } from "src/platform/context/commo
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
-export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'overwrite'> {
+export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'command' | 'overwrite'> {
 
     /**
      * The precondition that indicates if the command is valid to be invoked.
@@ -81,7 +81,7 @@ export abstract class Command implements ICommand {
 
         // command registration
         // FIX: commandRegistrant invalid
-        // commandRegistrant.registerCommand(actualSchema, this.__runCommand.bind(this));
+        // commandRegistrant.registerCommandSchema(actualSchema, this.__runCommand.bind(this));
     }
 
     // [public methods]

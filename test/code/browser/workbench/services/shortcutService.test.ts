@@ -72,7 +72,7 @@ suite('shortcutService-test', () => {
 
         let pressed = 0;
         
-        commandRegistrant.registerCommand({ id: 'test-shortcut' }, () => pressed++);
+        commandRegistrant.registerCommandSchema({ id: 'test-shortcut', command: () => pressed++ });
 
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         const precondition = CreateContextKeyExpr.Equal('value', true);

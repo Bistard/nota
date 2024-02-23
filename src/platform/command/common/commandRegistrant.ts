@@ -7,6 +7,9 @@ export interface ICommandExecutor<T = any> {
     (provider: IServiceProvider, ...args: any[]): T;
 }
 
+/**
+ * An event fired whenever a command is executed.
+ */
 export interface ICommandEvent {
     commandID: string;
     args: any[];
@@ -23,6 +26,11 @@ export interface ICommandSchema {
     readonly id: string;
 
     /**
+     * The actual command implementation.
+     */
+    readonly command: ICommandExecutor;
+
+    /**
      * The description of the command.
      */
     readonly description?: string;
@@ -34,35 +42,28 @@ export interface ICommandSchema {
     readonly overwrite?: boolean;
 }
 
-export interface ICommand extends ICommandSchema {
-    /**
-     * The actual command implementation.
-     */
-    readonly command: ICommandExecutor;
-}
-
 /**
  * An interface only for {@link CommandRegistrant}.
  */
 export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> {
 
     /**
-     * @description Registers a command by storing it in a map with its id as the key.
+     * @description Registers a command by storing it in a map with its ID as 
+     * the key.
      * @param schema A set of metadata that describes the command.
-     * @param command The actual implementation of the command. 
      * @returns A disposible for unregistration.
      */
-    registerCommand(schema: ICommandSchema, command: ICommandExecutor): IDisposable;
+    registerCommandSchema(schema: ICommandSchema): IDisposable;
 
     /**
-     * @description Get the {@link ICommand} object through the command id.
+     * @description Get the {@link ICommandSchema} object through the command ID.
      */
-    getCommand(id: string): ICommand | undefined;
+    getCommand(id: string): ICommandSchema | undefined;
 
     /**
      * @description Return all the registered commands.
      */
-    getAllCommands(): Map<string, ICommand>;
+    getAllCommands(): Map<string, ICommandSchema>;
 }
 
 /**
@@ -73,7 +74,7 @@ export class CommandRegistrant implements ICommandRegistrant {
 
     public readonly type = RegistrantType.Command;
 
-    private readonly _commands = new Map<string, ICommand>();
+    private readonly _commands = new Map<string, ICommandSchema>();
 
     constructor() {
         // noop
@@ -83,18 +84,15 @@ export class CommandRegistrant implements ICommandRegistrant {
         // noop
     }
 
-    public registerCommand(schema: ICommandSchema, command: ICommandExecutor): IDisposable {
+    public registerCommandSchema(schema: ICommandSchema): IDisposable {
         const id = schema.id;
-        const cmd: Mutable<ICommand> = {
-            ...schema,
-            command: command,
-        };
+        const cmd: Mutable<ICommandSchema> = schema;
 
-        if (!schema.description) {
+        if (!cmd.description) {
             cmd.description = 'No descriptions are provided.';
         }
 
-        if (schema.overwrite === true || !this._commands.has(id)) {
+        if (cmd.overwrite === true || !this._commands.has(id)) {
             this._commands.set(id, cmd);
         }
 
@@ -104,11 +102,11 @@ export class CommandRegistrant implements ICommandRegistrant {
         return unregister;
     }
 
-    public getCommand(id: string): ICommand | undefined {
+    public getCommand(id: string): ICommandSchema | undefined {
         return this._commands.get(id);
     }
 
-    public getAllCommands(): Map<string, ICommand> {
+    public getAllCommands(): Map<string, ICommandSchema> {
         return this._commands;
     }
 }

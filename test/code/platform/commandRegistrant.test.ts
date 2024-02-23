@@ -54,7 +54,7 @@ suite('commandRegistrant-test', () => {
     });
 
     test('register-command', () => {
-        commandRegistrant.registerCommand({ id }, executor);
+        commandRegistrant.registerCommandSchema({ id, command: executor });
 
         const command = commandRegistrant.getCommand(id);
         assert.deepStrictEqual(command, {

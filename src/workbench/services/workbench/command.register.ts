@@ -12,36 +12,36 @@ export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
     'rendererWorkbench',
     (registrant) => {
-        registrant.registerCommand(
+        registrant.registerCommandSchema(
             {
                 id: WorkbenchCommands.toggleDevTool,
                 description: 'Toggle the developer tool of the whole application.',
-            },
-            (provider) => {
-                const hostService = provider.getOrCreateService(IHostService);
-                hostService.toggleDevTools();
+                command: (provider) => {
+                    const hostService = provider.getOrCreateService(IHostService);
+                    hostService.toggleDevTools();
+                },
             },
         );
     
-        registrant.registerCommand(
+        registrant.registerCommandSchema(
             {
                 id: WorkbenchCommands.reloadWindow,
                 description: 'Reload the current window entirely.',
-            },
-            (provider) => {
-                const hostService = provider.getOrCreateService(IHostService);
-                hostService.reloadWebPage();
+                command: (provider) => {
+                    const hostService = provider.getOrCreateService(IHostService);
+                    hostService.reloadWebPage();
+                },
             },
         );
     
-        registrant.registerCommand(
+        registrant.registerCommandSchema(
             {
                 id: WorkbenchCommands.closeApplication,
                 description: 'Close the application.',
-            },
-            (provider) => {
-                const lifecycleService = provider.getOrCreateService(ILifecycleService);
-                lifecycleService.quit();
+                command: (provider) => {
+                    const lifecycleService = provider.getOrCreateService(ILifecycleService);
+                    lifecycleService.quit();
+                },
             },
         );
     },
