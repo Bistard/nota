@@ -60,7 +60,7 @@ export interface IThemeService extends IService {
      *      2. preset one.
      * @note This will only be invoked when the application get started.
      */
-    init(): AsyncResult<void, Error>;
+    init(): Promise<void>;
 }
 
 /**
@@ -126,13 +126,19 @@ export class ThemeService extends Disposable implements IThemeService {
     }
 
     public switchTo(id: string): Promise<IColorTheme> {
+        // Read from memory if a preset theme
+        const presetTheme = this._presetThemes.get(id);
+        if (presetTheme) {
+            this._currentTheme = presetTheme;
+            this._onDidChangeTheme.fire(presetTheme);
+            return Promise.resolve(presetTheme);
+        }
+
         const themeUri = URI.join(this.themeRootPath, `${id}.json`);
     
-        // Start by reading the file
         return this.fileService.readFile(themeUri)
-            // Use andThen to process the theme data if the read is successful
             .andThen((themeData) => {
-                const themeObj = jsonSafeParse(themeData.toString()).unwrap();
+                const themeObj = jsonSafeParse(themeData.toString());
                 if (this.__isValidTheme(themeObj)) {
                     const newTheme = new ColorTheme(
                         themeObj.type,
@@ -144,13 +150,15 @@ export class ThemeService extends Disposable implements IThemeService {
                     this._onDidChangeTheme.fire(newTheme);
                     return AsyncResult.ok(newTheme);
                 }
-                return AsyncResult.err(new Error("Invalid theme object"));
+                return AsyncResult.err(new Error(`Error loading theme from URI: ${themeUri.toString()}`));
             })
             .match(
                 (newTheme) => {
                     return newTheme;
                 },
                 (error) => {
+                    this.logService.error("themeService", "Theme is not available.");
+                    // Send notification to frontend if needed
                     if (!this._currentTheme) {
                         // If there's no current theme, use a preset theme
                         const presetTheme = this._presetThemes[0];
@@ -163,7 +171,7 @@ export class ThemeService extends Disposable implements IThemeService {
             );
     }
     
-    public init(): AsyncResult<void, Error> {
+    public init(): Promise<void> {
         this._initProtector.init('Cannot init twice').unwrap();
     
         // Initialize every preset color themes in the beginning since they are only present in memory.
@@ -173,42 +181,32 @@ export class ThemeService extends Disposable implements IThemeService {
             WorkbenchConfiguration.ColorTheme, // User settings
             PresetColorTheme.LightModern,      // Default
         );
-
-        this.switchTo(themeID);
-        return AsyncResult.ok();
+    
+        return this.switchTo(themeID).then(() => Promise.resolve());
     }
-
+    
     // [private methods]
     
     private initializePresetThemes(): IColorTheme[] {
-
-        const lightModernRawColor = this._registrant.getRegisteredColorsBy('lightModern');
-        if (this.__isValidTheme(lightModernRawColor)) {
-            const lightModernTheme = new ColorTheme(
-                lightModernRawColor.type,
-                lightModernRawColor.name,
-                lightModernRawColor.description,
-                lightModernRawColor.colors
-            );
-            this._presetThemes.set(lightModernRawColor.name, lightModernTheme);
-        }
-        
-        const darkModernRawColor = this._registrant.getRegisteredColorsBy('darkModern');
-        if (this.__isValidTheme(darkModernRawColor)) {
-            const darkModernTheme = new ColorTheme(
-                darkModernRawColor.type,
-                darkModernRawColor.name,
-                darkModernRawColor.description,
-                darkModernRawColor.colors
-            );
-            this._presetThemes.set(darkModernRawColor.name, darkModernTheme);
-        }
+        const themeNames = ['lightModern', 'darkModern'];
+        for (const themeName of themeNames) {
+            const rawColor = this._registrant.getRegisteredColorsBy(themeName);  
+            if (this.__isValidTheme(rawColor)) {
+                const theme = new ColorTheme(
+                    rawColor.type,
+                    rawColor.name,
+                    rawColor.description,
+                    rawColor.colors
+                );
+                this._presetThemes.set(rawColor.name, theme);
+            }
+        }    
         return Array.from(this._presetThemes.values());
     }
-
+    
     private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
 
-        if (!isObject(rawData)|| rawData === null) {
+        if (!isObject(rawData)) {
             return false;
         }
     

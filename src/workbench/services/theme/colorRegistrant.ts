@@ -18,16 +18,15 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
      */
     registerColor(themeID: string, location: string, color: RGBA): void;
 
-    /**
-     * Retrieves a list of all colors registered for a given theme.
-     *
-     * @returns An array of string representations for each registered color, detailing
-     * the theme, location, and RGBA value.
-     */
-    getAllRegisteredColors(): string[];
     
     // registerTemplate(location: string): void;
 
+    /**
+     * Retrieves a list of all colors registered for a given theme.
+     *
+     * @param themeID The unique identifier for the theme.
+     * @returns A dictionary mapping locations to RGBA color values for the theme.
+     */
     getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA>;
 }
 
