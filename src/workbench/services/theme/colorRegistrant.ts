@@ -58,22 +58,6 @@ export class ColorRegistrant implements IColorRegistrant{
         }
         this._colors[themeID]![location] = color;
     }
-    
-    public getAllRegisteredColors(): string[] {
-        const allColors: string[] = [];
-
-        for (const themeID in this._colors) {
-            const locations = this._colors[themeID];       
-            for (const location in locations) {
-                const color = locations[location];
-                if (color) {
-                    const colorString = `Theme: ${themeID}, Location: ${location}, Color: rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
-                    allColors.push(colorString);
-                }
-            }
-        }
-        return allColors;
-    } 
 
     public getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA> {
         // Check if the themeID exists in the registry and return its colors if present; 
