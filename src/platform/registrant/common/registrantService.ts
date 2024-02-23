@@ -1,5 +1,6 @@
 import { InitProtector } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
+import { panic } from "src/base/common/utilities/panic";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { GetRegistrantByType, RegistrantType } from "src/platform/registrant/common/registrant";
 
@@ -72,12 +73,12 @@ export class RegistrantService implements IRegistrantService {
 
     public registerRegistrant<T extends RegistrantType>(registrant: GetRegistrantByType<T>): void {
         if (this.isInit()) {
-            throw new Error(`Cannot register registrant with type '${registrant.type}' after initialization.`);
+            panic(`Cannot register registrant with type '${registrant.type}' after initialization.`);
         }
         
         const existed = this._registrants.get(registrant.type);
         if (existed) {
-            throw new Error(`The registrant with type '${registrant.type}' is already registered.`);
+            panic(`The registrant with type '${registrant.type}' is already registered.`);
         }
 
         this._registrants.set(registrant.type, registrant);
@@ -88,7 +89,7 @@ export class RegistrantService implements IRegistrantService {
     public getRegistrant<T extends RegistrantType>(type: T): GetRegistrantByType<T> {
         const result = this._registrants.get(type);
         if (!result) {
-            throw new Error(`[RegistrantService] Cannot get registrant with type: '${type}'`);
+            panic(`[RegistrantService] Cannot get registrant with type: '${type}'`);
         }
         
         return result;

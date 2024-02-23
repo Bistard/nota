@@ -52,7 +52,6 @@ export class CommandService extends Disposable implements ICommandService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
-        // type: Registrants
         this._registrant = registrantService.getRegistrant(RegistrantType.Command);
     }
 
@@ -67,8 +66,9 @@ export class CommandService extends Disposable implements ICommandService {
 
         try {
             const result = command.command(this.instantiationService, ...args);
-            this._onDidExecuteCommand.fire({ commandID: id, args: args });
             this.logService.trace('CommandService', `executed the command '${id}'`);
+
+            this._onDidExecuteCommand.fire({ commandID: id, args: args });
             return Promise.resolve(<T>result);
         }
         catch (error: any) {
