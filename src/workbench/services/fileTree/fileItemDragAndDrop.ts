@@ -7,7 +7,6 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { panic } from "src/base/common/result";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
 import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
@@ -20,6 +19,8 @@ import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/f
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
 import { noop } from "src/base/common/performance";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
