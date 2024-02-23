@@ -360,8 +360,13 @@ export type MapTypes<T, R extends { from: any; to: any; }> = {
 };
 
 /**
- * built-in type: {@link Awaited} to unpack the return type from a Promise.
+ * @description Recursively unwraps the "awaited type" of a type. Non-promise 
+ * "thenables" should resolve to never. This emulates the behavior of await.
+ * 
+ * @deprecated
+ * An alias type for the built-in type {@link Awaited}.
  */
+export type UnpackPromise<T> = Awaited<T>;
 
 /**
  * `Promisify` type takes an object type `T` and returns a new type.
