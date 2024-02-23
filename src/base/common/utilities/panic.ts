@@ -2,6 +2,12 @@ import { Strings } from "src/base/common/utilities/string";
 import { isNullable } from "src/base/common/utilities/type";
 
 /**
+ * To prevent potential circular dependency issues due to the wide use of `panic` 
+ * throughout the program, this function has been relocated to a separate file 
+ * that does not import any other files.
+ */
+
+/**
  * @description Panics the program by throwing an error with the provided message.
  *
  * @remark `panic` is for situations where the error is unrecoverable and the
