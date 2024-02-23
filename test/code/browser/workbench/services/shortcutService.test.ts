@@ -32,12 +32,14 @@ suite('shortcutService-test', () => {
         const fileService = new FileService(logService);
         contextService = new ContextService();
         
-        commandRegistrant = new CommandRegistrant();
-        shortcutRegistrant = new ShortcutRegistrant();
-        
         const registrantService = new RegistrantService(new NullLogger());
-        registrantService.registerRegistrant(commandRegistrant);
+
+        shortcutRegistrant = new ShortcutRegistrant();
         registrantService.registerRegistrant(shortcutRegistrant);
+
+        commandRegistrant = new CommandRegistrant(registrantService);
+        registrantService.registerRegistrant(commandRegistrant);
+
         DI.register(IRegistrantService, registrantService);
 
         const commandService = new CommandService(DI, logService, registrantService);

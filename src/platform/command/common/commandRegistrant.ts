@@ -3,10 +3,8 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Command, CommandImplementation } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
-
-export interface ICommandExecutor<T = any> {
-    (provider: IServiceProvider, ...args: any[]): T;
-}
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 
 /**
  * An event fired whenever a command is executed.
@@ -61,8 +59,11 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
     registerCommandBasic(schema: ICommandBasicSchema): IDisposable;
 
     /**
-     * @description Registers a {@link Command}.
-     * @param command A concrete {@link Command}.
+     * @description Registers a concrete {@link Command} instance.  
+     * @note The command is also registered with the shortcut registrant if 
+     *       shortcut options are provided in the command schema.
+     * 
+     * @param command The concrete command to register.
      * @returns A disposible for unregistration.
      */
     registerCommand(command: Command): IDisposable;
@@ -81,16 +82,27 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
 /**
  * A command registrant can register commands and can be executed through 
  * the {@link ICommandService}.
+ * 
+ * @note Make sure 'CommandRegistrant' is constructed after 'ShortcutRegistrant'.
  */
 export class CommandRegistrant implements ICommandRegistrant {
 
+    // [fields]
+
     public readonly type = RegistrantType.Command;
-
+    
     private readonly _commands = new Map<string, ICommandBasicSchema>();
+    private readonly _shortcutRegistrant: ShortcutRegistrant;
 
-    constructor() {
-        // noop
+    // [constructor]
+
+    constructor(
+        @IRegistrantService registrantService: IRegistrantService,
+    ) {
+        this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
     }
+
+    // [public methods]
 
     public initRegistrations(provider: IServiceProvider): void {
         
@@ -113,18 +125,27 @@ export class CommandRegistrant implements ICommandRegistrant {
             this._commands.set(id, cmd);
         }
 
-        const unregister = toDisposable(() => {
-            this._commands.delete(id);
-        });
-        return unregister;
+        return this.__toUnregister(id);
     }
 
     public registerCommand(command: Command): IDisposable {
-        const id = command.id;
         
+        // command registration
+        this.registerCommandBasic({
+            id: command.id,
+            description: command.description,
+            command: (...args) => command.run(...args),
+        });
+
+        // shortcut registration
+        if (command.schema.shortcutOptions) {
+            this._shortcutRegistrant.register({
+                ...command.schema.shortcutOptions,
+                commandID: command.id,
+            });
+        }
         
-        
-        return undefined!;
+        return this.__toUnregister(command.id);
     }
 
     public getCommand(id: string): ICommandBasicSchema | undefined {
@@ -133,5 +154,13 @@ export class CommandRegistrant implements ICommandRegistrant {
 
     public getAllCommands(): Map<string, ICommandBasicSchema> {
         return this._commands;
+    }
+
+    // [private helper methods]
+
+    private __toUnregister(id: string): IDisposable {
+        return toDisposable(() => {
+            this._commands.delete(id);
+        });
     }
 }

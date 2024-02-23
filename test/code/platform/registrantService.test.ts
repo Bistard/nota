@@ -55,8 +55,8 @@ suite('registrant-service', () => {
     test('getRegistrant type-check', () => {
         const service = new RegistrantService(new NullLogger());
         service.registerRegistrant(new ConfigurationRegistrant());
-        service.registerRegistrant(new CommandRegistrant());
         service.registerRegistrant(new ShortcutRegistrant());
+        service.registerRegistrant(new CommandRegistrant(service));
         service.registerRegistrant(new ReviverRegistrant());
 
         // type check

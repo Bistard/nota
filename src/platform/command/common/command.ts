@@ -77,27 +77,13 @@ export abstract class Command implements ICommand {
 
     constructor(schema: ICommandSchema) {
         this._schema = schema;
-        const actualSchema = {
-            ...schema,
-            overwrite: true,
-        };
-
-        // FIX: shortcutRegistrant invalid
-        // register as the shortcut if needed
-        // if (schema.shortcutOptions) {
-        //     shortcutRegistrant.register({
-        //         commandID: schema.id,
-        //         ...schema.shortcutOptions,
-        //         when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
-        //     });
-        // }
-
-        // command registration
-        // FIX: commandRegistrant invalid
-        // commandRegistrant.registerCommandBasic(actualSchema, this.__runCommand.bind(this));
     }
 
     // [public methods]
+
+    get schema(): ICommandSchema {
+        return this._schema;
+    }
 
     get id(): string {
         return this._schema.id;
@@ -105,6 +91,10 @@ export abstract class Command implements ICommand {
 
     get when(): ContextKeyExpr | null {
         return this._schema.when;
+    }
+
+    get description(): string | undefined {
+        return this._schema.description;
     }
 
     // [protected methods]
