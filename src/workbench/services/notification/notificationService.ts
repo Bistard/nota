@@ -3,7 +3,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Button, IButtonOptions} from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
-import { panic } from 'src/base/common/result';
+import { panic } from "src/base/common/utilities/panic";
 
 export const INotificationService = createService<INotificationService>('notification-service');
 

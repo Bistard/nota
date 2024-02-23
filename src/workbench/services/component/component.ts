@@ -268,7 +268,7 @@ export abstract class Component extends Themable implements IComponent {
         // If any dimensions is provided, we force to follow it.
         else {
             this._dimension = (this._dimension
-                ? this._dimension.with(width, height)
+                ? this._dimension.clone(width, height)
                 : new Dimension(width ?? 0, height ?? 0)
             );
             this._element.setWidth(this._dimension.width);

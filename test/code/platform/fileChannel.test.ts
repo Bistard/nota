@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as assert from 'assert';
 import { before, after } from 'mocha';
 import { DataBuffer } from 'src/base/common/files/buffer';
@@ -17,9 +18,8 @@ import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger, TestIPC, TestURI } from 'test/utils/testService';
-import * as fs from 'fs';
 import { directoryExists } from 'src/base/node/io';
-import { Strings } from 'src/base/common/utilities/string';
+import { errorToMessage } from 'src/base/common/utilities/panic';
 
 suite('FileChannel-test (IPC)', () => {
 
@@ -289,7 +289,7 @@ suite('FileChannel-test (IPC)', () => {
                 buffers.push(buffer);
             },
             onError: error => {
-                assert.fail(Strings.errorToMessage(error));
+                assert.fail(errorToMessage(error));
             },
             onEnd: async () => {
                 const content = DataBuffer.concat(buffers).toString();

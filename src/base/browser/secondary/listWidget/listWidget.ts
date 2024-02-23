@@ -14,7 +14,7 @@ import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 
 /**
@@ -107,6 +107,9 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
 
     /** Fires when the selected items in the {@link IListWidget} is changed. */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
+
+    /** Fires when the hovered items in the {@link IListWidget} is changed. */
+    get onDidChangeItemHover(): Register<ITraitChangeEvent>;
 
     /** Fires when the item in the {@link IListWidget} is clicked. */
     get onClick(): Register<IListMouseEvent<T>>;
@@ -378,6 +381,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this.selected.onDidChange; }
+    get onDidChangeItemHover(): Register<ITraitChangeEvent> { return this.hovered.onDidChange; }
     get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
     get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
@@ -413,7 +417,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             return;
         }
         
-        if (index < 0 || index > this.getItemCount()) {
+        if (index < 0 || index > this.viewSize()) {
             panic(`splice invalid start index: ${index}`);
         }
 
@@ -533,7 +537,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     }
 
     public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {
-        if (this.getItemCount() === 0) {
+        if (this.viewSize() === 0) {
             return -1;
         }
 
@@ -549,7 +553,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     }
 
     public focusPrev(prev: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {
-        if (this.getItemCount() === 0) {
+        if (this.viewSize() === 0) {
             return -1;
         }
 
@@ -564,8 +568,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return indexFound;
     }
 
-    public getItemCount(): number { 
-        return this.view.getItemCount();
+    public viewSize(onlyVisible: boolean = false): number { 
+        return this.view.viewSize(onlyVisible);
     }
 
     public getRenderIndex(actualIndex: number): number {
@@ -731,7 +735,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         const actualIndex = this.view.indexFromEventTarget(event.target)!; // will not be undefined
         
         // valid item index
-        if (actualIndex >= 0 && actualIndex < this.view.getItemCount()) {
+        if (actualIndex >= 0 && actualIndex < this.view.viewSize()) {
             const item = this.view.getItem(actualIndex);
             return {
                 browserEvent: event,
@@ -779,7 +783,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * @returns If not found, -1 returned.
      */
     private __findNextWithFilter(index: number, fullLoop: boolean, match?: (item: T) => boolean): number {
-        const itemCount = this.getItemCount();
+        const itemCount = this.viewSize();
         
         for (let i = index; i < itemCount; i++) {
             
@@ -810,7 +814,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * @returns If not found, -1 returned.
      */
     private __findPrevWithFilter(index: number, fullLoop: boolean, match?: (item: T) => boolean): number {
-        const itemCount = this.getItemCount();
+        const itemCount = this.viewSize();
         
         for (let i = index; i < itemCount; i++) {
             

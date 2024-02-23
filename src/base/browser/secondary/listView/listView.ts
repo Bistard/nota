@@ -12,7 +12,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * The consturtor options for {@link ListView}.
@@ -503,6 +503,13 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         return;
     }
+    
+    public viewSize(onlyVisible: boolean = false): number {
+        if (onlyVisible) {
+            return this._visibleRange.end - this._visibleRange.start;
+        }
+        return this.items.length; 
+    }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         
@@ -523,7 +530,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public reveal(index: number, relativePositionPercentage?: number): void {
-        if (index < 0 && index >= this.getItemCount()) {
+        if (index < 0 && index >= this.viewSize()) {
             return;
         }
 
@@ -637,10 +644,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     public getVisibleRange(): IRange {
         return this._visibleRange;
-    }
-
-    public getItemCount(): number { 
-        return this.items.length; 
     }
 
     public getItem(index: number): T {

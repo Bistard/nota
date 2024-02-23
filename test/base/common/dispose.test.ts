@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Disposable, DisposableManager, disposeAll, MultiDisposeError, AutoDisposableWrapper, toDisposable } from 'src/base/common/dispose';
+import { Disposable, DisposableManager, disposeAll, AutoDisposableWrapper, toDisposable } from 'src/base/common/dispose';
 
 /**
  * Two suites:
@@ -95,10 +95,7 @@ suite('dispose-test', () => {
 
 		assert.ok(disposedValues.has(1));
 		assert.ok(disposedValues.has(4));
-		assert.ok(thrownError instanceof MultiDisposeError);
-		assert.strictEqual((thrownError as MultiDisposeError).errors.length, 2);
-		assert.strictEqual((thrownError as MultiDisposeError).errors[0].message, 'I am error 1');
-		assert.strictEqual((thrownError as MultiDisposeError).errors[1].message, 'I am error 2');
+		assert.ok(thrownError instanceof Error);
 	});
 });
 
@@ -142,10 +139,7 @@ suite('DisposableManager-test', () => {
 
 		assert.ok(disposedValues.has(1));
 		assert.ok(disposedValues.has(4));
-		assert.ok(thrownError instanceof MultiDisposeError);
-		assert.strictEqual(thrownError.errors.length, 2);
-		assert.strictEqual(thrownError.errors[0].message, 'I am error 1');
-		assert.strictEqual(thrownError.errors[1].message, 'I am error 2');
+		assert.ok(thrownError instanceof Error);
 	});
 
 	test('AutoDisposableWrapper - baiscs', () => {

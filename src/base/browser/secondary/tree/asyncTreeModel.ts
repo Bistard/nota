@@ -55,6 +55,13 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      */
     private readonly _nodeRefreshing = new Map<IAsyncNode<T, TFilter>, Promise<void>>();
 
+    private readonly __reuseOrCreateNode: (
+        childrenData: readonly T[],
+        parent: IAsyncNode<T, TFilter>,
+        newNodes: IAsyncNode<T, TFilter>[],
+        newNodesToRefresh: IAsyncNode<T, TFilter>[],
+    ) => void;
+
     // [constructor]
 
     constructor(
@@ -65,6 +72,12 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         super(rootData, view, opts);
         this._childrenProvider = opts.childrenProvider;
         this._identityProvider = opts.identityProvider;
+
+        if (this._identityProvider) {
+            this.__reuseOrCreateNode = (...args) => this.__tryReuseOldNode(this._identityProvider!, ...args);
+        } else {
+            this.__reuseOrCreateNode = (...args) => this.__alwaysCreateNewNode(...args);
+        }
     }
 
     // [public methods]
@@ -139,10 +152,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
              */
             await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
-        
-        catch (err) {
-            throw err;
-        }
 
         finally {
             // Marking the current node refreshing state is finished.
@@ -158,23 +167,17 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      */
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
 
-        let childrenPromise: Promise<T[]>;
+        let resolveChildren: Promise<T[]>;
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
 
         if (asyncNode.collapsible === false) {
-            childrenPromise = Promise.resolve([]);
+            resolveChildren = Promise.resolve([]);
         } else {
-            childrenPromise = this.__getChildren(asyncNode);
+            resolveChildren = this.__getChildren(asyncNode);
         }
 
-        try {
-            const children = await childrenPromise;
-            return this.__setChildren(asyncNode, children);
-        } 
-        
-        catch (err) {
-            throw err;
-        }
+        const children = await resolveChildren;
+        return this.__setChildren(asyncNode, children);
     }
 
     /**
@@ -225,13 +228,8 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
          * If the tree can identify the uniqueness of each node, then it is 
          * possible to reuse the old nodes instead of creating new ones.
          */
-        // TODO: preformance - avoid calling `if` all the time, we only need one `if` for just once.
-        if (this._identityProvider) {
-            this.__tryReuseOldNode(this._identityProvider, childrenData, node, childrenNodes, childrenNodesToRefresh);
-        } else {
-            this.__alwaysCreateNewNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
-        }
-
+        this.__reuseOrCreateNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
+        
         node.stale = true;
         node.oldChildren = node.children;
         node.children = childrenNodes;

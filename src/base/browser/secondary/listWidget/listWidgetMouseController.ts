@@ -134,7 +134,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
      */
     private __onMouseDown(e: IListMouseEvent<T> | IListTouchEvent<T>): void {
         // prevent double focus
-        if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
+        if (!DomUtility.Elements.isElementFocused(e.browserEvent.target)) {
 			this._view.setDomFocus();
 		}
     }
@@ -169,7 +169,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
             Math.max(toFocused, anchor) + 1
         );
         const currSelection = this._view.getSelections().sort((a, b) => a - b);
-        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insert(currSelection, anchor)), anchor);
+        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insertSorted(currSelection, anchor)), anchor);
         if (!contiguousRange.length) {
             return;
         }

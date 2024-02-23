@@ -15,7 +15,7 @@ import { directoryExists } from 'src/base/node/io';
 import { ResourceChangeType } from 'src/platform/files/common/watcher';
 import { IS_LINUX } from 'src/base/common/platform';
 import { Time, TimeUnit } from 'src/base/common/date';
-import { Strings } from 'src/base/common/utilities/string';
+import { errorToMessage } from 'src/base/common/utilities/panic';
 
 suite('FileService-disk-test', () => {
 
@@ -261,7 +261,7 @@ suite('FileService-disk-test', () => {
                 cnt++;
             },
             onError: (error) => {
-                assert.fail(Strings.errorToMessage(error));
+                assert.fail(errorToMessage(error));
             },
             onEnd: () => {
                 assert.strictEqual(cnt, totalSize / FileService.bufferSize);

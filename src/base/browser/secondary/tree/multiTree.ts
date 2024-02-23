@@ -8,15 +8,19 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { isPrimitive } from "src/base/common/utilities/type";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link MultiTreeBase}.
  */
 export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
+    
     /**
      * @description Returns the number of nodes in the current tree model.
+     * @note The size is counted in a tree perspective. Collapsing item 
+     * (invisible) will also be count.
      */
-    size(): number;
+    treeSize(): number;
 
     /**
      * @description Rerenders the whole view only with the corresponding tree 
@@ -107,7 +111,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
     // [protected override methods]
 
     protected override __onEnter(e: IStandardKeyboardEvent): void {
-        super.__onEnter(e); 
+        super.__onEnter(e);
         
         const anchor = this._view.getAnchorData();
         if (anchor) {
@@ -123,7 +127,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
     protected override __createKeyboardController(opts: IMultiTreeWidgetOpts<T, TFilter>): MultiTreeKeyboardController<T, TFilter> {
-        return new MultiTreeKeyboardController(this, opts.tree);
+        return new MultiTreeKeyboardController<T, TFilter>(this, opts.tree);
     }
 }
 
@@ -131,7 +135,7 @@ export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
  * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
  * 
  * @warn If data type `T` is a primitive type, might raises undefined behaviours
- * if there are two values are the same. For example, `size()` will not work 
+ * if there are two values are the same. For example, `treeSize()` will not work 
  * properly since the tree cannot decide which is which.
  */
 abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTreeBase<T, TFilter> {
@@ -151,7 +155,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         opts: IMultiTreeOptions<T, TFilter> = {}
     ) {
         if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
-            throw new Error('mutli tree does not support primitive types');
+            panic('[MultiTreeBase] does not support primitive types');
         }
         super(container, rootData, renderers, itemProvider, opts);
     }
@@ -166,7 +170,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         this._model.rerender(item);
     }
 
-    public size(): number {
+    public treeSize(): number {
         return this._model.size();
     }
 

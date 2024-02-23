@@ -1,3 +1,4 @@
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -7,6 +8,16 @@
 export interface IDisposable {
 	dispose(): void;
 }
+
+/**
+ * A reference to an object, it makes sure the object won't be garbage-collected
+ * once I still own it.
+ */
+export interface IReference<T> extends IDisposable {
+	readonly object: T;
+}
+
+export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
 /**
  * @readonly The lifecyle of a disposable object is controlled by the client. A
@@ -112,24 +123,6 @@ export class DisposableManager implements IDisposable {
 	}
 }
 
-/**
- * A reference to an object, it makes sure the object won't be garbage-collected
- * once I still own it.
- */
-export interface IReference<T> extends IDisposable {
-	readonly object: T;
-}
-
-export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
-
-export class MultiDisposeError extends Error {
-	constructor(
-		public readonly errors: any[]
-	) {
-		super(`Encountered errors while disposing of store. Errors: [${errors.join(', ')}]`);
-	}
-}
-
 export function disposeAll<T extends IDisposable>(disposables: IterableDisposable<T>): void {
 	const errors: any[] = [];
 
@@ -147,9 +140,9 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 
 	// error handling
 	if (errors.length === 1) {
-		throw errors[0];
+		panic(errors[0]);
 	} else if (errors.length > 1) {
-		throw new MultiDisposeError(errors);
+		panic(`Encountered errors while disposing of mutiple disposable. Errors: ${errorToMessage(errors)}`);
 	}
 }
 

@@ -16,7 +16,10 @@ const RGB_colors = <const>{
     Green: [96, 151, 83], 
 };
 
-export function testPrettyLog(logService: ILogService): void {
+/**
+ * @internal
+ */
+export function __testPrettyLog__(logService: ILogService): void {
     logService.trace('FileTreeService', 'this is trace');
     logService.debug('FileTreeService', 'this is debug');
     logService.info('FileTreeService', 'this is info');

@@ -28,7 +28,7 @@ import { MainConfigurationService } from 'src/platform/configuration/electron/ma
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
-import { panic } from 'src/base/common/result';
+import { panic } from "src/base/common/utilities/panic";
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;

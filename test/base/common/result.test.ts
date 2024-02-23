@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { Ok, Err, err, GetOkType, GetErrType, panic, Result, AsyncResult, GetAsyncOkType, GetAsyncErrType, ok } from "src/base/common/result";
+import { Ok, Err, err, GetOkType, GetErrType, Result, AsyncResult, GetAsyncOkType, GetAsyncErrType, ok } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { checkTrue, AreEqual, isString } from "src/base/common/utilities/type";
 
 suite('result-test', () => {

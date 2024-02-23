@@ -37,7 +37,7 @@ suite('AsyncTree-test', () => {
 
         await tree.refresh();
 
-        assert.strictEqual(tree.size(), 6);
+        assert.strictEqual(tree.treeSize(), 6);
         
         assert.strictEqual(tree.hasNode(1), true);
         assert.strictEqual(tree.hasNode(10), false);
@@ -116,7 +116,7 @@ suite('AsyncTree-test', () => {
         );
 
         await tree.refresh();
-        assert.strictEqual(tree.size(), 6);
+        assert.strictEqual(tree.treeSize(), 6);
 
         TREE1.set(3, [7, 8]);
         TREE1.set(7, []);
@@ -127,7 +127,7 @@ suite('AsyncTree-test', () => {
         TREE1.set(12, []);
 
         await tree.refresh(3);
-        assert.strictEqual(tree.size(), 12);
+        assert.strictEqual(tree.treeSize(), 12);
 
         let node3 = tree.getNode(3);
         assert.strictEqual(node3.data, 3);
@@ -188,7 +188,7 @@ suite('AsyncTree-test', () => {
 
         await tree.refresh(1);
 
-        assert.strictEqual(tree.size(), 10);
+        assert.strictEqual(tree.treeSize(), 10);
 
         const node1 = tree.getNode(1);
         assert.strictEqual(node1.data, 1);
@@ -200,7 +200,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(node1.children.length, 0);
 
         await tree.refresh(3);
-        assert.strictEqual(tree.size(), 4);
+        assert.strictEqual(tree.treeSize(), 4);
 
         node3 = tree.getNode(3);
         assert.strictEqual(node3.data, 3);
@@ -214,7 +214,7 @@ suite('AsyncTree-test', () => {
         TREE1.set(0, []);
         await tree.refresh();
 
-        assert.strictEqual(tree.size(), 0);
+        assert.strictEqual(tree.treeSize(), 0);
     });
 
     test('collapse / expand', async () => {
@@ -251,7 +251,7 @@ suite('AsyncTree-test', () => {
 
         await tree.refresh();
 
-        assert.strictEqual(tree.size(), 8);
+        assert.strictEqual(tree.treeSize(), 8);
 
         assert.strictEqual(tree.isCollapsible(1), true);
         assert.strictEqual(tree.isCollapsed(1), false);
@@ -332,7 +332,7 @@ suite('AsyncTree-test', () => {
         );
 
         await tree.refresh();
-        assert.strictEqual(tree.size(), size);
+        assert.strictEqual(tree.treeSize(), size);
     });
 
     test('use primitive type as client data', async () => {
@@ -418,26 +418,26 @@ suite('AsyncTree-test', () => {
         );
 
         await tree.refresh();
-        assert.strictEqual(tree.size(), 1);
+        assert.strictEqual(tree.treeSize(), 1);
 
         await tree.refresh(children.get(1));
-        assert.strictEqual(tree.size(), 1);
+        assert.strictEqual(tree.treeSize(), 1);
 
         const child1 = children.get(1)!;
         await tree.expand(child1);
-        assert.strictEqual(tree.size(), 2);
+        assert.strictEqual(tree.treeSize(), 2);
 
         tree.collapse(child1);
-        assert.strictEqual(tree.size(), 2);
+        assert.strictEqual(tree.treeSize(), 2);
 
         TREE.set(1, [3, 4]);
         TREE.set(3, []);
         TREE.set(4, []);
         await tree.refresh(child1);
-        assert.strictEqual(tree.size(), 2);
+        assert.strictEqual(tree.treeSize(), 2);
 
         await tree.expand(child1);
-        assert.strictEqual(tree.size(), 3);
+        assert.strictEqual(tree.treeSize(), 3);
     });
 
     test('identityProvider', async () => {
@@ -500,25 +500,25 @@ suite('AsyncTree-test', () => {
         );
 
         await tree.refresh();
-        assert.strictEqual(tree.size(), 1);
+        assert.strictEqual(tree.treeSize(), 1);
 
         await tree.refresh(children.get(1));
-        assert.strictEqual(tree.size(), 1);
+        assert.strictEqual(tree.treeSize(), 1);
 
         const child1 = children.get(1)!;
         await tree.expand(child1);
-        assert.strictEqual(tree.size(), 2);
+        assert.strictEqual(tree.treeSize(), 2);
 
         tree.collapse(child1);
-        assert.strictEqual(tree.size(), 2);
+        assert.strictEqual(tree.treeSize(), 2);
 
         TREE.set(1, [3, 4]);
         TREE.set(3, []);
         TREE.set(4, []);
         await tree.refresh(child1);
-        assert.strictEqual(tree.size(), 2);
+        assert.strictEqual(tree.treeSize(), 2);
 
         await tree.expand(child1);
-        assert.strictEqual(tree.size(), 3);
+        assert.strictEqual(tree.treeSize(), 3);
     });
 });

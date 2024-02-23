@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { panic } from "src/base/common/result";
 import { IS_WINDOWS } from 'src/base/common/platform';
+import { panic } from 'src/base/common/utilities/panic';
  
 export const FileMode = {
  

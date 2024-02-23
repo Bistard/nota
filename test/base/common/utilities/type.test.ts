@@ -3,7 +3,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, BoundedArray, Falsy, NonFalsy } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -228,6 +228,33 @@ suite('typescript-types-test', () => {
         >>();
     });
 
+    test('ArrayType', () => {
+        checkTrue<AreEqual<ArrayType<number[]>, number>>();
+        checkTrue<AreEqual<ArrayType<string[]>, string>>();
+        checkTrue<AreEqual<ArrayType<(number | string)[]>, (number | string)>>();
+        checkTrue<AreEqual<ArrayType<(1 | 2)[]>, (1 | 2)>>();
+        checkTrue<AreEqual<ArrayType<{ num: 5 }[]>, { num: 5 }>>();
+        checkTrue<AreEqual<ArrayType<undefined[]>, undefined>>();
+        checkTrue<AreEqual<ArrayType<never[]>, never>>();
+    });
+
+    test('Flatten', () => {
+        checkTrue<AreEqual<Flatten<number[][]>, number[]>>();
+        checkTrue<AreEqual<Flatten<string[][]>, string[]>>();
+        checkTrue<AreEqual<Flatten<(number | string)[][]>, (number | string)[]>>();
+        checkTrue<AreEqual<Flatten<undefined[][]>, undefined[]>>();
+        checkTrue<AreEqual<Flatten<null[][]>, null[]>>();
+        checkTrue<AreEqual<Flatten<never[][]>, never[]>>();
+        checkTrue<AreEqual<Flatten<any[][]>, any[]>>();
+        
+        checkTrue<AreEqual<Flatten<number[][][]>, number[][]>>();
+        checkTrue<AreEqual<Flatten<number[][][][]>, number[][][]>>();
+        
+        checkTrue<AreEqual<Flatten<[number[], string[]]>, [number, string]>>();
+        checkTrue<AreEqual<Flatten<[number[][], string[][]]>, [number[], string[]]>>();
+        checkTrue<AreEqual<Flatten<[number[], string[][]]>, [number, string[]]>>();
+    });
+
     test('DeepReadonly type', () => {
         type ReadOnlyObject = DeepReadonly<{ a: number, b: { c: string; }; }>;
         const obj: ReadOnlyObject = { a: 1, b: { c: "string" } };
@@ -298,8 +325,8 @@ suite('typescript-types-test', () => {
         // no counter example as assigning another value would be a compile error
     });
 
-    test('CompareFn type', () => {
-        type NumberComparator = CompareFn<number>;
+    test('Comparator type', () => {
+        type NumberComparator = Comparator<number>;
         const compare: NumberComparator = (a, b) => a - b;
         // no counter example as assigning another value would be a compile error
     });
@@ -472,8 +499,8 @@ suite('typescript-types-test', () => {
         const test5: NonEmptyArray<boolean> = [true, 'notABoolean'];
     });
 
-    test('BoundedArray type', () => {
-        let arr: BoundedArray<number, 5> = [];
+    test('AtMostNArray type', () => {
+        let arr: AtMostNArray<number, 5> = [];
         arr = [1];
         arr = [1, 1];
         arr = [1, 1, 3];
@@ -481,6 +508,24 @@ suite('typescript-types-test', () => {
         arr = [1, 1, 3, 4, 5];
         // @ts-expect-error
         arr = [1, 1, 3, 4, 5, 6];
+    });
+    
+    test('AtLeastNArray type', () => {
+        type AtLeast3 = AtLeastNArray<string, 3>;
+        ['a', 'b', 'c', 'd'] satisfies AtLeast3;
+        ['a', 'b', 'c'] satisfies AtLeast3;
+        // @ts-expect-error
+        ['a', 'b'] satisfies AtLeast3;
+
+        type AtLeast1 = AtLeastNArray<string, 1>;
+        ['a', 'b', 'c', 'd'] satisfies AtLeast1;
+        ['a'] satisfies AtLeast1;
+        // @ts-expect-error
+        [] satisfies AtLeast1;
+
+        type AtLeast0 = AtLeastNArray<string, 0>;
+        ['a'] satisfies AtLeast0;
+        [] satisfies AtLeast0;
     });
 
     test('Mutable type', () => {

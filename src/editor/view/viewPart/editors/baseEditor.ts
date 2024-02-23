@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { Strings } from "src/base/common/utilities/string";
+import { errorToMessage } from "src/base/common/utilities/panic";
 import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
 import { EditorType, IRenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
@@ -79,7 +79,7 @@ export abstract class BaseEditor<TType extends EditorType, TCore extends IEditor
             this._core = this.createEditorCore(container, context, ...(coreArguments ?? []));
             this.__register(this._core);
         } catch (err) {
-            throw new Error(`Cannot create the editor core properly and the error message is: ${Strings.errorToMessage(err)}`);
+            throw new Error(`Cannot create the editor core properly and the error message is: ${errorToMessage(err)}`);
         }
     }
 

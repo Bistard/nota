@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Result, err, ok, panic } from "src/base/common/result";
+import { Result, err, ok } from "src/base/common/result";
 import { mixin } from "src/base/common/utilities/object";
-import { Strings } from "src/base/common/utilities/string";
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -29,7 +29,7 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
     constructor() {
         this._unexpectedErrorExternalCallback = (error: any) => {
             console.error(error);
-            panic(`on unexpected external error: ${Strings.errorToMessage(error)}`);
+            panic(`on unexpected external error: ${errorToMessage(error)}`);
         };
     }
 

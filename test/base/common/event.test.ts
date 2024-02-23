@@ -279,9 +279,9 @@ suite('event-test', () => {
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
-        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
         emitter.fire();
 
         assert.strictEqual(result, 300);
@@ -322,9 +322,9 @@ suite('event-test', () => {
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(() => loopFor(loop, () => result++));
         emitter.registerListener(async () => loopFor(loop, () => result++));
-        emitter.registerListener(() => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(async () => loopFor(loop, () => result++));
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);
@@ -444,7 +444,7 @@ suite('event-test', () => {
         const emitter2 = new Emitter<number>();
         const emitter3 = new Emitter<number>();
 
-        const newEmitter = Event.any<number>([emitter1.registerListener, emitter2.registerListener, emitter3.registerListener]);
+        const newEmitter = Event.any([emitter1.registerListener, emitter2.registerListener, emitter3.registerListener]);
 
         let result = -1;
         const disposable = newEmitter(e => {
@@ -524,5 +524,13 @@ suite('event-test', () => {
 
         listener1.dispose();
         listener2.dispose();
+    });
+
+    test('event.runAndListen', () => {
+        const emitter = new Emitter<void>();
+        let cnt = 0;
+        Event.runAndListen(emitter.registerListener, () => cnt++); // cnt: 1
+        emitter.fire(); // cnt: 2
+        assert.strictEqual(cnt, 2);
     });
 });

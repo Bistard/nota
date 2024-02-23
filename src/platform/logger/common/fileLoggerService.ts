@@ -126,13 +126,13 @@ export class FileLogger extends AbstractLogger implements ILogger {
         }
     }
 
-    public async error(reporter: string, message: string, error?: Error, additional?: Additionals): Promise<void> {
+    public async error(reporter: string, message: string, error?: any, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.ERROR) {
             return this.__log(prettyLog(false, LogLevel.ERROR, this._description, reporter, message, error, additional));
         }
     }
 
-    public async fatal(reporter: string, message: string, error?: Error, additional?: Additionals): Promise<void> {
+    public async fatal(reporter: string, message: string, error?: any, additional?: Additionals): Promise<void> {
         if (this.getLevel() <= LogLevel.FATAL) {
             return this.__log(prettyLog(false, LogLevel.FATAL, this._description, reporter, message, error, additional));
         }
