@@ -294,8 +294,21 @@ export type NonEmptyArray<T> = [T, ...T[]];
 
 /**
  * Represent an array of type T with up to length N.
+ * @note You do not need to provide type R.
  */
-export type BoundedArray<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : R | BoundedArray<T, N, [T, ...R]>;
+export type AtMostNArray<T, N extends number, R extends T[] = []> = 
+    R['length'] extends N 
+        ? R 
+        : R | AtMostNArray<T, N, [T, ...R]>;
+
+/**
+ * Represent an array of type T with at least length N.
+ * @note You do not need to provide type R.
+ */
+export type AtLeastNArray<T, N extends number, R extends T[] = []> =
+    R['length'] extends N 
+        ? ConcatArray<R, T[]>
+        : AtLeastNArray<T, N, [T, ...R]>;
 
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
@@ -325,13 +338,13 @@ export type Mutable<Immutable> = {
  */
 export type DeepMutable<Immutable> = {
     -readonly [TKey in keyof Immutable]:
-    Immutable[TKey] extends (infer R)[]
-    ? DeepMutable<R>[]
-    : Immutable[TKey] extends ReadonlyArray<infer R>
-    ? DeepMutable<R>[]
-    : Immutable[TKey] extends object
-    ? DeepMutable<Immutable[TKey]>
-    : Immutable[TKey];
+        Immutable[TKey] extends (infer R)[]
+        ? DeepMutable<R>[]
+            : Immutable[TKey] extends ReadonlyArray<infer R>
+                ? DeepMutable<R>[]
+                : Immutable[TKey] extends object
+            ? DeepMutable<Immutable[TKey]>
+        : Immutable[TKey];
 };
 
 /**
@@ -341,8 +354,8 @@ export type DeepMutable<Immutable> = {
 export type MapTypes<T, R extends { from: any; to: any; }> = {
     [K in keyof T]: T[K] extends R['from']
     ? R extends { from: T[K]; }
-    ? R['to']
-    : never
+        ? R['to']
+        : never
     : T[K]
 };
 
