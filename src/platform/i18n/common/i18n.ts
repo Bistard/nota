@@ -6,7 +6,7 @@ import { Section } from "src/platform/section";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
-import { AsyncResult, err, ok } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { jsonSafeParse } from "src/base/common/json";
 
@@ -118,7 +118,6 @@ export interface II18nService extends IService {
     trans(section: Section, key: string, interpolation?: { [key: string]: string; }): string;
     trans(section: Section, key: string, interpolation?: string[] | { [key: string]: string; }): string;
 
-    // TODO
     /**
      * reload current locale.
      */
@@ -301,7 +300,6 @@ export class i18n implements II18nService {
     }
 
     public async reloadLocale(): Promise<void> {
-        // TODO
         throw new Error('does not support reload locale yet.');
     }
 

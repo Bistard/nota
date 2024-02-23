@@ -151,7 +151,6 @@ class SideBarBuilder {
                 id: SideButtonType.OUTLINE,
                 icon: Icons.List,
             },
-            // TODO
             // { id: SideButtonType.SEARCH, icon: Icons.Search },
             // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
         ]

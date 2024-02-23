@@ -1,4 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { toIPCTransferableError } from "src/base/common/error";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/files/buffer";
 import { ILogService } from "src/base/common/logger";
@@ -515,11 +516,7 @@ export class ChannelServer extends Disposable implements IChannelServer {
             this.__sendResponse(<IPromiseRejectResponse>{
                 type: ResponseType.PromiseReject,
                 requestID: requestID,
-                dataOrError: {
-                    message: err.message ?? 'unknown error message',
-                    name: err.name ?? 'unknown error',
-                    stack: err.stack ? (err.stack.split ? err.stack.split('\n') : err.stack) : undefined,
-                },
+                dataOrError: toIPCTransferableError(err),
             });
         }
     }

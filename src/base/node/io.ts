@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { panic } from 'src/base/common/error';
+import { panic } from "src/base/common/result";
 import { IS_WINDOWS } from 'src/base/common/platform';
  
 export const FileMode = {

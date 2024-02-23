@@ -25,5 +25,4 @@ export function isFiltered(str: string, filters: IFilterOpts): boolean {
     return false;
 }
 
-// TODO: complete
 export type FuzzyScore = void;

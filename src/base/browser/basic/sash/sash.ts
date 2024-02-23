@@ -7,6 +7,7 @@ import { IRange } from "src/base/common/structures/range";
 import { Mutable } from "src/base/common/utilities/type";
 import { cancellableTimeout } from "src/base/common/utilities/async";
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
+import { Time } from "src/base/common/date";
 
 /**
  * An interface for {@link Sash} construction.
@@ -408,13 +409,14 @@ export class Sash extends Disposable implements ISash {
         this.__register(controller);
     }
     
+    private readonly _hoverDelay = Time.ms(500);
     private __initHover(): void {
         if (this._hovering) {
             return;
         }
         this._hovering = true;
 
-        const cancellable = cancellableTimeout(500);
+        const cancellable = cancellableTimeout(this._hoverDelay);
         cancellable
         .then(() => {
             this._element.classList.add('hover');

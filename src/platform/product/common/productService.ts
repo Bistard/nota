@@ -1,4 +1,5 @@
-import { AsyncResult, InitProtector, err, ok } from "src/base/common/error";
+import { InitProtector } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { JsonSchemaValidator, jsonSafeParse } from "src/base/common/json";

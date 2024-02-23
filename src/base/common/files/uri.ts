@@ -5,8 +5,9 @@
 
 import { CharCode } from "src/base/common/utilities/char";
 import * as paths from "src/base/common/files/path";
-import { IS_WINDOWS } from "src/base/common/platform";
+import { IS_WINDOWS, OS_CASE_SENSITIVE } from "src/base/common/platform";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
+import { isParentOf } from "src/base/common/files/glob";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -183,7 +184,6 @@ export class URI implements IURI {
 	 * ```
 	 */
 	public static fromFile(path: string): URI {
-
 		let authority = _empty;
 
 		// normalize to fwd-slashes on windows,
@@ -210,7 +210,7 @@ export class URI implements IURI {
 	}
 
 	/**
-	 * @description Join a URI with one or more string paths.
+	 * @description Join a URI with one or more string file/folder names.
 	 */
 	public static join(uri: URI, ...path: string[]): URI {
 		if (!uri.path) {
@@ -229,6 +229,36 @@ export class URI implements IURI {
 		}
 
 		return URI.with(uri, { path: newPath });
+	}
+
+	/**
+	 * @description If the candidate is the parent of the given uri.
+	 * @param uri The given uri.
+	 * @param candidate The possible parent of the given uri.
+	 * @param ignoreCase Make it case insensitive.
+	 */
+	public static isParentOf(uri: URI, candidate: URI, ignoreCase?: boolean): boolean {
+		const uriStr = URI.toFsPath(uri);
+		const candidateStr = URI.toFsPath(candidate);
+		return isParentOf(uriStr, candidateStr, ignoreCase);
+	}
+
+	/**
+	 * @description Check if two given URIs are equal.
+	 */
+	public static equals(uri1: URI, uri2: URI, ignoreCase: boolean = OS_CASE_SENSITIVE, ignoreFragment?: boolean): boolean {
+		
+		uri1 = URI.with(uri1, {
+			path: ignoreCase ? uri1.path.toLowerCase() : undefined,
+			fragment: ignoreFragment ? null : undefined,
+		});
+		
+		uri2 = URI.with(uri2, {
+			path: ignoreCase ? uri2.path.toLowerCase() : undefined,
+			fragment: ignoreFragment ? null : undefined,
+		});
+
+		return URI.toString(uri1) === URI.toString(uri2);
 	}
 
 	/**
@@ -298,17 +328,16 @@ export class URI implements IURI {
 	 * @description Creates a new URI by merging the given changes into the given URI.
 	 */
 	public static with(uri: IURI, change: { scheme?: string; authority?: string | null; path?: string | null; query?: string | null; fragment?: string | null; }): URI {
-
 		if (!change) {
 			return uri;
 		}
 
 		let { scheme, authority, path, query, fragment } = change;
-		scheme = scheme === undefined ? uri.scheme : (scheme === null ? _empty : scheme);
+		scheme    = scheme === undefined    ? uri.scheme    : (scheme === null    ? _empty : scheme);
 		authority = authority === undefined ? uri.authority : (authority === null ? _empty : authority);
-		path = path === undefined ? uri.path : (path === null ? _empty : path);
-		query = query === undefined ? uri.query : (query === null ? _empty : query);
-		fragment = fragment === undefined ? uri.fragment : (fragment === null ? _empty : fragment);
+		path      = path === undefined      ? uri.path      : (path === null      ? _empty : path);
+		query     = query === undefined     ? uri.query     : (query === null     ? _empty : query);
+		fragment  = fragment === undefined  ? uri.fragment  : (fragment === null  ? _empty : fragment);
 
 		if (scheme === uri.scheme
 			&& authority === uri.authority

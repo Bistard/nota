@@ -1,4 +1,5 @@
-import { Result, tryOrDefault } from "src/base/common/error";
+import { tryOrDefault } from "src/base/common/error";
+import { Result } from "src/base/common/result";
 import { Arrays } from "src/base/common/utilities/array";
 import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString } from "src/base/common/utilities/type";
 
@@ -433,7 +434,7 @@ export function jsonSafeParse<T>(str: string): Result<T, SyntaxError> {
  *     console.error(result.unwrapErr().message); // Logs SyntaxError message
  * }
  */
-export function jsonSafeStringtify(obj: unknown, replacer?: (this: any, key: string, value: any) => any, space?: string | number): Result<string, SyntaxError> {
+export function jsonSafeStringify(obj: unknown, replacer?: (this: any, key: string, value: any) => any, space?: string | number): Result<string, SyntaxError> {
     return Result.fromThrowable(
         () => JSON.stringify(obj, replacer, space),
         error => <SyntaxError>error,

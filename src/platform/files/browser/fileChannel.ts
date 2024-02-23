@@ -1,11 +1,11 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
-import { AsyncResult, Result, errorToMessage, ok } from "src/base/common/error";
+import { AsyncResult, Result, ok } from "src/base/common/result";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/files/file";
 import { IReadableStream, IReadyReadableStream, newWriteableBufferStream, toReadyStream } from "src/base/common/files/stream";
 import { URI } from "src/base/common/files/uri";
-import { Mutable, Pair } from "src/base/common/utilities/type";
+import { Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
@@ -16,6 +16,7 @@ import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ILogService } from "src/base/common/logger";
+import { Strings } from "src/base/common/utilities/string";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -26,11 +27,9 @@ export class BrowserFileChannel extends Disposable implements IFileService {
     private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());
     public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
-    // TODO
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
     public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
 
-    // TODO
     private readonly _onDidAllResourceClosed = this.__register(new Emitter<void>());
     public readonly onDidAllResourceClosed = this._onDidAllResourceClosed.registerListener;
 
@@ -137,7 +136,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             if (flowingData !== 'end') {
                 let error = flowingData;
                 if (!(error instanceof Error)) {
-                    error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
+                    error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && Strings.errorToMessage((<any>error).nestedError));
                 }
 
                 stream.error(error);

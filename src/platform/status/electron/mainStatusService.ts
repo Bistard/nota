@@ -10,7 +10,7 @@ import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifec
 import { StatusKey } from "src/platform/status/common/status";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { FileOperationError } from "src/base/common/files/file";
-import { AsyncResult, ok } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 

@@ -10,6 +10,7 @@ import { isParentOf } from 'src/base/common/files/glob';
 import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInstance, IWatchRequest, ResourceChangeType } from 'src/platform/files/common/watcher';
 import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';
+import { Time } from 'src/base/common/date';
 
 /**
  * @class A `Watcher` can watch on resources on the disk filesystem. Check more
@@ -52,7 +53,7 @@ export class Watcher extends Disposable implements IWatcher {
         this._instances.set(request.resource, instance);
         
         
-        const blocker = new EventBlocker<void>(instance.onReady, 1000);
+        const blocker = new EventBlocker<void>(instance.onReady, Time.sec(1));
         const cancel = toDisposable(() => {
             instance.close().then((uri) => { if (uri) this._onDidClose.fire(uri); });
             this._instances.delete(request.resource);
@@ -102,7 +103,7 @@ export class WatchInstance implements IWatchInstance {
      * A throttle delaying time for collecting the file change events.
      * @note milliseconds
      */
-    public static readonly FILE_CHANGE_DELAY = 50;
+    public static readonly FILE_CHANGE_DELAY = Time.ms(50);
     private readonly _changeDebouncer = new ThrottleDebouncer<void>(WatchInstance.FILE_CHANGE_DELAY);
 
     private _eventBuffer: IRawResourceChangeEvent[] = [];
@@ -177,7 +178,7 @@ export class WatchInstance implements IWatchInstance {
          */
         const watcher = chokidar.watch(resource, {
             alwaysStat: true,
-            atomic: WatchInstance.FILE_CHANGE_DELAY,
+            atomic: WatchInstance.FILE_CHANGE_DELAY.toMs().time,
             ignored: this._request.exclude,
             ignorePermissionErrors: false,
             ignoreInitial: true,

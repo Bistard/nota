@@ -1,9 +1,11 @@
+import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { CancellationError } from "src/base/common/error";
+import { panic } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { noop } from "src/base/common/performance";
 import { CancellationToken, ICancellable } from "src/base/common/utilities/cacellation";
-import { isNullable, isNumber } from "src/base/common/utilities/type";
+import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * {@link CancellablePromise}
@@ -42,21 +44,19 @@ export function repeat(round: number, fn: (index: number) => void): void {
 /**
  * @description Delays for given milliseconds. It will immediately create a 
  * async task that runs in the javascript task queue by using setTimeout.
- * @param ms Milliseconds.
+ * @param time Time for delay.
  * @param callback Callback function after the waiting ends.
  */
-export async function delayFor(ms: number, callback?: ITask<void>): Promise<void> {
+export async function delayFor(time: Time, callback?: ITask<void>): Promise<void> {
     return new Promise(
 		(resolve, reject) => setTimeout(() => {
-			if (callback) {
-				try {
-					callback();
-				} catch (error) {
-					reject();
-				}
+			try {
+				callback?.();
+			} catch (error) {
+				reject();
 			}
 			resolve();
-		}, ms)
+		}, time.toMs().time)
 	);
 }
 
@@ -64,8 +64,6 @@ export async function delayFor(ms: number, callback?: ITask<void>): Promise<void
  * @class Represents a collection of promises that can be managed and settled as 
  * a group. This provides a structured way to join individual promises together 
  * and handle their settled results in a collective manner.
- * 
- * @note {@link allSettled} will never rejects.
  * 
  * @example
  * const joinable = new JoinablePromise();
@@ -101,10 +99,22 @@ export class JoinablePromise {
 	}
 
 	/**
+	 * @description Creates a Promise that is resolved with an array of results 
+	 * when all of the provided Promises resolve or reject.
 	 * @note This method never rejects.
 	 */
 	public async allSettled(): Promise<PromiseSettledResult<any>[]> {
 		return Promise.allSettled(this._participants);
+	}
+
+	/**
+	 * @description Creates a Promise that is resolved with an array of results 
+	 * when all of the provided Promises resolve, or rejected when any Promise 
+	 * is rejected.
+	 * @returns 
+	 */
+	public async all(): Promise<any[]> {
+		return Promise.all(this._participants);
 	}
 }
 
@@ -188,14 +198,14 @@ export class CancellablePromise<T> implements Promise<T>, ICancellable {
  * @description Returns a {@link Promise} that resolves on the given ms, it can 
  * be cancelled by the given token. Returns a {@link CancellablePromise} if
  * no token is given which the client may cancel manually.
- * @param ms timeout in milliseconds.
+ * @param Time timeout time.
  * @param token The cancellation token binds to the promise if provided.
  */
-export function cancellableTimeout(ms: number): CancellablePromise<void>;
-export function cancellableTimeout(ms: number, token: CancellationToken): Promise<void>;
-export function cancellableTimeout(ms: number, token?: CancellationToken): CancellablePromise<void> | Promise<void> {
+export function cancellableTimeout(time: Time): CancellablePromise<void>;
+export function cancellableTimeout(time: Time, token: CancellationToken): Promise<void>;
+export function cancellableTimeout(time: Time, token?: CancellationToken): CancellablePromise<void> | Promise<void> {
 	if (!token) {
-		return new CancellablePromise((token) => cancellableTimeout(ms, token));
+		return new CancellablePromise((token) => cancellableTimeout(time, token));
 	}
 	
 	return new Promise((resolve, reject) => {
@@ -203,7 +213,7 @@ export function cancellableTimeout(ms: number, token?: CancellationToken): Cance
 		const handle = setTimeout(() => {
 			tokenListener.dispose();
 			resolve();
-		}, ms);
+		}, time.toMs().time);
 
 		const tokenListener = token.onDidCancel(() => {
 			clearTimeout(handle);
@@ -222,7 +232,7 @@ export function cancellableTimeout(ms: number, token?: CancellationToken): Cance
  * if one of the round throws an error (if multiple fails, the last error will 
  * be thrown).
  */
-export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number = 1): Promise<T> {
+export async function retry<T>(task: IAsyncTask<T>, delay: Time, round: number = 1): Promise<T> {
 	let lastError: Error | unknown;
 
 	for (let i = 0; i < round; i++) {
@@ -237,7 +247,7 @@ export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number
 		}
 	}
 
-	throw lastError;
+	panic(lastError);
 }
 
 /**
@@ -292,7 +302,7 @@ export class EventBlocker<T> {
 	private _fired = false;
 	private _timeout?: NodeJS.Timeout;
 	
-	constructor(register: Register<T>, timeoutMS?: number) {
+	constructor(register: Register<T>, time?: Time) {
 		// one time only listener
 		this._listener = register((event) => {
 			this._fired = true;
@@ -306,12 +316,12 @@ export class EventBlocker<T> {
 			this._blocker.resolve(event);
 		});
 
-		if (isNumber(timeoutMS)) {
+		if (time) {
 			this._timeout = setTimeout(() => {
 				if (!this._fired) {
 					this._blocker.reject(new Error('EventBlocker timeout'));
 				}
-			}, timeoutMS);
+			}, time.toMs().time);
 		}
 	}
 
@@ -348,11 +358,11 @@ export class TimeoutPromise<T> {
 	private _blocker = new Blocker<T>();
 	private _timeout = false;
 
-	constructor(promise: Promise<T>, timeout: number) {
+	constructor(promise: Promise<T>, timeout: Time) {
 		const token = setTimeout(() => {
 			this._timeout = true;
 			this._blocker.reject(new Error('Promise is timeout'));
-		}, timeout);
+		}, timeout.toMs().time);
 		
 		promise
 		.then((result) => {
@@ -536,7 +546,7 @@ export interface IScheduler<T> extends IDisposable {
 	 * @param clearBuffer If to clear the buffered event.
 	 * @param delay Defaults to the delay option passed into the constructor.
 	 */
-	schedule(event: T, clearBuffer?: boolean, delay?: number): void;
+	schedule(event: T, clearBuffer?: boolean, delay?: Time): void;
 
 	/**
 	 * @description Executes the callack with the existed event buffer if any.
@@ -566,15 +576,15 @@ export class Scheduler<T> implements IScheduler<T> {
 
 	private _eventBuffer: T[] = [];
 	private _fn: (event: T[]) => void;
-	private _delay: number;
+	private _delay: Time;
 	private _token?: NodeJS.Timeout;
 
-	constructor(delay: number, fn: (event: T[]) => void) {
+	constructor(delay: Time, fn: (event: T[]) => void) {
 		this._fn = fn;
 		this._delay = delay;
 	}
 
-	public schedule(event: T | T[], clearBuffer: boolean = false, delay: number = this._delay): void {
+	public schedule(event: T | T[], clearBuffer: boolean = false, delay: Time = this._delay): void {
 		this.cancel(clearBuffer);
 		
 		if (!Array.isArray(event)) {
@@ -586,7 +596,7 @@ export class Scheduler<T> implements IScheduler<T> {
 			const buffer = this._eventBuffer;
 			this._eventBuffer = [];
 			this._fn(buffer);
-		}, delay);
+		}, delay.toMs().time);
 	}
 
 	public execute(): void {
@@ -631,7 +641,7 @@ export interface IUnbufferedScheduler<T> extends IDisposable {
 	 * @param event Pass the event as the parameter to the callback.
 	 * @param delay Defaults to the delay option passed into the constructor.
 	 */
-	schedule(event: T, delay?: number): void;
+	schedule(event: T, delay?: Time): void;
 
 	/**
 	 * @description Determines if there is a scheduled execution.
@@ -649,29 +659,31 @@ export interface IUnbufferedScheduler<T> extends IDisposable {
  * @class The only difference compares to {@link Scheduler} is that, it does not
  * store the previous scheduled events into buffer. Only one event will be 
  * scheduled at a time.
+ * @note Call schedule() first after new a UnbufferedScheduler to launch the
+ * setTimeout
  */
 export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 
 	// [fields]
 
 	private _callback: (event: T) => void;
-	private readonly  _delay: number;
+	private readonly _delay: Time;
 	private _token?: NodeJS.Timeout;
 
 	// [constructor]
 
-	constructor(delay: number, fn: (event: T) => void) {
+	constructor(delay: Time, fn: (event: T) => void) {
 		this._callback = fn;
 		this._delay = delay;
 	}
 
 	// [public methods]
 
-	public schedule(event: T, delay: number | undefined = this._delay): void {
+	public schedule(event: T, delay: Time = this._delay): void {
 		this.cancel();
 		this._token = setTimeout(() => {
 			this._callback(event);
-		}, delay);
+		}, delay.toMs().time);
 	}
 
 	public isScheduled(): boolean {
@@ -707,12 +719,21 @@ export interface IThrottler {
 }
 
 /**
- * @class A throttler runs the first task immediately. All the new tasks queued 
- * after added the first task and before it finishes only the last queued task 
- * will be invoked once the first task has done.
+ * @class A Throttler class that efficiently manages the execution of queued tasks.
+ * Tasks are managed as follows:
+ * - If no task is currently running, the queued task is executed immediately.
+     * - If a task is already in progress, the new task will be scheduled to run 
+	 * after the current task completes.
+     * - If multiple tasks are queued while a task is running, only the most 
+	 * recently queued task will be executed next, discarding all previously queued tasks. 
  * 
  * It is designed for limiting actions over a set amount of time. It may prevent
  * performance goes down during a busy period.
+ * 
+ * @example
+ * Queue Task1 								 // Task1 executes immediately.
+ * Queue Task2, Task3 before Task1 completes // only Task 3 executes once Task1 completes
+ * 											 // Task2 is discarded
  * 
  * @template T The type of the return value of the queued tasks.
  */
@@ -763,7 +784,7 @@ type __Scheduler = IDisposable & {
  * Can be passed into the {@link Debouncer.queue} to schedule using a microtask.
  */
 export const MicrotaskDelay = Symbol('MicrotaskDelay');
-export type DelayType = number | typeof	MicrotaskDelay;
+export type DelayType = Time | typeof	MicrotaskDelay;
 
 /**
  * An interface only for {@link Debouncer}.
@@ -777,7 +798,7 @@ export interface IDebouncer<T> extends IDisposable {
 	 * @returns A promise that settled either the task is done or the debouncer 
 	 * is unscheduled.
 	 */
-	queue(newTask: ITask<T> | IAsyncTask<T>, delay: DelayType): Promise<T>;
+	queue(newTask: ITask<T> | IAsyncTask<T>, delay?: DelayType): Promise<T>;
 
 	/**
 	 * @description Determines if the debouncer is currently on shceduling.
@@ -867,13 +888,13 @@ export class Debouncer<T> implements IDebouncer<T> {
 		this._schedule = undefined;
 	}
 
-	private __scheduleAsTimeout(timeout: number, fn: () => void): __Scheduler {
+	private __scheduleAsTimeout(timeout: Time, fn: () => void): __Scheduler {
 		let scheduling = true;
 		
 		const token = setTimeout(() => {
 			scheduling = false;
 			fn();
-		}, timeout);
+		}, timeout.toMs().time);
 	
 		return {
 			onSchedule: () => scheduling,
@@ -923,7 +944,7 @@ export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
 	private readonly debouncer: Debouncer<Promise<T>>;
 	private readonly throttler: Throttler;
 
-	constructor(defaultDelay: number) {
+	constructor(defaultDelay: Time) {
 		this.debouncer = new Debouncer(defaultDelay);
 		this.throttler = new Throttler();
 	}
@@ -967,12 +988,12 @@ export class IntervalTimer implements IDisposable {
      * @description Sets the timer with a new callback and interval duration. If 
 	 * 				the timer is currently active, it will be cancelled before 
 	 * 				being set.
-	 * @param ms The interval duration in milliseconds.
+	 * @param time The interval duration.
      * @param callback The callback function to be run at each interval.
      */
-    public set(ms: number, callback: () => void): void {
+    public set(time: Time, callback: () => void): void {
         this.cancel();
-        this._handle = setInterval(() => callback(), ms);
+        this._handle = setInterval(() => callback(), time.toMs().time);
     }
 
 	/**

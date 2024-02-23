@@ -7,6 +7,7 @@ import { Scheduler } from "src/base/common/utilities/async";
 import { ResourceMap } from "src/base/common/structures/map";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/platform/files/common/watcher";
 import { createRawResourceChangeEvents } from "src/platform/files/node/watcher";
+import { Time } from "src/base/common/date";
 
 type Entry = File | Directory;
 
@@ -50,6 +51,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	// [fields]
 
 	public readonly capabilities: FileSystemProviderCapability = FileSystemProviderCapability.FileReadWrite;
+	private readonly _delay = Time.ms(5);
 
 	private readonly _root = new Directory('');
 	private readonly _watchers = new ResourceMap<IDisposable>();
@@ -69,7 +71,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	constructor() {
 		super();
 
-		this._onDidResourceChangeScheduler = new Scheduler(5, (rawEvents) => {
+		this._onDidResourceChangeScheduler = new Scheduler(this._delay, (rawEvents) => {
 
 			let anyDirectory = false, anyFiles = false, anyAdded = false, anyDeleted = false, anyUpdated = false;
 			for (const raw of rawEvents) {

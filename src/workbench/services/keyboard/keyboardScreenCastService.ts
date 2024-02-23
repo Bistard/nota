@@ -7,6 +7,7 @@ import { IKeyboardService } from "src/workbench/services/keyboard/keyboardServic
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { Scheduler } from 'src/base/common/utilities/async';
+import { Time } from 'src/base/common/date';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
@@ -35,6 +36,8 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     declare _serviceMarker: undefined;
 
     // [field]
+
+    private readonly _flushDelay = Time.sec(1);
 
     private _active: boolean;
     private _container?: HTMLElement;
@@ -77,7 +80,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._container.appendChild(this._tagContainer);
             this.layoutService.parentContainer.appendChild(this._container);
 
-            this._flushKeyScheduler = new Scheduler(1000, () => this.__onTimeup());
+            this._flushKeyScheduler = new Scheduler(this._flushDelay, () => this.__onTimeup());
         }
 
         // events

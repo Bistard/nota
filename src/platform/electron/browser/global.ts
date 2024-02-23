@@ -39,7 +39,7 @@ export const GLOBAL: any = (
 
 export const ipcRenderer: IpcRenderer = <any>{};
 export const process: Mutable<ISandboxProcess> = <any>{};
-export const windowConfiguration: IWindowConfiguration = <any>{};
+export const WIN_CONFIGURATION: IWindowConfiguration = <any>{};
 
 /**
  * @description Once renderer process starts, we need to retrieve the APIs that
@@ -49,7 +49,7 @@ export const initExposedElectronAPIs = executeOnce(function () {
     if (typeof GLOBAL === 'object') {
         (<Mutable<IpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
         (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
-        (<Mutable<IWindowConfiguration>>windowConfiguration) = GLOBAL.nota.windowConfiguration;
+        (<Mutable<IWindowConfiguration>>WIN_CONFIGURATION) = GLOBAL.nota.WIN_CONFIGURATION;
     } else {
         throw new Error('Cannot init exposed electron APIs');
     }

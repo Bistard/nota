@@ -3,6 +3,7 @@ import { addDisposableListener, DomUtility, EventType } from "src/base/browser/b
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 import { requestAnimate } from "src/base/browser/basic/animation";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * An interface that provides drag and drop support (dnd).
@@ -98,8 +99,8 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
  */
 class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
 
-    private view: IListWidget<T>;
-    private dnd: IListDragAndDropProvider<T>;
+    private readonly view: IListWidget<T>;
+    private readonly dnd: IListDragAndDropProvider<T>;
 
     constructor(view: IListWidget<T>, dnd: IListDragAndDropProvider<T>) {
         this.view = view;
@@ -108,7 +109,8 @@ class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider
 
     public getDragItems(currItem: T): T[] {
         const selected = this.view.getSelectedItems();
-        if (selected.length > 0) {
+        // Only return selections when the user is dragging one of the selections
+        if (Arrays.exist(selected, currItem)) {
             return selected;
         }
         return [currItem];
@@ -123,9 +125,7 @@ class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider
     }
 
     public onDragStart(event: DragEvent): void {
-        if (this.dnd.onDragStart) {
-            this.dnd.onDragStart(event);
-        }
+        this.dnd.onDragStart?.(event);
     }
 
     public onDragOver(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): boolean {
@@ -153,9 +153,7 @@ class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider
     }
 
     public onDragEnd(event: DragEvent): void {
-        if (this.dnd.onDragEnd) {
-            return this.dnd.onDragEnd(event);
-        }
+        this.dnd.onDragEnd?.(event);
     }
 }
 
@@ -167,12 +165,14 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
 
     // [field]
 
-    private _disposables = new DisposableManager();
-    private _view: IListWidget<T>;
+    private readonly _disposables = new DisposableManager();
+    private readonly _view: IListWidget<T>;
+    private readonly _provider!: ListWidgetDragAndDropProvider<T>;
 
-    private _provider!: ListWidgetDragAndDropProvider<T>;
-
-    private _currDragItems: T[] = []; // when drag starts this is the place to hold the dragging items
+    /**
+     * when drag starts this is the place to hold the dragging items.
+     */
+    private _currDragItems: T[] = [];
     private _allowDrop: boolean = false;
     private _scrollAnimationOnEdgeDisposable?: IDisposable;
     private _scrollAnimationMouseTop?: number;
@@ -201,11 +201,12 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
      * @description Enables the drag and drop (dnd) support in {@link ListView}.
      */
     private __enableDragAndDropSupport(converter: (e: DragEvent) => IListDragEvent<T>): void {
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragover, e => this.__onDragOver(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.drop, e => this.__onDragDrop(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragenter, e => this.__onDragEnter(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragleave, e => this.__onDragLeave(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragend, e => this.__onDragEnd(e)));
+        const dom = this._view.DOMElement;
+        this._disposables.register(addDisposableListener(dom, EventType.dragover, e => this.__onDragOver(converter(e))));
+        this._disposables.register(addDisposableListener(dom, EventType.drop, e => this.__onDragDrop(converter(e))));
+        this._disposables.register(addDisposableListener(dom, EventType.dragenter, e => this.__onDragEnter(converter(e))));
+        this._disposables.register(addDisposableListener(dom, EventType.dragleave, e => this.__onDragLeave(converter(e))));
+        this._disposables.register(addDisposableListener(dom, EventType.dragend, e => this.__onDragEnd(e)));
 
         // dragstart listener
         this._disposables.register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
@@ -238,10 +239,12 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     }
     
     private __onDragStart(data: T, userData: string, event: DragEvent): void {
-        
         if (event.dataTransfer === null) {
             return;
         }
+
+        // add tagging
+        this._view.DOMElement.classList.add('dragging');
 
         const dragItems = this._provider.getDragItems(data);
 
@@ -259,9 +262,10 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         
         this._currDragItems = dragItems;
 
-        if (this._provider.onDragStart) {
-            this._provider.onDragStart(event);
-        }
+        // reset hovering
+        this._view.setHover([]);
+
+        this._provider.onDragStart(event);
     }
 
     private __onDragOver(event: IListDragEvent<T>): void {
@@ -289,7 +293,7 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
 
     private __onDragDrop(event: IListDragEvent<T>): void {
         
-        // do not allow to drop, we ignore the event
+        // do not allow to drop, we ignore the event.
         if (this._allowDrop === false) {
             return;
         }
@@ -305,12 +309,17 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
             return;
         }
 
+        // remove tagging
+        this._view.DOMElement.classList.remove('dragging');
+
         // notify client
         event.browserEvent.preventDefault();
         this._provider.onDragDrop(event.browserEvent, dragItems, event.item, event.actualIndex);
     }
 
     private __onDragEnter(event: IListDragEvent<T>): void {
+        // reset hovering
+        this._view.setHover([]);
         // notify client
         this._provider.onDragEnter(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
     }
@@ -321,7 +330,9 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnd(event: DragEvent): void {
-        
+        // remove tagging
+        this._view.DOMElement.classList.remove('dragging');
+
         // clear dragover meatadata
         this.__clearDragoverData();
 

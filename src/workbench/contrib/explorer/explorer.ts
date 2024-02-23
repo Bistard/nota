@@ -10,7 +10,6 @@ import { ILogService } from 'src/base/common/logger';
 import { IWorkbenchService } from 'src/workbench/services/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
-import { IExplorerTreeService } from 'src/workbench/services/explorerTree/explorerTreeService';
 import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
@@ -26,10 +25,18 @@ import { RGBA } from 'src/base/common/color';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
+import { IExplorerTreeService } from 'src/workbench/services/explorerTree/treeService';
 
 /**
- * // TODO
- * @class
+ * @class Represents an Explorer view within a workbench, providing a UI 
+ * component to navigate and manage the file system hierarchy. 
+ * 
+ * The view includes functionality such as opening files and directories, 
+ * displaying the current directory's contents, and integrating with other 
+ * services like the editor and theme services to enhance the user experience.
+ * 
+ * This class extends `SideView`, allowing it to be used as a side panel
+ * within the application's layout.
  */
 export class ExplorerView extends SideView implements IExplorerViewService {
 
@@ -46,7 +53,6 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-
     private readonly _toolbar = new Toolbar();
 
     // [event]
@@ -164,12 +170,10 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     private async __onApplicationClose(): Promise<void> {
 
         // save the last opened workspace root path.
-        if (this.explorerTreeService.root) {
-            const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace)).unwrap());
-        } else {
-            (await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '').unwrap());
-        }
+        const openedWorkspace = this.explorerTreeService.root 
+            ? URI.toString(URI.join(this.explorerTreeService.root, '|directory'))
+            : '';
+        await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
     }
 
     private __unloadCurrentView(): void {
@@ -268,16 +272,14 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(
-            addDisposableListener(tag, EventType.click, () => {
-                this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-                    .then(path => {
-                        if (path.length > 0) {
-                            this.open(URI.fromFile(path.at(-1)!));
-                        }
-                    });
-            }
-            ));
+        disposables.register(addDisposableListener(tag, EventType.click, () => {
+            this.dialogService.openDirectoryDialog({ title: 'open a directory' })
+            .then(path => {
+                if (path.length > 0) {
+                    this.open(URI.fromFile(path.at(-1)!));
+                }
+            });
+        }));
     }
 
     private __registerNonEmptyViewListeners(view: HTMLElement): void {

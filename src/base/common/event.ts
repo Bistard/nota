@@ -87,22 +87,10 @@ class __Listener<T> {
 
     constructor(
         public readonly callback: Listener<T>, 
-        public readonly thisObject?: any
+        public readonly thisObject: any
     ) {}
 
     public fire(e: T): void {
-        this.callback.call(this.thisObject, e);
-    }
-}
-
-class __AsyncListener<T> {
-
-    constructor(
-        public readonly callback: AsyncListener<T>,
-        public readonly thisObject?: any
-    ) {}
-
-    public async fire(e: T): Promise<void> {
         this.callback.call(this.thisObject, e);
     }
 }
@@ -132,7 +120,7 @@ export interface IEmitterOptions {
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` has the type T.
  * 
- * @throws The unexpected caught by fire() error will be caught by {@link ErrorHandler}.
+ * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
@@ -366,10 +354,9 @@ export class AsyncEmitter<T> extends Emitter<T> {
     }
 
     public async fireAsync(event: T): Promise<void> {
-        
-        for (const listener of this._listeners as LinkedList<__AsyncListener<T>>) {
+        for (const listener of this._listeners) {
             try {
-                await listener.fire(event);
+                await listener.callback.call(listener.thisObject, event);
             } catch (error) {
                 ErrorHandler.onUnexpectedError(error);
                 continue;

@@ -30,6 +30,12 @@ export interface ICLIArguments {
      * If open development tools when creating a window.
      */
     'open-devtools'?: boolean;
+
+    /**
+     * Enable debug inspector will pop up a new window that tracks variable
+     * changes.
+     */
+    'inspector'?: true | 'true';
 }
 
 /**

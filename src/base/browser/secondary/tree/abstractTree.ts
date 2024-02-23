@@ -2,7 +2,7 @@ import "src/base/browser/secondary/tree/tree.scss";
 import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -13,6 +13,8 @@ import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
+import { Arrays } from "src/base/common/utilities/array";
+import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 
 /**
  * @internal
@@ -84,12 +86,12 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
 
 /**
  * @internal
- * @class Similar to the {@link __ListTrait} in the {@link ListWidget}. The trait
+ * @class Similar to the {@link ListTrait} in the {@link ListWidget}. The trait
  * concept need to be exist at the tree level, since the list view does not know
  * the existance of the collapsed tree nodes.
  * 
- * T: The type of data in {@link AbstractTree}.
- * `trait` does not care about TFilter type.
+ * @template T: The type of data in {@link AbstractTree}.
+ * @note `trait` does not care about TFilter type.
  */
 class TreeTrait<T> {
 
@@ -224,6 +226,15 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
         // the rest work
         super.__onMouseClick(e);
     }
+
+    protected override __onMouseover(e: IListMouseEvent<ITreeNode<T, TFilter>>): void {
+        if (e.item === undefined) {
+            return;
+        }
+
+        const location = this._tree.getNodeLocation(e.item);
+        this._tree.setHover(location, false);
+    }
 }
 
 /**
@@ -248,9 +259,14 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     // [field]
 
+    /**
+     * Those traits are existed in the tree level
+     */
+
     private readonly _selected: TreeTrait<T>; // user's selection
     private readonly _anchor: TreeTrait<T>;   // user's selection start
     private readonly _focused: TreeTrait<T>;  // user's selection end
+    private readonly _hovered: TreeTrait<T>;  // user's hover
 
     // [constructor]
 
@@ -264,6 +280,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._focused = new TreeTrait();
         this._anchor = new TreeTrait();
         this._selected = new TreeTrait();
+        this._hovered = new TreeTrait();
     }
 
     // [public method]
@@ -278,9 +295,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         let focusedIndex = -1;
         let anchorIndex = -1;
         const selectedIndex: number[] = [];
+        const hoverIndex: number[] = [];
 
         /**
-         * If the inserting item has trait attribute at the tree level, it 
+         * If the inserting item has trait attributes at the tree level, it 
          * should also has trait attribute at the list level.
          */
         for (let i = 0; i < items.length; i++) {
@@ -297,6 +315,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
             if (this._selected.has(item)) {
                 selectedIndex.push(index + i);
             }
+    
+            if (this._hovered.has(item)) {
+                hoverIndex.push(index + i);
+            }
         }
 
         /**
@@ -312,7 +334,11 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         }
 
         if (selectedIndex.length > 0) {
-            super.setSelections(selectedIndex);
+            super.setSelections(Arrays.unique([...super.getSelections(), ...selectedIndex]));
+        }
+
+        if (hoverIndex.length > 0) {
+            super.setHover(Arrays.unique([...super.getHover(), ...hoverIndex]));
         }
     }
 
@@ -328,6 +354,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._anchor.onDidSplice(e, identityProvider);
         this._focused.onDidSplice(e, identityProvider);
         this._selected.onDidSplice(e, identityProvider);
+        this._hovered.onDidSplice(e, identityProvider);
     }
 
     // [public override methods]
@@ -347,6 +374,11 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._selected.set(indice.map(idx => this.getItem(idx)));
     }
 
+    public override setHover(indice: number[]): void {
+        super.setHover(indice);
+        this._hovered.set(indice.map(idx => this.getItem(idx)));
+    }
+
     public getFocusData(): T | null {
         return this._focused.get()[0] ?? null;
     }
@@ -357,6 +389,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     public getSelectionData(): T[] {
         return this._selected.get();
+    }
+
+    public getHoverData(): T[] {
+        return this._hovered.get();
     }
 
     // [protected override methods]
@@ -611,6 +647,18 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     getSelections(): T[];
 
     /**
+     * @description Sets the given item as hovered.
+     * @param recursive When sets to true, the visible children of that item 
+     *                  will also be hovered.
+     */
+    setHover(item: TRef, recursive: boolean): void;
+
+    /**
+     * @description Returns the hovered items.
+     */
+    getHover(): T[];
+
+    /**
      * @description Get the total visible subtree node count of the given node (
      * including itself).
      * @param item The root of the subtree.
@@ -629,6 +677,26 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @param index The index of the item.
      */
     getItem(index: number): T;
+
+    /**
+     * @description Returns the rendering index of the item with the given item.
+     * @param item The actual item.
+     */
+    getItemIndex(item: TRef): number;
+
+    /**
+     * @description Returns the height of the item in DOM.
+     * @param index The index of the item.
+     */
+    getItemHeight(index: number): number;
+
+    /**
+     * @description Returns the DOM's position of the item with the given index
+     * relatives to the viewport. If the item is not *entirely* visible in the 
+     * viewport, -1 will be returned.
+     * @param index The index of the item.
+     */
+    getItemRenderTop(index: number): number;
 }
 
 /**
@@ -836,6 +904,25 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._view.setSelections(indice);
     }
 
+    public setHover(item: TRef, recursive: boolean): void {
+        const index = this._model.getNodeListIndex(item);
+        if (index === -1) {
+            // not visible in the list view level.
+            return;
+        }
+
+        const indice: number[] = [index];
+        if (recursive) {
+            const subTreeSize = this.getVisibleNodeCount(item);
+            for (let i = 1; i < subTreeSize; i++) {
+                const currIndex = index + i;
+                indice.push(currIndex);
+            }
+        }
+
+        this._view.setHover(indice);
+    }
+
     public getAnchor(): T | null {
         return this._view.getAnchorData();
     }
@@ -846,6 +933,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public getSelections(): T[] {
         return this._view.getSelectionData();
+    }
+
+    public getHover(): T[] {
+        return this._view.getHoverData();
     }
 
     public getVisibleNodeCount(item: TRef): number {
@@ -871,6 +962,19 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public getItem(index: number): T {
         return this._view.getItem(index).data;
+    }
+
+    public getItemIndex(item: TRef): number {
+        const node = this._model.getNode(item);
+        return this._view.getItemIndex(node);
+    }
+
+    public getItemHeight(index: number): number {
+        return this._view.getItemHeight(index);
+    }
+
+    public getItemRenderTop(index: number): number {
+        return this._view.getItemRenderTop(index);
     }
 
     // [methods - general]

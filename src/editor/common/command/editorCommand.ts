@@ -43,9 +43,9 @@ export abstract class EditorViewCommand extends EditorCommand {
             case EditorType.Rich:
                 return this.richtextCommand(provider, editorWidget, RichtextEditor.getInternalView(editor), ...args);
             case EditorType.Plain:
-                return this.plaintextCommand(provider, editorWidget, undefined!, ...args); // TODO
+                return this.plaintextCommand(provider, editorWidget, undefined!, ...args);
             case EditorType.Split:
-                return this.splitViewCommand(provider, editorWidget, undefined!, ...args); // TODO
+                return this.splitViewCommand(provider, editorWidget, undefined!, ...args);
         }
     }
 

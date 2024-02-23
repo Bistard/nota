@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from "electron";
+import { Time } from "src/base/common/date";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor, JoinablePromise } from "src/base/common/utilities/async";
@@ -82,7 +83,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
     /** The application is being requested to quit. This may be cancelled. */
     private _requestQuit: boolean = false;
-    private _ongoingBeforeQuitPromise?: Promise<void>;
+    private _ongoingBeforeQuitParticipants?: Promise<void>;
 
     private _windowCount: number = 0;
 
@@ -118,7 +119,8 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
         await Promise.race([
             // ensure wait no more than 1s.
-            delayFor(1000),
+            delayFor(Time.sec(1)),
+            
             // try to kill all the windows
             (async () => {
                 for (const window of BrowserWindow.getAllWindows()) {
@@ -135,6 +137,8 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
                 }
             })()
         ]);
+
+        await this.logService.flush();
 
         // quit immediately without asking the user.
         app.exit(exitcode);
@@ -167,13 +171,15 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             event.preventDefault();
 
             this.__fireOnBeforeQuit(QuitReason.Quit)
-                .finally(() => {
+                .finally(async () => {
                     this.logService.info('MainLifecycleService', 'application is quiting...');
 
                     if (this._pendingQuitBlocker) {
                         this._pendingQuitBlocker.resolve();
                         this._pendingQuitBlocker = undefined;
                     }
+
+                    await this.logService.flush();
 
                     /**
                      * We remove all the old listeners so that when we quit again
@@ -243,8 +249,8 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
     private __fireOnBeforeQuit(reason: QuitReason): Promise<void> {
         this.logService.info('MainLifecycleService', 'Application is about to quit...', { reason: parseQuitReason(reason) });
 
-        if (this._ongoingBeforeQuitPromise) {
-            return this._ongoingBeforeQuitPromise;
+        if (this._ongoingBeforeQuitParticipants) {
+            return this._ongoingBeforeQuitParticipants;
         }
 
         this.logService.info('MainLifecycleService', 'Broadcasting the application is about to quit...');
@@ -256,22 +262,23 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             join: participant => joinable.join(participant),
         });
 
-        this._ongoingBeforeQuitPromise = (async () => {
+        this._ongoingBeforeQuitParticipants = (async () => {
             
             // we need to ensure all the participants have completed their jobs.
             const results = await joinable.allSettled();
             
             // error handling
-            for (const res of results) {
+            results.forEach(res => {
                 if (res.status === 'rejected') {
                     this.logService.error('MainLifecycleService', '`onWillQuit` participant fails.', res.reason);
                 }
-            }
+            });
         })();
 
-        return this._ongoingBeforeQuitPromise.then(() => {
-            this._ongoingBeforeQuitPromise = undefined;
-            this.logService.info('MainLifecycleService', 'Broadcasting `quit` successed.');
+        return this._ongoingBeforeQuitParticipants.then(async () => {
+            this._ongoingBeforeQuitParticipants = undefined;
+            this.logService.info('MainLifecycleService', 'Broadcasting `quit` completed.');
+            await this.logService.flush();
         });
     }
 }
