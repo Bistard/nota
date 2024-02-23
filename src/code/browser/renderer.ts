@@ -117,6 +117,45 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
     // [private methods]
 
+    // [error handling]
+
+    private initErrorHandler(): void {
+
+        // only enable infinity stack trace when needed for performance issue.
+        if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
+            Error.stackTraceLimit = Infinity;
+        }
+        
+        // universal on unexpected error hanlding callback
+        const onUnexpectedError = (error: any, additionalMessage?: any) => {
+            if (this.logService) {
+                const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));
+                this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
+            } else {
+                console.error(error);
+            }
+        };
+
+        // case1
+        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
+
+        // case2
+        window.onerror = (message, source, lineno, colno, error) => {
+            onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
+            return true; // prevent default handling (log to console)
+        };
+
+        // case3
+        window.onunhandledrejection = (event: PromiseRejectionEvent) => {
+            onUnexpectedError(event.reason, 'unexpected rejection');
+            event.preventDefault(); // prevent default handling (log to console)
+        };
+    }
+
+    // [end]
+
+    // [services initialization]
+
     private createCoreServices(): IInstantiationService {
 
         // instantiation-service (Dependency Injection)
@@ -226,39 +265,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         this.logService.trace('renderer', 'All core renderer services are initialized successfully.');
     }
 
-    private initErrorHandler(): void {
-
-        // only enable infinity stack trace when needed for performance issue.
-        if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
-            Error.stackTraceLimit = Infinity;
-        }
-        
-        // universal on unexpected error hanlding callback
-        const onUnexpectedError = (error: any, additionalMessage?: any) => {
-            if (this.logService) {
-                const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));
-                this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
-            } else {
-                console.error(error);
-            }
-        };
-
-        // case1
-        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
-
-        // case2
-        window.onerror = (message, source, lineno, colno, error) => {
-            onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
-            return true; // prevent default handling (log to console)
-        };
-
-        // case3
-        window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-            onUnexpectedError(event.reason, 'unexpected rejection');
-            event.preventDefault(); // prevent default handling (log to console)
-        };
-    }
-
     private rendererServiceRegistrations(): void {
 
         // communication
@@ -284,6 +290,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IContextService, new ServiceDescriptor(ContextService, []));
         registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
     }
+
+    // [end]
+
+    // [registrant initialization]
 
     private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
         
@@ -327,6 +337,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         
         return service.createInstance(BrowserCommandRegistrant);
     }
+
+    // [end]
 }
 { };
 
