@@ -442,24 +442,36 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // TEST
         console.log('targetAbove:', targetAbove.basename);
 
+        // the actual move
+        // TODO: disabled for now
+        await this.__performDropMove(currentDragItems, targetAbove);
+
         /**
-         * The dragging items should be the same level of 'dragAbove'. The only
-         * exception is if the 'dragAbove' is a directory, we drop the dragging
-         * items at as the first children of that directory.
+         * The dragging items should be the same level with 'dragAbove'. The 
+         * only exception is if the 'dragAbove' is a directory, we drop the 
+         * dragging items at as the first children of that directory.
          * 
          * Sorting metadata need to be changed before perform the actual move
          * action.
          */
-        // TODO
-        if (this._tree.isCollapsible(targetAbove)) {
-            
-        } else {
-            
+        const sorter = this._sorter.getCustomSorter();
+        
+        // TODO: remove the current drag items order metadata
+        for (const dragItem of currentDragItems) {
+            // await sorter.updateMetadata(OrderChangeType.Remove, dragItem).unwrap();
         }
 
-        // the actual move
-        // TODO: disabled for now
-        // await this.__performDropMove(currentDragItems, targetAbove);
+        if (this._tree.isCollapsible(targetAbove)) {
+            // drop the dragging items at the first children of the directory
+            
+            
+            // TODO: add to the new destination order metadata
+            
+        } else {
+            // drop at the same level with 'dragAbove'
+            
+            // TODO: add to the new destination order metadata
+        }
     }
 
     private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
