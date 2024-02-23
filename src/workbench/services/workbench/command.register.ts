@@ -12,7 +12,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
     'rendererWorkbench',
     (registrant) => {
-        registrant.registerCommandSchema(
+        registrant.registerCommandBasic(
             {
                 id: WorkbenchCommands.toggleDevTool,
                 description: 'Toggle the developer tool of the whole application.',
@@ -23,7 +23,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
             },
         );
     
-        registrant.registerCommandSchema(
+        registrant.registerCommandBasic(
             {
                 id: WorkbenchCommands.reloadWindow,
                 description: 'Reload the current window entirely.',
@@ -34,7 +34,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
             },
         );
     
-        registrant.registerCommandSchema(
+        registrant.registerCommandBasic(
             {
                 id: WorkbenchCommands.closeApplication,
                 description: 'Close the application.',

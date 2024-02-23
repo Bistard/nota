@@ -215,7 +215,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
     public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
         const unregister = this.register(registration);
-        this._commandRegistrant.registerCommandSchema(
+        this._commandRegistrant.registerCommandBasic(
             {
                 id: registration.commandID,
                 command: registration.command,

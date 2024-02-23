@@ -1,5 +1,6 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Mutable } from "src/base/common/utilities/type";
+import { Command, CommandImplementation } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
@@ -11,14 +12,18 @@ export interface ICommandExecutor<T = any> {
  * An event fired whenever a command is executed.
  */
 export interface ICommandEvent {
-    commandID: string;
-    args: any[];
+    
+    /**
+     * The ID of the executed command.
+     */
+    readonly id: string;
 }
 
 /**
- * A set of metadata that describes the command that is about to be registered.
+ * A set of basic metadata that describes the command that is about to be 
+ * registered.
  */
-export interface ICommandSchema {
+export interface ICommandBasicSchema {
 
     /**
      * The name of the command for later access.
@@ -28,7 +33,7 @@ export interface ICommandSchema {
     /**
      * The actual command implementation.
      */
-    readonly command: ICommandExecutor;
+    readonly command: CommandImplementation<any[], any>;
 
     /**
      * The description of the command.
@@ -48,22 +53,29 @@ export interface ICommandSchema {
 export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> {
 
     /**
-     * @description Registers a command by storing it in a map with its ID as 
-     * the key.
+     * @description Registers a {@link ICommandBasicSchema} which includes a set 
+     * of basic metadata to describe a command.
      * @param schema A set of metadata that describes the command.
      * @returns A disposible for unregistration.
      */
-    registerCommandSchema(schema: ICommandSchema): IDisposable;
+    registerCommandBasic(schema: ICommandBasicSchema): IDisposable;
 
     /**
-     * @description Get the {@link ICommandSchema} object through the command ID.
+     * @description Registers a {@link Command}.
+     * @param command A concrete {@link Command}.
+     * @returns A disposible for unregistration.
      */
-    getCommand(id: string): ICommandSchema | undefined;
+    registerCommand(command: Command): IDisposable;
+
+    /**
+     * @description Get the {@link ICommandBasicSchema} object through the command ID.
+     */
+    getCommand(id: string): ICommandBasicSchema | undefined;
 
     /**
      * @description Return all the registered commands.
      */
-    getAllCommands(): Map<string, ICommandSchema>;
+    getAllCommands(): Map<string, ICommandBasicSchema>;
 }
 
 /**
@@ -74,7 +86,7 @@ export class CommandRegistrant implements ICommandRegistrant {
 
     public readonly type = RegistrantType.Command;
 
-    private readonly _commands = new Map<string, ICommandSchema>();
+    private readonly _commands = new Map<string, ICommandBasicSchema>();
 
     constructor() {
         // noop
@@ -84,9 +96,9 @@ export class CommandRegistrant implements ICommandRegistrant {
         // noop
     }
 
-    public registerCommandSchema(schema: ICommandSchema): IDisposable {
+    public registerCommandBasic(schema: ICommandBasicSchema): IDisposable {
         const id = schema.id;
-        const cmd: Mutable<ICommandSchema> = schema;
+        const cmd: Mutable<ICommandBasicSchema> = schema;
 
         if (!cmd.description) {
             cmd.description = 'No descriptions are provided.';
@@ -102,11 +114,15 @@ export class CommandRegistrant implements ICommandRegistrant {
         return unregister;
     }
 
-    public getCommand(id: string): ICommandSchema | undefined {
+    public registerCommand(command: Command): IDisposable {
+        return undefined!;
+    }
+
+    public getCommand(id: string): ICommandBasicSchema | undefined {
         return this._commands.get(id);
     }
 
-    public getAllCommands(): Map<string, ICommandSchema> {
+    public getAllCommands(): Map<string, ICommandBasicSchema> {
         return this._commands;
     }
 }
