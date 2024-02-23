@@ -5,7 +5,7 @@ import { URI } from "src/base/common/files/uri";
 import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, If } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
-import { Strings } from "src/base/common/utilities/string";
+import { errorToMessage } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link DiskStorage}.
@@ -209,7 +209,7 @@ class DiskStorageBase {
                 this._storage = parsed;
                 return ok(false);
             })
-            .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${Strings.errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
+            .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
     }
 
     private __onInitReadError(error: FileOperationError): AsyncResult<boolean, FileOperationError> {

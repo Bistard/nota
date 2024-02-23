@@ -8,6 +8,11 @@
     outline: 1px solid transparent;
     outline-offset: -1px; /* make the outline placed inside the row. */
     
+    // make sure not overlapping the tree outline
+    margin-left: 1px;
+    margin-top: 1px;
+    height: calc(100% - 2px);
+    width: calc(100% - 2px);
     
     /** only for testing purpose */
     // &.anchor {
@@ -35,7 +40,6 @@
         position: relative;
         display: flex;
         height: 100%;
-    
         overflow: hidden;
         text-overflow: ellipsis;
     }

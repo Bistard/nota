@@ -64,7 +64,7 @@ export namespace Iterable {
 	 * 
 	 * @type T represents the type of items we wish to filter for.
 	 */
-	export function filter<T>(iterable: Iterable<any>, predicate: (value: any, index: number) => boolean): Iterable<T> {
+	export function filter<T extends E, E = any>(iterable: Iterable<E>, predicate: (value: E, index: number) => boolean): Iterable<T> {
 		let index = 0;
 		const it = iterable[Symbol.iterator]();
 		const result: T[] = [];
@@ -77,7 +77,7 @@ export namespace Iterable {
 			}
 
 			if (predicate(item.value, index)) {
-				result.push(item.value as T);
+				result.push(<T>item.value);
 			}
 
 			index++;
@@ -90,8 +90,8 @@ export namespace Iterable {
 	 * @param iterable The given {@link Iterable}.
 	 * @returns The new iterable.
 	 */
-	export function coalesce<T = any>(iterable: Iterable<T | undefined | null>): Iterable<T> {
-		return Iterable.filter<T>(iterable, val => !!val);
+	export function coalesce<T>(iterable: Iterable<T | undefined | null>): Iterable<T> {
+		return Iterable.filter<T, T | undefined | null>(iterable, val => !!val);
 	}
 
 }

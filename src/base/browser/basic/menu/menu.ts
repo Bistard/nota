@@ -6,7 +6,7 @@ import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventTyp
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type";
-import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
+import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
@@ -629,7 +629,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         
         const submenuBox = submenuContainer.element.getBoundingClientRect();
         const { top, left } = this.__calculateSubmenuPosition(
-            Dimension.create(submenuBox),
+            { width: submenuBox.width, height: submenuBox.height },
             anchorBox,
             Direction.Right,
         );

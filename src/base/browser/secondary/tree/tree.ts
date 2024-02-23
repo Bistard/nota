@@ -1,6 +1,15 @@
 import { Register } from "src/base/common/event";
 
 /**
+ * Fires when the tree is about to refresh.
+ */
+export interface ITreeRefreshEvent<T, TFilter> {
+    
+    /** The corresponding tree node. */
+    readonly node: ITreeNode<T, TFilter>;
+}
+
+/**
  * Type of event when the {@link IIndexTreeModelBase} splice did happen.
  */
 export interface ITreeSpliceEvent<T, TFilter> {
@@ -15,16 +24,7 @@ export interface ITreeSpliceEvent<T, TFilter> {
 export interface ITreeCollapseStateChangeEvent<T, TFilter> {
     
     /** The corresponding tree node. */
-    node: ITreeNode<T, TFilter>;
-}
-
-/**
- * Fires when a tree node expands/collapse
- */
-export interface ITreeExpandEvent<T, TFilter> {
-    
-    /** The corresponding tree node. */
-    node: ITreeNode<T, TFilter>;
+    readonly node: ITreeNode<T, TFilter>;
 }
 
 /**
@@ -312,4 +312,10 @@ export interface ITreeContextmenuEvent<T> {
 
     /** The browser target of the contextmenu if any. */
     target: HTMLElement | undefined;
+}
+
+export interface ITreeTraitChangeEvent<T> {
+
+    /** The items which the corresponding trait has changed */
+    data: T[];
 }

@@ -16,7 +16,7 @@ import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ILogService } from "src/base/common/logger";
-import { Strings } from "src/base/common/utilities/string";
+import { errorToMessage } from "src/base/common/utilities/panic";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -136,7 +136,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             if (flowingData !== 'end') {
                 let error = flowingData;
                 if (!(error instanceof Error)) {
-                    error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && Strings.errorToMessage((<any>error).nestedError));
+                    error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
                 }
 
                 stream.error(error);

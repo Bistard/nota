@@ -21,7 +21,7 @@ export function isFiltered(str: string, filters: IFilterOpts): boolean {
         return !isInIncludeList;
     }
 
-    // If it's not in the exclude list, it's not filtered out
+    // If it's not in the exclude list, it's not filtered out.
     return false;
 }
 

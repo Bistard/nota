@@ -18,7 +18,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
 import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
-import { Strings } from "src/base/common/utilities/string";
+import { errorToMessage } from "src/base/common/utilities/panic";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -241,7 +241,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 commandArgs: undefined, // review
             });
         } catch (error) {
-            return err(new Error(Strings.errorToMessage(error)));
+            return err(new Error(errorToMessage(error)));
         }
 
         return ok();
