@@ -198,6 +198,54 @@ suite('array-test', () => {
         });
     });
 
+    suite('insertMultiple', function() {
+        
+        test('should insert single item at specified index', function() {
+            const arr = [1, 4];
+            Arrays.insertMultiple(arr, [0], [0]);
+            assert.deepEqual(arr, [0, 1, 4]);
+            
+            Arrays.insertMultiple(arr, [2], [2]);
+            assert.deepEqual(arr, [0, 1, 2, 4]);
+            
+            Arrays.insertMultiple(arr, [3], [3]);
+            assert.deepEqual(arr, [0, 1, 2, 3, 4]);
+            
+            Arrays.insertMultiple(arr, [5], [5]);
+            assert.deepEqual(arr, [0, 1, 2, 3, 4, 5]);
+        });
+
+        test('should insert items at specified indices', function() {
+            const arr = [1, 4];
+            Arrays.insertMultiple(arr, [0, 2, 3], [0, 1, 1]);
+            assert.deepEqual(arr, [0, 1, 2, 3, 4]);
+        });
+    
+        test('should handle empty arrays', function() {
+            const arr: number[] = [];
+            Arrays.insertMultiple(arr, [1, 2], [0, 0]);
+            assert.deepEqual(arr, [1, 2]);
+        });
+    
+        test('should handle insertion at the end', function() {
+            const arr = [1, 2];
+            Arrays.insertMultiple(arr, [3, 4], [2, 2]);
+            assert.deepEqual(arr, [1, 2, 3, 4]);
+        });
+    
+        test('should not alter the array if indices array is empty', function() {
+            const arr = [1, 2, 3];
+            Arrays.insertMultiple(arr, [], []);
+            assert.deepEqual(arr, [1, 2, 3]);
+        });
+    
+        test('should throw an error for out of range indices', function() {
+            const arr = [1, 2, 3];
+            assert.throws(() => Arrays.insertMultiple(arr, [4], [5]), Error);
+        });
+    });
+    
+
     test('exactEquals', () => {
         const ref = [1, 2, 3];
         assert.strictEqual(Arrays.exactEquals([], []), true);
