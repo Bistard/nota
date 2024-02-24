@@ -111,6 +111,16 @@ export interface IFileTreeService extends IDisposable, IService {
     collapseAll(): Promise<void>;
 
     /**
+     * @description Visually highlight the files have been selected for cutting.
+     */
+    highlightSelectionAsCut(items: FileItem[]): Promise<void>;
+
+    /**
+     * @description Visually highlight the files have been selected for copy.
+     */
+    highlightSelectionAsCopy(items: FileItem[]): Promise<void>;
+
+    /**
      * @description Unrendering and disposing all the tree data. Does not mean
      * the service is disposed. The service may be reinitialized again after
      * closed.

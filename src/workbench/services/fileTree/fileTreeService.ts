@@ -32,6 +32,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     private _onDidResourceChange?: Scheduler<IResourceChangeEvent>;
     private _treeDisposables: DisposableManager;
 
+    private _isVisuallyCutOrCut?: 'copy' | 'cut';
+
     // [constructor]
 
     constructor(
@@ -124,6 +126,14 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     public async collapseAll(): Promise<void> {
         const tree = this.__assertTree();
         await tree.collapseAll();
+    }
+
+    public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {
+        // TODO
+    }
+
+    public async highlightSelectionAsCopy(items: FileItem[]): Promise<void> {
+        // TODO
     }
     
     public async close(): Promise<void> {
