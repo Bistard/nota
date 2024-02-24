@@ -7,7 +7,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { IShortcutItem, IShortcutRegistrant, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { IShortcutReference, IShortcutRegistrant, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { Emitter, Register } from "src/base/common/event";
@@ -100,7 +100,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
             const pressed = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
 
             const candidates = this._shortcutRegistrant.findShortcut(pressed);
-            let shortcut: IShortcutItem | undefined;
+            let shortcut: IShortcutReference | undefined;
 
             for (const candidate of candidates) {
                 if (this.contextService.contextMatchExpr(candidate.when)) {
@@ -233,12 +233,12 @@ export class ShortcutService extends Disposable implements IShortcutService {
         // Register the shortcut into the memory
         try {
             const deserializedWhen = ContextKeyDeserializer.deserialize(when);
-            this._shortcutRegistrant.register({
-                commandID: commandID,
+            this._shortcutRegistrant.register(
+                commandID, {
                 shortcut: shortcut,
                 when: deserializedWhen,
                 weight: weight,
-                commandArgs: undefined, // review
+                commandArgs: [], // review
             });
         } catch (error) {
             return err(new Error(errorToMessage(error)));

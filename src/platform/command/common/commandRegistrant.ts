@@ -139,10 +139,7 @@ export class CommandRegistrant implements ICommandRegistrant {
 
         // shortcut registration
         if (command.schema.shortcutOptions) {
-            this._shortcutRegistrant.register({
-                ...command.schema.shortcutOptions,
-                commandID: command.id,
-            });
+            this._shortcutRegistrant.register(command.id, command.schema.shortcutOptions);
         }
         
         return this.__toUnregister(command.id);

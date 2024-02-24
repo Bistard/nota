@@ -22,7 +22,7 @@ export interface ICommandSchema extends Omit<ICommandBasicSchema, 'command' | 'o
      * @note The shortcut will only be avaliable when the command schema
      * -provided `when` and the shorcut-provided `when` are both satisfied.
      */
-    readonly shortcutOptions?: Omit<IShortcutRegistration, 'commandID'>;
+    readonly shortcutOptions?: Omit<IShortcutRegistration<string>, 'commandID'>;
 }
 
 export type CommandImplementation<TArgs extends any[] = any[], TReturn = any> = Callable<[provider: IServiceProvider, ...args: TArgs], TReturn>;
