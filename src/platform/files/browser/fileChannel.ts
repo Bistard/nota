@@ -16,7 +16,7 @@ import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ILogService } from "src/base/common/logger";
-import { errorToMessage } from "src/base/common/utilities/panic";
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -51,7 +51,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
         this.__register(this._channel.registerListener<IRawResourceChangeEvents>(FileCommand.onDidResourceChange)(event => {
             if (event instanceof Error) {
-                throw event;
+                panic(event);
             }
             this._onDidResourceChange.fire({
                 ...event,
@@ -61,14 +61,14 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
         this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
             if (event instanceof Error) {
-                throw event;
+                panic(event);
             }
             this._onDidResourceClose.fire(URI.revive(event, this._reviver));
         }));
 
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
             if (error) {
-                throw error;
+                panic(error);
             }
             this._onDidAllResourceClosed.fire();
         }));

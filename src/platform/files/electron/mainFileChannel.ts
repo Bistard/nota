@@ -6,6 +6,7 @@ import { IReadableStream, listenStream } from "src/base/common/files/stream";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { CancellationToken } from "src/base/common/utilities/cacellation";
+import { panic } from "src/base/common/utilities/panic";
 import { Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
@@ -75,7 +76,7 @@ export class MainFileChannel implements IServerChannel {
             case FileCommand.watch: return this.__watch(arg[0], arg[1]);
             case FileCommand.unwatch: return this.__unwatch(arg[0]);
         }
-        throw new Error(`main file channel - unknown file command ${command}`);
+        panic(`main file channel - unknown file command ${command}`);
     }
 
     public registerListener(_id: string, event: FileCommand, arg: any[]): Register<any> {
@@ -86,7 +87,7 @@ export class MainFileChannel implements IServerChannel {
             case FileCommand.onDidAllResourceClosed: return this.__onDidAllResourceClosed();
         }
 
-        throw new Error(`main file channel - Event not found: ${event}`);
+        panic(`main file channel - Event not found: ${event}`);
     }
 
     // [private helper methods]
@@ -118,11 +119,11 @@ export class MainFileChannel implements IServerChannel {
 
         const provider = this.fileService.getProvider(Schemas.FILE);
         if (!provider) {
-            throw new Error(`Cannot read file on stream since the corresponding provider with type ${Schemas.FILE} is not registered.`);
+            panic(`Cannot read file on stream since the corresponding provider with type ${Schemas.FILE} is not registered.`);
         }
 
         if (!hasReadFileStreamCapability(provider)) {
-            throw new Error('The registered provider does not has read file stream capability.');
+            panic('The registered provider does not has read file stream capability.');
         }
 
         const stream = provider.readFileStream(uri, opts).flow();
