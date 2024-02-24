@@ -1,7 +1,6 @@
 import { Time } from "src/base/common/date";
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
-import { panic } from "src/base/common/utilities/panic";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { Comparator, CompareOrder } from "src/base/common/utilities/type";
@@ -75,7 +74,7 @@ export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDispos
      * @description Exposing the internal custom sorter. Only invoke this if you
      * know what you are doing exactly.
      */
-    getCustomSorter(): IFileTreeCustomSorter<TItem>;
+    getCustomSorter(): IFileTreeCustomSorter<TItem> | null;
 }
 
 /**
@@ -157,9 +156,9 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         return true;
     }
 
-    public getCustomSorter(): IFileTreeCustomSorter<TItem> {
+    public getCustomSorter(): IFileTreeCustomSorter<TItem> | null {
         if (!this._customSorter) {
-            panic(`[FileItemOrder] customSorter is undefined. Current sorting type is: '${this._sortType}'`);
+            return null;
         }
         return this._customSorter;
     }

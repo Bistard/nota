@@ -10,7 +10,7 @@ import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fil
 import { ILogService } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
-import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
@@ -35,7 +35,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // synchronizes lifecycles of the above properties
     private _treeCleanup: DisposableManager;
 
-    private _isVisuallyCutOrCut?: 'copy' | 'cut';
+    private _isVisuallyCopyOrCut?: 'copy' | 'cut';
 
     // [constructor]
 
@@ -184,6 +184,27 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // TODO
     }
 
+    public getFileSortingType(): FileSortType {
+        const sorter = this.__assertSorter();
+        return sorter.sortType;
+    }
+
+    public getFileSortingOrder(): FileSortOrder {
+        const sorter = this.__assertSorter();
+        return sorter.sortOrder;
+    }
+
+    public async setFileSorting(type: FileSortType, order: FileSortOrder): Promise<void> {
+        const sorter = this.__assertSorter();
+        const tree = this.__assertTree();
+        sorter.switchTo(type, order);
+        
+        this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.Memory });
+        this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.Memory });
+
+        await tree.refresh();
+    }
+
     public override dispose(): void {
         super.dispose();
         this.close();
@@ -196,6 +217,13 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             panic('[FileTreeService] file tree is not initialized yet.');
         }
         return this._tree;
+    }
+    
+    private __assertSorter(): FileTreeSorter<FileItem> {
+        if (!this._sorter) {
+            panic('[FileTreeService] file tree is not initialized yet.');
+        }
+        return this._sorter;
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
@@ -273,8 +301,16 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         );
 
         const register = (tree: IFileTree<FileItem, void>) => {
-            // configuration auto update
+            
+            /**
+             * Configuration auto update - only update on user configuration 
+             * change from the disk.
+             */
             const disposable = this.configurationService.onDidConfigurationChange(e => {
+                if (e.type !== ConfigurationModuleType.User) {
+                    return;
+                }
+                
                 if (e.affect(WorkbenchConfiguration.ExplorerFileSortType) ||
                     e.affect(WorkbenchConfiguration.ExplorerFileSortOrder)
                 ) {

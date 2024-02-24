@@ -5,6 +5,7 @@ import { URI } from "src/base/common/files/uri";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
+import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 export const IFileTreeService = createService<IFileTreeService>('file-tree-service');
 
@@ -151,5 +152,24 @@ export interface IFileTreeService extends IDisposable, IService {
      */
     highlightSelectionAsCopy(items: FileItem[]): Promise<void>;
 
+    /**
+     * @description Retrieves the current sorting type applied to the file tree. 
+     * This type is used for arranging files.
+     */
+    getFileSortingType(): FileSortType;
     
+    /**
+     * @description Fetches the current sorting order of the file tree, whether 
+     * files are sorted in ascending or descending order.
+     */
+    getFileSortingOrder(): FileSortOrder;
+
+    /**
+     * @description Apply the new sorting strategy to the file tree. The 
+     * function returns a promise that is fulfilled once the re-rendering is 
+     * finished.
+     * @param type The type of the sorting.
+     * @param order The ordering of the sorting.
+     */
+    setFileSorting(type: FileSortType, order: FileSortOrder): Promise<void>;
 }

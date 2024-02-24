@@ -13,6 +13,9 @@ import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 
+/**
+ * // TODO
+ */
 export const enum OrderChangeType {
     Add,
     Remove,

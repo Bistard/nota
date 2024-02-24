@@ -31,7 +31,8 @@ export interface IConfigurationService extends IDisposable, IService {
     readonly appConfigurationPath: URI;
 
     /**
-     * Fires whenever the configuraion has changed.
+     * Fires when the configuraion has changed. Any of {@link ConfigurationModuleType}
+     * type of update will trigger this event.
      */
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
 
