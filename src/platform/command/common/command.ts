@@ -1,10 +1,15 @@
 import { IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
-import { ICommandRegistrant, ICommandSchema } from "src/platform/command/common/commandRegistrant";
-import { ContextKeyExpr, CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
+import { ICommandRegistrant, ICommandBasicSchema } from "src/platform/command/common/commandRegistrant";
+import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { Callable } from "src/base/common/utilities/type";
 
-export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'overwrite'> {
+/**
+ * A more concrete set of metadata to describe a command specifically used for
+ * {@link Command}.
+ */
+export interface ICommandSchema extends Omit<ICommandBasicSchema, 'command' | 'overwrite'> {
 
     /**
      * The precondition that indicates if the command is valid to be invoked.
@@ -17,19 +22,25 @@ export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'overwr
      * @note The shortcut will only be avaliable when the command schema
      * -provided `when` and the shorcut-provided `when` are both satisfied.
      */
-    readonly shortcutOptions?: Omit<IShortcutRegistration, 'commandID'>;
+    readonly shortcutOptions?: Omit<IShortcutRegistration<string>, 'commandID'>;
 }
 
-export type CommandImplementation = {
-    (provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean>;
-};
+export type CommandImplementation<TArgs extends any[] = any[], TReturn = any> = Callable<[provider: IServiceProvider, ...args: TArgs], TReturn>;
 
 /**
  * An interface only for {@link Command}.
  */
 export interface ICommand {
 
+    /**
+     * The ID of the command.
+     */
     readonly id: string;
+
+    /**
+     * A pre-condition that describe when should the command to be executed.
+     * @see ContextKeyExpr
+     */
     readonly when: ContextKeyExpr | null;
 
     /**
@@ -39,52 +50,80 @@ export interface ICommand {
      *                 different micro-services.
      * @param args The other provided data.
      * @returns Returns a boolean indicates the command if applied successfully.
+     * 
      * @note You may run the command manually also.
      */
-    run: CommandImplementation;
+    run: CommandImplementation<any[], boolean | Promise<boolean>>;
 }
 
 /**
- * @class Instead of register a command into the {@link ICommandRegistrant} 
- * directly. A {@link Command} provides extra functionalities and a series of 
- * inherited classes that supports additional behaviours.
+ * @class Represents a command that encapsulates the executable logic by
+ * implement the method 'run'. 
  * 
- * @note The abstract method `run` indicates the actual command implementation.
+ * @note Should be registered through {@link ICommandRegistrant.registerCommand}.
+ *       It gives the {@link Command} able to have access to a {@link IServiceProvider}
+ *       inside the 'run' parameter.
+ * @note Use this class to define commands with complex logic or those that 
+ *       require additional metadata. The `run` method must be implemented.
  * 
- * @note When a {@link Command} is constructed, the abstract method `run` will 
- * be automatically wrapped and registered into the {@link ICommandRegistrant}.
+ * @example
+ * ```ts
+ * class MyCommand extends Command {
+ *   public run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean> {
+ *     // Command logic here
+ *   }
+ * }
+ * 
+ * // Registering the command
+ * const myCommand = new MyCommand({ id: 'myCommand', when: null });
+ * commandRegistrant.registerCommand(myCommand);
+ * ```
+ * 
+ * @example
+ * // You may also define a command in the `AllCommands` to work with 'CommandService'
+ * 
+ * // commandList.ts
+ * const enum AllCommands {
+ *   MyCommand = 'myCommand',
+ * }
+ * export type AllCommandsArgumentsTypes = {
+ *     [AllCommands.MyCommand]: [arg1: number];
+ * };
+ * export type AllCommandsReturnTypes = {
+ *     [AllCommands.MyCommand]: void;
+ * };
+ * 
+ * // main.ts
+ * 
+ * class MyCommand extends Command {
+ *   public run(provider: IServiceProvider, arg: number): void {
+ *     console.log(arg);
+ *   }
+ * }
+ * 
+ * const myCommand = new MyCommand({ id: AllCommands.MyCommand, when: null });
+ * commandRegistrant.registerCommand(myCommand);
+ * 
+ * // type safety (eunsuring a 'number' must be provided)
+ * commandService.executeCommand(AllCommands.MyCommand, 100);
  */
 export abstract class Command implements ICommand {
 
     // [field]
 
-    private readonly _schema: ICommandRegistrationSchema;
+    private readonly _schema: ICommandSchema;
 
     // [constructor]
 
-    constructor(schema: ICommandRegistrationSchema) {
+    constructor(schema: ICommandSchema) {
         this._schema = schema;
-        const actualSchema = {
-            ...schema,
-            overwrite: true,
-        };
-
-        // FIX: shortcutRegistrant invalid
-        // register as the shortcut if needed
-        // if (schema.shortcutOptions) {
-        //     shortcutRegistrant.register({
-        //         commandID: schema.id,
-        //         ...schema.shortcutOptions,
-        //         when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
-        //     });
-        // }
-
-        // command registration
-        // FIX: commandRegistrant invalid
-        // commandRegistrant.registerCommand(actualSchema, this.__runCommand.bind(this));
     }
 
     // [public methods]
+
+    get schema(): ICommandSchema {
+        return this._schema;
+    }
 
     get id(): string {
         return this._schema.id;
@@ -92,6 +131,10 @@ export abstract class Command implements ICommand {
 
     get when(): ContextKeyExpr | null {
         return this._schema.when;
+    }
+
+    get description(): string | undefined {
+        return this._schema.description;
     }
 
     // [protected methods]
@@ -110,20 +153,22 @@ export abstract class Command implements ICommand {
 
     // [abstract methods]
 
+    /**
+     * The encapsulated implementation.
+     */
     public abstract run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean>;
 }
 
-export interface IChainCommandRegistration {
-    readonly id: string;
-    readonly when: ContextKeyExpr | null;
-    readonly command: CommandImplementation;
-}
-
+/**
+ * @class Combine a list of {@link Command} into one single {@link Command}. The
+ * commands are executed in the provided sequence. Any one of the command returns
+ * a true will stop the execution.
+ */
 export class ChainCommand extends Command {
 
     private readonly _commands: Command[];
 
-    constructor(schema: ICommandRegistrationSchema, commands: Command[]) {
+    constructor(schema: ICommandSchema, commands: Command[]) {
         super(schema);
         this._commands = commands;
     }

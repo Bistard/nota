@@ -1,47 +1,42 @@
+import { AllCommands } from "src/platform/command/common/commandList";
 import { IHostService } from "src/platform/host/common/hostService";
 import { ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
-
-export const enum WorkbenchCommands {
-    toggleDevTool = 'toggle-develop-tool',
-    reloadWindow = 'reload-window',
-    closeApplication = 'close-application',
-}
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
     'rendererWorkbench',
     (registrant) => {
-        registrant.registerCommand(
+        registrant.registerCommandBasic(
             {
-                id: WorkbenchCommands.toggleDevTool,
+                id: AllCommands.toggleDevTool,
                 description: 'Toggle the developer tool of the whole application.',
-            },
-            (provider) => {
-                const hostService = provider.getOrCreateService(IHostService);
-                hostService.toggleDevTools();
+                command: (provider) => {
+                    const hostService = provider.getOrCreateService(IHostService);
+                    hostService.toggleDevTools();
+                },
             },
         );
     
-        registrant.registerCommand(
+        registrant.registerCommandBasic(
             {
-                id: WorkbenchCommands.reloadWindow,
+                id: AllCommands.reloadWindow,
                 description: 'Reload the current window entirely.',
-            },
-            (provider) => {
-                const hostService = provider.getOrCreateService(IHostService);
-                hostService.reloadWebPage();
+                command: (provider) => {
+                    const hostService = provider.getOrCreateService(IHostService);
+                    hostService.reloadWebPage();
+                },
             },
         );
     
-        registrant.registerCommand(
+        registrant.registerCommandBasic(
             {
-                id: WorkbenchCommands.closeApplication,
+                id: AllCommands.closeApplication,
                 description: 'Close the application.',
-            },
-            (provider) => {
-                const lifecycleService = provider.getOrCreateService(ILifecycleService);
-                lifecycleService.quit();
+                command: (provider) => {
+                    const lifecycleService = provider.getOrCreateService(ILifecycleService);
+                    lifecycleService.quit();
+                },
             },
         );
     },

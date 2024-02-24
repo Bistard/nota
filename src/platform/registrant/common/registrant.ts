@@ -43,7 +43,7 @@ export interface IRegistrant<TType extends RegistrantType> {
      * @remarks Implementations should handle the logic required to set up the 
      * specific service or functionality.
      */
-    initRegistrations(): void;
+    initRegistrations(serviceProvider: IServiceProvider): void;
 }
 
 /**

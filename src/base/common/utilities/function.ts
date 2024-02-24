@@ -2,9 +2,8 @@ import { panic } from "src/base/common/utilities/panic";
 import { Callable } from "src/base/common/utilities/type";
 
 /**
- * @description Wraps the input function to ensure it can only be executed once. 
- *  If called more than once, it throws an error.
- * @param fn The function to be wrapped, ensuring it is only executed once.
+ * @description Wraps the 'fn' to ensure it can only be executed once. 
+ * @panic
  */
 export function executeOnce<T extends Callable<any[], any>>(fn: T): T {
     let executed = false;
