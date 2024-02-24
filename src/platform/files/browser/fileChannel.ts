@@ -7,7 +7,7 @@ import { IReadableStream, IReadyReadableStream, newWriteableBufferStream, toRead
 import { URI } from "src/base/common/files/uri";
 import { Mutable } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileCommand, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
+import { FileChannelsInternalCommands, ReadableStreamDataFlowType } from "src/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/platform/ipc/common/channel";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
@@ -49,7 +49,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
         this._reviver = registrantService.getRegistrant(RegistrantType.Reviver);
 
-        this.__register(this._channel.registerListener<IRawResourceChangeEvents>(FileCommand.onDidResourceChange)(event => {
+        this.__register(this._channel.registerListener<IRawResourceChangeEvents>(FileChannelsInternalCommands.onDidResourceChange)(event => {
             if (event instanceof Error) {
                 panic(event);
             }
@@ -59,14 +59,14 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             });
         }));
 
-        this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
+        this.__register(this._channel.registerListener<URI>(FileChannelsInternalCommands.onDidResourceClose)(event => {
             if (event instanceof Error) {
                 panic(event);
             }
             this._onDidResourceClose.fire(URI.revive(event, this._reviver));
         }));
 
-        this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
+        this.__register(this._channel.registerListener<void | Error>(FileChannelsInternalCommands.onDidAllResourceClosed)(error => {
             if (error) {
                 panic(error);
             }
@@ -88,7 +88,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     public stat(uri: URI, opts?: IResolveStatOptions): AsyncResult<IResolvedFileStat, FileOperationError> {
         return Result.fromPromise<IResolvedFileStat, FileOperationError>(
-            () => this._channel.callCommand(FileCommand.stat, [uri, opts]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.stat, [uri, opts]),
         )
         .andThen(stat => {
             const revive = (stat: IResolvedFileStat): void => {
@@ -105,13 +105,13 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     public readFile(uri: URI, opts?: IReadFileOptions): AsyncResult<DataBuffer, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.readFile, [uri, opts]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.readFile, [uri, opts]),
         );
     }
 
     public readDir(uri: URI): AsyncResult<[string, FileType][], FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.readDir, [uri]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.readDir, [uri]),
         );
     }
 
@@ -123,7 +123,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
          * IPC. The channels between client and server is using `registerListener` 
          * API instead of using `callCommand` internally.
          */
-        const listener = this._channel.registerListener<ReadableStreamDataFlowType<DataBuffer>>(FileCommand.readFileStream, [uri, opts]);
+        const listener = this._channel.registerListener<ReadableStreamDataFlowType<DataBuffer>>(FileChannelsInternalCommands.readFileStream, [uri, opts]);
         const disconnect = listener((flowingData) => {
 
             // normal data
@@ -156,50 +156,50 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): AsyncResult<void, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.writeFile, [uri, bufferOrStream, opts]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.writeFile, [uri, bufferOrStream, opts]),
         );
     }
 
     public exist(uri: URI): AsyncResult<boolean, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.exist, [uri]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.exist, [uri]),
         );
     }
 
     public createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: ICreateFileOptions): AsyncResult<void, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.createFile, [uri, bufferOrStream, opts]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.createFile, [uri, bufferOrStream, opts]),
         );
     }
 
     public createDir(uri: URI): AsyncResult<void, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.createDir, [uri]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.createDir, [uri]),
         );
     }
 
     public moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.moveTo, [from, to, overwrite]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.moveTo, [from, to, overwrite]),
         );
     }
 
     public copyTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.copyTo, [from, to, overwrite]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.copyTo, [from, to, overwrite]),
         );
     }
 
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return Result.fromPromise(
-            () => this._channel.callCommand(FileCommand.delete, [uri, opts]),
+            () => this._channel.callCommand(FileChannelsInternalCommands.delete, [uri, opts]),
         );
     }
 
     public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
-        this._channel.callCommand(FileCommand.watch, [uri, opts]);
+        this._channel.callCommand(FileChannelsInternalCommands.watch, [uri, opts]);
         const cancel = toDisposable(() => {
-            return this._channel.callCommand(FileCommand.unwatch, [uri]);
+            return this._channel.callCommand(FileChannelsInternalCommands.unwatch, [uri]);
         });
 
         return AsyncResult.ok(cancel);

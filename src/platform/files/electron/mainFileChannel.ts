@@ -22,7 +22,7 @@ export type ReadableStreamDataFlowType<TData> = TData | Error | 'end';
  * @internal
  * Should ONLY be use between file service channel communication.
  */
-export const enum FileCommand {
+export const enum FileChannelsInternalCommands {
     stat = 'stat',
     readFile = 'readFile',
     readDir = 'readDir',
@@ -61,30 +61,30 @@ export class MainFileChannel implements IServerChannel {
 
     // [public methods]
 
-    public async callCommand(_id: string, command: FileCommand, arg: any[]): Promise<any> {
+    public async callCommand(_id: string, command: FileChannelsInternalCommands, arg: any[]): Promise<any> {
         switch (command) {
-            case FileCommand.stat: return this.__stat(arg[0], arg[1]);
-            case FileCommand.readFile: return this.__readFile(arg[0], arg[1]);
-            case FileCommand.readDir: return this.__readDir(arg[0]);
-            case FileCommand.writeFile: return this.__writeFile(arg[0], arg[1], arg[2]);
-            case FileCommand.exist: return this.__exist(arg[0]);
-            case FileCommand.createFile: return this.__createFile(arg[0], arg[1], arg[2]);
-            case FileCommand.createDir: return this.__createDir(arg[0]);
-            case FileCommand.moveTo: return this.__moveTo(arg[0], arg[1], arg[2]);
-            case FileCommand.copyTo: return this.__copyTo(arg[0], arg[1], arg[2]);
-            case FileCommand.delete: return this.__delete(arg[0], arg[1]);
-            case FileCommand.watch: return this.__watch(arg[0], arg[1]);
-            case FileCommand.unwatch: return this.__unwatch(arg[0]);
+            case FileChannelsInternalCommands.stat: return this.__stat(arg[0], arg[1]);
+            case FileChannelsInternalCommands.readFile: return this.__readFile(arg[0], arg[1]);
+            case FileChannelsInternalCommands.readDir: return this.__readDir(arg[0]);
+            case FileChannelsInternalCommands.writeFile: return this.__writeFile(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.exist: return this.__exist(arg[0]);
+            case FileChannelsInternalCommands.createFile: return this.__createFile(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.createDir: return this.__createDir(arg[0]);
+            case FileChannelsInternalCommands.moveTo: return this.__moveTo(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.copyTo: return this.__copyTo(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.delete: return this.__delete(arg[0], arg[1]);
+            case FileChannelsInternalCommands.watch: return this.__watch(arg[0], arg[1]);
+            case FileChannelsInternalCommands.unwatch: return this.__unwatch(arg[0]);
         }
         panic(`main file channel - unknown file command ${command}`);
     }
 
-    public registerListener(_id: string, event: FileCommand, arg: any[]): Register<any> {
+    public registerListener(_id: string, event: FileChannelsInternalCommands, arg: any[]): Register<any> {
         switch (event) {
-            case FileCommand.readFileStream: return this.__onReadFileStream(arg[0], arg[1]);
-            case FileCommand.onDidResourceChange: return this.__onDidResourceChange();
-            case FileCommand.onDidResourceClose: return this.__onDidResourceClose();
-            case FileCommand.onDidAllResourceClosed: return this.__onDidAllResourceClosed();
+            case FileChannelsInternalCommands.readFileStream: return this.__onReadFileStream(arg[0], arg[1]);
+            case FileChannelsInternalCommands.onDidResourceChange: return this.__onDidResourceChange();
+            case FileChannelsInternalCommands.onDidResourceClose: return this.__onDidResourceClose();
+            case FileChannelsInternalCommands.onDidAllResourceClosed: return this.__onDidAllResourceClosed();
         }
 
         panic(`main file channel - Event not found: ${event}`);
