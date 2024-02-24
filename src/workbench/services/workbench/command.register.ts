@@ -1,4 +1,4 @@
-import { AllCommands } from "src/platform/command/common/commandList";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IHostService } from "src/platform/host/common/hostService";
 import { ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
@@ -10,7 +10,6 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.toggleDevTool,
-                description: 'Toggle the developer tool of the whole application.',
                 command: (provider) => {
                     const hostService = provider.getOrCreateService(IHostService);
                     hostService.toggleDevTools();
@@ -21,7 +20,6 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.reloadWindow,
-                description: 'Reload the current window entirely.',
                 command: (provider) => {
                     const hostService = provider.getOrCreateService(IHostService);
                     hostService.reloadWebPage();
@@ -32,7 +30,6 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.closeApplication,
-                description: 'Close the application.',
                 command: (provider) => {
                     const lifecycleService = provider.getOrCreateService(ILifecycleService);
                     lifecycleService.quit();

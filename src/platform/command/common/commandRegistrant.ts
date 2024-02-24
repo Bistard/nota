@@ -6,6 +6,7 @@ import { IRegistrant, RegistrantType } from "src/platform/registrant/common/regi
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
+import { AllCommandsDescriptions } from "src/workbench/services/workbench/commandList";
 
 /**
  * An event fired whenever a command is executed.
@@ -119,7 +120,9 @@ export class CommandRegistrant implements ICommandRegistrant {
         const cmd: Mutable<ICommandBasicSchema> = schema;
 
         if (!cmd.description) {
-            cmd.description = 'No descriptions are provided.';
+            // try to find descriptions for the predefined commands
+            const predefined = AllCommandsDescriptions[cmd.id];
+            cmd.description = predefined ?? 'No descriptions are provided.';
         }
 
         if (cmd.overwrite === true || !this._commands.has(id)) {
