@@ -1,14 +1,23 @@
 
 /**
+ * {@link AllCommands}
+ * {@link AllCommandsDescriptions}
+ * {@link AllCommandsArgumentsTypes}
+ * {@link AllCommandsReturnTypes}
+ */
+
+/**
  * @description Represents a set of predefined ID that can be executed by the 
  * {@link CommandService}.
  * 
  * @note Those commands are ensured DEFINED in the program. Safely to call these
  *       commands through {@link CommandService}.
  * @note When you are modifying commands to this enumeration, MAKE SURE:
- *  1. {@link AllCommandsArgumentsTypes} and {@link AllCommandsReturnTypes} are 
- *      also updated.
- *  2. You actually registered this command into the {@link CommandRegistrant}.
+ *  1. You actually registered this command into the {@link CommandRegistrant}.
+ *  2. You also update the following entries:
+ *      - {@link AllCommandsDescriptions},
+ *      - {@link AllCommandsArgumentsTypes} and
+ *      - {@link AllCommandsReturnTypes}.
  * 
  * @note This enumeration ensures type safety by allowing only valid IDs for
  *       `executeCommand`.
@@ -27,8 +36,35 @@ export const enum AllCommands {
     reloadWindow = 'reload-window',
     closeApplication = 'close-application',
 
-    // [end]
+    // [FileTree]
+
+    newFile = 'newfile', // TODO
+    newFolder = 'newFolder', // TODO
+    fileCut = 'filecut', // TODO
+    fileCopy = 'filecopy', // TODO
+    filePaste = 'filepaste', // TODO
+    fileMove = 'filemove', // TODO
 }
+
+/**
+ * @description Provides descriptions for each command defined in {@link AllCommands}. 
+ * These descriptions can be used for UI tooltips, logs, or any other feature 
+ * that requires a human-readable explanation.
+ */
+export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
+
+    [AllCommands.toggleDevTool]: 'Toggle the developer tool of the whole application.',
+    [AllCommands.reloadWindow]: 'Reload the browser entirely.',
+    [AllCommands.closeApplication]: 'Close the current window.',
+
+
+    [AllCommands.newFile]: '',
+    [AllCommands.newFolder]: '',
+    [AllCommands.fileCut]: 'Sets selected files in the file tree as ready to be cut.',
+    [AllCommands.fileCopy]: 'Sets selected files in the file tree as ready to be copied.',
+    [AllCommands.filePaste]: '',
+    [AllCommands.fileMove]: 'Moves selected explorer files.',
+};
 
 /**
  * @description Maps each command defined in {@link AllCommands} to its 
@@ -46,9 +82,18 @@ export const enum AllCommands {
  * ```
  */
 export type AllCommandsArgumentsTypes = {
+    
     [AllCommands.toggleDevTool]: [];
     [AllCommands.reloadWindow]: [];
     [AllCommands.closeApplication]: [];
+    
+    
+    [AllCommands.newFile]: [];
+    [AllCommands.newFolder]: [];
+    [AllCommands.fileCut]: [];
+    [AllCommands.fileCopy]: [];
+    [AllCommands.filePaste]: [];
+    [AllCommands.fileMove]: [];
 };
 
 /**
@@ -64,7 +109,16 @@ export type AllCommandsArgumentsTypes = {
  * ```
  */
 export type AllCommandsReturnTypes = {
+    
     [AllCommands.toggleDevTool]: void;
     [AllCommands.reloadWindow]: void;
     [AllCommands.closeApplication]: void;
+
+
+    [AllCommands.newFile]: void;
+    [AllCommands.newFolder]: void;
+    [AllCommands.fileCut]: void;
+    [AllCommands.fileCopy]: void;
+    [AllCommands.filePaste]: void;
+    [AllCommands.fileMove]: void;
 };

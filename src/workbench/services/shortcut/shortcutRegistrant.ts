@@ -3,7 +3,7 @@ import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { HashNumber } from "src/base/common/utilities/hash";
 import { panic } from "src/base/common/utilities/panic";
 import { isNumber } from "src/base/common/utilities/type";
-import { AllCommands, AllCommandsArgumentsTypes } from "src/platform/command/common/commandList";
+import { AllCommands, AllCommandsArgumentsTypes } from "src/workbench/services/workbench/commandList";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";

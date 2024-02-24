@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { AllCommands, AllCommandsArgumentsTypes, AllCommandsReturnTypes } from "src/platform/command/common/commandList";
+import { AllCommands, AllCommandsArgumentsTypes, AllCommandsReturnTypes } from "src/workbench/services/workbench/commandList";
 import { ICommandEvent, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";

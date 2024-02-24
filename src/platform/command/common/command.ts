@@ -107,7 +107,7 @@ export interface ICommand {
  * // type safety (eunsuring a 'number' must be provided)
  * commandService.executeCommand(AllCommands.MyCommand, 100);
  */
-export abstract class Command implements ICommand {
+export abstract class Command<ID extends string = string> implements ICommand {
 
     // [field]
 
@@ -125,8 +125,8 @@ export abstract class Command implements ICommand {
         return this._schema;
     }
 
-    get id(): string {
-        return this._schema.id;
+    get id(): ID {
+        return <ID>this._schema.id;
     }
 
     get when(): ContextKeyExpr | null {
