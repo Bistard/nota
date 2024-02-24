@@ -88,7 +88,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         @ILogService private readonly logService: ILogService,
         @IContextService private readonly contextService: IContextService,
         @ICommandService private readonly commandService: ICommandService,
-        @IRegistrantService private readonly registrantService: IRegistrantService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
         this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
@@ -123,12 +123,14 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
             // executing the coressponding command
             this.commandService.executeCommand(shortcut.commandID, ...(shortcut.commandArgs ?? []))
-                .catch();
+            .catch(error => {
+                logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${shortcut?.commandID}'`, error);
+            });
         }));
 
         // When the browser side is ready, we update registrations by reading from disk.
         lifecycleService.when(LifecyclePhase.Ready).then(() => this.__readConfigurationFromDisk());
-        lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose()));
+        this.__register(lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose())));
     }
 
     // [public methods]
