@@ -4,7 +4,7 @@ import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService } from "src/base/common/logger";
@@ -29,8 +29,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
+    private _sorter?: FileTreeSorter<FileItem>;
     private _onDidResourceChange?: Scheduler<IResourceChangeEvent>;
-    private _treeDisposables: DisposableManager;
+    
+    // synchronizes lifecycles of the above properties
+    private _treeCleanup: DisposableManager;
 
     private _isVisuallyCutOrCut?: 'copy' | 'cut';
 
@@ -44,7 +47,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
-        this._treeDisposables = new DisposableManager();
+        this._treeCleanup = new DisposableManager();
     }
 
     // [event]
@@ -128,23 +131,20 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         await tree.collapseAll();
     }
 
-    public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {
-        // TODO
-    }
-
-    public async highlightSelectionAsCopy(items: FileItem[]): Promise<void> {
-        // TODO
-    }
-    
     public async close(): Promise<void> {
         if (!this._tree) {
             return;
         }
 
+        this._treeCleanup.dispose();
+        this._treeCleanup = new DisposableManager();
+
         this._tree.dispose();
         this._tree = undefined;
 
-        this._treeDisposables.dispose();
+        this._sorter?.dispose();
+        this._sorter = undefined;
+
         this._onDidInitOrClose.fire(false);
     }
 
@@ -176,22 +176,31 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return tree.getViewHover().map(idx => tree.getItem(idx));
     }
 
+    public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {
+        // TODO
+    }
+
+    public async highlightSelectionAsCopy(items: FileItem[]): Promise<void> {
+        // TODO
+    }
+
     public override dispose(): void {
         super.dispose();
-        this._treeDisposables.dispose();
+        this.close();
     }
     
     // [private helper methods]
 
     private __assertTree(): IFileTree<FileItem, void> {
         if (!this._tree) {
-            panic('[FileTreeService] not initialized yet.');
+            panic('[FileTreeService] file tree is not initialized yet.');
         }
         return this._tree;
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
-        
+        const cleanup = this._treeCleanup;
+
         /**
          * Make sure the root directory exists first.
          * Only resolving the direct children of the root, indicates we are 
@@ -213,7 +222,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
             // construct sorter and initialize it after
             const [sorter, registerSorterListener] = this.__initSorter();
-            this.__register(sorter);
+            this._sorter = cleanup.register(sorter);
 
             const fileItemResolveOpts: IFileItemResolveOptions<FileItem> = { 
                 onError: error => this.logService.error('FileItem', 'Encounters an error when resolving FileItem recursively', error), 
@@ -226,7 +235,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             const root = await FileItem.resolve(rootStat, null, fileItemResolveOpts);
 
             // init tree
-            const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider, sorter));
+            const dndProvider = this.instantiationService.createInstance(FileItemDragAndDropProvider, sorter);
             const tree = new FileTree<FileItem, FuzzyScore>(
                 container,
                 root,
@@ -245,14 +254,14 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
             // bind the dnd with the tree
             dndProvider.bindWithTree(tree);
-            registerSorterListener(tree);
+            cleanup.register(registerSorterListener(tree));
 
-            this._tree = this._treeDisposables.register(tree);
+            this._tree = cleanup.register(tree);
             return tree;
         });
     }   
 
-    private __initSorter(): [sorter: FileTreeSorter<FileItem>, register: (tree: IFileTree<FileItem, void>) => void] {
+    private __initSorter(): [sorter: FileTreeSorter<FileItem>, register: (tree: IFileTree<FileItem, void>) => IDisposable] {
         const fileSortType = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
         const fileSortOrder = this.configurationService.get<FileSortOrder>(WorkbenchConfiguration.ExplorerFileSortOrder);
 
@@ -265,7 +274,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
         const register = (tree: IFileTree<FileItem, void>) => {
             // configuration auto update
-            this.configurationService.onDidConfigurationChange(e => {
+            const disposable = this.configurationService.onDidConfigurationChange(e => {
                 if (e.affect(WorkbenchConfiguration.ExplorerFileSortType) ||
                     e.affect(WorkbenchConfiguration.ExplorerFileSortOrder)
                 ) {
@@ -276,16 +285,16 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                     }
                 }
             });
+
+            return disposable;
         };
 
         return [sorter, register];
     }
 
     private __initListeners(tree: IFileTree<FileItem, void>): void {
-        
         const root = tree.root.uri;
-        const cleanup = new DisposableManager();
-        this._treeDisposables = cleanup;
+        const cleanup = this._treeCleanup;
 
         // on did resource change callback
         this._onDidResourceChange = cleanup.register(new Scheduler(
