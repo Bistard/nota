@@ -27,13 +27,12 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration, rendererSideViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
 import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
-import { rendererSideViewConfigurationRegister } from "src/workbench/parts/sideView/configuration.register";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { ReviverRegistrant } from "src/platform/ipc/common/revive";

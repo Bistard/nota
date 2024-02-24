@@ -18,7 +18,6 @@ import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
-import { SideViewConfiguration } from 'src/workbench/parts/sideView/configuration.register';
 import { ILogService } from 'src/base/common/logger';
 
 /**
@@ -84,7 +83,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.__createLayout();
 
         // open the side view with default one
-        const defaultView = this.configurationService.get<string>(SideViewConfiguration.DefaultSideView, 'explorer');
+        const defaultView = this.configurationService.get<string>(WorkbenchConfiguration.DefaultSideView, 'explorer');
         this.sideViewService.switchView(defaultView);
     }
 

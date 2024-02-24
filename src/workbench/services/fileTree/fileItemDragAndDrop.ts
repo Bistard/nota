@@ -14,13 +14,13 @@ import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
 import { noop } from "src/base/common/performance";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { panic } from "src/base/common/utilities/panic";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -251,7 +251,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             await this._tree.expand(targetOver);
         }
 
-        const confirmDragAndDrop = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerconfirmDragAndDrop, true);
+        const confirmDragAndDrop = this.configurationService.get<boolean>(WorkbenchConfiguration.ExplorerConfirmDragAndDrop, true);
         if (confirmDragAndDrop) {
             await this.__confirmDragAndDrop();
         }
@@ -298,15 +298,15 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         };
 
         // init
-        const sortOrder = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+        const sortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
         setIndicatorBy(sortOrder);
 
         // configuration self update
         this.configurationService.onDidConfigurationChange(e => {
-            if (!e.match(SideViewConfiguration.ExplorerFileSortType)) {
+            if (!e.match(WorkbenchConfiguration.ExplorerFileSortType)) {
                 return;
             }
-            const newSortOrder = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+            const newSortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
             setIndicatorBy(newSortOrder);
         });
     }

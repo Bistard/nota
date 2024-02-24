@@ -11,12 +11,12 @@ import { ILogService } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileOperationError } from "src/base/common/files/file";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 /**
  * An interface only for {@link FileTreeService}.
@@ -114,8 +114,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             
             // retrieve tree configurations
             const filterOpts: IFilterOpts = {
-                exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).filter(s => !!s).map(s => new RegExp(s)),
-                include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).filter(s => !!s).map(s => new RegExp(s)),
+                exclude: this.configurationService.get<string[]>(WorkbenchConfiguration.ExplorerViewExclude, []).filter(s => !!s).map(s => new RegExp(s)),
+                include: this.configurationService.get<string[]>(WorkbenchConfiguration.ExplorerViewInclude, []).filter(s => !!s).map(s => new RegExp(s)),
             };
 
             // construct sorter and initialize it after
@@ -162,8 +162,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     }   
 
     private __initSorter(): [sorter: FileTreeSorter<FileItem>, register: (tree: IFileTree<FileItem, void>) => void] {
-        const fileSortType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
-        const fileSortOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
+        const fileSortType = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
+        const fileSortOrder = this.configurationService.get<FileSortOrder>(WorkbenchConfiguration.ExplorerFileSortOrder);
 
         const sorter = this.instantiationService.createInstance(
             FileTreeSorter, 
@@ -175,11 +175,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const register = (tree: IFileTree<FileItem, void>) => {
             // configuration auto update
             this.configurationService.onDidConfigurationChange(e => {
-                if (e.affect(SideViewConfiguration.ExplorerFileSortType) ||
-                    e.affect(SideViewConfiguration.ExplorerFileSortOrder)
+                if (e.affect(WorkbenchConfiguration.ExplorerFileSortType) ||
+                    e.affect(WorkbenchConfiguration.ExplorerFileSortOrder)
                 ) {
-                    const newType = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
-                    const newOrder = this.configurationService.get<FileSortOrder>(SideViewConfiguration.ExplorerFileSortOrder);
+                    const newType = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
+                    const newOrder = this.configurationService.get<FileSortOrder>(WorkbenchConfiguration.ExplorerFileSortOrder);
                     if (sorter.switchTo(newType, newOrder)) {
                         tree.refresh();
                     }
