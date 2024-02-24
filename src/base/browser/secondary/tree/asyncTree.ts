@@ -130,6 +130,16 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * asynchronous is required.
      */
     toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean>;
+
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): Promise<void>;
+
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): Promise<void>;
 }
 
 /**
@@ -284,7 +294,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
      * Indicates if any tree nodes is collapse changing, prevent parallel 
      * collapse changing.
      */
-    private readonly _ongoingCollapseChange = new AsyncQueue();
+    private readonly _ongoingCollapseChange = new AsyncQueue<void>();
 
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
     private _onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
@@ -461,12 +471,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return successOrNot;
     }
 
-    public collapseAll(): void {
+    public async collapseAll(): Promise<void> {
         this._tree.collapseAll();
+        await this._ongoingCollapseChange.waitNext();
     }
 
-    public expandAll(): void {
+    public async expandAll(): Promise<void> {
         this._tree.expandAll();
+        await this._ongoingCollapseChange.waitNext();
     }
 
     public setAnchor(item: T): void {

@@ -37,12 +37,26 @@ export interface IFileTreeService extends IDisposable, IService {
     readonly isOpened: boolean;
 
     /**
+     * Event fires when the file tree is focused (true) or blurred (false).
+     */
+    readonly onDidChangeFocus: Register<boolean>;
+
+    /**
+     * Event fires when the file tree is initialized (true) or closed (false).
+     */
+    readonly onDidInitOrClose: Register<boolean>;
+
+    /**
      * Fires when a file / folder is selected (not opened yet).
      */
     onSelect: Register<IFileTreeOpenEvent<FileItem>>;
 
     /**
-     * // TODO
+     * @description Initialize the file tree and render it by the given root.
+     * @param container The root container to render the file tree.
+     * @param root The root URI for the file tree to render.
+     * 
+     * @note Can be reintialized after 'close()'. Cannot 'init()' twice in a row.
      */
     init(container: HTMLElement, root: URI): AsyncResult<void, Error>;
 
@@ -60,9 +74,70 @@ export interface IFileTreeService extends IDisposable, IService {
     refresh(data?: FileItem): Promise<void>;
 
     /**
-     * // TODO
+     * @description Expands to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     * @returns If the operation successed. Await to ensure the operation is done.
+     * 
+     * @note Since expanding meaning potential refreshing to the latest children 
+     * nodes, thus asynchronous is required.
+     */
+    expand(data: FileItem, recursive?: boolean): Promise<void>;
+
+    /**
+     * @description Toggles the state of collapse or expand to the tree node with
+     * the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     * @returns If the operation successed. Await to ensure the operation is done.
+     * 
+     * @note Since expanding meaning refreshing to the updated children nodes,
+     * asynchronous is required.
+     */
+    toggleCollapseOrExpand(data: FileItem, recursive?: boolean): Promise<void>;
+
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): Promise<void>;
+
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): Promise<void>;
+
+    /**
+     * @description Unrendering and disposing all the tree data. Does not mean
+     * the service is disposed. The service may be reinitialized again after
+     * closed.
      */
     close(): Promise<void>;
 
+    /**
+     * @description Returns the focused item in the view perspective.
+     * @note The traits that is invisible will not be counted.
+     */
+    getFocus(): FileItem | null;
     
+    /**
+     * @description Returns the anchor item in the view perspective.
+     * @note The traits that is invisible will not be counted.
+     */
+    getAnchor(): FileItem | null;
+    
+    /**
+     * @description Returns the selected items in the view perspective.
+     * @note The traits that is invisible will not be counted.
+     */
+    getSelections(): FileItem[];
+    
+    /**
+     * @description Returns the hovered items in the view perspective.
+     * @note The traits that is invisible will not be counted.
+     */
+    getHover(): FileItem[];
 }

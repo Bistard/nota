@@ -1,4 +1,4 @@
-import { RelayEmitter } from "src/base/common/event";
+import { Emitter, RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -20,6 +20,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { Scheduler } from "src/base/common/utilities/async";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { Time } from "src/base/common/date";
+import { panic } from "src/base/common/utilities/panic";
 
 export class FileTreeService extends Disposable implements IFileTreeService {
 
@@ -49,6 +50,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     private readonly _onSelect = this.__register(new RelayEmitter<IFileTreeOpenEvent<FileItem>>());
     public readonly onSelect = this._onSelect.registerListener;
     
+    private readonly _onDidChangeFocus = this.__register(new RelayEmitter<boolean>());
+    public readonly onDidChangeFocus = this._onDidChangeFocus.registerListener;
+
+    private readonly _onDidInitOrClose = this.__register(new Emitter<boolean>());
+    public readonly onDidInitOrClose = this._onDidInitOrClose.registerListener;
+    
     // [getter]
 
     get container(): HTMLElement | undefined {
@@ -77,6 +84,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return this.__initTree(container, root)
             .andThen(async tree => {
                 this._onSelect.setInput(tree.onSelect);
+                this._onDidChangeFocus.setInput(tree.onDidChangeFocus);
 
                 /**
                  * After the tree is constructed, refresh tree to fetch the 
@@ -85,6 +93,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 await tree.refresh();
 
                 this.__initListeners(tree);
+
+                this._onDidInitOrClose.fire(true);
             });
     }
 
@@ -96,6 +106,26 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         this._tree?.refresh(data);
     }
 
+    public async expand(data: FileItem, recursive?: boolean): Promise<void> {
+        const tree = this.__assertTree();
+        await tree.expand(data, recursive);
+    }
+
+    public async toggleCollapseOrExpand(data: FileItem, recursive?: boolean): Promise<void> {
+        const tree = this.__assertTree();
+        await tree.toggleCollapseOrExpand(data, recursive);
+    }
+
+    public async expandAll(): Promise<void> {
+        const tree = this.__assertTree();
+        await tree.expandAll();
+    }
+    
+    public async collapseAll(): Promise<void> {
+        const tree = this.__assertTree();
+        await tree.collapseAll();
+    }
+    
     public async close(): Promise<void> {
         if (!this._tree) {
             return;
@@ -105,14 +135,50 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         this._tree = undefined;
 
         this._treeDisposables.dispose();
+        this._onDidInitOrClose.fire(false);
+    }
+
+    public getFocus(): FileItem | null {
+        const tree = this.__assertTree();
+        const focus = tree.getViewFocus();
+        if (focus === null) {
+            return null;
+        }
+        return tree.getItem(focus);
+    }
+
+    public getAnchor(): FileItem | null {
+        const tree = this.__assertTree();
+        const anchor = tree.getViewAnchor();
+        if (anchor === null) {
+            return null;
+        }
+        return tree.getItem(anchor);
+    }
+    
+    public getSelections(): FileItem[] {
+        const tree = this.__assertTree();
+        return tree.getViewSelections().map(idx => tree.getItem(idx));
+    }
+    
+    public getHover(): FileItem[] {
+        const tree = this.__assertTree();
+        return tree.getViewHover().map(idx => tree.getItem(idx));
     }
 
     public override dispose(): void {
         super.dispose();
         this._treeDisposables.dispose();
     }
-
+    
     // [private helper methods]
+
+    private __assertTree(): IFileTree<FileItem, void> {
+        if (!this._tree) {
+            panic('[FileTreeService] not initialized yet.');
+        }
+        return this._tree;
+    }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
         
