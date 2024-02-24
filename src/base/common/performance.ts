@@ -70,33 +70,24 @@ export function noop(): void {
 export namespace PerfUtils {
 
     export interface IPerfCompareResult {
-        readonly whoIsFaster: string;
+        readonly fastest: string;
         readonly fasterBy: number;
         readonly fn1: IPerfMark;
         readonly fn2: IPerfMark;
     }
 
-    export interface IPerfIterationResults {
-        readonly whoIsFaster: string;
-        readonly fasterBy: number;
+    interface IPerfIterationResult {
+        readonly name: string;
+        readonly results: IPerfMark[];
+        readonly averageTime: number; 
+        readonly fastestTime: number;
+        readonly slowestTime: number;
+        readonly totalTime: number;
+    }
 
-        readonly fn1: {
-            readonly name: string;
-            readonly results: IPerfMark[];
-            readonly averageTime: number; 
-            readonly fastestTime: number;
-            readonly slowestTime: number;
-            readonly totalTime: number;
-        };
-        
-        readonly fn2: {
-            readonly name: string;
-            readonly results: IPerfMark[];
-            readonly averageTime: number; 
-            readonly fastestTime: number;
-            readonly slowestTime: number;
-            readonly totalTime: number;
-        };
+    export interface IPerfIterationResults {
+        readonly fastest: IPerfIterationResult;
+        readonly results: IPerfIterationResult[];
     }
 
     /**
@@ -164,12 +155,10 @@ export namespace PerfUtils {
             const perfMark2 = measure(name2, fn2, threshold);
 
             const fasterFn = perfMark1.time < perfMark2.time ? name1 : name2;
-            const fasterBy = perfMark1.time < perfMark2.time
-                ? perfMark2.time - perfMark1.time
-                : perfMark1.time - perfMark2.time;
-            
+            const fasterBy = Math.abs(perfMark1.time - perfMark2.time);
+
             const result = {
-                whoIsFaster: fasterFn,
+                fastest: fasterFn,
                 fasterBy: fasterBy,
                 fn1: perfMark1,
                 fn2: perfMark2,
@@ -183,63 +172,59 @@ export namespace PerfUtils {
         }
 
         /**
-         * @description Compares the execution time of two synchronous functions 
-         * over a number of iterations and logs the fastest and slowest 
-         * iterations for each function.
+         * @description Compares the execution time of multiple synchronous 
+         * functions over a number of iterations and logs the performance 
+         * metrics for each function.
          */
-        export function compareInIterations(
-            name1: string, fn1: () => void, 
-            name2: string, fn2: () => void, 
+        export function compareInIterations<TArgs extends any[]>(
+            functions: { name: string; fn: (...args: TArgs) => void }[],
+            getArgs: () => TArgs,
             iterations: number,
-            opts?: IPerfIterationOptions,
+            opts?: IPerfIterationOptions
         ): IPerfIterationResults
         {
-            const results1: IPerfMark[] = [];
-            const results2: IPerfMark[] = [];
-            let fastest1 = Number.MAX_VALUE, slowest1 = 0; 
-            let fastest2 = Number.MAX_VALUE, slowest2 = 0;
-            let total1 = 0, total2 = 0;
+            const results = functions.map(func => ({
+                name: func.name,
+                results: [] as IPerfMark[],
+                fastestTime: Number.MAX_VALUE,
+                slowestTime: 0,
+                totalTime: 0
+            }));
 
             for (let i = 0; i < iterations; i++) {
-                const result1 = measure(`${name1} - ${i + 1}`, fn1, opts?.threshold);
-                results1.push(result1);
-                total1 += result1.time;
-                if (result1.time < fastest1) fastest1 = result1.time;
-                if (result1.time > slowest1) slowest1 = result1.time;
+                const args = getArgs();
 
-                const result2 = measure(`${name2} - ${i + 1}`, fn2, opts?.threshold);
-                results2.push(result2);
-                total2 += result2.time;
-                if (result2.time < fastest2) fastest2 = result2.time;
-                if (result2.time > slowest2) slowest2 = result2.time;
+                functions.forEach((func, index) => {
+                    const composeFn = () => func.fn(...args);
+                    const result = measure(`${func.name} - ${i + 1}`, composeFn, opts?.threshold);
+                    const cache = results[index]!;
+
+                    cache.results.push(result);
+                    cache.totalTime += result.time;
+                    if (result.time < cache.fastestTime) cache.fastestTime = result.time;
+                    if (result.time > cache.slowestTime) cache.slowestTime = result.time;
+                });
             }
 
-            const averageTime1 = total1 / iterations;
-            const averageTime2 = total2 / iterations;
-            const fasterFn = averageTime1 < averageTime2 ? name1 : name2;
-            const fasterBy = averageTime1 < averageTime2
-                ? averageTime2 - averageTime1
-                : averageTime1 - averageTime2;
+            let fastest!: IPerfIterationResult;
+            let fastestTime = Number.MAX_VALUE;
             
-            const result: IPerfIterationResults = { 
-                whoIsFaster: fasterFn,
-                fasterBy: fasterBy,
-                fn1: {
-                    name: name1,
-                    results: results1,
-                    averageTime: averageTime1,
-                    fastestTime: fastest1,
-                    slowestTime: slowest1,
-                    totalTime: total1,
-                },
-                fn2: {
-                    name: name2,
-                    results: results2,
-                    averageTime: averageTime2,
-                    fastestTime: fastest2,
-                    slowestTime: slowest2,
-                    totalTime: total2,
-                },
+            const finalResults: IPerfIterationResult[] = [];
+
+            for (const result of results) {
+                const averageTime = result.totalTime / iterations;
+                const resolved = { ...result, averageTime, };
+                finalResults.push(resolved);
+
+                if (averageTime < fastestTime) {
+                    fastest = resolved;
+                    fastestTime = averageTime;
+                }
+            }
+
+            const result = { 
+                fastest: fastest, 
+                results: finalResults,
             };
 
             if (opts?.toLog) {
@@ -287,12 +272,10 @@ export namespace PerfUtils {
             const perfMark2 = await measure(name2, fn2, threshold);
 
             const fasterFn = perfMark1.time < perfMark2.time ? name1 : name2;
-            const fasterBy = perfMark1.time < perfMark2.time
-                ? perfMark2.time - perfMark1.time
-                : perfMark1.time - perfMark2.time;
-            
+            const fasterBy = Math.abs(perfMark1.time - perfMark2.time);
+
             const result = {
-                whoIsFaster: fasterFn,
+                fastest: fasterFn,
                 fasterBy: fasterBy,
                 fn1: perfMark1,
                 fn2: perfMark2,
@@ -306,63 +289,59 @@ export namespace PerfUtils {
         }
 
         /**
-         * @description Compares the execution time of two synchronous functions 
-         * over a number of iterations and logs the fastest and slowest 
-         * iterations for each function.
+         * @description Compares the execution time of multiple asynchronous 
+         * functions over a number of iterations and logs the performance 
+         * metrics for each function.
          */
-        export async function compareInIterations(
-            name1: string, fn1: () => Promise<void>, 
-            name2: string, fn2: () => Promise<void>, 
+        export async function compareInIterations<TArgs extends any[]>(
+            functions: { name: string; fn: (...args: TArgs) => Promise<void> }[],
+            getArgs: () => TArgs,
             iterations: number,
-            opts?: IPerfIterationOptions,
+            opts?: IPerfIterationOptions
         ): Promise<IPerfIterationResults>
         {
-            const results1: IPerfMark[] = [];
-            const results2: IPerfMark[] = [];
-            let fastest1 = Number.MAX_VALUE, slowest1 = 0; 
-            let fastest2 = Number.MAX_VALUE, slowest2 = 0;
-            let total1 = 0, total2 = 0;
+            const results = functions.map(func => ({
+                name: func.name,
+                results: [] as IPerfMark[],
+                fastestTime: Number.MAX_VALUE,
+                slowestTime: 0,
+                totalTime: 0
+            }));
 
             for (let i = 0; i < iterations; i++) {
-                const result1 = await measure(`${name1} - ${i + 1}`, fn1, opts?.threshold);
-                results1.push(result1);
-                total1 += result1.time;
-                if (result1.time < fastest1) fastest1 = result1.time;
-                if (result1.time > slowest1) slowest1 = result1.time;
+                const args = getArgs();
 
-                const result2 = await measure(`${name2} - ${i + 1}`, fn2, opts?.threshold);
-                results2.push(result2);
-                total2 += result2.time;
-                if (result2.time < fastest2) fastest2 = result2.time;
-                if (result2.time > slowest2) slowest2 = result2.time;
+                await Promise.all(functions.map(async (func, index) => {
+                    const composeFn = () => func.fn(...args);
+                    const result = await measure(`${func.name} - ${i + 1}`, composeFn, opts?.threshold);
+                    const cache = results[index]!;
+
+                    cache.results.push(result);
+                    cache.totalTime += result.time;
+                    if (result.time < cache.fastestTime) cache.fastestTime = result.time;
+                    if (result.time > cache.slowestTime) cache.slowestTime = result.time;
+                }));
             }
 
-            const averageTime1 = total1 / iterations;
-            const averageTime2 = total2 / iterations;
-            const fasterFn = averageTime1 < averageTime2 ? name1 : name2;
-            const fasterBy = averageTime1 < averageTime2
-                ? averageTime2 - averageTime1
-                : averageTime1 - averageTime2;
+            let fastest!: IPerfIterationResult;
+            let fastestTime = Number.MAX_VALUE;
+            
+            const finalResults: IPerfIterationResult[] = [];
 
-            const result: IPerfIterationResults = { 
-                whoIsFaster: fasterFn,
-                fasterBy: fasterBy,
-                fn1: {
-                    name: name1,
-                    results: results1,
-                    averageTime: averageTime1,
-                    fastestTime: fastest1,
-                    slowestTime: slowest1,
-                    totalTime: total1,
-                },
-                fn2: {
-                    name: name2,
-                    results: results2,
-                    averageTime: averageTime2,
-                    fastestTime: fastest2,
-                    slowestTime: slowest2,
-                    totalTime: total2,
-                },
+            for (const result of results) {
+                const averageTime = result.totalTime / iterations;
+                const resolved = { ...result, averageTime, };
+                finalResults.push(resolved);
+
+                if (averageTime < fastestTime) {
+                    fastest = resolved;
+                    fastestTime = averageTime;
+                }
+            }
+
+            const result = { 
+                fastest: fastest, 
+                results: finalResults,
             };
 
             if (opts?.toLog) {
@@ -385,36 +364,54 @@ export namespace PerfUtils {
     }
 
     function __logPerfCompareResult(result: IPerfCompareResult): void {
-        console.log('<--- Performance Comparison Result --->');
+        console.log('<--- Performance Comparison Result --->\n');
         
-        console.log(`- '${result.whoIsFaster}' is faster.`);
-        console.log(`- Faster by: ${result.fasterBy} ms`);
+        console.log(`- '${result.fastest}' is faster.`);
+        
+        const percentageFaster = (result.fasterBy / Math.max(result.fn1.time, result.fn2.time)) * 100;
+        console.log(`- Faster by: ${result.fasterBy} ms (${percentageFaster.toFixed(2)}%)`);
+
+        console.log('\n');
         
         console.log(`- ${result.fn1.stage}: ${result.fn1.time} ms`);
         console.log(`- ${result.fn2.stage}: ${result.fn2.time} ms`);
-        
-        console.log('<---             End               --->');
+    
+    
+        console.log('\n<---             End               --->');
     }
 
     function __logPerfIterationResults(results: IPerfIterationResults, timePrecision: number = 6): void {
-        console.log('<--- Performance Iteration Results --->');
+        console.log('<--- Performance Iteration Results --->\n');
     
-        console.log(`- Overall, '${results.whoIsFaster}' is faster on average.`);
-        console.log(`- Faster by: ${results.fasterBy.toFixed(timePrecision)} ms\n`);
-    
-        console.log(`'${results.fn1.name}' Metrics:`);
-        console.log(`- Total Time: ${results.fn1.totalTime.toFixed(timePrecision)} ms`);
-        console.log(`- Average Time: ${results.fn1.averageTime.toFixed(timePrecision)} ms`);
-        console.log(`- Fastest Time: ${results.fn1.fastestTime.toFixed(timePrecision)} ms`);
-        console.log(`- Slowest Time: ${results.fn1.slowestTime.toFixed(timePrecision)} ms`);
-    
+        // show fastest
+        console.log(`- Overall, '${results.fastest.name}' is fastest on average.`);
+        
+        
+        const fastestAve = results.fastest.averageTime;
+        console.log(`- On average, it takes: ${fastestAve.toFixed(timePrecision)} ms`);
+
+        for (const result of results.results) {
+            if (result.name === results.fastest.name) {
+                continue;
+            }
+
+            const avgTimeDiff = result.averageTime - fastestAve;
+            const percentageFaster = (avgTimeDiff / result.averageTime) * 100;
+            console.log(`- Faster than '${result.name}' by: ${avgTimeDiff.toFixed(timePrecision)} ms  (${percentageFaster.toFixed(2)}%)`);
+        }
+        
         console.log('\n');
-        console.log(`'${results.fn2.name}' Metrics:`);
-        console.log(`- Total Time: ${results.fn2.totalTime.toFixed(timePrecision)} ms`);
-        console.log(`- Average Time: ${results.fn2.averageTime.toFixed(timePrecision)} ms`);
-        console.log(`- Fastest Time: ${results.fn2.fastestTime.toFixed(timePrecision)} ms`);
-        console.log(`- Slowest Time: ${results.fn2.slowestTime.toFixed(timePrecision)} ms`);
-    
+
+        // every function result
+        for (const result of results.results) {
+            console.log(`'${result.name}' Metrics:`);
+            console.log(`- Total Time: ${result.totalTime.toFixed(timePrecision)} ms`);
+            console.log(`- Average Time: ${result.averageTime.toFixed(timePrecision)} ms`);
+            console.log(`- Fastest Time: ${result.fastestTime.toFixed(timePrecision)} ms`);
+            console.log(`- Slowest Time: ${result.slowestTime.toFixed(timePrecision)} ms`);
+            console.log('\n');
+        }
+
         console.log('<---             End               --->');
     }
 }

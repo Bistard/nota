@@ -9,7 +9,7 @@ import { ILogService } from "src/base/common/logger";
 import { ResourceMap } from "src/base/common/structures/map";
 import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
-import { CompareFn, CompareOrder } from "src/base/common/utilities/type";
+import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 
@@ -77,7 +77,7 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
 export interface IFileTreeCustomSorterOptions<TItem extends IFileItem<TItem>> {
     readonly metadataRootPath: URI;
     readonly hash: (input: string) => string;
-    readonly defaultComparator: CompareFn<TItem>;
+    readonly defaultComparator: Comparator<TItem>;
 }
 
 /**
@@ -102,7 +102,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     ]>;
     private readonly _cacheClearDelay: Time;
     private readonly _hash: (input: string) => string;
-    private readonly _defaultComparator: CompareFn<TItem>;
+    private readonly _defaultComparator: Comparator<TItem>;
 
     // [constructor]
 

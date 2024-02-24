@@ -1,5 +1,4 @@
-import { panic } from "src/base/common/result";
-import { Strings } from "src/base/common/utilities/string";
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -143,7 +142,7 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 	if (errors.length === 1) {
 		panic(errors[0]);
 	} else if (errors.length > 1) {
-		panic(`Encountered errors while disposing of mutiple disposable. Errors: ${Strings.errorToMessage(errors)}`);
+		panic(`Encountered errors while disposing of mutiple disposable. Errors: ${errorToMessage(errors)}`);
 	}
 }
 

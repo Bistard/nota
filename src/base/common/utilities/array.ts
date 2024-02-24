@@ -1,5 +1,5 @@
-import { panic } from "src/base/common/result";
-import { CompareOrder, NonUndefined } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
+import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -41,6 +41,17 @@ export namespace Arrays {
     }
 
     /**
+     * @description Returns the last element of an array.
+     * @param array The array.
+     * @param n Which element from the end (default is zero).
+     * 
+     * @note When the n is invalid, a undefined is returned.
+     */
+    export function tail<T>(array: T[], n: number = 0): T {
+        return array[array.length - (1 + n)]!;
+    }
+
+    /**
      * @description Fills an array with data with n times.
      * @param data The data to be filled.
      * @param size The size of the array.
@@ -58,6 +69,40 @@ export namespace Arrays {
      */
     export function coalesce<T>(array: ReadonlyArray<T | undefined | null>): T[] {
         return <T[]>array.filter(e => !!e);
+    }
+
+    /**
+     * @description Iterates over multiple arrays in parallel, forEach is 
+     * applied to each corresponding item from each array.
+     * 
+     * @param arrays An array of arrays, inner arrays must have the same length.
+     * @param forEach Executed for each set of parallel elements.
+     * 
+     * @panic If the inner arrays are not of the same length.
+     * 
+     * @example
+     * const nums = [1, 2, 3];
+     * const strs = ['one', 'two', 'three'];
+     * const bools = [true, false, true];
+     * 
+     * parallelEach([nums, strs, bools], (num, str, bool) => {
+     *   console.log(`Number: ${num}, String: '${str}', Boolean: ${bool}`);
+     * });
+     */
+    export function parallelEach<TArrays extends any[][]>(arrays: [...TArrays], forEach: (...elements: Flatten<TArrays>) => void): void {
+        if (arrays.length === 0) {
+            return;
+        }
+
+        if (!arrays.every(array => array.length === arrays[0]!.length)) {
+            panic('[parallelEach] All arrays must have the same length');
+        }
+    
+        const arrayLength = arrays[0]!.length;
+        for (let i = 0; i < arrayLength; i++) {
+            const args: any = arrays.map(array => array[i]!);
+            forEach(...args);
+        }
     }
 
     /**
@@ -146,44 +191,35 @@ export namespace Arrays {
     }
 
     /**
-     * @description Inserts multiple arrays of elements into the original array 
-     * at specified indice. 
+     * @description Inserts the specified elements into an array at the given 
+     * index, modifying the original array.
      * 
-     * @note Each index in the `indice` array refers to a position in the 
-     * original array before any insertions. The original array is mutated.
+     * @param array The given array be inserted.
+     * @param index The index at which the new elements should be inserted. If 
+     *              the index is negative, the elements will be inserted from 
+     *              the end of the array.
+     * @param elements The elements to be inserted.
+     * @returns Returns the same array.
      * 
-     * @param array The array to be inserted.
-     * @param indice An array of indice where each array of elements from the 
-     *               `elements` parameter will be inserted.
-     * @param elements An array of arrays, where each inner array contains 
-     *                 elements to be inserted at the corresponding index in the 
-     *                 `indice` array.
-     * @returns The original array.
      * @example
-     * const originalArray = [1, 3];
-     * insertByIndex(originalArray, [0, 1, 2], [[0], [2], [4]]);
-     * console.log(originalArray); // Output: [0, 1, 2, 3, 4]
+     * ```ts
+     * // Inserts elements [4, 5] at index 2 in array [1, 2, 3]
+     * insertSequence([1, 2, 3], 2, [4, 5]); // => [1, 2, 4, 5, 3]
+     * ```
      */
-    export function insertByIndex<T>(array: T[], indice: number[], elements: T[][]): T[] {
+    export function insertSequence<T>(array: T[], index: number, elements: T[]): T[] {
+        const startIdx = __getActualStartIndex(array, index);
+        const originalLength = array.length;
+        const newItemsLength = elements.length;
+        array.length = originalLength + newItemsLength;
         
-        if (indice.length !== elements.length) {
-            panic("[insertByIndex] The lengths of 'indice' and 'elements' arrays does not match");
+        for (let i = originalLength - 1; i >= startIdx; i--) {
+            array[i + newItemsLength] = array[i]!;
         }
-
-        // offset to adjust insertion points
-        let totalInserted = 0;
-
-        indice.forEach((index, i) => {
-            const adjustedIndex = index + totalInserted;
-            const toInsert = elements[i]!;
-
-            if (adjustedIndex > array.length) {
-                panic("[insertByIndex] Index out of bounds after adjustments");
-            }
-
-            array.splice(adjustedIndex, 0, ...toInsert);
-            totalInserted += toInsert.length;
-        });
+    
+        for (let i = 0; i < newItemsLength; i++) {
+            array[i + startIdx] = elements[i]!;
+        }
 
         return array;
     }
@@ -570,5 +606,13 @@ export namespace Arrays {
      */
     export function fromObjectEntries<T>(obj: Record<string, T>): [string, T][] {
         return Object.entries(obj);
+    }
+}
+
+function __getActualStartIndex<T>(array: T[], index: number): number {
+    if (index < 0) {
+        return Math.max(index + array.length, 0);
+    } else {
+        return Math.min(index, array.length);
     }
 }

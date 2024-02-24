@@ -3,7 +3,7 @@ import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } 
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/utilities/async";
 import { Callable } from "src/base/common/utilities/type";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -591,4 +591,22 @@ export namespace Event {
     export function toPromise<T>(register: Register<T>): Promise<T> {
 		return new Promise(resolve => once(register)(resolve));
 	}
+
+    /**
+     * @description Executes the listener immediately with an optional initial 
+     * event value, and subsequently whenever the event fires. 
+     * @param register The event register.
+     * @param listener The function to execute immediately and whenever an event 
+     *                 is emitted.
+     * @param initial An initial event value to pass to the listener 
+     *                immediately.
+     * @returns An IDisposable that can be used to stop listening to the event 
+     *          emissions.
+     */
+    export function runAndListen<T>(register: Register<T>, listener: (e?: T) => void): IDisposable;
+    export function runAndListen<T>(register: Register<T>, listener: (e: T) => void, initial: T): IDisposable;
+    export function runAndListen<T>(register: Register<T>, listener: (e?: T) => void, initial?: T): IDisposable {
+        listener(initial);
+        return register(e => listener(e));
+    }
 }

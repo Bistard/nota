@@ -16,6 +16,32 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 2), [3, 2, 1]);
     });
 
+    suite('tail', function() {
+        
+        test('should return the last element of a non-empty array', function() {
+            const inputArray = [1, 2, 3, 4, 5];
+            const expectedOutput = 5;
+            assert.strictEqual(Arrays.tail(inputArray), expectedOutput);
+        });
+    
+        test('should return the third element from the end when n=2', function() {
+            const inputArray = [1, 2, 3, 4, 5];
+            const expectedOutput = 3;
+            assert.strictEqual(Arrays.tail(inputArray, 2), expectedOutput);
+        });
+    
+        test('should return undefined for an empty array', function() {
+            const inputArray: number[] = [];
+            const expectedOutput = undefined;
+            assert.strictEqual(Arrays.tail(inputArray), expectedOutput);
+        });
+    
+        test('should throw an error if n is larger than array size', function() {
+            const inputArray = [1, 2, 3];
+            assert.strictEqual(Arrays.tail(inputArray, 5), undefined);
+        });
+    });
+
     test('remove', () => {
         const arr = [1, 1, 2, 3, 4, 5];
         assert.deepStrictEqual(Arrays.remove(arr, 1), [1, 2, 3, 4, 5]);
@@ -66,6 +92,47 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.fill('hello', 5), ['hello', 'hello', 'hello', 'hello', 'hello']);
     });
 
+    suite('parallelEach', function() {
+        
+        test('should iterate over multiple arrays in parallel', function() {
+          const nums = [1, 2, 3];
+          const strs = ['one', 'two', 'three'];
+          const bools = [true, false, true];
+      
+          const result: Array<[number, string, boolean]> = [];
+      
+          Arrays.parallelEach([nums, strs, bools], (num, str, bool) => {
+            result.push([num, str, bool]);
+          });
+      
+          assert.deepStrictEqual(result, [
+            [1, 'one', true],
+            [2, 'two', false],
+            [3, 'three', true]
+          ]);
+        });
+      
+        test('should handle empty array of arrays', function() {
+          const result: any[] = [];
+      
+          Arrays.parallelEach([], () => {
+            result.push([]);
+          });
+      
+          assert.deepStrictEqual(result, []);
+        });
+      
+        test('should throw error when inner arrays are not of the same length', function() {
+          const nums = [1, 2, 3];
+          const strs = ['one', 'two'];
+          const bools = [true, false, true];
+      
+          assert.throws(() => {
+            Arrays.parallelEach([nums, strs, bools], () => {});
+          }, /All arrays must have the same length/);
+        });
+      });
+
     test('reverseIterate', () => {
         const arr = [1, 2, 3, 4, 5];
         const newArr: number[] = [];
@@ -88,41 +155,46 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.insertSorted([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
-    suite('insertByIndex', function () {
-
-        test('Insert single elements at different positions', function () {
-            const originalArray = [1, 3];
-            const result = Arrays.insertByIndex(originalArray, [0, 2], [[0], [4]]);
-            assert.deepEqual(result, [0, 1, 3, 4]);
+    suite('insertSequence', function () {
+        
+        test('should insert elements at specified index', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 2, [4, 5]);
+            assert.deepStrictEqual(result, [1, 2, 4, 5, 3]);
         });
-
-        test('Insert multiple elements at a single position', function () {
-            const originalArray = [1, 3];
-            const result = Arrays.insertByIndex(originalArray, [1], [[2, 2.5]]);
-            assert.deepEqual(result, [1, 2, 2.5, 3]);
+    
+        test('should insert elements at the start when index is 0', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 0, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5, 1, 2, 3]);
         });
-
-        test('Insert elements at consecutive positions', function () {
-            const originalArray = ['a', 'd'];
-            const result = Arrays.insertByIndex(originalArray, [1, 2], [['b', 'c'], ['e']]);
-            assert.deepEqual(result, ['a', 'b', 'c', 'd', 'e']);
+    
+        test('should append elements when index is equal to array length', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 3, [4, 5]);
+            assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
         });
-
-        test('Insert with no elements (no-op)', function () {
-            const originalArray = [10, 20];
-            const result = Arrays.insertByIndex(originalArray, [], []);
-            assert.deepEqual(result, [10, 20]);
+    
+        test('should insert elements at the end when index is negative and absolute value is less than array length', function () {
+            const result = Arrays.insertSequence([1, 2, 3], -1, [4, 5]);
+            assert.deepStrictEqual(result, [1, 2, 4, 5, 3]);
         });
-
-        test('Insert at the end of the array', function () {
-            const originalArray = [1, 2];
-            const result = Arrays.insertByIndex(originalArray, [2], [[3]]);
-            assert.deepEqual(result, [1, 2, 3]);
+    
+        test('should insert elements at the start when index is negative and absolute value is greater than or equal to array length', function () {
+            const result = Arrays.insertSequence([1, 2, 3], -4, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5, 1, 2, 3]);
         });
-
-        test('Attempt insert with mismatched indice and elements length', function () {
-            const originalArray = [1, 2, 3];
-            assert.throws(() => Arrays.insertByIndex(originalArray, [1], [[4], [5]]));
+    
+        test('should handle empty array with non-negative index', function () {
+            const result = Arrays.insertSequence([], 0, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5]);
+        });
+    
+        test('should handle empty array with negative index', function () {
+            const result = Arrays.insertSequence([], -1, [4, 5]);
+            assert.deepStrictEqual(result, [4, 5]);
+        });
+    
+        test('should handle insertion of empty elements array', function () {
+            const result = Arrays.insertSequence([1, 2, 3], 2, []);
+            assert.deepStrictEqual(result, [1, 2, 3]);
         });
     });
 

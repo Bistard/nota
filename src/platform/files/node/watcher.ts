@@ -12,7 +12,7 @@ import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInst
 import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';
 import { Time } from 'src/base/common/date';
 import { noop } from 'src/base/common/performance';
-import { panic } from 'src/base/common/result';
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * @class A `Watcher` can watch on resources on the disk filesystem. Check more

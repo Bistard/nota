@@ -25,7 +25,7 @@ export type Dictionary<K extends string | number | symbol, V> = Record<K, V>;
 export type StringDictionary<V> = Record<string, V>;
 
 /**
- * A string dictionary (alias for `Record<number, V>`).
+ * A number dictionary (alias for `Record<number, V>`).
  */
 export type NumberDictionary<V> = Record<number, V>;
 
@@ -61,7 +61,7 @@ export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...
 export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => TInstance;
 
 /**
- * `CompareFn` is a type representing a generic comparison function.
+ * `Comparator` is a type representing a generic comparison function.
  * This function takes two arguments of the same type and returns a number.
  * Typically, this function is used for sorting or comparing values in data 
  * structures.
@@ -74,20 +74,20 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * @template T The type of the arguments to compare.
  *
  * @example
- * // Here is an example of using `CompareFn` with numbers.
- * let compareNumbers: CompareFn<number>;
+ * // Here is an example of using `Comparator` with numbers.
+ * let compareNumbers: Comparator<number>;
  * compareNumbers = (a, b) => a - b;
  * let numbers = [3, 1, 4, 1, 5, 9];
  * numbers.sort(compareNumbers);
  */
-export type CompareFn<T> = (a: T, b: T) => CompareOrder;
+export type Comparator<T> = (a: T, b: T) => CompareOrder;
 
 /**
  * Given two parameters `a` and `b`, determine which one goes first. `First` 
  * indicates `a`, `second` indicates `b`.
  */
 export const enum CompareOrder {
-    
+
     /** The first parameter `a` goes first. */
     First = -1,
 
@@ -253,6 +253,11 @@ export type AreEqual<X, Y> =
     (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
+ * Get the array type from a given Array. Given 'number[]' will return 'number'.
+ */
+export type ArrayType<T extends any[]> = T[number];
+
+/**
  * Returns a boolean that determines if the given array contains any truthy values.
  */
 export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
@@ -266,6 +271,11 @@ export type Push<Arr extends any[], V> = [...Arr, V];
  * Pop the end of the array (require non empty).
  */
 export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? Rest : never;
+
+/**
+ * Converts a two-dimensional array type to a one-dimensional array type.
+ */
+export type Flatten<Arr extends readonly any[][]> = { [Key in keyof Arr]: ArrayType<Arr[Key]> };
 
 /**
  * Concatenate two arrays.
@@ -284,8 +294,21 @@ export type NonEmptyArray<T> = [T, ...T[]];
 
 /**
  * Represent an array of type T with up to length N.
+ * @note You do not need to provide type R.
  */
-export type BoundedArray<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : R | BoundedArray<T, N, [T, ...R]>;
+export type AtMostNArray<T, N extends number, R extends T[] = []> = 
+    R['length'] extends N 
+        ? R 
+        : R | AtMostNArray<T, N, [T, ...R]>;
+
+/**
+ * Represent an array of type T with at least length N.
+ * @note You do not need to provide type R.
+ */
+export type AtLeastNArray<T, N extends number, R extends T[] = []> =
+    R['length'] extends N 
+        ? ConcatArray<R, T[]>
+        : AtLeastNArray<T, N, [T, ...R]>;
 
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
@@ -315,13 +338,13 @@ export type Mutable<Immutable> = {
  */
 export type DeepMutable<Immutable> = {
     -readonly [TKey in keyof Immutable]:
-    Immutable[TKey] extends (infer R)[]
-    ? DeepMutable<R>[]
-    : Immutable[TKey] extends ReadonlyArray<infer R>
-    ? DeepMutable<R>[]
-    : Immutable[TKey] extends object
-    ? DeepMutable<Immutable[TKey]>
-    : Immutable[TKey];
+        Immutable[TKey] extends (infer R)[]
+        ? DeepMutable<R>[]
+            : Immutable[TKey] extends ReadonlyArray<infer R>
+                ? DeepMutable<R>[]
+                : Immutable[TKey] extends object
+            ? DeepMutable<Immutable[TKey]>
+        : Immutable[TKey];
 };
 
 /**
@@ -331,14 +354,19 @@ export type DeepMutable<Immutable> = {
 export type MapTypes<T, R extends { from: any; to: any; }> = {
     [K in keyof T]: T[K] extends R['from']
     ? R extends { from: T[K]; }
-    ? R['to']
-    : never
+        ? R['to']
+        : never
     : T[K]
 };
 
 /**
- * built-in type: {@link Awaited} to unpack the return type from a Promise.
+ * @description Recursively unwraps the "awaited type" of a type. Non-promise 
+ * "thenables" should resolve to never. This emulates the behavior of await.
+ * 
+ * @deprecated
+ * An alias type for the built-in type {@link Awaited}.
  */
+export type UnpackPromise<T> = Awaited<T>;
 
 /**
  * `Promisify` type takes an object type `T` and returns a new type.
