@@ -5,6 +5,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 
 /**
  * An event fired whenever a command is executed.
@@ -139,7 +140,10 @@ export class CommandRegistrant implements ICommandRegistrant {
 
         // shortcut registration
         if (command.schema.shortcutOptions) {
-            this._shortcutRegistrant.register(command.id, command.schema.shortcutOptions);
+            this._shortcutRegistrant.register(command.id, {
+                ...command.schema.shortcutOptions,
+                when: CreateContextKeyExpr.And(command.when, command.schema.shortcutOptions.when),
+            });
         }
         
         return this.__toUnregister(command.id);
