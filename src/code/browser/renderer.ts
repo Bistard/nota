@@ -54,6 +54,8 @@ import { IThemeService, ThemeService } from "src/workbench/services/theme/themeS
 import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
 import { FileTreeService } from "src/workbench/services/fileTree/fileTreeService";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IClipboardService } from "src/platform/clipboard/common/clipboard";
+import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -266,9 +268,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
     private rendererServiceRegistrations(): void {
 
-        // communication
-        registerService(IDialogService, new ServiceDescriptor(BrowserDialogService, []));
-    
         // registration
         registerService(IKeyboardService, new ServiceDescriptor(KeyboardService, []));
         registerService(IShortcutService, new ServiceDescriptor(ShortcutService, []));
@@ -288,6 +287,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // utilities && tools
         registerService(IContextService, new ServiceDescriptor(ContextService, []));
         registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
+        registerService(IDialogService, new ServiceDescriptor(BrowserDialogService, []));
+        registerService(IClipboardService, new ServiceDescriptor(BrowserClipboardService, []));
     }
 
     // [end]

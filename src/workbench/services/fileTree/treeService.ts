@@ -12,6 +12,7 @@ export const IFileTreeService = createService<IFileTreeService>('file-tree-servi
  * The base interface for any tree services.
  */
 export interface IFileTreeService extends IDisposable, IService {
+    
     /**
      * The parent container of the current tree view.
      * `undefined` if the tree is not opened yet.
@@ -62,4 +63,6 @@ export interface IFileTreeService extends IDisposable, IService {
      * // TODO
      */
     close(): Promise<void>;
+
+    
 }
