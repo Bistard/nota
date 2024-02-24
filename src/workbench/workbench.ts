@@ -17,7 +17,7 @@ import { IContextMenuService } from 'src/workbench/services/contextMenu/contextM
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
-import { WorkbenchConfiguration } from 'src/code/browser/configuration.register';
+import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 import { SideViewConfiguration } from 'src/workbench/parts/sideView/configuration.register';
 import { ILogService } from 'src/base/common/logger';
 

@@ -3,9 +3,17 @@ import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 
 export const enum WorkbenchConfiguration {
+    
+    // [workbench]
+    
     DisplayLanguage = 'workbench.language',
     ColorTheme = 'workbench.colorTheme',
     KeyboardScreenCast = 'workbench.keyboardScreenCast',
+
+    // [end]
+
+    // [sideView]
+
 }
 
 export const rendererWorkbenchConfigurationRegister = createRegister(
