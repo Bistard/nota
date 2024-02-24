@@ -9,7 +9,6 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
-import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { DomUtility } from "src/base/browser/basic/dom";
@@ -21,6 +20,7 @@ import { noop } from "src/base/common/performance";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { panic } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -63,7 +63,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         sorter: IFileTreeSorter<FileItem>,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
+        @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @INotificationService private readonly notificationService: INotificationService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
@@ -238,7 +238,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          */
         
         if (!targetOver) {
-            targetOver = this.explorerTreeService.rootItem!;
+            targetOver = this.fileTreeService.rootItem!;
         }
 
         if (targetOver.isFile()) {
@@ -340,7 +340,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
-            targetOver = this.explorerTreeService.rootItem!;
+            targetOver = this.fileTreeService.rootItem!;
         }
 
         /**
@@ -417,7 +417,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // If no specific target is given, insert at the end within the root item.
         if (!targetOver) {
-            targetOver = this.explorerTreeService.rootItem!;
+            targetOver = this.fileTreeService.rootItem!;
             await this.__performDropMove(currentDragItems, targetOver);
             return;
         }

@@ -45,15 +45,15 @@ import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { ExplorerTreeService } from "src/workbench/services/explorerTree/explorerTreeService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
 import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
-import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
+import { FileTreeService } from "src/workbench/services/fileTree/fileTreeService";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -282,7 +282,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(ISideViewService, new ServiceDescriptor(SideViewService, []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService, new ServiceDescriptor(ThemeService, []));
-        registerService(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService, []));
+        registerService(IFileTreeService, new ServiceDescriptor(FileTreeService, []));
         registerService(IContextMenuService, new ServiceDescriptor(ContextMenuService, []));
     
         // utilities && tools

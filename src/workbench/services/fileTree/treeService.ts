@@ -6,10 +6,12 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
 
+export const IFileTreeService = createService<IFileTreeService>('file-tree-service');
+
 /**
  * The base interface for any tree services.
  */
-export interface ITreeService<T extends FileItem> extends IDisposable, IService {
+export interface IFileTreeService extends IDisposable, IService {
     /**
      * The parent container of the current tree view.
      * `undefined` if the tree is not opened yet.
@@ -36,7 +38,7 @@ export interface ITreeService<T extends FileItem> extends IDisposable, IService 
     /**
      * Fires when a file / folder is selected (not opened yet).
      */
-    onSelect: Register<IFileTreeOpenEvent<T>>;
+    onSelect: Register<IFileTreeOpenEvent<FileItem>>;
 
     /**
      * // TODO
@@ -54,16 +56,10 @@ export interface ITreeService<T extends FileItem> extends IDisposable, IService 
     /**
      * @description Refresh the current tree view.
      */
-    refresh(data?: T): Promise<void>;
+    refresh(data?: FileItem): Promise<void>;
 
     /**
      * // TODO
      */
     close(): Promise<void>;
-}
-
-export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
-
-export interface IExplorerTreeService extends ITreeService<FileItem> {
-
 }

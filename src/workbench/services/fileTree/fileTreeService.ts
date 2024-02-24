@@ -3,8 +3,8 @@ import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
-import { ITreeService } from "src/workbench/services/explorerTree/treeService";
-import { Disposable } from "src/base/common/dispose";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService } from "src/base/common/logger";
@@ -17,13 +17,9 @@ import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/servi
 import { FileOperationError } from "src/base/common/files/file";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
-
-/**
- * An interface only for {@link FileTreeService}.
- */
-export interface IFileTreeService extends ITreeService<FileItem> {
-    // noop
-}
+import { Scheduler } from "src/base/common/utilities/async";
+import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
+import { Time } from "src/base/common/date";
 
 export class FileTreeService extends Disposable implements IFileTreeService {
 
@@ -32,6 +28,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [field]
 
     private _tree?: IFileTree<FileItem, void>;
+    private _onDidResourceChange?: Scheduler<IResourceChangeEvent>;
+    private _treeDisposables: DisposableManager;
 
     // [constructor]
 
@@ -43,6 +41,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
+        this._treeDisposables = new DisposableManager();
     }
 
     // [event]
@@ -71,6 +70,10 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // [public mehtods]
 
     public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
+        if (this._tree) {
+            return AsyncResult.err(new Error('[FileTreeService] cannot initialize since it is already initialized. Close it before initialize.'));
+        }
+
         return this.__initTree(container, root)
             .andThen(async tree => {
                 this._onSelect.setInput(tree.onSelect);
@@ -80,6 +83,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                  * latest data for the first time.
                  */
                 await tree.refresh();
+
+                this.__initListeners(tree);
             });
     }
 
@@ -92,7 +97,19 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     }
 
     public async close(): Promise<void> {
-        
+        if (!this._tree) {
+            return;
+        }
+
+        this._tree.dispose();
+        this._tree = undefined;
+
+        this._treeDisposables.dispose();
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this._treeDisposables.dispose();
     }
 
     // [private helper methods]
@@ -134,29 +151,27 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
             // init tree
             const dndProvider = this.__register(this.instantiationService.createInstance(FileItemDragAndDropProvider, sorter));
-            const tree = this.__register(
-                new FileTree<FileItem, FuzzyScore>(
-                    container,
-                    root,
-                    {
-                        itemProvider: new FileItemProvider(),
-                        renderers: [new FileItemRenderer()],
-                        childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, fileItemResolveOpts),
-                        identityProvider: { getID: (data: FileItem) => data.id },
+            const tree = new FileTree<FileItem, FuzzyScore>(
+                container,
+                root,
+                {
+                    itemProvider: new FileItemProvider(),
+                    renderers: [new FileItemRenderer()],
+                    childrenProvider: new FileItemChildrenProvider(this.logService, this.fileService, fileItemResolveOpts),
+                    identityProvider: { getID: (data: FileItem) => data.id },
 
-                        // optional
-                        collapsedByDefault: true,
-                        filter: new FileItemFilter(),
-                        dnd: dndProvider,
-                    },
-                )
+                    // optional
+                    collapsedByDefault: true,
+                    filter: new FileItemFilter(),
+                    dnd: dndProvider,
+                },
             );
 
             // bind the dnd with the tree
             dndProvider.bindWithTree(tree);
             registerSorterListener(tree);
 
-            this._tree = tree;
+            this._tree = this._treeDisposables.register(tree);
             return tree;
         });
     }   
@@ -188,6 +203,46 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         };
 
         return [sorter, register];
+    }
+
+    private __initListeners(tree: IFileTree<FileItem, void>): void {
+        
+        const root = tree.root.uri;
+        const cleanup = new DisposableManager();
+        this._treeDisposables = cleanup;
+
+        // on did resource change callback
+        this._onDidResourceChange = cleanup.register(new Scheduler(
+            Time.ms(100),
+            (events: IResourceChangeEvent[]) => {
+                if (!root) {
+                    return;
+                }
+
+                let affected = false;
+                for (const event of events) {
+                    if (event.affect(root)) {
+                        affected = true;
+                        break;
+                    }
+                }
+
+                if (affected) {
+                    tree.refresh();
+                }
+            }
+        ));
+
+        // watch the root
+        this.fileService.watch(root, { recursive: true })
+            .match<void>(
+                (disposable) => cleanup.register(disposable),
+                error => this.logService.warn('FileTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
+            );
+        
+        cleanup.register(this.fileService.onDidResourceChange(e => {
+            this._onDidResourceChange?.schedule(e.wrap());
+        }));
     }
 }
 
