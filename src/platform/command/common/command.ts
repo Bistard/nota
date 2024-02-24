@@ -57,15 +57,55 @@ export interface ICommand {
 }
 
 /**
- * @class Instead of register a command schema into the {@link ICommandRegistrant} 
- * directly. A {@link Command} provides extra functionalities and a series of 
- * inherited classes that supports additional behaviours.
+ * @class Represents a command that encapsulates the executable logic by
+ * implement the method 'run'. 
  * 
- * @note The abstract method `run` indicates the actual command implementation.
- * @note A {@link Command} requires more metadata to be constructed and 
- *       described by {@link ICommandSchema}.
- * @note Invoke {@link ICommandRegistrant.registerCommand} to register a 
- *       {@link Command} in a convinient way.
+ * @note Should be registered through {@link ICommandRegistrant.registerCommand}.
+ *       It gives the {@link Command} able to have access to a {@link IServiceProvider}
+ *       inside the 'run' parameter.
+ * @note Use this class to define commands with complex logic or those that 
+ *       require additional metadata. The `run` method must be implemented.
+ * 
+ * @example
+ * ```ts
+ * class MyCommand extends Command {
+ *   public run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean> {
+ *     // Command logic here
+ *   }
+ * }
+ * 
+ * // Registering the command
+ * const myCommand = new MyCommand({ id: 'myCommand', when: null });
+ * commandRegistrant.registerCommand(myCommand);
+ * ```
+ * 
+ * @example
+ * // You may also define a command in the `AllCommands` to work with 'CommandService'
+ * 
+ * // commandList.ts
+ * const enum AllCommands {
+ *   MyCommand = 'myCommand',
+ * }
+ * export type AllCommandsArgumentsTypes = {
+ *     [AllCommands.MyCommand]: [arg1: number];
+ * };
+ * export type AllCommandsReturnTypes = {
+ *     [AllCommands.MyCommand]: void;
+ * };
+ * 
+ * // main.ts
+ * 
+ * class MyCommand extends Command {
+ *   public run(provider: IServiceProvider, arg: number): void {
+ *     console.log(arg);
+ *   }
+ * }
+ * 
+ * const myCommand = new MyCommand({ id: AllCommands.MyCommand, when: null });
+ * commandRegistrant.registerCommand(myCommand);
+ * 
+ * // type safety (eunsuring a 'number' must be provided)
+ * commandService.executeCommand(AllCommands.MyCommand, 100);
  */
 export abstract class Command implements ICommand {
 
@@ -113,9 +153,17 @@ export abstract class Command implements ICommand {
 
     // [abstract methods]
 
+    /**
+     * The encapsulated implementation.
+     */
     public abstract run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean>;
 }
 
+/**
+ * @class Combine a list of {@link Command} into one single {@link Command}. The
+ * commands are executed in the provided sequence. Any one of the command returns
+ * a true will stop the execution.
+ */
 export class ChainCommand extends Command {
 
     private readonly _commands: Command[];

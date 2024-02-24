@@ -1,16 +1,17 @@
 
 /**
- * @description Represents the set of predefined command identifiers that can be 
- * executed by the {@link CommandService}.
+ * @description Represents a set of predefined ID that can be executed by the 
+ * {@link CommandService}.
  * 
  * @note Those commands are ensured DEFINED in the program. Safely to call these
  *       commands through {@link CommandService}.
- * @note When adding new commands to this enumeration, MAKE SURE the following
- *       types {@link AllCommandsArgumentsTypes} and {@link AllCommandsReturnTypes}
- *       are also updated.
- * @note This enumeration is used to provide a strongly typed way of referring 
- *       to commands, ensuring that only valid command identifiers are used when 
- *       invoking `executeCommand`.
+ * @note When you are modifying commands to this enumeration, MAKE SURE:
+ *  1. {@link AllCommandsArgumentsTypes} and {@link AllCommandsReturnTypes} are 
+ *      also updated.
+ *  2. You actually registered this command into the {@link CommandRegistrant}.
+ * 
+ * @note This enumeration ensures type safety by allowing only valid IDs for
+ *       `executeCommand`.
  * 
  * @example
  * ```ts

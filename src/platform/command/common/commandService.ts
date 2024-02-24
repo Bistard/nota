@@ -37,9 +37,8 @@ export interface ICommandService extends IService {
      * @note Executing an arbitrary commands accepts any type of arguments (any[])
      *       and with a return type `T`.
      * 
-     * @note The method returns a {@link Promise} that resolves upon successful 
-     *       execution of the command. Rejects whenever the command is not found, 
-     *       or error encounters.
+     * @note The method returns a {@link Promise} that resolves when the command 
+     *       is successful. Rejects if the command is not found, or error encounters.
      * 
      * @param id The unique identifier of the command to be executed. 
      * @param args The arguments required for executing the command.
