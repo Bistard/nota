@@ -12,11 +12,25 @@ export namespace WorkbenchContextKey {
     export const inLinux = CreateContextKeyExpr.Equal('isLinux', true);
     export const inWindows = CreateContextKeyExpr.Equal('isWindows', true);
     
-    // [SideView related]
+    // [Platform]
+
+    const inputFocusedKey = 'inputFocused';
+    export const inputFocused = CreateContextKeyExpr.Equal(inputFocusedKey, true);
+
+    // [SideView]
 
     export const isVisibleSideView = CreateContextKeyExpr.Equal('visibleSideView', true);
-    export const isFocusedSideView = CreateContextKeyExpr.Equal('focusedSideView', true);
+    export const isFocusedSideView = CreateContextKeyExpr.And(
+        CreateContextKeyExpr.Equal('focusedSideView', true), 
+        CreateContextKeyExpr.Not(inputFocusedKey),
+    );
 
-    // [end]
+    // [FileTree]
+
+    export const visibleFileTree = CreateContextKeyExpr.Equal('visibleFileTree', true);
+    export const focusedFileTree = CreateContextKeyExpr.And(
+        CreateContextKeyExpr.Equal('focusedFileTree', true),
+        CreateContextKeyExpr.Not(inputFocusedKey),
+    );
 }
 
