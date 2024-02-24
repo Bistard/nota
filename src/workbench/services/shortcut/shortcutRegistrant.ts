@@ -115,7 +115,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
     public readonly type = RegistrantType.Shortcut;
 
-    private static _shortcutID = 0;
+    private static _shortcutUUID = 0;
 
     /**
      * A map that stores all the registered shortcuts. Mapping from the hash 
@@ -164,7 +164,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
         }
 
         // registere the shortcut
-        const uuid = ShortcutRegistrant._shortcutID++;
+        const uuid = ShortcutRegistrant._shortcutUUID++;
         items.shortcuts.push({
             uuid: uuid,
             commandID: commandID,
