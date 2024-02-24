@@ -41,6 +41,7 @@
 
         "no-empty": "off",
         "no-constant-condition": "off",
+        "prefer-rest-params": "off",
         "no-useless-catch": "warn", // could be 'off'
 
         "@typescript-eslint/no-explicit-any": "off",

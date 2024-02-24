@@ -8,6 +8,7 @@ import * as paths from "src/base/common/files/path";
 import { IS_WINDOWS, OS_CASE_SENSITIVE } from "src/base/common/platform";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { isParentOf } from "src/base/common/files/glob";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -214,7 +215,7 @@ export class URI implements IURI {
 	 */
 	public static join(uri: URI, ...path: string[]): URI {
 		if (!uri.path) {
-			throw new Error(`[UriError]: cannot call joinPath on URI without path`);
+			panic(`[URI]: cannot call joinPath on URI without path`);
 		}
 
 		if (path.length === 0) {
@@ -580,13 +581,13 @@ function __validateUri(ret: URI, _strict?: boolean): void {
 
 	// scheme, must be set
 	if (!ret.scheme && _strict) {
-		throw new Error(`[UriError]: Scheme is missing: {scheme: "", authority: "${ret.authority}", path: "${ret.path}", query: "${ret.query}", fragment: "${ret.fragment}"}`);
+		panic(`[URI]: Scheme is missing: {scheme: "", authority: "${ret.authority}", path: "${ret.path}", query: "${ret.query}", fragment: "${ret.fragment}"}`);
 	}
 
 	// scheme, https://tools.ietf.org/html/rfc3986#section-3.1
 	// ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 	if (ret.scheme && !_schemePattern.test(ret.scheme)) {
-		throw new Error('[UriError]: Scheme contains illegal characters.');
+		panic('[URI]: Scheme contains illegal characters.');
 	}
 
 	// path, http://tools.ietf.org/html/rfc3986#section-3.3
@@ -597,11 +598,11 @@ function __validateUri(ret: URI, _strict?: boolean): void {
 	if (ret.path) {
 		if (ret.authority) {
 			if (!_singleSlashStart.test(ret.path)) {
-				throw new Error('[UriError]: If a URI contains an authority component, then the path component must either be empty or begin with a slash ("/") character');
+				panic('[URI]: If a URI contains an authority component, then the path component must either be empty or begin with a slash ("/") character');
 			}
 		} else {
 			if (_doubleSlashStart.test(ret.path)) {
-				throw new Error('[UriError]: If a URI does not contain an authority component, then the path cannot begin with two slash characters ("//")');
+				panic('[URI]: If a URI does not contain an authority component, then the path cannot begin with two slash characters ("//")');
 			}
 		}
 	}
