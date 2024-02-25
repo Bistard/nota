@@ -9,7 +9,7 @@ export function executeOnce<T extends Callable<any[], any>>(fn: T): T {
     let executed = false;
     return <any>(function (this: any, ...args: any[]) {
         if (executed) {
-            panic(`The function '${fn}' can only be executed once.`);
+            panic(`The function '${fn.name}' can only be executed once.`);
         }
         executed = true;
         return fn.apply(this, args);
