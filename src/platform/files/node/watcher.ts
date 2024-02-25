@@ -161,7 +161,7 @@ export class WatchInstance implements IWatchInstance {
         }
         catch (error: any) {
             this.logService?.error(`Error encounters on watching the resource '${resource}'`, error);
-            throw error;
+            panic(error);
         }
     }
 

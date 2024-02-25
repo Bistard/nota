@@ -70,6 +70,11 @@ export namespace FileCommands {
             this.fileService         = provider.getOrCreateService(IFileService);
             this.commandService     = provider.getOrCreateService(ICommandService);
 
+            if (destination.isFile()) {
+                this.commandService.executeCommand(AllCommands.alertError, new Error('[FilePaste] Cannot paste resiources to a file.'));
+                return false;
+            }
+
             const toPaste = await this.__getResourcesToPaste(resources);
             const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeCutEnabledKey);
 

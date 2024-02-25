@@ -1,5 +1,6 @@
 import { Orientation } from "src/base/browser/basic/dom";
 import { Priority } from "src/base/common/event";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * An interface for {@link ISplitViewItem} construction.
@@ -158,13 +159,13 @@ export class SplitViewItem implements ISplitViewItem {
         this._maximumSize = opt.maximumSize;
         this._minimumSize = opt.minimumSize;
         if (opt.maximumSize < opt.minimumSize) {
-            throw new Error('Provided maxSize is smaller than provided minSize');
+            panic('Provided maxSize is smaller than provided minSize');
         }
         
         this._resizePriority = opt.priority!;
         if (opt.initSize) {
             if (opt.initSize < this._minimumSize && opt.initSize > this._maximumSize) {
-                throw new Error(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
+                panic(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
             }
             this._size = opt.initSize;
         } else {

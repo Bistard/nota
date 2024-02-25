@@ -61,9 +61,9 @@ export class DiskFileSystemProvider extends Disposable implements
         }
         catch (err: any) {
             if (err.code === 'ENOENT') {
-                throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
+                panic(new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND));
             }
-            throw err;
+            panic(err);
         }
     }
 
@@ -81,11 +81,11 @@ export class DiskFileSystemProvider extends Disposable implements
                 const exist = await fileExists(path);
 
                 if (exist && opts.overwrite === false) {
-                    throw new FileSystemProviderError(`File already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS);
+                    panic(new FileSystemProviderError(`File already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS));
                 }
 
                 else if (!exist && opts.create === false) {
-                    throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
+                    panic(new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND));
                 }
             }
 
@@ -97,7 +97,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (error) {
-            throw this.__toError(error);
+            panic(this.__toError(error));
         }
 
         finally {
@@ -156,7 +156,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -164,7 +164,7 @@ export class DiskFileSystemProvider extends Disposable implements
         try {
             fs.closeSync(fd);
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -177,7 +177,7 @@ export class DiskFileSystemProvider extends Disposable implements
             return bytesRead;
 
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -209,7 +209,7 @@ export class DiskFileSystemProvider extends Disposable implements
             const stat = await this.stat(from);
 
             if (await fileExists(toPath) && opts.overwrite === false) {
-                throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.FILE_EXISTS);
+                panic(new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.FILE_EXISTS));
             }
 
             if (stat.type === FileType.DIRECTORY) {
@@ -220,7 +220,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -228,7 +228,7 @@ export class DiskFileSystemProvider extends Disposable implements
         try {
             await fs.promises.mkdir(URI.toFsPath(uri), { recursive: true });
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -284,11 +284,11 @@ export class DiskFileSystemProvider extends Disposable implements
 
         try {
             if (await fileExists(toPath) && opts.overwrite === false) {
-                throw 'file already exists';
+                panic('file already exists');
             }
             await fs.promises.rename(fromPath, toPath);
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -316,7 +316,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -350,7 +350,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -393,7 +393,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (error) {
-            throw this.__toError(error);
+            panic(this.__toError(error));
         }
     }
 

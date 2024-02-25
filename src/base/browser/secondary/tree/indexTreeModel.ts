@@ -2,6 +2,7 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
 import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
+import { panic } from "src/base/common/utilities/panic";
 
 const INVALID_INDEX = -1;
 
@@ -181,7 +182,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const node = this.__getNode(location, this._root);
         
         if (!node) {
-            throw new Error('cannot find the node given the location.');
+            panic('cannot find the node given the location.');
         }
 
         return node;
@@ -207,7 +208,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const node = this.__getNode(location, this._root);
         
         if (!node) {
-            throw new Error(`tree node not found at: ${location}`);
+            panic(`tree node not found at: ${location}`);
         }
 
         return node.collapsible;
@@ -228,7 +229,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const node = this.__getNode(location, this._root);
         
         if (!node) {
-            throw new Error(`tree node not found at: ${location}`);
+            panic(`tree node not found at: ${location}`);
         }
 
         return node.collapsible && node.collapsed;
@@ -271,7 +272,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
          */
 
         if (location.length === 0) {
-            throw new Error('invalid tree location');
+            panic('invalid tree location');
         }
         
         const { node, listIndex, visible } = this.__getNodeWithListIndex(location);
@@ -466,7 +467,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             const index = location[i]!;
             
             if (index < 0 || index > node.children.length) {
-                throw new Error('invalid location');
+                panic('invalid location');
             }
 
             for (let j = 0; j < index; j++) {
@@ -520,7 +521,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const lastIndex = location[location.length - 1]!;
         
         if (lastIndex < 0 || lastIndex > parent.children.length) {
-            throw new Error('invalid location');
+            panic('invalid location');
         }
 
         const requiredNode = parent.children[lastIndex]!;
@@ -703,7 +704,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             const index = location[i]!;
             node = node.children[index];
             if (!node) {
-                throw new Error('invalid location');
+                panic('invalid location');
             }
 
             changed = changed || (node.collapsible !== collapsible);

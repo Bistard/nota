@@ -3,6 +3,7 @@ import { DeepReadonly, Dictionary } from "src/base/common/utilities/type";
 import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationStorage, IConfigurationStorage, IReadonlyConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { ConfigurationModuleType, IConfigurationCompareResult, Section } from "src/platform/configuration/common/configuration";
+import { panic } from "src/base/common/utilities/panic";
 
 interface IConfigurationHubBase {
 
@@ -103,7 +104,7 @@ class ConfigurationHubBase implements IConfigurationHubBase {
     private __getConfigurationWithType(type: ConfigurationModuleType): string {
         const configuration = this._configurationMapping[type];
         if (!configuration) {
-            throw new Error(`Cannot find configuration with type '${type}'.`);
+            panic(`Cannot find configuration with type '${type}'.`);
         }
         return configuration;
     }
