@@ -2,6 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
+import { panic } from "src/base/common/utilities/panic";
 import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
 import { IBeforeQuitEvent } from "src/platform/lifecycle/electron/mainLifecycleService";
 
@@ -47,7 +48,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
 
     public setPhase(newPhase: Phase): void {
         if (newPhase < this._phase) {
-            throw new Error('Life cycle cannot go backwards');
+            panic('Life cycle cannot go backwards');
         }
 
         if (newPhase === this._phase) {

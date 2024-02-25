@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import { panic } from "src/base/common/utilities/panic";
 import { Constructor, ParameterDecorator } from "src/base/common/utilities/type";
 
 /**
@@ -30,7 +31,7 @@ export function createService<T>(serviceId: string): ServiceIdentifier<T> {
      */
     const serviceIdentifier: ServiceIdentifier<T> = function (target: Function, propertyKey: string | undefined, parameterIndex: number): any {
         if (arguments.length !== 3) {
-            throw new Error(`[createService] decorator can only be used to decorate a class parameter: ${target}`);
+            panic(`[createService] decorator can only be used to decorate a class parameter: ${target}`);
         }
         __ServiceUtil.markDependencyAt(target, serviceIdentifier, parameterIndex, false);
     };
