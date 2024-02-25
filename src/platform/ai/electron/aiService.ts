@@ -9,8 +9,9 @@ import { URI } from "src/base/common/files/uri";
 import { jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
-import { AsyncResult } from "src/base/common/result";
+import { AsyncResult, Result } from "src/base/common/result";
 import { StringIterator } from "src/base/common/structures/ternarySearchTree";
+import { panic } from "src/base/common/utilities/panic";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -19,11 +20,11 @@ const enum ModelType {
     GPT,
 }
 
-interface IAiCoreService extends IDisposable, IService{
+interface IAiCoreService extends IDisposable, IService {
 
     switchModel(opts: IAiCoreServiceOpts): void;
 
-    sendRequest(message: Array<{role: string; content: string}>, opts: IAiRequestOpts);
+    sendRequest(message: Array<{role: string; content: string}>, opts: IAiTextRequestOpts);
 }
 
 interface IAiCoreServiceOpts {
@@ -32,7 +33,7 @@ interface IAiCoreServiceOpts {
     apiKey: string
 }
 
-export class AICoreService extends Disposable implements IAiCoreService{
+export class AICoreService extends Disposable implements IAiCoreService {
 
     declare _serviceMarker: undefined;
 
@@ -54,8 +55,8 @@ export class AICoreService extends Disposable implements IAiCoreService{
         this._aiModel = this.__createModelBasedOnType(opts.apiKey);
     }
 
-    public sendRequest(message: Array<{role: string; content: string}>, opts: IAiRequestOpts) {
-        this._aiModel.sendRequest(message, opts);
+    public sendRequest(message: Array<{role: string; content: string}>, opts: IAiTextRequestOpts) {
+        this._aiModel.sendTextRequest(message, opts);
     }
 
     private __createModelBasedOnType( key: string): IAICoreModel {
@@ -66,33 +67,19 @@ export class AICoreService extends Disposable implements IAiCoreService{
     }
 }
 
-interface IAiRequestOpts {
+interface IAiTextRequestOpts {
 
     /**
      * ID of the model to use. See the
      * [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
      * table for details on which models work with the Chat API.
      */
-    model:
-    | (string & {})
-    | 'gpt-4-0125-preview'
+    readonly model:
     | 'gpt-4-turbo-preview'
-    | 'gpt-4-1106-preview'
-    | 'gpt-4-vision-preview'
     | 'gpt-4'
-    | 'gpt-4-0314'
-    | 'gpt-4-0613'
     | 'gpt-4-32k'
-    | 'gpt-4-32k-0314'
-    | 'gpt-4-32k-0613'
     | 'gpt-3.5-turbo'
-    | 'gpt-3.5-turbo-16k'
-    | 'gpt-3.5-turbo-0301'
-    | 'gpt-3.5-turbo-0613'
-    | 'gpt-3.5-turbo-1106'
-    | 'gpt-3.5-turbo-0125'
-    | 'gpt-3.5-turbo-16k-0613';
-
+    | 'gpt-3.5-turbo-16k';
 
     /**
      * The maximum number of [tokens](/tokenizer) that can be generated in the chat
@@ -105,15 +92,6 @@ interface IAiRequestOpts {
      */
     max_tokens?: number | null;
 
-    /**
-     * If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-     * sent as data-only
-     * [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-     * as they become available, with the stream terminated by a `data: [DONE]`
-     * message.
-     * [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
-     */
-    stream?: boolean | null;
 
     /**
      * What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
@@ -156,24 +134,45 @@ interface IAICoreModelOpts {
 }
 
 
-interface IAICoreModel extends IDisposable{
-    sendRequest(message: Array<{role: string; content: string}>, opts: IAiRequestOpts);
+interface IAICoreModel extends IDisposable {
+    sendTextRequest(message: Array<{role: string; content: string}>, opts: IAiTextRequestOpts);
     
 }
 
+export type MessageRole = 'system' | 'user' | 'assistant';
+
 export class GPTModel extends Disposable implements IAICoreModel {
     
-    private _openAi: OpenAI;
+    private _openAi?: OpenAI;
 
     constructor(opts: IAICoreModelOpts,
     ){
         super();
-        this._openAi = new OpenAI({ apiKey: opts.apiKey, maxRetries: opts.maxRetries, timeout: opts.timeout, httpAgent: opts.httpAgent});
     }
 
-    public async sendRequest(message: Array<{role: string; content: string}>, opts: IAiRequestOpts) {
+    public init(opts: IAICoreModelOpts) {
+        this._openAi = new OpenAI({ ...opts });
+    }
+
+    public sendTextRequest(message: Array<{role: MessageRole; content: string}>, opts: IAiTextRequestOpts) {
+
+        const client = this.__assertModel();
+
+        return Result.fromPromise(() => client.chat.completions.create({
+            messages: message,
+            stream: false,
+            ...opts
+        }), error => error as Error)
+    }
+
+    public async sendTextRequestStream(message: Array<{role: MessageRole; content: string}>, opts: IAiTextRequestOpts) {
 
     }
 
-    
+    private __assertModel(): OpenAI {
+        if (!this._openAi) {
+            panic(new Error('Try to send request without ai model'));
+        }
+        return this._openAi;
+    }
 }
