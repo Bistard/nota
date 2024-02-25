@@ -7,7 +7,6 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
@@ -17,10 +16,11 @@ import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/f
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
 import { noop } from "src/base/common/performance";
-import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { panic } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { ICommandService } from "src/platform/command/common/commandService";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -66,6 +66,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @INotificationService private readonly notificationService: INotificationService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @ICommandService private readonly commandService: ICommandService,
     ) {
         super();
         this._sorter = sorter;
@@ -476,63 +477,16 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
 
-        /**
-         * Iterate every selecting items and try to copy to the destination. If
-         * a duplicate item name is encountered, append '_copy' as a postfix to 
-         * the name of the copied item.
-         */
-        for (const dragItem of currentDragItems) {
-            
-            let destination = URI.join(targetOver.uri, dragItem.name);
-            if (URI.equals(dragItem.uri, destination)) {
-                destination = URI.join(targetOver.uri, `${dragItem.basename}_copy${dragItem.extname}`);
-            }
-            
-            await this.fileService.copyTo(dragItem.uri, destination).match(
-                noop,
-                error => panic(error), // TODO: this.dialogService.error(error);
-            );
-        }
+        // simulate drop action (copy) as copy, so that we can able to paste.
+        this.fileTreeService.simulateSelectionCut(false);
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
     
     private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
-        /**
-         * Iterate every selecting items and try to move to the destination. If 
-         * any existing files or folders found at the destination, a window will 
-         * pop up and ask for user permission if to overwrite.
-         */
-        for (const dragItem of currentDragItems) {
-            const destination = URI.join(targetOver.uri, dragItem.name);
-            const success = await this.fileService.moveTo(dragItem.uri, destination);
-
-            // complete
-            if (success.isOk()) {
-                continue;
-            }
-            const error = success.unwrapErr();
-
-            // only expect `FILE_EXISTS` error
-            if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                // TODO: this.dialogService.error(error);
-                panic(error);
-            }
-
-            // duplicate item found, ask permission from the user.
-            const shouldOverwrite = await this.notificationService.confirm(
-                'Overwrite Warning',
-                `An item named ${dragItem.name} already exists in this location. Do you want to replace it with the one you're moving?`
-            );
-
-            if (!shouldOverwrite) {
-                continue;
-            }
-
-            await this.fileService.moveTo(dragItem.uri, destination, true).match(
-                noop, 
-                error => panic(error), // TODO: this.dialogService.error(error);
-            );
-        }
+        // simulate drop action (move) as paste, so that we can able to paste.
+        this.fileTreeService.simulateSelectionCut(true);
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
 }
 
