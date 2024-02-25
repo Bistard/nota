@@ -54,7 +54,7 @@ export interface ICommandService extends IService {
      * const ret: T = commandService.executeCommand<T>('customCommand', customArg1, customArg2);
      */
     executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
-    executeCommand<T>(id: string, ...args: any[]): Promise<T>;
+    executeCommand<T>(id: string, arbitrary: any, ...args: any[]): Promise<T>;
 }
 
 /**

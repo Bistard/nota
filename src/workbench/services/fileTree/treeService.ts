@@ -175,30 +175,6 @@ export interface IFileTreeService extends IDisposable, IService {
     setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean>;
 
     /**
-     * @description Manually update changes to the custom sorting metadata. The
-     * metadata is used to determine the sortings of file tree when rendering.
-     * 
-     * @note Only invoke this when the sorting type {@link FileSortType} is
-     *       'custom'.
-     * @note This method will update the metadata in the memory with a single 
-     * batch and then will save to the disk.
-     * @note It does not support type 'swap' since every swap operation will 
-     *       mess up the input indice relationship. Due to simplicity, it is 
-     *       banned.
-     * @note 'items' and 'indice' must have the same length for 'Add' and 
-     *       'Update'.
-     * 
-     * @param type The type of change to apply to the metadata.
-     * @param items An array of file items to the batch change.
-     * @param parent Only support for 'Remove', indicates the parent of children
-     *               for removing.
-     * @param indice For 'Add' and 'Update', this is the index where the item is 
-     *               added or updated. For 'Remove', it's the index of the item 
-     *               to remove.
-     */
-
-
-    /**
      * @description This method provides a way to programmatically update the 
      * custom sorting metadata (the rendering order) of the file tree. The 
      * changes can include adding new items, updating existing items, or 

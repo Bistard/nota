@@ -1,3 +1,5 @@
+import { URI } from "src/base/common/files/uri";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
 
 /**
  * {@link AllCommands}
@@ -92,7 +94,7 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.newFolder]: [];
     [AllCommands.fileCut]: [];
     [AllCommands.fileCopy]: [];
-    [AllCommands.filePaste]: [];
+    [AllCommands.filePaste]: [destination: FileItem, resources?: URI[]];
     [AllCommands.fileMove]: [];
 };
 
