@@ -245,6 +245,41 @@ suite('array-test', () => {
         });
     });
     
+    suite('group', function () {
+
+        test('should group numbers by even and odd', function () {
+            const numbers = [1, 2, 3, 4, 5, 6];
+            const grouped = Arrays.group(numbers, item => item % 2 === 0 ? 'even' : 'odd');
+            assert.deepStrictEqual(grouped.get('even'), [2, 4, 6]);
+            assert.deepStrictEqual(grouped.get('odd'), [1, 3, 5]);
+        });
+
+        test('should return an empty map for an empty array', function () {
+            const emptyArray: number[] = [];
+            const grouped = Arrays.group(emptyArray, item => item);
+            assert.strictEqual(grouped.size, 0);
+        });
+
+        test('should group strings by their first letter', function () {
+            const strings = ['apple', 'banana', 'apricot', 'cherry', 'avocado'];
+            const grouped = Arrays.group(strings, item => item[0]);
+            assert.deepStrictEqual(grouped.get('a'), ['apple', 'apricot', 'avocado']);
+            assert.deepStrictEqual(grouped.get('b'), ['banana']);
+            assert.deepStrictEqual(grouped.get('c'), ['cherry']);
+        });
+
+        test('should handle grouping with custom objects', function () {
+            type Fruit = { name: string, color: string; };
+            const fruits: Fruit[] = [
+                { name: 'apple', color: 'red' },
+                { name: 'strawberry', color: 'red' },
+                { name: 'banana', color: 'yellow' }
+            ];
+            const grouped = Arrays.group(fruits, item => item.color);
+            assert.deepStrictEqual(grouped.get('red'), [{ name: 'apple', color: 'red' }, { name: 'strawberry', color: 'red' }]);
+            assert.deepStrictEqual(grouped.get('yellow'), [{ name: 'banana', color: 'yellow' }]);
+        });
+    });
 
     test('exactEquals', () => {
         const ref = [1, 2, 3];

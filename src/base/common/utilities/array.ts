@@ -267,6 +267,32 @@ export namespace Arrays {
     }
 
     /**
+     * @description Groups elements of an array based on a given key and returns 
+     * a map of the groups.
+     * @template T The type of elements in the input array.
+     * @template K The type of the key by which the array is grouped.
+     * @param array The array of elements to be grouped.
+     * @param getKey A function that computes the grouping key for each element.
+     * @returns A map where each key is a grouping key and the value is an array 
+     * of elements that share that key.
+     */
+    export function group<T, K>(array: ReadonlyArray<T>, getKey: (item: T) => K): Map<K, T[]> {
+        const map = new Map<K, T[]>();
+    
+        for (const item of array) {
+            const key = getKey(item);
+            const collection = map.get(key);
+            if (!collection) {
+                map.set(key, [item]);
+            } else {
+                collection.push(item);
+            }
+        }
+    
+        return map;
+    }
+
+    /**
      * @description Determines if the content of the given two arrays are equal.
      * The order does matter.
      * @param array1 The given 1st array.
