@@ -23,6 +23,7 @@ import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
 import { DomUtility, EventType, addDisposableListener } from 'src/base/browser/basic/dom';
 import { Event } from 'src/base/common/event';
 import { FocusTracker } from 'src/base/browser/basic/focusTracker';
+import { WorkbenchContextKey } from 'src/workbench/services/workbench/workbenchContextKeys';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -155,6 +156,7 @@ export class WorkbenchContextHub extends Disposable {
 
     private readonly visibleFileTree: IContextKey<boolean>;
     private readonly focusedFileTree: IContextKey<boolean>;
+    private readonly fileTreeOnCut: IContextKey<boolean>;
 
     // [constructor]
 
@@ -187,6 +189,7 @@ export class WorkbenchContextHub extends Disposable {
         // file tree
         this.visibleFileTree = contextService.createContextKey('visibleFileTree', false, 'Whether a file tree is visible.');
         this.focusedFileTree = contextService.createContextKey('focusedFileTree', false, 'Whether a file tree is focused.');
+        this.fileTreeOnCut = contextService.createContextKey(WorkbenchContextKey.fileTreeOnCutKey, false, 'True when items in the file tree are ready for cut.');
 
         // auto updates the context keys
         this.__registerListeners();
@@ -209,6 +212,7 @@ export class WorkbenchContextHub extends Disposable {
         this.visibleFileTree.set(this.fileTreeService.isOpened);
         this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized));
         this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused));
+        this.fileTreeService.onHighlightSelectionAsCut(isCut => this.fileTreeOnCut.set(isCut));
     }
 
     // [private update context helpers]

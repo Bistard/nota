@@ -22,9 +22,6 @@ import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEv
 import { Time } from "src/base/common/date";
 import { panic } from "src/base/common/utilities/panic";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
-import { IContextService } from "src/platform/context/common/contextService";
-import { IContextKey } from "src/platform/context/common/contextKey";
-import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 
 export class FileTreeService extends Disposable implements IFileTreeService {
 
@@ -39,8 +36,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // synchronizes lifecycles of the above properties
     private _treeCleanup: DisposableManager;
 
-    private readonly _fileTreeCutEnabledContext: IContextKey<boolean>;
-
     // [constructor]
 
     constructor(
@@ -49,14 +44,9 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
-        @IContextService contextService: IContextService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
-
-        // TODO: this context-key should be created in the workbenchContextHub and get it from there.
-        // TODO: workbenchContextHub should be a service. So that we can retrieve mutable contextKey from the service
-        this._fileTreeCutEnabledContext = contextService.createContextKey(WorkbenchContextKey.fileTreeCutEnabledKey, false, 'True when items in the file tree are ready for cut.');
     }
 
     // [event]
@@ -69,6 +59,9 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private readonly _onDidInitOrClose = this.__register(new Emitter<boolean>());
     public readonly onDidInitOrClose = this._onDidInitOrClose.registerListener;
+    
+    private readonly _onHighlightSelectionAsCut = this.__register(new Emitter<boolean>());
+    public readonly onHighlightSelectionAsCut = this._onHighlightSelectionAsCut.registerListener;
     
     // [getter]
 
@@ -187,16 +180,16 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {
         // TODO: find a way to render the cut item
-        this._fileTreeCutEnabledContext.set(true);
+        this._onHighlightSelectionAsCut.fire(items.length > 0);
     }
 
     public async highlightSelectionAsCopy(items: FileItem[]): Promise<void> {
         // TODO: find a way to render the cut item
-        this._fileTreeCutEnabledContext.set(false);
+        this._onHighlightSelectionAsCut.fire(false);
     }
     
     public simulateSelectionCut(isCutOrCopy: boolean): void {
-        this._fileTreeCutEnabledContext.set(isCutOrCopy);
+        this._onHighlightSelectionAsCut.fire(isCutOrCopy);
     }
 
     public getFileSortingType(): FileSortType {

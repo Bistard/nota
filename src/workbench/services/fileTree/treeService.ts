@@ -50,6 +50,11 @@ export interface IFileTreeService extends IDisposable, IService {
     readonly onDidInitOrClose: Register<boolean>;
 
     /**
+     * Event fires when highlighting the files have been selected for cut.
+     */
+    readonly onHighlightSelectionAsCut: Register<boolean>;
+
+    /**
      * Fires when a file / folder is selected (not opened yet).
      */
     onSelect: Register<IFileTreeOpenEvent<FileItem>>;

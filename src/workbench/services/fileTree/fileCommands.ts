@@ -76,7 +76,7 @@ export namespace FileCommands {
             }
 
             const toPaste = await this.__getResourcesToPaste(resources);
-            const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeCutEnabledKey);
+            const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey);
 
             // TODO: metadata updation
 
