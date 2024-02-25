@@ -32,5 +32,7 @@ export namespace WorkbenchContextKey {
         CreateContextKeyExpr.Equal('focusedFileTree', true),
         CreateContextKeyExpr.Not(inputFocusedKey),
     );
+    export const fileTreeCutEnabledKey = 'fileTreeCutEnabled';
+    export const fileTreeCutEnabled = CreateContextKeyExpr.Equal(fileTreeCutEnabledKey, false);
 }
 

@@ -2,6 +2,7 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IHostService } from "src/platform/host/common/hostService";
 import { ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { FileCommands } from "src/workbench/services/fileTree/fileCommands";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -36,5 +37,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 },
             },
         );
+
+        registrant.registerCommand(new FileCommands.FilePaste());
     },
 );
