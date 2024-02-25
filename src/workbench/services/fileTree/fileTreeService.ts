@@ -31,7 +31,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private _tree?: IFileTree<FileItem, void>;
     private _sorter?: FileTreeSorter<FileItem>;
-    private _onDidResourceChange?: Scheduler<IResourceChangeEvent>;
     
     // synchronizes lifecycles of the above properties
     private _treeCleanup: DisposableManager;
@@ -353,7 +352,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const cleanup = this._treeCleanup;
 
         // on did resource change callback
-        this._onDidResourceChange = cleanup.register(new Scheduler(
+        const onDidResourceChange = cleanup.register(new Scheduler(
             Time.ms(100),
             (events: IResourceChangeEvent[]) => {
                 if (!root) {
@@ -376,13 +375,13 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
         // watch the root
         this.fileService.watch(root, { recursive: true })
-            .match<void>(
-                (disposable) => cleanup.register(disposable),
-                error => this.logService.warn('FileTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
-            );
+        .match<void>(
+            (disposable) => cleanup.register(disposable),
+            error => this.logService.warn('FileTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
+        );
         
         cleanup.register(this.fileService.onDidResourceChange(e => {
-            this._onDidResourceChange?.schedule(e.wrap());
+            onDidResourceChange.schedule(e.wrap());
         }));
     }
 }
