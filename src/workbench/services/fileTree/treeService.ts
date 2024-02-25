@@ -155,6 +155,13 @@ export interface IFileTreeService extends IDisposable, IService {
     highlightSelectionAsCopy(items: FileItem[]): Promise<void>;
 
     /**
+     * @description This method will not visually highlight the files, but
+     * programatically set the status as cut or copy.
+     * @param isCutOrCopy Is file tree in the state of cut or copy.
+     */
+    simulateSelectionCut(isCutOrCopy: boolean): void;
+
+    /**
      * @description Retrieves the current sorting type applied to the file tree. 
      * This type is used for arranging files.
      */
