@@ -13,7 +13,7 @@ import { IEnvironmentService } from 'src/platform/environment/common/environment
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
-import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utils/testService';
+import { NullEnvironmentService, NullLifecycleService, NullLogger, SimpleLogger, TestKeyboardService } from 'test/utils/testService';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 
 suite('shortcutService-test', () => {
@@ -37,7 +37,7 @@ suite('shortcutService-test', () => {
         shortcutRegistrant = new ShortcutRegistrant();
         registrantService.registerRegistrant(shortcutRegistrant);
 
-        commandRegistrant = new CommandRegistrant(registrantService);
+        commandRegistrant = new CommandRegistrant(new SimpleLogger(), registrantService);
         registrantService.registerRegistrant(commandRegistrant);
 
         DI.register(IRegistrantService, registrantService);

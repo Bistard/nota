@@ -6,7 +6,7 @@ import { IReviverRegistrant, ReviverRegistrant } from 'src/platform/ipc/common/r
 import { IRegistrant, RegistrantType } from 'src/platform/registrant/common/registrant';
 import { RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { IShortcutRegistrant, ShortcutRegistrant } from 'src/workbench/services/shortcut/shortcutRegistrant';
-import { NullLogger } from 'test/utils/testService';
+import { NullLogger, SimpleLogger } from 'test/utils/testService';
 
 suite('registrant-service', () => {
 
@@ -56,7 +56,7 @@ suite('registrant-service', () => {
         const service = new RegistrantService(new NullLogger());
         service.registerRegistrant(new ConfigurationRegistrant());
         service.registerRegistrant(new ShortcutRegistrant());
-        service.registerRegistrant(new CommandRegistrant(service));
+        service.registerRegistrant(new CommandRegistrant(new SimpleLogger(), service));
         service.registerRegistrant(new ReviverRegistrant());
 
         // type check

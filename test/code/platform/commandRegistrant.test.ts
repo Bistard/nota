@@ -6,7 +6,7 @@ import { IService, createService } from 'src/platform/instantiation/common/decor
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { ShortcutRegistrant } from 'src/workbench/services/shortcut/shortcutRegistrant';
-import { NullLogger } from 'test/utils/testService';
+import { NullLogger, SimpleLogger } from 'test/utils/testService';
 
 interface ITestService extends IService {
     num: number;
@@ -49,7 +49,7 @@ suite('commandRegistrant-test', () => {
         instantiationService.register(IRegistrantService, registrantService);
         registrantService.registerRegistrant(new ShortcutRegistrant());
 
-        commandRegistrant = new CommandRegistrant(registrantService);
+        commandRegistrant = new CommandRegistrant(new SimpleLogger(), registrantService);
         registrantService.registerRegistrant(commandRegistrant);
 
         const commandService = new CommandService(instantiationService, new NullLogger(), registrantService);
