@@ -71,7 +71,7 @@ export namespace FileCommands {
             this.commandService     = provider.getOrCreateService(ICommandService);
 
             if (destination.isFile()) {
-                this.commandService.executeCommand(AllCommands.alertError, new Error('[FilePaste] Cannot paste resiources to a file.'));
+                this.commandService.executeCommand(AllCommands.alertError, new Error('[FilePaste] Cannot paste on a file.'));
                 return false;
             }
 
