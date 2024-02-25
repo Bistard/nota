@@ -32,18 +32,18 @@ export const enum AllCommands {
     
     // [workbench]
 
-    toggleDevTool = 'toggle-develop-tool',
-    reloadWindow = 'reload-window',
+    toggleDevTool    = 'toggle-develop-tool',
+    reloadWindow     = 'reload-window',
     closeApplication = 'close-application',
 
     // [FileTree]
 
-    newFile = 'newfile', // TODO
+    newFile   = 'newfile', // TODO
     newFolder = 'newFolder', // TODO
-    fileCut = 'filecut', // TODO
-    fileCopy = 'filecopy', // TODO
+    fileCut   = 'filecut', // TODO
+    fileCopy  = 'filecopy', // TODO
     filePaste = 'filepaste', // TODO
-    fileMove = 'filemove', // TODO
+    fileMove  = 'filemove', // TODO
 }
 
 /**
@@ -53,17 +53,17 @@ export const enum AllCommands {
  */
 export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
 
-    [AllCommands.toggleDevTool]: 'Toggle the developer tool of the whole application.',
-    [AllCommands.reloadWindow]: 'Reload the browser entirely.',
+    [AllCommands.toggleDevTool]:    'Toggle the developer tool of the whole application.',
+    [AllCommands.reloadWindow]:     'Reload the browser entirely.',
     [AllCommands.closeApplication]: 'Close the current window.',
 
 
-    [AllCommands.newFile]: '',
-    [AllCommands.newFolder]: '',
-    [AllCommands.fileCut]: 'Sets selected files in the file tree as ready to be cut.',
-    [AllCommands.fileCopy]: 'Sets selected files in the file tree as ready to be copied.',
-    [AllCommands.filePaste]: '',
-    [AllCommands.fileMove]: 'Moves selected explorer files.',
+    [AllCommands.newFile]:          '',
+    [AllCommands.newFolder]:        '',
+    [AllCommands.fileCut]:          'Sets selected files in the file tree as ready to be cut.',
+    [AllCommands.fileCopy]:         'Sets selected files in the file tree as ready to be copied.',
+    [AllCommands.filePaste]:        '',
+    [AllCommands.fileMove]:         'Moves selected explorer files.',
 };
 
 /**

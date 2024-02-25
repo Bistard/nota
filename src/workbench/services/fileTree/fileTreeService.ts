@@ -36,8 +36,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     // synchronizes lifecycles of the above properties
     private _treeCleanup: DisposableManager;
 
-    private _isVisuallyCopyOrCut?: 'copy' | 'cut';
-
     // [constructor]
 
     constructor(
