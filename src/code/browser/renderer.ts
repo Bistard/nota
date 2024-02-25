@@ -105,13 +105,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
             browser.init();
         }
         catch (error: any) {
-            // try to log out the error message
-            if (instantiaionService) {
-                try {
-                    const logService = instantiaionService.getOrCreateService(ILogService);
-                    logService.error('renderer', 'error encountered', error);
-                } catch { }
-            }
             ErrorHandler.onUnexpectedError(error);
         }
     }

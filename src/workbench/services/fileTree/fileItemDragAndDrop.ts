@@ -447,7 +447,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // TODO: disabled for now
         await this.__performDropMove(currentDragItems, targetAbove);
 
-        /**
+        /** 
          * The dragging items should be the same level with 'dragAbove'. The 
          * only exception is if the 'dragAbove' is a directory, we drop the 
          * dragging items at as the first children of that directory.
@@ -484,7 +484,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     
     private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
-        // simulate drop action (move) as paste, so that we can able to paste.
+        // simulate drop action (move) as cut, so that we can able to paste.
         this.fileTreeService.simulateSelectionCut(true);
         await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
