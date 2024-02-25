@@ -15,7 +15,13 @@ import { IFileItem } from "src/workbench/services/fileTree/fileItem";
 import { panic } from "src/base/common/utilities/panic";
 
 /**
- * // TODO
+ * Enumerates the types of modifications to the custom sort order of file tree 
+ * items, including adding, removing, updating, or swapping positions.
+ *
+ * - `Add`: Indicates that an item is being added to the order.
+ * - `Remove`: Indicates that an item is being removed from the order.
+ * - `Update`: Indicates that an existing item's position is being updated in the order.
+ * - `Swap`: Indicates that two items are swapping positions within the order.
  */
 export const enum OrderChangeType {
     Add,
@@ -76,6 +82,8 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * 
      * @param type The type of change to apply to the order metadata.
      * @param items An array of file tree items to the batch change.
+     * @param parent Only support for 'Remove', indicates the parent of children
+     *               for removing.
      * @param indice For 'Add' and 'Update', this is the index where the item is 
      *               added or updated. For 'Remove', it's the index of the item 
      *               to remove.
@@ -87,8 +95,7 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      */
     updateMetadataLot(type: OrderChangeType.Add   , items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
     updateMetadataLot(type: OrderChangeType.Update, items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
-    
-    updateMetadataLot(type: OrderChangeType.Remove, items: TItem[] ,indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    updateMetadataLot(type: OrderChangeType.Remove, parent: TItem, indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
 
     /**
      * @description Synchronizes the metadata in the cache for a given folder 
@@ -196,44 +203,60 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
         return preparation
         .andThen(() => {
-            this.__updateMetadataInCache(type, item, index1, index2);
+            this.__updateMetadataInCache(type, parent, item, index1, index2);
             return this.__saveMetadataIntoDisk(parent);
         });
     }
 
-    public updateMetadataLot(type: OrderChangeType, items: TItem[], indice: number[]): AsyncResult<void, FileOperationError | SyntaxError> {
-        const isRemove = type === OrderChangeType.Remove;
+    public updateMetadataLot(type: OrderChangeType.Add   , items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadataLot(type: OrderChangeType.Update, items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadataLot(type: OrderChangeType.Remove, parent: TItem,  indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    public updateMetadataLot(type: OrderChangeType, itemsOrParent: TItem[] | TItem, indice: number[]): AsyncResult<void, FileOperationError | SyntaxError> {
+        if (type === OrderChangeType.Swap) {
+            panic('[FileTreeCustomSorter] does not support "update" operation in "updateMetadataLot"');
+        }
         
-        if (items.length === 0) {
-            return AsyncResult.ok();
-        }
+        const isRemove = !Array.isArray(itemsOrParent);
+        let resolvedParent: TItem;
+        let resolvedItems: TItem[];
 
-        if (!isRemove && items.length !== indice.length) {
-            panic('[FileTreeCustomSorter] "updateMetadataLot" items and indice must have same length');
-        }
+        // remove operation (items does not matter when removing, indice matters)
+        if (isRemove) {
+            resolvedParent = itemsOrParent;
+            resolvedItems = [];
+        } 
+        // necessary check for non-remove operation
+        else {
+            const items = itemsOrParent;
+            resolvedItems = items;
 
-        // make sure every item all have the same parent
-        const parent = items[0]!.parent!;
-        const allSameParent = items.every(item => item.parent === parent);
-        if (!allSameParent) {
-            panic('[FileTreeCustomSorter] "updateMetadataLot" items must have all the same parent');
+            if (items.length === 0) {
+                return AsyncResult.ok();
+            }
+    
+            if (items.length !== indice.length) {
+                panic('[FileTreeCustomSorter] "updateMetadataLot" items and indice must have same length');
+            }
+    
+            // make sure every item all have the same parent
+            resolvedParent = items[0]!.parent!;
+            const allSameParent = items.every(item => item.parent === resolvedParent);
+            if (!allSameParent) {
+                panic('[FileTreeCustomSorter] "updateMetadataLot" items must have all the same parent');
+            }
         }
 
         // load metadata to the cache first
-        const inCache = this._metadataCache.has(parent.uri);
+        const inCache = this._metadataCache.has(resolvedParent.uri);
         const preparation = inCache 
             ? AsyncResult.ok<void, FileOperationError | SyntaxError>()
-            : this.__loadMetadataIntoCache(parent);
+            : this.__loadMetadataIntoCache(resolvedParent);
         
         return preparation
         .andThen(() => {
-            if (type === OrderChangeType.Swap) {
-                panic('[FileTreeCustomSorter] does not support "update" operation in "updateMetadataLot"');
-            }
-            
             // update metadata all in once
-            this.__updateMetadataInCacheLot(type, items, indice);
-            return this.__saveMetadataIntoDisk(parent);
+            this.__updateMetadataInCacheLot(type, resolvedParent, resolvedItems, indice);
+            return this.__saveMetadataIntoDisk(resolvedParent);
         });
     }
 
@@ -360,8 +383,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: true, overwrite: true, }));
     }
 
-    private __updateMetadataInCache(type: OrderChangeType, item: TItem, index1?: number, index2?: number): void {
-        const order = this.__getMetadataFromCache(item.parent!.uri)!;
+    /**
+     * @note invoke this to MAKE SURE:
+     *  - the given item has parent.
+     *  - the metadata of the parent already in the cache.
+     */
+    private __updateMetadataInCache(type: OrderChangeType, parent: TItem, item: TItem, index1?: number, index2?: number): void {
+        const order = this.__getMetadataFromCache(parent.uri)!;
         switch (type) {
             case OrderChangeType.Add:
                 order.splice(index1!, 0, item.name);
@@ -378,8 +406,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
     }
 
-    private __updateMetadataInCacheLot(type: OrderChangeType, items: TItem[], index1: number[]): void {
-        const order = this.__getMetadataFromCache(items[0]!.parent!.uri)!;
+    /**
+     * @note invoke this to MAKE SURE:
+     *  - the given item array is not empty.
+     *  - the metadata of the parent already in the cache.
+     */
+    private __updateMetadataInCacheLot(type: OrderChangeType, parent: TItem, items: TItem[], index1: number[]): void {
+        const order = this.__getMetadataFromCache(parent.uri)!;
         switch (type) {
             case OrderChangeType.Add:
                 Arrays.insertMultiple(order, items.map(item => item.name), index1);

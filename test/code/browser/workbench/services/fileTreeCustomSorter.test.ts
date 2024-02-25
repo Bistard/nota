@@ -344,7 +344,7 @@ suite('fileTreeCustomSorter-test', () => {
                 await assertMetadataAction({
                     action: async root => {
                         const item = __getFileItemBy(root, itemIndicateLevel);
-                        await sorter.updateMetadataLot(OrderChangeType.Remove, [item], deleteIdx).unwrap();
+                        await sorter.updateMetadataLot(OrderChangeType.Remove, item.parent!, deleteIdx).unwrap();
                     },
                     assertFn: async () => {
                         await assertMetadataInDisk(
