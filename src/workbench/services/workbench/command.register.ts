@@ -7,6 +7,7 @@ import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
+import { ILogService } from "src/base/common/logger";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -56,8 +57,9 @@ class AlertError extends Command {
         });
     }
 
-    public override run(provider: IServiceProvider, error: any): boolean {
+    public override run(provider: IServiceProvider, reporter: string, error: any): boolean {
         const notificationService = provider.getOrCreateService(INotificationService);
+        const logService = provider.getOrCreateService(ILogService);
 
         let message: string;
         if (error === 'string') {
@@ -65,7 +67,10 @@ class AlertError extends Command {
         } else {
             message = errorToMessage(error.message ?? error, false);
         }
+
+        logService.error(reporter, message, error);
         notificationService.error(message);
+
         return true;
     }
 }
