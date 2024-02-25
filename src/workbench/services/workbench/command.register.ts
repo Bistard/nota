@@ -3,6 +3,10 @@ import { IHostService } from "src/platform/host/common/hostService";
 import { ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { FileCommands } from "src/workbench/services/fileTree/fileCommands";
+import { Command } from "src/platform/command/common/command";
+import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { errorToMessage } from "src/base/common/utilities/panic";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -38,6 +42,23 @@ export const rendererWorkbenchCommandRegister = createRegister(
             },
         );
 
+        registrant.registerCommand(new AlertError());
         registrant.registerCommand(new FileCommands.FilePaste());
     },
 );
+
+class AlertError extends Command {
+
+    constructor() {
+        super({
+            id: AllCommands.alertError,
+            when: null,
+        });
+    }
+
+    public override run(provider: IServiceProvider, error: Error): boolean {
+        const notificationService = provider.getOrCreateService(INotificationService);
+        notificationService.error(errorToMessage(error.message ?? error, false));
+        return true;
+    }
+}

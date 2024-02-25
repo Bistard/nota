@@ -9,10 +9,11 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
-import { errorToMessage, panic } from "src/base/common/utilities/panic";
+import { panic } from "src/base/common/utilities/panic";
 import { noop } from "src/base/common/performance";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { parse } from "src/base/common/files/path";
+import { ICommandService } from "src/platform/command/common/commandService";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -67,6 +68,7 @@ export namespace FileCommands {
             const contextService     = provider.getOrCreateService(IContextService);
             this.notificationService = provider.getOrCreateService(INotificationService);
             this.fileService         = provider.getOrCreateService(IFileService);
+            const commandService     = provider.getOrCreateService(ICommandService);
 
             const toPaste = await this.__getResourcesToPaste(resources);
             const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeCutEnabledKey);
@@ -92,8 +94,7 @@ export namespace FileCommands {
                 }
             } 
             catch (error: any) {
-                // TODO: executeCommand -> notifyError
-                this.notificationService.error(errorToMessage(error));
+                commandService.executeCommand(AllCommands.alertError, error);
             }
             finally {
                 treeService.simulateSelectionCut(false);
@@ -160,9 +161,9 @@ export namespace FileCommands {
         private async __doCopy(toPaste: URI[], destination: FileItem): Promise<void> {
             
             /**
-             * Iterate every selecting items and try to copy to the destination. If
-             * a duplicate item name is encountered, append '_copy' as a postfix to 
-             * the name of the copied item.
+             * Iterate every selecting items and try to copy to the destination. 
+             * If a duplicate item name is encountered, append '_copy' as a 
+             * postfix to the name of the copied item.
              */
             for (const resource of toPaste) {
                 const resourceName = URI.basename(resource);

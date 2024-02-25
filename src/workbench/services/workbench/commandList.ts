@@ -34,6 +34,7 @@ export const enum AllCommands {
     
     // [workbench]
 
+    alertError       = 'alertError',
     toggleDevTool    = 'toggle-develop-tool',
     reloadWindow     = 'reload-window',
     closeApplication = 'close-application',
@@ -55,6 +56,7 @@ export const enum AllCommands {
  */
 export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
 
+    [AllCommands.alertError]:       'Displays error messages in a popup notification.',
     [AllCommands.toggleDevTool]:    'Toggle the developer tool of the whole application.',
     [AllCommands.reloadWindow]:     'Reload the browser entirely.',
     [AllCommands.closeApplication]: 'Close the current window.',
@@ -85,6 +87,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
  */
 export type AllCommandsArgumentsTypes = {
     
+    [AllCommands.alertError]: [error: Error];
     [AllCommands.toggleDevTool]: [];
     [AllCommands.reloadWindow]: [];
     [AllCommands.closeApplication]: [];
@@ -112,6 +115,7 @@ export type AllCommandsArgumentsTypes = {
  */
 export type AllCommandsReturnTypes = {
     
+    [AllCommands.alertError]: void;
     [AllCommands.toggleDevTool]: void;
     [AllCommands.reloadWindow]: void;
     [AllCommands.closeApplication]: void;
