@@ -7,6 +7,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { AllCommandsDescriptions } from "src/workbench/services/workbench/commandList";
+import { ILogService } from "src/base/common/logger";
 
 /**
  * An event fired whenever a command is executed.
@@ -99,6 +100,7 @@ export class CommandRegistrant implements ICommandRegistrant {
     // [constructor]
 
     constructor(
+        @ILogService private readonly logService: ILogService,
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
@@ -127,6 +129,7 @@ export class CommandRegistrant implements ICommandRegistrant {
 
         if (cmd.overwrite === true || !this._commands.has(id)) {
             this._commands.set(id, cmd);
+            this.logService.trace('CommandRegistrant', `Command registered: '${id}'`);
         }
 
         return this.__toUnregister(id);

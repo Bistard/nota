@@ -70,7 +70,7 @@ suite('commandRegistrant-test', () => {
     test('execute-command', async () => {
         const commandService = instantiationService.getService(ICommandService);
         const testService = instantiationService.getService(ITestService);
-        const result = await commandService.executeCommand<number>(id, 100);
+        const result = await commandService.executeAnyCommand(id, 100);
         assert.strictEqual(100, testService.num);
         assert.strictEqual(100, result);
     });

@@ -19,42 +19,44 @@ export interface ICommandService extends IService {
      * Fires when a command is executed successfully.
      */
     readonly onDidExecuteCommand: Register<ICommandEvent>;
- 
+
     /**
-     * @description Executes a command within the application, identified by its 
-     * unique identifier (ID). 
+     * @description Executes a predefined command using its unique identifier 
+     * (ID). 
      * 
-     * @note This method is designed to handle both predefined commands listed 
-     *       in {@link AllCommands} and arbitrary string commands.
-     *          - Predefined command IDs are ensured to be registered already.
-     *          - Arbitrary command IDs can be potentially non-existed.
+     * @note Ensures type safety by enforcing specific argument and return types 
+     *       for each command as defined in:
+     *  - {@link AllCommandsArgumentsTypes} and 
+     *  - {@link AllCommandsReturnTypes}.
      * 
-     * @note Executing a predefined {@link AllCommands} command enforces its 
-     *       specific argument and return types as defined in 
-     *       {@link AllCommandsArgumentsTypes} and {@link AllCommandsReturnTypes}, 
-     *       ensuring type safety.
-     * 
-     * @note Executing an arbitrary commands accepts any type of arguments (any[])
-     *       and with a return type `T`.
-     * 
-     * @note The method returns a {@link Promise} that resolves when the command 
-     *       is successful. Rejects if the command is not found, or error encounters.
-     * 
-     * @param id The unique identifier of the command to be executed. 
-     * @param args The arguments required for executing the command.
-     * @returns A {@link Promise} that resolves with the result of the command 
-     *          execution.
+     * @param id The ID of the predefined command from {@link AllCommands}.
+     * @param args The arguments required for the command.
+     * @returns A {@link Promise} resolving with the command's result, or 
+     *          rejects if an error occurs.
      * 
      * @example
-     * // Executing a predefined command without arguments
+     * // Execute a command without arguments
      * commandService.executeCommand(AllCommands.reloadWindow);
-     * 
-     * @example
-     * // Executing a custom command with arbitrary arguments and handling the result
-     * const ret: T = commandService.executeCommand<T>('customCommand', customArg1, customArg2);
      */
     executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
-    executeCommand<T>(id: string, arbitrary: any, ...args: any[]): Promise<T>;
+    
+    /**
+     * @description Executes a command that may not be predefined in the 
+     * application. 
+     * 
+     * @note This method is more flexible and accepts any command ID as a string 
+     *       along with any number of arguments.
+     * 
+     * @param id The arbitrary string ID of the command.
+     * @param args Any number of arguments for the command.
+     * @returns A {@link Promise} resolving with the command's result, or 
+     *          rejects if an error occurs.
+     * 
+     * @example
+     * // Execute a custom command with arbitrary arguments
+     * commandService.executeAnyCommand('customCommand', customArg1, customArg2);
+     */
+    executeAnyCommand(id: string, ...args: any[]): Promise<any>;
 }
 
 /**
@@ -87,7 +89,10 @@ export class CommandService extends Disposable implements ICommandService {
     public executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
     public executeCommand<T>(id: string, ...args: any[]): Promise<T>;
     public executeCommand(id: string, ...args: any[]): Promise<any> {
+        return this.executeAnyCommand(id, ...args);
+    }
 
+    public executeAnyCommand(id: string, ...args: any[]): Promise<any> {
         const command = this._registrant.getCommand(id);
         if (!command) {
             return Promise.reject(new Error(`command with ID '${id}' is not found`));
