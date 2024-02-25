@@ -91,7 +91,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     private _sortOrder!: FileSortOrder;
     private readonly _metadataRootPath: URI;
     
-    private _customSorter?: IFileTreeCustomSorter<TItem>;
+    private _customSorter?: FileTreeCustomSorter<TItem>;
     
     /**
      * A scheduler that prevent potential extra calculations if the 

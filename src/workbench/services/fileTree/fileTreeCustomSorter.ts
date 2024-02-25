@@ -95,7 +95,8 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      */
     updateMetadataLot(type: OrderChangeType.Add   , items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
     updateMetadataLot(type: OrderChangeType.Update, items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
-    updateMetadataLot(type: OrderChangeType.Remove, parent: TItem, indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    updateMetadataLot(type: OrderChangeType.Remove, parent: TItem , indice:  number[]): AsyncResult<void, FileOperationError | SyntaxError>;
+    updateMetadataLot(type: OrderChangeType, itemsOrParent: TItem[] | TItem, indice: number[]): AsyncResult<void, FileOperationError | SyntaxError>;
 
     /**
      * @description Synchronizes the metadata in the cache for a given folder 
