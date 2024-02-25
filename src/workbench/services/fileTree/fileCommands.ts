@@ -9,7 +9,6 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
-import { panic } from "src/base/common/utilities/panic";
 import { noop } from "src/base/common/performance";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { parse } from "src/base/common/files/path";
@@ -54,6 +53,7 @@ export namespace FileCommands {
         private clipboardService!: IClipboardService;
         private fileService!: IFileService;
         private notificationService!: INotificationService;
+        private commandService!: ICommandService;
 
         constructor() {
             super({
@@ -68,7 +68,7 @@ export namespace FileCommands {
             const contextService     = provider.getOrCreateService(IContextService);
             this.notificationService = provider.getOrCreateService(INotificationService);
             this.fileService         = provider.getOrCreateService(IFileService);
-            const commandService     = provider.getOrCreateService(ICommandService);
+            this.commandService     = provider.getOrCreateService(ICommandService);
 
             const toPaste = await this.__getResourcesToPaste(resources);
             const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeCutEnabledKey);
@@ -94,7 +94,7 @@ export namespace FileCommands {
                 }
             } 
             catch (error: any) {
-                commandService.executeCommand(AllCommands.alertError, error);
+                this.commandService.executeCommand(AllCommands.alertError, error);
             }
             finally {
                 treeService.simulateSelectionCut(false);
@@ -137,8 +137,7 @@ export namespace FileCommands {
 
                 // only expect `FILE_EXISTS` error
                 if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                    // TODO: this.dialogService.error(error);
-                    panic(error);
+                    this.commandService.executeCommand(AllCommands.alertError, error);
                 }
 
                 // duplicate item found, ask permission from the user.
@@ -153,7 +152,7 @@ export namespace FileCommands {
 
                 await this.fileService.moveTo(resource, newDestination, true).match(
                     noop, 
-                    error => panic(error), // TODO: this.dialogService.error(error);
+                    error => this.commandService.executeCommand(AllCommands.alertError, error),
                 );
             }
         }
@@ -176,7 +175,7 @@ export namespace FileCommands {
                 
                 await this.fileService.copyTo(resource, newDestination).match(
                     noop,
-                    error => panic(error), // TODO: this.dialogService.error(error);
+                    error => this.commandService.executeCommand(AllCommands.alertError, error),
                 );
             }
         }

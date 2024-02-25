@@ -56,9 +56,16 @@ class AlertError extends Command {
         });
     }
 
-    public override run(provider: IServiceProvider, error: Error): boolean {
+    public override run(provider: IServiceProvider, error: any): boolean {
         const notificationService = provider.getOrCreateService(INotificationService);
-        notificationService.error(errorToMessage(error.message ?? error, false));
+
+        let message: string;
+        if (error === 'string') {
+            message = error;
+        } else {
+            message = errorToMessage(error.message ?? error, false);
+        }
+        notificationService.error(message);
         return true;
     }
 }
