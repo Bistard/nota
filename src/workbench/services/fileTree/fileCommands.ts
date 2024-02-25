@@ -13,6 +13,8 @@ import { noop } from "src/base/common/performance";
 import { FileOperationErrorType } from "src/base/common/files/file";
 import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
+import { Arrays } from "src/base/common/utilities/array";
+import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -50,6 +52,7 @@ export namespace FileCommands {
     
     export class FilePaste extends Command {
     
+        private fileTreeService!: IFileTreeService;
         private clipboardService!: IClipboardService;
         private fileService!: IFileService;
         private notificationService!: INotificationService;
@@ -63,49 +66,72 @@ export namespace FileCommands {
         }
     
         public override async run(provider: IServiceProvider, destination: FileItem, resources?: URI[]): Promise<boolean> {
-            const treeService        = provider.getOrCreateService(IFileTreeService);
+            this.fileTreeService     = provider.getOrCreateService(IFileTreeService);
             this.clipboardService    = provider.getOrCreateService(IClipboardService);
             const contextService     = provider.getOrCreateService(IContextService);
             this.notificationService = provider.getOrCreateService(INotificationService);
             this.fileService         = provider.getOrCreateService(IFileService);
-            this.commandService     = provider.getOrCreateService(ICommandService);
+            this.commandService      = provider.getOrCreateService(ICommandService);
 
             if (destination.isFile()) {
-                this.commandService.executeCommand(AllCommands.alertError, new Error('[FilePaste] Cannot paste on a file.'));
+                this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', new Error('Cannot paste on a file.'));
                 return false;
             }
 
             const toPaste = await this.__getResourcesToPaste(resources);
-            const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey);
-
-            // TODO: metadata updation
+            const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey)!;
+            const isCustomSorting = this.fileTreeService.getFileSortingType() === FileSortType.Custom;
 
             // nothing to paste, nothing happens.
             if (toPaste.length === 0) {
                 return false;
             }
             
+            // [normal paste]
+            if (!isCustomSorting) {
+                return await this.__doPaste(isCut, toPaste, destination);
+            }
+            
+            /**
+             * [paste under custom sorting]
+             * 
+             * Reduces the disk reading when updating custom sorting metadata, 
+             * because we are pasting resources grouped by the same parent 
+             * at each time.
+             */
+            const groups = Arrays.group(toPaste, uri => URI.toString(URI.dirname(uri)));
+            for (const group of groups.values()) {
+                const success = await this.__doPaste(isCut, group, destination);
+                if (!success) {
+                    // TODO: even if failed, the partial of 'toPaste' are successed, we need to update that as well.
+                    continue;
+                }
+
+                await this.__updateSortingMetadata(isCut, group, destination);
+            }
+            
+            return true;
+        }
+
+        private async __doPaste(isCut: boolean, toPaste: URI[], destination: FileItem): Promise<boolean> {
             try {
-                // moving
                 if (isCut) {
                     console.log('[filePaster] __doMove');
                     await this.__doMove(toPaste, destination);
                 } 
-                
-                // copying
                 else {
                     console.log('[filePaste] __copy');
                     await this.__doCopy(toPaste, destination);
                 }
+                return true;
             } 
             catch (error: any) {
-                this.commandService.executeCommand(AllCommands.alertError, error);
+                this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
+                return false;
             }
             finally {
-                treeService.simulateSelectionCut(false);
+                this.fileTreeService.simulateSelectionCut(false);
             }
-            
-            return true;
         }
 
         private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
@@ -142,7 +168,7 @@ export namespace FileCommands {
 
                 // only expect `FILE_EXISTS` error
                 if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                    this.commandService.executeCommand(AllCommands.alertError, error);
+                    this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
                 }
 
                 // duplicate item found, ask permission from the user.
@@ -157,7 +183,7 @@ export namespace FileCommands {
 
                 await this.fileService.moveTo(resource, newDestination, true).match(
                     noop, 
-                    error => this.commandService.executeCommand(AllCommands.alertError, error),
+                    error => this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error),
                 );
             }
         }
@@ -180,8 +206,16 @@ export namespace FileCommands {
                 
                 await this.fileService.copyTo(resource, newDestination).match(
                     noop,
-                    error => this.commandService.executeCommand(AllCommands.alertError, error),
+                    error => this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error),
                 );
+            }
+        }
+
+        private async __updateSortingMetadata(isCut: boolean, toPaste: URI[], destination: FileItem): Promise<void> {
+            
+            // todo
+            if (isCut) {
+
             }
         }
     }
