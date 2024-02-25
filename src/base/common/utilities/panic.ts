@@ -34,6 +34,20 @@ export function panic(error: unknown): never {
 }
 
 /**
+ * @description Asserts that the provided object is neither `undefined` nor 
+ * `null`. 
+ * @param obj The object to assert.
+ * @param message Optional. The custom error message
+ * @panic 
+ */
+export function assert<T>(obj: any, message?: string): T {
+    if (obj === undefined || obj === null) {
+        panic(message ?? 'assert error');
+    }
+    return obj;
+}
+
+/**
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.
  * @param verbose If output the stack trace.
