@@ -87,7 +87,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
  */
 export type AllCommandsArgumentsTypes = {
     
-    [AllCommands.alertError]: [reporter: string, error: unknown];
+    [AllCommands.alertError]: [reporter: string, error: Error];
     [AllCommands.toggleDevTool]: [];
     [AllCommands.reloadWindow]: [];
     [AllCommands.closeApplication]: [];
