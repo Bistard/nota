@@ -6,6 +6,8 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { FileOperationError } from "src/base/common/files/file";
 
 export const IFileTreeService = createService<IFileTreeService>('file-tree-service');
 
@@ -165,11 +167,78 @@ export interface IFileTreeService extends IDisposable, IService {
     getFileSortingOrder(): FileSortOrder;
 
     /**
-     * @description Apply the new sorting strategy to the file tree. The 
-     * function returns a promise that is fulfilled once the re-rendering is 
-     * finished.
+     * @description Apply the new sorting strategy to the file tree.
      * @param type The type of the sorting.
      * @param order The ordering of the sorting.
+     * @note This will not trigger rerendering.
      */
-    setFileSorting(type: FileSortType, order: FileSortOrder): Promise<void>;
+    setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean>;
+
+    /**
+     * @description Manually update changes to the custom sorting metadata. The
+     * metadata is used to determine the sortings of file tree when rendering.
+     * 
+     * @note Only invoke this when the sorting type {@link FileSortType} is
+     *       'custom'.
+     * @note This method will update the metadata in the memory with a single 
+     * batch and then will save to the disk.
+     * @note It does not support type 'swap' since every swap operation will 
+     *       mess up the input indice relationship. Due to simplicity, it is 
+     *       banned.
+     * @note 'items' and 'indice' must have the same length for 'Add' and 
+     *       'Update'.
+     * 
+     * @param type The type of change to apply to the metadata.
+     * @param items An array of file items to the batch change.
+     * @param parent Only support for 'Remove', indicates the parent of children
+     *               for removing.
+     * @param indice For 'Add' and 'Update', this is the index where the item is 
+     *               added or updated. For 'Remove', it's the index of the item 
+     *               to remove.
+     */
+
+
+    /**
+     * @description This method provides a way to programmatically update the 
+     * custom sorting metadata (the rendering order) of the file tree. The 
+     * changes can include adding new items, updating existing items, or 
+     * removing items to change the rendering orders. 
+     * 
+     * @note It is only useful when the file tree is set to use custom sorting 
+     *       ({@link FileSortType} is 'custom'). 
+     * 
+     * @note It's important to note that this method:
+     *  - operates directly on the metadata that influences the visual order of 
+     *      items in the file tree, 
+     *  - but DOES NOT move or modify the actual file or folder items on the 
+     *      disk.
+     *  - this method does not trigger rerendering, the NEXT rendering will be 
+     *      affected.
+     * 
+     * @note This method directly manipulates the in-memory representation of 
+     * the custom sorting metadata and then save these changes to disk. 
+     *  - It is designed to be efficient by batching updates and minimizing disk 
+     *      operations. 
+     * 
+     * @note The 'Swap' operation type is intentionally excluded from this method 
+     * to simplify the API and avoid potential complexities. 
+     *  - If swapping is needed, it can be achieved through a combination of 
+     *      'Remove' and 'Add' operations.
+     * 
+     * @note For 'Add' and 'Update' operations, the length of 'indice' must 
+     *  match the length of the 'items'. 
+     * 
+     * @param type The type of change to apply to the metadata.
+     * @param items An array of {@link FileItem} objects that are subject to the 
+     *              batch change.
+     * @param parent For 'Remove' operations, this parameter specifies the parent 
+     *               {@link FileItem} under which the items to be removed are 
+     *               located.
+     * @param indice An array of indices that correspond to the positions in the 
+     *               custom sorting order where the specified 'items' should be 
+     *               added, repositioned, or removed. 
+     */
+    updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
+    updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
+    updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
 }

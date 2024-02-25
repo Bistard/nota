@@ -21,6 +21,7 @@ import { Scheduler } from "src/base/common/utilities/async";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { Time } from "src/base/common/date";
 import { panic } from "src/base/common/utilities/panic";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 export class FileTreeService extends Disposable implements IFileTreeService {
 
@@ -194,15 +195,27 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return sorter.sortOrder;
     }
 
-    public async setFileSorting(type: FileSortType, order: FileSortOrder): Promise<void> {
+    public async setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean> {
         const sorter = this.__assertSorter();
-        const tree = this.__assertTree();
-        sorter.switchTo(type, order);
+        const success = sorter.switchTo(type, order);
         
-        this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.Memory });
-        this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.Memory });
+        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.Memory });
+        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.Memory });
+        return success;
+    }
 
-        await tree.refresh();
+    public updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
+    public updateCustomSortingMetadata(type: OrderChangeType, itemsOrParent: FileItem[] | FileItem, indice: number[]): AsyncResult<void, Error | FileOperationError> {
+        const sorter = this.__assertSorter();
+        const customSorter = sorter.getCustomSorter();
+        if (customSorter === null) {
+            return AsyncResult.err(new Error('[FileTreeService] cannot update custom sorting metadata since it is not in custom sorting mode.'));
+        }
+        
+        // update metadata in a single batch
+        return customSorter.updateMetadataLot(type, itemsOrParent, indice);
     }
 
     public override dispose(): void {
@@ -372,6 +385,6 @@ async function __syncSorterMetadataBy(sorter: FileTreeSorter<FileItem>, folder: 
         return;
     }
     
-    const customSorter = sorter.getCustomSorter();
+    const customSorter = sorter.getCustomSorter()!;
     await customSorter.syncMetadataInCacheWithDisk(folder).unwrap();
 }
