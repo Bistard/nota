@@ -339,9 +339,9 @@ export const SAMPLE_TREE_LIKE3: TreeLike<FileTreeNode> = {
         {
             value: { name: 'folder1', type: FileType.DIRECTORY },
             children: [
-                { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
-                { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
-                { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+                { value: { name: 'folder1_file1.ts', type: FileType.FILE, data: 'Data for folder1_file1.ts' } },
+                { value: { name: 'folder1_file2.TS', type: FileType.FILE, data: 'Data for folder1_file2.TS' } },
+                { value: { name: 'FOLDER1_file3.TXT', type: FileType.FILE, data: 'Data for FOLDER1_file3.TXT' } },
             ],
         },
         { value: { name: 'folder2', type: FileType.DIRECTORY } },

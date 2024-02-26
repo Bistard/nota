@@ -169,5 +169,65 @@ suite('FileItem-test', () => {
             assert.strictEqual(root.mapChildren.get('file2'), undefined);
             assert.strictEqual(root.mapChildren.get('file3'), undefined);
         });
+        
+        const baseURI = URI.join(rootURI, 'root');
+
+        test('findDescendant() (IgnoreCase)', async function() {
+            if (OS_CASE_SENSITIVE) {
+                this.skip();
+            }
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FILE1.js')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'file1.js')));
+            
+            assert.ok(root.findDescendant(URI.join(baseURI, 'file2.JS')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'file2.js')));
+            
+            assert.ok(root.findDescendant(URI.join(baseURI, 'file3.txt')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'File3.txt')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FILE3.TXT')));
+            
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder1')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder2')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER2')));
+            
+            // descendant
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file1.ts')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file2.TS')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'FOLDER1_file3.TXT')));
+            
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file1.ts')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file2.ts')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file3.txt')));
+        });
+        
+        test('findDescendant() (CaseSensitive)', async function() {
+            if (!OS_CASE_SENSITIVE) {
+                this.skip();
+            }
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FILE1.js')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'file1.js')));
+            
+            assert.ok(root.findDescendant(URI.join(baseURI, 'file2.JS')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'file2.js')));
+            
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'file3.txt')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'File3.txt')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'FILE3.TXT')));
+            
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder1')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'FOLDER1')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder2')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'FOLDER2')));
+            
+            // descendant
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file1.ts')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file2.TS')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'FOLDER1_file3.TXT')));
+            
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file1.ts')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file2.ts')));
+            assert.ok(!root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file3.txt')));
+        });
     });
 });
