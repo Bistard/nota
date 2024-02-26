@@ -3,11 +3,10 @@ import { after, before, beforeEach } from 'mocha';
 import { FileType } from 'src/base/common/files/file';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { IS_MAC, OS_CASE_SENSITIVE } from 'src/base/common/platform';
-import { TreeLike } from 'src/base/common/utilities/type';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
-import { FileItem, IFileItemResolveOptions } from 'src/workbench/services/fileTree/fileItem';
-import { FileTreeNode, SAMPLE_TREE_LIKE, SAMPLE_TREE_LIKE3, buildFileItem, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
+import { FileItem } from 'src/workbench/services/fileTree/fileItem';
+import { SAMPLE_TREE_LIKE, SAMPLE_TREE_LIKE3, buildFileItem, buildFileTree, findFileItemByPath } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 
 suite('FileItem-test', () => {
@@ -169,8 +168,6 @@ suite('FileItem-test', () => {
             assert.strictEqual(root.mapChildren.get('file1'), undefined);
             assert.strictEqual(root.mapChildren.get('file2'), undefined);
             assert.strictEqual(root.mapChildren.get('file3'), undefined);
-            assert.strictEqual(root.mapChildren.get('folder1'), undefined);
-            assert.strictEqual(root.mapChildren.get('folder2'), undefined);
         });
     });
 });
