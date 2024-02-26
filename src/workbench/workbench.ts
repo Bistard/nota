@@ -75,6 +75,19 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.logService.trace('Workbench', 'Initialized.');
     }
 
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this._contextHub?.getContextKey(name);
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        if (!this._contextHub) {
+            return false;
+        }
+        return this._contextHub.updateContext(name, value);
+    }
+
+    // [protect helper methods]
+
     protected initServices(): void {
 
         // workbench-service
@@ -157,10 +170,12 @@ export class WorkbenchContextHub extends Disposable {
     private readonly visibleFileTree: IContextKey<boolean>;
     private readonly focusedFileTree: IContextKey<boolean>;
     private readonly fileTreeOnCut: IContextKey<boolean>;
+    private readonly fileTreeOnInsert: IContextKey<boolean>;
 
     // [constructor]
 
     constructor(
+        @ILogService private readonly logService: ILogService,
         @IContextService contextService: IContextService,
         @ISideViewService private readonly sideViewService: ISideViewService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
@@ -190,9 +205,31 @@ export class WorkbenchContextHub extends Disposable {
         this.visibleFileTree = contextService.createContextKey('visibleFileTree', false, 'Whether a file tree is visible.');
         this.focusedFileTree = contextService.createContextKey('focusedFileTree', false, 'Whether a file tree is focused.');
         this.fileTreeOnCut = contextService.createContextKey(WorkbenchContextKey.fileTreeOnCutKey, false, 'True when items in the file tree are ready for cut.');
+        this.fileTreeOnInsert = contextService.createContextKey(WorkbenchContextKey.fileTreeOnInsertKey, false, 'True when items in the file tree are ready for insert.');
 
         // auto updates the context keys
         this.__registerListeners();
+    }
+
+    // [public methods]
+
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this[name];
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        const contextKey: IContextKey<unknown> | undefined = this[name];
+        if (!contextKey) {
+            return false;
+        }
+
+        if (contextKey.key !== name) {
+            this.logService.warn('WorkbenchService', `Cannot update context (incompatible name): '${name}' !== '${contextKey.key}'`);
+            return false;
+        }
+
+        contextKey.set(value);
+        return true;
     }
 
     // [private helper methods]
@@ -212,7 +249,6 @@ export class WorkbenchContextHub extends Disposable {
         this.visibleFileTree.set(this.fileTreeService.isOpened);
         this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized));
         this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused));
-        this.fileTreeService.onHighlightSelectionAsCut(isCut => this.fileTreeOnCut.set(isCut));
     }
 
     // [private update context helpers]

@@ -71,6 +71,8 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
     
     /** 
      * A mapping of the direct children of the target. Lazy loading mechanism. 
+     * @note If the current operating system is case sensitive, the keys are 
+     * all lowercased here.
      */
     readonly mapChildren: Map<string, FileItem>;
 

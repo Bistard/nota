@@ -50,11 +50,6 @@ export interface IFileTreeService extends IDisposable, IService {
     readonly onDidInitOrClose: Register<boolean>;
 
     /**
-     * Event fires when highlighting the files have been selected for cut.
-     */
-    readonly onHighlightSelectionAsCut: Register<boolean>;
-
-    /**
      * Fires when a file / folder is selected (not opened yet).
      */
     onSelect: Register<IFileTreeOpenEvent<FileItem>>;
@@ -117,6 +112,13 @@ export interface IFileTreeService extends IDisposable, IService {
      * @description Collapses all the tree nodes.
      */
     collapseAll(): Promise<void>;
+
+    /**
+     * @description Try to find the item by the given URI. If the item is not
+     * shown in the tree, an undefined will return.
+     * @param uri The uri for finding item.
+     */
+    findItem(uri: URI): FileItem | undefined;
 
     /**
      * @description Unrendering and disposing all the tree data. Does not mean

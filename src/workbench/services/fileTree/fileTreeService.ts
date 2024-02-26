@@ -22,6 +22,8 @@ import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEv
 import { Time } from "src/base/common/date";
 import { panic } from "src/base/common/utilities/panic";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
+import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 
 export class FileTreeService extends Disposable implements IFileTreeService {
 
@@ -43,6 +45,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
+        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
@@ -58,9 +61,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private readonly _onDidInitOrClose = this.__register(new Emitter<boolean>());
     public readonly onDidInitOrClose = this._onDidInitOrClose.registerListener;
-    
-    private readonly _onHighlightSelectionAsCut = this.__register(new Emitter<boolean>());
-    public readonly onHighlightSelectionAsCut = this._onHighlightSelectionAsCut.registerListener;
     
     // [getter]
 
@@ -132,6 +132,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         await tree.collapseAll();
     }
 
+    public findItem(uri: URI): FileItem | undefined {
+        const tree = this.__assertTree();
+        return tree.root.findDescendant(uri);
+    }
+
     public async close(): Promise<void> {
         if (!this._tree) {
             return;
@@ -179,16 +184,19 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {
         // TODO: find a way to render the cut item
-        this._onHighlightSelectionAsCut.fire(items.length > 0);
+
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, true);
+
+        
     }
 
     public async highlightSelectionAsCopy(items: FileItem[]): Promise<void> {
         // TODO: find a way to render the cut item
-        this._onHighlightSelectionAsCut.fire(false);
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, false);
     }
     
     public simulateSelectionCut(isCutOrCopy: boolean): void {
-        this._onHighlightSelectionAsCut.fire(isCutOrCopy);
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, isCutOrCopy);
     }
 
     public getFileSortingType(): FileSortType {

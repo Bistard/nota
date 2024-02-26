@@ -192,9 +192,9 @@ suite('FileItem-test', () => {
             assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER2')));
             
             // descendant
-            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file1.ts')));
-            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file2.TS')));
-            assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'FOLDER1_file3.TXT')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder1', 'folder1_file1.ts')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder1', 'folder1_file2.TS')));
+            assert.ok(root.findDescendant(URI.join(baseURI, 'folder1', 'FOLDER1_file3.TXT')));
             
             assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file1.ts')));
             assert.ok(root.findDescendant(URI.join(baseURI, 'FOLDER1', 'folder1_file2.ts')));
