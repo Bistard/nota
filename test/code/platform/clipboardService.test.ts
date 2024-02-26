@@ -2,13 +2,13 @@ import * as assert from 'assert';
 import { URI } from "src/base/common/files/uri";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from 'src/platform/clipboard/browser/clipboardService';
-import { SimpleLogger } from 'test/utils/testService';
+import { NullLogger } from 'test/utils/testService';
 import { afterEach, beforeEach } from 'mocha';
 import { Mutable } from 'src/base/common/utilities/type';
 
 suite('BrowserClipboardService-test', () => {
     
-    const clipboardService: IClipboardService = new BrowserClipboardService(new SimpleLogger());
+    const clipboardService: IClipboardService = new BrowserClipboardService(new NullLogger());
     let _navigatorClipboard = '';
 
     // mock 'navigator' since it does not exist in node.js env
