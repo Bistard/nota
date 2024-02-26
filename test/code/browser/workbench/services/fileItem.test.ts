@@ -80,11 +80,11 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
-            assert.strictEqual(root.mapChildren.get('file1.js'), findFileItemByPath(root, [0]));
-            assert.strictEqual(root.mapChildren.get('file2.js'), findFileItemByPath(root, [1]));
-            assert.strictEqual(root.mapChildren.get('file3.txt'), findFileItemByPath(root, [2]));
-            assert.strictEqual(root.mapChildren.get('folder1'), findFileItemByPath(root, [3]));
-            assert.strictEqual(root.mapChildren.get('folder2'), findFileItemByPath(root, [4]));
+            assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]));
+            assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]));
+            assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]));
+            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]));
+            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
         });
         
         test('property check: mapChildren (CaseSensitive)', async function () {
@@ -92,19 +92,22 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
-            console.log(root.mapChildren.keys());
-            // assert.strictEqual(root.mapChildren.get('FILE1.js'), findFileItemByPath(root, [0]));
-            // assert.strictEqual(root.mapChildren.get('file2.JS'), findFileItemByPath(root, [1]));
-            // assert.strictEqual(root.mapChildren.get('File3.txt'), findFileItemByPath(root, [2]));
-            // assert.strictEqual(root.mapChildren.get('folder1'), findFileItemByPath(root, [3]));
-            // assert.strictEqual(root.mapChildren.get('folder2'), findFileItemByPath(root, [4]));
+            assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]));
+            assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [1]));
+            assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [2]));
+            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]));
+            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
         });
     });
 
     suite('method-test', () => {
-        test('root() returns self for root', async () => {
+        test('root()', async () => {
             assert.strictEqual(root.root(), root);
             assert.ok(root.isRoot());
+        });
+
+        test('FileItem.resolve()', async () => {
+            // noop: already tested in `buildFileItem` helper utility
         });
     });
     

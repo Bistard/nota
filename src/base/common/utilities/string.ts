@@ -170,14 +170,14 @@ export namespace Strings {
             if (OS_CASE_SENSITIVE) {
                 return a === b;
             }
-            return IgnoreCase.equals(a, b);
+            return Strings.IgnoreCase.equals(a, b);
         }
 
         export function startsWith(str: string, candidate: string): boolean {
             if (OS_CASE_SENSITIVE) {
                 return str.startsWith(candidate);
             }
-            return IgnoreCase.startsWith(str, candidate);
+            return Strings.IgnoreCase.startsWith(str, candidate);
         }
     }
 }
