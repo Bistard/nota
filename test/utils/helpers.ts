@@ -269,6 +269,11 @@ export type FileTreeNode = {
     readonly data?: string | DataBuffer;
 };
 
+/**
+ * Do not modify this sample since there are unit tests are based on this.
+ *  - basic files without extension name
+ *  - basic folders
+ */
 export const SAMPLE_TREE_LIKE: TreeLike<FileTreeNode> = {
     value: {
         name: 'root',
@@ -278,6 +283,59 @@ export const SAMPLE_TREE_LIKE: TreeLike<FileTreeNode> = {
         { value: { name: 'file1', type: FileType.FILE, data: 'Data for file1' } },
         { value: { name: 'file2', type: FileType.FILE, data: 'Data for file2' } },
         { value: { name: 'file3', type: FileType.FILE, data: 'Data for file3' } },
+        {
+            value: { name: 'folder1', type: FileType.DIRECTORY },
+            children: [
+                { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
+                { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
+                { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+            ],
+        },
+        { value: { name: 'folder2', type: FileType.DIRECTORY } },
+    ],
+};
+
+/**
+ * Do not modify this sample since there are unit tests are based on this.
+ *  - basic files with extension name
+ *  - basic folders
+ */
+export const SAMPLE_TREE_LIKE2: TreeLike<FileTreeNode> = {
+    value: {
+        name: 'root',
+        type: FileType.DIRECTORY,
+    },
+    children: [
+        { value: { name: 'file1.js', type: FileType.FILE, data: 'Data for file1.js' } },
+        { value: { name: 'file2.js', type: FileType.FILE, data: 'Data for file2.js' } },
+        { value: { name: 'file3.txt', type: FileType.FILE, data: 'Data for file3.txt' } },
+        {
+            value: { name: 'folder1', type: FileType.DIRECTORY },
+            children: [
+                { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
+                { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
+                { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+            ],
+        },
+        { value: { name: 'folder2', type: FileType.DIRECTORY } },
+    ],
+};
+
+/**
+ * Do not modify this sample since there are unit tests are based on this.
+ *  - basic files with extension
+ *  - basic folders
+ *  - case sensitive
+ */
+export const SAMPLE_TREE_LIKE3: TreeLike<FileTreeNode> = {
+    value: {
+        name: 'root',
+        type: FileType.DIRECTORY,
+    },
+    children: [
+        { value: { name: 'FILE1.js', type: FileType.FILE, data: 'Data for FILE1.js' } },
+        { value: { name: 'file2.JS', type: FileType.FILE, data: 'Data for file2.JS' } },
+        { value: { name: 'File3.txt', type: FileType.FILE, data: 'Data for File3.txt' } },
         {
             value: { name: 'folder1', type: FileType.DIRECTORY },
             children: [
