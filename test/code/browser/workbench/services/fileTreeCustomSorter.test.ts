@@ -1,17 +1,16 @@
 import * as assert from 'assert';
 import { after, before, beforeEach } from 'mocha';
 import { DataBuffer } from 'src/base/common/files/buffer';
-import { FileType } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
 import { Arrays } from 'src/base/common/utilities/array';
 import { generateMD5Hash } from 'src/base/common/utilities/hash';
-import { Pair, TreeLike } from 'src/base/common/utilities/type';
+import { Pair } from 'src/base/common/utilities/type';
 import { FileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem } from 'src/workbench/services/fileTree/fileItem';
 import { defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileTreeCustomSorter, OrderChangeType } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
-import { FileTreeNode, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
+import { SAMPLE_TREE_LIKE, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 import { executeOnce } from 'src/base/common/utilities/function';
 
@@ -30,27 +29,6 @@ suite('fileTreeCustomSorter-test', () => {
 
     // Always refresh the tree structure to the file system hierarchy befor every test
     async function refreshFileSystem() {
-        const tree: TreeLike<FileTreeNode> = {
-            value: {
-                name: 'root',
-                type: FileType.DIRECTORY,
-            },
-            children: [
-                { value: { name: 'file1', type: FileType.FILE, data: 'Data for file1' } },
-                { value: { name: 'file2', type: FileType.FILE, data: 'Data for file2' } },
-                { value: { name: 'file3', type: FileType.FILE, data: 'Data for file3' } },
-                {
-                    value: { name: 'folder1', type: FileType.DIRECTORY },
-                    children: [
-                        { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
-                        { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
-                        { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
-                    ],
-                },
-                { value: { name: 'folder2', type: FileType.DIRECTORY } },
-            ],
-        };
-
         // build the file tree hierarchy
         sorter?.dispose();
         sorter = new FileTreeCustomSorter({
@@ -58,7 +36,7 @@ suite('fileTreeCustomSorter-test', () => {
             hash: hash,
             defaultComparator: defaultFileItemCompareFn,
         }, fileService, new NullLogger());
-        await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, tree);
+        await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
     }
 
     async function cleanCache(): Promise<void> {

@@ -284,6 +284,27 @@ export type FileTreeNode = {
     readonly data?: string | DataBuffer;
 };
 
+export const SAMPLE_TREE_LIKE: TreeLike<FileTreeNode> = {
+    value: {
+        name: 'root',
+        type: FileType.DIRECTORY,
+    },
+    children: [
+        { value: { name: 'file1', type: FileType.FILE, data: 'Data for file1' } },
+        { value: { name: 'file2', type: FileType.FILE, data: 'Data for file2' } },
+        { value: { name: 'file3', type: FileType.FILE, data: 'Data for file3' } },
+        {
+            value: { name: 'folder1', type: FileType.DIRECTORY },
+            children: [
+                { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
+                { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
+                { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+            ],
+        },
+        { value: { name: 'folder2', type: FileType.DIRECTORY } },
+    ],
+};
+
 /**
  * @description Asynchronously builds a file tree starting from a given root URI 
  * using the provided file service. Each node in the tree represents either a 
