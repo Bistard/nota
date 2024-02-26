@@ -10,7 +10,7 @@ import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemPr
 import { FileItem } from 'src/workbench/services/fileTree/fileItem';
 import { defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileTreeCustomSorter, OrderChangeType } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
-import { SAMPLE_TREE_LIKE, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
+import { SAMPLE_TREE_LIKE, buildFileItem, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 import { executeOnce } from 'src/base/common/utilities/function';
 
@@ -47,26 +47,11 @@ suite('fileTreeCustomSorter-test', () => {
      * @description A helper function to build a {@link FileItem} hierarchy 
      * based on the provided URI in the file system hierarchy.
      */
-    async function buildFileItem(uri: URI): Promise<FileItem> {
-        
-        // stat
-        const resolvedStat = await fileService.stat(URI.join(uri, 'root'), {
-            resolveChildren: true,
-            resolveChildrenRecursive: true,
-        }).unwrap();
-
-        // resolve FileItem
-        const root = await FileItem.resolve(resolvedStat, null, {
-            onError: error => console.log(error),
-            beforeCmp: async folder => await sorter.syncMetadataInCacheWithDisk(folder).unwrap(),
-            cmp: sorter.compare.bind(sorter),
-        });
-
-        // for test purpose if needed
-        // printFileItem(root);
-
-        return root;
-    }
+    const buildFileItem2 = (uri: URI) => buildFileItem(fileService, uri, {
+        onError: error => console.log(error),
+        beforeCmp: async folder => await sorter.syncMetadataInCacheWithDisk(folder).unwrap(),
+        cmp: sorter.compare.bind(sorter),
+    });
 
     function getMetadataURI(folder: URI): URI {
         const root = rootURI;
@@ -133,7 +118,7 @@ suite('fileTreeCustomSorter-test', () => {
         after(async () => cleanCache());
 
         test('default order (directory goes first, then alphabet)', async () => {
-            await buildFileItem(rootURI);
+            await buildFileItem2(rootURI);
 
             await assertMetadataInDisk(
                 URI.join(rootURI, 'root'), 
@@ -148,7 +133,7 @@ suite('fileTreeCustomSorter-test', () => {
         });
 
         test('empty folder will not have corresponding metadata', async () => {
-            await buildFileItem(rootURI);
+            await buildFileItem2(rootURI);
             await assertMetadataInDisk(
                 URI.join(rootURI, 'root', 'folder2'), 
                 false,
@@ -163,7 +148,7 @@ suite('fileTreeCustomSorter-test', () => {
             );
 
             // build the actual FileItem
-            await buildFileItem(rootURI);
+            await buildFileItem2(rootURI);
 
             // file should goes first
             await assertMetadataInDisk(
@@ -186,11 +171,11 @@ suite('fileTreeCustomSorter-test', () => {
     }): Promise<void> 
     {
         // before action is applied
-        const root = await buildFileItem(rootURI);
+        const root = await buildFileItem2(rootURI);
         await opts.action(root);
 
         // after action is applied
-        const newRoot = await buildFileItem(rootURI);
+        const newRoot = await buildFileItem2(rootURI);
         await opts.assertFn(newRoot);
     }
 

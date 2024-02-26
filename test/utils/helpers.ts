@@ -8,7 +8,7 @@ import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray, TreeLike } from "src/base/common/utilities/type";
 import { IFileService } from 'src/platform/files/common/fileService';
-import { FileItem } from 'src/workbench/services/fileTree/fileItem';
+import { FileItem, IFileItemResolveOptions } from 'src/workbench/services/fileTree/fileItem';
 
 let _hitCount = 0;
 
@@ -251,21 +251,6 @@ export function printFileStat(stat: IResolvedFileStat): void {
     );
 }
 
-/**
- * @description Prints the file structure starting from the given 'root' 
- * FileItem. This is a specialized usage of {@link printNaryTreeLike} function 
- * tailored for printing file items.
- * @param root The root of the file structure to be printed.
- */
-export function printFileItem(root: FileItem): void {
-    printNaryTreeLike(
-        root,
-        node => node.name,
-        node => node.children.length > 0,
-        node => node.children,
-    );
-}
-
 export interface IBuildFileTreeOptions {
     /**
      * If clean all the existing files/folders before build.
@@ -354,6 +339,45 @@ export async function buildFileTree<T extends FileTreeNode>(fileService: IFileSe
 
     // Start building the tree from the root
     await dfs(rootURI, tree);
+}
+
+/**
+ * @description A helper function to build a {@link FileItem} hierarchy 
+ * based on the provided URI in the file system hierarchy.
+ * @note Make sure the file system hierarchy is already built.
+ */
+export async function buildFileItem(fileService: IFileService, uri: URI, opts?: IFileItemResolveOptions<FileItem>): Promise<FileItem> {
+    
+    // stat
+    const resolvedStat = await fileService.stat(URI.join(uri, 'root'), {
+        resolveChildren: true,
+        resolveChildrenRecursive: true,
+    }).unwrap();
+
+    // resolve FileItem
+    const root = await FileItem.resolve(resolvedStat, null, opts ?? {
+        onError: error => console.log(error),
+    });
+
+    // for test purpose if needed
+    // printFileItem(root);
+
+    return root;
+}
+
+/**
+ * @description Prints the file structure starting from the given 'root' 
+ * FileItem. This is a specialized usage of {@link printNaryTreeLike} function 
+ * tailored for printing file items.
+ * @param root The root of the file structure to be printed.
+ */
+export function printFileItem(root: FileItem): void {
+    printNaryTreeLike(
+        root,
+        node => node.name,
+        node => node.children.length > 0,
+        node => node.children,
+    );
 }
 
 /**
