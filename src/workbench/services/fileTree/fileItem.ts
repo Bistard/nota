@@ -5,10 +5,11 @@ import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { Comparator, Mutable } from "src/base/common/utilities/type";
+import { Comparator } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { tryOrDefault } from "src/base/common/error";
-import { parse } from "src/base/common/files/path";
+import { parse, posix } from "src/base/common/files/path";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * An interface only for {@link FileItem}.
@@ -43,20 +44,35 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      */
     readonly extname: string;
 
-    /** The type of the target. */
+    /** 
+     * The type of the target. 
+     */
     readonly type: FileType;
 
-    /** The creation date in milliseconds. */
+    /** 
+     * The creation date in milliseconds. 
+     */
     readonly createTime: number;
 
-    /** The last modified date in milliseconds.*/
+    /** 
+     * The last modified date in milliseconds.
+     */
     readonly modifyTime: number;
 
-    /** The parent of the target. Null if current target is the root. */
+    /** 
+     * The parent of the target. Null if current target is the root. 
+     */
     readonly parent: TItem | null;
 
-    /** The direct children of the target. */
+    /** 
+     * The direct children of the target. 
+     */
     readonly children: TItem[];
+    
+    /** 
+     * A mapping of the direct children of the target. Lazy loading mechanism. 
+     */
+    readonly mapChildren: Map<string, FileItem>;
 
     /**
      * @description Returns the root of the current target
@@ -166,6 +182,14 @@ export class FileItem implements IFileItem<FileItem> {
      */
     private _isResolved = false;
 
+    /**
+     * Perf reason: for fast lookup, lazy loading mechanism. 
+     * Do not access this directly, use 'this.mapChildren' instead.
+     * @note The keys (name of the child) is smartly adjusted by the case 
+     *       sensitive.
+     */
+    private _mapChildrenCache?: Map<string, FileItem>;
+
     // [constructor]
 
     /**
@@ -208,6 +232,21 @@ export class FileItem implements IFileItem<FileItem> {
     get parent(): FileItem | null { return this._parent; }
 
     get children(): FileItem[] { return this._children; }
+
+    @memoize
+    get mapChildren(): Map<string, FileItem> {
+        if (this._mapChildrenCache) {
+            return this._mapChildrenCache;
+        }
+        
+        this._mapChildrenCache = new Map();
+        for (const child of this._children) {
+            const resolvedName = Strings.Smart.adjust(child.name);
+            this._mapChildrenCache.set(resolvedName, child);
+        }
+        
+        return this._mapChildrenCache;
+    }
 
     // [public static method]
 
@@ -321,9 +360,11 @@ export class FileItem implements IFileItem<FileItem> {
 
     public forgetChildren(): void {
         this._children = [];
+        this._mapChildrenCache = undefined;
         this._isResolved = false;
-        (<Mutable<typeof this._stat.children>>this._stat.children) = undefined;
-    }
+        (<any>this._stat.children) = undefined;
+    }   
+
 }
 
 /**
