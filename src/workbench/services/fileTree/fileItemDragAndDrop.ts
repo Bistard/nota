@@ -21,6 +21,8 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
+import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
+import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -67,6 +69,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         @INotificationService private readonly notificationService: INotificationService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @ICommandService private readonly commandService: ICommandService,
+        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
         super();
         this._sorter = sorter;
@@ -479,6 +482,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // simulate drop action (copy) as copy, so that we can able to paste.
         this.fileTreeService.simulateSelectionCut(false);
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
+
         await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
     
@@ -486,6 +491,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         
         // simulate drop action (move) as cut, so that we can able to paste.
         this.fileTreeService.simulateSelectionCut(true);
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
+
         await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
 }

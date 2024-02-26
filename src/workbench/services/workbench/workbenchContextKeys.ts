@@ -34,5 +34,7 @@ export namespace WorkbenchContextKey {
     );
     export const fileTreeOnCutKey = 'fileTreeOnCut';
     export const fileTreeOnCut = CreateContextKeyExpr.Equal(fileTreeOnCutKey, false);
+    export const fileTreeOnInsertKey = 'fileTreeOnInsert';
+    export const fileTreeOnInsert = CreateContextKeyExpr.Equal(fileTreeOnInsertKey, false);
 }
 
