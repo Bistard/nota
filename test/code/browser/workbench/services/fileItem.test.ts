@@ -80,6 +80,7 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
+            // since the order doesn't matter, they are ordered by default.
             assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]));
             assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]));
             assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]));
@@ -92,17 +93,12 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
-            console.log(root.mapChildren.keys());
-            assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]), '0 fails');
-            
-            console.log(root.mapChildren.get('file2.JS')?.name);
-            console.log(findFileItemByPath(root, [1])?.name);
-            assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [1]), '1 fails');
-            
-            
-            // assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [2]), '2 fails');
-            // assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]), '3 fails');
-            // assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]), '4 fails');
+            // since the order does matter, they are ordered differently.
+            assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]));
+            assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [1]));
+            assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [2]));
+            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]));
+            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
         });
     });
 
