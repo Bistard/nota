@@ -87,8 +87,8 @@ suite('FileItem-test', () => {
                  * still doesn't distinguish between 'file1.js' and 'FILE1.js'.
                  */
                 assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]));
-                assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]));
-                assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]));
+                assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [1]));
+                assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [2]));
                 assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]));
                 assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
             }
