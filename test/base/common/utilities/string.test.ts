@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { IS_LINUX } from 'src/base/common/platform';
 import { Strings } from 'src/base/common/utilities/string';
 
 suite('Strings-test', function () {
@@ -94,6 +95,7 @@ suite('Strings-test', function () {
     });
 
     suite('IgnoreCase Namespace', function () {
+        
         suite('#equals()', function () {
             test('should return true for equal strings ignoring case', function () {
                 assert.strictEqual(Strings.IgnoreCase.equals('hello', 'HELLO'), true);
@@ -154,34 +156,59 @@ suite('Strings-test', function () {
     });
 
     suite('Smart Namespace', function () {
-        // suite('#adjust()', function () {
-        //     test('should return lowercase string if OS is case insensitive', function () {
-        //         // Assuming OS_CASE_SENSITIVE is false for this test
-        //         assert.strictEqual(Strings.Smart.adjust('HeLLo'), 'hello');
-        //     });
-        // });
+        
+        suite('#adjust()', function () {
+            test('CaseSensitive', function () {
+                if (!IS_LINUX) {
+                    this.skip();
+                }
+                assert.strictEqual(Strings.Smart.adjust('HeLLo'), 'HeLLo');
+            });
+            
+            test('CaseIgnore', function () {
+                if (IS_LINUX) {
+                    this.skip();
+                }
+                assert.strictEqual(Strings.Smart.adjust('HeLLo'), 'hello');
+                assert.strictEqual(Strings.Smart.adjust('hello'), 'hello');
+            });
+        });
 
-        // suite('#equals()', function () {
-        //     test('should return true for equal strings considering OS case sensitivity', function () {
-        //         // Assuming OS_CASE_SENSITIVE is true for this test
-        //         assert.strictEqual(Strings.Smart.equals('hello', 'hello'), true);
-        //     });
+        suite('#equals()', function () {
+            test('CaseSensitive', function () {
+                if (!IS_LINUX) {
+                    this.skip();
+                }
+                assert.strictEqual(Strings.Smart.equals('hello', 'hello'), true);
+                assert.strictEqual(Strings.Smart.equals('hello', 'HELLO'), false);
+            });
 
-        //     test('should return false for unequal strings', function () {
-        //         assert.strictEqual(Strings.Smart.equals('hello', 'HELLO'), false);
-        //     });
-        // });
+            test('CaseIgnore', function () {
+                if (IS_LINUX) {
+                    this.skip();
+                }
+                assert.strictEqual(Strings.Smart.equals('hello', 'hello'), true);
+                assert.strictEqual(Strings.Smart.equals('hello', 'HELLO'), true);
+            });
+        });
 
-        // suite('#startsWith()', function () {
-        //     test('should return true if string starts with candidate considering OS case sensitivity', function () {
-        //         // Assuming OS_CASE_SENSITIVE is true for this test
-        //         assert.strictEqual(Strings.Smart.startsWith('Hello world', 'Hello'), true);
-        //     });
+        suite('#startsWith()', function () {
+            test('CaseSensitive', function () {
+                if (!IS_LINUX) {
+                    this.skip();
+                }
+                assert.strictEqual(Strings.Smart.startsWith('HELLO world', 'Hello'), false);
+                assert.strictEqual(Strings.Smart.startsWith('Hello world', 'Hello'), true);
+            });
 
-        //     test('should return false if string does not start with candidate', function () {
-        //         assert.strictEqual(Strings.Smart.startsWith('world hello', 'hello'), false);
-        //     });
-        // });
+            test('CaseIgnore', function () {
+                if (IS_LINUX) {
+                    this.skip();
+                }
+                assert.strictEqual(Strings.Smart.startsWith('HELLO world', 'hello'), true);
+                assert.strictEqual(Strings.Smart.startsWith('hello world', 'hello'), true);
+            });
+        });
     });
 
 });

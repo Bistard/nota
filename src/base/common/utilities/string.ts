@@ -155,6 +155,10 @@ export namespace Strings {
      */
     export namespace Smart {
         
+        /**
+         * @description If case sensitive, return the same string, otherwise
+         * a lower case version of the string returned.
+         */
         export function adjust(str: string): string {
             if (OS_CASE_SENSITIVE) {
                 return str;
