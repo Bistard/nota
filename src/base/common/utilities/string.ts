@@ -1,9 +1,14 @@
-import { Arrays } from "src/base/common/utilities/array";
+import { compareSubstringIgnoreCase } from "src/base/common/files/glob";
+import { OS_CASE_SENSITIVE } from "src/base/common/platform";
 import { Iterable } from "src/base/common/utilities/iterable";
-import { isObject } from "src/base/common/utilities/type";
+import { CompareOrder, isObject } from "src/base/common/utilities/type";
 
 /**
  * @namespace Strings A collection of functions that relates to string types.
+ * 
+ * A list of sub-namespaces.
+ * @see Strings.IgnoreCase
+ * @see Strings.Smart
  */
 export namespace Strings {
 
@@ -35,7 +40,9 @@ export namespace Strings {
             if (isObject(obj)) {
                 try {
                     obj = JSON.stringify(obj);
-                } catch (e) { }
+                } catch (e) {
+                    console.log(`[Strings.stringify] error: ${e}`);
+                }
             }
 
             result += (i > 0 ? ' ' : '') + obj;
@@ -71,7 +78,104 @@ export namespace Strings {
         return result;
     }
     
+    /**
+     * @description Trims all occurrences of a specified substring from the end 
+     * of a given string.
+     * 
+     * @note The function iterates from the end of the string (`haystack`) and 
+     * removes each occurrence of the `needle` substring until it encounters a 
+     * part of the `haystack` that does not end with the `needle`.
+     * 
+     * @note If the `haystack` or `needle` is empty, or if the `needle` is not 
+     * found at the end of the `haystack`, the original `haystack` string is 
+     * returned unchanged.
+     * 
+     * @param haystack The string from which to remove the trailing occurrences 
+     *                 of `needle`.
+     * @param needle The substring to remove from the end of `haystack`.
+     * @returns The modified string with the `needle` removed from the end, or 
+     *          the original `haystack` if no `needle` is found at the end.
+     * 
+     * @example
+     * rtrim('Hello world!!!', '!'); // Returns 'Hello world'
+     * rtrim('foobarbarbar', 'bar'); // Returns 'foo'
+     * rtrim('abcabc', 'abc'); // Returns ''
+     */
+    export function rtrim(haystack: string, needle: string): string {
+        if (!haystack || !needle) {
+            return haystack;
+        }
 
+        const needleLen = needle.length;
+        const haystackLen = haystack.length;
+
+        if (needleLen === 0 || haystackLen === 0) {
+            return haystack;
+        }
+
+        let offset = haystackLen;
+        let idx = -1;
+
+        while (true) {
+            idx = haystack.lastIndexOf(needle, offset - 1);
+            if (idx === -1 || idx + needleLen !== offset) {
+                break;
+            }
+            if (idx === 0) {
+                return '';
+            }
+            offset = idx;
+        }
+
+        return haystack.substring(0, offset);
+    }
+
+    /**
+     * This namespace contains a list of string comparsion utilities that will
+     * ignore case sensitivity.
+     */
+    export namespace IgnoreCase {
+        
+        export function equals(a: string, b: string): boolean {
+            return a.length === b.length && compareSubstringIgnoreCase(a, b) === CompareOrder.Same;
+        }
+
+        export function startsWith(str: string, candidate: string): boolean {
+            const candidateLength = candidate.length;
+            if (candidate.length > str.length) {
+                return false;
+            }
+            return compareSubstringIgnoreCase(str, candidate, 0, candidateLength) === CompareOrder.Same;
+        }
+    }
+
+    /**
+     * This namespace will smartly detecting should enable or disable ignoring
+     * case when doing string comparsion.
+     */
+    export namespace Smart {
+        
+        export function adjust(str: string): string {
+            if (OS_CASE_SENSITIVE) {
+                return str;
+            }
+            return str.toLowerCase();
+        }
+
+        export function equals(a: string, b: string): boolean {
+            if (OS_CASE_SENSITIVE) {
+                return a === b;
+            }
+            return IgnoreCase.equals(a, b);
+        }
+
+        export function startsWith(str: string, candidate: string): boolean {
+            if (OS_CASE_SENSITIVE) {
+                return str.startsWith(candidate);
+            }
+            return IgnoreCase.startsWith(str, candidate);
+        }
+    }
 }
 
 /**
