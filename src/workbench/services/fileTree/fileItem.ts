@@ -99,7 +99,8 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
     isFile(): boolean;
 
     /**
-     * @description Is the current item has ever update its children before.
+     * @description Is the current item is updated. If the item has ever update 
+     * its children before, this returns false.
      * @complexity O(1)
      */
     isChildrenResolved(): boolean;
@@ -127,6 +128,16 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * @description Forgets all the children of the current item.
      */
     forgetChildren(): void;
+
+    /**
+     * @description Try to find a child item if it is under the parent of the 
+     * current item (recursive).
+     * @param uri The uri of the child.
+     * 
+     * @note Some string comparsion happens here. Might raise perf issue is 
+     * calling too frequently.
+     */
+    findDescendant(uri: URI): FileItem | undefined;
 }
 
 export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
@@ -365,6 +376,60 @@ export class FileItem implements IFileItem<FileItem> {
         (<any>this._stat.children) = undefined;
     }   
 
+    public findDescendant(uri: URI): FileItem | undefined {
+        
+        /**
+         * For perf reason, try to do some comparsion first to see it needs to 
+         * go deeper.
+         */
+        if (this.uri.scheme !== uri.scheme) {
+            return undefined;
+        }
+
+        if (!Strings.Smart.equals(this.uri.authority, uri.authority)) {
+            return undefined;
+        }
+
+        if (!Strings.Smart.startsWith(uri.path, this.uri.path)) {
+            return undefined;
+        }
+
+        return this.__findChildByPath(uri.path, this.uri.path.length);
+    }
+
+    // [private helper methods]
+
+    private __findChildByPath(path: string, index: number): FileItem | undefined {
+		if (Strings.Smart.equals(Strings.rtrim(this.uri.path, posix.sep), path)) {
+			return this;
+		}
+
+		if (this.isFile()) {
+			return undefined;
+		}
+
+        // Ignore separtor to more easily deduct the next name to search
+        while (index < path.length && path[index] === posix.sep) {
+            index++;
+        }
+
+        let indexOfNextSep = path.indexOf(posix.sep, index);
+        if (indexOfNextSep === -1) {
+            // If there is no separator take the remainder of the path
+            indexOfNextSep = path.length;
+        }
+
+        // The name to search is between two separators
+        const name = Strings.Smart.adjust(path.substring(index, indexOfNextSep));
+        const child = this.mapChildren.get(name);
+
+        if (child) {
+            // We found a child with the given name, continue search deeper
+            return child.__findChildByPath(path, indexOfNextSep);
+        }
+
+        return undefined;
+	}
 }
 
 /**
