@@ -1,5 +1,3 @@
-import { Strings } from "src/base/common/utilities/string";
-import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * To prevent potential circular dependency issues due to the wide use of `panic` 
@@ -19,7 +17,7 @@ import { isNullable } from "src/base/common/utilities/type";
  */
 
 export function panic(error: unknown): never {
-    if (isNullable(error)) {
+    if (error === undefined || error === null) {
         // eslint-disable-next-line local/code-no-throw
         throw new Error('unknown panic error');
     }
@@ -65,7 +63,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
         const firstErrorMessage = errorToMessage(errors[0], verbose);
 
         if (errors.length > 1) {
-            return Strings.format('{0}, ({1} more errors in total)', [firstErrorMessage, errors.length - 1]);
+            return `${firstErrorMessage}, (${errors.length - 1} more errors in total)`;
         }
 
         return firstErrorMessage;
@@ -76,7 +74,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
     }
 
     if (error.stack && verbose) {
-        return Strings.format('{0} (stack trace - {1})', [error.message || UNKNOWN_MESSAGE, __stackToMessage(error.stack)]);
+        return `${error.message || UNKNOWN_MESSAGE} (stack trace - ${__stackToMessage(error.stack)})`;
     }
 
     if (error.message) {
