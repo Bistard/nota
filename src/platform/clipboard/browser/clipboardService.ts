@@ -6,11 +6,12 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
  * @class Provides clipboard operations such as reading and writing text and 
  * resources. 
  * It supports operations for two types of clipboard content: 
- *      - plain text and 
- *      - resources, stored only in memory.
+ *      - plain text ('navigator.clipboard' API),
+ *      - resources, stored only in memory,
+ *      - arbitrary data with a string identifer.
  *
- * @note The class uses the Clipboard API (`navigator.clipboard`) for text 
- *       operations.
+ * @note Writing arbitrary means the reference of that data is simply storing 
+ *       the data in the memory, nothing special will happen.
  
  * @example
  * ```typescript
@@ -36,37 +37,45 @@ export class BrowserClipboardService implements IClipboardService {
     
     // [fields]
 
-    private _resources: URI[];
+    private _resourcesCache: URI[];
+    private _arbitraryCache: Map<string, any>;
 
     // [constructor]
 
     constructor(
         @ILogService private readonly logService: ILogService,
     ) {
-        this._resources = [];
+        this._resourcesCache = [];
+        this._arbitraryCache = new Map();
     }
 
     // [public methods]
 
     public async write(type: ClipboardType.Text, content: string): Promise<void>;
     public async write(type: ClipboardType.Resources, content: URI[]): Promise<void>;
-    public async write(type: ClipboardType, content: string | URI[]): Promise<void> {
+    public async write<T>(type: ClipboardType.Arbitrary, content: T): Promise<void>;
+    public async write<T>(type: ClipboardType, content: string | URI[] | T, key?: string): Promise<void> {
         switch (type) {
             case ClipboardType.Text:
                 return this.__writeText(<string>content);
             case ClipboardType.Resources:
                 return this.__writeResources(<URI[]>content);
+            case ClipboardType.Arbitrary:
+                return this.__writeArbitrary(content, key!);
         }
     }
 
     public async read(type: ClipboardType.Text): Promise<string>;
     public async read(type: ClipboardType.Resources): Promise<URI[]>;
-    public async read(type: ClipboardType): Promise<string | URI[]> {
+    public async read<T>(type: ClipboardType.Arbitrary, key: string): Promise<T>;
+    public async read<T>(type: ClipboardType, key?: string): Promise<string | URI[] | T | undefined> {
         switch (type) {
             case ClipboardType.Text:
                 return this.__readText();
             case ClipboardType.Resources:
                 return this.__readResources();
+            case ClipboardType.Arbitrary:
+                return this.__readArbitrary<T>(key!);
         }
     }
 
@@ -81,7 +90,7 @@ export class BrowserClipboardService implements IClipboardService {
     }
     
     private async __writeResources(content: URI[]): Promise<void> {
-        this._resources = content;
+        this._resourcesCache = content;
     }
 
     private async __readText(): Promise<string> {
@@ -100,8 +109,20 @@ export class BrowserClipboardService implements IClipboardService {
     }
 
     private __cleanResources(): URI[] {
-        const oldResource = this._resources;
-        this._resources = [];
+        const oldResource = this._resourcesCache;
+        this._resourcesCache = [];
         return oldResource;
+    }
+
+    private __writeArbitrary<T>(content: T, key: string): void {
+        this._arbitraryCache.set(key, content);
+    }
+
+    private __readArbitrary<T>(key: string): T | undefined {
+        const data = this._arbitraryCache.get(key);
+        if (data !== undefined) {
+            this._arbitraryCache.delete(key);
+        }
+        return data;
     }
 }

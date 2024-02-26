@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { URI } from "src/base/common/files/uri";
-import { ClipboardType } from "src/platform/clipboard/common/clipboard";
+import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from 'src/platform/clipboard/browser/clipboardService';
 import { SimpleLogger } from 'test/utils/testService';
 import { afterEach, beforeEach } from 'mocha';
@@ -8,7 +8,7 @@ import { Mutable } from 'src/base/common/utilities/type';
 
 suite('BrowserClipboardService-test', () => {
     
-    const clipboardService = new BrowserClipboardService(new SimpleLogger());
+    const clipboardService: IClipboardService = new BrowserClipboardService(new SimpleLogger());
     let _navigatorClipboard = '';
 
     // mock 'navigator' since it does not exist in node.js env
@@ -54,5 +54,28 @@ suite('BrowserClipboardService-test', () => {
         await clipboardService.read(ClipboardType.Resources);
         const result = await clipboardService.read(ClipboardType.Resources);
         assert.deepStrictEqual(result, []);
+    });
+
+    test('write and read arbitrary data', async () => {
+        const arr: number[] = [1, 2, 3];
+        await clipboardService.write(ClipboardType.Arbitrary, arr, 'my_array');
+        const result = await clipboardService.read(ClipboardType.Arbitrary, 'my_array');
+        assert.ok(arr === result, 'reading arbitrary data should have the same reference');
+    });
+    
+    test('clean arbitrary data after read', async () => {
+        const arr: number[] = [1, 2, 3];
+        await clipboardService.write(ClipboardType.Arbitrary, arr, 'my_array');
+        await clipboardService.read(ClipboardType.Arbitrary, 'my_array');
+        const result = await clipboardService.read(ClipboardType.Arbitrary, 'my_array');
+        assert.ok(result === undefined, 'second reading should return nothing');
+    });
+    
+    test('clean arbitrary data after read', async () => {
+        const arr: number[] = [1, 2, 3];
+        await clipboardService.write(ClipboardType.Arbitrary, arr, 'my_array');
+        await clipboardService.read(ClipboardType.Arbitrary, 'my_array');
+        const result = await clipboardService.read(ClipboardType.Arbitrary, 'my_array');
+        assert.ok(result === undefined, 'second reading should return nothing');
     });
 });

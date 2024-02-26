@@ -4,8 +4,9 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 export const IClipboardService = createService<IClipboardService>('clipboard-service');
 
 export const enum ClipboardType {
-    Text,
-    Resources,
+    Text      = 'text',
+    Resources = 'resource',
+    Arbitrary = 'arbitrary',
 }
 
 export interface IClipboardService extends IService {
@@ -15,27 +16,33 @@ export interface IClipboardService extends IService {
      * `ClipboardType`. 
      * 
      * Supports writing either:
-     *      - plain text or
-     *      - an array of resources.
+     *      - plain text,
+     *      - an array of resources,
+     *      - arbitrary data.
      * 
      * @param type The type of content to write to the clipboard.
      * @param content The content to write to the clipboard.
+     * @param key An identifier to the arbitrary data. Used to group them together.
      * @returns A promise that resolves when the operation is complete.
      */
     write(type: ClipboardType.Text, content: string): Promise<void>;
     write(type: ClipboardType.Resources, content: URI[]): Promise<void>;
+    write<T>(type: ClipboardType.Arbitrary, content: T, key: string): Promise<void>;
 
     /**
      * @description Reads content from the clipboard based on the specified 
      * `ClipboardType`. The read data cannot be read again.
      * 
      * Supports writing either:
-     *      - plain text or
-     *      - an array of resources.
+     *      - plain text,
+     *      - an array of resources,
+     *      - arbitrary data.
      * 
      * @param type The type of content to write to the clipboard.
+     * @param key An identifier to the arbitrary data.
      * @returns A promise that resolves with the content read from the clipboard.
      */
     read(type: ClipboardType.Text): Promise<string>;
     read(type: ClipboardType.Resources): Promise<URI[]>;
+    read<T>(type: ClipboardType.Arbitrary, key: string): Promise<T | undefined>;
 }
