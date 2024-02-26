@@ -2,12 +2,12 @@ import * as assert from 'assert';
 import { after, before, beforeEach } from 'mocha';
 import { FileType } from 'src/base/common/files/file';
 import { Schemas, URI } from 'src/base/common/files/uri';
-import { OS_CASE_SENSITIVE } from 'src/base/common/platform';
+import { IS_MAC, OS_CASE_SENSITIVE } from 'src/base/common/platform';
 import { TreeLike } from 'src/base/common/utilities/type';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem, IFileItemResolveOptions } from 'src/workbench/services/fileTree/fileItem';
-import { FileTreeNode, SAMPLE_TREE_LIKE, SAMPLE_TREE_LIKE3, buildFileItem, buildFileTree, findFileItemByPath } from 'test/utils/helpers';
+import { FileTreeNode, SAMPLE_TREE_LIKE, SAMPLE_TREE_LIKE3, buildFileItem, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 
 suite('FileItem-test', () => {
@@ -80,11 +80,13 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
-            // since the order doesn't matter, they are ordered by default.
-            console.log(root.mapChildren.keys());
             
             if (IS_MAC) {
-                // macOS still keep the cases when reading from the disk
+                /**
+                 * macOS still keep the cases when reading from the disk, so
+                 * they are ordered by default like they are case sensitive. But
+                 * still doesn't distinguish between 'file1.js' and 'FILE1.js'.
+                 */
                 assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]));
                 assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]));
                 assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]));
@@ -92,7 +94,7 @@ suite('FileItem-test', () => {
                 assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
             }
             else {
-                // Windows doesn't give a shit about order, they are ordered by default.
+                // Windows doesn't give a shit about order, ordered by default.
                 assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]));
                 assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]));
                 assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]));
@@ -106,7 +108,10 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
-            // since the order does matter, they are ordered differently.
+            /**
+             * Since the order does matter, file name are case-sensitive, they 
+             * are ordered differently.
+             */
             assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]));
             assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [1]));
             assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [2]));
@@ -144,67 +149,28 @@ suite('FileItem-test', () => {
         });
 
         test('refreshChildren()', async () => {
-            const oldRoot = root;
             await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
+
+            root.forgetChildren();
+            await root.refreshChildren(fileService, { onError: error => { throw error; } }).unwrap();
+            
+            assert.strictEqual(root.mapChildren.get('file1')?.name, 'file1');
+            assert.strictEqual(root.mapChildren.get('file2')?.name, 'file2');
+            assert.strictEqual(root.mapChildren.get('file3')?.name, 'file3');
+            assert.strictEqual(root.mapChildren.get('folder1')?.name, 'folder1');
+            assert.strictEqual(root.mapChildren.get('folder2')?.name, 'folder2');
+        });
+        
+        test('refreshChildren() will not refresh if the chilren is not forget', async () => {
+            await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
+
+            await root.refreshChildren(fileService, { onError: error => { throw error; } }).unwrap();
+            
+            assert.strictEqual(root.mapChildren.get('file1'), undefined);
+            assert.strictEqual(root.mapChildren.get('file2'), undefined);
+            assert.strictEqual(root.mapChildren.get('file3'), undefined);
+            assert.strictEqual(root.mapChildren.get('folder1'), undefined);
+            assert.strictEqual(root.mapChildren.get('folder2'), undefined);
         });
     });
-    
-
-    // test('isRoot() returns true if no parent', () => {
-    //     assert.strictEqual(fileItem.isRoot(), true);
-    // });
-
-    // test('isDirectory() returns true for directory type', () => {
-    //     fileItem = new FileItem({ ...fileStat, type: FileType.DIRECTORY }, null, []);
-    //     assert.strictEqual(fileItem.isDirectory(), true);
-    // });
-
-    // test('isFile() returns true for file type', () => {
-    //     assert.strictEqual(fileItem.isFile(), true);
-    // });
-
-    // test('isChildrenResolved() returns false initially', () => {
-    //     assert.strictEqual(fileItem.isChildrenResolved(), false);
-    // });
-
-    // test('hasChildren() returns false for file type', () => {
-    //     assert.strictEqual(fileItem.hasChildren(), false);
-    // });
-
-    // test('refreshChildren() resolves children for directory', async () => {
-    //     fileItem = new FileItem({ ...fileStat, type: FileType.DIRECTORY }, null, []);
-    //     // Mock fileService.stat() to return a resolved directory with children
-    //     fileService.stat = () => Promise.resolve({
-    //         uri: new URI('file://path/to/directory'),
-    //         name: 'directory',
-    //         type: FileType.DIRECTORY,
-    //         createTime: Date.now(),
-    //         modifyTime: Date.now(),
-    //         children: [{ ...fileStat, name: 'childFile.js' }]
-    //     });
-
-    //     await fileItem.refreshChildren(fileService, opts);
-    //     assert.strictEqual(fileItem.children.length, 1);
-    //     assert.strictEqual(fileItem.children[0].name, 'childFile.js');
-    // });
-
-    // test('forgetChildren() clears children and marks as unresolved', () => {
-    //     fileItem = new FileItem({ ...fileStat, type: FileType.DIRECTORY, children: [{ ...fileStat, name: 'childFile.js' }] }, null, []);
-    //     fileItem.forgetChildren();
-    //     assert.strictEqual(fileItem.children.length, 0);
-    //     assert.strictEqual(fileItem.isChildrenResolved(), false);
-    // });
-
-    // test('findChild() returns undefined for non-matching URI', () => {
-    //     const child = fileItem.findChild(new URI('file://path/to/anotherFile'));
-    //     assert.strictEqual(child, undefined);
-    // });
-
-    // test('findChild() returns child for matching URI', () => {
-    //     fileItem = new FileItem({ ...fileStat, type: FileType.DIRECTORY }, null, [
-    //         new FileItem({ ...fileStat, name: 'childFile.js', uri: new URI('file://path/to/file/childFile.js') }, fileItem, [])
-    //     ]);
-    //     const child = fileItem.findChild(new URI('file://path/to/file/childFile.js'));
-    //     assert.strictEqual(child?.name, 'childFile.js');
-    // });
 });
