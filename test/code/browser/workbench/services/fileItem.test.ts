@@ -92,11 +92,11 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
-            assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]));
-            assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [1]));
-            assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [2]));
-            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]));
-            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
+            assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]), '0 fails');
+            assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [1]), '1 fails');
+            assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [2]), '2 fails');
+            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]), '3 fails');
+            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]), '4 fails');
         });
     });
 
