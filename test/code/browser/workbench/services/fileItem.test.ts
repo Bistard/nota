@@ -7,7 +7,7 @@ import { TreeLike } from 'src/base/common/utilities/type';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem, IFileItemResolveOptions } from 'src/workbench/services/fileTree/fileItem';
-import { FileTreeNode, SAMPLE_TREE_LIKE3, buildFileItem, buildFileTree, findFileItemByPath } from 'test/utils/helpers';
+import { FileTreeNode, SAMPLE_TREE_LIKE, SAMPLE_TREE_LIKE3, buildFileItem, buildFileTree, findFileItemByPath } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 
 suite('FileItem-test', () => {
@@ -79,13 +79,22 @@ suite('FileItem-test', () => {
             if (OS_CASE_SENSITIVE) {
                 this.skip();
             }
+            // FIX: some bug in macOS
             assert.strictEqual(root.mapChildren.size, 5);
             // since the order doesn't matter, they are ordered by default.
-            assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]));
-            assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]));
-            assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]));
-            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]));
-            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]));
+            console.log(root.mapChildren.keys());
+
+            console.log(findFileItemByPath(root, [0])?.name);
+            console.log(findFileItemByPath(root, [1])?.name);
+            console.log(findFileItemByPath(root, [2])?.name);
+            console.log(findFileItemByPath(root, [3])?.name);
+            console.log(findFileItemByPath(root, [4])?.name);
+
+            assert.ok(root.mapChildren.get('file1.js') === findFileItemByPath(root, [0]), '0 fails');
+            assert.ok(root.mapChildren.get('file2.js') === findFileItemByPath(root, [1]), '1 fails');
+            assert.ok(root.mapChildren.get('file3.txt') === findFileItemByPath(root, [2]), '2 fails');
+            assert.ok(root.mapChildren.get('folder1') === findFileItemByPath(root, [3]), '3 fails');
+            assert.ok(root.mapChildren.get('folder2') === findFileItemByPath(root, [4]), '4 fails');
         });
         
         test('property check: mapChildren (CaseSensitive)', async function () {
@@ -111,6 +120,8 @@ suite('FileItem-test', () => {
 
             const file1 = findFileItemByPath(root, [0])!;
             assert.ok(file1.isFile());
+            assert.ok(!file1.isRoot());
+            assert.ok(root === file1.root());
 
             assert.ok(root.hasChildren());
             assert.ok(!file1.hasChildren());
@@ -129,7 +140,8 @@ suite('FileItem-test', () => {
         });
 
         test('refreshChildren()', async () => {
-
+            const oldRoot = root;
+            await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
         });
     });
     
