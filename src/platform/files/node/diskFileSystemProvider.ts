@@ -14,6 +14,7 @@ import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/platform/files/common/watcher";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { Time } from "src/base/common/date";
+import { OS_CASE_SENSITIVE } from "src/base/common/platform";
 
 export class DiskFileSystemProvider extends Disposable implements
     IFileSystemProviderWithFileReadWrite,
@@ -37,8 +38,7 @@ export class DiskFileSystemProvider extends Disposable implements
         FileSystemProviderCapability.FileReadWrite |
         FileSystemProviderCapability.FileOpenReadWriteClose |
         FileSystemProviderCapability.ReadFileStream |
-        FileSystemProviderCapability.FileFolderCopy |
-        FileSystemProviderCapability.PathCaseSensitive;
+        FileSystemProviderCapability.FileFolderCopy;
 
     private _watcher?: IWatcher;
 
@@ -48,6 +48,9 @@ export class DiskFileSystemProvider extends Disposable implements
         private readonly logService?: ILogService,
     ) {
         super();
+        if (OS_CASE_SENSITIVE) {
+            this.capabilities |= FileSystemProviderCapability.PathCaseSensitive;
+        }
     }
 
     /***************************************************************************

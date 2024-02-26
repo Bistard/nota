@@ -73,6 +73,7 @@ export const OPERATING_SYSTEM = (IS_LINUX) ? Platform.Linux : (IS_MAC ? Platform
 
 /**
  * Indicates if the current operating system is case sensitive.
+ *  e.g Linux is case sensitive. Mac and Windows are not.
  */
 export const OS_CASE_SENSITIVE = IS_LINUX;
 
