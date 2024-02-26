@@ -92,6 +92,7 @@ suite('FileItem-test', () => {
                 this.skip();
             }
             assert.strictEqual(root.mapChildren.size, 5);
+            console.log(root.mapChildren.keys());
             assert.ok(root.mapChildren.get('FILE1.js') === findFileItemByPath(root, [0]), '0 fails');
             assert.ok(root.mapChildren.get('file2.JS') === findFileItemByPath(root, [1]), '1 fails');
             assert.ok(root.mapChildren.get('File3.txt') === findFileItemByPath(root, [2]), '2 fails');
