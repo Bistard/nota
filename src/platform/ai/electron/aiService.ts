@@ -2,6 +2,7 @@ import { log } from "console";
 import { promises } from "dns";
 import { Agent } from "http";
 import OpenAI from "openai";
+import { ChatCompletion } from "openai/resources";
 import { ReplOptions } from "repl";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { FileOperationError } from "src/base/common/files/file";
@@ -12,6 +13,7 @@ import { noop } from "src/base/common/performance";
 import { AsyncResult, Result } from "src/base/common/result";
 import { StringIterator } from "src/base/common/structures/ternarySearchTree";
 import { panic } from "src/base/common/utilities/panic";
+import { ArrayToUnion } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -24,7 +26,7 @@ interface IAiCoreService extends IDisposable, IService {
 
     switchModel(opts: IAiCoreServiceOpts): void;
 
-    sendRequest(message: Array<{role: string; content: string}>, opts: IAiTextRequestOpts);
+    sendRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts);
 }
 
 interface IAiCoreServiceOpts {
@@ -55,8 +57,8 @@ export class AICoreService extends Disposable implements IAiCoreService {
         this._aiModel = this.__createModelBasedOnType(opts.apiKey);
     }
 
-    public sendRequest(message: Array<{role: string; content: string}>, opts: IAiTextRequestOpts) {
-        this._aiModel.sendTextRequest(message, opts);
+    public sendRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts) {
+        return this._aiModel.sendTextRequest(message, opts);
     }
 
     private __createModelBasedOnType( key: string): IAICoreModel {
@@ -133,10 +135,58 @@ interface IAICoreModelOpts {
     httpAgent?: Agent;
 }
 
+interface IAIRequestTextMessage {
+
+    role: MessageRole;
+
+    content: string;
+}
+
+interface IAIReponseTextMessage {
+
+    role: MessageRole;
+
+    content: string | null;
+}
 
 interface IAICoreModel extends IDisposable {
-    sendTextRequest(message: Array<{role: string; content: string}>, opts: IAiTextRequestOpts);
+    sendTextRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts);
     
+}
+
+interface IAIRequestTokenUsage {
+    /**
+     * Number of tokens in the generated completion.
+     */
+    completionTokens: number;
+
+    /**
+     * Number of tokens in the prompt.
+     */
+    promptTokens: number;
+
+    /**
+     * Total number of tokens used in the request (prompt + completion).
+     */
+    totalTokens: number;
+}
+
+export interface IAITextResponse {
+
+    readonly finishReason: 'stop' | 'length' | 'content_filter';
+    
+    readonly message: IAIReponseTextMessage;
+
+    readonly id: string;
+
+    readonly model:
+    | 'gpt-4-turbo-preview'
+    | 'gpt-4'
+    | 'gpt-4-32k'
+    | 'gpt-3.5-turbo'
+    | 'gpt-3.5-turbo-16k';
+
+    readonly usage?: IAIRequestTokenUsage;
 }
 
 export type MessageRole = 'system' | 'user' | 'assistant';
@@ -154,19 +204,72 @@ export class GPTModel extends Disposable implements IAICoreModel {
         this._openAi = new OpenAI({ ...opts });
     }
 
-    public sendTextRequest(message: Array<{role: MessageRole; content: string}>, opts: IAiTextRequestOpts) {
-
+    public sendTextRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts) {
         const client = this.__assertModel();
+        return Result.fromPromise<IAITextResponse, Error>(async () => {
+            const completion = await client.chat.completions.create({
+                messages: message,
+                stream: false,
+                ...opts
+            });
+            
+            const firstChoice = completion.choices[0];
+            if (firstChoice === undefined) {
+                throw new Error("No choices returned in the completion.");
+            }
 
-        return Result.fromPromise(() => client.chat.completions.create({
-            messages: message,
-            stream: false,
-            ...opts
-        }), error => error as Error)
+            const validModels = [
+                'gpt-4-turbo-preview',
+                'gpt-4',
+                'gpt-4-32k',
+                'gpt-3.5-turbo',
+                'gpt-3.5-turbo-16k'
+            ] as const;
+
+            const validFinishReasons = ['stop', 'length', 'content_filter'] as const;
+
+
+            let tokenUsage: IAIRequestTokenUsage | undefined = undefined;
+            if (completion.usage) {
+                const tokenUsage: IAIRequestTokenUsage = {
+                    completionTokens: completion.usage.completion_tokens,
+                    promptTokens: completion.usage.prompt_tokens,
+                    totalTokens: completion.usage.total_tokens
+                };
+            }
+
+            const assertFinishReason = this.__assertFinishReasonValidity(firstChoice.finish_reason, validFinishReasons);
+            const assertModelValidity = this.__assertModelValidity(completion.model, validModels);
+
+            const textResponse: IAITextResponse = {
+                message: firstChoice.message,
+                usage: tokenUsage,
+                id: completion.id,
+                finishReason: assertFinishReason,
+                model: assertModelValidity,
+            }
+            
+            return textResponse;
+        });
     }
 
+    //TODO
     public async sendTextRequestStream(message: Array<{role: MessageRole; content: string}>, opts: IAiTextRequestOpts) {
 
+    }
+
+    private __assertFinishReasonValidity<TValidReasons extends readonly string[]>(finishReason: string, validReasons: TValidReasons): ArrayToUnion<TValidReasons> {
+        if (!validReasons.includes(finishReason)) {
+            throw new Error(`Text request finished with invalid reason: ${finishReason}`);
+        }
+        return finishReason;
+    }
+
+    private __assertModelValidity<TValidModels extends readonly string[]>(model: string, validModels: TValidModels): ArrayToUnion<TValidModels> {
+        if (!validModels.includes(model)) {
+            throw new Error(`Invalid model: ${model}. Valid models are: ${validModels.join(", ")}`);
+        }
+        return model;
     }
 
     private __assertModel(): OpenAI {
