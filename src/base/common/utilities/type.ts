@@ -310,6 +310,8 @@ export type AtLeastNArray<T, N extends number, R extends T[] = []> =
         ? ConcatArray<R, T[]>
         : AtLeastNArray<T, N, [T, ...R]>;
 
+export type ArrayToUnion<T extends readonly any[]> = T[number];
+
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
  * 
