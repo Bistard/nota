@@ -21,11 +21,13 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 	for (const propName of propNames) {
 		const exist = propName in destination;
 
+		// We copy the value since the property does not exist in the desination
 		if (!exist) {
 			destination[propName] = source[propName];
 			continue;
 		}
 		
+		// not able to overwrite, we do nothing
 		if (!overwrite) {
 			continue;
 		}
@@ -35,14 +37,17 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 			continue;
 		}
 
+		// recursive mixin when overwriting
 		if (Object.prototype.hasOwnProperty.call(destination, propName) 
 			&& isObject(destination[propName]) 
 			&& isObject(source[propName])
 		) {
 			mixin(destination[propName], source[propName], overwrite);
-		} else {
-			destination[propName] = source[propName];
+			continue;
 		}
+		
+		// primitive value, simply overwrite.
+		destination[propName] = source[propName];
 	}
     
 	return destination;
