@@ -13,29 +13,36 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 		return source;
 	}
 
-	if (isObject(source)) {
-		Object.keys(source).forEach(propName => {
-			if (propName in destination) {
-				if (overwrite) {
+	if (!isObject(source)) {
+		return destination;
+	}
 
-					// see prototype-polluting https://github.com/Bistard/nota/issues/129
-					if (Object.prototype.hasOwnProperty.call(source, propName) === false) {
-						return;
-					}
+	const propNames = Object.keys(source);
+	for (const propName of propNames) {
+		const exist = propName in destination;
 
-					if (Object.prototype.hasOwnProperty.call(destination, propName) 
-						&& isObject(destination[propName]) 
-						&& isObject(source[propName])
-					) {
-						mixin(destination[propName], source[propName], overwrite);
-					} else {
-						destination[propName] = source[propName];
-					}
-				}
-			} else {
-				destination[propName] = source[propName];
-			}
-		});
+		if (!exist) {
+			destination[propName] = source[propName];
+			continue;
+		}
+		
+		if (!overwrite) {
+			continue;
+		}
+
+		// see prototype-polluting https://github.com/Bistard/nota/issues/129
+		if (Object.prototype.hasOwnProperty.call(source, propName) === false) {
+			continue;
+		}
+
+		if (Object.prototype.hasOwnProperty.call(destination, propName) 
+			&& isObject(destination[propName]) 
+			&& isObject(source[propName])
+		) {
+			mixin(destination[propName], source[propName], overwrite);
+		} else {
+			destination[propName] = source[propName];
+		}
 	}
     
 	return destination;
