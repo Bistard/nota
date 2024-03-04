@@ -7,13 +7,13 @@ import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
 
 const RGB_colors = <const>{
-    LightGray: [211, 211, 211],
-    LightBlue: [15, 134, 214],
-    LightGreen: [181, 206, 168],
+    LightGray:   [211, 211, 211],
+    LightBlue:   [15, 134, 214],
+    LightGreen:  [181, 206, 168],
     LightYellow: [206, 145, 120],
-    LightRed: [235, 57, 65],
-    Magenta: [190, 40, 255],
-    Green: [96, 151, 83], 
+    LightRed:    [235, 57, 65],
+    Magenta:     [190, 40, 255],
+    Green:       [96, 151, 83], 
 };
 
 /**
@@ -168,13 +168,24 @@ function getErrorString(color: boolean, error: any): string {
     return [topBorder, ...formattedLines, bottomBorder].map(str => `    ${str}`).join('\n');
 }
 
+/**
+ * @description Trying to print the 'additional' as an object by iterating its
+ * properties and print them line by line in a format of:
+ *      (property_name) property_value
+ * 
+ * @note Some certain types of object will be printed specially (e.g. URI).
+ * 
+ * @return Returns a string of the printing result.
+ */
 function getAddtionalString(depth: number, color: boolean, additional: Additionals): string {    
+    
     const keys: string[] = [];
     const values: string[] = [];
     
     let result = '';
     let maxKeyLength = 0;
 
+    // Iterate every provided property, parse them one by one into string.
     iterPropEnumerable(additional, key => {
         const value = additional[key];
         const valueStr = tryPaintValue(depth, color, key, value);
@@ -197,22 +208,21 @@ const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
 
 function tryPaintValue(depth: number, color: boolean, key: string, value: any): string {
 
+    // 1: no color case
     if (!color) {
         // recursive print object
         if (isObject(value) && !(value instanceof Error)) {
             return `\n${getAddtionalString(depth + 1, false, <any>value)}`;
         }
-
         return tryOrDefault('[parse error]', () => JSON.stringify(value));
     }
 
-    if (typeof value === 'string'  && 
+    // 2: color case
+    if (typeof value === 'string' && 
         (
             PREDEFINE_STRING_COLOR_KEY.includes(key) || 
-            key.endsWith('path') ||
-            key.endsWith('Path') ||
-            key.endsWith('URI') ||
-            key.endsWith('uri')
+            key.endsWith('path') || key.endsWith('Path') ||
+            key.endsWith('URI') || key.endsWith('uri')
         )
     ) {
         return TextColors.setRGBColor(value, ...RGB_colors.LightBlue);

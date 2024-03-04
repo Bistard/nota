@@ -136,6 +136,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         let window: IWindowInstance = undefined!;
 
         // get openning URIs configuration
+        // TODO: hide the error handling logic into `UriToOpenResolver`
         let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
         if (optionalConfiguration.uriToOpen && optionalConfiguration.uriToOpen.length > 0) {
             const resolveResult = UriToOpenResolver.resolve(optionalConfiguration.uriToOpen);

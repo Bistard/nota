@@ -96,7 +96,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
-        logService.trace('WindowInstance', 'WindowInstance constructing...');
+        logService.trace('WindowInstance', 'Constructing a window with the configuration...', { configuration });
         
         const displayOptions = configuration.displayOptions;
         this._window = this.doCreateWindow(displayOptions);
@@ -107,7 +107,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
         
         this.registerListeners();
-        logService.trace('WindowInstance', 'WindowInstance constructed.');
+        logService.trace('WindowInstance', 'Window constructed.');
     }
 
     // [getter / setter]
