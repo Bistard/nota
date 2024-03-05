@@ -270,9 +270,10 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
 
             // recursive paint the array
             if (Array.isArray(value)) {
-                let arr = '[ ';
+                let arr = '[';
                 
                 if (value.length > 0) {
+                    arr += ' ';
                     arr += paintDefaultValue(depth, value[0], true);
                 }
                 
