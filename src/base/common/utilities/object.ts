@@ -192,6 +192,7 @@ export function strictEquals(one: any, other: any): boolean {
 	}
 
 	if (Array.isArray(one)) {
+		// TODO: use Arrays.equals
 		if (one.length !== other.length) {
 			return false;
 		}
@@ -215,6 +216,7 @@ export function strictEquals(one: any, other: any): boolean {
 		}
 		
 		otherKeys.sort();
+		// TODO: use Arrays.equals
 		if (!strictEquals(oneKeys, otherKeys)) {
 			return false;
 		}
