@@ -1,8 +1,3 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
 import { CharCode } from "src/base/common/utilities/char";
 import * as paths from "src/base/common/files/path";
 import { IS_WINDOWS, OS_CASE_SENSITIVE } from "src/base/common/platform";
