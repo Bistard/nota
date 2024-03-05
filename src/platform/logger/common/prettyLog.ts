@@ -1,7 +1,7 @@
 import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
-import { Schemas } from "src/base/common/files/uri";
+import { Schemas, URI } from "src/base/common/files/uri";
 import { Additionals, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
@@ -178,7 +178,7 @@ function getErrorString(color: boolean, error: any): string {
  * @return Returns a string of the printing result.
  */
 function getAddtionalString(depth: number, color: boolean, additional: Additionals): string {    
-    
+
     const keys: string[] = [];
     const values: string[] = [];
     
@@ -193,7 +193,7 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
         keys.push(key);
         values.push(valueStr);
         maxKeyLength = Math.max(maxKeyLength, key.length);
-    }, -1);
+    }, 0);
 
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i]!;
@@ -202,6 +202,22 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
     }
 
     return result.slice(0, -1); // remove the last `\n`
+}
+
+function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additionals): string | undefined {
+    
+    // Special case: URI
+    if (URI.isURI(additional)) {
+        const uriStr = URI.toString(additional);
+        let valueStr = uriStr;
+        if (color) {
+            valueStr = TextColors.setRGBColor(uriStr, ...RGB_colors.LightBlue);
+        }
+        return valueStr;
+    }
+
+    // not handled
+    return undefined;
 }
 
 const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
@@ -270,6 +286,11 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
 
             // recursive paint object
             if (isObject(value) && !insideArray && !(value instanceof Error)) {
+                const handled = tryHandleSpecialAdditionalString(depth, true, <any>value);
+                if (handled) {
+                    return handled;
+                }
+
                 return `\n${getAddtionalString(depth + 1, true, <any>value)}`;
             }
 
