@@ -48,7 +48,6 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 		
 		// primitive value, simply overwrite.
 		destination[propName] = source[propName];
-		1;
 	}
     
 	return destination;
