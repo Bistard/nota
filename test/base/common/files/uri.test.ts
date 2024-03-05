@@ -729,4 +729,35 @@ suite('URI-test', () => {
 		assert.strictEqual(URI.equals(fileURI6, fileURI5, true), false);
 		assert.strictEqual(URI.equals(fileURI6, fileURI3, true), false);
 	});
+
+	test('distinctParents', () => {
+
+		// Basic
+		let resources = [
+			URI.fromFile('/some/folderA/file.txt'),
+			URI.fromFile('/some/folderB/file.txt'),
+			URI.fromFile('/some/folderC/file.txt')
+		];
+
+		let distinct = URI.distinctParents(resources);
+		assert.strictEqual(distinct.length, 3);
+		assert.strictEqual(distinct[0]!.toString(), resources[0]!.toString());
+		assert.strictEqual(distinct[1]!.toString(), resources[1]!.toString());
+		assert.strictEqual(distinct[2]!.toString(), resources[2]!.toString());
+
+		// Parent / Child
+		resources = [
+			URI.fromFile('/some/folderA'),
+			URI.fromFile('/some/folderA/file.txt'),
+			URI.fromFile('/some/folderA/child/file.txt'),
+			URI.fromFile('/some/folderA2/file.txt'),
+			URI.fromFile('/some/file.txt')
+		];
+
+		distinct = URI.distinctParents(resources);
+		assert.strictEqual(distinct.length, 3);
+		assert.strictEqual(distinct[0]!.toString(), resources[0]!.toString());
+		assert.strictEqual(distinct[1]!.toString(), resources[3]!.toString());
+		assert.strictEqual(distinct[2]!.toString(), resources[4]!.toString());
+	});
 });

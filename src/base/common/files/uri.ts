@@ -258,6 +258,40 @@ export class URI implements IURI {
 	}
 
 	/**
+	 * @description Identifies and returns a list of unique parent URIs from a 
+	 * given array, excluding any URIs that are children of others in the array. 
+	 * 
+	 * @param uris An array of URI objects to be evaluated for parent-child 
+	 * 			   relationships.
+	 * @returns An array of URI objects representing distinct parent URIs, with 
+	 * 			no child URIs included.
+	 * 
+	 * @note This function is useful for filtering out URIs to ensure that only 
+	 * top-level (parent) resources are considered, without any duplicates.
+	 */
+	public static distinctParents(uris: URI[]): URI[] {
+		const distinct: URI[] = [];
+
+		for (let i = 0; i < uris.length; i++) {
+			const uri = uris[i]!;
+
+			const isChildOrParent = uris.some((other, idx) => {
+				if (idx === i) {
+					return false;
+				}
+
+				return URI.isParentOf(uri, other) || URI.equals(uri, other);
+			});
+
+			if (!isChildOrParent) {
+				distinct.push(uri);
+			}
+		}
+
+		return distinct;
+	}
+
+	/**
 	 * @description Creates a string representation for this URI. It's 
 	 * guaranteed that calling `URI.parse` with the result of this function 
 	 * creates an URI which is equal to this URI.
