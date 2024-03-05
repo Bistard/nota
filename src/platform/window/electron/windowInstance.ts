@@ -3,7 +3,6 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/files/path";
 import { ILogService } from "src/base/common/logger";
-import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
@@ -198,7 +197,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         };
 
         // frame
-        if (!IS_MAC && displayOpts.frameless) {
+        if (displayOpts.frameless) {
             browserOption.frame = false;
         }
 
