@@ -6,7 +6,7 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
@@ -155,8 +155,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             width: displayOpts.width,
             x: displayOpts.x,
             y: displayOpts.y,
-            minHeight: displayOpts.minHeight ?? WindowMinimumState.height,
-            minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
+            minHeight: displayOpts.minHeight ?? WINDOW_MINIMUM_STATE.height,
+            minWidth: displayOpts.minWidth ?? WINDOW_MINIMUM_STATE.wdith,
             webPreferences: {
                 preload: resolve(join(__dirname, 'preload.js')),
 

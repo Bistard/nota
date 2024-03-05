@@ -11,13 +11,13 @@ export const DEFAULT_HTML = './src/index.html';
 export const INSPECTOR_HTML = './src/code/browser/inspector/index.html';
 
 export const enum WindowDisplayMode {
-    Normal,
-    Minimized,
-    Maximized,
-    Fullscreen
+    Normal = 'Normal',
+    Minimized = 'Minimized',
+    Maximized = 'Maximized',
+    Fullscreen = 'Fullscreen'
 }
 
-export const WindowMinimumState = {
+export const WINDOW_MINIMUM_STATE = {
     wdith: 400,
     height: 300
 };
