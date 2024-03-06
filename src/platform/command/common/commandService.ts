@@ -7,6 +7,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { panic } from "src/base/common/utilities/panic";
 
 export const ICommandService = createService<ICommandService>('command-service');
 
@@ -92,22 +93,22 @@ export class CommandService extends Disposable implements ICommandService {
         return this.executeAnyCommand(id, ...args);
     }
 
-    public executeAnyCommand(id: string, ...args: any[]): Promise<any> {
+    public async executeAnyCommand(id: string, ...args: any[]): Promise<any> {
         const command = this._registrant.getCommand(id);
         if (!command) {
-            return Promise.reject(new Error(`command with ID '${id}' is not found`));
+            return panic(new Error(`command with ID '${id}' is not found`));
         }
 
         try {
-            const ret = command.command(this.instantiationService, ...args);
+            const ret = await command.command(this.instantiationService, ...args);
             this.logService.trace('CommandService', `executed the command '${id}'`);
 
             this._onDidExecuteCommand.fire({ id });
-            return Promise.resolve(ret);
+            return ret;
         }
         catch (error: any) {
             this.logService.error('CommandService', `encounters an error with command '${id}'.`, error);
-            return Promise.reject(error);
+            panic(error);
         }
     }
 }
