@@ -166,7 +166,7 @@ export interface IFileTreeService extends IDisposable, IService {
      * programatically set the status as cut or copy.
      * @param isCutOrCopy Is file tree in the state of cut or copy.
      */
-    simulateSelectionCut(isCutOrCopy: boolean): void;
+    simulateSelectionCutOrCopy(isCutOrCopy: boolean): void;
 
     /**
      * @description Retrieves the current sorting type applied to the file tree. 

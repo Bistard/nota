@@ -195,7 +195,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, false);
     }
     
-    public simulateSelectionCut(isCutOrCopy: boolean): void {
+    public simulateSelectionCutOrCopy(isCutOrCopy: boolean): void {
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, isCutOrCopy);
     }
 

@@ -136,16 +136,20 @@ export namespace FileCommands {
 
         private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
             
+            // paste the provided resources for higher priority
+            let toPaste: URI[] = resources ?? [];
+
             /**
              * If no provided resources, fallback to read the sources from the
              * clipboard.
              */
-            if (!resources?.length) {
-                return await this.clipboardService.read(ClipboardType.Resources);
+            if (toPaste.length === 0) {
+                toPaste = await this.clipboardService.read(ClipboardType.Resources);
             }
 
-            // paste the input resources for priority
-            return resources;
+            // check parent-child relationship
+            const resolvedToPaste = URI.distinctParents(toPaste);
+            return resolvedToPaste;
         }
 
         private async __doMove(toPaste: URI[], destination: FileItem): Promise<void> {
