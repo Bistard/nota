@@ -363,10 +363,6 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const onDidResourceChange = cleanup.register(new Scheduler(
             Time.ms(100),
             (events: IResourceChangeEvent[]) => {
-                if (!root) {
-                    return;
-                }
-
                 let affected = false;
                 for (const event of events) {
                     if (event.affect(root)) {

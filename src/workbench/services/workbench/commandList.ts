@@ -43,10 +43,10 @@ export const enum AllCommands {
 
     newFile   = 'newfile', // TODO
     newFolder = 'newFolder', // TODO
-    fileCut   = 'filecut', // TODO
-    fileCopy  = 'filecopy', // TODO
-    filePaste = 'filepaste', // TODO
-    fileMove  = 'filemove', // TODO
+    fileCut   = 'fileCut', // TODO
+    fileCopy  = 'fileCopy', // TODO
+    filePaste = 'filePaste', // TODO
+    fileMove  = 'fileMove', // TODO
 }
 
 /**

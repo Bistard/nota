@@ -55,7 +55,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      */
     private readonly _nodeRefreshing = new Map<IAsyncNode<T, TFilter>, Promise<void>>();
 
-    private readonly __reuseOrCreateNode: (
+    private readonly __reuseOrCreateChildNode: (
         childrenData: readonly T[],
         parent: IAsyncNode<T, TFilter>,
         newNodes: IAsyncNode<T, TFilter>[],
@@ -74,9 +74,9 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         this._identityProvider = opts.identityProvider;
 
         if (this._identityProvider) {
-            this.__reuseOrCreateNode = (...args) => this.__tryReuseOldNode(this._identityProvider!, ...args);
+            this.__reuseOrCreateChildNode = (...args) => this.__tryReuseOldChildNodes(this._identityProvider!, ...args);
         } else {
-            this.__reuseOrCreateNode = (...args) => this.__alwaysCreateNewNode(...args);
+            this.__reuseOrCreateChildNode = (...args) => this.__alwaysCreateNewNodes(...args);
         }
     }
 
@@ -150,7 +150,10 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
              * we continue the same work to the direct children, refreshing the 
              * other descendants.
              */
-            await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
+            for (const child of childrenToRefresh) {
+                await this.__refreshNodeAndChildren(child);
+            }
+            // await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
 
         finally {
@@ -166,17 +169,14 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * @returns An array of children that requires further refresh.
      */
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
-
-        let resolveChildren: Promise<T[]>;
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
-
-        if (asyncNode.collapsible === false) {
-            resolveChildren = Promise.resolve([]);
-        } else {
-            resolveChildren = this.__getChildren(asyncNode);
-        }
-
+        
+        const resolveChildren = (asyncNode.collapsible) 
+            ? this.__getChildren(asyncNode) 
+            : Promise.resolve([])
+        ;
         const children = await resolveChildren;
+
         return this.__setChildren(asyncNode, children);
     }
 
@@ -196,7 +196,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         const childrenPromise = Promise.resolve(this._childrenProvider.getChildren(node.data));
         this._statFetching.set(node, childrenPromise);
         
-        // wait for the children to be finished
+        // wait for the children fetching to be finished
         const children = await childrenPromise;
         this._statFetching.delete(node);
         
@@ -228,7 +228,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
          * If the tree can identify the uniqueness of each node, then it is 
          * possible to reuse the old nodes instead of creating new ones.
          */
-        this.__reuseOrCreateNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
+        this.__reuseOrCreateChildNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
         
         node.stale = true;
         node.oldChildren = node.children;
@@ -241,7 +241,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * @description When refreshing the given parent, the children node will 
      * always be replaced by the new created node.
      */
-    private __alwaysCreateNewNode(
+    private __alwaysCreateNewNodes(
         childrenData: readonly T[],
         parent: IAsyncNode<T, TFilter>,
         newNodes: IAsyncNode<T, TFilter>[],
@@ -259,7 +259,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * @description When refreshing the given parent, the old child node may be 
      * reused when detect duplicate client provided data.
      */
-    private __tryReuseOldNode(
+    private __tryReuseOldChildNodes(
         identityProvider: IIdentiityProivder<T>,
         childrenData: readonly T[],
         parent: IAsyncNode<T, TFilter>,
@@ -278,37 +278,40 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             existedNodes.set(id, existed);
         }
 
+        // special case: no any existing nodes, fallback to '__alwaysCreateNewNodes'.
+        if (existedNodes.size === 0) {
+            return this.__alwaysCreateNewNodes(childrenData, parent, newNodes, newNodesToRefresh);
+        }
+
+        // Iterate every new child, try to reuse it with the existing node.
         for (const childData of childrenData) {
             const hasChildren = this._childrenProvider.hasChildren(childData);
 
             const id = identityProvider.getID(childData);
             const existedNode = existedNodes.get(id);
             
-            // the child node can be reused
-            if (existedNode) {
-                existedNode.data = childData;
-                existedNode.collapsible = hasChildren;
-
-                // forget the old children
-                if (this._childrenProvider.forgetChildren) {
-                    this._childrenProvider.forgetChildren(existedNode.data);
-                }
-
-                newNodes.push(existedNode);
-
-                /**
-                 * Do not modify the collapse state of the existed node. Only
-                 * keep refreshing downwards when it is not collapsed.
-                 */
-                if (hasChildren && !existedNode.collapsed) {
-                    newNodesToRefresh.push(existedNode);
-                }
-            }
-            
             // no existed nodes, we create a new one as normal.
-            else {
+            if (!existedNode) {
                 const newChildNode = this.__createNewChildNode(childData, parent, hasChildren, newNodesToRefresh);
                 newNodes.push(newChildNode);
+                continue;
+            }
+
+            // the child node can be reused
+            existedNode.data = childData;
+            existedNode.collapsible = hasChildren;
+
+            // forget the old children
+            this._childrenProvider.forgetChildren?.(existedNode.data);
+
+            newNodes.push(existedNode);
+
+            /**
+             * Do not modify the collapse state of the existed node. Only
+             * keep refreshing downwards when it is not collapsed.
+             */
+            if (hasChildren && !existedNode.collapsed) {
+                newNodesToRefresh.push(existedNode);
             }
         }
     }
