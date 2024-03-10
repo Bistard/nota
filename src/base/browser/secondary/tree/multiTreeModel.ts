@@ -48,7 +48,7 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 
     /**
-     * @description See details in {@link IFlexIndexTreeModel.triggerOnDidSplice}.
+     * @description See details in {@link IFlexIndexTreeModel['triggerOnDidSplice']}.
      * @param event The event to be fired.
      */
     triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;

@@ -7,7 +7,7 @@ import { panic } from "src/base/common/utilities/panic";
 const INVALID_INDEX = -1;
 
 /**
- * Option type for {@link IIndexTreeModel.splice}.
+ * Option type for {@link IIndexTreeModel["splice"]}.
  */
 export interface ITreeModelSpliceOptions<T, TFilter> {
     
