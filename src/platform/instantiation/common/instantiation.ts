@@ -220,7 +220,7 @@ export class InstantiationService implements IInstantiationService {
         let instance: InstanceType<TCtor>;
 
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            const args = <InstantiationRequiredParameters<TCtor>>ctorOrDescriptor.args.concat(rest);
+            const args = <InstantiationRequiredParameters<TCtor>>ctorOrDescriptor.args.concat(<any>rest);
             instance = this.__createInstance(ctorOrDescriptor.ctor, args);
         } else {
             instance = this.__createInstance(ctorOrDescriptor, rest);
