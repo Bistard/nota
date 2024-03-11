@@ -3,6 +3,7 @@ import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/sec
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/structures/range";
 import { Blocker } from "src/base/common/utilities/async";
+import { cond } from "src/base/common/utilities/function";
 
 /**
  * An interface only for {@link AsyncTreeModel}.
@@ -138,8 +139,8 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
 
         // remove the mark once it finished
         asyncNode.refreshing.finally(() => {
-            this._nodeRefreshing.delete(asyncNode);
             asyncNode.refreshing = undefined;
+            this._nodeRefreshing.delete(asyncNode);
         });
 
         try {
@@ -150,10 +151,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
              * we continue the same work to the direct children, refreshing the 
              * other descendants.
              */
-            for (const child of childrenToRefresh) {
-                await this.__refreshNodeAndChildren(child);
-            }
-            // await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
+            await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
 
         finally {
@@ -171,10 +169,10 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
         
-        const resolveChildren = (asyncNode.collapsible) 
-            ? this.__getChildren(asyncNode) 
-            : Promise.resolve([])
-        ;
+        const resolveChildren = cond(asyncNode.collapsible,
+            this.__getChildren(asyncNode),
+            Promise.resolve([]),
+        );
         const children = await resolveChildren;
 
         return this.__setChildren(asyncNode, children);
@@ -215,7 +213,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
          * Was empty children and no children is changed, we should quit and 
          * refresh nothing.
          */
-        if (!childrenData.length && !node.children.length) {
+        if (!node.children.length && !childrenData.length) {
             return [];
         }
 
@@ -231,7 +229,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         this.__reuseOrCreateChildNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
         
         node.stale = true;
-        node.oldChildren = node.children;
         node.children = childrenNodes;
 
         return childrenNodesToRefresh;
@@ -300,10 +297,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             // the child node can be reused
             existedNode.data = childData;
             existedNode.collapsible = hasChildren;
-
-            // forget the old children
-            this._childrenProvider.forgetChildren?.(existedNode.data);
-
             newNodes.push(existedNode);
 
             /**
@@ -311,6 +304,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
              * keep refreshing downwards when it is not collapsed.
              */
             if (hasChildren && !existedNode.collapsed) {
+                this._childrenProvider.forgetChildren?.(existedNode.data);
                 newNodesToRefresh.push(existedNode);
             }
         }
@@ -332,9 +326,8 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             /**
              * The following metadata will be recalculated correctly in
              * {@link FlexIndexTreeModel}.
-             */
-
-            visibleNodeCount: undefined!,
+            */
+            visibleNodeCount: 1,
             collapsed: undefined!,
             depth: undefined!,
             visible: undefined!,

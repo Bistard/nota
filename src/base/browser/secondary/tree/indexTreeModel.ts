@@ -1,6 +1,6 @@
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
-import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
+import { DelayableEmitter, Emitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { panic } from "src/base/common/utilities/panic";
 
@@ -767,8 +767,9 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
                     oldVisibleCount += child.visibleNodeCount;
                 }
             }
-
             this.__updateAncestorsVisibleNodeCount(parent, newVisibleCount - oldVisibleCount);
+
+            // update the view
             this._view.splice(listIndex, oldVisibleCount, treeNodeListToBeRendered);
         }
         
@@ -894,6 +895,8 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             treeNodeChildrenToInsert.push(node);
         }
 
+        // recalculate the visible node count
+        const oldVisibleCount = node.visibleNodeCount;
         let newVisibleCount = 1;
         for (const element of node.children) {
             this.__refreshNode(element, node, treeNodeListToBeRendered, opts.onDidCreateNode);
@@ -901,24 +904,11 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             newVisibleCount += element.visibleNodeCount;
         }
 
-        let prevhasChildrenState = false;
+        const prevhasChildrenState = oldVisibleCount > 1;
         const currHasChildrenState = node.children.length > 0;
 
         // update view
         if (visible) {
-            
-            // calcualte the old visible children node count
-            let oldVisibleCount = 1;
-            if (node.oldChildren) {
-                prevhasChildrenState = !!node.oldChildren.length;
-
-                for (const child of node.oldChildren) {
-                    if (child.visible) {
-                        oldVisibleCount += child.visibleNodeCount;
-                    }
-                }
-            }
-            
             const changedVisibleCount = newVisibleCount - oldVisibleCount;
             this.__updateAncestorsVisibleNodeCount(node, changedVisibleCount);
             this._view.splice(listIndex, oldVisibleCount, treeNodeListToBeRendered);
@@ -929,18 +919,14 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             this.setCollapsible(location, currHasChildrenState);
         }
 
-        // deletion callback
-        if (opts.onDidDeleteNode && node.oldChildren) {
-            const deleteVisitor = (node: IFlexNode<T, TFilter>) => {
-                opts.onDidDeleteNode!(node);
-                node.children?.forEach(deleteVisitor);
-                node.oldChildren?.forEach(deleteVisitor);
-            };
-            node.oldChildren.forEach(deleteVisitor);
-        }
-
-        // actual delete the old children
-        node.oldChildren = undefined;
+        /**
+         * [deletion callback]
+         * `opts.onDidDeleteNode` does not work in flex model. Because the flex 
+         * model will mutate the same tree node, the deleting node can be 
+         * actually reused.
+         */
+        
+        // state reset
         node.stale = false;
 
         // fire events
@@ -960,6 +946,13 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void,
     ): void {
         node.stale = false;
+        node.depth = parent.depth + 1;
+        
+        // If the collapsible setting somehow sets to false, we may correct it here.
+        node.collapsible ||= node.children.length > 0;
+        
+        // If collapse never set by the client, we use the default setting.
+        node.collapsed ??= this._collapsedByDefault;
 
         node.visible = parent.visible ? !parent.collapsed : false;
         if (node.visible) {
@@ -972,8 +965,6 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         //     this.__filterNode(newNode);
         // }
 
-        node.depth = parent.depth + 1;
-
         let newVisibleCount = 1;
         for (const child of node.children) {
             this.__refreshNode(child, node, toBeRendered, onDidCreateNode);
@@ -981,12 +972,6 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         }
 
         node.visibleNodeCount = node.visible ? newVisibleCount : 0;
-
-        // If the collapsible setting somehow sets to false, we may correct it here.
-        node.collapsible = node.collapsible || node.children.length > 0;
-        
-        // If collapse never set by the client, we use the default setting.
-        node.collapsed = node.collapsed ?? this._collapsedByDefault;
 
         // treats refreshed node as new created node
         if (onDidCreateNode) {
