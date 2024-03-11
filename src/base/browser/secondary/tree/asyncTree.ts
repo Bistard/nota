@@ -363,7 +363,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [public methods]
 
     public async refresh(data: T = this._tree.root): Promise<void> {
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
 
         // wait until nothing is refreshing
         if (asyncNode.refreshing) {
@@ -422,7 +422,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return false;
         }
 
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
@@ -456,7 +456,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return false;
         }
 
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
@@ -582,6 +582,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     // [private helper methods]
+
+    private __getAsyncNode(data: T): IAsyncNode<T, TFilter> {
+        return this._tree.getNode(data);
+    }
 
     /**
      * @description Only rerenders the subtree of the given tree node.
