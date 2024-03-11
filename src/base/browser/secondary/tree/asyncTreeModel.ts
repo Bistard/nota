@@ -86,14 +86,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     public async refreshNode(node: IAsyncNode<T, TFilter>): Promise<void> {
         
         /**
-         * Forget the current children of the node so that next `getChildren`
-         * operation will work properly.
-         */
-        if (this._childrenProvider.forgetChildren) {
-            this._childrenProvider.forgetChildren(node.data);
-        }
-
-        /**
          * The node is already collapsed, we should do nothing since there is no
          * need to refresh. We will forget the children next time.
          */
@@ -190,6 +182,12 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             return refreshing;
         }
 
+        /**
+         * Forget the current children of the node so that `getChildren` 
+         * operation will work properly.
+         */
+        this._childrenProvider.forgetChildren?.(node.data);
+
         // get the children from the provider and set it as refreshing.
         const childrenPromise = Promise.resolve(this._childrenProvider.getChildren(node.data));
         this._statFetching.set(node, childrenPromise);
@@ -264,6 +262,11 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         newNodesToRefresh: IAsyncNode<T, TFilter>[],
     ): void 
     {
+        // special case: no any existing nodes, fallback to '__alwaysCreateNewNodes'.
+        if (parent.children.length === 0) {
+            return this.__alwaysCreateNewNodes(childrenData, parent, newNodes, newNodesToRefresh);
+        }
+
         /**
          * When an identity provider is given. Use a mapping that remembers all 
          * the existed data, for the re-use purpose when encountering the same 
@@ -273,11 +276,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         for (const existed of parent.children) {
             const id = identityProvider.getID(existed.data);
             existedNodes.set(id, existed);
-        }
-
-        // special case: no any existing nodes, fallback to '__alwaysCreateNewNodes'.
-        if (existedNodes.size === 0) {
-            return this.__alwaysCreateNewNodes(childrenData, parent, newNodes, newNodesToRefresh);
         }
 
         // Iterate every new child, try to reuse it with the existing node.
