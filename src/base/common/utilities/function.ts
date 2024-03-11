@@ -73,3 +73,38 @@ export function cond<T>(condition: boolean, onTrue: T, onFalse: T): T {
 export function to01(value: any): 1 | 0 {
     return value ? 1 : 0;
 }
+
+/**
+ * @description Performs a depth-first search (DFS) on a tree.
+ * @param node The starting node for the DFS.
+ * @param visit A function to visit on each node.
+ * @param getChildren A function that returns an array of child nodes for the 
+ *                    given node.
+ */
+export function dfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+    visit(node);
+    for (const child of getChildren(node)) {
+        dfs(child, visit, getChildren);
+    }
+}
+
+/**
+ * @description Performs a breadth-first search (BFS) on a tree.
+ * @param node The starting node for the BFS.
+ * @param visit A function to visit on each node.
+ * @param getChildren A function that returns an array of child nodes for the 
+ *                    given node.
+ */
+export function bfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+    const queue = [node];
+
+    while (queue.length > 0) {
+        const currentNode = queue.shift()!;
+        visit(currentNode);
+
+        const children = getChildren(currentNode);
+        for (const child of children) {
+            queue.push(child);
+        }
+    }
+}
