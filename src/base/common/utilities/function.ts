@@ -59,3 +59,17 @@ export class Reactivator {
         this._isActivated = false;
     }
 }
+
+/**
+ * @description Function version of a ternary operator.
+ */
+export function cond<T>(condition: boolean, onTrue: T, onFalse: T): T {
+    return condition ? onTrue : onFalse;
+}
+
+/**
+ * @description Convert a value to '1' if truthy, '0' if falsy.
+ */
+export function to01(value: any): 1 | 0 {
+    return value ? 1 : 0;
+}

@@ -38,6 +38,7 @@ export function panic(error: unknown): never {
  * @param message Optional. The custom error message
  * @panic 
  */
+export function assert<T>(obj: T, message?: string): NonNullable<T>;
 export function assert<T>(obj: any, message?: string): T {
     if (obj === undefined || obj === null) {
         panic(message ?? 'assert error');
