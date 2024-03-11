@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before } from 'mocha';
+import { beforeEach } from 'mocha';
 import { bfs, cond, dfs, executeOnce, Reactivator, to01 } from 'src/base/common/utilities/function';
 
 suite('function-test', () => {
@@ -96,7 +96,7 @@ suite('function-test', () => {
         let tree: ITreeNode;
         let visitOrder: number[];
     
-        before(() => {
+        beforeEach(() => {
             // Construct a simple tree for testing
             //       1
             //      / \
