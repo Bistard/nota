@@ -89,6 +89,16 @@ export function dfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T)
 }
 
 /**
+ * @description An async version of {@link dfs}.
+ */
+export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+    await visit(node);
+    for (const child of await getChildren(node)) {
+        dfsAsync(child, visit, getChildren);
+    }
+}
+
+/**
  * @description Performs a breadth-first search (BFS) on a tree.
  * @param node The starting node for the BFS.
  * @param visit A function to visit on each node.
@@ -103,6 +113,23 @@ export function bfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T)
         visit(currentNode);
 
         const children = getChildren(currentNode);
+        for (const child of children) {
+            queue.push(child);
+        }
+    }
+}
+
+/**
+ * @description An async version of {@link bfs}.
+ */
+export async function bfsAsync<T>(node: T, visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+    const queue = [node];
+
+    while (queue.length > 0) {
+        const currentNode = queue.shift()!;
+        await visit(currentNode);
+
+        const children = await getChildren(currentNode);
         for (const child of children) {
             queue.push(child);
         }
