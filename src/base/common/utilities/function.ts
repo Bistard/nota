@@ -75,16 +75,6 @@ export function to01(value: any): 1 | 0 {
 }
 
 /**
- * @description Converts the given value to its boolean equivalent. The function 
- * utilizes the logical NOT (!) operator twice.
- * @note This results in `true` for all "truthy" values and `false` for "falsy" 
- * values.
- */
-export function boolify(value: any): boolean {
-    return !!value;
-}
-
-/**
  * @description Performs a depth-first search (DFS) on a tree.
  * @param node The starting node for the DFS.
  * @param visit A function to visit on each node.
