@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
-import { bfs, cond, dfs, executeOnce, Reactivator, to01 } from 'src/base/common/utilities/function';
+import { bfs, boolify, cond, dfs, executeOnce, Reactivator, to01 } from 'src/base/common/utilities/function';
 
 suite('function-test', () => {
 
@@ -80,6 +80,25 @@ suite('function-test', () => {
             assert.strictEqual(to01(false), 0);
             assert.strictEqual(to01(''), 0);
             assert.strictEqual(to01(0), 0);
+        });
+    });
+
+    suite('boolify', () => {
+        test('should return true for truthy values', () => {
+            assert.strictEqual(boolify(true), true);
+            assert.strictEqual(boolify(1), true);
+            assert.strictEqual(boolify('string'), true);
+            assert.strictEqual(boolify([]), true);
+            assert.strictEqual(boolify({}), true);
+        });
+    
+        test('should return false for falsy values', () => {
+            assert.strictEqual(boolify(false), false);
+            assert.strictEqual(boolify(0), false);
+            assert.strictEqual(boolify(''), false);
+            assert.strictEqual(boolify(null), false);
+            assert.strictEqual(boolify(undefined), false);
+            assert.strictEqual(boolify(NaN), false);
         });
     });
 
