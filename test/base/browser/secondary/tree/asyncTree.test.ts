@@ -5,6 +5,46 @@ import { generateTreeLike } from 'test/utils/helpers';
 
 suite('AsyncTree-test', () => {
 
+    test('basic', async () => {
+        const TREE1 = new Map<number, number[]>();
+        /**
+         *   0
+         *  / \
+         * 1   2
+         * |
+         * 3
+         */
+        TREE1.set(0, [1, 2]);
+        TREE1.set(1, [3]);
+        TREE1.set(2, []);
+        TREE1.set(3, []);
+        
+        const container = document.createElement('div');
+        const tree = new AsyncTree<number, void>(
+            container, 
+            0,
+            {
+                forcePrimitiveType: true,
+                renderers: [],
+                itemProvider: { getSize: (data) => 10, getType: (data) => RendererType.Unknown },
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (data) => TREE1.get(data)!,
+                    hasChildren: (data) => true,
+                    collapseByDefault: () => false
+                },
+            }
+        );
+
+        await tree.refresh();
+        assert.strictEqual(tree.treeSize(), 3);
+
+        // delete 3
+        TREE1.set(1, []);
+        await tree.refresh(1);
+        assert.strictEqual(tree.treeSize(), 2);
+    });
+
     test('constructor / size / getNode / hasNode', async () => {
         const TREE1 = new Map<number, number[]>();
         TREE1.set(0, [1, 2, 3]);
@@ -186,6 +226,7 @@ suite('AsyncTree-test', () => {
         TREE1.set(1, []);
         TREE1.set(3, []);
 
+        // should only missing '4' and '5'
         await tree.refresh(1);
 
         assert.strictEqual(tree.treeSize(), 10);
@@ -361,40 +402,43 @@ suite('AsyncTree-test', () => {
         }
     });
 
+    class Child {
+        constructor(
+            public readonly data: number,
+            public readonly TREE: Map<number, number[]>,
+        ) {}
+        resolved = false;
+        children: Child[] = [];
+
+        getChildren() {
+            if (this.resolved) {
+                return this.children;
+            }
+            this.children = this.TREE.get(this.data)!.map(num => new Child(num, this.TREE));
+            this.resolved = true;
+            return this.children;
+        }
+
+        hasChildren() {
+            return !!this.TREE.get(this.data)!.length;
+        }
+
+        forgetChildren() {
+            this.resolved = false;
+            this.children = [];
+        }
+    }
+
     test('childrenProvider', async () => {
         const TREE = new Map<number, number[]>();
         TREE.set(0, [1]);
         TREE.set(1, [2]);
         TREE.set(2, []);
-
-        class Child {
-            constructor(public readonly data: number) {}
-            resolved = false;
-            children: Child[] = [];
-
-            getChildren() {
-                if (this.resolved) {
-                    return this.children;
-                }
-                this.children = TREE.get(this.data)!.map(num => new Child(num));
-                this.resolved = true;
-                return this.children;
-            }
-
-            hasChildren() {
-                return !!TREE.get(this.data)!.length;
-            }
-
-            forgetChildren() {
-                this.resolved = false;
-                this.children = [];
-            }
-        }
         
         const children = new Map<number, Child>();
         const tree = new AsyncTree<Child, void>(
             document.createElement('div'), 
-            new Child(0),
+            new Child(0, TREE),
             {
                 renderers: [],
                 itemProvider: {
@@ -405,14 +449,15 @@ suite('AsyncTree-test', () => {
                 childrenProvider: {
                     getChildren: (data) => data.getChildren(),
                     hasChildren: (data) => data.hasChildren(),
+                    markAsUnresolved: data => { data.resolved = false; },
                     forgetChildren: data => data.forgetChildren(),
                     isChildrenResolved: data => data.resolved,
                 },
                 onDidCreateNode: data => {
                     children.set(data.data.data, data.data);
                 },
-                onDidDeleteNode: data => {
-                    children.delete(data.data.data);
+                onDidDeleteData: data => {
+                    children.delete(data.data);
                 },
             }
         );
@@ -446,34 +491,10 @@ suite('AsyncTree-test', () => {
         TREE.set(1, [2]);
         TREE.set(2, []);
 
-        class Child {
-            constructor(public readonly data: number) {}
-            resolved = false;
-            children: Child[] = [];
-
-            getChildren() {
-                if (this.resolved) {
-                    return this.children;
-                }
-                this.children = TREE.get(this.data)!.map(num => new Child(num));
-                this.resolved = true;
-                return this.children;
-            }
-
-            hasChildren() {
-                return !!TREE.get(this.data)!.length;
-            }
-
-            forgetChildren() {
-                this.resolved = false;
-                this.children = [];
-            }
-        }
-        
         const children = new Map<number, Child>();
         const tree = new AsyncTree<Child, void>(
             document.createElement('div'), 
-            new Child(0),
+            new Child(0, TREE),
             {
                 renderers: [],
                 itemProvider: {
@@ -484,17 +505,18 @@ suite('AsyncTree-test', () => {
                 childrenProvider: {
                     getChildren: (data) => data.getChildren(),
                     hasChildren: (data) => data.hasChildren(),
+                    markAsUnresolved: data => { data.resolved = false; },
                     forgetChildren: data => data.forgetChildren(),
                     isChildrenResolved: data => data.resolved,
                 },
                 onDidCreateNode: data => {
                     children.set(data.data.data, data.data);
                 },
-                onDidDeleteNode: data => {
-                    children.delete(data.data.data);
+                onDidDeleteData: data => {
+                    children.delete(data.data);
                 },
                 identityProvider: {
-                    getID: item => item.toString(),
+                    getID: item => item.data.toString(),
                 },
             }
         );
@@ -520,5 +542,51 @@ suite('AsyncTree-test', () => {
 
         await tree.expand(child1);
         assert.strictEqual(tree.treeSize(), 3);
+    });
+    
+    test('onDidDeleteData', async () => {
+        const TREE = new Map<number, number[]>();
+        
+        const deleted: Child[] = [];
+        const tree = new AsyncTree<Child, void>(
+            document.createElement('div'), 
+            new Child(0, TREE),
+            {
+                renderers: [],
+                itemProvider: { getSize: (data) => 1, getType: (data) => 1 },
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (data) => data.getChildren(),
+                    hasChildren: (data) => true,
+                    markAsUnresolved: data => { data.resolved = false; },
+                    forgetChildren: data => data.forgetChildren(),
+                    isChildrenResolved: data => data.resolved,
+                },
+                onDidDeleteData: data => {
+                    deleted.push(data);
+                },
+                identityProvider: {
+                    getID: item => item.data.toString(),
+                },
+            }
+        );
+
+        TREE.set(0, [1]);
+        TREE.set(1, [2]);
+        TREE.set(2, []);
+        await tree.refresh();
+        assert.strictEqual(tree.treeSize(), 2); // '1' and '2'
+
+        // delete '2'
+        TREE.set(1, []);
+        await tree.refresh();
+        assert.strictEqual(tree.treeSize(), 1); // '1'
+        
+        /**
+         * 'deleted' should contain two objects. '1' is also treated as deleted
+         * because this Child object with data '1' is the old one, not the new 
+         * one.
+         */
+        assert.deepStrictEqual(deleted.map(deleted => deleted.data), [1, 2]);
     });
 });
