@@ -1,3 +1,4 @@
+import { dfs as dfsRaw, bfs as bfsRaw } from "src/base/common/utilities/function";
 import { panic } from "src/base/common/utilities/panic";
 import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
@@ -102,6 +103,32 @@ export namespace Arrays {
         for (let i = 0; i < arrayLength; i++) {
             const args: any = arrays.map(array => array[i]!);
             forEach(...args);
+        }
+    }
+
+    /**
+     * @description Performs a depth-first search (DFS) on an array.
+     * @param arr The array for the DFS.
+     * @param visit A function to visit on each node.
+     * @param getChildren A function that returns an array of child nodes for the 
+     *                    given node.
+     */
+    export function dfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+        for (const node of arr) {
+            dfsRaw(node, visit, getChildren);
+        }
+    }
+    
+    /**
+     * @description Performs a breadth-first search (DFS) on an array.
+     * @param arr The array for the BFS.
+     * @param visit A function to visit on each node.
+     * @param getChildren A function that returns an array of child nodes for the 
+     *                    given node.
+     */
+    export function bfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+        for (const node of arr) {
+            bfsRaw(node, visit, getChildren);
         }
     }
 

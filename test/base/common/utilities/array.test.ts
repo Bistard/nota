@@ -131,7 +131,39 @@ suite('array-test', () => {
             Arrays.parallelEach([nums, strs, bools], () => {});
           }, /All arrays must have the same length/);
         });
-      });
+    });
+
+    suite('dfs', () => {
+        test('DFS should visit all nodes', () => {
+            const nodes = ['a', 'b', 'c'];
+            const visited: string[] = [];
+            Arrays.dfs(nodes, node => visited.push(node), node => []);
+            assert.deepEqual(visited, nodes);
+        });
+
+        test('DFS should follow child nodes', () => {
+            const nodes = { a: ['b'], b: ['c'], c: [] };
+            const visited: string[] = [];
+            Arrays.dfs(['a'], node => visited.push(node), node => nodes[node]);
+            assert.deepEqual(visited, ['a', 'b', 'c']);
+        });
+    });
+
+    suite('bfs', () => {
+        test('BFS should visit all nodes', () => {
+            const nodes = ['a', 'b', 'c'];
+            const visited: string[] = [];
+            Arrays.bfs(nodes, node => visited.push(node), node => []);
+            assert.deepEqual(visited, nodes);
+        });
+
+        test('BFS should visit nodes level by level', () => {
+            const nodes = { a: ['b', 'c'], b: ['d'], c: [], d: [] };
+            const visited: string[] = [];
+            Arrays.bfs(['a'], node => visited.push(node), node => nodes[node]);
+            assert.deepEqual(visited, ['a', 'b', 'c', 'd']);
+        });
+    });
 
     test('reverseIterate', () => {
         const arr = [1, 2, 3, 4, 5];
