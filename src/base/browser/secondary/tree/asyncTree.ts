@@ -53,6 +53,12 @@ export interface IChildrenProvider<T> {
     getChildren(data: T): T[] | Promise<T[]>;
 
     /**
+     * @description Mark the given data as unresolved. This will not clean the
+     * children of the given data.
+     */
+    markAsUnresolved?(data: T): void;
+
+    /**
      * @description Forget the children of the given data so that it will be
      * re-resolved for the next `getChildren` operation.
      * @note If not provided, the children of the data will only be resolved 

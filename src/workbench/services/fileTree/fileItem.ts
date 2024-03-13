@@ -127,7 +127,14 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
     refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<TItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
-     * @description Forgets all the children of the current item.
+     * @description Simply mark the item as unresolved. This does not clean its
+     * children.
+     */
+    markAsUnresolved(): void;
+
+    /**
+     * @description Forgets all the children of the current item. Will also mark
+     * the item as unresolved.
      */
     forgetChildren(): void;
 
@@ -330,8 +337,12 @@ export class FileItem implements IFileItem<FileItem> {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<FileItem>): AsyncResult<void, FileOperationError> {
-        const promise = (async () => {
+    public refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError> {
+        if (this._isResolved) {
+            return ok();
+        }
+
+        return new AsyncResult((async () => {
 
             /**
              * Only refresh the children from the disk if this is not resolved
@@ -341,15 +352,14 @@ export class FileItem implements IFileItem<FileItem> {
                 const resolving = await fileService.stat(this._stat.uri, { resolveChildren: true });
 
                 if (resolving.isErr()) {
-                    return err<void, FileOperationError>(resolving.error);
+                    return err(resolving.error);
                 }
 
                 const updatedStat = resolving.data;
                 this._stat = updatedStat;
-                this._isResolved = true;
             }
 
-            // update the children stat recursively
+            // resolve FileItem recursively based on the stat
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
                 if (opts.filters && isFiltered(childStat.name, opts.filters)) {
@@ -365,10 +375,13 @@ export class FileItem implements IFileItem<FileItem> {
                 this._children.sort(opts.cmp);
             }
 
+            this._isResolved = true;
             return ok<void, FileOperationError>();
-        })();
+        })());
+    }
 
-        return new AsyncResult(promise);
+    public markAsUnresolved(): void {
+        this._isResolved = false;
     }
 
     public forgetChildren(): void {
@@ -492,6 +505,10 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
 
     public isChildrenResolved(data: FileItem): boolean {
         return data.isChildrenResolved();
+    }
+
+    public markAsUnresolved(data: FileItem): void {
+        data.markAsUnresolved();
     }
 
     public forgetChildren(data: FileItem): void {
