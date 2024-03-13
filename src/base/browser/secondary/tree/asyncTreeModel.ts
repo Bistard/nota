@@ -2,8 +2,9 @@ import { IAsyncNode, IChildrenProvider, IIdentiityProivder } from "src/base/brow
 import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/structures/range";
+import { Arrays } from "src/base/common/utilities/array";
 import { Blocker } from "src/base/common/utilities/async";
-import { cond, dfs, dfsAsync } from "src/base/common/utilities/function";
+import { cond, dfs } from "src/base/common/utilities/function";
 
 /**
  * An interface only for {@link AsyncTreeModel}.
@@ -179,25 +180,41 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
         
-        // TODO: write into a helper
-        const oldChildrenData: T[] = [];
-        for (const child of asyncNode.children) {
-            await dfsAsync(child, 
-                async child => {
-                    oldChildrenData.push(child.data);
-                },
-                async child => child.children
-            );
-        }
-        this._childrenProvider.forgetChildren?.(asyncNode.data);
-
-        const resolveChildren = cond(asyncNode.collapsible,
+        const oldChildrenData = this.__getOldChildrenData(asyncNode);
+        const newChildrenNode = await cond(asyncNode.collapsible,
             this.__getNewChildren(asyncNode),
             Promise.resolve([]),
         );
-        const newChildrenNode = await resolveChildren;
 
-        return this.__setChildren(asyncNode, { newChildren: newChildrenNode, oldChildren: oldChildrenData });
+        return this.__setChildren(asyncNode, { 
+            newChildren: newChildrenNode, 
+            oldChildren: oldChildrenData,
+        });
+    }
+
+    /**
+     * @description Before retriving the latest children by calling 
+     * `__getNewChildren`, we need to remember the old children for later usage.
+     */
+    private __getOldChildrenData(node: IAsyncNode<T, TFilter>): T[] {
+        const oldChildrenData: T[] = [];
+
+        /**
+         * Iterating the old children tree, and simply put all the old DATA into
+         * the 1-dimensional array.
+         */
+        Arrays.dfs(node.children, 
+            child => oldChildrenData.push(child.data), 
+            child => child.children,
+        );
+
+        /**
+         * After storing the old children data, we are safe to forget them for
+         * later to resolve new ones.
+         */
+        this._childrenProvider.forgetChildren?.(node.data);
+
+        return oldChildrenData;
     }
 
     /**
