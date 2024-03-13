@@ -297,7 +297,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     private readonly _ongoingCollapseChange = new AsyncQueue<void>();
 
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
-    private _onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
+    private _onDidDeleteData?: (node: T) => void;
 
     // [event]
 
@@ -351,7 +351,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         });
 
         this._onDidCreateNode = opts.onDidCreateNode;
-        this._onDidDeleteNode = opts.onDidDeleteNode;
+        this._onDidDeleteData = opts.onDidDeleteData;
 
         this.__register(this._tree);
         this.__register(this._ongoingCollapseChange);
@@ -596,7 +596,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             node,
             {
                 onDidCreateNode: this._onDidCreateNode,
-                onDidDeleteNode: this._onDidDeleteNode,
+                onDidDeleteData: this._onDidDeleteData,
             },
         );
     }

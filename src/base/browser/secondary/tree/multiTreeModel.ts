@@ -165,7 +165,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
     }
 
     protected __createSpliceOptions(opts: ITreeModelSpliceOptions<T, TFilter>): ITreeModelSpliceOptions<T, TFilter> {
-        const inserted = new Set<T>();
+        const justInserted = new Set<T>();
 
         const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
             // avoid root
@@ -175,34 +175,29 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
 
             // remember the mapping
             this._nodes.set(node.data, node);
-            inserted.add(node.data);
+            justInserted.add(node.data);
 
-            // other callback
-            if (opts.onDidCreateNode) {
-                opts.onDidCreateNode(node);
-            }
+            opts.onDidCreateNode?.(node);
         };
 
-        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
+        const onDidDeleteData = (data: T): void => {
             // avoid root
-            if (node.data === this.root) {
+            if (data === this.root) {
 				return;
 			}
 
             // prevent accidently delete what we just inserted.
-            if (inserted.has(node.data) === false) {
-                this._nodes.delete(node.data);
-
-                // other callback
-                if (opts.onDidDeleteNode) {
-                    opts.onDidDeleteNode(node);
-                }
+            if (justInserted.has(data)) {
+                return;
             }
+
+            this._nodes.delete(data);
+            opts.onDidDeleteData?.(data);
         };
 
         return {
             onDidCreateNode,
-            onDidDeleteNode,
+            onDidDeleteData,
         };
     }
 }

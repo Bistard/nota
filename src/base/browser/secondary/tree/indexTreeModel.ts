@@ -2,6 +2,7 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
 import { DelayableEmitter, Emitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
+import { Arrays } from "src/base/common/utilities/array";
 import { panic } from "src/base/common/utilities/panic";
 
 const INVALID_INDEX = -1;
@@ -17,9 +18,9 @@ export interface ITreeModelSpliceOptions<T, TFilter> {
     onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
 
     /**
-     * Invokes when the tree node is deleted.
+     * Invokes when the tree data is deleted.
      */
-    onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
+    onDidDeleteData?: (node: T) => void;
 }
 
 /**
@@ -133,7 +134,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             visibleNodeCount: 0,
         };
 
-        this._collapsedByDefault = !!(opt?.collapsedByDefault);
+        this._collapsedByDefault = opt?.collapsedByDefault ?? false;
         this._filter = opt.filter;
     }
 
@@ -780,12 +781,8 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         }
 
         // deletion callback
-        if (opts.onDidDeleteNode && deletedChildren.length > 0) {
-            const deleteVisitor = (node: ITreeNode<T, TFilter>) => {
-                opts.onDidDeleteNode!(node);
-                node.children.forEach(deleteVisitor);
-            };
-            deletedChildren.forEach(node => deleteVisitor(node));
+        if (opts.onDidDeleteData && deletedChildren.length > 0) {
+            Arrays.dfs(deletedChildren, node => { opts.onDidDeleteData?.(node.data); }, node => node.children);
         }
 
         // fire events
@@ -919,12 +916,10 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             this.setCollapsible(location, currHasChildrenState);
         }
 
-        /**
-         * [deletion callback]
-         * `opts.onDidDeleteNode` does not work in flex model. Because the flex 
-         * model will mutate the same tree node, the deleting node can be 
-         * actually reused.
-         */
+        const deletedChildren = node.toDeleted ?? [];
+        if (opts.onDidDeleteData && deletedChildren.length > 0) {
+            deletedChildren.forEach(data => opts.onDidDeleteData!(data));
+        }
         
         // state reset
         node.stale = false;
