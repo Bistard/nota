@@ -3,7 +3,7 @@ import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/sec
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/structures/range";
 import { Blocker } from "src/base/common/utilities/async";
-import { cond } from "src/base/common/utilities/function";
+import { cond, dfs, dfsAsync } from "src/base/common/utilities/function";
 
 /**
  * An interface only for {@link AsyncTreeModel}.
@@ -28,6 +28,11 @@ export interface IAsyncTreeModelOptions<T, TFilter> extends IMultiTreeModelOptio
     readonly identityProvider?: IIdentiityProivder<T>;
 }
 
+interface IGetChildrenResult<T> { 
+    oldChildren: T[]; 
+    newChildren: T[];
+}
+
 /**
  * @class A {@link AsyncTreeModel} extends {@link FlexMultiTreeModel} and also 
  * wraps a {@link IAsyncNode} over each client data.
@@ -41,6 +46,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     
     // [field]
 
+    private readonly _collapsedByDefault: boolean;
     private readonly _childrenProvider: IChildrenProvider<T>;
     private readonly _identityProvider?: IIdentiityProivder<T>;
 
@@ -71,6 +77,8 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         opts: IAsyncTreeModelOptions<T, TFilter>,
     ) {
         super(rootData, view, opts);
+        
+        this._collapsedByDefault = opts.collapsedByDefault ?? false;
         this._childrenProvider = opts.childrenProvider;
         this._identityProvider = opts.identityProvider;
 
@@ -86,8 +94,15 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     public async refreshNode(node: IAsyncNode<T, TFilter>): Promise<void> {
         
         /**
+         * Mark the current data as unresolved. If it is collapsed, this will 
+         * make sure the future expand operation will not treat this data as 
+         * resolved and skip this operation.
+         */
+        this._childrenProvider.markAsUnresolved?.(node.data);
+
+        /**
          * The node is already collapsed, we should do nothing since there is no
-         * need to refresh. We will forget the children next time.
+         * need to refresh. The node will still be marked as unresolved.
          */
         if (node.collapsed) {
             return;
@@ -143,7 +158,10 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
              * we continue the same work to the direct children, refreshing the 
              * other descendants.
              */
-            await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
+            for (const child of childrenToRefresh) {
+                await this.__refreshNodeAndChildren(child);
+            }
+            // await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
 
         finally {
@@ -161,20 +179,32 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
         
+        // TODO: write into a helper
+        const oldChildrenData: T[] = [];
+        for (const child of asyncNode.children) {
+            await dfsAsync(child, 
+                async child => {
+                    oldChildrenData.push(child.data);
+                },
+                async child => child.children
+            );
+        }
+        this._childrenProvider.forgetChildren?.(asyncNode.data);
+
         const resolveChildren = cond(asyncNode.collapsible,
-            this.__getChildren(asyncNode),
+            this.__getNewChildren(asyncNode),
             Promise.resolve([]),
         );
-        const children = await resolveChildren;
+        const newChildrenNode = await resolveChildren;
 
-        return this.__setChildren(asyncNode, children);
+        return this.__setChildren(asyncNode, { newChildren: newChildrenNode, oldChildren: oldChildrenData });
     }
 
     /**
      * @description Given the tree node, returns the newest children of the node.
      * @param node The provided async tree node.
      */
-    private async __getChildren(node: IAsyncNode<T, TFilter>): Promise<T[]> {
+    private async __getNewChildren(node: IAsyncNode<T, TFilter>): Promise<T[]> {
         const refreshing = this._statFetching.get(node);
 
         // since the node is already fetching, we do nothing and return the same promise.
@@ -182,21 +212,16 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             return refreshing;
         }
 
-        /**
-         * Forget the current children of the node so that `getChildren` 
-         * operation will work properly.
-         */
-        this._childrenProvider.forgetChildren?.(node.data);
-
         // get the children from the provider and set it as refreshing.
         const childrenPromise = Promise.resolve(this._childrenProvider.getChildren(node.data));
+        
         this._statFetching.set(node, childrenPromise);
         
         // wait for the children fetching to be finished
-        const children = await childrenPromise;
+        const newChildren = await childrenPromise;
         this._statFetching.delete(node);
         
-        return children;
+        return newChildren;
     }
 
     /**
@@ -205,13 +230,15 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * @param childrenData The direct children of the given node.
      * @returns An array of children that requires further refresh.
      */
-    private __setChildren(node: IAsyncNode<T, TFilter>, childrenData: readonly T[]): IAsyncNode<T, TFilter>[] 
+    private __setChildren(node: IAsyncNode<T, TFilter>, childrenData: IGetChildrenResult<T>): IAsyncNode<T, TFilter>[] 
     {
+        const { oldChildren, newChildren } = childrenData;
+
         /**
          * Was empty children and no children is changed, we should quit and 
          * refresh nothing.
          */
-        if (!node.children.length && !childrenData.length) {
+        if (!node.children.length && !newChildren.length) {
             return [];
         }
 
@@ -224,10 +251,11 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
          * If the tree can identify the uniqueness of each node, then it is 
          * possible to reuse the old nodes instead of creating new ones.
          */
-        this.__reuseOrCreateChildNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
+        this.__reuseOrCreateChildNode(newChildren, node, childrenNodes, childrenNodesToRefresh);
         
         node.stale = true;
         node.children = childrenNodes;
+        node.toDeleted = oldChildren;
 
         return childrenNodesToRefresh;
     }
@@ -333,13 +361,11 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         };
         
         if (hasChildren) {
-            /**
-             * the children of the current node should not be collapsed, we 
-             * need to keep refreshing on next time.
-             */
-            if (this._childrenProvider.collapseByDefault && 
-                !this._childrenProvider.collapseByDefault(childData)
-            ) {
+            const shouldCollapse = this._childrenProvider.collapseByDefault && this._childrenProvider.collapseByDefault(childData);
+            const anyCollapse = shouldCollapse ?? this._collapsedByDefault;
+            
+            // Only keep refreshing the child if it is not collapsed.
+            if (!anyCollapse) {
                 newNode.collapsed = false;
                 toRefresh.push(newNode);
             }

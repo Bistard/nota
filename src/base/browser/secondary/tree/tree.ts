@@ -114,6 +114,12 @@ export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
      * perspective.
      */
     stale?: boolean;
+
+    /**
+     * Before every refreshing, the old children data will be stored here. It is
+     * useful in the 'IndexTreeModel' stage and will be clean at that point.
+     */
+    toDeleted?: T[];
 }
 
 /**

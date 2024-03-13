@@ -915,7 +915,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         if (prevhasChildrenState !== currHasChildrenState) {
             this.setCollapsible(location, currHasChildrenState);
         }
-
+        
         const deletedChildren = node.toDeleted ?? [];
         if (opts.onDidDeleteData && deletedChildren.length > 0) {
             deletedChildren.forEach(data => opts.onDidDeleteData!(data));
@@ -923,6 +923,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         
         // state reset
         node.stale = false;
+        node.toDeleted = [];
 
         // fire events
         this._onDidSplice.fire({ inserted: treeNodeListToBeRendered });
