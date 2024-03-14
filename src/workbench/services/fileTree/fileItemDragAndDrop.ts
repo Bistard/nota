@@ -356,8 +356,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         if (targetOver.isFile()) {
             return this.__isDroppable(event, currentDragItems, targetOver.parent ?? undefined);
         }
-        const targetDir = targetOver;
 
+        // copy operation is always allowed
         if (__isCopyOperation(event)) {
             return { allowDrop: true, effect: DragOverEffect.Copy };
         }
@@ -370,10 +370,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *  - dropping to its child folder.
          */
         const anyCannotDrop = currentDragItems.some(dragItem => {
-            const destination = URI.join(targetDir.uri, dragItem.name);
-            return dragItem === targetDir
+            const destination = URI.join(targetOver.uri, dragItem.name);
+            return dragItem === targetOver
                 || URI.equals(dragItem.uri, destination)
-                || URI.isParentOf(targetDir.uri, dragItem.uri)
+                || URI.isParentOf(targetOver.uri, dragItem.uri)
             ;
         });
 
@@ -427,8 +427,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             await this.__performDropMove(currentDragItems, targetOver);
             return;
         }
-
-        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
 
         /**
          * Determine the appropriate insertion point for the currently dragging
