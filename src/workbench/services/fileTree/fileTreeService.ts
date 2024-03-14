@@ -184,10 +184,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {
         // TODO: find a way to render the cut item
-
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, true);
-
-        
     }
 
     public async highlightSelectionAsCopy(items: FileItem[]): Promise<void> {

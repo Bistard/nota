@@ -1,6 +1,9 @@
 import { IDisposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
 
+export type ResourceMapToKeyFn = (resource: URI) => string;
+const DEFAULT_MAP_TO_KEY_FN = (resource: URI) => URI.toString(resource);
+
 /**
  * @class {@link ResourceMap} is a utility class that provides Map-like 
  * functionality but uses URIs as keys. This is especially useful when you need 
@@ -16,13 +19,13 @@ export class ResourceMap<T> implements Map<URI, T>, IDisposable {
 
 	public readonly [Symbol.toStringTag] = 'ResourceMap';
 	private readonly _map: Map<string, { resource: URI, value: T }>;
-	private readonly _toKey: (key: URI) => string;
+	private readonly _toKey: ResourceMapToKeyFn;
 
     // [constructor]
 
-	constructor(toKey?: (key: URI) => string) {
+	constructor(toKey?: ResourceMapToKeyFn) {
         this._map = new Map();
-        this._toKey = toKey ?? ((resource: URI) => URI.toString(resource));
+        this._toKey = toKey ?? DEFAULT_MAP_TO_KEY_FN;
 	}
 
     // [public methods]
@@ -99,9 +102,9 @@ export class ResourceSet implements Set<URI> {
 
 	// [constructor]
 
-	constructor(toKey?: (key: URI) => string);
-	constructor(entries: readonly URI[], toKey?: (key: URI) => string);
-	constructor(entriesOrKey?: readonly URI[] | ((key: URI) => string), toKey?: (key: URI) => string) {
+	constructor(toKey?: ResourceMapToKeyFn);
+	constructor(entries: readonly URI[], toKey?: ResourceMapToKeyFn);
+	constructor(entriesOrKey?: readonly URI[] | (ResourceMapToKeyFn), toKey?: ResourceMapToKeyFn) {
 		if (!entriesOrKey || typeof entriesOrKey === 'function') {
 			this._map = new ResourceMap(entriesOrKey);
 		} else {

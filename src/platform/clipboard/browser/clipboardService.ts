@@ -1,5 +1,6 @@
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
+import { assert } from "src/base/common/utilities/panic";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 
 /**
@@ -75,7 +76,7 @@ export class BrowserClipboardService implements IClipboardService {
             case ClipboardType.Resources:
                 return this.__readResources();
             case ClipboardType.Arbitrary:
-                return this.__readArbitrary<T>(key!);
+                return this.__readArbitrary<T>(assert(key));
         }
     }
 
