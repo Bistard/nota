@@ -23,6 +23,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
+import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -70,6 +71,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @ICommandService private readonly commandService: ICommandService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @IClipboardService private readonly clipboardService: IClipboardService,
     ) {
         super();
         this._sorter = sorter;
@@ -361,7 +363,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
 
         /**
-         * Either following case cannot perform drop operation if one of the 
+         * Either following case cannot perform drop operation if ONE of the 
          * selecting item is:
          *  - dropping to itself.
          *  - dropping to its direct parent.
@@ -426,6 +428,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             return;
         }
 
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
+
         /**
          * Determine the appropriate insertion point for the currently dragging
          * items based on the current insertion:
@@ -444,55 +448,58 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         })();
 
         // TEST
+        console.log('insertion detected');
         console.log('targetAbove:', targetAbove.basename);
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
 
-        // the actual move
-        // TODO: disabled for now
-        await this.__performDropMove(currentDragItems, targetAbove);
+        // // the actual move
+        // // TODO: disabled for now
+        // await this.__performDropMove(currentDragItems, targetAbove);
 
-        /** 
-         * The dragging items should be the same level with 'dragAbove'. The 
-         * only exception is if the 'dragAbove' is a directory, we drop the 
-         * dragging items at as the first children of that directory.
-         * 
-         * Sorting metadata need to be changed before perform the actual move
-         * action.
-         */
-        const sorter = this._sorter.getCustomSorter();
+        // /** 
+        //  * The dragging items should be the same level with 'dragAbove'. The 
+        //  * only exception is if the 'dragAbove' is a directory, we drop the 
+        //  * dragging items at as the first children of that directory.
+        //  * 
+        //  * Sorting metadata need to be changed before perform the actual move
+        //  * action.
+        //  */
+        // const sorter = this._sorter.getCustomSorter();
         
-        // TODO: remove the current drag items order metadata
-        for (const dragItem of currentDragItems) {
-            // await sorter.updateMetadata(OrderChangeType.Remove, dragItem).unwrap();
-        }
+        // // TODO: remove the current drag items order metadata
+        // for (const dragItem of currentDragItems) {
+        //     // await sorter.updateMetadata(OrderChangeType.Remove, dragItem).unwrap();
+        // }
 
-        if (this._tree.isCollapsible(targetAbove)) {
-            // drop the dragging items at the first children of the directory
+        // if (this._tree.isCollapsible(targetAbove)) {
+        //     // drop the dragging items at the first children of the directory
             
             
-            // TODO: add to the new destination order metadata
+        //     // TODO: add to the new destination order metadata
             
-        } else {
-            // drop at the same level with 'dragAbove'
+        // } else {
+        //     // drop at the same level with 'dragAbove'
             
-            // TODO: add to the new destination order metadata
-        }
+        //     // TODO: add to the new destination order metadata
+        // }
+
+        // make sure the insert finishes no matter what
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, false);
     }
 
     private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
 
         // simulate drop action (copy) as copy, so that we can able to paste.
-        this.fileTreeService.simulateSelectionCut(false);
-        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
-
+        this.fileTreeService.simulateSelectionCutOrCopy(false);
+        await this.clipboardService.write(ClipboardType.Arbitrary, currentDragItems, 'insertItems');
         await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
     
     private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
         // simulate drop action (move) as cut, so that we can able to paste.
-        this.fileTreeService.simulateSelectionCut(true);
-        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
-
+        this.fileTreeService.simulateSelectionCutOrCopy(true);
+        await this.clipboardService.write(ClipboardType.Arbitrary, currentDragItems, 'insertItems');
         await this.commandService.executeCommand(AllCommands.filePaste, targetOver, currentDragItems.map(item => item.uri));
     }
 }

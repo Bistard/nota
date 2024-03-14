@@ -9,12 +9,13 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
-import { noop } from "src/base/common/performance";
-import { FileOperationErrorType } from "src/base/common/files/file";
+import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
-import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { IBatchResult } from "src/base/common/undoRedo";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { noop } from "src/base/common/performance";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -74,13 +75,13 @@ export namespace FileCommands {
             this.commandService      = provider.getOrCreateService(ICommandService);
 
             if (destination.isFile()) {
-                this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', new Error('Cannot paste on a file.'));
+                await this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', new Error('Cannot paste on a file.'));
                 return false;
             }
 
-            const toPaste = await this.__getResourcesToPaste(resources);
-            const isCut = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey)!;
-            const isCustomSorting = this.fileTreeService.getFileSortingType() === FileSortType.Custom;
+            const toPaste  = await this.__getResourcesToPaste(resources);
+            const isCut    = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey)!;
+            const isInsert = contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnInsertKey)!;
 
             // nothing to paste, nothing happens.
             if (toPaste.length === 0) {
@@ -88,8 +89,9 @@ export namespace FileCommands {
             }
             
             // [normal paste]
-            if (!isCustomSorting) {
-                return await this.__doPaste(isCut, toPaste, destination);
+            if (!isInsert) {
+                await this.__doPasteNormal(toPaste, destination, isCut);
+                return true;
             }
             
             /**
@@ -99,39 +101,101 @@ export namespace FileCommands {
              * because we are pasting resources grouped by the same parent 
              * at each time.
              */
-            const groups = Arrays.group(toPaste, uri => URI.toString(URI.dirname(uri)));
-            for (const group of groups.values()) {
-                const success = await this.__doPaste(isCut, group, destination);
-                if (!success) {
-                    // TODO: even if failed, the partial of 'toPaste' are successed, we need to update that as well.
-                    continue;
-                }
-
-                await this.__updateSortingMetadata(isCut, group, destination);
-            }
+            // const groups = Arrays.group(toPaste, uri => URI.toString(URI.dirname(uri)));
+            // const dragItems = (await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'insertItems'))!; // TODO: falsy check
+            // const groups = Arrays.group(dragItems, item => item.parent);
+            // for (const group of groups.values()) {
+            //     const result = await this.__doPasteInsert(group, destination, isCut);
+                
+            //     if (!result) {
+            //         // TODO: even if failed, the partial of 'toPaste' are successed, we need to update that as well.
+            //         continue;
+            //     }
+            // }
             
             return true;
         }
 
-        private async __doPaste(isCut: boolean, toPaste: URI[], destination: FileItem): Promise<boolean> {
-            try {
-                if (isCut) {
-                    console.log('[filePaster] __doMove');
-                    await this.__doMove(toPaste, destination);
-                } 
-                else {
-                    console.log('[filePaste] __copy');
-                    await this.__doCopy(toPaste, destination);
-                }
-                return true;
-            } 
-            catch (error: any) {
-                this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
-                return false;
+        private async __doPasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<void> {
+            const batch = isCut 
+                    ? await this.__doMove(toPaste, destination) 
+                    : await this.__doCopy(toPaste, destination);
+            
+            if (batch.failed.length === 0) {
+                return;
             }
-            finally {
-                this.fileTreeService.simulateSelectionCut(false);
-            }
+
+            Arrays.parallelEach([batch.failed, batch.failedError], (failed, error) => {
+                const operation = isCut ? 'move' : 'copy';
+                const targetName = URI.basename(failed);
+                const destinName = URI.basename(destination.uri);
+
+                this.notificationService.notify({ 
+                    title: 'FilePaste Fails',
+                    message: `Cannot ${operation} ${targetName} to ${destinName}.`,
+                    actions: [
+                        { label: 'Ok', run: noop },
+                        { label: 'Retry', run: () => this.commandService.executeAnyCommand(AllCommands.filePaste, destination, [batch.failed]) }
+                    ]
+                });
+            });
+        }
+
+        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, isCut: boolean): Promise<IBatchResult<URI, FileOperationError>> {
+            
+            /**
+             * [update custom sorting metadata]
+             * 
+             * Update custom sorting metadata only for successfully processed 
+             * resources. 
+             *  - e.g, in an operation involving 10 files where 7 succeed and 3 
+             *    fail, metadata will only be updated for the 7 successful files, 
+             *    leaving the others unchanged.
+             */
+            const toPasteURI = toPaste.map(item => item.uri);
+            const batch = isCut 
+                    ? await this.__doMove(toPasteURI, destination) 
+                    : await this.__doCopy(toPasteURI, destination);
+            
+            return batch;
+
+            /**
+             * // TODO
+             * Use 'ResourceSet' to quick check, which 'toPaste' are passed and 
+             * which are not. 
+             * 
+             * To those who fails, we do nothing to its metadata.
+             * 
+             * To those who successes, since we are moving them, we find its 
+             * current index relative to its parent, we build an array of indice
+             * for removing.
+             * 
+             * We also keep 
+             */
+
+            // const passed = batch.passed;
+            // if (isCut) {
+            //     // todo: client may provide are they ensure these are in the tree?
+            //     // const passedItems = 
+                
+
+            //     // await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Remove, ).unwrap();
+            // }
+            
+
+            
+            // try {
+            //     return true;
+            // } 
+            // // weird error
+            // catch (error: any) {
+            //     this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
+            //     return false;
+            // }
+            // finally {
+            //     // TODO: update onInsert context to false
+            //     this.fileTreeService.simulateSelectionCutOrCopy(false);
+            // }
         }
 
         private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
@@ -152,8 +216,15 @@ export namespace FileCommands {
             return resolvedToPaste;
         }
 
-        private async __doMove(toPaste: URI[], destination: FileItem): Promise<void> {
-            
+        private async __doMove(toPaste: URI[], destination: FileItem): Promise<IBatchResult<URI, FileOperationError>> {
+            const result: IBatchResult<URI, FileOperationError> = {
+                passed: [],
+                failed: [],
+                failedError: [],
+            };
+
+            // TODO: seems like if move fails, file or folders got deleted?
+
             /**
              * Iterate every pasting items and try to move to the destination. 
              * If any existing files or folders found at the destination, a 
@@ -166,13 +237,15 @@ export namespace FileCommands {
 
                 // complete
                 if (success.isOk()) {
+                    result.passed.push(resource);
                     continue;
                 }
                 const error = success.unwrapErr();
 
                 // only expect `FILE_EXISTS` error
                 if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                    this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
+                    await this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
+                    continue;
                 }
 
                 // duplicate item found, ask permission from the user.
@@ -182,18 +255,35 @@ export namespace FileCommands {
                 );
 
                 if (!shouldOverwrite) {
+                    result.failed.push(resource);
                     continue;
                 }
 
-                await this.fileService.moveTo(resource, newDestination, true).match(
-                    noop, 
-                    error => this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error),
-                );
+                // re-move to overwrite
+                const move = await this.fileService.moveTo(resource, newDestination, true);
+                if (move.isOk()) {
+                    result.passed.push(resource);
+                    continue;
+                }
+
+                /**
+                 * Error happens, we mark it as not completed, let the client to
+                 * handle.
+                 */
+                result.failed.push(resource);
+                result.failedError?.push(move.unwrapErr());
             }
+
+            return result;
         }
 
-        private async __doCopy(toPaste: URI[], destination: FileItem): Promise<void> {
-            
+        private async __doCopy(toPaste: URI[], destination: FileItem): Promise<IBatchResult<URI, FileOperationError>> {
+            const result: IBatchResult<URI, FileOperationError> = {
+                passed: [],
+                failed: [],
+                failedError: [],
+            };
+
             /**
              * Iterate every selecting items and try to copy to the destination. 
              * If a duplicate item name is encountered, append '_copy' as a 
@@ -208,19 +298,23 @@ export namespace FileCommands {
                     newDestination = URI.join(destination.uri, `${baseName}_copy${extName}`);
                 }
                 
-                await this.fileService.copyTo(resource, newDestination).match(
-                    noop,
-                    error => this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error),
-                );
-            }
-        }
+                const copy = await this.fileService.copyTo(resource, newDestination);
+                
+                // complete
+                if (copy.isOk()) {
+                    result.passed.push(resource);
+                    continue;
+                }
 
-        private async __updateSortingMetadata(isCut: boolean, toPaste: URI[], destination: FileItem): Promise<void> {
-            
-            // todo
-            if (isCut) {
-
+                /**
+                 * Error happens, we mark it as not completed, let the client to
+                 * handle.
+                 */
+                result.failed.push(resource);
+                result.failedError?.push(copy.unwrapErr());
             }
+
+            return result;
         }
     }
 }
