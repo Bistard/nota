@@ -290,6 +290,37 @@ export class URI implements IURI {
 
 		return distinct;
 	}
+	
+	/**
+	 * @description Same as {@link URI.distinctParents}, but instead of directly
+	 * filtering the URI, this is filtering a generic type T.
+	 * @param items Array of items of generic type T.
+	 * @param getURI Function to extract URI from an item.
+	 * @returns Array of distinct items based on their URIs.
+	 */
+	public static distinctParentsByUri<T>(items: T[], getURI: (item: T) => URI): T[] {
+		const distinct: T[] = [];
+
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i]!;
+			const uri = getURI(item);
+
+			const isChildOrParent = items.some((other, idx) => {
+				if (idx === i) {
+					return false;
+				}
+
+				const otherUri = getURI(other);
+				return URI.isParentOf(uri, otherUri) || URI.equals(uri, otherUri);
+			});
+
+			if (!isChildOrParent) {
+				distinct.push(item);
+			}
+		}
+
+		return distinct;
+	}
 
 	/**
 	 * @description Creates a string representation for this URI. It's 

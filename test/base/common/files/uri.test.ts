@@ -760,4 +760,37 @@ suite('URI-test', () => {
 		assert.strictEqual(distinct[1]!.toString(), resources[3]!.toString());
 		assert.strictEqual(distinct[2]!.toString(), resources[4]!.toString());
 	});
+
+	test('distinctParentsByUri', () => {
+		type TestItem = { uri: URI };
+		const getUri = (item: TestItem) => item.uri;
+	
+		// Basic test case with distinct URIs
+		let items: TestItem[] = [
+			{ uri: URI.fromFile('/some/folderA/file.txt') },
+			{ uri: URI.fromFile('/some/folderB/file.txt') },
+			{ uri: URI.fromFile('/some/folderC/file.txt') }
+		];
+	
+		let distinct = URI.distinctParentsByUri(items, getUri);
+		assert.strictEqual(distinct.length, 3);
+		assert.strictEqual(distinct[0]!.uri.toString(), items[0]!.uri.toString());
+		assert.strictEqual(distinct[1]!.uri.toString(), items[1]!.uri.toString());
+		assert.strictEqual(distinct[2]!.uri.toString(), items[2]!.uri.toString());
+	
+		// More case with parent and child URIs
+		items = [
+			{ uri: URI.fromFile('/some/folderA') },
+			{ uri: URI.fromFile('/some/folderA/file.txt') },
+			{ uri: URI.fromFile('/some/folderA/child/file.txt') },
+			{ uri: URI.fromFile('/some/folderA2/file.txt') },
+			{ uri: URI.fromFile('/some/file.txt') }
+		];
+	
+		distinct = URI.distinctParentsByUri(items, getUri);
+		assert.strictEqual(distinct.length, 3);
+		assert.strictEqual(distinct[0]!.uri.toString(), items[0]!.uri.toString());
+		assert.strictEqual(distinct[1]!.uri.toString(), items[3]!.uri.toString());
+		assert.strictEqual(distinct[2]!.uri.toString(), items[4]!.uri.toString());
+	});
 });
