@@ -48,7 +48,7 @@ export class ResourceMap<T> implements Map<URI, T>, IDisposable {
 		return this._map.delete(this._toKey(resource));
 	}
 
-	public forEach(cb: (value: T, key: URI, _map: Map<URI, T>) => void, thisArg?: any): void {
+	public forEach(cb: (value: T, key: URI, map: Map<URI, T>) => void, thisArg?: any): void {
 		if (typeof thisArg !== 'undefined') {
 			cb = cb.bind(thisArg);
 		}
@@ -87,5 +87,71 @@ export class ResourceMap<T> implements Map<URI, T>, IDisposable {
 		for (const [, entry] of this._map) {
 			yield [entry.resource, entry.value];
 		}
+	}
+}
+
+export class ResourceSet implements Set<URI> {
+
+	// [field]
+
+	public readonly [Symbol.toStringTag]: string = 'ResourceSet';
+	private readonly _map: ResourceMap<URI>;
+
+	// [constructor]
+
+	constructor(toKey?: (key: URI) => string);
+	constructor(entries: readonly URI[], toKey?: (key: URI) => string);
+	constructor(entriesOrKey?: readonly URI[] | ((key: URI) => string), toKey?: (key: URI) => string) {
+		if (!entriesOrKey || typeof entriesOrKey === 'function') {
+			this._map = new ResourceMap(entriesOrKey);
+		} else {
+			this._map = new ResourceMap(toKey);
+			for (const entry of entriesOrKey) {
+                this.add(entry);
+            }
+		}
+	}
+
+	// [public methods]
+
+	get size(): number {
+		return this._map.size;
+	}
+
+	public add(value: URI): this {
+		this._map.set(value, value);
+		return this;
+	}
+
+	public clear(): void {
+		this._map.clear();
+	}
+
+	public delete(value: URI): boolean {
+		return this._map.delete(value);
+	}
+
+	public forEach(cb: (value: URI, value2: URI, set: Set<URI>) => void, thisArg?: any): void {
+		this._map.forEach((_value, key) => cb.call(thisArg, key, key, this));
+	}
+
+	public has(value: URI): boolean {
+		return this._map.has(value);
+	}
+
+	public entries(): IterableIterator<[URI, URI]> {
+		return this._map.entries();
+	}
+
+	public keys(): IterableIterator<URI> {
+		return this._map.keys();
+	}
+
+	public values(): IterableIterator<URI> {
+		return this._map.keys();
+	}
+
+	public [Symbol.iterator](): IterableIterator<URI> {
+		return this.keys();
 	}
 }
