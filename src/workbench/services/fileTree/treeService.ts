@@ -164,7 +164,8 @@ export interface IFileTreeService extends IDisposable, IService {
     /**
      * @description This method will not visually highlight the files, but
      * programatically set the status as cut or copy.
-     * @param isCutOrCopy Is file tree in the state of cut or copy.
+     * @param isCutOrCopy Is file tree in the state of cut or copy. True means
+     *                    cut, false means copy.
      */
     simulateSelectionCutOrCopy(isCutOrCopy: boolean): void;
 
