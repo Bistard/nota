@@ -41,7 +41,7 @@ export function panic(error: unknown): never {
 export function assert<T>(obj: T, message?: string): NonNullable<T>;
 export function assert<T>(obj: any, message?: string): T {
     if (obj === undefined || obj === null) {
-        panic(message ?? 'assert error');
+        panic(message ?? `assert error: ${obj}`);
     }
     return obj;
 }
