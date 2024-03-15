@@ -247,10 +247,11 @@ export interface IFileTreeService extends IDisposable, IService {
     updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
 
     /**
-     * @description When moving a directory, its corresponding metadata file 
-     * must also be moved.
-     * @param oldDirUri The directory has moved.
+     * @description When moving or copying a directory, its corresponding 
+     * metadata file must also be updated.
+     * @param oldDirUri The directory has changed.
      * @param destination The new destination of the directory.
+     * @param cutOrCopy True means cut, false means copy.
      */
-    moveDirectoryMetadata(oldDirUri: URI, destination: URI): AsyncResult<void, Error | FileOperationError>;
+    updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 }

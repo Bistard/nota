@@ -96,12 +96,13 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     updateMetadataLot(type: OrderChangeType, itemsOrParent: TItem[] | TItem, indice: number[]): AsyncResult<void, FileOperationError | Error>;
 
     /**
-     * @description When moving a directory, its corresponding metadata file 
-     * must also be moved.
-     * @param oldDirUri The directory has moved.
+     * @description When moving or copying a directory, its corresponding 
+     * metadata file must also be updated.
+     * @param oldDirUri The directory has changed.
      * @param destination The new destination of the directory.
+     * @param cutOrCopy True means cut, false means copy.
      */
-    moveDirectoryMetadata(oldDirUri: URI, destination: URI): AsyncResult<void, Error | FileOperationError>;
+    updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 
     /**
      * @description Synchronizes the metadata in the cache for a given folder 
@@ -266,11 +267,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
-    public moveDirectoryMetadata(oldDirUri: URI, destination: URI): AsyncResult<void, Error | FileOperationError> {
+    public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
         const oldMetadataURI = this.__computeMetadataURI(oldDirUri);
         const newMetadataURI = this.__computeMetadataURI(destination);
 
-        return this.fileService.moveTo(oldMetadataURI, newMetadataURI, false).map(noop);
+        const operation = cutOrCopy ? this.fileService.moveTo : this.fileService.copyTo;
+        return operation.call(this.fileService, oldMetadataURI, newMetadataURI, false).map(noop);
     }
 
     public syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | Error> {

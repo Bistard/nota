@@ -239,14 +239,14 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return customSorter.updateMetadataLot(type, itemsOrParent, indice);
     }
 
-    public moveDirectoryMetadata(oldDirUri: URI, destination: URI): AsyncResult<void, Error | FileOperationError> {
+    public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
         const sorter = this.__assertSorter();
         const customSorter = sorter.getCustomSorter();
         if (customSorter === null) {
             return AsyncResult.err(new Error('[FileTreeService] cannot update custom sorting metadata since it is not in custom sorting mode.'));
         }
 
-        return customSorter.moveDirectoryMetadata(oldDirUri, destination);
+        return customSorter.updateDirectoryMetadata(oldDirUri, destination, cutOrCopy);
     }
 
     public override dispose(): void {

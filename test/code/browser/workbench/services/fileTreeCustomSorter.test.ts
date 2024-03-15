@@ -467,7 +467,7 @@ suite('fileTreeCustomSorter-test', () => {
         });
     });
 
-    suite('moveDirectoryMetadata', () => {
+    suite('updateDirectoryMetadata', () => {
         
         before(async () => init());
         beforeEach(async () => refreshFileSystem());
@@ -485,7 +485,7 @@ suite('fileTreeCustomSorter-test', () => {
 
             // move under the root
             const folder1 = __getFileItemBy(rootItem, 'folder1');
-            await sorter.moveDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1')).unwrap();
+            await sorter.updateDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1'), true).unwrap();
 
             // new metadata file after move
             await assertMetadataInDisk(
@@ -496,6 +496,34 @@ suite('fileTreeCustomSorter-test', () => {
             // old should not exist
             await assertMetadataInDisk(
                 URI.join(rootURI, 'root', 'folder1'), false,
+            );
+        });
+
+        test('copy existing directory to a new destination', async () => {
+            const rootItem = await buildFileItem2(rootURI);
+
+            // metadata file before move
+            await assertMetadataInDisk(
+                URI.join(rootURI, 'root', 'folder1'), 
+                true,
+                ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+            );
+
+            // move under the root
+            const folder1 = __getFileItemBy(rootItem, 'folder1');
+            await sorter.updateDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1'), false).unwrap();
+
+            // new metadata file after move
+            await assertMetadataInDisk(
+                URI.join(rootURI, 'root', 'folder2', 'folder1'), true,
+                ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+            );
+            
+            // old should also exist
+            await assertMetadataInDisk(
+                URI.join(rootURI, 'root', 'folder1'), 
+                true,
+                ['folder1_file1', 'folder1_file2', 'folder1_file3'],
             );
         });
     });
