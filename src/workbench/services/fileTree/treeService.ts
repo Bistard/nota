@@ -121,6 +121,19 @@ export interface IFileTreeService extends IDisposable, IService {
     findItem(uri: URI): FileItem | undefined;
 
     /**
+     * @description Returns the rendering index of the item with the given item.
+     * @param item The item in the tree.
+     */
+    getItemIndex(item: FileItem): number;
+
+    /**
+     * @description Returns the item at given index.
+     * @param index The index of the item.
+     * @panic If the index is invalid.
+     */
+    getItemByIndex(index: number): FileItem;
+
+    /**
      * @description Unrendering and disposing all the tree data. Does not mean
      * the service is disposed. The service may be reinitialized again after
      * closed.

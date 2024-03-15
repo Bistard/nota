@@ -137,6 +137,16 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return tree.root.findDescendant(uri);
     }
 
+    public getItemIndex(item: FileItem): number {
+        const tree = this.__assertTree();
+        return tree.getItemIndex(item);
+    }
+
+    public getItemByIndex(index: number): FileItem {
+        const tree = this.__assertTree();
+        return tree.getItem(index);
+    }
+
     public async close(): Promise<void> {
         if (!this._tree) {
             return;
