@@ -15,8 +15,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
-import { noop } from "src/base/common/performance";
-import { assert, panic } from "src/base/common/utilities/panic";
+import { assert } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -253,7 +252,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         }
 
         if (targetOver.isFile()) {
-            targetOver = targetOver.parent!;
+            targetOver = assert(targetOver.parent);
         }
 
         // expand folder immediately when drops
@@ -269,7 +268,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         const operation = __isCopyOperation(event) 
             ? this.__performDropCopy
             : this.__performDropMove;
-        await operation.call(this, currentDragItems, targetOver, targetIndex ?? 0);
+        await operation.call(this, currentDragItems, targetOver, targetIndex);
     }
 
     public onDragEnd(event: DragEvent): void {
@@ -349,7 +348,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // dropping on no targets, meanning we are dropping at the parent.
         if (!targetOver) {
-            targetOver = this.fileTreeService.rootItem!;
+            targetOver = assert(this.fileTreeService.rootItem);
         }
 
         /**
@@ -414,7 +413,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // TODO
     }
 
-    private async __performDropInsertion(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex: number = 0): Promise<void> {
+    private async __performDropInsertion(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): Promise<void> {
         assert(this._sorter.sortType === FileSortType.Custom);
         const insertionResult = assert(this._prevDragOverState.handledByInsertion);
         
@@ -441,6 +440,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
             }
         })();
+        let resolvedIdx = this.fileTreeService.getItemIndex(targetAbove) + 1;
 
         /** 
          * `resolvedDir` determines the target directory for pasting:
@@ -456,6 +456,11 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         const resolvedDir = isExpanedDir
             ? targetAbove
             : assert(targetAbove.parent);
+        
+        // inserting at the first children
+        if (isExpanedDir) {
+            resolvedIdx = 0;
+        }
 
         // tell the program we are doing insertion
 
@@ -463,24 +468,24 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));
         
         await this.clipboardService.write(ClipboardType.Arbitrary, currentDragItems, 'dndInsertionItems');
-        await this.commandService.executeCommand(AllCommands.filePaste, resolvedDir, targetIndex, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, resolvedDir, resolvedIdx, currentDragItems.map(item => item.uri));
 
         // make sure the insert finishes no matter what
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, false);
     }
 
-    private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem, targetIndex: number): Promise<void> {
+    private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem, targetIndex?: number): Promise<void> {
 
         // simulate drop action (copy) as copy, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(false);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, targetIndex, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, targetIndex ?? 0, currentDragItems.map(item => item.uri));
     }
     
-    private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem, targetIndex: number): Promise<void> {
+    private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem, targetIndex?: number): Promise<void> {
         
         // simulate drop action (move) as cut, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(true);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, targetIndex, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, targetIndex ?? 0, currentDragItems.map(item => item.uri));
     }
 }
 
