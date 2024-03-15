@@ -731,11 +731,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * @returns The transformed event.
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
-
-        const actualIndex = this.view.indexFromEventTarget(event.target)!; // will not be undefined
+        const actualIndex = this.view.indexFromEventTarget(event.target);
         
         // valid item index
-        if (actualIndex >= 0 && actualIndex < this.view.viewSize()) {
+        if (actualIndex && actualIndex >= 0 && actualIndex < this.view.viewSize()) {
             const item = this.view.getItem(actualIndex);
             return {
                 browserEvent: event,

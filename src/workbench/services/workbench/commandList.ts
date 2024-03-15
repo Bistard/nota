@@ -43,8 +43,8 @@ export const enum AllCommands {
 
     newFile   = 'newfile', // TODO
     newFolder = 'newFolder', // TODO
-    fileCut   = 'fileCut', // TODO
-    fileCopy  = 'fileCopy', // TODO
+    fileCut   = 'fileCut',
+    fileCopy  = 'fileCopy',
     filePaste = 'filePaste', // TODO
     fileMove  = 'fileMove', // TODO
 }
@@ -97,7 +97,7 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.newFolder]: [];
     [AllCommands.fileCut]: [];
     [AllCommands.fileCopy]: [];
-    [AllCommands.filePaste]: [destination: FileItem, resources?: URI[]];
+    [AllCommands.filePaste]: [destination: FileItem, destinationIdx: number, resources?: URI[]];
     [AllCommands.fileMove]: [];
 };
 

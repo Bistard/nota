@@ -254,7 +254,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
      * the DOM attribute from the target.
      * @param target The {@link EventTarget}.
      * 
-     * @throws If the target is not found, undefined is returned.
+     * @note If the target is not found, undefined is returned.
      */
     indexFromEventTarget(target: EventTarget | null): number | undefined;
 }
