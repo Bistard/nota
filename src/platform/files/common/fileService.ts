@@ -318,7 +318,7 @@ export class FileService extends Disposable implements IFileService {
     public delete(uri: URI, opts?: IDeleteFileOptions): AsyncResult<void, FileOperationError> {
         return this.__validateDelete(uri, opts)
             .andThen(provider => provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive }))
-            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error))));
+            .orElse(error => err(new FileOperationError(`unable to delete uri: '${URI.toFsPath(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error))));
     }
 
     public watch(uri: URI, opts?: IWatchOptions): AsyncResult<IDisposable, FileOperationError> {
@@ -531,7 +531,7 @@ export class FileService extends Disposable implements IFileService {
 
             return Result.fromPromise(
                 () => blocker.waiting().finally(() => provider.close(fd)),
-                error => new FileOperationError(`unable to write the file buffered '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, getFileErrorCode(error)),
+                error => new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}. Reason: ${errorToMessage(error)}`, getFileErrorCode(error)),
             );
         });
     }
@@ -719,7 +719,7 @@ export class FileService extends Disposable implements IFileService {
         
         .andThen(() => {
             if (!hasCopyCapability(fromProvider)) {
-                return err(new FileOperationError(`Unable to copy to the target path '${URI.toString(to)}' because the provider does not provide copy functionality.`, FileOperationErrorType.OTHERS));
+                return err(new FileOperationError(`Unable to copy to the target path ${URI.toString(to)} because the provider does not provide copy functionality.`, FileOperationErrorType.OTHERS));
             } 
             return Result.fromPromise(
                 () => fromProvider.copy(from, to, { overwrite: !!overwrite }),
@@ -732,7 +732,7 @@ export class FileService extends Disposable implements IFileService {
         return this.exist(to)
         .andThen(exist => {
             if (exist && overwrite === false) {
-                return err(new FileOperationError(`Unable to move / copy to the target path '${URI.toString(to)}' because already exists.`, FileOperationErrorType.FILE_EXISTS));
+                return err(new FileOperationError(`Unable to move / copy to the target path ${URI.toString(to)} because already exists.`, FileOperationErrorType.FILE_EXISTS));
             }
             return ok(exist);
         });
