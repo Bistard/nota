@@ -466,4 +466,37 @@ suite('fileTreeCustomSorter-test', () => {
             });
         });
     });
+
+    suite('moveDirectoryMetadata', () => {
+        
+        before(async () => init());
+        beforeEach(async () => refreshFileSystem());
+        after(async () => cleanCache());
+
+        test('move existing directory to a new destination', async () => {
+            const rootItem = await buildFileItem2(rootURI);
+
+            // metadata file before move
+            await assertMetadataInDisk(
+                URI.join(rootURI, 'root', 'folder1'), 
+                true,
+                ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+            );
+
+            // move under the root
+            const folder1 = __getFileItemBy(rootItem, 'folder1');
+            await sorter.moveDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1')).unwrap();
+
+            // new metadata file after move
+            await assertMetadataInDisk(
+                URI.join(rootURI, 'root', 'folder2', 'folder1'), true,
+                ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+            );
+            
+            // old should not exist
+            await assertMetadataInDisk(
+                URI.join(rootURI, 'root', 'folder1'), false,
+            );
+        });
+    });
 });

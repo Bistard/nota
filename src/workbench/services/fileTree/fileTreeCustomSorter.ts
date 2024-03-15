@@ -12,6 +12,7 @@ import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IFileItem } from "src/workbench/services/fileTree/fileItem";
+import { noop } from "src/base/common/performance";
 
 /**
  * Enumerates the types of modifications to the custom sort order of file tree 
@@ -93,6 +94,14 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     updateMetadataLot(type: OrderChangeType.Update, items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     updateMetadataLot(type: OrderChangeType.Remove, parent: TItem , indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     updateMetadataLot(type: OrderChangeType, itemsOrParent: TItem[] | TItem, indice: number[]): AsyncResult<void, FileOperationError | Error>;
+
+    /**
+     * @description When moving a directory, its corresponding metadata file 
+     * must also be moved.
+     * @param oldDirUri The directory has moved.
+     * @param destination The new destination of the directory.
+     */
+    moveDirectoryMetadata(oldDirUri: URI, destination: URI): AsyncResult<void, Error | FileOperationError>;
 
     /**
      * @description Synchronizes the metadata in the cache for a given folder 
@@ -255,6 +264,13 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             this.__updateMetadataInCacheLot(type, resolvedParent, resolvedItems, indice);
             return this.__saveMetadataIntoDisk(resolvedParent);
         });
+    }
+
+    public moveDirectoryMetadata(oldDirUri: URI, destination: URI): AsyncResult<void, Error | FileOperationError> {
+        const oldMetadataURI = this.__computeMetadataURI(oldDirUri);
+        const newMetadataURI = this.__computeMetadataURI(destination);
+
+        return this.fileService.moveTo(oldMetadataURI, newMetadataURI, false).map(noop);
     }
 
     public syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | Error> {
