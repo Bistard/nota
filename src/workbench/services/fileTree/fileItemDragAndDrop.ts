@@ -444,7 +444,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // tell the program we are doing insertion
 
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
-        this.fileTreeService.simulateSelectionCutOrCopy(!__isCopyOperation(event));
+        this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));
         
         await this.clipboardService.write(ClipboardType.Arbitrary, currentDragItems, 'dndInsertionItems');
         await this.commandService.executeCommand(AllCommands.filePaste, targetAbove, currentDragItems.map(item => item.uri));
@@ -501,6 +501,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
 function __isCopyOperation(event: DragEvent): boolean {
     return (event.ctrlKey && !IS_MAC) || (event.altKey && IS_MAC);
+}
+
+function __isCutOperation(event: DragEvent): boolean {
+    return !__isCopyOperation(event);
 }
 
 interface IInsertionResult {

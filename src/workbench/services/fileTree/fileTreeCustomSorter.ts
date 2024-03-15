@@ -318,6 +318,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
 
         // TODO: perf - use recentAccess instead of simply schedule out, setTimeout is really time consuming
+        // TODO: or simply universally check every 5min, clean all the metadata that has not been accessed during the 5min.
         resource[Resources.Scheduler].schedule(uri);
         return resource[Resources.Order];
     }
