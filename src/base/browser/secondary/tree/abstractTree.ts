@@ -607,16 +607,16 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * @description Determines if the given location of a node is collapsed.
      * @param location The location representation of the node.
-     * @returns If it is collapsed. If the location is not found, false is 
-     *          returned.
+     * @returns If it is collapsed.
+     * @panic If the location is not found or the location is not collapsible.
      */
     isCollapsed(location: TRef): boolean;
     
     /**
      * @description Determines if the given location of a node is collapsible.
      * @param location The location representation of the node.
-     * @returns If it is collapsible. If the location is not found, false is 
-     *          returned.
+     * @returns If it is collapsible. 
+     * @panic If the location is not found.
      */
     isCollapsible(location: TRef): boolean;
 
@@ -624,6 +624,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @description Determines if the given location of a node is visible 
      * (rendered).
      * @param location The location representation of the node.
+     * @panic If the location is not found.
      */
     isItemVisible(location: TRef): boolean;
     

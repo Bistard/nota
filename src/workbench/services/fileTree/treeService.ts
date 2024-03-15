@@ -134,6 +134,28 @@ export interface IFileTreeService extends IDisposable, IService {
     getItemByIndex(index: number): FileItem;
 
     /**
+     * @description Determines if the given item is visible (is rendered).
+     * @param item The item in the tree.
+     * @panic If the location is not found.
+     */
+    isItemVisible(item: FileItem): boolean;
+
+    /**
+     * @description Determines if the given item is collapsible.
+     * @param item The item in the tree.
+     * @panic If the item is not found.
+     */
+    isCollapsible(item: FileItem): boolean;
+
+    /**
+     * @description Determines if the given item is collapsed.
+     * @param item The item in the tree.
+     * @returns If it is collapsed.
+     * @panic If the item is not found or the item is not collapsible.
+     */
+    isCollapsed(item: FileItem): boolean;
+
+    /**
      * @description Unrendering and disposing all the tree data. Does not mean
      * the service is disposed. The service may be reinitialized again after
      * closed.

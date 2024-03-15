@@ -147,6 +147,21 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return tree.getItem(index);
     }
 
+    public isItemVisible(item: FileItem): boolean {
+        const tree = this.__assertTree();
+        return tree.isItemVisible(item);
+    }
+
+    public isCollapsible(item: FileItem): boolean {
+        const tree = this.__assertTree();
+        return tree.isCollapsible(item);
+    }
+    
+    public isCollapsed(item: FileItem): boolean {
+        const tree = this.__assertTree();
+        return tree.isCollapsed(item);
+    }
+
     public async close(): Promise<void> {
         if (!this._tree) {
             return;

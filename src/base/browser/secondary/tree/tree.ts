@@ -207,7 +207,7 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
      * @param location The location representation of the node.
      * @returns If it is collapsed. 
      * 
-     * @throws If the location is not found, an error is thrown.
+     * @panic If the location is not found or the location is not collapsible.
      */
     isCollapsed(location: TRef): boolean;
 

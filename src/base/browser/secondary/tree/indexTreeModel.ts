@@ -233,7 +233,11 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             panic(`tree node not found at: ${location}`);
         }
 
-        return node.collapsible && node.collapsed;
+        if (!node.collapsible) {
+            panic(`tree node is not collapsible at: ${location}`);
+        }
+
+        return node.collapsed;
     }
 
     public setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean  {
