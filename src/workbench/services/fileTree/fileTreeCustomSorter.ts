@@ -71,7 +71,8 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     
     /**
      * @description Handles batch updates to the metadata based on the specified 
-     * change type. This will changes the metadata in memory then save to disk.
+     * change type. This will apply all the changes to the metadata in memory 
+     * first, then save to disk.
      * 
      * @note It is more efficient than updating each item individually, 
      *       especially for large batches.
@@ -204,10 +205,10 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         });
     }
 
-    public updateMetadataLot(type: OrderChangeType.Add   , items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateMetadataLot(type: OrderChangeType.Update, items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateMetadataLot(type: OrderChangeType.Remove, parent: TItem,  indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateMetadataLot(type: OrderChangeType, itemsOrParent: TItem[] | TItem, indice: number[]): AsyncResult<void, FileOperationError | Error> {
+    public updateMetadataLot(type: OrderChangeType.Add   , items: TItem[]                , indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateMetadataLot(type: OrderChangeType.Update, items: TItem[]                , indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateMetadataLot(type: OrderChangeType.Remove, parent: TItem                 , indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateMetadataLot(type: OrderChangeType       , itemsOrParent: TItem[] | TItem, indice: number[]): AsyncResult<void, FileOperationError | Error> {
         if (type === OrderChangeType.Swap) {
             return AsyncResult.err(new Error('[FileTreeCustomSorter] does not support "update" operation in "updateMetadataLot"'));
         }

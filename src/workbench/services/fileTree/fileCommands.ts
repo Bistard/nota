@@ -124,6 +124,26 @@ export namespace FileCommands {
             return true;
         }
 
+        // [private helper methods]
+
+        private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
+            
+            // paste the provided resources for higher priority
+            let toPaste: URI[] = resources ?? [];
+
+            /**
+             * If no provided resources, fallback to read the sources from the
+             * clipboard.
+             */
+            if (toPaste.length === 0) {
+                toPaste = await this.clipboardService.read(ClipboardType.Resources);
+            }
+
+            // check parent-child relationship
+            const resolvedToPaste = URI.distinctParents(toPaste);
+            return resolvedToPaste;
+        }
+
         private async __doPasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<void> {
             const batch = isCut 
                     ? await this.__doMoveLot(toPaste, destination) 
@@ -165,10 +185,13 @@ export namespace FileCommands {
              *    fail, metadata will only be updated for the 7 successful files, 
              *    leaving the others unchanged.
              */
-            const passed = new ResourceSet(batch.passed);
-            const passedItems = toPaste.filter(item => passed.has(item.uri));
+            const passedSet   = new ResourceSet(batch.passed);
+            const passedItems = toPaste.filter(item => passedSet.has(item.uri));
             
             console.log('passed items:', passedItems);
+
+            // TODO: 1. update all the metadata of the 'passedItems' in the parent metadata file.
+            // TODO: 2. if the 'passedItem' is a directory, we will move its corresponding metadata file (means to rename its hash-coded file name)
 
             // this._tree.getItemIndex(destination);
 
@@ -194,24 +217,6 @@ export namespace FileCommands {
 
             //     // await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Remove, ).unwrap();
             // }
-        }
-
-        private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
-            
-            // paste the provided resources for higher priority
-            let toPaste: URI[] = resources ?? [];
-
-            /**
-             * If no provided resources, fallback to read the sources from the
-             * clipboard.
-             */
-            if (toPaste.length === 0) {
-                toPaste = await this.clipboardService.read(ClipboardType.Resources);
-            }
-
-            // check parent-child relationship
-            const resolvedToPaste = URI.distinctParents(toPaste);
-            return resolvedToPaste;
         }
 
         private async __doMoveLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<URI, FileOperationError>> {

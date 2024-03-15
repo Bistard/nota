@@ -26,7 +26,7 @@ import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbe
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
-1;
+
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
  * component to navigate and manage the file system hierarchy. 
