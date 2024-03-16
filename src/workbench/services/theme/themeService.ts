@@ -16,7 +16,7 @@ import { Dictionary, isObject } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ColorRegistrant } from "./colorRegistrant";
-import { ok } from "assert";
+import { defaultThemeColors } from './themeDefaults';
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -97,6 +97,7 @@ export class ThemeService extends Disposable implements IThemeService {
     private readonly _initProtector: InitProtector;
     private readonly _presetThemes: Map<string, IColorTheme>;
     private _currentTheme?: IColorTheme;
+    private readonly defaultColors: { [key: string]: string } = defaultThemeColors;
 
     // [constructor]
 
@@ -120,6 +121,7 @@ export class ThemeService extends Disposable implements IThemeService {
 
     public getCurrTheme(): IColorTheme {
         if (!this._currentTheme) {
+            this._currentTheme = this._presetThemes.values().next().value;
             panic("Theme has not been initialized!");
         }
         return this._currentTheme;
@@ -178,13 +180,13 @@ export class ThemeService extends Disposable implements IThemeService {
         this._initProtector.init('Cannot init twice').unwrap();
     
         // Initialize every preset color themes in the beginning since they are only present in memory.
-        this.initializePresetThemes();
+        // this.initializePresetThemes();
     
-        const themeID = this.configurationService.get<string>(
-            WorkbenchConfiguration.ColorTheme, // User settings
-            PresetColorTheme.LightModern,      // Default
-        );
-    
+        // const themeID = this.configurationService.get<string>(
+        //     WorkbenchConfiguration.ColorTheme, // User settings
+        //     PresetColorTheme.LightModern,      // Default
+        // );
+        const themeID = 'lightMorden';
         return this.switchTo(themeID).then(() => Promise.resolve());
     }
     
@@ -209,12 +211,13 @@ export class ThemeService extends Disposable implements IThemeService {
 
     private updateDynamicCSSRules() {
         const themeData = this.getCurrTheme(); 
+        // Merge default colors with theme colors, theme colors take precedence
+        const finalColors = {...this.defaultColors, ...themeData.getColor};
         const cssRules = new Set<string>();
 
         // Generate CSS variables for each color in the theme
-        Object.entries(themeData.getColor).forEach(([colorName, colorValue]) => {
-            const cssVarName = `--${colorName}`; // Convert color name to CSS variable name
-            cssRules.add(`:root { ${cssVarName}: ${colorValue}; }`); // Add rule to set variable
+        Object.entries(finalColors).forEach(([colorName, colorValue]) => {
+            cssRules.add(`:root { ${colorName}: ${colorValue}; }`);
         });
         const cssString = Array.from(cssRules).join('\n');
         this.applyRules(cssString, themeData.name); 
@@ -241,13 +244,18 @@ export class ThemeService extends Disposable implements IThemeService {
         }
     
         const data = rawData as IRawThemeJsonReadingData;
+        // Assuming 'template' is a Set of required color locations for a valid theme
         const template = this._registrant.getTemplate();
     
-        return typeof data.type === 'string' &&
-               typeof data.name === 'string' &&
-               typeof data.description === 'string' &&
-               typeof data.colors === 'object' && data.colors !== null &&
-               // Ensure every required color location is present
-               [...template].every(location => typeof data.colors[location] === 'string');
+        // Basic validation for the structure of 'data'
+        const basicValidation = typeof data.type === 'string' &&
+                                typeof data.name === 'string' &&
+                                typeof data.description === 'string' &&
+                                typeof data.colors === 'object' && data.colors !== null;
+    
+        // Ensure every required color location is present and is a string
+        const allColorsPresent = [...template].every(location => typeof data.colors[location] === 'string');
+    
+        return basicValidation && allColorsPresent;
     }
 }

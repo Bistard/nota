@@ -19,10 +19,13 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
     registerColor(themeID: string, location: string, color: RGBA): void;
 
     /**
-     * Retrieves a list of all colors registered for a given theme.
+     * Retrieves a dictionary of all registered colors for a given theme.
+     * 
+     * This method returns a dictionary where the keys are locations within the theme, 
+     * and the values are the corresponding RGBA color values that've been registered. 
      *
      * @param themeID The unique identifier for the theme.
-     * @returns A dictionary mapping locations to RGBA color values for the theme.
+     * @returns A Dictionary with locations as keys and RGBA color values as values. 
      */
     getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA>;
 
@@ -71,7 +74,6 @@ export class ColorRegistrant implements IColorRegistrant{
     }
 
     public getRegisteredColorsBy(themeID: string): Dictionary<string, RGBA> {
-        // Check if the themeID exists in the registry
         return this._colors[themeID] || {};
     }
 
