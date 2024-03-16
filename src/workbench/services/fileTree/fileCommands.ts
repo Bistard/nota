@@ -141,10 +141,8 @@ export namespace FileCommands {
              * 
              * This also check parent-child relationship.
              */
-            const dragItems = URI.distinctParentsByUri(
-                assert(await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'dndInsertionItems')),
-                item => item.uri,
-            );
+            const toInsert = assert(await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'dndInsertionItems'));
+            const dragItems = URI.distinctParentsByUri(toInsert, item => item.uri);
 
             /**
              * This reduces the disk reading when updating custom sorting 
@@ -159,7 +157,6 @@ export namespace FileCommands {
 
         private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
 
-            // move before update metadata
             const toPasteUri: URI[] = [];
             const toPasteDir: URI[] = [];
             for (const item of toPaste) {
@@ -167,6 +164,7 @@ export namespace FileCommands {
                 item.isDirectory() && toPasteDir.push(item.uri);
             }
 
+            // move / copy
             const operation = isCut ? this.__doMoveLot : this.__doCopyLot;
             const batch     = await operation.call(this, toPasteUri, destination);
 
