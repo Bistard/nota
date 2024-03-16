@@ -1,4 +1,5 @@
 import { ColorMap, RGBA } from "src/base/common/color";
+import { panic } from "src/base/common/result";
 import { Dictionary } from "src/base/common/utilities/type";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
@@ -14,6 +15,8 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
      * @param location The location in string form.
      * @param color The RGBA color value to be registered for the specified 
      * location within the theme.
+     * 
+     * @panic If duplicate register colors to the same location.
      */
     registerColor(themeID: string, location: string, color: RGBA): void;
 
@@ -61,7 +64,14 @@ export class ColorRegistrant implements IColorRegistrant{
 
     public registerColor(themeID: string, location: string, color: RGBA): void {
         this._colors[themeID] ??= {};
-        this._colors[themeID]![location] = color;
+        const colorMap = this._colors[themeID]!;
+
+        const existedColor = colorMap[location];
+        if (existedColor) {
+            panic(`[ColorRegistrant] The theme '${themeID}' has already registered the location '${location}' with the color '${existedColor.toString()}'.`);
+        }
+
+        colorMap[location] = color;
     }
 
     public getRegisteredColorMap(themeID: string): ColorMap {
