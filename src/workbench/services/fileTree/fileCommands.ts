@@ -13,7 +13,7 @@ import { FileOperationError, FileOperationErrorType } from "src/base/common/file
 import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
-import { IBatchResult } from "src/base/common/undoRedo";
+import { IBatchResult, createBatchResult } from "src/base/common/undoRedo";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { noop } from "src/base/common/performance";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
@@ -121,6 +121,11 @@ export namespace FileCommands {
                 return false;
             }
             
+            await this.__doPasteNormal(toPaste, destination, isCut);
+            return true;
+        }
+
+        private async __doPasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<IBatchResult<URI, FileOperationError>> {
             const operation = isCut ? this.__doMoveLot : this.__doCopyLot;
             const batch = await operation.call(this, toPaste, destination);
             
@@ -128,7 +133,7 @@ export namespace FileCommands {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
             }
 
-            return true;
+            return batch;
         }
 
         private async __pasteInsert(destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
@@ -144,17 +149,37 @@ export namespace FileCommands {
             const dragItems = URI.distinctParentsByUri(toInsert, item => item.uri);
 
             /**
+             * Indicate if any file/dir are actually pasted to the destination
+             * in the file system.
+             */
+            let anyPasted = false;
+
+            /**
              * This reduces the disk reading when updating custom sorting 
              * metadata. Because we are pasting resources grouped by the same 
              * parent at the same time.
              */
             const groups = Arrays.group(dragItems, item => item.parent);
             for (const group of groups.values()) {
-                await this.__doPasteInsert(group, destination, destinationIdx, isCut);
+                const pasted = await this.__doPasteInsert(group, destination, destinationIdx, isCut);
+                if (pasted) {
+                    anyPasted = true;
+                }
+            }
+
+            /**
+             * Since no file/dir is actually pasted, thus there will not trigger
+             * the 'onDidResourceChange' event in the file system to update the
+             * lastest sorting order. 
+             * 
+             * We need to manually refresh here.
+             */
+            if (!anyPasted) {
+                await this.fileTreeService.refresh();
             }
         }
 
-        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<boolean> {
             const toPasteUri: URI[] = [];
             const toPasteDir: URI[] = [];
             for (const item of toPaste) {
@@ -162,26 +187,40 @@ export namespace FileCommands {
                 item.isDirectory() && toPasteDir.push(item.uri);
             }
 
-            // move / copy
-            const operation = isCut ? this.__doMoveLot : this.__doCopyLot;
-            const batch     = await operation.call(this, toPasteUri, destination);
+            const toPasteParent = assert(toPaste[0]!.parent);
+            const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
+            const batch = insertAtSameParent
+                ? createBatchResult({ passed: toPaste.map(item => item.uri) })
+                : await this.__doPasteNormal(toPasteUri, destination, isCut);
+            
             // error handling to those who fails
             if (batch.failed.length) {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
             }
 
+            // update metadata to those who successed
+            await this.__doUpdateMetadataLot(batch, isCut, toPaste, toPasteDir, destination, destinationIdx, insertAtSameParent);
+
+            const pasted = !insertAtSameParent && batch.passed.length > 0;
+            return pasted;
+        }
+
+        private async __doUpdateMetadataLot(
+            batch: IBatchResult<URI>, 
+            isCut: boolean, 
+            toPaste: FileItem[], 
+            toPasteDir: URI[], 
+            destination: FileItem, 
+            destinationIdx: number,
+            insertAtSameParent: boolean,
+        ): Promise<void> 
+        {
             // no passed items, do nothing for metadata updation.
-            if (!batch.passed.length) {
+            if (batch.passed.length === 0) {
                 return;
             }
 
-            // update metadata to those who successed
-            await this.__doUpdateMetadataLot(batch, isCut, toPaste, toPasteDir, destination, destinationIdx);
-        }
-
-        private async __doUpdateMetadataLot(batch: IBatchResult<URI>, isCut: boolean, toPaste: FileItem[], toPasteDir: URI[], destination: FileItem, destinationIdx: number): Promise<void> {
-            
             /**
              * // REVIEW
              * When updating the metadata in disk. I'm not sure if 'unwrap' is 
@@ -205,12 +244,17 @@ export namespace FileCommands {
             console.log('desitination:', destination.basename);
             console.log('desitinationIdx:', destinationIdx);
 
+            if (insertAtSameParent) {
+                // TODO
+                console.log('insertAtSameParent detected');
+            }
+
             /**
              * Step 1: In the cut operation, after items are moved to their new 
              * location, the metadata at the original location should be removed.
              */
             if (isCut) {
-                const removeParent = assert(passedItems[0]!.parent);
+                const removeParent = assert(toPaste[0]!.parent);
                 const removeIndice: number[] = [];
                 for (const item of passedItems) {
                     const idx = this.fileTreeService.getItemIndex(item);
