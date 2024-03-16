@@ -85,41 +85,13 @@ export namespace FileCommands {
                 return false;
             }
             
-            // [paste - normal]
+            // paste (normal)
             if (!isInsert) {
-                if (destination.isFile()) {
-                    await this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', new Error('Cannot paste on a file.'));
-                    return false;
-                }
-
-                await this.__doPasteNormal(toPaste, destination, isCut);
-                return true;
+                return await this.__pasteNormal(toPaste, destination, isCut);
             }
             
-            // [paste - custom sorting]
-            
-            /**
-             * On detecting an insertion, the operation must be conducted from 
-             * the UI's perspective. Therefore, instead of utilizing the given 
-             * URIs (toPaste), we retrieve 'FileItem's directly from the 
-             * clipboard.
-             * 
-             * This also check parent-child relationship.
-             */
-            const dragItems = URI.distinctParentsByUri(
-                assert(await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'dndInsertionItems')),
-                item => item.uri,
-            );
-
-            /**
-             * This reduces the disk reading when updating custom sorting 
-             * metadata. Because we are pasting resources grouped by the same 
-             * parent at the same time.
-             */
-            const groups = Arrays.group(dragItems, item => item.parent);
-            for (const group of groups.values()) {
-                await this.__doPasteInsert(group, destination, destinationIdx, isCut);
-            }
+            // paste (custom sorting)
+            await this.__pasteInsert(destination, destinationIdx, isCut);
             
             return true;
         }
@@ -144,13 +116,44 @@ export namespace FileCommands {
             return resolvedToPaste;
         }
 
-        private async __doPasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<void> {
+        private async __pasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<boolean> {
+            if (destination.isFile()) {
+                return false;
+            }
+            
             const batch = isCut 
                     ? await this.__doMoveLot(toPaste, destination) 
                     : await this.__doCopyLot(toPaste, destination);
             
             if (batch.failed.length) {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
+            }
+
+            return true;
+        }
+
+        private async __pasteInsert(destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+            /**
+             * On detecting an insertion, the operation must be conducted from 
+             * the UI's perspective. Therefore, instead of utilizing the given 
+             * URIs (toPaste), we retrieve 'FileItem's directly from the 
+             * clipboard.
+             * 
+             * This also check parent-child relationship.
+             */
+            const dragItems = URI.distinctParentsByUri(
+                assert(await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'dndInsertionItems')),
+                item => item.uri,
+            );
+
+            /**
+             * This reduces the disk reading when updating custom sorting 
+             * metadata. Because we are pasting resources grouped by the same 
+             * parent at the same time.
+             */
+            const groups = Arrays.group(dragItems, item => item.parent);
+            for (const group of groups.values()) {
+                await this.__doPasteInsert(group, destination, destinationIdx, isCut);
             }
         }
 
