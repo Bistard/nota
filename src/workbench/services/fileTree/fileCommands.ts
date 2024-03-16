@@ -68,7 +68,7 @@ export namespace FileCommands {
             });
         }
     
-        public override async run(provider: IServiceProvider, destination: FileItem, resources?: URI[]): Promise<boolean> {
+        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx: number, resources?: URI[]): Promise<boolean> {
             this.fileTreeService     = provider.getOrCreateService(IFileTreeService);
             this.clipboardService    = provider.getOrCreateService(IClipboardService);
             const contextService     = provider.getOrCreateService(IContextService);
@@ -118,7 +118,7 @@ export namespace FileCommands {
              */
             const groups = Arrays.group(dragItems, item => item.parent);
             for (const group of groups.values()) {
-                await this.__doPasteInsert(group, destination, isCut);
+                await this.__doPasteInsert(group, destination, destinationIdx, isCut);
             }
             
             return true;
@@ -154,69 +154,96 @@ export namespace FileCommands {
             }
         }
 
-        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, isCut: boolean): Promise<void> {
-            
-            /** 
-             * The dragging items should be the same level with 'destination'. 
-             * The only exception is if the 'destination' is a directory, we 
-             * drop the dragging items at as the first children of that 
-             * directory.
-             */
-            const resolvedDestination = destination.isDirectory() 
-                ? destination 
-                : assert(destination.parent);
+        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
 
-            console.log('performing insertion...');
-            console.log('resolvedDestination:', resolvedDestination.basename);
+            // move before update metadata
+            const toPasteUri: URI[] = [];
+            const toPasteDir: URI[] = [];
+            for (const item of toPaste) {
+                toPasteUri.push(item.uri);
+                item.isDirectory() && toPasteDir.push(item.uri);
+            }
 
-            // [update custom sorting metadata]
-            const toPasteUri = toPaste.map(item => item.uri);
-            const operation  = isCut ? this.__doMoveLot : this.__doCopyLot;
-            const batch      = await operation.call(this, toPasteUri, resolvedDestination);
+            const operation = isCut ? this.__doMoveLot : this.__doCopyLot;
+            const batch     = await operation.call(this, toPasteUri, destination);
 
             // error handling to those who fails
             if (batch.failed.length) {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
             }
 
+            // no passed items, do nothing for metadata updation.
+            if (!batch.passed.length) {
+                return;
+            }
+
+            // update metadata to those who successed
+            await this.__doUpdateMetadataLot(batch, isCut, toPaste, toPasteDir, destination, destinationIdx);
+        }
+
+        private async __doUpdateMetadataLot(batch: IBatchResult<URI>, isCut: boolean, toPaste: FileItem[], toPasteDir: URI[], destination: FileItem, destinationIdx: number): Promise<void> {
+            
+            /**
+             * // REVIEW
+             * When updating the metadata in disk. I'm not sure if 'unwrap' is 
+             * the right thing to do. The error expected to be disk-related. I 
+             * guess there is not much that we can do if error encounters. So I 
+             * choose'unwrap' for now.
+             */
+
             /**
              * Update metadata only for successfully processed resources. 
-             *  - e.g, in an operation involving 10 files where 7 succeed and 3 
+             *  - e.g, if an operation involving 10 files where 7 succeed and 3 
              *    fail, metadata will only be updated for the 7 successful files, 
              *    leaving the others unchanged.
              */
             const passedSet   = new ResourceSet(batch.passed);
             const passedItems = toPaste.filter(item => passedSet.has(item.uri));
             
+            console.log('isCut:', isCut);
             console.log('passed items:', passedItems);
-
-            // TODO: 1. update all the metadata of the 'passedItems' in the parent metadata file.
-            // TODO: 2. if the 'passedItem' is a directory, we will move its corresponding metadata file (means to rename its hash-coded file name)
-
-            // this._tree.getItemIndex(destination);
+            console.log('passed dir:', toPasteDir.filter(uri => passedSet.has(uri)));
+            console.log('desitination:', destination.basename);
+            console.log('desitinationIdx:', destinationIdx);
 
             /**
-             * // TODO
-             * Use 'ResourceSet' to quick check, which 'toPaste' are passed and 
-             * which are not. 
-             * 
-             * To those who fails, we do nothing to its metadata.
-             * 
-             * To those who successes, since we are moving them, we find its 
-             * current index relative to its parent, we build an array of indice
-             * for removing.
-             * 
-             * We also keep 
+             * Step 1: In the cut operation, after items are moved to their new 
+             * location, the metadata at the original location should be removed.
              */
-
-            // const passed = batch.passed;
-            // if (isCut) {
-            //     // todo: client may provide are they ensure these are in the tree?
-            //     // const passedItems = 
+            if (isCut) {
+                const removeParent = assert(passedItems[0]!.parent);
+                const removeIndice: number[] = [];
+                for (const item of passedItems) {
+                    const idx = this.fileTreeService.getItemIndex(item);
+                    removeIndice.push(idx);
+                }
                 
+                await this.fileTreeService.updateCustomSortingMetadata(
+                    OrderChangeType.Remove, 
+                    removeParent, 
+                    removeIndice,
+                ).unwrap();
+            }
 
-            //     // await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Remove, ).unwrap();
-            // }
+            /**
+             * Step 2: Update the metadata at the new location with the newly 
+             * pasting items.
+             */
+            const addIndice = Arrays.fill(destinationIdx, passedItems.length);
+            await this.fileTreeService.updateCustomSortingMetadata(
+                OrderChangeType.Add,
+                passedItems,
+                addIndice,
+            ).unwrap();
+
+            /**
+             * Step 3: To those who passed are directory, we need to move its entire
+             * metadata to a new location.
+             */
+            const passedDir = toPasteDir.filter(uri => passedSet.has(uri));
+            for (const oldDirUri of passedDir) {
+                await this.fileTreeService.updateDirectoryMetadata(oldDirUri, destination.uri, isCut).unwrap();
+            }
         }
 
         private async __doMoveLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<URI, FileOperationError>> {
