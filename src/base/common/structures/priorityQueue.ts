@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { IIterable } from "src/base/common/utilities/iterable";
-import { CompareFn } from "src/base/common/utilities/type";
+import { Comparator } from "src/base/common/utilities/type";
 
 export interface IPriorityQueue<T> extends IIterable<T>, IDisposable {
 	
@@ -52,11 +52,11 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
 
     private _heap: T[] = [];
     private _count: number = 0;
-    private readonly __comparator: CompareFn<T>;
+    private readonly __comparator: Comparator<T>;
 
 	// [constructor]
 
-    constructor(comparator: CompareFn<T>) {
+    constructor(comparator: Comparator<T>) {
         this.__comparator = comparator;
     }
 

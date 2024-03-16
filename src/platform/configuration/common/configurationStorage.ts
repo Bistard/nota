@@ -5,6 +5,7 @@ import { jsonSafeStringify } from "src/base/common/json";
 import { deepCopy } from "src/base/common/utilities/object";
 import { DeepReadonly, Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface IConfigurationStorageChangeEvent {
 
@@ -240,11 +241,11 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
                 currModel = currModel[sec];
                 continue;
             }
-            throw new Error(`cannot get configuration section at '${section}'`);
+            panic(`cannot get configuration section at '${section}'`);
         }
 
         if (currModel === undefined) {
-            throw new Error(`cannot get configuration section at '${section}'`);
+            panic(`cannot get configuration section at '${section}'`);
         }
 
         return <T>currModel;

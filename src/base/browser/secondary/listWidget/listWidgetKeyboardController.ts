@@ -80,31 +80,29 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     }
 
     protected __onUpArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            const newFoused = this._view.focusPrev(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-        } else {
+        if (this._view.getFocus() === null) {
             this._view.setFocus(0);
+            return;
         }
 
-        this._view.setDomFocus();
+        const newFoused = this._view.focusPrev(1, false, undefined);
+        if (newFoused !== -1) {
+            this._view.setAnchor(newFoused);
+            this._view.reveal(newFoused, undefined);
+        }
     }
 
     protected __onDownArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            const newFoused = this._view.focusNext(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-        } else {
+        if (this._view.getFocus() === null) {
             this._view.setFocus(0);
+            return;
         }
-
-        this._view.setDomFocus();
+        
+        const newFoused = this._view.focusNext(1, false, undefined);
+        if (newFoused !== -1) {
+            this._view.setAnchor(newFoused);
+            this._view.reveal(newFoused, undefined);
+        }
     }
 
     protected __onPageupArrow(e: IStandardKeyboardEvent): void {
@@ -118,14 +116,13 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     }
 
     protected __onEscape(e: IStandardKeyboardEvent): void {
-        if (this._view.getSelections().length) {
+        if (this._view.getSelections().length > 0) {
             this._view.setSelections([]);
             this._view.setAnchor(null);
-			this._view.setDomFocus();
-            return;
+			return;
         }
 
-        if (!this._view.getSelections().length) {
+        if (this._view.getSelections().length === 0) {
             this._view.setFocus(null);
             this._view.setAnchor(null);
         }

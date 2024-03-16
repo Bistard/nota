@@ -760,7 +760,7 @@ export class PieceTable implements IPieceTable {
             return this.__splitIntoPieces(text);
         }
 
-        const addBuffer = this._buffer[0]!;
+        const addBuffer: Mutable<TextBuffer> = this._buffer[0]!;
         let addBufferLength = addBuffer.buffer.length;
         const linestart = TextBuffer.readLineStarts(text, addBufferLength).linestart;
         
@@ -790,13 +790,13 @@ export class PieceTable implements IPieceTable {
                 linestart[i]! += 1;
             }
             
-            (<Mutable<string>>addBuffer.buffer) = addBuffer.buffer.concat('_', text);
-            (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.splice(1));
+            addBuffer.buffer = addBuffer.buffer.concat('_', text);
+            addBuffer.linestart = addBuffer.linestart.concat(linestart.splice(1));
         } 
         // If not, simply update the as normal.
         else {
-            (<Mutable<string>>addBuffer.buffer) = addBuffer.buffer.concat(text);
-            (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.splice(1));
+            addBuffer.buffer = addBuffer.buffer.concat(text);
+            addBuffer.linestart = addBuffer.linestart.concat(linestart.splice(1));
         }
 
         /**
@@ -883,9 +883,9 @@ export class PieceTable implements IPieceTable {
             text += EndOfLine.LF;
         }
 
-        const addBuffer = this._buffer[0]!;
+        const addBuffer: Mutable<TextBuffer> = this._buffer[0]!;
         const addBufferStartOffset = addBuffer.buffer.length;
-        (<Mutable<string>>addBuffer.buffer) += text;
+        addBuffer.buffer += text;
 
         const linestart = TextBuffer.readLineStarts(text, addBufferStartOffset).linestart;
         
@@ -905,7 +905,7 @@ export class PieceTable implements IPieceTable {
             };
         }
 
-        (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.slice(1));
+        addBuffer.linestart = addBuffer.linestart.concat(linestart.slice(1));
         const newPieceEndPosition = {
             lineNumber: addBuffer.linestart.length - 1,
             lineOffset: addBuffer.buffer.length - addBuffer.linestart[addBuffer.linestart.length - 1]!

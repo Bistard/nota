@@ -113,42 +113,34 @@ export class ListTrait<T> implements IDisposable {
      * has a trait or causes the location change of the existed traits). Trait
      * needs to react to the splice operation.
      */
-    // TODO: improve performance: reduce array iteration (https://github.com/microsoft/vscode/commit/b0bcc33d34f504d0bef88cdb1514bb9eecc93bd6)
     public splice(index: number, deleteCount: number, ifReInserted: readonly boolean[]): void {
 
         const insertOffset = ifReInserted.length - deleteCount;
         const deleteStart = index;
         const deleteEnd = index + deleteCount;
 
-        const beforeDeleteIndice: number[] = [];
-        const insertedIndice: number[] = [];
-        const afterDeleteIndice: number[] = [];
+        const sortedIndice: number[] = [];
         
+        // all the existed traits before the splice should not change
         for (const idx of this._indice) {
-            // all the existed traits before the splice should not change
             if (idx < deleteStart) {
-                beforeDeleteIndice.push(idx);
-            }
-            // all the existed traits after the splice should update with offset
-            else if (idx >= deleteEnd) {
-                afterDeleteIndice.push(idx + insertOffset);
+                sortedIndice.push(idx);
             }
         }
+
         // push each inserted index that has the trait
         for (let i = 0; i < ifReInserted.length; i++) {
-            if (ifReInserted[i]) {
-                insertedIndice.push(index + i);
+            if (ifReInserted[i] === true) {
+                sortedIndice.push(index + i);
             }
         }
 
-        const sortedIndice = 
-        [
-            ...beforeDeleteIndice,
-            ...insertedIndice,
-            ...afterDeleteIndice,
-        ];
-
-        this.renderer.splice(index, deleteCount, ifReInserted.length);
+        // all the existed traits after the splice should update with offset
+        for (const idx of this._indice) {
+            if (idx >= deleteEnd) {
+                sortedIndice.push(idx + insertOffset);
+            }
+        }
 
         this.set(sortedIndice);
     }

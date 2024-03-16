@@ -1,22 +1,25 @@
 import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
-import { Schemas } from "src/base/common/files/uri";
+import { Schemas, URI } from "src/base/common/files/uri";
 import { Additionals, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
 
 const RGB_colors = <const>{
-    LightGray: [211, 211, 211],
-    LightBlue: [15, 134, 214],
-    LightGreen: [181, 206, 168],
+    LightGray:   [211, 211, 211],
+    LightBlue:   [15, 134, 214],
+    LightGreen:  [181, 206, 168],
     LightYellow: [206, 145, 120],
-    LightRed: [235, 57, 65],
-    Magenta: [190, 40, 255],
-    Green: [96, 151, 83], 
+    LightRed:    [235, 57, 65],
+    Magenta:     [190, 40, 255],
+    Green:       [96, 151, 83], 
 };
 
-export function testPrettyLog(logService: ILogService): void {
+/**
+ * @internal
+ */
+export function __testPrettyLog__(logService: ILogService): void {
     logService.trace('FileTreeService', 'this is trace');
     logService.debug('FileTreeService', 'this is debug');
     logService.info('FileTreeService', 'this is info');
@@ -165,13 +168,24 @@ function getErrorString(color: boolean, error: any): string {
     return [topBorder, ...formattedLines, bottomBorder].map(str => `    ${str}`).join('\n');
 }
 
+/**
+ * @description Trying to print the 'additional' as an object by iterating its
+ * properties and print them line by line in a format of:
+ *      (property_name) property_value
+ * 
+ * @note Some certain types of object will be printed specially (e.g. URI).
+ * 
+ * @return Returns a string of the printing result.
+ */
 function getAddtionalString(depth: number, color: boolean, additional: Additionals): string {    
+
     const keys: string[] = [];
     const values: string[] = [];
     
     let result = '';
     let maxKeyLength = 0;
 
+    // Iterate every provided property, parse them one by one into string.
     iterPropEnumerable(additional, key => {
         const value = additional[key];
         const valueStr = tryPaintValue(depth, color, key, value);
@@ -179,7 +193,7 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
         keys.push(key);
         values.push(valueStr);
         maxKeyLength = Math.max(maxKeyLength, key.length);
-    }, -1);
+    }, 0);
 
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i]!;
@@ -190,26 +204,41 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
     return result.slice(0, -1); // remove the last `\n`
 }
 
+function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additionals): string | undefined {
+    
+    // Special case: URI
+    if (URI.isURI(additional)) {
+        const uriStr = URI.toString(additional);
+        let valueStr = uriStr;
+        if (color) {
+            valueStr = TextColors.setRGBColor(uriStr, ...RGB_colors.LightBlue);
+        }
+        return valueStr;
+    }
+
+    // not handled
+    return undefined;
+}
+
 const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
 
 function tryPaintValue(depth: number, color: boolean, key: string, value: any): string {
 
+    // 1: no color case
     if (!color) {
         // recursive print object
         if (isObject(value) && !(value instanceof Error)) {
             return `\n${getAddtionalString(depth + 1, false, <any>value)}`;
         }
-
         return tryOrDefault('[parse error]', () => JSON.stringify(value));
     }
 
-    if (typeof value === 'string'  && 
+    // 2: color case
+    if (typeof value === 'string' && 
         (
             PREDEFINE_STRING_COLOR_KEY.includes(key) || 
-            key.endsWith('path') ||
-            key.endsWith('Path') ||
-            key.endsWith('URI') ||
-            key.endsWith('uri')
+            key.endsWith('path') || key.endsWith('Path') ||
+            key.endsWith('URI') || key.endsWith('uri')
         )
     ) {
         return TextColors.setRGBColor(value, ...RGB_colors.LightBlue);
@@ -241,9 +270,10 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
 
             // recursive paint the array
             if (Array.isArray(value)) {
-                let arr = '[ ';
+                let arr = '[';
                 
                 if (value.length > 0) {
+                    arr += ' ';
                     arr += paintDefaultValue(depth, value[0], true);
                 }
                 
@@ -257,6 +287,11 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
 
             // recursive paint object
             if (isObject(value) && !insideArray && !(value instanceof Error)) {
+                const handled = tryHandleSpecialAdditionalString(depth, true, <any>value);
+                if (handled) {
+                    return handled;
+                }
+
                 return `\n${getAddtionalString(depth + 1, true, <any>value)}`;
             }
 

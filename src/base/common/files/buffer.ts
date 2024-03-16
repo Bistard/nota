@@ -1,3 +1,5 @@
+import { panic } from "src/base/common/utilities/panic";
+
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -139,7 +141,7 @@ export class DataBuffer {
 			this.buffer.set(new Uint8Array(arrayLike.buffer, arrayLike.byteOffset, arrayLike.byteLength), offset);
 		} 
         else {
-			throw new Error('DataBuffer: cannot identify the raw buffer.');
+			panic('DataBuffer: cannot identify the raw buffer.');
 		}
 	}
 

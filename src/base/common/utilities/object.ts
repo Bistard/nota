@@ -13,29 +13,41 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 		return source;
 	}
 
-	if (isObject(source)) {
-		Object.keys(source).forEach(propName => {
-			if (propName in destination) {
-				if (overwrite) {
+	if (!isObject(source)) {
+		return destination;
+	}
 
-					// see prototype-polluting https://github.com/Bistard/nota/issues/129
-					if (Object.prototype.hasOwnProperty.call(source, propName) === false) {
-						return;
-					}
+	const propNames = Object.keys(source);
+	for (const propName of propNames) {
+		const exist = propName in destination;
 
-					if (Object.prototype.hasOwnProperty.call(destination, propName) 
-						&& isObject(destination[propName]) 
-						&& isObject(source[propName])
-					) {
-						mixin(destination[propName], source[propName], overwrite);
-					} else {
-						destination[propName] = source[propName];
-					}
-				}
-			} else {
-				destination[propName] = source[propName];
-			}
-		});
+		// We copy the value since the property does not exist in the desination
+		if (!exist) {
+			destination[propName] = source[propName];
+			continue;
+		}
+		
+		// not able to overwrite, we do nothing
+		if (!overwrite) {
+			continue;
+		}
+
+		// see prototype-polluting https://github.com/Bistard/nota/issues/129
+		if (Object.prototype.hasOwnProperty.call(source, propName) === false) {
+			continue;
+		}
+
+		// recursive mixin when overwriting
+		if (Object.prototype.hasOwnProperty.call(destination, propName) 
+			&& isObject(destination[propName]) 
+			&& isObject(source[propName])
+		) {
+			mixin(destination[propName], source[propName], overwrite);
+			continue;
+		}
+		
+		// primitive value, simply overwrite.
+		destination[propName] = source[propName];
 	}
     
 	return destination;
@@ -180,6 +192,7 @@ export function strictEquals(one: any, other: any): boolean {
 	}
 
 	if (Array.isArray(one)) {
+		// TODO: use Arrays.equals
 		if (one.length !== other.length) {
 			return false;
 		}
@@ -203,6 +216,7 @@ export function strictEquals(one: any, other: any): boolean {
 		}
 		
 		otherKeys.sort();
+		// TODO: use Arrays.equals
 		if (!strictEquals(oneKeys, otherKeys)) {
 			return false;
 		}

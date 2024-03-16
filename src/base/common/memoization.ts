@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
+import { panic } from "src/base/common/utilities/panic";
+
 /**
  * @description A helper decorator to implement `Memoization`. Used to speed up 
  * some expensive functions by storing the result in memory.
@@ -28,7 +30,7 @@ export function memoize(target: any, propertyKey: string, descriptor: PropertyDe
 		func = descriptor.get;
 	} else {
 		// does not support
-		throw new Error(`does not support memoization for ${propertyKey} of ${target}`);
+		panic(`does not support memoization for ${propertyKey} of ${target}`);
 	}
 
 	const propName = `$memoize$${propertyKey}`;

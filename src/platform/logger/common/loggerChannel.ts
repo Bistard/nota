@@ -2,6 +2,7 @@ import { toIPCTransferableError } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { Additionals, BufferLogger, BufferLoggerBufferType, defaultLog, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
+import { panic } from "src/base/common/utilities/panic";
 import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { AbstractLoggerService, ILoggerService } from "src/platform/logger/common/abstractLoggerService";
 
@@ -41,7 +42,7 @@ export class MainLoggerChannel implements IServerChannel {
     }
 
     public registerListener<T>(_id: string, event: never, arg?: any[]): Register<T> {
-        throw new Error(`Event not found: ${event}`);
+        panic(`Event not found: ${event}`);
     }
 
     // [private helper methods]
@@ -53,7 +54,7 @@ export class MainLoggerChannel implements IServerChannel {
     private async __log(path: URI, data: BufferLoggerBufferType[]): Promise<any> {
         const logger = this.loggerService.getLogger(path);
         if (!logger) {
-            throw new Error(`[MainLoggerChannel] logger not found: '${URI.toString(path)}'`);
+            panic(`[MainLoggerChannel] logger not found: '${URI.toString(path)}'`);
         }
 
         for (const { level, reporter, message, error, additional } of data) {

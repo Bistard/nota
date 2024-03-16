@@ -6,6 +6,7 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface ICreateable {
     create(): void;
@@ -268,7 +269,7 @@ export abstract class Component extends Themable implements IComponent {
         // If any dimensions is provided, we force to follow it.
         else {
             this._dimension = (this._dimension
-                ? this._dimension.with(width, height)
+                ? this._dimension.clone(width, height)
                 : new Dimension(width ?? 0, height ?? 0)
             );
             this._element.setWidth(this._dimension.width);
@@ -292,7 +293,7 @@ export abstract class Component extends Themable implements IComponent {
         const registered = this._children.has(id);
 
         if (registered && !override) {
-            throw new Error('component has been already registered');
+            panic('component has been already registered');
         }
 
         if (registered && override) {

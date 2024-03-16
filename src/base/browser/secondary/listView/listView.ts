@@ -12,7 +12,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * The consturtor options for {@link ListView}.
@@ -254,7 +254,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
      * the DOM attribute from the target.
      * @param target The {@link EventTarget}.
      * 
-     * @throws If the target is not found, undefined is returned.
+     * @note If the target is not found, undefined is returned.
      */
     indexFromEventTarget(target: EventTarget | null): number | undefined;
 }
@@ -503,6 +503,13 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         return;
     }
+    
+    public viewSize(onlyVisible: boolean = false): number {
+        if (onlyVisible) {
+            return this._visibleRange.end - this._visibleRange.start;
+        }
+        return this.items.length; 
+    }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         
@@ -510,8 +517,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             panic('[ListView] cannot splice recursively.');
         }
         this._splicing = true;
-
-        console.log('[ListView] rendering'); // TEST
 
         try {
             this.__splice(index, deleteCount, items);
@@ -525,7 +530,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public reveal(index: number, relativePositionPercentage?: number): void {
-        if (index < 0 && index >= this.getItemCount()) {
+        if (index < 0 && index >= this.viewSize()) {
             return;
         }
 
@@ -641,15 +646,15 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         return this._visibleRange;
     }
 
-    public getItemCount(): number { 
-        return this.items.length; 
-    }
-
     public getItem(index: number): T {
         if (index < 0 || index >= this.items.length) {
             panic(`invalid get item index: ${index}`);
         }
         return this.items[index]!.data;
+    }
+
+    public getItemIndex(item: T): number {
+        return this.items.findIndex(eachItem => eachItem.data === item);
     }
 
     public getHTMLElement(index: number): HTMLElement | null {

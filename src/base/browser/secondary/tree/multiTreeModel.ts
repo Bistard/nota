@@ -2,6 +2,7 @@ import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IIndexTreeModelOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceOptions, IIndexTreeModelBase, IFlexIndexTreeModel, FlexIndexTreeModel } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link IMultiTreeModelBase}.
@@ -47,7 +48,7 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 
     /**
-     * @description See details in {@link IFlexIndexTreeModel.triggerOnDidSplice}.
+     * @description See details in {@link IFlexIndexTreeModel['triggerOnDidSplice']}.
      * @param event The event to be fired.
      */
     triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
@@ -105,7 +106,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
     public getNode(item: T): ITreeNode<T, TFilter> {
         const node = this._nodes.get(item);
         if (!node) {
-            throw new Error('provided item not found in the tree');
+            panic('[MultiTreeModelBase] provided item not found in the tree');
         }
         return node;
     }
@@ -156,21 +157,15 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
      * @param item The provided item.
      */
     protected __getNodeLocation(item: T): number[] {
-
         if (item === this.root) {
             return [];
         }
-
-        const treeNode = this._nodes.get(item);
-        if (!treeNode) {
-            throw new Error('provided tree node not found.');
-        }
-
+        const treeNode = this.getNode(item);
         return this._model.getNodeLocation(treeNode);
     }
 
     protected __createSpliceOptions(opts: ITreeModelSpliceOptions<T, TFilter>): ITreeModelSpliceOptions<T, TFilter> {
-        const inserted = new Set<T>();
+        const justInserted = new Set<T>();
 
         const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
             // avoid root
@@ -180,34 +175,29 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
 
             // remember the mapping
             this._nodes.set(node.data, node);
-            inserted.add(node.data);
+            justInserted.add(node.data);
 
-            // other callback
-            if (opts.onDidCreateNode) {
-                opts.onDidCreateNode(node);
-            }
+            opts.onDidCreateNode?.(node);
         };
 
-        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
+        const onDidDeleteData = (data: T): void => {
             // avoid root
-            if (node.data === this.root) {
+            if (data === this.root) {
 				return;
 			}
 
             // prevent accidently delete what we just inserted.
-            if (inserted.has(node.data) === false) {
-                this._nodes.delete(node.data);
-
-                // other callback
-                if (opts.onDidDeleteNode) {
-                    opts.onDidDeleteNode(node);
-                }
+            if (justInserted.has(data)) {
+                return;
             }
+
+            this._nodes.delete(data);
+            opts.onDidDeleteData?.(data);
         };
 
         return {
             onDidCreateNode,
-            onDidDeleteNode,
+            onDidDeleteData,
         };
     }
 }

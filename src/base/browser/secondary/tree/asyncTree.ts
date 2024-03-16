@@ -1,15 +1,14 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions, IMultiTreeWidgetOpts, MultiTreeWidget } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode, ITreeExpandEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode, ITreeRefreshEvent, ITreeTraitChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { AsyncEmitter, Emitter, Register } from "src/base/common/event";
+import { AsyncEmitter, AsyncRegister, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { AsyncQueue } from "src/base/common/utilities/async";
@@ -54,6 +53,12 @@ export interface IChildrenProvider<T> {
     getChildren(data: T): T[] | Promise<T[]>;
 
     /**
+     * @description Mark the given data as unresolved. This will not clean the
+     * children of the given data.
+     */
+    markAsUnresolved?(data: T): void;
+
+    /**
      * @description Forget the children of the given data so that it will be
      * re-resolved for the next `getChildren` operation.
      * @note If not provided, the children of the data will only be resolved 
@@ -90,15 +95,13 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     get root(): T;
 
     /**
-     * Event fires before the tree starts to refresh the updated data and rendering.
+     * This event is triggered just before the tree begins its refresh process. 
+     * When this event is activated, it indicates that the specified tree node 
+     * is preparing to update its data to the latest version and then rerender 
+     * the tree structure.
      */
-    readonly onRefresh: Register<void>;
+    readonly onRefresh: AsyncRegister<ITreeRefreshEvent<T, TFilter>>;
     
-    /**
-     * Event fires once the tree is expanded
-     */
-    readonly onDidExpand: Register<ITreeExpandEvent<T, TFilter>>;
-
     /**
      * @description Given the data, re-acquires the stat of the the corresponding 
      * tree node and then its descendants asynchronously. The view will be 
@@ -133,6 +136,16 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * asynchronous is required.
      */
     toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean>;
+
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): Promise<void>;
+
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): Promise<void>;
 }
 
 /**
@@ -287,26 +300,25 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
      * Indicates if any tree nodes is collapse changing, prevent parallel 
      * collapse changing.
      */
-    private readonly _ongoingCollapseChange = new AsyncQueue();
+    private readonly _ongoingCollapseChange = new AsyncQueue<void>();
 
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
-    private _onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
+    private _onDidDeleteData?: (node: T) => void;
 
     // [event]
 
-    private readonly _onRefresh = this.__register(new Emitter<void>());
-    public readonly onRefresh: Register<void> = this._onRefresh.registerListener;
-
-    private readonly _onDidExpand = this.__register(new AsyncEmitter<ITreeExpandEvent<T, TFilter>>());
-    public readonly onDidExpand: Register<ITreeExpandEvent<T, TFilter>> = this._onDidExpand.registerListener;
+    private readonly _onRefresh = this.__register(new AsyncEmitter<ITreeRefreshEvent<T, TFilter>>());
+    public readonly onRefresh = this._onRefresh.registerListener;
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._tree.onDidSplice; }
     get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._tree.onDidChangeCollapseState; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemSelection; }
+    
+    get onDidChangeItemFocus(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemSelection; }
+    get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemHover; }
     
     get onClick(): Register<ITreeMouseEvent<T>> { return this._tree.onClick; }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return this._tree.onDoubleclick; }
@@ -345,7 +357,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         });
 
         this._onDidCreateNode = opts.onDidCreateNode;
-        this._onDidDeleteNode = opts.onDidDeleteNode;
+        this._onDidDeleteData = opts.onDidDeleteData;
 
         this.__register(this._tree);
         this.__register(this._ongoingCollapseChange);
@@ -357,14 +369,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [public methods]
 
     public async refresh(data: T = this._tree.root): Promise<void> {
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
 
         // wait until nothing is refreshing
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
 
-        this._onRefresh.fire();
+        await this._onRefresh.fireAsync({ node: asyncNode });
 
         // wait until refreshing the node and its descendants
         await this._tree.refreshNode(asyncNode);
@@ -416,7 +428,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return false;
         }
 
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
@@ -450,7 +462,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return false;
         }
 
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
@@ -465,12 +477,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return successOrNot;
     }
 
-    public collapseAll(): void {
+    public async collapseAll(): Promise<void> {
         this._tree.collapseAll();
+        await this._ongoingCollapseChange.waitNext();
     }
 
-    public expandAll(): void {
+    public async expandAll(): Promise<void> {
         this._tree.expandAll();
+        await this._ongoingCollapseChange.waitNext();
     }
 
     public setAnchor(item: T): void {
@@ -480,6 +494,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     public getAnchor(): T | null {
         return this._tree.getAnchor();
     }
+    
+    public getViewAnchor(): number | null {
+        return this._tree.getViewAnchor();
+    }
 
     public setFocus(item: T): void {
         this._tree.setFocus(item);
@@ -487,6 +505,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getFocus(): T | null {
         return this._tree.getFocus();
+    }
+    
+    public getViewFocus(): number | null {
+        return this._tree.getViewFocus();
     }
 
     public setSelections(items: T[]): void {
@@ -496,13 +518,23 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     public getSelections(): T[] {
         return this._tree.getSelections();
     }
+    
+    public getViewSelections(): number[] {
+        return this._tree.getViewSelections();
+    }
 
-    public setHover(item: T, recursive: boolean): void {
+    public setHover(item: null): void;
+    public setHover(item: T, recursive: boolean): void;
+    public setHover(item: T | null, recursive?: boolean): void {
         this._tree.setHover(item, recursive);
     }
 
     public getHover(): T[] {
         return this._tree.getHover();
+    }
+    
+    public getViewHover(): number[] {
+        return this._tree.getViewHover();
     }
 
     public getVisibleNodeCount(item: T): number {
@@ -515,6 +547,18 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getItem(index: number): T {
         return this._tree.getItem(index);
+    }
+    
+    public getItemIndex(item: T): number {
+        return this._tree.getItemIndex(item);
+    }
+
+    public getItemHeight(index: number): number {
+        return this._tree.getItemHeight(index);
+    }
+
+    public getItemRenderTop(index: number): number {
+        return this._tree.getItemRenderTop(index);
     }
 
     public setDomFocus(): void {
@@ -529,8 +573,12 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         this._tree.rerender(data);
     }
 
-    public size(): number {
-        return this._tree.size();
+    public treeSize(): number {
+        return this._tree.treeSize();
+    }
+
+    public viewSize(onlyVisible?: boolean): number {
+        return this._tree.viewSize(onlyVisible);
     }
 
     // [protected override method]
@@ -541,6 +589,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     // [private helper methods]
 
+    private __getAsyncNode(data: T): IAsyncNode<T, TFilter> {
+        return this._tree.getNode(data);
+    }
+
     /**
      * @description Only rerenders the subtree of the given tree node.
      * @param node The given tree node.
@@ -550,7 +602,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             node,
             {
                 onDidCreateNode: this._onDidCreateNode,
-                onDidDeleteNode: this._onDidDeleteNode,
+                onDidDeleteData: this._onDidDeleteData,
             },
         );
     }
@@ -572,19 +624,15 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          */
         if (node.collapsed) {
             this._tree.triggerOnDidSplice({ inserted: [e.node] });
-            console.log('[item] skip refresh operation since it is collapsing.'); // TEST
             return;
         }
 
-        await this._onDidExpand.fireAsync({node});
-        
         /**
          * An optional optimization that client may prevent the refresh 
          * operation is the children of the node is already resolved (up-to-date).
          */
         if (this._tree.isChildrenResolved(node.data)) {
             this._tree.triggerOnDidSplice({ inserted: [e.node] });
-            console.log('[item] already resolved, skip when expand.'); // TEST
             return;
         }
 
@@ -593,7 +641,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * rerender the whole tree view.
          */
         try {
-            this._onRefresh.fire();
+            await this._onRefresh.fireAsync({ node });
 
             // get the updated tree structure into the model
             await this._tree.refreshNode(node);

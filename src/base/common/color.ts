@@ -1,6 +1,7 @@
 import { memoize } from "src/base/common/memoization";
 import { CharCode } from "src/base/common/utilities/char";
 import { Numbers } from "src/base/common/utilities/number";
+import { panic } from "src/base/common/utilities/panic";
 import { Dictionary, DightInString } from "src/base/common/utilities/type";
 
 /**
@@ -219,7 +220,7 @@ function __getHexDight(char: number): number {
 		return char - CharCode.A + 10;
 	}
 
-	throw new Error(`invalid hex digit ${char}.`);
+	panic(`invalid hex digit ${char}.`);
 }
 
 function __roundFloat(number: number, decimalPoints: number): number {

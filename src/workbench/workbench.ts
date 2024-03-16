@@ -17,9 +17,13 @@ import { IContextMenuService } from 'src/workbench/services/contextMenu/contextM
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
-import { WorkbenchConfiguration } from 'src/code/browser/configuration.register';
-import { SideViewConfiguration } from 'src/workbench/parts/sideView/configuration.register';
+import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 import { ILogService } from 'src/base/common/logger';
+import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
+import { DomUtility, EventType, addDisposableListener } from 'src/base/browser/basic/dom';
+import { Event } from 'src/base/common/event';
+import { FocusTracker } from 'src/base/browser/basic/focusTracker';
+import { WorkbenchContextKey } from 'src/workbench/services/workbench/workbenchContextKeys';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -71,6 +75,19 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.logService.trace('Workbench', 'Initialized.');
     }
 
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this._contextHub?.getContextKey(name);
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        if (!this._contextHub) {
+            return false;
+        }
+        return this._contextHub.updateContext(name, value);
+    }
+
+    // [protect helper methods]
+
     protected initServices(): void {
 
         // workbench-service
@@ -84,7 +101,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.__createLayout();
 
         // open the side view with default one
-        const defaultView = this.configurationService.get<string>(SideViewConfiguration.DefaultSideView, 'explorer');
+        const defaultView = this.configurationService.get<string>(WorkbenchConfiguration.DefaultSideView, 'explorer');
         this.sideViewService.switchView(defaultView);
     }
 
@@ -92,19 +109,19 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description register renderer process global listeners.
      */
     protected override _registerListeners(): void {
-        
+
         // listen to layout changes
         this.__registerLayoutListeners();
-        
+
         // listen to configuration changes
         this.__registerConfigurationListeners();
 
         // initialize all the context keys only when the application is ready
         this.lifecycleService.when(LifecyclePhase.Ready)
-        .then(() => {
-            this._contextHub = this.instantiationService.createInstance(WorkbenchContextHub);
-            this.__register(this._contextHub);
-        });
+            .then(() => {
+                this._contextHub = this.instantiationService.createInstance(WorkbenchContextHub);
+                this.__register(this._contextHub);
+            });
     }
 
     // [private helper methods]
@@ -113,11 +130,11 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description Responses to configuration change.
      */
     private __registerConfigurationListeners(): void {
-        
+
         // KeyboardScreenCastService
         {
             const screenCastService = this.instantiationService.getOrCreateService(IKeyboardScreenCastService);
-            
+
             // init
             const ifEnable = this.configurationService.get<boolean>(WorkbenchConfiguration.KeyboardScreenCast);
             ifEnable && screenCastService.start();
@@ -141,16 +158,27 @@ export class WorkbenchContextHub extends Disposable {
 
     // [context - platform]
 
+    private readonly inputFocused: IContextKey<boolean>;
+
     // [context - side view]
 
     private readonly visibleSideView: IContextKey<boolean>;
     private readonly focusedSideView: IContextKey<boolean>;
 
+    // [context - file tree]
+
+    private readonly visibleFileTree: IContextKey<boolean>;
+    private readonly focusedFileTree: IContextKey<boolean>;
+    private readonly fileTreeOnCut: IContextKey<boolean>;
+    private readonly fileTreeOnInsert: IContextKey<boolean>;
+
     // [constructor]
 
     constructor(
+        @ILogService private readonly logService: ILogService,
         @IContextService contextService: IContextService,
         @ISideViewService private readonly sideViewService: ISideViewService,
+        @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @IEnvironmentService environmentService: IBrowserEnvironmentService,
     ) {
         super();
@@ -166,22 +194,82 @@ export class WorkbenchContextHub extends Disposable {
             contextService.createContextKey('isPackaged', environmentService.isPackaged, 'Whether the application is in release mode or develop mode');
         }
 
+        // platform
+        this.inputFocused = contextService.createContextKey('inputFocused', false, 'Whether keyboard focus is inside an input box');
+
         // side view
         this.visibleSideView = contextService.createContextKey('visibleSideView', false, 'Whether a side view is visible');
         this.focusedSideView = contextService.createContextKey('focusedSideView', false, 'Whether a side view is focused');
 
+        // file tree
+        this.visibleFileTree = contextService.createContextKey('visibleFileTree', false, 'Whether a file tree is visible.');
+        this.focusedFileTree = contextService.createContextKey('focusedFileTree', false, 'Whether a file tree is focused.');
+        this.fileTreeOnCut = contextService.createContextKey(WorkbenchContextKey.fileTreeOnCutKey, false, 'True when items in the file tree are ready for cut.');
+        this.fileTreeOnInsert = contextService.createContextKey(WorkbenchContextKey.fileTreeOnInsertKey, false, 'True when items in the file tree are ready for insert.');
+
         // auto updates the context keys
         this.__registerListeners();
+    }
+
+    // [public methods]
+
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this[name];
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        const contextKey: IContextKey<unknown> | undefined = this[name];
+        if (!contextKey) {
+            return false;
+        }
+
+        if (contextKey.key !== name) {
+            this.logService.warn('WorkbenchService', `Cannot update context (incompatible name): '${name}' !== '${contextKey.key}'`);
+            return false;
+        }
+
+        contextKey.set(value);
+        return true;
     }
 
     // [private helper methods]
 
     private __registerListeners(): void {
 
+        // platform
+        this.__updateInputFocusedContext();
+        this.__register(addDisposableListener(window, EventType.focus, e => this.__updateInputFocusedContext()));
+
         // side view
-        const currSideView = this.sideViewService.currView();
-        this.visibleSideView.set(!!currSideView);
+        this.visibleSideView.set(!!this.sideViewService.currView());
         this.__register(this.sideViewService.onDidViewChange(e => this.visibleSideView.set(!!e.view)));
         this.__register(this.sideViewService.onDidFocusChange(isFocused => this.focusedSideView.set(isFocused)));
+
+        // file tree
+        this.visibleFileTree.set(this.fileTreeService.isOpened);
+        this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized));
+        this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused));
+    }
+
+    // [private update context helpers]
+
+    private __updateInputFocusedContext(): void {
+        const doc = window.document;
+
+        // check if the current focused element is a input
+        function isActiveIsInput(doc: Document): boolean {
+            return !!doc.activeElement && DomUtility.Elements.isInputElement(doc.activeElement);
+        }
+
+        const isInputFocused = isActiveIsInput(doc);
+        this.inputFocused.set(isInputFocused);
+
+        if (isInputFocused) {
+            const tracker = new FocusTracker(<HTMLElement>doc.activeElement, false);
+            Event.once(tracker.onDidBlur)(() => {
+                this.inputFocused.set(isActiveIsInput(doc));
+                tracker.dispose();
+            });
+        }
     }
 }

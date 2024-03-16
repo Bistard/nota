@@ -1,6 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
+import { panic } from "src/base/common/utilities/panic";
 import { Callable, isNullable, isNumber, isString, Mutable } from "src/base/common/utilities/type";
 
 export interface IAction extends IDisposable {
@@ -26,6 +27,9 @@ export interface IAction extends IDisposable {
     run(args?: any): unknown;
 }
 
+/**
+ * Options for constructing an {@link Action}.
+ */
 export interface IActionOptions {
     readonly id: string;
     readonly enabled: boolean;
@@ -306,7 +310,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
             });
             
             if (!item) {
-                throw new Error(`Action list cannot create item with action id '${action.id}'`);
+                panic(`Action list cannot create item with action id '${action.id}'`);
             }
 
             items.push(item);

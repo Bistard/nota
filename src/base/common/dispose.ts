@@ -1,3 +1,4 @@
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -7,6 +8,16 @@
 export interface IDisposable {
 	dispose(): void;
 }
+
+/**
+ * A reference to an object, it makes sure the object won't be garbage-collected
+ * once I still own it.
+ */
+export interface IReference<T> extends IDisposable {
+	readonly object: T;
+}
+
+export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
 /**
  * @readonly The lifecyle of a disposable object is controlled by the client. A
@@ -55,7 +66,7 @@ export class Disposable implements IDisposable {
 	 */
 	protected __register<T extends IDisposable>(obj: T): T {
 		if (obj && (obj as IDisposable) === this) {
-			throw new Error('cannot register the disposable object to itself');
+			panic('cannot register the disposable object to itself');
 		}
 		return this._disposableManager.register(obj);
 	}
@@ -99,7 +110,7 @@ export class DisposableManager implements IDisposable {
 	public register<T extends IDisposable>(obj: T): T {
 		
 		if (obj && (obj as unknown) === this) {
-			throw new Error('cannot register the disposable object to itself');
+			panic('cannot register the disposable object to itself');
 		}
 
 		if (this._disposed) {
@@ -109,24 +120,6 @@ export class DisposableManager implements IDisposable {
 
 		this._disposables.add(obj);
 		return obj;
-	}
-}
-
-/**
- * A reference to an object, it makes sure the object won't be garbage-collected
- * once I still own it.
- */
-export interface IReference<T> extends IDisposable {
-	readonly object: T;
-}
-
-export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
-
-export class MultiDisposeError extends Error {
-	constructor(
-		public readonly errors: any[]
-	) {
-		super(`Encountered errors while disposing of store. Errors: [${errors.join(', ')}]`);
 	}
 }
 
@@ -147,9 +140,9 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 
 	// error handling
 	if (errors.length === 1) {
-		throw errors[0];
+		panic(errors[0]);
 	} else if (errors.length > 1) {
-		throw new MultiDisposeError(errors);
+		panic(`Encountered errors while disposing of mutiple disposable. Errors: ${errorToMessage(errors)}`);
 	}
 }
 
@@ -198,14 +191,14 @@ export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable
 
 	public get(): T {
 		if (!this._object) {
-			throw new Error('[SelfCleaningWrapper] no wrapping object.');
+			panic('[SelfCleaningWrapper] no wrapping object.');
 		}
 		return this._object;
 	}
 
 	public register(children: Disposable | Disposable[]): void {
 		if (!this._object) {
-			throw new Error('[SelfCleaningWrapper] cannot bind children to no objects.');
+			panic('[SelfCleaningWrapper] cannot bind children to no objects.');
 		}
 		
 		if (!Array.isArray(children)) {

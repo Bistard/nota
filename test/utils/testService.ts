@@ -187,6 +187,19 @@ export class NullLogger extends AbstractLogger implements ILogService {
     public async flush(): Promise<void> { }
 }
 
+export class SimpleLogger extends AbstractLogger implements ILogService {
+    constructor() {
+        super();
+    }
+    public trace(message: string, ...args: any[]): void { console.log(...arguments); }
+    public debug(message: string, ...args: any[]): void { console.log(...arguments); }
+    public info(message: string, ...args: any[]): void { console.log(...arguments); }
+    public warn(message: string, ...args: any[]): void { console.log(...arguments); }
+    public error(message: string | Error, ...args: any[]): void { console.log(...arguments); }
+    public fatal(message: string | Error, ...args: any[]): void { console.log(...arguments); }
+    public async flush(): Promise<void> { console.log(...arguments); }
+}
+
 export class NullContextService extends ContextService { }
 
 export class TestKeyboardService implements IKeyboardService {

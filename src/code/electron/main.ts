@@ -8,7 +8,7 @@ import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/co
 import { Strings } from 'src/base/common/utilities/string';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { IInstantiationService, IServiceProvider, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
 import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
@@ -28,7 +28,7 @@ import { MainConfigurationService } from 'src/platform/configuration/electron/ma
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
-import { panic } from 'src/base/common/result';
+import { panic } from "src/base/common/utilities/panic";
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -135,7 +135,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
         instantiationService.register(IRegistrantService, registrantService);
-        this.registrantRegistrations(instantiationService, registrantService);
+        this.initRegistrant(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService);
@@ -225,28 +225,15 @@ const main = new class extends class MainProcess implements IMainProcess {
         this.logService.trace('MainProcess', 'All core services are initialized successfully.');
     }
 
-    private registrantRegistrations(provider: IServiceProvider, service: IRegistrantService): void {
+    private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
         
-        // configuration
-        service.registerRegistrant(new class extends ConfigurationRegistrant {
-            public override initRegistrations(): void {
-                super.initRegistrations();
-                // [
-                    
-                // ]
-                // .forEach((register) => {
-                //     register(provider);
-                // });
-            }
-        }());
+        /**
+         * DO NOT change the registration orders, orders does matter here.
+         */
+        registrant.registerRegistrant(service.createInstance(ConfigurationRegistrant));
+        registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
 
-        // reviver
-        service.registerRegistrant(new ReviverRegistrant());
-
-        // TODO: others
-
-        // initialize registrations
-        service.init();
+        registrant.init(service);
     }
 
     private async resolveSingleApplication(): Promise<void> {

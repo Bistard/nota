@@ -6,12 +6,13 @@ import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventTyp
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type";
-import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
+import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { RGBA } from "src/base/common/color";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
@@ -173,7 +174,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
     public build(actions: MenuAction[]): void {
         if (this._built) {
-            throw new Error('Menu cannot build twice.');
+            panic('Menu cannot build twice.');
         }
         this.insert(actions);
         this._built = true;
@@ -629,7 +630,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         
         const submenuBox = submenuContainer.element.getBoundingClientRect();
         const { top, left } = this.__calculateSubmenuPosition(
-            Dimension.create(submenuBox),
+            { width: submenuBox.width, height: submenuBox.height },
             anchorBox,
             Direction.Right,
         );
