@@ -68,7 +68,7 @@ export namespace FileCommands {
             });
         }
     
-        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx: number, resources?: URI[]): Promise<boolean> {
+        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx?: number, resources?: URI[]): Promise<boolean> {
             this.fileTreeService     = provider.getOrCreateService(IFileTreeService);
             this.clipboardService    = provider.getOrCreateService(IClipboardService);
             const contextService     = provider.getOrCreateService(IContextService);
@@ -91,7 +91,7 @@ export namespace FileCommands {
             }
             
             // paste (custom sorting)
-            await this.__pasteInsert(destination, destinationIdx, isCut);
+            await this.__pasteInsert(destination, destinationIdx ?? 0, isCut);
             
             return true;
         }
@@ -121,9 +121,8 @@ export namespace FileCommands {
                 return false;
             }
             
-            const batch = isCut 
-                    ? await this.__doMoveLot(toPaste, destination) 
-                    : await this.__doCopyLot(toPaste, destination);
+            const operation = isCut ? this.__doMoveLot : this.__doCopyLot;
+            const batch = await operation.call(this, toPaste, destination);
             
             if (batch.failed.length) {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
@@ -156,7 +155,6 @@ export namespace FileCommands {
         }
 
         private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
-
             const toPasteUri: URI[] = [];
             const toPasteDir: URI[] = [];
             for (const item of toPaste) {

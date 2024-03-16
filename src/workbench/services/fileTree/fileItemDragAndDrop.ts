@@ -268,7 +268,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         const operation = __isCopyOperation(event) 
             ? this.__performDropCopy
             : this.__performDropMove;
-        await operation.call(this, currentDragItems, targetOver, targetIndex);
+        await operation.call(this, currentDragItems, targetOver);
     }
 
     public onDragEnd(event: DragEvent): void {
@@ -420,7 +420,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // If no specific target is given, insert at the end within the root item.
         if (!targetOver) {
             targetOver = this.fileTreeService.rootItem!;
-            await this.__performDropMove(currentDragItems, targetOver, targetIndex);
+            await this.__performDropMove(currentDragItems, targetOver);
             return;
         }
 
@@ -474,18 +474,18 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, false);
     }
 
-    private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem, targetIndex?: number): Promise<void> {
+    private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
 
         // simulate drop action (copy) as copy, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(false);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, targetIndex ?? 0, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems.map(item => item.uri));
     }
     
-    private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem, targetIndex?: number): Promise<void> {
+    private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
         // simulate drop action (move) as cut, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(true);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, targetIndex ?? 0, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems.map(item => item.uri));
     }
 }
 
