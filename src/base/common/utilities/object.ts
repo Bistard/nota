@@ -1,6 +1,16 @@
 import { DeepReadonly, isNullable, isObject, isPrimitive } from "src/base/common/utilities/type";
 
 /**
+ * A generic type representing a reference to an data of type `T`.
+ * @template T The type of the referenced data.
+ * 
+ * @note Act like 'reference' concept in C++.
+ */
+export type Ref<T> = {
+	ref: T;
+};
+
+/**
  * Copies all properties of source into destination. The optional parameter 
  * 'overwrite' allows to control if existing properties on the destination 
  * should be overwritten or not.
