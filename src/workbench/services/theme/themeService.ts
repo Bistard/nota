@@ -12,7 +12,7 @@ import { InitProtector } from "src/base/common/error";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
-import { Dictionary, isObject } from "src/base/common/utilities/type";
+import { Dictionary, StringDictionary, isObject, isString } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ColorRegistrant } from "./colorRegistrant";
@@ -27,6 +27,7 @@ export interface IThemeService extends IService {
 
     /**
      * The root path that stores all the theme files (JSON files).
+     * @example .wisp/theme/
      */
     readonly themeRootPath: URI;
 
@@ -85,7 +86,6 @@ export class ThemeService extends Disposable implements IThemeService {
 
     // [events]
     
-
     private readonly _onDidChangeTheme = this.__register(new Emitter<IColorTheme>());
     public readonly onDidChangeTheme = this._onDidChangeTheme.registerListener;
 
@@ -95,9 +95,10 @@ export class ThemeService extends Disposable implements IThemeService {
 
     private readonly _registrant: ColorRegistrant;
     private readonly _initProtector: InitProtector;
+    
     private readonly _presetThemes: Map<string, IColorTheme>;
     private _currentTheme?: IColorTheme;
-    private readonly defaultColors: { [key: string]: string } = defaultThemeColors;
+    private readonly defaultColors: StringDictionary<string> = defaultThemeColors;
 
     // [constructor]
 
@@ -128,6 +129,7 @@ export class ThemeService extends Disposable implements IThemeService {
     }
 
     public switchTo(id: string): Promise<IColorTheme> {
+        
         // Read from memory if a preset theme
         const presetTheme = this._presetThemes.get(id);
         if (presetTheme) {
@@ -176,7 +178,7 @@ export class ThemeService extends Disposable implements IThemeService {
             );
     }
     
-    public init(): Promise<void> {
+    public async init(): Promise<void> {
         this._initProtector.init('Cannot init twice').unwrap();
     
         // Initialize every preset color themes in the beginning since they are only present in memory.
@@ -187,7 +189,7 @@ export class ThemeService extends Disposable implements IThemeService {
         //     PresetColorTheme.LightModern,      // Default
         // );
         const themeID = 'lightMorden';
-        return this.switchTo(themeID).then(() => Promise.resolve());
+        await this.switchTo(themeID);
     }
     
     // [private methods]
@@ -195,21 +197,21 @@ export class ThemeService extends Disposable implements IThemeService {
     private initializePresetThemes(): IColorTheme[] {
         const themeNames = ['lightModern', 'darkModern'];
         for (const themeName of themeNames) {
-            const rawColor = this._registrant.getRegisteredColorsBy(themeName);  
-            if (this.__isValidTheme(rawColor)) {
+            const rawColorMap = this._registrant.getRegisteredColorMap(themeName);  
+            if (this.__isValidTheme(rawColorMap)) {
                 const theme = new ColorTheme(
-                    rawColor.type,
-                    rawColor.name,
-                    rawColor.description,
-                    rawColor.colors
+                    rawColorMap.type,
+                    rawColorMap.name,
+                    rawColorMap.description,
+                    rawColorMap.colors
                 );
-                this._presetThemes.set(rawColor.name, theme);
+                this._presetThemes.set(rawColorMap.name, theme);
             }
         }    
-        return Array.from(this._presetThemes.values());
+        return [...this._presetThemes.values()];
     }
 
-    private updateDynamicCSSRules() {
+    private updateDynamicCSSRules(): void {
         const themeData = this.getCurrTheme(); 
         // Merge default colors with theme colors, theme colors take precedence
         const finalColors = {...this.defaultColors, ...themeData.getColor};
@@ -243,19 +245,19 @@ export class ThemeService extends Disposable implements IThemeService {
             return false;
         }
     
-        const data = rawData as IRawThemeJsonReadingData;
-        // Assuming 'template' is a Set of required color locations for a valid theme
+        // Basic validation for the structure of 'rawData'
+        const basicValidation = isString(rawData['type']) &&
+                                isString(rawData['name']) &&
+                                isString(rawData['description']) &&
+                                isObject(rawData['colors']);
+        if (!basicValidation) {
+            return false;
+        }
+
+        // Ensure every required color location is present in the theme
         const template = this._registrant.getTemplate();
+        const allColorsPresent = [...template].every(location => isString(rawData['colors'][location]));
     
-        // Basic validation for the structure of 'data'
-        const basicValidation = typeof data.type === 'string' &&
-                                typeof data.name === 'string' &&
-                                typeof data.description === 'string' &&
-                                typeof data.colors === 'object' && data.colors !== null;
-    
-        // Ensure every required color location is present and is a string
-        const allColorsPresent = [...template].every(location => typeof data.colors[location] === 'string');
-    
-        return basicValidation && allColorsPresent;
+        return allColorsPresent;
     }
 }
