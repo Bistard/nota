@@ -1,5 +1,5 @@
 import { ColorMap, RGBA } from "src/base/common/color";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { Dictionary } from "src/base/common/utilities/type";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 

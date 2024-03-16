@@ -4,12 +4,11 @@ import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/t
 import { APP_DIR_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { URI } from "src/base/common/files/uri";
-import { AsyncResult, Err, Ok, panic } from "src/base/common/result";
+import { AsyncResult, Err, Ok } from "src/base/common/result";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
-import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, StringDictionary, isObject, isString } from "src/base/common/utilities/type";
@@ -17,6 +16,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ColorRegistrant } from "./colorRegistrant";
 import { defaultThemeColors } from './themeDefaults';
+import { panic } from "src/base/common/utilities/panic";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
