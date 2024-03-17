@@ -40,7 +40,7 @@ class WebpackUnitTestConfigurationProvider extends WebpackBaseConfigurationProvi
                  * webpack on how and where it should output your bundles, assets, 
                  * and anything else you bundle or load with webpack.
                  * 
-                 * @note The following are neccessary for debugging purpose.
+                 * @note The following are necessary for debugging purpose.
                  */
                 output: {
                     devtoolModuleFilenameTemplate: 'webpack://[absolute-resource-path]',

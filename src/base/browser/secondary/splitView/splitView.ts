@@ -24,7 +24,7 @@ export interface ISplitView extends Disposable {
     readonly size: number;
 
     /**
-     * Fires when the sash is resetted to the default position (double-click).
+     * Fires when the sash is reset to the default position (double-click).
      */
     readonly onDidSashReset: Register<number>;
 
@@ -34,7 +34,7 @@ export interface ISplitView extends Disposable {
     readonly onDidLayout: Register<IDimension>;
     
     /**
-     * @description Construsts a new {@link SplitViewItem} and add it into the 
+     * @description Construct a new {@link SplitViewItem} and add it into the 
      * split-view.
      * @param opt Options for constructing the view.
      * @note This will rerender the whole split-view.
@@ -42,14 +42,14 @@ export interface ISplitView extends Disposable {
     addView(opt: ISplitViewItemOpts): void;
 
     /**
-     * @description Remove an exsited {@link SplitViewItem} from the SplitView.
+     * @description Remove an existed {@link SplitViewItem} from the SplitView.
      * @param index The index of the to-be-removed view.
      * @note This will rerender the whole split-view.
      */
     removeView(index: number): ISplitViewItemOpts;
     
     /**
-     * @description Move an exsited {@link SplitViewItem} to another index.
+     * @description Move an existed {@link SplitViewItem} to another index.
      * @param from The the start index of the SplitViewItem.
      * @param to The the end index of the SplitViewItem.
      * @note This will rerender the whole split-view without resizing.
@@ -102,13 +102,13 @@ export interface ISplitViewOpts {
  * @note The view instances are essentially wrappers of {@link HTMLElement}s and 
  * with the size restrictions such as maximum size, minimum size and priority.
  * 
- * @note A {@link ISash} will be created between each view intance to ensure
+ * @note A {@link ISash} will be created between each view instance to ensure
  * the size restrictions are followed.
  * 
  * Functionalities:
  *  - Supports vertical and horizontal layout of views.
  *  - Supports add, remove, move and swap views.
- *  - View intances are resizable.
+ *  - View instances are resizable.
  */
 export class SplitView extends Disposable implements ISplitView {
 
@@ -226,12 +226,12 @@ export class SplitView extends Disposable implements ISplitView {
         if (first > second) {
             return this.swapView(second, first);
         }
-        const fristViewOpts = this.__doRemoveView(first);
+        const firstViewOpts = this.__doRemoveView(first);
         const secondViewOpts = this.__doRemoveView(second - 1);
         secondViewOpts.index = first;
-        fristViewOpts.index = second;
+        firstViewOpts.index = second;
         this.__doAddView(secondViewOpts);
-        this.__doAddView(fristViewOpts);
+        this.__doAddView(firstViewOpts);
 
         this.__doRenderViewsAndSashes();
     }
@@ -350,7 +350,7 @@ export class SplitView extends Disposable implements ISplitView {
         const splitViewSize = this._size;
         let currContentSize = 0;
 
-        // seperate all the flexible views by their priorities
+        // separate all the flexible views by their priorities
         const low: ISplitViewItem[] = [];
         const normal: ISplitViewItem[] = [];
         const high: ISplitViewItem[] = [];
@@ -481,7 +481,7 @@ export class SplitView extends Disposable implements ISplitView {
 
     /**
      * @description Returns the position offset (left / top) of the given 
-     * split-view-tiem relatives to the whole split view container.
+     * split-view-item relatives to the whole split view container.
      * @param viewItem The provided split-view-item.
      * 
      * @complexity O(n) - n: total number of split-view-items in memory.
@@ -521,7 +521,7 @@ export class SplitView extends Disposable implements ISplitView {
     }
 
     /**
-     * @description Invokes when any of the sashes is stoped dragging (mouse-up).
+     * @description Invokes when any of the sashes is stopped dragging (mouse-up).
      * @param sash The target {@link ISash}.
      */
     private __onDidSashEnd(sash: ISash): void {

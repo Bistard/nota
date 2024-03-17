@@ -19,8 +19,8 @@ export interface ICommandSchema extends Omit<ICommandBasicSchema, 'command' | 'o
     /**
      * If the option is provided, the command will also be registered as a
      * shortcut.
-     * @note The shortcut will only be avaliable when the command schema
-     * -provided `when` and the shorcut-provided `when` are both satisfied.
+     * @note The shortcut will only be available when the command schema
+     * -provided `when` and the shortcut-provided `when` are both satisfied.
      */
     readonly shortcutOptions?: Omit<IShortcutRegistration<string>, 'commandID'>;
 }
@@ -104,7 +104,7 @@ export interface ICommand {
  * const myCommand = new MyCommand({ id: AllCommands.MyCommand, when: null });
  * commandRegistrant.registerCommand(myCommand);
  * 
- * // type safety (eunsuring a 'number' must be provided)
+ * // type safety (ensuring a 'number' must be provided)
  * commandService.executeCommand(AllCommands.MyCommand, 100);
  */
 export abstract class Command<ID extends string = string> implements ICommand {

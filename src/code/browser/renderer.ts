@@ -75,7 +75,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     // [public method]
 
     public async run(): Promise<void> {
-        let instantiaionService: IInstantiationService | undefined;
+        let instantiationService: IInstantiationService | undefined;
 
         try {
             // retrieve the exposed APIs from preload.js
@@ -88,20 +88,20 @@ const renderer = new class extends class RendererInstance extends Disposable {
             this.rendererServiceRegistrations();
 
             // core service construction
-            instantiaionService = this.createCoreServices();
+            instantiationService = this.createCoreServices();
 
             // service initialization
             await Promise.all([
-                this.initServices(instantiaionService),
-                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web envrionment (DOM content) has been loaded.')),
+                this.initServices(instantiationService),
+                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web environment (DOM content) has been loaded.')),
             ]);
 
             // create workbench UI
-            const workbench = instantiaionService.createInstance(Workbench);
+            const workbench = instantiationService.createInstance(Workbench);
             workbench.init();
 
             // browser monitor
-            const browser = instantiaionService.createInstance(BrowserInstance);
+            const browser = instantiationService.createInstance(BrowserInstance);
             browser.init();
         }
         catch (error: any) {
@@ -234,24 +234,24 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(II18nService, i18nService);
 
         // singleton initializations
-        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
-            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifer.toString()}'.`);
-            instantiationService.register(serviceIdentifer, serviceDescriptor);
+        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
+            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
+            instantiationService.register(serviceIdentifier, serviceDescriptor);
         }
 
         logService.trace('renderer', 'All core renderer services are constructed.');
         return instantiationService;
     }
 
-    private async initServices(instantiaionService: IInstantiationService): Promise<any> {
+    private async initServices(instantiationService: IInstantiationService): Promise<any> {
         this.logService.trace('renderer', 'Start initializing core renderer services...');
 
-        const configuraionService = instantiaionService.getService(IConfigurationService);
-        const environmentService = instantiaionService.getService(IBrowserEnvironmentService);
-        const i18nService = instantiaionService.getService(II18nService);
-        const productService = instantiaionService.getService(IProductService);
+        const configurationService = instantiationService.getService(IConfigurationService);
+        const environmentService = instantiationService.getService(IBrowserEnvironmentService);
+        const i18nService = instantiationService.getService(II18nService);
+        const productService = instantiationService.getService(IProductService);
 
-        await configuraionService.init()
+        await configurationService.init()
         .andThen(() => i18nService.init())
         .andThen(() => productService.init(environmentService.productProfilePath))
         .unwrap();

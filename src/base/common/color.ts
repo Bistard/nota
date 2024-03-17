@@ -74,7 +74,7 @@ export namespace TextColors {
 
 	/**
 	 * @description Sets the ANSI (RGB) foreground for a given string of text. 
-	 * The color is only supported with morden command line.
+	 * The color is only supported with modern command line.
 	 * @param text The text to be colored.
 	 * @returns The text string prefixed with ANSI color codes and suffixed with 
 	 * a reset color code.

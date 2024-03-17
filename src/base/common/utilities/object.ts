@@ -31,7 +31,7 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 	for (const propName of propNames) {
 		const exist = propName in destination;
 
-		// We copy the value since the property does not exist in the desination
+		// We copy the value since the property does not exist in the destination
 		if (!exist) {
 			destination[propName] = source[propName];
 			continue;

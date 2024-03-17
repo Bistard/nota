@@ -42,7 +42,7 @@ export interface ITreeNode<T, TFilter = void> extends ITreeNodeItem<T> {
     /** The parent of the tree node. */
     parent: this | null;
 
-    /** The childrens of the tree node. */
+    /** The children of the tree node. */
     children: this[];
 
     /** counts how many nodes are actually visible / rendered (includes itself). */
@@ -124,7 +124,7 @@ export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
 
 /**
  * The actual tree-like data structure representing the Model part in MVVM which
- * mainly handling the data behaviours.
+ * mainly handling the data behaviors.
  * 
  * T: represents the type of data is stored inside the node.
  * TFilter: represents the type of data for matching purpose.

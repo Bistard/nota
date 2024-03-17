@@ -143,7 +143,7 @@ const configuration = {
             {
                 flags: ['--extra=NewIconName1|NewIconName2'],
                 descriptions: [
-                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names seperated by \'|\'. Each name should be in Hanguarian Notation except that the first character should also be capitalized.'
+                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names separated by \'|\'. Each name should be in Hanguarian Notation except that the first character should also be capitalized.'
                 ]
             }
         ]

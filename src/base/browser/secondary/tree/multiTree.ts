@@ -51,7 +51,7 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
      * @description Refresh the subtree of the given tree node.
-     * The tree model will rebuild and reculate all the metadata of the subtree
+     * The tree model will rebuild and recalculate all the metadata of the subtree
      * of the given tree node automatically if the client modify the tree node
      * correctly.
      * @param node The given node. Defaults to root.
@@ -72,7 +72,7 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
 export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {
     /**
      * If force to enable use primitive type for client data.
-     * @warn Enable using primitive type might raises undefined behaviours if
+     * @warn Enable using primitive type might raises undefined behaviors if
      * two of the client data have the same values.
      * @default false
      */
@@ -88,7 +88,7 @@ export interface IMultiTreeWidgetOpts<T, TFilter> extends ITreeWidgetOpts<T, TFi
 
 /**
  * @internal
- * @class Overrides the keyboard controller with addtional behaviours in the
+ * @class Overrides the keyboard controller with additional behaviors in the
  * perspective of tree level.
  */
 export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
@@ -122,7 +122,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
 
 /**
  * @internal
- * @class Used to override and add additional controller behaviours.
+ * @class Used to override and add additional controller behaviors.
  */
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
@@ -134,7 +134,7 @@ export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
 /**
  * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
  * 
- * @warn If data type `T` is a primitive type, might raises undefined behaviours
+ * @warn If data type `T` is a primitive type, might raises undefined behaviors
  * if there are two values are the same. For example, `treeSize()` will not work 
  * properly since the tree cannot decide which is which.
  */
@@ -219,7 +219,7 @@ export class MultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> implements 
 }
 
 /**
- * @class An optimization that differents from {@link MultiTree}. Instead of 
+ * @class An optimization that differences from {@link MultiTree}. Instead of 
  * letting client provide a new tree-like structure, client modify the existed 
  * one and the model will rebuild the tree structure automatically after calling 
  * the method {@link FlexMultiTree.refresh}.

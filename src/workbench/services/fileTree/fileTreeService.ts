@@ -34,7 +34,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     private _tree?: IFileTree<FileItem, void>;
     private _sorter?: FileTreeSorter<FileItem>;
     
-    // synchronizes lifecycles of the above properties
+    // synchronizes lifecycle of the above properties
     private _treeCleanup: DisposableManager;
 
     // [constructor]
@@ -80,7 +80,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return !!this._tree;
     }
 
-    // [public mehtods]
+    // [public methods]
 
     public init(container: HTMLElement, root: URI): AsyncResult<void, Error> {
         if (this._tree) {

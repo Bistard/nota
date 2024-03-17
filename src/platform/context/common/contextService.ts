@@ -15,7 +15,7 @@ export const IContextService = createService<IContextService>('context-service')
 export interface IContextService extends IDisposable, IService {
 
     /**
-     * Fires when the binded context has changed.
+     * Fires when the bind context has changed.
      */
     readonly onDidContextChange: Register<IContextChangeEvent>;
 

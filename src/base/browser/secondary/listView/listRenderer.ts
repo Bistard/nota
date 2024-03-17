@@ -137,7 +137,7 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
  * {@link IListView}.
  * 
  * @note Setting the TMetadata type to {@link HTMLElement} so that when invoking
- * `udpate()`, the returned HTMLElement is the actual list item.
+ * `update()`, the returned HTMLElement is the actual list item.
  */
 export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 

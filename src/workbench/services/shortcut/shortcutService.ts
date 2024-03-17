@@ -121,7 +121,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 return;
             }
 
-            // executing the coressponding command
+            // executing the corresponding command
             this.commandService.executeAnyCommand(shortcut.commandID, ...(shortcut.commandArgs ?? []))
             .catch(error => {
                 logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${shortcut?.commandID}'`, error);

@@ -131,7 +131,7 @@ export interface ISplitViewItem {
 
 /**
  * @class An internal data structure used in {@link SplitView} for storing data
- * for each splited view.
+ * for each splitted view.
  */
 export class SplitViewItem implements ISplitViewItem {
 

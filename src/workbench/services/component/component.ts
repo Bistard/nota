@@ -8,7 +8,7 @@ import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { panic } from "src/base/common/utilities/panic";
 
-export interface ICreateable {
+export interface ICreatable {
     create(): void;
     registerListeners(): void;
 }
@@ -16,14 +16,14 @@ export interface ICreateable {
 /**
  * An interface only for {@link Component}.
  */
-export interface IComponent extends ICreateable {
+export interface IComponent extends ICreatable {
 
     /**
      * @description Returns the string id of the component.
      */
     readonly id: string;
 
-    /** Fires when the component is focused or blured (true represents focused). */
+    /** Fires when the component is focused or blurred (true represents focused). */
     readonly onDidFocusChange: Register<boolean>;
 
     /** Fires when the component visibility is changed. */
@@ -95,7 +95,7 @@ export interface IComponent extends ICreateable {
     getComponent<T extends IComponent>(id: string): T | undefined;
 
     /**
-     * @description Unregisters the component with the given id.
+     * @description Unregister the component with the given id.
      * @param id The id of the component.
      * @note The corresponding component will not be disposed automatically.
      */

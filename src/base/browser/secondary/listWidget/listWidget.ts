@@ -6,7 +6,7 @@ import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/b
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { ListTrait, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
-import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
+import { IIdentityProvider } from "src/base/browser/secondary/tree/asyncTree";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -23,7 +23,7 @@ import { Arrays } from "src/base/common/utilities/array";
  */
 export interface IListMouseEvent<T> {
     
-    /** The original brower event. */
+    /** The original browser event. */
     browserEvent: MouseEvent;
 
     /** The rendering index of the clicked item. */
@@ -41,7 +41,7 @@ export interface IListMouseEvent<T> {
  * returns undefined.
  */
 export interface IListTouchEvent<T> {
-    /** The original brower event. */
+    /** The original browser event. */
     browserEvent: TouchEvent;
 
     /** The rendering index of the touched item. */
@@ -55,7 +55,7 @@ export interface IListTouchEvent<T> {
 }
 
 export interface IListDragEvent<T> {
-    /** The original brower event {@link DragEvent}. */
+    /** The original browser event {@link DragEvent}. */
     browserEvent: DragEvent;
 
     /** The actual index of the drag / dragover / drop item. */
@@ -96,9 +96,9 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     get onDidScroll(): Register<IScrollEvent>;
     
     /** 
-     * Fires when the {@link IListWidget} itself is focused or blured. 
+     * Fires when the {@link IListWidget} itself is focused or blurred. 
      * True: focused
-     * false: blured
+     * false: blurred
      */
     get onDidChangeFocus(): Register<boolean>;
 
@@ -120,16 +120,16 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     /** Fires when the item in the {@link IListWidget} is mouseovered. */
     get onMouseover(): Register<IListMouseEvent<T>>;
 
-    /** Fires when the item in the {@link IListWidget} is mousedouted. */
+    /** Fires when the item in the {@link IListWidget} is mouseout. */
     get onMouseout(): Register<IListMouseEvent<T>>;
     
-    /** Fires when the item in the {@link IListWidget} is mousedowned. */
+    /** Fires when the item in the {@link IListWidget} is mousedown. */
     get onMousedown(): Register<IListMouseEvent<T>>;
     
-    /** Fires when the item in the {@link IListWidget} is mouseuped. */
+    /** Fires when the item in the {@link IListWidget} is mouseup. */
     get onMouseup(): Register<IListMouseEvent<T>>;
 
-    /** Fires when the item in the {@link IListWidget} is mousemoved. */
+    /** Fires when the item in the {@link IListWidget} is mousemove. */
     get onMousemove(): Register<IListMouseEvent<T>>;
 
     /** 
@@ -262,7 +262,7 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
 }
 
 /**
- * The consturtor options for {@link ListWidget}.
+ * The constructor options for {@link ListWidget}.
  */
 export interface IListWidgetOpts<T> extends IListViewOpts {
     
@@ -278,7 +278,7 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
     readonly mouseSupport?: boolean;
 
     /**
-     * If allows mutiple selection support.
+     * If allows multiple selection support.
      * @default true
      */
     readonly multiSelectionSupport?: boolean;
@@ -293,19 +293,19 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
      * Provides functionality to determine the uniqueness of each 
      * client-provided data.
      */
-    readonly identityProvider?: IIdentiityProivder<T>;
+    readonly identityProvider?: IIdentityProvider<T>;
 }
 
 /**
  * @class A {@link ListWidget} is built on top of {@link ListView}, with more
- * firendly user interaction features.
+ * friendly user interaction features.
  * 
- * The widget presets a list of behaviours on mouse / keyboard support. Such as
- * pressing SHIFT will able to mutl-select in range, pressing escape key will
+ * The widget presets a list of behaviors on mouse / keyboard support. Such as
+ * pressing SHIFT will able to multi-select in range, pressing escape key will
  * lose the current focus item and so on...
  * 
-*  @note You may overrride the corresponding protected methods to customize the
- * behaviours.
+*  @note You may override the corresponding protected methods to customize the
+ * behaviors.
  * 
  * Additional Functionalities:
  *  - mouse support (focus / selection, hover)
@@ -327,7 +327,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     /** Where the user's hover. */
     private readonly hovered: ListTrait<T>;
 
-    private readonly identityProvider?: IIdentiityProivder<T>;
+    private readonly identityProvider?: IIdentityProvider<T>;
 
     // [constructor]
 
@@ -584,8 +584,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     /**
      * @description Creates an instance of a {@link IListWidgetMouseController}.
-     * May override the behaviours by the inheritance to customize the mouse 
-     * behaviour.
+     * May override the behaviors by the inheritance to customize the mouse 
+     * behavior.
      */
     protected __createMouseController(opts: IListWidgetOpts<T>): ListWidgetMouseController<T> {
         return new ListWidgetMouseController(this, opts);
@@ -593,8 +593,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     /**
      * @description Creates an instance of a {@link ListWidgetKeyboardController}.
-     * May override the behaviours by the inheritance to customize the keyboard
-     * behaviour.
+     * May override the behaviors by the inheritance to customize the keyboard
+     * behavior.
      */
     protected __createKeyboardController(opts: IListWidgetOpts<T>): ListWidgetKeyboardController<T> {
         return new ListWidgetKeyboardController(this);
@@ -602,8 +602,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     /**
      * @description Creates an instance of a {@link ListWidgetDragAndDropController}.
-     * May override the behaviours by the inheritance to customize the darg and
-     * drop behaviour.
+     * May override the behaviors by the inheritance to customize the darg and
+     * drop behavior.
      */
     protected __createDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
         return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));

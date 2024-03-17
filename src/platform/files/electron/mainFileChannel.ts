@@ -5,7 +5,7 @@ import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileO
 import { IReadableStream, listenStream } from "src/base/common/files/stream";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
-import { CancellationToken } from "src/base/common/utilities/cacellation";
+import { CancellationToken } from "src/base/common/utilities/cancellation";
 import { panic } from "src/base/common/utilities/panic";
 import { Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -105,7 +105,7 @@ export class MainFileChannel implements IServerChannel {
     }
 
     /**
-     * Reading file using stream needs to be handled specially when acrossing 
+     * Reading file using stream needs to be handled specially when across 
      * IPC. The channels between client and server is using `registerListener` 
      * API instead of using `callCommand` internally.
      */

@@ -63,7 +63,7 @@ export namespace Bit {
     }
 
     /**
-     * @description Returns the lowest signicant bit of the given number.
+     * @description Returns the lowest significant bit of the given number.
      */
     export function lowbit(x: number): number {
         return x & (x ^ (x - 1));

@@ -109,7 +109,7 @@ export interface IConfigurationRegistrant extends IRegistrant<RegistrantType.Con
     registerConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
     /**
-     * @description Unregisters default configuration(s).
+     * @description Unregister default configuration(s).
      */
     unregisterConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
@@ -324,7 +324,7 @@ export class ConfigurationRegistrant implements IConfigurationRegistrant {
             return `Cannot register the schema with id '${schema.id ?? '[unknown]'}', the property name '${key}' is already registered.`;
         }
 
-        // type check: defaule value
+        // type check: default value
         const defaultTypeCheck = (schema: IConfigurationSchema): string => {
 
             // ignore: null or default value not provided

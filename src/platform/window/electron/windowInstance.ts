@@ -156,7 +156,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             x: displayOpts.x,
             y: displayOpts.y,
             minHeight: displayOpts.minHeight ?? WINDOW_MINIMUM_STATE.height,
-            minWidth: displayOpts.minWidth ?? WINDOW_MINIMUM_STATE.wdith,
+            minWidth: displayOpts.minWidth ?? WINDOW_MINIMUM_STATE.width,
             webPreferences: {
                 preload: resolve(join(__dirname, 'preload.js')),
 
@@ -223,7 +223,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private registerListeners(): void {
 
         this._window.webContents.on('did-finish-load', () => {
-            this.logService.trace('WindowInstance', `load successed.`, { ID: this._id });
+            this.logService.trace('WindowInstance', `load succeeded.`, { ID: this._id });
             this._window.show();
         });
 
@@ -238,7 +238,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
 
         this._window.on('blur', (e: Event) => {
-            electron.app.emit(IpcChannel.WindowBlured, e, this._window);
+            electron.app.emit(IpcChannel.WindowBlurred, e, this._window);
         });
 
         this._window.on('maximize', (e: Event) => {

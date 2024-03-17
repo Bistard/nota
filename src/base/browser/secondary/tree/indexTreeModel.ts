@@ -77,9 +77,9 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
     
     /**
      * @description Refresh the subtree of the given tree node.
-     * The tree model will rebuild and reculate all the metadata of the subtree
-     * of the given tree node automatically if the client modify the tree node
-     * correctly.
+     * The tree model will rebuild and recalculate all the metadata of the 
+     * subtree of the given tree node automatically if the client modify the 
+     * tree node correctly.
      * @param node The given node. Defaults to root.
      * @param opts The option for splicing.
      */
@@ -448,7 +448,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     }
 
     /**
-     * @description Rerturns the list index of the parent of the given location.
+     * @description Returns the list index of the parent of the given location.
      * @param location The location representation of the node.
      * @param node The node to start with, default is the root.
      * 
@@ -501,7 +501,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     }
 
     /**
-     * @description Rerturns the list index of the given location.
+     * @description Returns the list index of the given location.
      * @param location The location representation of the node.
      * 
      * @returns An object that contains three info:
@@ -726,7 +726,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
  * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
  * same data structure as Index Binary Tree (IBT).
  * 
- * The tree model represents a multiway tree-like structure. The prefix `index` 
+ * The tree model represents a multi-way tree-like structure. The prefix `index` 
  * means the tree node can be found by a series of indices.
  * 
  * Client may provide a new tree-like structure using {@link ITreeNodeItem} that
@@ -765,7 +765,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         // update view
         if (visible) {
 
-            // calcualte the old visible children node count
+            // calculate the old visible children node count
             let oldVisibleCount = 0;
             for (const child of deletedChildren) {
                 if (child.visible) {
@@ -905,7 +905,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             newVisibleCount += element.visibleNodeCount;
         }
 
-        const prevhasChildrenState = oldVisibleCount > 1;
+        const prevHasChildrenState = oldVisibleCount > 1;
         const currHasChildrenState = node.children.length > 0;
 
         // update view
@@ -916,7 +916,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         }
 
         // update the ancestors collapsible state
-        if (prevhasChildrenState !== currHasChildrenState) {
+        if (prevHasChildrenState !== currHasChildrenState) {
             this.setCollapsible(location, currHasChildrenState);
         }
         

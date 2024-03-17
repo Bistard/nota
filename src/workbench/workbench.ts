@@ -139,7 +139,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             const ifEnable = this.configurationService.get<boolean>(WorkbenchConfiguration.KeyboardScreenCast);
             ifEnable && screenCastService.start();
 
-            // on configuraiton change
+            // on configuration change
             this.__register(this.configurationService.onDidConfigurationChange(e => {
                 if (e.affect(WorkbenchConfiguration.KeyboardScreenCast)) {
                     const ifEnable = this.configurationService.get(WorkbenchConfiguration.KeyboardScreenCast);

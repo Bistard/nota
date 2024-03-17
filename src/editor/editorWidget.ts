@@ -311,7 +311,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         disposables.register(view.onPaste(e => this._onPaste.fire(e)));
         disposables.register(view.onDrop(e => this._onDrop.fire(e)));
 
-        // TODO: configuration auto updation
+        // TODO: configuration auto update
 
         return disposables;
     }

@@ -103,7 +103,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
         this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn('UserConfiguration', 'Cannot identify the configuration.', { unknownKey: unknownKey, from: URI.toString(this._userResource, true) })));
         this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn('UserConfiguration', 'encounter invalid configuration.', { invalid: result })));
 
-        // configuration updation from the file
+        // configuration update from the file
         this.__syncConfigurationFromFileOnChange();
 
         // configuration update into the file
@@ -168,12 +168,12 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
     }
 
     private __validateConfiguration(raw: string): object {
-        const unvalidated = tryOrDefault<object>(
+        const invalidated = tryOrDefault<object>(
             {},
             () => JSON.parse(raw),
             error => this.logService.error('UserConfiguration', 'Cannot initialize user configuration.', error, { at: URI.toString(this._userResource, true) }),
         );
-        const validated = this._validator.validate(unvalidated);
+        const validated = this._validator.validate(invalidated);
         return validated;
     }
 

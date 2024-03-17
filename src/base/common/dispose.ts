@@ -3,7 +3,7 @@ import { errorToMessage, panic } from "src/base/common/utilities/panic";
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
  * object. Ideally all the attributes and methods of that object is no longer
- * fucntional.
+ * functional.
  */
 export interface IDisposable {
 	dispose(): void;
@@ -12,7 +12,7 @@ export interface IDisposable {
 export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
 /**
- * @readonly The lifecyle of a disposable object is controlled by the client. A
+ * @readonly The lifecycle of a disposable object is controlled by the client. A
  * disposable object can be registered into another disposable object.
  * 
  * Calling `this.dispose()` will dispose the object and all its registered ones. 
@@ -50,7 +50,7 @@ export class Disposable implements IDisposable {
 	}
 
 	/**
-	 * @description Trys to register a disposable object. Once this.dispose() is 
+	 * @description Try to register a disposable object. Once this.dispose() is 
 	 * invoked, all the registered disposables will be disposed.
 	 * 
 	 * If this object is already disposed, a console warning will be printed.
@@ -134,7 +134,7 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 	if (errors.length === 1) {
 		panic(errors[0]);
 	} else if (errors.length > 1) {
-		panic(`Encountered errors while disposing of mutiple disposable. Errors: ${errorToMessage(errors)}`);
+		panic(`Encountered errors while disposing of multiple disposable. Errors: ${errorToMessage(errors)}`);
 	}
 }
 

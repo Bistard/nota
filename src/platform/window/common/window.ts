@@ -18,7 +18,7 @@ export const enum WindowDisplayMode {
 }
 
 export const WINDOW_MINIMUM_STATE = {
-    wdith: 400,
+    width: 400,
     height: 300
 };
 
@@ -46,14 +46,14 @@ export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.
 }
 
 /**
- * Indicates different type of openning option.
+ * Indicates different type of opening option.
  */
 export const enum ToOpenType {
     /** @internal */
     Unknown = 0,
-    /** Openning a directory to the window. */
+    /** Opening a directory to the window. */
     Directory,
-    /** Openning a file to the window. */
+    /** Opening a file to the window. */
     File,
 }
 

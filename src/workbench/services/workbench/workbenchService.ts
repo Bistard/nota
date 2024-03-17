@@ -19,7 +19,7 @@ export interface IWorkbenchService extends IComponent, IService {
      * 'name') with the 'value'.
      * @param name The name of the contextKey.
      * @param value The new value for the context.
-     * @returns A boolean indicates if the update successed.
+     * @returns A boolean indicates if the update succeeded.
      * 
      * @note MAKE SURE your 'value' has the correct type. Otherwise things could
      * go strange!

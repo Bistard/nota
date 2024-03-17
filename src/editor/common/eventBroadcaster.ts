@@ -72,7 +72,7 @@ export interface IOnDropEvent {
 export interface IEditorEventBroadcaster extends IDisposable {
 
     /** 
-	 * Fires when the component is either focused or blured (true represents 
+	 * Fires when the component is either focused or blurred (true represents 
 	 * focused). 
 	 */
     readonly onDidFocusChange: Register<boolean>;

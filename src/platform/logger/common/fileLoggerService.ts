@@ -2,7 +2,7 @@ import { DataBuffer } from "src/base/common/files/buffer";
 import { ByteSize, FileOperationErrorType } from "src/base/common/files/file";
 import { basename, join, parse } from "src/base/common/files/path";
 import { URI } from "src/base/common/files/uri";
-import { AbstractLogger, Additionals, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
+import { AbstractLogger, Additional, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
 import { AsyncQueue, Blocker } from "src/base/common/utilities/async";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -62,7 +62,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
     private _backupCnt: number;
     private _backupExt: string;
 
-    // [cosntructor]
+    // [constructor]
 
     constructor(
         uri: URI,
@@ -80,7 +80,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._backupCnt = 1;
         this._backupExt = '';
 
-        const intialize = async () => {
+        const initialize = async () => {
             const result = await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
             if (result.isErr()) {
                 // only ignores when the file already exists
@@ -93,7 +93,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
             this._initializing.resolve();
         };
 
-        intialize();
+        initialize();
     }
 
     // [public methods]
@@ -102,37 +102,37 @@ export class FileLogger extends AbstractLogger implements ILogger {
         return this._initializing.waiting();
     }
 
-    public async trace(reporter: string, message: string, additional?: Additionals): Promise<void> {
+    public async trace(reporter: string, message: string, additional?: Additional): Promise<void> {
         if (this.getLevel() <= LogLevel.TRACE) {
             return this.__log(prettyLog(false, LogLevel.TRACE, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async debug(reporter: string, message: string, additional?: Additionals): Promise<void> {
+    public async debug(reporter: string, message: string, additional?: Additional): Promise<void> {
         if (this.getLevel() <= LogLevel.DEBUG) {
             return this.__log(prettyLog(false, LogLevel.DEBUG, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async info(reporter: string, message: string, additional?: Additionals): Promise<void> {
+    public async info(reporter: string, message: string, additional?: Additional): Promise<void> {
         if (this.getLevel() <= LogLevel.INFO) {
             return this.__log(prettyLog(false, LogLevel.INFO, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async warn(reporter: string, message: string, additional?: Additionals): Promise<void> {
+    public async warn(reporter: string, message: string, additional?: Additional): Promise<void> {
         if (this.getLevel() <= LogLevel.WARN) {
             return this.__log(prettyLog(false, LogLevel.WARN, this._description, reporter, message, undefined, additional));
         }
     }
 
-    public async error(reporter: string, message: string, error?: any, additional?: Additionals): Promise<void> {
+    public async error(reporter: string, message: string, error?: any, additional?: Additional): Promise<void> {
         if (this.getLevel() <= LogLevel.ERROR) {
             return this.__log(prettyLog(false, LogLevel.ERROR, this._description, reporter, message, error, additional));
         }
     }
 
-    public async fatal(reporter: string, message: string, error?: any, additional?: Additionals): Promise<void> {
+    public async fatal(reporter: string, message: string, error?: any, additional?: Additional): Promise<void> {
         if (this.getLevel() <= LogLevel.FATAL) {
             return this.__log(prettyLog(false, LogLevel.FATAL, this._description, reporter, message, error, additional));
         }

@@ -14,7 +14,7 @@ export interface IAbstractSashController extends IDisposable {
 }
 
 /**
- * @class An abstract class that controls the behaviours of {@link ISash} under 
+ * @class An abstract class that controls the behaviors of {@link ISash} under 
  * the operations from the users. It contains:
  *      - {@link EventType.mousedown}
  *      - {@link EventType.mousemove}
@@ -27,7 +27,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
     protected readonly disposables = new DisposableManager();
     protected readonly sash: ISash;
 
-    /** The offset to the expected position (middle of the adjcent views). */
+    /** The offset to the expected position (middle of the adjacent views). */
     protected readonly posOffset: number;
     /** Save the previous mouse event. */
     protected prevEvent: ISashEvent;
@@ -49,7 +49,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
         };
         
         /**
-         * The CSS stylesheet is neccessary when the user cursor is reaching the
+         * The CSS stylesheet is necessary when the user cursor is reaching the
          * edge of the sash range but still wish the cursor style to be 
          * consistent. This will be removed once the mouse-up event happens.
          */

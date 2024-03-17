@@ -45,7 +45,7 @@ interface IShortcutBase<TArgs extends any[]> {
 }
 
 /**
- * An interface describes the shortcut when registrating programmatically.
+ * An interface describes the shortcut for register programmatically.
  */
 export type IShortcutRegistration<ID extends string> = (
     ID extends AllCommands
@@ -163,7 +163,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
             panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
         }
 
-        // registere the shortcut
+        // register the shortcut
         const uuid = ShortcutRegistrant._shortcutUUID++;
         items.shortcuts.push({
             uuid: uuid,

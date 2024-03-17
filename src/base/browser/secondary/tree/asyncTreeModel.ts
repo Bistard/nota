@@ -1,4 +1,4 @@
-import { IAsyncNode, IChildrenProvider, IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
+import { IAsyncNode, IChildrenProvider, IIdentityProvider } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/structures/range";
@@ -26,7 +26,7 @@ export interface IAsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilt
  */
 export interface IAsyncTreeModelOptions<T, TFilter> extends IMultiTreeModelOptions<T, TFilter> {
     readonly childrenProvider: IChildrenProvider<T>;
-    readonly identityProvider?: IIdentiityProivder<T>;
+    readonly identityProvider?: IIdentityProvider<T>;
 }
 
 interface IGetChildrenResult<T> { 
@@ -49,7 +49,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
 
     private readonly _collapsedByDefault: boolean;
     private readonly _childrenProvider: IChildrenProvider<T>;
-    private readonly _identityProvider?: IIdentiityProivder<T>;
+    private readonly _identityProvider?: IIdentityProvider<T>;
 
     /**
      * Storing the ongoing {@link Promise} when fetching the children stat of 
@@ -193,7 +193,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     }
 
     /**
-     * @description Before retriving the latest children by calling 
+     * @description Before retrieving the latest children by calling 
      * `__getNewChildren`, we need to remember the old children for later usage.
      */
     private __getOldChildrenData(node: IAsyncNode<T, TFilter>): T[] {
@@ -300,7 +300,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * reused when detect duplicate client provided data.
      */
     private __tryReuseOldChildNodes(
-        identityProvider: IIdentiityProivder<T>,
+        identityProvider: IIdentityProvider<T>,
         childrenData: readonly T[],
         parent: IAsyncNode<T, TFilter>,
         newNodes: IAsyncNode<T, TFilter>[],

@@ -85,7 +85,7 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
     render(container: HTMLElement): IDisposable | undefined;
 
     /**
-     * @description Invokes before the context menu gets destoryed (hidden).
+     * @description Invokes before the context menu gets destroyed (hidden).
      */
     onBeforeDestroy(): void;
 

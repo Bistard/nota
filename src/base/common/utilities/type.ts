@@ -361,7 +361,7 @@ export type MapTypes<T, R extends { from: any; to: any; }> = {
 
 /**
  * @description Recursively unwraps the "awaited type" of a type. Non-promise 
- * "thenables" should resolve to never. This emulates the behavior of await.
+ * "thenable" should resolve to never. This emulates the behavior of await.
  * 
  * @deprecated
  * An alias type for the built-in type {@link Awaited}.

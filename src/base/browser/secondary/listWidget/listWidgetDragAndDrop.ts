@@ -122,7 +122,7 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
 
 /**
  * @class A wrapper class for {@link IListWidget}.
- * @wran DO NOT USE DIRECTLY.
+ * @warn DO NOT USE DIRECTLY.
  */
 class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
 
@@ -336,7 +336,7 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         // get the data
         const dragItems = this._currDragItems;
 
-        // clear dragover meatadata
+        // clear dragover metadata
         this.__clearDragoverData();
 
         // no data to drop
@@ -368,7 +368,7 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         // remove tagging
         this._view.DOMElement.classList.remove('dragging');
 
-        // clear dragover meatadata
+        // clear dragover metadata
         this.__clearDragoverData();
 
         // notify client

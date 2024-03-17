@@ -57,7 +57,7 @@ export function compareSubstringIgnoreCase(a: string, b: string, aStart: number 
 			return compareSubstring(a.toLowerCase(), b.toLowerCase(), aStart, aEnd, bStart, bEnd);
 		}
 
-		// mapper lower-case ascii letter onto upper-case varinats
+		// mapper lower-case ascii letter onto upper-case variants
 		// [97-122] (lower ascii) --> [65-90] (upper ascii)
 		if (Character.isLowerAscii(codeA)) {
 			codeA -= 32;

@@ -237,12 +237,12 @@ const main = new class extends class MainProcess implements IMainProcess {
     }
 
     private async resolveSingleApplication(): Promise<void> {
-        this.logService.trace('MainProcess', 'Resolving application by listenning to pipe...', { pipe: this.environmentService.mainIpcHandle });
+        this.logService.trace('MainProcess', 'Resolving application by listening to pipe...', { pipe: this.environmentService.mainIpcHandle });
 
         try {
             /**
              * Every newly opened application will try to listen to the same 
-             * socket file or pipe. If an error is catched with code `EADDRINUSE`, 
+             * socket file or pipe. If an error is caught with code `EADDRINUSE`, 
              * it means there is already an application is running, we should 
              * terminate since we only accept one single application.
              */
