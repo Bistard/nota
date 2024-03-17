@@ -86,6 +86,108 @@ suite('array-test', () => {
         });
     });
 
+    suite('relocateByIndex', () => {
+        test('should correctly relocate single element', () => {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [2], 0);
+            assert.deepStrictEqual(result, [3, 1, 2, 4, 5]);
+        });
+
+        test('should correctly relocate multiple elements', () => {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [1, 3], 4);
+            assert.deepStrictEqual(result, [1, 3, 2, 4, 5]);
+        });
+
+        test('should handle moving elements to the end', () => {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [0, 1], 5);
+            assert.deepStrictEqual(result, [3, 4, 5, 1, 2]);
+        });
+
+        test('should throw if destination index is out of bounds', () => {
+            const array = [1, 2, 3, 4, 5];
+            assert.throws(() => Arrays.relocateByIndex(array, [0], 6), Error);
+        });
+
+        test('should throw if any of the indices are out of bounds', () => {
+            const array = [1, 2, 3, 4, 5];
+            assert.throws(() => Arrays.relocateByIndex(array, [5], 0), Error);
+        });
+
+        test('should not modify array if indices array is empty', () => {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [], 2);
+            assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
+        });
+
+        test('should maintain original order of moved elements', () => {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [1, 3], 2);
+            assert.deepStrictEqual(result, [1, 2, 4, 3, 5]);
+        });
+
+        test('moves multiple elements to new position', function() {
+            const array = ['a', 'b', 'c', 'd', 'e'];
+            const result = Arrays.relocateByIndex(array, [1, 2], 4);
+            assert.deepStrictEqual(result, ['a', 'd', 'b', 'c', 'e']);
+        });
+        
+        test('moves elements to start of array', function() {
+            const array = ['a', 'b', 'c', 'd'];
+            const result = Arrays.relocateByIndex(array, [2, 3], 0);
+            assert.deepStrictEqual(result, ['c', 'd', 'a', 'b']);
+        });
+        
+        test('maintains original array order for sorted indices', function() {
+            const array = ['a', 'b', 'c', 'd', 'e'];
+            const result = Arrays.relocateByIndex(array, [0, 2, 4], 1);
+            assert.deepStrictEqual(result, ['a', 'c', 'e', 'b', 'd']);
+        });
+
+        test('moves multiple adjacent elements forward', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [1, 2], 4);
+            assert.deepStrictEqual(result, [1, 4, 2, 3, 5]);
+        });
+
+        test('moves multiple non-adjacent elements forward', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [0, 2], 3);
+            assert.deepStrictEqual(result, [2, 1, 3, 4, 5]);
+        });
+
+        test('moves multiple adjacent elements backward', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [2, 3], 0);
+            assert.deepStrictEqual(result, [3, 4, 1, 2, 5]);
+        });
+
+        test('moves multiple non-adjacent elements backward', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [1, 3], 0);
+            assert.deepStrictEqual(result, [2, 4, 1, 3, 5]);
+        });
+
+        test('moves elements to middle of array', function () {
+            const array = ['a', 'b', 'c', 'd', 'e', 'f'];
+            const result = Arrays.relocateByIndex(array, [0, 5], 3);
+            assert.deepStrictEqual(result, ['b', 'c', 'a', 'f', 'd', 'e']);
+        });
+
+        test('maintains order when moving multiple elements forward', function () {
+            const array = ['a', 'b', 'c', 'd', 'e'];
+            const result = Arrays.relocateByIndex(array, [0, 1], 3);
+            assert.deepStrictEqual(result, ['c', 'a', 'b', 'd', 'e']);
+        });
+
+        test('maintains order when moving multiple elements backward', function () {
+            const array = ['a', 'b', 'c', 'd', 'e'];
+            const result = Arrays.relocateByIndex(array, [3, 4], 1);
+            assert.deepStrictEqual(result, ['a', 'd', 'e', 'b', 'c']);
+        });
+    });
+
     test('fill', () => {
         assert.deepStrictEqual(Arrays.fill('hello', 0), []);
         assert.deepStrictEqual(Arrays.fill('hello', 1), ['hello']);

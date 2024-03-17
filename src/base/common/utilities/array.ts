@@ -178,6 +178,49 @@ export namespace Arrays {
     }
 
     /**
+     * @description Moves specified elements in an array to a given target index.
+     * The specified elements remain the same order after moved.
+     * 
+     * @param array The array to modify.
+     * @param indice Indices of elements to move.
+     * @param destination Target index for moved elements.
+     * @returns Returns the same array.
+     * @panic If any index is out of bounds.
+     */
+    export function relocateByIndex<T>(array: T[], indice: number[], destination: number): T[] {
+        
+        // Validate destination and indicesToMove are within array bounds
+        if (destination < 0 || destination > array.length) {
+            panic("[relocateByIndex] Destination index out of bounds");
+        }
+
+        // Sort indices to maintain original order and simplify removal
+        const sortedIndices = indice.sort((a, b) => a - b);
+
+        // Extract items to move
+        const itemsToMove: T[] = [];
+        for (const index of sortedIndices) {
+            if (index < 0 || index >= array.length) {
+                panic("[relocateByIndex] Index to move out of bounds");
+            }
+
+            itemsToMove.push(array[index]!);
+            if (index <= destination) {
+                destination -= 1;
+            }
+        }
+
+        // Remove items from original positions (in reverse to avoid indexing issues)
+        for (const index of sortedIndices.reverse()) {
+            array.splice(index, 1);
+        }
+
+        // Insert items at destination index
+        array.splice(destination, 0, ...itemsToMove);
+        return array;
+    }
+
+    /**
      * @description Reversely iterate the given array.
      * @param array The given array.
      * @param each The visit callback for each element in array. Returns true to
@@ -711,3 +754,4 @@ function __getActualStartIndex<T>(array: T[], index: number): number {
         return Math.min(index, array.length);
     }
 }
+
