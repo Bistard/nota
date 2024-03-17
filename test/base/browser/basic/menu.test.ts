@@ -9,9 +9,9 @@ suite('menu-test', () => {
 
         /**
          * - action1
-         * - seperator
+         * - separator
          * - action2
-         * - seperator
+         * - separator
          * - action3
          */
         const menu = new Menu(document.body, {
@@ -53,7 +53,7 @@ suite('menu-test', () => {
 
         assert.strictEqual(menu.size(), 5);
         assert.ok(menu.has('action1'));
-        assert.ok(menu.has('seperator'));
+        assert.ok(menu.has('separator'));
         assert.ok(menu.has('action2'));
         assert.ok(menu.has('action3'));
         assert.ok(!menu.has('action4'));
@@ -153,7 +153,7 @@ suite('menu-test', () => {
     
             assert.strictEqual(menu.size(), 3);
             assert.ok(menu.has('simple action 1'));
-            assert.ok(menu.has('seperator'));
+            assert.ok(menu.has('separator'));
             assert.ok(menu.has('submenu 5'));
             assert.ok(menu.has('simple action 2'));
             assert.ok(menu.has('simple action 3'));

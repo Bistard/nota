@@ -97,7 +97,7 @@ export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
 
 /**
  * @class A base class for configuration in-memory storage purpose. You may set 
- * / get configuration using sections under `.` as seperator.
+ * / get configuration using sections under `.` as separator.
  * @example section example: 'workspace.notebook.ifAutoSave'.
  * 
  * @note When storing sections, say initially we have `path1` as the only 
