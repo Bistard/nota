@@ -39,7 +39,7 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
 
     /**
      * @description Refresh the subtree of the given tree node.
-     * The tree model will rebuild and reculate all the metadata of the subtree
+     * The tree model will rebuild and recalculate all the metadata of the subtree
      * of the given tree node automatically if the client modify the tree node
      * correctly.
      * @param node The given node. Defaults to root.
@@ -186,7 +186,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
 				return;
 			}
 
-            // prevent accidently delete what we just inserted.
+            // prevent accidentally delete what we just inserted.
             if (justInserted.has(data)) {
                 return;
             }
@@ -207,7 +207,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
  * 
  * Unlike {@link IndexTreeModel} searching is determined by a series of indices,
  * {@link MultiTreeModel} has an internal binding between user-defined data and 
- * internal treenode type, so that the caller can do searching without knowing 
+ * internal tree node type, so that the caller can do searching without knowing 
  * the location of the actual tree node.
  */
 export class MultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilter> implements IMultiTreeModel<T, TFilter> {

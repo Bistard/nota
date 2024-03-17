@@ -307,7 +307,7 @@ suite('PieceTable-test - content APIs', () => {
         PieceTableTester.assertPieceTable(table);
     });
 
-    test('content - mutiple chunks - unnormalized', () => {
+    test('content - multiple chunks - unnormalized', () => {
         let table = buildPieceTable(['', ''], false);
         assert.deepStrictEqual(table.getContent(), ['']);
         assert.strictEqual(table.getRawContent(), '');
@@ -511,7 +511,7 @@ suite('PieceTable-test - content APIs', () => {
 
     });
 
-    test('content - mutiple chunks - normalized', () => {
+    test('content - multiple chunks - normalized', () => {
         let table = buildPieceTable(['', ''], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getContent(), ['']);
         assert.strictEqual(table.getRawContent(), '');

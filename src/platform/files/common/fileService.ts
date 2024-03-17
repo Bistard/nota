@@ -99,7 +99,7 @@ export interface IFileService extends IDisposable, IService {
     moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
 
     /** 
-     * @description Copys a file/directory to a new location. 
+     * @description Copy a file/directory to a new location. 
      * @note No action is taken if the 'from' and 'to' are identical.
      */
     copyTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
@@ -580,7 +580,7 @@ export class FileService extends Disposable implements IFileService {
             // not a directory
             const stat = statResult.unwrap();
             if ((stat.type & FileType.DIRECTORY) === 0) {
-                return err(new FileOperationError('undable to create directory that already exists but is not a directory', FileOperationErrorType.FILE_IS_DIRECTORY));
+                return err(new FileOperationError('unable to create directory that already exists but is not a directory', FileOperationErrorType.FILE_IS_DIRECTORY));
             }
 
             // we reaches a existed directory, we break the loop.
@@ -820,7 +820,7 @@ export class FileService extends Disposable implements IFileService {
     {
         // todo: Validate unlock support (use `opts`)
 
-        // check existance first
+        // check existence first
         return Result.fromPromise<IFileStat | undefined, FileOperationError>(() => provider.stat(uri))
             .orElse<FileOperationError>(() => AsyncResult.ok(undefined))
             .andThen(stat => {

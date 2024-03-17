@@ -119,7 +119,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         const stream = newWriteableBufferStream();
         
         /**
-         * Reading file using stream needs to be handled specially when acrossing 
+         * Reading file using stream needs to be handled specially when across 
          * IPC. The channels between client and server is using `registerListener` 
          * API instead of using `callCommand` internally.
          */

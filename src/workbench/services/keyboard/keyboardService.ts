@@ -28,7 +28,7 @@ export interface IKeyboardService extends IService {
 }
 
 /**
- * @class A brower-side keyboard listener. All the key press will be converted 
+ * @class A browser-side keyboard listener. All the key press will be converted 
  * into {@link IStandardKeyboardEvent} instead of raw {@link KeyboardEvent}.
  * 
  * The reason to convert the events is mainly due to different operating system 

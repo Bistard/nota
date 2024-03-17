@@ -41,7 +41,7 @@ export const enum AllCommands {
 
     // [FileTree]
 
-    newFile   = 'newfile', // TODO
+    newFile   = 'newFile', // TODO
     newFolder = 'newFolder', // TODO
     fileCut   = 'fileCut',
     fileCopy  = 'fileCopy',

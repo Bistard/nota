@@ -45,7 +45,7 @@ export interface IAnchorBox {
 export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number, anchorBox: IAnchorBox): number {
         
     /**
-     * represents the avaliable position boundary along the given axis after 
+     * represents the available position boundary along the given axis after 
      * the anchor element.
      */
     const afterAnchorPositionBoundary = (
@@ -68,7 +68,7 @@ export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number
     );
 
     /**
-     * represents the avaliable position boundary along the given axis 
+     * represents the available position boundary along the given axis 
      * before the anchor element.
      */
     const beforeAnchorPositionBoundary = 

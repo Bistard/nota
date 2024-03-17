@@ -42,7 +42,7 @@ export interface ICommandBasicSchema {
     readonly description?: string;
 
     /**
-     * If to overwrite the exsiting command. 
+     * If to overwrite the existing command. 
      * @default false
      */
     readonly overwrite?: boolean;
@@ -57,7 +57,7 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
      * @description Registers a {@link ICommandBasicSchema} which includes a set 
      * of basic metadata to describe a command.
      * @param schema A set of metadata that describes the command.
-     * @returns A disposible for unregistration.
+     * @returns A disposable for deregistration.
      */
     registerCommandBasic(schema: ICommandBasicSchema): IDisposable;
 
@@ -67,7 +67,7 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
      *       shortcut options are provided in the command schema.
      * 
      * @param command The concrete command to register.
-     * @returns A disposible for unregistration.
+     * @returns A disposable for deregistration.
      */
     registerCommand(command: Command): IDisposable;
 

@@ -50,11 +50,11 @@ suite('LoggerService', () => {
             const raw = ((await fileService.readFile(uri).unwrap())).toString();
             const line = raw.split('\n').slice(-2, -1)[0]!; // retrieve the last line
 
-            const splited = splitLogString(line);
-            splited.splice(1, 1); // remove timestamp
+            const splitted = splitLogString(line);
+            splitted.splice(1, 1); // remove timestamp
 
 
-            const [contentLevel, loggerName, reporter, contentMessage] = splited;
+            const [contentLevel, loggerName, reporter, contentMessage] = splitted;
             assert.strictEqual(loggerName, URI.basename(uri));
             assert.strictEqual(actualReporter, reporter);
             assert.strictEqual(parseToLogLevel(contentLevel?.trim()), actualLogLevel);

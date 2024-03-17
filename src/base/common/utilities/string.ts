@@ -131,7 +131,7 @@ export namespace Strings {
     }
 
     /**
-     * This namespace contains a list of string comparsion utilities that will
+     * This namespace contains a list of string comparison utilities that will
      * ignore case sensitivity.
      */
     export namespace IgnoreCase {
@@ -151,7 +151,7 @@ export namespace Strings {
 
     /**
      * This namespace will smartly detecting should enable or disable ignoring
-     * case when doing string comparsion.
+     * case when doing string comparison.
      */
     export namespace Smart {
         

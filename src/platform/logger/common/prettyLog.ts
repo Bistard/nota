@@ -2,7 +2,7 @@ import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
 import { Schemas, URI } from "src/base/common/files/uri";
-import { Additionals, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
+import { Additional, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
 
@@ -49,7 +49,7 @@ export function prettyLog(
     reporter: string,
     message: string,
     error?: any,
-    additional?: Additionals,
+    additional?: Additional,
 ): string 
 {
     const levelStr = getLevelString(color, logLevel);
@@ -58,7 +58,7 @@ export function prettyLog(
     const reporterStr = `${reporter}`;
     const messageStr = `${message}`;
     const errorStr = getErrorString(color, error);
-    const additionalStr = additional && getAddtionalString(1, color, additional);
+    const additionalStr = additional && getAdditionalString(1, color, additional);
 
     let result = `[${levelStr}] [${time}] [${descriptionStr}] [${reporterStr}] ${messageStr}\n`;
     if (errorStr.length > 0) {
@@ -121,7 +121,7 @@ function getTimeString(color: boolean, level: LogLevel): string {
 function getErrorString(color: boolean, error: any): string {
     /**
      * We have to check the runtime type of the `error` since those error can be 
-     * catched by a try-catch and the client might be wrong about those errors'
+     * caught by a try-catch and the client might be wrong about those errors'
      * type.
      */
     
@@ -177,7 +177,7 @@ function getErrorString(color: boolean, error: any): string {
  * 
  * @return Returns a string of the printing result.
  */
-function getAddtionalString(depth: number, color: boolean, additional: Additionals): string {    
+function getAdditionalString(depth: number, color: boolean, additional: Additional): string {    
 
     const keys: string[] = [];
     const values: string[] = [];
@@ -204,7 +204,7 @@ function getAddtionalString(depth: number, color: boolean, additional: Additiona
     return result.slice(0, -1); // remove the last `\n`
 }
 
-function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additionals): string | undefined {
+function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additional): string | undefined {
     
     // Special case: URI
     if (URI.isURI(additional)) {
@@ -228,7 +228,7 @@ function tryPaintValue(depth: number, color: boolean, key: string, value: any): 
     if (!color) {
         // recursive print object
         if (isObject(value) && !(value instanceof Error)) {
-            return `\n${getAddtionalString(depth + 1, false, <any>value)}`;
+            return `\n${getAdditionalString(depth + 1, false, <any>value)}`;
         }
         return tryOrDefault('[parse error]', () => JSON.stringify(value));
     }
@@ -292,7 +292,7 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
                     return handled;
                 }
 
-                return `\n${getAddtionalString(depth + 1, true, <any>value)}`;
+                return `\n${getAdditionalString(depth + 1, true, <any>value)}`;
             }
 
             return tryOrDefault('[parse error]', () => JSON.stringify(value));

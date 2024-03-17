@@ -28,7 +28,7 @@ suite('FakeConsole-test', () => {
             FakeConsole.disable();
         });
 
-        test('should replace console.log when enable is not provided (default behaviour)', () => {
+        test('should replace console.log when enable is not provided (default behavior)', () => {
             const originalLog = console.log;
             FakeConsole.enable({ enable: false });
             assert.strictEqual(console.log, originalLog);

@@ -43,9 +43,9 @@ export interface ISideViewService extends IComponent, IService {
     registerView(id: string, viewCtor: Constructor<ISideView>): void;
 
     /**
-     * @description Unregisters a view if ever registered.
+     * @description Unregister a view if ever registered.
      * @param id The id of the view.
-     * @returns A boolean returned if the operation is successed.
+     * @returns A boolean returned if the operation is succeeded.
      */
     unregisterView(id: string): boolean;
 
@@ -144,12 +144,12 @@ export class SideViewService extends Component implements ISideViewService {
 
         /**
          * If the view is created and also displaying currently, switch to any
-         * other avaliable views if any, then destroy the view.
+         * other available views if any, then destroy the view.
          */
         if (id === this._currView) {
-            const avaliableID = this.__getAnyAvaliableView();
-            if (avaliableID) {
-                this.switchView(avaliableID);
+            const availableID = this.__getAnyAvailableView();
+            if (availableID) {
+                this.switchView(availableID);
             } else {
                 this.closeView();
             }
@@ -267,7 +267,7 @@ export class SideViewService extends Component implements ISideViewService {
         }
     }
 
-    private __getAnyAvaliableView(): string | undefined {
+    private __getAnyAvailableView(): string | undefined {
         const children = this.getDirectComponents();
         if (children.length === 0) {
             return undefined;

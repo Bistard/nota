@@ -61,14 +61,14 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         const module = options?.type;
 
         if (module === ConfigurationModuleType.Default) {
-            panic(`[BrowserConfigurationService] cannot update the configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
+            panic(`[BrowserConfigurationService] cannot update the configuration with module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
 
         /**
          * Before update the configuration, we need to ensure two things based 
          * on the configuration schemas:
          *   1. The section is valid.
-         *   2. The value is vlaid.
+         *   2. The value is valid.
          */
         if (!this.__validateConfigurationUpdateInSection(section)) {
             panic(`[BrowserConfigurationService] cannot update the configuration because the section is invalid: ${section}`);

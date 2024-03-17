@@ -12,7 +12,7 @@ export interface IReviverRegistrant extends IRegistrant<RegistrantType.Reviver> 
     /**
      * @description Register a prototype for future reviving process.
      * @param prototype The prototype to be registered.
-     * @param matcher A matcher function to match if the given object mathces 
+     * @param matcher A matcher function to match if the given object matches 
      *                this registered prototype, if yes, the object will be 
      *                recreated with the prototype.
      */
@@ -29,7 +29,7 @@ export interface IReviverRegistrant extends IRegistrant<RegistrantType.Reviver> 
  * When processes are communicating with each other under IPC. After the 
  * deserialization process of `JSON.stringify` and `JSON.parse` the new 
  * serialized object will not inherit the original prototype which may cause 
- * unexpected behaviours during the runtime.
+ * unexpected behaviors during the runtime.
  * 
  * To solve the above situation, you may register a prototype with a given 
  * matcher to match the object when reviving. When invoking `this.revive(object)`

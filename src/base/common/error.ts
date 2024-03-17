@@ -11,10 +11,10 @@ type IErrorListener = IErrorCallback;
  * @class An unexposed singleton that manages all the unexpected errors that are
  * caught by the {@link ErrorHandler.onUnexpectedError}.
  * 
- * {@link _ErrorRegistrant} cannot be accessed directly. All the functionalites 
+ * {@link _ErrorRegistrant} cannot be accessed directly. All the functionalities 
  * can be found in a wrapper namespace {@link ErrorHandler}.
  * 
- * @default unexpectedErrorExternalCallback behaviour is calling `console.error(err)`
+ * @default unexpectedErrorExternalCallback behavior is calling `console.error(err)`
  * then simply throw it out.
  */
 const _ErrorRegistrant = new class extends class ErrorRegistrant {
@@ -71,7 +71,7 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
  * @namespace ErrorHandler Supports a series of functions to handle unexpected
  * errors.
  * 
- * @note Since handler idealy should handling unexpected errors, thus those 
+ * @note Since handler ideally should handling unexpected errors, thus those 
  * errors should be very important and even be fatal to some functionalities of 
  * the application. In that case, use these functions CAREFULLY.
  * 
@@ -89,9 +89,9 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
 export namespace ErrorHandler {
     
     /**
-     * @description Register a listener on unexpected errors (will not recieve 
+     * @description Register a listener on unexpected errors (will not receive 
      * external error fired by {@link ErrorHandler.onUnexpectedExternalError}).
-     * @returns Returns a {@link IDisposable} for unregistration.
+     * @returns Returns a {@link IDisposable} for deregistration.
      */
     export function registerListener(listener: IErrorListener): IDisposable {
         return _ErrorRegistrant.registerListener(listener);
@@ -146,8 +146,8 @@ export function isExpectedError(error: any): error is ExpectedError {
 }
 
 /**
- * @description Since `Error` instance has some weird behaviour and cannot be 
- * transfered through IPC properly. Using this function to convert an `Error` to 
+ * @description Since `Error` instance has some weird behavior and cannot be 
+ * transferred through IPC properly. Using this function to convert an `Error` to 
  * a plain object that simulates the original `Error`.
  * 
  * @param error The original Error

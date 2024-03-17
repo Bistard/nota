@@ -73,7 +73,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IHostService private readonly hostService: IHostService,
-        @IBrowserEnvironmentService private readonly envrionmentService: IBrowserEnvironmentService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
         super(ExplorerViewID, parentElement, themeService, componentService);
@@ -111,7 +111,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         /**
          * Once the element is put into the DOM tree, we now can relayout to 
-         * calcualte the correct size of the view.
+         * calculate the correct size of the view.
          */
         this.fileTreeService.layout();
     }
@@ -128,7 +128,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         this.__loadCurrentView(emptyView, true);
     }
 
-    // [protected overrdie method]
+    // [protected override method]
 
     protected override __createTitlePart(): ExplorerTitlePart {
         return new ExplorerTitlePart(this.i18nService);
@@ -145,7 +145,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
          */
-        const uriToOpen = this.envrionmentService.configuration.uriOpenConfiguration;
+        const uriToOpen = this.environmentService.configuration.uriOpenConfiguration;
         if (uriToOpen.directory) {
             this.open(uriToOpen.directory);
         }
@@ -202,7 +202,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * @description Try to open the explorer tree view at the given path.
      * @param path The given path.
      * @returns Returns a new {@link HTMLElement} of the view and a boolean 
-     * indicates if operation successed.
+     * indicates if operation succeeded.
      */
     private async __tryOpen(path: URI): Promise<[HTMLElement, boolean]> {
         let success = true;
@@ -267,7 +267,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         const disposables = this._currentListeners;
 
         /**
-         * Empty view openning directory dialog listener (only open the last 
+         * Empty view opening directory dialog listener (only open the last 
          * selected one).
          */
         const emptyView = this._currentView;
@@ -291,11 +291,11 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         /**
          * The tree model of the tree-service requires the correct height thus 
-         * we need to update it everytime we are resizing.
+         * we need to update it every time we are resizing.
          */
         disposables.register(this.workbenchService.onDidLayout(() => this.fileTreeService.layout()));
 
-        // on openning file.
+        // on opening file.
         disposables.register(this.fileTreeService.onSelect(e => {
             this.editorService.openSource(e.item.uri);
         }));

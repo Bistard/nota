@@ -35,7 +35,7 @@ export namespace Arrays {
     }
 
     /**
-     * @description Whether the given value exsits in the given array.
+     * @description Whether the given value exists in the given array.
      */
     export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {
         return array.indexOf(value) >= 0;

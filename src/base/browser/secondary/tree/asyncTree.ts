@@ -29,7 +29,7 @@ export interface IAsyncNode<T, TFilter> extends IFlexNode<T, TFilter> {
  * @implements
  * It may help the tree to re-use memory when encountering the same client data.
  */
-export interface IIdentiityProivder<T> {
+export interface IIdentityProvider<T> {
     /**
      * @description Returns the representative ID of the given client data.
      * @param data The given client-provided data.
@@ -116,7 +116,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed. Await to ensure the operation is done.
+     * @returns If the operation succeeded. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning potential refreshing to the latest children 
      * nodes, thus asynchronous is required.
@@ -130,7 +130,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed. Await to ensure the operation is done.
+     * @returns If the operation succeeded. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
@@ -179,7 +179,7 @@ export interface IAsyncTreeWidgetOpts<T, TFilter> extends IMultiTreeWidgetOpts<T
 }
 
 /**
- * @class Used to override and add additional controller behaviours. But in async
+ * @class Used to override and add additional controller behaviors. But in async
  * tree level there is currently no need for additional features.
  */
 export class AsyncTreeWidget<T, TFilter> extends MultiTreeWidget<T, TFilter> {}
@@ -272,7 +272,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * @note The subtree will be refreshed automatically once the collapse state of 
  * the tree node is changed.
  * 
- * @warn If data type `T` is a primitive type, might raises undefined behaviours
+ * @warn If data type `T` is a primitive type, might raises undefined behaviors
  * if there are two values are the same. For example, `size()` will not work 
  * properly since the tree cannot decide which is which.
  * 
@@ -284,7 +284,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * Visual Studio Code. They maintain two isomorphismic tree structures to avoid 
  * excessive rerendering.
  * 
- * The {@link AsyncTree} goes one step further, it elimates another tree 
+ * The {@link AsyncTree} goes one step further, it eliminates another tree 
  * structure and only maintaining one tree which causes less memory usage and 
  * runs faster.
  * 
@@ -608,7 +608,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     /**
-     * @description Presets the behaviours when the collapsing state is changed.
+     * @description Presets the behaviors when the collapsing state is changed.
      */
     private async __onDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
         

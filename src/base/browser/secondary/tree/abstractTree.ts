@@ -12,15 +12,15 @@ import { IListViewRenderer } from "src/base/browser/secondary/listView/listRende
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
-import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
+import { IIdentityProvider } from "src/base/browser/secondary/tree/asyncTree";
 import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * @internal
  */
-class __TreeIdentityProvider<T, TFilter> implements IIdentiityProivder<ITreeNode<T, TFilter>> {
+class __TreeIdentityProvider<T, TFilter> implements IIdentityProvider<ITreeNode<T, TFilter>> {
 
-    constructor(private readonly identityProvider: IIdentiityProivder<T>) {}
+    constructor(private readonly identityProvider: IIdentityProvider<T>) {}
 
     public getID(node: ITreeNode<T, TFilter>): string {
         return this.identityProvider.getID(node.data);
@@ -87,7 +87,7 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
  * @internal
  * @class Similar to the {@link ListTrait} in the {@link ListWidget}. The trait
  * concept need to be exist at the tree level, since the list view does not know
- * the existance of the collapsed tree nodes.
+ * the existence of the collapsed tree nodes.
  * 
  * @template T: The type of data in {@link AbstractTree}.
  * @note `trait` does not care about TFilter type.
@@ -133,7 +133,7 @@ class TreeTrait<T> {
         return this._nodes.has(nodes);
     }
 
-    public onDidSplice(event: ITreeSpliceEvent<T, any>, identityProvider?: IIdentiityProivder<T>): void {
+    public onDidSplice(event: ITreeSpliceEvent<T, any>, identityProvider?: IIdentityProvider<T>): void {
         
         /**
          * Since the tree cannot decide the ID of each node, thus it cannot
@@ -165,8 +165,8 @@ class TreeTrait<T> {
         event.inserted.forEach(inserted => dfsNode(inserted));
 
         const currNodes: ITreeNode<T, any>[] = [];
-        for (const orginal of this._nodes) {
-            const id = identityProvider.getID(orginal.data);
+        for (const original of this._nodes) {
+            const id = identityProvider.getID(original.data);
             const inserted = insertedIDs.get(id);
             
             // keep the updated trait if the trait still existed after updated.
@@ -182,11 +182,11 @@ class TreeTrait<T> {
 
 /**
  * @internal
- * @class An internal tree-level mouse controller that overrides some behaviours 
+ * @class An internal tree-level mouse controller that overrides some behaviors 
  * on the list-level.
  * 
  * Since the collapsing status is only known by the tree-level, we need to override
- * the behaviours of the list-level mouse controller to achieve customization.
+ * the behaviors of the list-level mouse controller to achieve customization.
  */
 class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseController<ITreeNode<T, TFilter>> {
 
@@ -219,7 +219,7 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
 
         /**
          * Otherwise, this is considered as a normal click. We toggle the 
-         * collapse state of the clicked node. This is a presetting behaviour.
+         * collapse state of the clicked node. This is a presetting behavior.
          */
         if (node.collapsible) {
             const location = this._tree.getNodeLocation(node);
@@ -263,8 +263,8 @@ export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITree
 /**
  * @internal
  * @class A simple wrapper class for {@link IListWidget} which converts the type
- * T to ITreeNode<T>. In addtional, you may override this class to customize
- * different controller behaviours.
+ * T to ITreeNode<T>. In additional, you may override this class to customize
+ * different controller behaviors.
  */
 export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
 
@@ -361,7 +361,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
      * @param identityProvider Optional provider to decide if any nodes with 
      * trait are re-inserted.
      */
-    public onDidSplice(e: ITreeSpliceEvent<T, TFilter>, identityProvider?: IIdentiityProivder<T>): void {
+    public onDidSplice(e: ITreeSpliceEvent<T, TFilter>, identityProvider?: IIdentityProvider<T>): void {
         this._anchor.onDidSplice(e, identityProvider);
         this._focused.onDidSplice(e, identityProvider);
         this._selected.onDidSplice(e, identityProvider);
@@ -490,7 +490,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     get onDidScroll(): Register<IScrollEvent>;
 
     /**
-     * Fires when the {@link IAbstractTree} itself is blured or focused.
+     * Fires when the {@link IAbstractTree} itself is blurred or focused.
      */
     get onDidChangeFocus(): Register<boolean>;
 
@@ -634,7 +634,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation succeeded.
      */
     collapse(location: TRef, recursive: boolean): boolean;
 
@@ -644,7 +644,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation succeeded.
      */
     expand(location: TRef, recursive: boolean): boolean | Promise<boolean>;
     
@@ -661,7 +661,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation succeeded.
      */
     toggleCollapseOrExpand(location: TRef, recursive: boolean): boolean | Promise<boolean>;
     
@@ -801,7 +801,7 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
      * Provides functionality to determine the uniqueness of each 
      * client-provided data.
      */
-    readonly identityProvider?: IIdentiityProivder<T>;
+    readonly identityProvider?: IIdentityProvider<T>;
 
     /**
      * An option for the external to provide a function to create the tree 

@@ -13,7 +13,7 @@ import { panic } from "src/base/common/utilities/panic";
  * @param propertyKey The name of the method.
  * @param descriptor The Property Descriptor for the method. More see https://www.logicbig.com/tutorials/misc/javascript/object-get-own-property-descriptor.html
  * 
- * @throws An exception will be thrown if applied on either fucntions or getters.
+ * @throws An exception will be thrown if applied on either functions or getters.
  */
 export function memoize(target: any, propertyKey: string, descriptor: PropertyDescriptor): void {
 

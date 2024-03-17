@@ -9,7 +9,7 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
  * It supports operations for two types of clipboard content: 
  *      - plain text ('navigator.clipboard' API),
  *      - resources, stored only in memory,
- *      - arbitrary data with a string identifer.
+ *      - arbitrary data with a string identifier.
  *
  * @note Writing arbitrary means the reference of that data is simply storing 
  *       the data in the memory, nothing special will happen.

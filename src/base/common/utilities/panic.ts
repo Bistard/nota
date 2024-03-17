@@ -50,7 +50,7 @@ export function assert<T>(obj: any, message?: string): T {
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.
  * @param verbose If output the stack trace.
- * @returns A string formated error message.
+ * @returns A string formatted error message.
  *
  * @note This function never throws.
  */
@@ -85,7 +85,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
     return `${UNKNOWN_MESSAGE}: ${JSON.stringify(error)}`;
 }
 
-const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for more details.';
+const UNKNOWN_MESSAGE = 'An unknown error occurred. Please consult the log for more details.';
 function __stackToMessage(stack: any): string {
     if (Array.isArray(stack)) {
         return stack.join('\n');

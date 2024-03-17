@@ -45,7 +45,7 @@ export namespace ProxyChannel {
                     panic(`Command not found: ${command}`);
                 }
 
-                if (opts?.revivers?.enableRevivier && Array.isArray(args)) {
+                if (opts?.revivers?.enableReviver && Array.isArray(args)) {
                     for (let i = 0; i < args.length; i++) {
                         args[i] = opts.revivers.reviverRegistrant.revive(args[i]);
                     }
@@ -107,7 +107,7 @@ export namespace ProxyChannel {
 
                     let result: any = await channel.callCommand(propName, methodsArgs);
 
-                    if (opt?.revivers?.enableRevivier) {
+                    if (opt?.revivers?.enableReviver) {
                         result = opt.revivers.reviverRegistrant.revive(result);
                     }
 
@@ -155,17 +155,17 @@ export namespace ProxyChannel {
          * accessed about their prototype then you may disable this manually so
          * that it may increases the performance to some extent.
          */
-        readonly enableRevivier: boolean;
+        readonly enableReviver: boolean;
         readonly reviverRegistrant?: IReviverRegistrant;
     }
 
     interface IEnableReviverOptions extends IReviverOptions {
-        readonly enableRevivier: true;
+        readonly enableReviver: true;
         readonly reviverRegistrant: IReviverRegistrant;
     }
     
     interface IDisableReviverOptions extends IReviverOptions {
-        readonly enableRevivier: false;
+        readonly enableReviver: false;
         readonly reviverRegistrant?: undefined;
     }
 }

@@ -59,7 +59,7 @@ export interface IFileTreeService extends IDisposable, IService {
      * @param container The root container to render the file tree.
      * @param root The root URI for the file tree to render.
      * 
-     * @note Can be reintialized after 'close()'. Cannot 'init()' twice in a row.
+     * @note Can be reinitialized after 'close()'. Cannot 'init()' twice in a row.
      */
     init(container: HTMLElement, root: URI): AsyncResult<void, Error>;
 
@@ -82,7 +82,7 @@ export interface IFileTreeService extends IDisposable, IService {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed. Await to ensure the operation is done.
+     * @returns If the operation succeeded. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning potential refreshing to the latest children 
      * nodes, thus asynchronous is required.
@@ -96,7 +96,7 @@ export interface IFileTreeService extends IDisposable, IService {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed. Await to ensure the operation is done.
+     * @returns If the operation succeeded. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
@@ -198,7 +198,7 @@ export interface IFileTreeService extends IDisposable, IService {
 
     /**
      * @description This method will not visually highlight the files, but
-     * programatically set the status as cut or copy.
+     * programmatically set the status as cut or copy.
      * @param isCutOrCopy Is file tree in the state of cut or copy. True means
      *                    cut, false means copy.
      */

@@ -135,7 +135,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         let window: IWindowInstance | undefined = undefined;
 
-        // get openning URIs configuration
+        // get opening URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = {};
         if (optionalConfiguration.uriToOpen) {
             uriToOpenConfiguration = UriToOpenResolver.resolve(
@@ -215,14 +215,14 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
 namespace UriToOpenResolver {
 
-    export function resolve(uriToOpen: URI[], onError: (messsage: string) => void): IUriToOpenConfiguration {
+    export function resolve(uriToOpen: URI[], onError: (message: string) => void): IUriToOpenConfiguration {
         const resolveResult = __parse(uriToOpen);
         const uriToOpenConfiguration = resolveResult[0];
 
-        // logging any errored openning URIs
+        // logging any errored opening URIs
         const errorURIs = resolveResult[1];
         if (errorURIs.length) {
-            let message = 'Invalid URI when openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`. The erroring URIs are: ';
+            let message = 'Invalid URI when opening in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`. The erroring URIs are: ';
             for (const uri of errorURIs) {
                 message += '\n\t' + URI.toString(uri);
             }

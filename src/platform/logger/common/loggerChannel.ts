@@ -1,7 +1,7 @@
 import { toIPCTransferableError } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { Additionals, BufferLogger, BufferLoggerBufferType, defaultLog, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
+import { Additional, BufferLogger, BufferLoggerBufferType, defaultLog, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
 import { panic } from "src/base/common/utilities/panic";
 import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { AbstractLoggerService, ILoggerService } from "src/platform/logger/common/abstractLoggerService";
@@ -112,7 +112,7 @@ class __BrowserLogger extends BufferLogger implements ILogger {
 
     // [protected methods]
 
-    protected override __log(level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additionals): void {
+    protected override __log(level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additional): void {
         this._buffer.push({ level: level, reporter, message, error: toIPCTransferableError(error), additional });
         if (this._created) {
             this.__flushBuffer();

@@ -196,7 +196,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                     break;
                 }
 
-                const metadataRoot = URI.join(this._metadataRootPath, 'sortings');
+                const metadataRoot = URI.join(this._metadataRootPath, 'sorting');
                 this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, {
                     metadataRootPath: metadataRoot,
                     hash: generateMD5Hash,

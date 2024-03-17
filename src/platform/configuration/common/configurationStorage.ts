@@ -17,7 +17,7 @@ export interface IConfigurationStorageChangeEvent {
 
 export interface IReadonlyConfigurationStorage extends IDisposable {
     /** 
-     * Get all the sections of the storage. Section are seperated by (`.`). 
+     * Get all the sections of the storage. Section are separated by (`.`). 
      */
     readonly sections: Section[];
 
@@ -54,7 +54,7 @@ export interface IReadonlyConfigurationStorage extends IDisposable {
     clone(): ConfigurationStorage;
 
     /**
-     * @description Conver the model into the JSON format.
+     * @description Convert the model into the JSON format.
      */
     toJSON(): Result<string, SyntaxError>;
 }
@@ -69,14 +69,14 @@ export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
      * @param section see {@link ConfigurationStorage}. 
      * 
      * @throws An exception will be thrown if the section is invalid.
-     * @note If section is null, it overries the entire configuration.
+     * @note If section is null, it overrides the entire configuration.
      */
     set(section: Section | null, configuration: any): void;
 
     /**
      * @description Delete configuration at given section.
      * @param section see {@link ConfigurationStorage}.
-     * @returns A boolean indicates if the operation successed.
+     * @returns A boolean indicates if the operation succeeded.
      */
     delete(section: Section): boolean;
 
@@ -265,7 +265,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
     }
 
     private __deleteSections(deleteSection: Section): boolean {
-        let successed = false;
+        let succeeded = false;
         const truncated: Section[] = [];
 
         const newSections = this._sections.filter((currSection) => {
@@ -279,7 +279,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
                         // single section part, noop.
                     }
                 }
-                successed = true;
+                succeeded = true;
                 return false;
             } {
                 return true;
@@ -288,7 +288,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
         newSections.push(...truncated);
         this._sections = newSections;
-        return successed;
+        return succeeded;
     }
 
     private __deleteFromModel(section: Section): boolean {

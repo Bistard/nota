@@ -22,8 +22,8 @@ import { IWindowConfiguration } from "src/platform/window/common/window";
  * line script.
  * 
  * {@link global} Scripts running under Node.js have an object called global as 
- * their global object. It may be undefined once the Node.js is not accessable
- * in the current envrioment.
+ * their global object. It may be undefined once the Node.js is not accessible
+ * in the current environment.
  */
 
 /**

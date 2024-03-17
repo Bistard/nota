@@ -419,7 +419,7 @@ export class PieceTable implements IPieceTable {
             return;
         }
 
-        // Deletion affects mutiple nodes (pieces).
+        // Deletion affects multiple nodes (pieces).
         const toBeDeleted: PieceNode[] = [];
 
         this.__deletePieceTailAt(startNode, startDeleteBufferPosition);
@@ -475,7 +475,7 @@ export class PieceTable implements IPieceTable {
              */
             if (danglingCarriageReturn) {
                 /**
-                 * The CRLF is splited into two pieces, we pretend LF is at the 
+                 * The CRLF is splitted into two pieces, we pretend LF is at the 
                  * previous one.
                  */
                 if (buffer.charCodeAt(firstCharOffset) === CharCode.LineFeed) {
@@ -511,7 +511,7 @@ export class PieceTable implements IPieceTable {
                 ) {
                     /**
                      * The end of the piece contains a CR, it is possible that
-                     * a CRLF got splited into two pieces, so we mark it as 
+                     * a CRLF got splitted into two pieces, so we mark it as 
                      * dangling and ignore the CR character until next node.
                      */
                     danglingCarriageReturn = true;
@@ -524,7 +524,7 @@ export class PieceTable implements IPieceTable {
             }
 
             /**
-             * Now the piece will contain mutiple lines. We need to use three
+             * Now the piece will contain multiple lines. We need to use three
              * different stages to store these lines:
              *      - store the first line (partial)
              *      - store the middle lines (full)

@@ -119,8 +119,8 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * item.
      * @param fileService The given {@link IFileService} for fetching the 
      * children of the current item.
-     * @param opts Options for building {@link FiteItem} when refreshing.
-     * @cimplexity 
+     * @param opts Options for building {@link FileItem} when refreshing.
+     * @complexity 
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
@@ -143,7 +143,7 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * current item (recursive).
      * @param uri The uri of the child.
      * 
-     * @note Some string comparsion happens here. Might raise perf issue is 
+     * @note Some string comparison happens here. Might raise perf issue is 
      * calling too frequently.
      */
     findDescendant(uri: URI): FileItem | undefined;
@@ -394,7 +394,7 @@ export class FileItem implements IFileItem<FileItem> {
     public findDescendant(uri: URI): FileItem | undefined {
         
         /**
-         * For perf reason, try to do some comparsion first to see it needs to 
+         * For perf reason, try to do some comparison first to see it needs to 
          * go deeper.
          */
         if (this.uri.scheme !== uri.scheme) {
@@ -423,7 +423,7 @@ export class FileItem implements IFileItem<FileItem> {
 			return undefined;
 		}
 
-        // Ignore separtor to more easily deduct the next name to search
+        // Ignore separator to more easily deduct the next name to search
         while (index < path.length && path[index] === posix.sep) {
             index++;
         }

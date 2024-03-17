@@ -190,7 +190,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     }
 
     #consturctInspectorProcess(baseConfiguration) {
-        const lookupConfiguraion = 
+        const lookupconfiguration = 
             Object.assign(
                 baseConfiguration, 
                 {
@@ -204,7 +204,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                     },
                 },
             );
-        return lookupConfiguraion;
+        return lookupconfiguration;
     }
 }
 

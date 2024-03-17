@@ -12,14 +12,14 @@ import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitVi
 import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
-import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
 
 /**
- * @description A base class for Workbench to create and manage the behaviour of
+ * @description A base class for Workbench to create and manage the behavior of
  * each sub-component.
  */
 export abstract class WorkbenchLayout extends Component {
@@ -78,7 +78,7 @@ export abstract class WorkbenchLayout extends Component {
 
         /**
          * Listens to each SideBar button click events and notifies the 
-         * sideView to swtich the view.
+         * sideView to switch the view.
          */
         this.__register(this.sideBarService.onDidClick(e => {
             if (e.isPrimary) {
@@ -188,7 +188,7 @@ class SideBarBuilder {
                                     extraClassName: 'action1',
                                     shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
                                 }),
-                                MenuSeperatorAction.instance,
+                                MenuSeparatorAction.instance,
                                 new CheckMenuAction({
                                     onChecked: (checked) => {
                                         console.log('checked:', checked);
@@ -207,7 +207,7 @@ class SideBarBuilder {
                                     tip: 'simple action 3 tip',
                                     extraClassName: 'action3',
                                 }),
-                                MenuSeperatorAction.instance,
+                                MenuSeparatorAction.instance,
                                 new SimpleMenuAction({
                                     callback: () => console.log('action 4 executed'),
                                     enabled: true,
@@ -225,7 +225,7 @@ class SideBarBuilder {
                                             tip: 'simple action 6 tip',
                                             extraClassName: 'action6',
                                         }),
-                                        MenuSeperatorAction.instance,
+                                        MenuSeparatorAction.instance,
                                         new SimpleMenuAction({
                                             callback: () => console.log('action 7 executed'),
                                             enabled: true,
@@ -240,7 +240,7 @@ class SideBarBuilder {
                                             tip: 'simple action 8 tip',
                                             extraClassName: 'action8',
                                         }),
-                                        MenuSeperatorAction.instance,
+                                        MenuSeparatorAction.instance,
                                         new SimpleMenuAction({
                                             callback: () => console.log('action 9 executed'),
                                             enabled: true,

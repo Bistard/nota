@@ -81,7 +81,7 @@ export class DataBuffer {
     }
 
     /**
-     * @description Copys a clone of the given buffer.
+     * @description Copy a clone of the given buffer.
      */
     public static copy(buffer: DataBuffer): DataBuffer {
         const newBuffer = DataBuffer.alloc(buffer.bufferLength);
@@ -106,7 +106,7 @@ export class DataBuffer {
     public slice(start?: number, end?: number): DataBuffer {
 		// IMPORTANT: use subarray instead of slice because TypedArray#slice
 		// creates shallow copy and NodeBuffer#slice doesn't. The use of subarray
-		// ensures the same, performance, behaviour.
+		// ensures the same, performance, behavior.
         return new DataBuffer(this.buffer.subarray(start, end));
 	}
 

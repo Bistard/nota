@@ -139,7 +139,7 @@ export namespace FileCommands {
         private async __pasteInsert(destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
             /**
              * On detecting an insertion, the operation must be conducted from 
-             * the UI's perspective. Therefore, instead of utilizing the given 
+             * the UI perspective. Therefore, instead of utilizing the given 
              * URIs (toPaste), we retrieve 'FileItem's directly from the 
              * clipboard.
              * 
@@ -170,7 +170,7 @@ export namespace FileCommands {
             /**
              * Since no file/dir is actually pasted, thus there will not trigger
              * the 'onDidResourceChange' event in the file system to update the
-             * lastest sorting order. 
+             * latest sorting order. 
              * 
              * We need to manually refresh here.
              */
@@ -199,7 +199,7 @@ export namespace FileCommands {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
             }
 
-            // update metadata to those who successed
+            // update metadata to those who successes
             await this.__doUpdateMetadataLot(batch, isCut, toPaste, toPasteDir, destination, destinationIdx, insertAtSameParent);
 
             const pasted = !insertAtSameParent && batch.passed.length > 0;
@@ -216,7 +216,7 @@ export namespace FileCommands {
             insertAtSameParent: boolean,
         ): Promise<void> 
         {
-            // no passed items, do nothing for metadata updation.
+            // no passed items, do nothing for metadata update.
             if (batch.passed.length === 0) {
                 return;
             }
@@ -241,8 +241,8 @@ export namespace FileCommands {
             console.log('isCut:', isCut);
             console.log('passed items:', passedItems);
             console.log('passed dir:', toPasteDir.filter(uri => passedSet.has(uri)));
-            console.log('desitination:', destination.basename);
-            console.log('desitinationIdx:', destinationIdx);
+            console.log('destination:', destination.basename);
+            console.log('destinationIdx:', destinationIdx);
 
             if (insertAtSameParent) {
                 // TODO

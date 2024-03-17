@@ -102,7 +102,7 @@ export const enum ContextKeyExprType {
 }
 
 /**
- * A namespace that collects all the context key exprresion cosntruction method.
+ * A namespace that collects all the context key expression construction method.
  * You cannot create the expression by your own.
  */
 export namespace CreateContextKeyExpr {

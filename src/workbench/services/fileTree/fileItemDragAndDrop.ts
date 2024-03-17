@@ -43,7 +43,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
      * handling purpose.
      */
     private readonly _prevDragOverState: { 
-        event?: DragEvent,                           // previous event for later comparsion usage
+        event?: DragEvent,                           // previous event for later comparison usage
         handledByInsertion: IInsertionResult | null, // is handled by row insertion previously
         isDroppable: boolean,                        // the previous droppability
     };
@@ -213,7 +213,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 return;
             }
     
-            // the target is collapsed thus it requies a delay of expanding
+            // the target is collapsed thus it requires a delay of expanding
             if (this._tree.isCollapsed(targetOver)) {
                 this._tree.setHover(targetOver, false);
                 this._pendingExpand.schedule({ item: targetOver, index: targetIndex }, true);
@@ -295,7 +295,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private __initInsertionController(): void {
         
-        // only enable insertion indicator during custom sortering
+        // only enable insertion indicator during custom sorting
         const setIndicatorBy = (order: FileSortType) => {
             if (order === FileSortType.Custom) {
                 this._insertionController ??= new RowInsertionController();
@@ -346,7 +346,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private __isDroppable(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): IDragOverResult {
 
-        // dropping on no targets, meanning we are dropping at the parent.
+        // dropping on no targets, meaning we are dropping at the parent.
         if (!targetOver) {
             targetOver = assert(this.fileTreeService.rootItem);
         }
@@ -430,7 +430,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *      - If inserting above the 'targetOver', move to a position that 
          *          above it.
          *      - If inserting below the 'targetOver', the moving destination is
-         *        simly 'targetOver'.
+         *        simply 'targetOver'.
          */
         const targetAbove = (() => {
             if (insertionResult.near === 'bottom') {
@@ -452,13 +452,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *      `targetAbove` is not a directory, `resolvedDir` is set to 
          *      the parent of `targetAbove`.
          */
-        const isExpanedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
-        const resolvedDir = isExpanedDir
+        const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
+        const resolvedDir = isExpandedDir
             ? targetAbove
             : assert(targetAbove.parent);
         
         // inserting at the first children
-        if (isExpanedDir) {
+        if (isExpandedDir) {
             resolvedIdx = 0;
         }
 
@@ -546,7 +546,7 @@ class RowInsertionController extends Disposable {
     }
     
     /**
-     * @description Returns a result type indicates the attemptation successed,
+     * @description Returns a result type indicates the attempt succeeded,
      * otherwise return false.
      */
     public attemptInsert(event: DragEvent, targetIndex: number | undefined): IInsertionResult | false {
@@ -579,9 +579,9 @@ class RowInsertionController extends Disposable {
 
         const mouseY = event.clientY - DomUtility.Attrs.getViewportTop(this._tree.DOMElement);
         
-        const thershold = 10;
-        const isNearTop = Math.abs(mouseY - currentItemTop) <= thershold;
-        const isNearBot = Math.abs(mouseY - currentItemBottom) <= thershold;
+        const threshold = 10;
+        const isNearTop = Math.abs(mouseY - currentItemTop) <= threshold;
+        const isNearBot = Math.abs(mouseY - currentItemBottom) <= threshold;
 
         if (!isNearTop && !isNearBot) {
             return undefined;

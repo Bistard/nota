@@ -78,7 +78,7 @@ suite('fileTreeCustomSorter-test', () => {
 
     /**
      * @description Check if the given folder has its corresponding metadata 
-     * file in the disk. Not just checking the existance, but also checking the 
+     * file in the disk. Not just checking the existence, but also checking the 
      * actual data in that metadata file.
      * @param folder The metadata corresponding to the folder name.
      * @param exist If the folder should has a corresponding metadata.
@@ -89,8 +89,8 @@ suite('fileTreeCustomSorter-test', () => {
     async function assertMetadataInDisk(folder: URI, exist: boolean, order?: string[]): Promise<void> {
         const metadataURI = getMetadataURI(folder);
 
-        // check metadata existance first
-        assert.strictEqual(exist, await fileService.exist(metadataURI).unwrap(), `'${URI.toString(folder)}' metadata does not match existance. Expect '${exist}'`);
+        // check metadata existence first
+        assert.strictEqual(exist, await fileService.exist(metadataURI).unwrap(), `'${URI.toString(folder)}' metadata does not match existence. Expect '${exist}'`);
 
         if (!order) {
             return;
@@ -385,14 +385,14 @@ suite('fileTreeCustomSorter-test', () => {
                 );
             });
 
-            test('Add: adding mutiple items (case1)', async () => {
+            test('Add: adding multiple items (case1)', async () => {
                 await assertAddLotAction(
                     ['newFile1', 'newFile2', 'newFile3'], [0, 1, 1],
                     ['newFile1', 'folder1', 'newFile2', 'newFile3', 'folder2', 'file1', 'file2', 'file3'],
                 );
             });
             
-            test('Add: adding mutiple items (case2)', async () => {
+            test('Add: adding multiple items (case2)', async () => {
                 await assertAddLotAction(
                     ['newFile1', 'newFile2', 'newFile3', 'newFile4', 'newFile5'], [0, 1, 1, 3, 4],
                     ['newFile1', 'folder1', 'newFile2', 'newFile3', 'folder2', 'file1', 'newFile4', 'file2', 'newFile5', 'file3'],
@@ -443,7 +443,7 @@ suite('fileTreeCustomSorter-test', () => {
                 );
             });
             
-            test('Update: update mutiple items', async () => {
+            test('Update: update multiple items', async () => {
                 await assertUpdateLotAction(
                     [
                         ['folder1', 'update_folder1'], 
