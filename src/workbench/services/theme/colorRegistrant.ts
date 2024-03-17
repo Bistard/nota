@@ -59,7 +59,7 @@ export class ColorRegistrant implements IColorRegistrant{
     // [public methods]
 
     public initRegistrations(): void {
-        // noop    
+        // noop
     }
 
     public registerColor(themeID: string, location: string, color: RGBA): void {

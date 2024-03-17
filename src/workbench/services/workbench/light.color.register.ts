@@ -6,6 +6,6 @@ export const rendererThemeColorRegister = createRegister(
     'rendererThemeColor',
     (registrant) => {
         // Example for light theme
-        registrant.registerColor('light', "--sidebar-background-color", new RGBA(60, 179, 113));
+        registrant.registerColor('light', "sidebar-background-color", new RGBA(60, 179, 113));
     },
 );

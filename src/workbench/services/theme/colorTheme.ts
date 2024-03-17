@@ -1,6 +1,9 @@
-import { RGBA } from "src/base/common/color";
-import { Dictionary, StringDictionary } from "src/base/common/utilities/type";
+import { ColorMap, RGBA } from "src/base/common/color";
+import { iterProp } from "src/base/common/utilities/object";
+import { assert } from "src/base/common/utilities/panic";
+import { StringDictionary } from "src/base/common/utilities/type";
 import { ColorThemeType } from "src/workbench/services/theme/theme";
+import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
 
 /**
  * A {@link IColorTheme} is a data structure that is consructed from a valid
@@ -28,6 +31,11 @@ export interface IColorTheme {
      * @param id the id of the color.
      */
     getColor(id: string): RGBA | undefined;
+
+    /**
+     * // TODO
+     */
+    getColorMap(): ColorMap;
 }
 
 export class ColorTheme implements IColorTheme {
@@ -38,31 +46,29 @@ export class ColorTheme implements IColorTheme {
     public readonly name: string;
     public readonly description: string | undefined;
 
-    private readonly _colors: StringDictionary<RGBA>;
+    private readonly _colors: ColorMap;
 
     // [constructor]
 
-    constructor(
-        type: ColorThemeType,
-        name: string,
-        description: string | undefined,
-        rawObj: Dictionary<string, any>,
-    ) {
-        this.type = type;
-        this.name = name;
-        this.description = description;
+    constructor(rawData: IRawThemeJsonReadingData) {
+        this.type = rawData.type;
+        this.name = rawData.name;
+        this.description = rawData.description;
         
         this._colors = {};
-        // init `this._colors` with `rawObj`
-        Object.keys(rawObj).forEach(key => {
-            const colorValue = rawObj[key];
-            this._colors[key] = new RGBA(colorValue.r, colorValue.g, colorValue.b, colorValue.a);
+        iterProp(rawData.colors, propName => {
+            const colorInHex = rawData.colors[propName]!;
+            this._colors[propName] = assert(RGBA.parse(colorInHex));
         });
     }
     
+    // [public methods]
+
     public getColor(id: string): RGBA | undefined {
         return this._colors[id];
     }
 
-    // [public methods]
+    public getColorMap(): ColorMap {
+        return this._colors;
+    }
 }

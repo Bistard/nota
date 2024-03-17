@@ -4,7 +4,7 @@ import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/t
 import { APP_DIR_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { URI } from "src/base/common/files/uri";
-import { AsyncResult, Err, Ok } from "src/base/common/result";
+import { AsyncResult, Err, Ok, err, ok } from "src/base/common/result";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
@@ -16,7 +16,10 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { ColorRegistrant } from "./colorRegistrant";
 import { defaultThemeColors } from './themeDefaults';
-import { panic } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { mixin } from "src/base/common/utilities/object";
+import { ColorMap } from "src/base/common/color";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -42,7 +45,8 @@ export interface IThemeService extends IService {
     getCurrTheme(): IColorTheme;
 
     /**
-     * @description Changes the current theme to the new one.
+     * // REVIEW: out of update doc
+     * @description Changes the current theme to the new theme with the given ID.
      * @param id If the id is an URI, the service will try to read the URI
      *           as a JSON file for theme data. If id is an string, it will be
      *           considered as the JSON file name to read at the {@link themeRootPath}.
@@ -98,7 +102,7 @@ export class ThemeService extends Disposable implements IThemeService {
     
     private readonly _presetThemes: Map<string, IColorTheme>;
     private _currentTheme?: IColorTheme;
-    private readonly defaultColors: StringDictionary<string> = defaultThemeColors;
+    private readonly defaultColors = defaultThemeColors;
 
     // [constructor]
 
@@ -122,13 +126,12 @@ export class ThemeService extends Disposable implements IThemeService {
 
     public getCurrTheme(): IColorTheme {
         if (!this._currentTheme) {
-            this._currentTheme = this._presetThemes.values().next().value;
             panic("Theme has not been initialized!");
         }
         return this._currentTheme;
     }
 
-    public switchTo(id: string): Promise<IColorTheme> {
+    public async switchTo(id: string): Promise<IColorTheme> {
         
         // Read from memory if a preset theme
         const presetTheme = this._presetThemes.get(id);
@@ -136,43 +139,43 @@ export class ThemeService extends Disposable implements IThemeService {
             this._currentTheme = presetTheme;
             this._onDidChangeTheme.fire(presetTheme);
             this.updateDynamicCSSRules();
-            return Promise.resolve(presetTheme);
+            return presetTheme;
         }
 
         const themeUri = URI.join(this.themeRootPath, `${id}.json`);
     
         return this.fileService.readFile(themeUri)
-            .andThen((themeData) => {
-                const themeObj = jsonSafeParse(themeData.toString());
-                if (this.__isValidTheme(themeObj)) {
-                    const newTheme = new ColorTheme(
-                        themeObj.type,
-                        themeObj.name,
-                        themeObj.description,
-                        themeObj.colors
-                    );
-                    this._currentTheme = newTheme;
-                    this._onDidChangeTheme.fire(newTheme);
-                    this.updateDynamicCSSRules();
-                    return AsyncResult.ok(newTheme);
+            .andThen(themeData => jsonSafeParse(themeData.toString())
+            .andThen<IColorTheme, Error>(themeRawData => {
+                if (!this.__isValidTheme(themeRawData)) {
+                    return err(new Error(`Error loading theme from URI: ${URI.toString(themeUri)}.`));
                 }
-                return AsyncResult.err(new Error(`Error loading theme from URI: ${themeUri.toString()}`));
-            })
+                
+                this._currentTheme = new ColorTheme(themeRawData);
+                this.updateDynamicCSSRules();
+
+                this._onDidChangeTheme.fire(this._currentTheme);
+                return ok(this._currentTheme);
+            }))
             .match(
                 (newTheme) => {
                     return newTheme;
                 },
                 (error) => {
-                    this.logService.error("themeService", "Theme is not available.");
-                    // Send notification to frontend if needed
+                    this.logService.error("themeService", `Cannot switch to the theme '${id}'. The reason is:`, error);
+                    
+                    // TODO: Send notification
+                    
                     if (!this._currentTheme) {
-                        // If there's no current theme, use a preset theme
-                        const presetTheme = this._presetThemes[0];
+                        // If there's no current theme, use a preset theme.
+                        const presetTheme = assert(this._presetThemes.get(PresetColorTheme.LightModern));
                         this._currentTheme = presetTheme;
-                        this._onDidChangeTheme.fire(presetTheme);
+
                         this.updateDynamicCSSRules();
+                        this._onDidChangeTheme.fire(presetTheme);
                         return presetTheme;
                     }
+
                     return this._currentTheme;
                 }
             );
@@ -180,49 +183,46 @@ export class ThemeService extends Disposable implements IThemeService {
     
     public async init(): Promise<void> {
         this._initProtector.init('Cannot init twice').unwrap();
+        this.initializePresetThemes();
     
-        // Initialize every preset color themes in the beginning since they are only present in memory.
-        // this.initializePresetThemes();
-    
-        // const themeID = this.configurationService.get<string>(
-        //     WorkbenchConfiguration.ColorTheme, // User settings
-        //     PresetColorTheme.LightModern,      // Default
-        // );
-        const themeID = 'lightMorden';
+        const themeID = this.configurationService.get<string>(
+            WorkbenchConfiguration.ColorTheme,
+            PresetColorTheme.LightModern,
+        );
         await this.switchTo(themeID);
     }
     
     // [private methods]
     
-    private initializePresetThemes(): IColorTheme[] {
-        const themeNames = ['lightModern', 'darkModern'];
+    private initializePresetThemes(): void {
+        const themeNames = [
+            PresetColorTheme.LightModern,
+            PresetColorTheme.DarkModern,
+        ];
+
         for (const themeName of themeNames) {
             const rawColorMap = this._registrant.getRegisteredColorMap(themeName);  
-            if (this.__isValidTheme(rawColorMap)) {
-                const theme = new ColorTheme(
-                    rawColorMap.type,
-                    rawColorMap.name,
-                    rawColorMap.description,
-                    rawColorMap.colors
-                );
-                this._presetThemes.set(rawColorMap.name, theme);
+            if (!this.__isValidTheme(rawColorMap)) {
+                panic(new Error(`Preset color theme is not a valid theme: ${themeName}`));
             }
-        }    
-        return [...this._presetThemes.values()];
+
+            const theme = new ColorTheme(rawColorMap);
+            this._presetThemes.set(rawColorMap.name, theme);
+        }
     }
 
     private updateDynamicCSSRules(): void {
-        const themeData = this.getCurrTheme(); 
-        // Merge default colors with theme colors, theme colors take precedence
-        const finalColors = {...this.defaultColors, ...themeData.getColor};
+        const theme = this.getCurrTheme(); 
+        const finalColors = mixin<ColorMap>(this.defaultColors, theme.getColorMap(), true);
+        
         const cssRules = new Set<string>();
 
         // Generate CSS variables for each color in the theme
         Object.entries(finalColors).forEach(([colorName, colorValue]) => {
-            cssRules.add(`:root { ${colorName}: ${colorValue}; }`);
+            cssRules.add(`:root { --${colorName}: ${colorValue}; }`); // REVIEW
         });
         const cssString = Array.from(cssRules).join('\n');
-        this.applyRules(cssString, themeData.name); 
+        this.applyRules(cssString, theme.name); 
     }
 
     private applyRules(styleSheetContent: string, rulesClassName: string): void {
