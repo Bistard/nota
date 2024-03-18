@@ -25,10 +25,10 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     ) {
         this.opts = {
             isPackaged: opts.isPackaged,
-            appRootPath: isString(opts.appRootPath) ? opts.appRootPath : URI.toFsPath(opts.appRootPath),
+            appRootPath:  isString(opts.appRootPath)  ? opts.appRootPath  : URI.toFsPath(opts.appRootPath),
             userDataPath: isString(opts.userDataPath) ? opts.userDataPath : URI.toFsPath(opts.userDataPath),
             userHomePath: isString(opts.userHomePath) ? opts.userHomePath : URI.toFsPath(opts.userHomePath),
-            tmpDirPath: isString(opts.tmpDirPath) ? opts.tmpDirPath : URI.toFsPath(opts.tmpDirPath),
+            tmpDirPath:   isString(opts.tmpDirPath)   ? opts.tmpDirPath   : URI.toFsPath(opts.tmpDirPath),
         };
     }
 

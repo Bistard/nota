@@ -392,7 +392,7 @@ export namespace DomUtility
 		/**
 		 * @description Check if the given HTMLElement is considered as a input type.
 		 */
-		export function isInputElement(target: HTMLElement): boolean {
+		export function isInputElement(target: Element): boolean {
 			return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 		}
 

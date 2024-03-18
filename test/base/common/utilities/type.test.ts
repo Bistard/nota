@@ -3,9 +3,49 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
+
+    suite('isTruthy', () => {
+        test('should return true for truthy values', () => {
+            assert.strictEqual(isTruthy(true), true);
+            assert.strictEqual(isTruthy(1), true);
+            assert.strictEqual(isTruthy('non-empty'), true);
+            assert.strictEqual(isTruthy([]), true);
+            assert.strictEqual(isTruthy({}), true);
+            assert.strictEqual(isTruthy(() => {}), true);
+        });
+    
+        test('should return false for falsy values', () => {
+            assert.strictEqual(isTruthy(false), false);
+            assert.strictEqual(isTruthy(0), false);
+            assert.strictEqual(isTruthy(''), false);
+            assert.strictEqual(isTruthy(null), false);
+            assert.strictEqual(isTruthy(undefined), false);
+            assert.strictEqual(isTruthy(NaN), false);
+        });
+    });
+    
+    suite('isFalsy', () => {
+        test('should return false for truthy values', () => {
+            assert.strictEqual(isFalsy(true), false);
+            assert.strictEqual(isFalsy(1), false);
+            assert.strictEqual(isFalsy('non-empty'), false);
+            assert.strictEqual(isFalsy([]), false);
+            assert.strictEqual(isFalsy({}), false);
+            assert.strictEqual(isFalsy(() => {}), false);
+        });
+    
+        test('should return true for falsy values', () => {
+            assert.strictEqual(isFalsy(false), true);
+            assert.strictEqual(isFalsy(0), true);
+            assert.strictEqual(isFalsy(''), true);
+            assert.strictEqual(isFalsy(null), true);
+            assert.strictEqual(isFalsy(undefined), true);
+            assert.strictEqual(isFalsy(NaN), true);
+        });
+    });
 
     test('isPrimitive', () => {
         assert.strictEqual(isPrimitive(0), true);

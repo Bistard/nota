@@ -220,7 +220,7 @@ export class InstantiationService implements IInstantiationService {
         let instance: InstanceType<TCtor>;
 
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            const args = <InstantiationRequiredParameters<TCtor>>ctorOrDescriptor.args.concat(rest);
+            const args = <InstantiationRequiredParameters<TCtor>>ctorOrDescriptor.args.concat(<any>rest);
             instance = this.__createInstance(ctorOrDescriptor.ctor, args);
         } else {
             instance = this.__createInstance(ctorOrDescriptor, rest);
@@ -308,7 +308,7 @@ export class InstantiationService implements IInstantiationService {
 
             if (roots.length === 0) {
                 if (!dependencyGraph.isEmpty()) {
-                    throw Error('[DI] dependency cycle happens');
+                    panic('[DI] dependency cycle happens');
                 }
                 break;
             }

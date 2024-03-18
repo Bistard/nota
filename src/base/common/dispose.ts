@@ -66,7 +66,7 @@ export class Disposable implements IDisposable {
 	 */
 	protected __register<T extends IDisposable>(obj: T): T {
 		if (obj && (obj as IDisposable) === this) {
-			throw new Error('cannot register the disposable object to itself');
+			panic('cannot register the disposable object to itself');
 		}
 		return this._disposableManager.register(obj);
 	}
@@ -110,7 +110,7 @@ export class DisposableManager implements IDisposable {
 	public register<T extends IDisposable>(obj: T): T {
 		
 		if (obj && (obj as unknown) === this) {
-			throw new Error('cannot register the disposable object to itself');
+			panic('cannot register the disposable object to itself');
 		}
 
 		if (this._disposed) {
@@ -191,14 +191,14 @@ export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable
 
 	public get(): T {
 		if (!this._object) {
-			throw new Error('[SelfCleaningWrapper] no wrapping object.');
+			panic('[SelfCleaningWrapper] no wrapping object.');
 		}
 		return this._object;
 	}
 
 	public register(children: Disposable | Disposable[]): void {
 		if (!this._object) {
-			throw new Error('[SelfCleaningWrapper] cannot bind children to no objects.');
+			panic('[SelfCleaningWrapper] cannot bind children to no objects.');
 		}
 		
 		if (!Array.isArray(children)) {

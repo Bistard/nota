@@ -1,6 +1,9 @@
 import { IDisposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
 
+export type ResourceMapToKeyFn = (resource: URI) => string;
+const DEFAULT_MAP_TO_KEY_FN = (resource: URI) => URI.toString(resource);
+
 /**
  * @class {@link ResourceMap} is a utility class that provides Map-like 
  * functionality but uses URIs as keys. This is especially useful when you need 
@@ -16,13 +19,13 @@ export class ResourceMap<T> implements Map<URI, T>, IDisposable {
 
 	public readonly [Symbol.toStringTag] = 'ResourceMap';
 	private readonly _map: Map<string, { resource: URI, value: T }>;
-	private readonly _toKey: (key: URI) => string;
+	private readonly _toKey: ResourceMapToKeyFn;
 
     // [constructor]
 
-	constructor(toKey?: (key: URI) => string) {
+	constructor(toKey?: ResourceMapToKeyFn) {
         this._map = new Map();
-        this._toKey = toKey ?? ((resource: URI) => URI.toString(resource));
+        this._toKey = toKey ?? DEFAULT_MAP_TO_KEY_FN;
 	}
 
     // [public methods]
@@ -48,7 +51,7 @@ export class ResourceMap<T> implements Map<URI, T>, IDisposable {
 		return this._map.delete(this._toKey(resource));
 	}
 
-	public forEach(cb: (value: T, key: URI, _map: Map<URI, T>) => void, thisArg?: any): void {
+	public forEach(cb: (value: T, key: URI, map: Map<URI, T>) => void, thisArg?: any): void {
 		if (typeof thisArg !== 'undefined') {
 			cb = cb.bind(thisArg);
 		}
@@ -87,5 +90,71 @@ export class ResourceMap<T> implements Map<URI, T>, IDisposable {
 		for (const [, entry] of this._map) {
 			yield [entry.resource, entry.value];
 		}
+	}
+}
+
+export class ResourceSet implements Set<URI> {
+
+	// [field]
+
+	public readonly [Symbol.toStringTag]: string = 'ResourceSet';
+	private readonly _map: ResourceMap<URI>;
+
+	// [constructor]
+
+	constructor(toKey?: ResourceMapToKeyFn);
+	constructor(entries: readonly URI[], toKey?: ResourceMapToKeyFn);
+	constructor(entriesOrKey?: readonly URI[] | (ResourceMapToKeyFn), toKey?: ResourceMapToKeyFn) {
+		if (!entriesOrKey || typeof entriesOrKey === 'function') {
+			this._map = new ResourceMap(entriesOrKey);
+		} else {
+			this._map = new ResourceMap(toKey);
+			for (const entry of entriesOrKey) {
+                this.add(entry);
+            }
+		}
+	}
+
+	// [public methods]
+
+	get size(): number {
+		return this._map.size;
+	}
+
+	public add(value: URI): this {
+		this._map.set(value, value);
+		return this;
+	}
+
+	public clear(): void {
+		this._map.clear();
+	}
+
+	public delete(value: URI): boolean {
+		return this._map.delete(value);
+	}
+
+	public forEach(cb: (value: URI, value2: URI, set: Set<URI>) => void, thisArg?: any): void {
+		this._map.forEach((_value, key) => cb.call(thisArg, key, key, this));
+	}
+
+	public has(value: URI): boolean {
+		return this._map.has(value);
+	}
+
+	public entries(): IterableIterator<[URI, URI]> {
+		return this._map.entries();
+	}
+
+	public keys(): IterableIterator<URI> {
+		return this._map.keys();
+	}
+
+	public values(): IterableIterator<URI> {
+		return this._map.keys();
+	}
+
+	public [Symbol.iterator](): IterableIterator<URI> {
+		return this.keys();
 	}
 }

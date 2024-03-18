@@ -120,14 +120,14 @@ suite('MainConfiguratioService-test', () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
         (await service.init().unwrap());
 
-        await assert.rejects(() => service.set('section', 'value'));
+        await assert.rejects(() => service.set('section', 'value', { type: ConfigurationModuleType.Memory }));
     }));
 
     test('delete - Should throw error as delete operation is not supported', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(MainConfigurationService, { appConfiguration: { path: userConfigURI } });
         (await service.init().unwrap());
 
-        await assert.rejects(() => service.delete('section'));
+        await assert.rejects(() => service.delete('section', { type: ConfigurationModuleType.Memory }));
     }));
 
     test('onDidConfigurationChange - DefaultConfiguration self update', () => FakeAsync.run(async () => {
@@ -331,14 +331,14 @@ suite('BrowserConfigurationService', () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         (await service.init().unwrap());
 
-        await assert.rejects(() => service.set('invalidSection', 'update user value'));
+        await assert.rejects(() => service.set('invalidSection', 'update user value', { type: ConfigurationModuleType.Memory }));
     }));
 
     test('set - cannot update when the value is not valid', () => FakeAsync.run(async () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         (await service.init().unwrap());
 
-        await assert.rejects(() => service.set('section', 42)); // should be string
+        await assert.rejects(() => service.set('section', 42, { type: ConfigurationModuleType.Memory })); // should be string
     }));
 
     test('delete - in memory changes but file did not change', () => FakeAsync.run(async () => {

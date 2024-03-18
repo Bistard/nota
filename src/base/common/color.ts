@@ -1,7 +1,8 @@
 import { memoize } from "src/base/common/memoization";
 import { CharCode } from "src/base/common/utilities/char";
 import { Numbers } from "src/base/common/utilities/number";
-import { DightInString } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
+import { Dictionary, DightInString } from "src/base/common/utilities/type";
 
 /**
  * ANSI escape color codes for foreground color.
@@ -50,7 +51,6 @@ export const enum ASNIBackgroundColor {
 }
 
 export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
-
 
 export namespace TextColors {
 	/**
@@ -102,6 +102,8 @@ export type HexColor<T extends string> =
             )
         )
         : never;
+
+export type ColorMap = Dictionary<string, RGBA>;
 
 export class RGBA {
 
@@ -218,7 +220,7 @@ function __getHexDight(char: number): number {
 		return char - CharCode.A + 10;
 	}
 
-	throw new Error(`invalid hex digit ${char}.`);
+	panic(`invalid hex digit ${char}.`);
 }
 
 function __roundFloat(number: number, decimalPoints: number): number {

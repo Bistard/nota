@@ -4,50 +4,109 @@ import { nullObject, shouldThrow } from 'test/utils/helpers';
 
 suite('object-test', () => {
 
-    test('mixin', () => {
-        // no overwrite
-        let destination: any = {};
-        let source: any = {
-            a: 1,
-            b: 'b',
-            c: undefined
-        };
-        mixin(destination, source, false);
-        assert.deepStrictEqual(destination, source);
+    suite('mixin', () => {
+        
+        test('basics', () => {
+            // no overwrite
+            let destination: any = {};
+            let source: any = {
+                a: 1,
+                b: 'b',
+                c: undefined
+            };
+            mixin(destination, source, false);
+            assert.deepStrictEqual(destination, source);
+    
+            // overwrite
+            destination = {
+                a: 2,
+            };
+            source = {
+                a: 1,
+                b: 'b',
+                c: undefined
+            };
+            mixin(destination, source, true);
+            assert.deepStrictEqual(destination, source);
+    
+            // complicated overwrite
+            destination = {
+                a: {
+                    d: null,
+                    e: {}
+                },
+                b: Symbol('a'),
+                d: undefined
+            };
+            source = {
+                a: {
+                    d: 0,
+                    e: undefined
+                },
+                b: 'b',
+                c: undefined
+            };
+            mixin(destination, source, true);
+            assert.deepStrictEqual(destination, mixin(source, { d: undefined }));
+        });
 
-        // overwrite
-        destination = {
-            a: 2,
-        };
-        source = {
-            a: 1,
-            b: 'b',
-            c: undefined
-        };
-        mixin(destination, source, true);
-        assert.deepStrictEqual(destination, source);
+        test('should copy properties from source to destination', () => {
+            const dest = { a: 1 };
+            const src = { b: 2 };
+            const result = mixin(dest, src);
+            assert.deepStrictEqual(result, { a: 1, b: 2 });
+        });
 
-        // complicated overwrite
-        destination = {
-            a: {
-                d: null,
-                e: {}
-            },
-            b: Symbol('a'),
-            d: undefined
-        };
-        source = {
-            a: {
-                d: 0,
-                e: undefined
-            },
-            b: 'b',
-            c: undefined
-        };
-        mixin(destination, source, true);
-        assert.deepStrictEqual(destination, mixin(source, { d: undefined }));
+        test('should overwrite existing properties if overwrite is true', () => {
+            const dest = { a: 1 };
+            const src = { a: 2 };
+            const result = mixin(dest, src, true);
+            assert.deepStrictEqual(result, { a: 2 });
+        });
+
+        test('should not overwrite existing properties if overwrite is false', () => {
+            const dest = { a: 1 };
+            const src = { a: 2 };
+            const result = mixin(dest, src, false);
+            assert.deepStrictEqual(result, { a: 1 });
+        });
+
+        test('should ignore non-object source', () => {
+            const dest = { a: 1 };
+            const src = 2;
+            const result = mixin(dest, src);
+            assert.deepStrictEqual(result, dest);
+        });
+
+        test('should ignore non-object destination and return source', () => {
+            const dest = 1;
+            const src = { a: 2 };
+            const result = mixin(dest, src);
+            assert.deepStrictEqual(result, src);
+        });
+
+        test('should handle nested objects and overwrite by default', () => {
+            const dest = { a: { b: 1 } };
+            const src = { a: { b: 2 } };
+            const result = mixin(dest, src);
+            assert.deepStrictEqual(result, { a: { b: 2 } });
+        });
+
+        test('should handle nested objects and not overwrite if specified', () => {
+            const dest = { a: { b: 1 } };
+            const src = { a: { b: 2 } };
+            const result = mixin(dest, src, false);
+            assert.deepStrictEqual(result, { a: { b: 1 } });
+        });
+
+        test('should prevent prototype pollution', () => {
+            const dest = {};
+            const src = JSON.parse('{"__proto__": {"polluted": "yes"}}');
+            mixin(dest, src);
+            assert.strictEqual(({})['polluted'], undefined);
+        });
     });
-
+    
     test('deepCopy', () => {
         const getObj = () => {
             return {

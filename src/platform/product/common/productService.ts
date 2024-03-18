@@ -7,6 +7,7 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IProductProfile, productProfileSchema } from "src/platform/product/common/product";
+import { panic } from "src/base/common/utilities/panic";
 
 export const IProductService = createService<IProductService>('product-service');
 
@@ -39,7 +40,7 @@ export class ProductService implements IProductService {
 
     get profile(): IProductProfile {
         if (!this._profile) {
-            throw new Error('cannot get profile because the product service is not initialized.');
+            panic('cannot get profile because the product service is not initialized.');
         }
         return this._profile;
     }

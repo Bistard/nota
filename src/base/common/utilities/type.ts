@@ -448,6 +448,22 @@ export function checkTrue<T extends true>(): void { }
 export function checkFalse<T extends false>(): void { }
 
 /**
+ * @description Checks if the provided value is "truthy". A "truthy" value is 
+ * any value that is considered true when evaluated in a boolean context.
+ */
+export function isTruthy(value: any): boolean {
+    return !!value;
+}
+
+/**
+ * @description Checks if the provided value is "falsy". A "falsy" value is any 
+ * value that is considered false when evaluated in a boolean context.
+ */
+export function isFalsy(value: any): boolean {
+    return !value;
+}
+
+/**
  * @description Is the given variable is a primitive type: number , string , 
  * boolean , null , undefined , symbol or bigint.
  */

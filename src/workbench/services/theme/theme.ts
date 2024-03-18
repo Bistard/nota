@@ -1,15 +1,21 @@
-import { RGBA } from "src/base/common/color";
 import { Disposable } from "src/base/common/dispose";
-import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 
-export interface IColorTheme {
-    /**
-     * The name of the theme.
-     */
-    readonly name: ColorThemeType;
+/**
+ * The type of the theme. This is useful to categorize themes.
+ */
+export const enum ColorThemeType {
+    Light = 'light',
+    Dark = 'dark',
+}
 
-    getColor(id: string, useDefault?: boolean): RGBA;
+/**
+ * A list of preset themes.
+ */
+export const enum PresetColorTheme {
+    LightModern = 'lightModern',
+    DarkModern = 'DarkModern',
 }
 
 /**
@@ -23,7 +29,7 @@ export abstract class Themable extends Disposable {
     constructor(themeService: IThemeService) {
         super();
         this.themeService = themeService;
-        this._theme = this.themeService.getTheme();
+        this._theme = this.themeService.getCurrTheme();
         this.__register(themeService.onDidChangeTheme(newTheme => this.__onThemeChange(newTheme)));
     }
 

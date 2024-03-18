@@ -22,6 +22,7 @@ export const selectAllContent = (new class extends EditorViewCommand {
                 shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
                 weight: ShortcutWeight.Editor,
                 when: null,
+                commandArgs: [],
             }
         });
     }
@@ -61,6 +62,7 @@ export const deleteCurrentSelection = (new class extends EditorViewCommand {
                 shortcut: new Shortcut(false, false, false, false, KeyCode.Delete),
                 weight: ShortcutWeight.Editor,
                 when: null,
+                commandArgs: [],
             }
         });
     }

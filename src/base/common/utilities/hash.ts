@@ -1,5 +1,8 @@
 import * as CryptoJS from 'crypto-js';
 
+export type HashNumber = number;
+export type HashString = string;
+
 /**
  * @description Hashes a given string into number.
  * @param s The given string.

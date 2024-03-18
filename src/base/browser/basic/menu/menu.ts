@@ -12,6 +12,7 @@ import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { RGBA } from "src/base/common/color";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
@@ -173,7 +174,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
     public build(actions: MenuAction[]): void {
         if (this._built) {
-            throw new Error('Menu cannot build twice.');
+            panic('Menu cannot build twice.');
         }
         this.insert(actions);
         this._built = true;

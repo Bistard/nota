@@ -5,6 +5,7 @@ import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import type { ServerBase } from "src/platform/ipc/common/net";
 import { IService } from "src/platform/instantiation/common/decorator";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * A namespace that provide functionalities to proxy microservices into different
@@ -41,7 +42,7 @@ export namespace ProxyChannel {
             callCommand: <T>(_serverOrClientID: string, command: string, args?: any[]): Promise<T> => {
                 const value = object[command];
                 if (typeof value !== 'function') {
-                    throw new Error(`Command not found: ${command}`);
+                    panic(`Command not found: ${command}`);
                 }
 
                 if (opts?.revivers?.enableRevivier && Array.isArray(args)) {
@@ -56,7 +57,7 @@ export namespace ProxyChannel {
             registerListener: <T>(_serverOrClientID: string, event: string, _arg?: any): Register<T> => {
                 const register = eventRegisters.get(event);
                 if (!register) {
-                    throw new Error(`Event not found: ${event}`);
+                    panic(`Event not found: ${event}`);
                 }
                 return register as Register<T>;
             },
@@ -85,7 +86,7 @@ export namespace ProxyChannel {
             <T>{}, {
             get: (_target: T, propName: string | symbol): unknown => {
                 if (typeof propName !== 'string') {
-                    throw new Error(`Property not found: ${String(propName)}`);
+                    panic(`Property not found: ${String(propName)}`);
                 }
 
                 const propValue = opt?.propValues?.get(propName);

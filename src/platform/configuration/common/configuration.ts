@@ -31,7 +31,8 @@ export interface IConfigurationService extends IDisposable, IService {
     readonly appConfigurationPath: URI;
 
     /**
-     * Fires whenever the configuraion has changed.
+     * Fires when the configuraion has changed. Any of {@link ConfigurationModuleType}
+     * type of update will trigger this event.
      */
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
 
@@ -64,7 +65,7 @@ export interface IConfigurationService extends IDisposable, IService {
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is null, it overries the entire configuration.
      */
-    set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
+    set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Delete the configuration under the provided section.
@@ -73,7 +74,7 @@ export interface IConfigurationService extends IDisposable, IService {
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
-    delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+    delete(section: Section, options: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Saves the configuration.

@@ -6,6 +6,7 @@ import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link SplitView}.
@@ -374,7 +375,7 @@ export class SplitView extends Disposable implements ISplitView {
 
         if (low.length + normal.length + high.length === 0) {
             if (splitViewSize !== 0) {
-                throw new SplitViewSpaceError(splitViewSize, currContentSize);
+                panic(new SplitViewSpaceError(splitViewSize, currContentSize));
             }
             return;
         }
@@ -404,7 +405,7 @@ export class SplitView extends Disposable implements ISplitView {
             if (offset === 0) { return; }
             
             // flexible views try their best but still too big to be hold.
-            throw new SplitViewSpaceError(splitViewSize, splitViewSize + offset);
+            panic(new SplitViewSpaceError(splitViewSize, splitViewSize + offset));
         }
 
         // left-most flexible views need to be increased to fit the whole split-view.
@@ -429,7 +430,7 @@ export class SplitView extends Disposable implements ISplitView {
             if (offset === 0) { return; }
 
             // flexible views try their best but still too small to fit the entire view.
-            throw new SplitViewSpaceError(splitViewSize, splitViewSize - offset);
+            panic(new SplitViewSpaceError(splitViewSize, splitViewSize - offset));
         }
     }
 
@@ -472,7 +473,7 @@ export class SplitView extends Disposable implements ISplitView {
         const beforeIdx = this.sashItems.indexOf(sash);
         
         if (beforeIdx === -1) {
-            throw new Error('cannot find the given sash');
+            panic('cannot find the given sash');
         }
 
         return [this.viewItems[beforeIdx]!, this.viewItems[beforeIdx + 1]!];
@@ -498,7 +499,7 @@ export class SplitView extends Disposable implements ISplitView {
             offset += currItem.getSize();
         }
 
-        throw new Error(`view not found in split-view: ${viewItem}`);
+        panic(`view not found in split-view: ${viewItem}`);
     }
 
     /**

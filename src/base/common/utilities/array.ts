@@ -1,3 +1,4 @@
+import { dfs as dfsRaw, bfs as bfsRaw } from "src/base/common/utilities/function";
 import { panic } from "src/base/common/utilities/panic";
 import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
@@ -106,6 +107,32 @@ export namespace Arrays {
     }
 
     /**
+     * @description Performs a depth-first search (DFS) on an array.
+     * @param arr The array for the DFS.
+     * @param visit A function to visit on each node.
+     * @param getChildren A function that returns an array of child nodes for the 
+     *                    given node.
+     */
+    export function dfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+        for (const node of arr) {
+            dfsRaw(node, visit, getChildren);
+        }
+    }
+    
+    /**
+     * @description Performs a breadth-first search (DFS) on an array.
+     * @param arr The array for the BFS.
+     * @param visit A function to visit on each node.
+     * @param getChildren A function that returns an array of child nodes for the 
+     *                    given node.
+     */
+    export function bfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+        for (const node of arr) {
+            bfsRaw(node, visit, getChildren);
+        }
+    }
+
+    /**
      * @description Try to removes the first given item from the given array (
      * will mutate the original array).
      * @param array The given array.
@@ -129,12 +156,17 @@ export namespace Arrays {
      * @param array The given array.
      * @param indice An array of indice at which elements should be removed. 
      *               Indices do not need to be in any particular order.
+     * @param sort If to sort the given indice in descending order. If the 
+     *             original indice is already sorted, set this to false. Default
+     *             is true.
      * @returns Returns the same array.
      */
-    export function removeByIndex<T>(array: T[], indice: number[]): T[] {
+    export function removeByIndex<T>(array: T[], indice: number[], sort: boolean = true): T[] {
         
         // Sort the indexes in descending order
-        indice = indice.sort((a, b) => b - a);
+        if (sort) {
+            indice = indice.sort((a, b) => b - a);
+        }
 
         for (const index of indice) {
             if (index >= 0 && index < array.length) {
@@ -222,6 +254,69 @@ export namespace Arrays {
         }
 
         return array;
+    }
+
+    /**
+     * @description Inserts multiple items into an array at specified indice,
+     * modifying the original array.
+     *
+     * @param arr The original array to be modified.
+     * @param items An array of items to be inserted.
+     * @param indice An array of indice at which the corresponding items from 
+     *               `items` should be inserted. The indice refer to 
+     *               positions in the array before any insertions have taken 
+     *               place.
+     *
+     * @panic If items and indice does not have the same length, or the indice 
+     *        is out of range.
+     * 
+     * @example
+     * // The array `arr` is modified in place to become [0, 1, 2, 3, 4]
+     * const arr = [1, 4];
+     * insertMultiple(arr, [0, 2, 3], [0, 1, 1]);
+     */
+    export function insertMultiple<T>(array: T[], items: T[], indice: number[]): void {
+        if (items.length !== indice.length) {
+            panic('[insertMultiple] items and indice must have the same length');
+        }
+        
+        let offset = 0;
+        for (let i = 0; i < indice.length; i++) {
+            const index = indice[i]! + offset;
+            if (index < 0 || index > array.length) {
+                panic('[insertMultiple] Index out of range');
+            }
+            
+            const item = items[i]!;
+            array.splice(index, 0, item);
+            offset++;
+        }
+    }
+
+    /**
+     * @description Groups elements of an array based on a given key and returns 
+     * a map of the groups.
+     * @template T The type of elements in the input array.
+     * @template K The type of the key by which the array is grouped.
+     * @param array The array of elements to be grouped.
+     * @param getKey A function that computes the grouping key for each element.
+     * @returns A map where each key is a grouping key and the value is an array 
+     * of elements that share that key.
+     */
+    export function group<T, K>(array: ReadonlyArray<T>, getKey: (item: T) => K): Map<K, T[]> {
+        const map = new Map<K, T[]>();
+    
+        for (const item of array) {
+            const key = getKey(item);
+            const collection = map.get(key);
+            if (!collection) {
+                map.set(key, [item]);
+            } else {
+                collection.push(item);
+            }
+        }
+    
+        return map;
     }
 
     /**

@@ -131,7 +131,39 @@ suite('array-test', () => {
             Arrays.parallelEach([nums, strs, bools], () => {});
           }, /All arrays must have the same length/);
         });
-      });
+    });
+
+    suite('dfs', () => {
+        test('DFS should visit all nodes', () => {
+            const nodes = ['a', 'b', 'c'];
+            const visited: string[] = [];
+            Arrays.dfs(nodes, node => visited.push(node), node => []);
+            assert.deepEqual(visited, nodes);
+        });
+
+        test('DFS should follow child nodes', () => {
+            const nodes = { a: ['b'], b: ['c'], c: [] };
+            const visited: string[] = [];
+            Arrays.dfs(['a'], node => visited.push(node), node => nodes[node]);
+            assert.deepEqual(visited, ['a', 'b', 'c']);
+        });
+    });
+
+    suite('bfs', () => {
+        test('BFS should visit all nodes', () => {
+            const nodes = ['a', 'b', 'c'];
+            const visited: string[] = [];
+            Arrays.bfs(nodes, node => visited.push(node), node => []);
+            assert.deepEqual(visited, nodes);
+        });
+
+        test('BFS should visit nodes level by level', () => {
+            const nodes = { a: ['b', 'c'], b: ['d'], c: [], d: [] };
+            const visited: string[] = [];
+            Arrays.bfs(['a'], node => visited.push(node), node => nodes[node]);
+            assert.deepEqual(visited, ['a', 'b', 'c', 'd']);
+        });
+    });
 
     test('reverseIterate', () => {
         const arr = [1, 2, 3, 4, 5];
@@ -195,6 +227,89 @@ suite('array-test', () => {
         test('should handle insertion of empty elements array', function () {
             const result = Arrays.insertSequence([1, 2, 3], 2, []);
             assert.deepStrictEqual(result, [1, 2, 3]);
+        });
+    });
+
+    suite('insertMultiple', function() {
+        
+        test('should insert single item at specified index', function() {
+            const arr = [1, 4];
+            Arrays.insertMultiple(arr, [0], [0]);
+            assert.deepEqual(arr, [0, 1, 4]);
+            
+            Arrays.insertMultiple(arr, [2], [2]);
+            assert.deepEqual(arr, [0, 1, 2, 4]);
+            
+            Arrays.insertMultiple(arr, [3], [3]);
+            assert.deepEqual(arr, [0, 1, 2, 3, 4]);
+            
+            Arrays.insertMultiple(arr, [5], [5]);
+            assert.deepEqual(arr, [0, 1, 2, 3, 4, 5]);
+        });
+
+        test('should insert items at specified indices', function() {
+            const arr = [1, 4];
+            Arrays.insertMultiple(arr, [0, 2, 3], [0, 1, 1]);
+            assert.deepEqual(arr, [0, 1, 2, 3, 4]);
+        });
+    
+        test('should handle empty arrays', function() {
+            const arr: number[] = [];
+            Arrays.insertMultiple(arr, [1, 2], [0, 0]);
+            assert.deepEqual(arr, [1, 2]);
+        });
+    
+        test('should handle insertion at the end', function() {
+            const arr = [1, 2];
+            Arrays.insertMultiple(arr, [3, 4], [2, 2]);
+            assert.deepEqual(arr, [1, 2, 3, 4]);
+        });
+    
+        test('should not alter the array if indices array is empty', function() {
+            const arr = [1, 2, 3];
+            Arrays.insertMultiple(arr, [], []);
+            assert.deepEqual(arr, [1, 2, 3]);
+        });
+    
+        test('should throw an error for out of range indices', function() {
+            const arr = [1, 2, 3];
+            assert.throws(() => Arrays.insertMultiple(arr, [4], [5]), Error);
+        });
+    });
+    
+    suite('group', function () {
+
+        test('should group numbers by even and odd', function () {
+            const numbers = [1, 2, 3, 4, 5, 6];
+            const grouped = Arrays.group(numbers, item => item % 2 === 0 ? 'even' : 'odd');
+            assert.deepStrictEqual(grouped.get('even'), [2, 4, 6]);
+            assert.deepStrictEqual(grouped.get('odd'), [1, 3, 5]);
+        });
+
+        test('should return an empty map for an empty array', function () {
+            const emptyArray: number[] = [];
+            const grouped = Arrays.group(emptyArray, item => item);
+            assert.strictEqual(grouped.size, 0);
+        });
+
+        test('should group strings by their first letter', function () {
+            const strings = ['apple', 'banana', 'apricot', 'cherry', 'avocado'];
+            const grouped = Arrays.group(strings, item => item[0]);
+            assert.deepStrictEqual(grouped.get('a'), ['apple', 'apricot', 'avocado']);
+            assert.deepStrictEqual(grouped.get('b'), ['banana']);
+            assert.deepStrictEqual(grouped.get('c'), ['cherry']);
+        });
+
+        test('should handle grouping with custom objects', function () {
+            type Fruit = { name: string, color: string; };
+            const fruits: Fruit[] = [
+                { name: 'apple', color: 'red' },
+                { name: 'strawberry', color: 'red' },
+                { name: 'banana', color: 'yellow' }
+            ];
+            const grouped = Arrays.group(fruits, item => item.color);
+            assert.deepStrictEqual(grouped.get('red'), [{ name: 'apple', color: 'red' }, { name: 'strawberry', color: 'red' }]);
+            assert.deepStrictEqual(grouped.get('yellow'), [{ name: 'banana', color: 'yellow' }]);
         });
     });
 
