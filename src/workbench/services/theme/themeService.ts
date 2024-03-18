@@ -28,7 +28,7 @@ export const IThemeService = createService<IThemeService>('theme-service');
 /**
  * An interface only for {@link ThemeService}.
  */
-export interface IThemeService extends IService {
+export interface IThemeService extends Disposable, IService {
 
     /**
      * The root path that stores all the theme files (JSON files).
@@ -103,17 +103,17 @@ export class ThemeService extends Disposable implements IThemeService {
     private readonly _initProtector: InitProtector;
     
     private readonly _presetThemes: Map<string, IColorTheme>;
-    private _currentTheme?: IColorTheme;
     private readonly defaultColors = defaultThemeColors;
+    private _currentTheme?: IColorTheme;
 
     // [constructor]
 
     constructor(
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IRegistrantService private readonly registrantService: IRegistrantService,
+        @IRegistrantService registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
-        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
+        @IBrowserEnvironmentService environmentService: IBrowserEnvironmentService,
         @INotificationService private readonly notificationService: INotificationService,
     ) {
         super();
@@ -221,10 +221,10 @@ export class ThemeService extends Disposable implements IThemeService {
             cssRules.add(`:root { --${colorName}: ${colorValue}; }`); // REVIEW
         });
         const cssString = Array.from(cssRules).join('\n');
-        this.applyRules(cssString, theme.name); 
+        this.__applyRules(cssString, theme.name); 
     }
 
-    private applyRules(styleSheetContent: string, rulesClassName: string): void {
+    private __applyRules(styleSheetContent: string, rulesClassName: string): void {
         const themeStyles = document.head.getElementsByClassName(rulesClassName);
     
         if (themeStyles.length === 0) {
