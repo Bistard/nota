@@ -1,7 +1,6 @@
 import { ColorMap, RGBA } from "src/base/common/color";
 import { iterProp } from "src/base/common/utilities/object";
 import { assert } from "src/base/common/utilities/panic";
-import { StringDictionary } from "src/base/common/utilities/type";
 import { ColorThemeType } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
 

@@ -1,5 +1,5 @@
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
-import { THEME_COLORS } from "../theme/themeColors";
+import { THEME_COLORS } from "../theme/themeDefaults";
 
 export const rendererDarkThemeColorRegister = createRegister(
     RegistrantType.Color,
