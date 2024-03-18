@@ -5,7 +5,7 @@ import { ColorThemeType } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
 
 /**
- * A {@link IColorTheme} is a data structure that is consructed from a valid
+ * A {@link IColorTheme} is a data structure that is constructed from a valid
  * JSON file. It contains color data for every UI components.
  */
 export interface IColorTheme {
