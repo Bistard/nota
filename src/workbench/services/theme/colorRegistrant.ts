@@ -2,6 +2,10 @@ import { ColorMap, RGBA } from "src/base/common/color";
 import { panic } from "src/base/common/utilities/panic";
 import { Dictionary } from "src/base/common/utilities/type";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { rendererThemeLocationRegister } from "../workbench/location.color.register";
+import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { rendererLightThemeColorRegister } from "../workbench/light.color.register";
+import { rendererDarkThemeColorRegister } from "../workbench/dark.color.register";
 
 /**
  * An interface only for {@link ColorRegistrant}
@@ -58,8 +62,10 @@ export class ColorRegistrant implements IColorRegistrant{
 
     // [public methods]
 
-    public initRegistrations(): void {
-        // noop
+    public initRegistrations(provider: IServiceProvider): void {
+        rendererThemeLocationRegister(provider);
+        rendererLightThemeColorRegister(provider);
+        rendererDarkThemeColorRegister(provider);
     }
 
     public registerColor(themeID: string, location: string, color: RGBA): void {

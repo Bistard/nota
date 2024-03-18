@@ -20,6 +20,7 @@ import { assert, panic } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { mixin } from "src/base/common/utilities/object";
 import { ColorMap } from "src/base/common/color";
+import { INotificationService } from "../notification/notificationService";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -112,6 +113,7 @@ export class ThemeService extends Disposable implements IThemeService {
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
+        @INotificationService private readonly notificationService: INotificationService,
     ) {
         super();
         this._initProtector = new InitProtector();
@@ -164,8 +166,17 @@ export class ThemeService extends Disposable implements IThemeService {
                 (error) => {
                     this.logService.error("themeService", `Cannot switch to the theme '${id}'. The reason is:`, error);
                     
-                    // TODO: Send notification
-                    
+                    // Send notification
+                    this.notificationService.notify({
+                        message: `Failed to switch to theme '${id}'. Please check the theme settings and try again.`,
+                        actions: [{
+                            label: 'Dismiss',
+                            run: () => { /* Add actions if needed */ },
+                            // notificationBackground: '#f44336',
+                            // notificationForeground: '#ffffff'
+                        }]
+                    });
+
                     if (!this._currentTheme) {
                         // If there's no current theme, use a preset theme.
                         const presetTheme = assert(this._presetThemes.get(PresetColorTheme.LightModern));
