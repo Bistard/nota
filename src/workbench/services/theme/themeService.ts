@@ -14,14 +14,14 @@ import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, isObject, isString } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
-import { ColorRegistrant } from "./colorRegistrant";
-import { defaultThemeColors } from './themeDefaults';
 import { assert, panic } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { mixin } from "src/base/common/utilities/object";
 import { ColorMap } from "src/base/common/color";
-import { INotificationService } from "../notification/notificationService";
 import { noop } from "src/base/common/performance";
+import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
+import { defaultThemeColors } from "src/workbench/services/theme/themeDefaults";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 

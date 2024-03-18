@@ -1,6 +1,6 @@
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
-import { THEME_COLORS } from "../theme/themeDefaults";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
+import { THEME_COLORS } from "src/workbench/services/theme/themeDefaults";
 
 export const rendererDarkThemeColorRegister = createRegister(
     RegistrantType.Color,
