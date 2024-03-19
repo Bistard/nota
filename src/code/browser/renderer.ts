@@ -120,7 +120,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             Error.stackTraceLimit = Infinity;
         }
         
-        // universal on unexpected error hanlding callback
+        // universal on unexpected error handling callback
         const onUnexpectedError = (error: any, additionalMessage?: any) => {
             if (this.logService) {
                 const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));

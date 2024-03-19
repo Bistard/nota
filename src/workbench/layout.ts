@@ -17,6 +17,7 @@ import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
+import { assert } from "src/base/common/utilities/panic";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -73,7 +74,8 @@ export abstract class WorkbenchLayout extends Component {
         // window resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
-            this._splitView?.layout(this.dimension!.width, this.dimension!.height);
+            const dimension = assert(this.dimension);
+            this._splitView?.layout(dimension.width, dimension.height);
         }));
 
         /**
@@ -91,6 +93,7 @@ export abstract class WorkbenchLayout extends Component {
 
     private __registerSideViews(): void {
         this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
+        // TODO: others are also registered here.
     }
 
     private __assemblyWorkbenchParts(): void {
@@ -177,7 +180,7 @@ class SideBarBuilder {
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
                         getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),
-                        // TODO
+                        // TODO: this is only for test purpose
                         getActions: () => {
                             return [
                                 new SimpleMenuAction({
