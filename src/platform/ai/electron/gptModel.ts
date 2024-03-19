@@ -4,37 +4,7 @@ import { AsyncResult, Result } from "src/base/common/result";
 import { Agent } from "http";
 import { panic } from "src/base/common/utilities/panic";
 import { ArrayToUnion } from "src/base/common/utilities/type";
-import { IAICoreModel, IAIResponseTextMessage, IAIRequestTextMessage, IAIRequestTokenUsage, IAITextResponse, IAiTextRequestOpts, MessageResponseRole } from "src/platform/ai/electron/mainAiCoreService";
-
-export interface IAICoreModelOpts {
-
-    apiKey: string;
-
-    /**
-     * The maximum number of times that the client will retry a request in case of a
-     * temporary failure, like a network error or a 5XX error from the server.
-     *
-     * @default 2
-     */
-    maxRetries?: number;
-
-    /**
-     * The maximum amount of time (in milliseconds) that the client should wait for a response
-     * from the server before timing out a single request.
-     *
-     * Note that request timeouts are retried by default, so in a worst-case scenario you may wait
-     * much longer than this timeout before the promise succeeds or fails.
-     */
-    timeout?: number;
-
-    /**
-     * An HTTP agent used to manage HTTP(S) connections.
-     *
-     * If not provided, an agent will be constructed by default in the Node.js environment,
-     * otherwise no agent is used.
-     */
-    httpAgent?: Agent;
-}
+import { IAICoreModel, IAICoreModelOpts, IAIRequestTextMessage, IAIRequestTokenUsage, IAIResponseTextMessage, IAITextResponse, IAiTextRequestOpts, MessageResponseRole } from "src/platform/ai/electron/ai";
 
 export class GPTModel extends Disposable implements IAICoreModel {
     
@@ -168,25 +138,6 @@ export class GPTModel extends Disposable implements IAICoreModel {
             promptTokens: usage.prompt_tokens,
             totalTokens: usage.total_tokens
         };
-    }
-
-
-    private __createCompletionTextMessage(choice: OpenAI.Chat.Completions.ChatCompletion.Choice): IAIResponseTextMessage {
-        return this.__createTextMessage(
-            choice,
-            choice => choice.message.content,
-            choice => choice.message.role,
-            choice => choice.finish_reason,
-        );
-    }
-    
-    private __createCompletionChunkTextMessage(choice: OpenAI.Chat.Completions.ChatCompletionChunk.Choice): IAIResponseTextMessage {
-        return this.__createTextMessage(
-            choice,
-            choice => choice.delta.content,
-            choice => choice.delta.role,
-            choice => choice.finish_reason,
-        );
     }
 
     private __createTextMessage<TChoice>(
