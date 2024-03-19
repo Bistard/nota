@@ -465,6 +465,101 @@ suite('fileTreeCustomSorter-test', () => {
                 ), 'items and indice should have the same length');
             });
         });
+
+        suite('moveLot', () => {
+
+            async function assertMoveLotAction(parentName: string | 'root', moveIdx: number[], destination: number, resultMetadata: string[]): Promise<void> {
+                await assertMetadataAction({
+                    action: async root => {
+                        const parentItem = parentName === 'root' ? root : __getFileItemBy(root, parentName);
+                        await sorter.updateMetadataLot(OrderChangeType.Move, parentItem, moveIdx, destination).unwrap();
+                    },
+                    assertFn: async () => {
+                        await assertMetadataInDisk(
+                            URI.join(rootURI, 'root', parentName === 'root' ? '' : parentName), true,
+                            resultMetadata,
+                        );
+                    },
+                });
+            }
+            
+            test('Move: not moving anything', async () => {
+                await assertMoveLotAction('root', 
+                    [], 0, 
+                    ['folder1', 'folder2', 'file1', 'file2', 'file3'],
+                );
+            });
+
+            test('Move: move a single item', async () => {
+                await assertMoveLotAction('root', 
+                    [0], 5, 
+                    ['folder2', 'file1', 'file2', 'file3', 'folder1'],
+                );
+            });
+
+            test('Move: move mutiple items (files go first)', async () => {
+                await assertMoveLotAction('root', 
+                    [2, 3, 4], 0, 
+                    ['file1', 'file2', 'file3', 'folder1', 'folder2'],
+                );
+            });
+            
+            test('Move: move mutiple items (move files to the middle)', async () => {
+                await assertMoveLotAction('root', 
+                    [2, 3, 4], 1, 
+                    ['folder1', 'file1', 'file2', 'file3', 'folder2'],
+                );
+            });
+            
+            test('Move: not move under sub folder', async () => {
+                await assertMoveLotAction('folder1', 
+                    [], 0, 
+                    ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+                );
+            });
+            
+            test('Move: move under sub folder (first to first) (case1)', async () => {
+                await assertMoveLotAction('folder1', 
+                    [0], 0, 
+                    ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+                );
+            });
+            
+            test('Move: move under sub folder (first to first) (case 2)', async () => {
+                await assertMoveLotAction('folder1', 
+                    [0], 1, 
+                    ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+                );
+            });
+            
+            test('Move: move under sub folder (case 3)', async () => {
+                await assertMoveLotAction('folder1', 
+                    [0], 2, 
+                    ['folder1_file2', 'folder1_file1', 'folder1_file3'],
+                );
+            });
+            
+            test('Move: move under sub folder (case 4)', async () => {
+                await assertMoveLotAction('folder1', 
+                    [0, 1], 3, 
+                    ['folder1_file3', 'folder1_file1', 'folder1_file2'],
+                );
+            });
+            
+            test('Move: move the whole folder', async () => {
+                await assertMoveLotAction('folder1', 
+                    [0, 1, 2], 2, 
+                    ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+                );
+            });
+            
+            test('Move: move the whole folder (index order does not matter)', async () => {
+                await assertMoveLotAction('folder1', 
+                    [2, 0, 1], 2, 
+                    ['folder1_file1', 'folder1_file2', 'folder1_file3'],
+                );
+            });
+        });
     });
 
     suite('updateDirectoryMetadata', () => {
