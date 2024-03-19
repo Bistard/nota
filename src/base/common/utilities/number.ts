@@ -34,6 +34,8 @@ export namespace Numbers {
     /**
      * @description Restricts the given number to a given range.
      * @param num The given number.
+     * @param min The minimum boundary.
+     * @param max The maximum boundary.
      */
     export function clamp(num: number, min: number, max: number): number {
         if (num <= min) {

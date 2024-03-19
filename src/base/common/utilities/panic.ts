@@ -47,6 +47,22 @@ export function assert<T>(obj: any, message?: string): T {
 }
 
 /**
+ * @description Asserts that an object is of a specific type. If the assertion 
+ * fails, the function panic.
+ * 
+ * @param obj The object to assert.
+ * @param assert A predicate function that checks if the object is of type T.
+ * @param message Optional. The custom error message
+ * @panic 
+ */
+export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?: string): T {
+    if (assert(obj)) {
+        return obj;
+    }
+    panic(message ?? `assert error: ${obj}`);
+}
+
+/**
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.
  * @param verbose If output the stack trace.

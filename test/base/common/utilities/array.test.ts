@@ -168,7 +168,7 @@ suite('array-test', () => {
             const result = Arrays.relocateByIndex(array, [1, 3], 0);
             assert.deepStrictEqual(result, [2, 4, 1, 3, 5]);
         });
-
+        
         test('moves elements to middle of array', function () {
             const array = ['a', 'b', 'c', 'd', 'e', 'f'];
             const result = Arrays.relocateByIndex(array, [0, 5], 3);
@@ -185,6 +185,12 @@ suite('array-test', () => {
             const array = ['a', 'b', 'c', 'd', 'e'];
             const result = Arrays.relocateByIndex(array, [3, 4], 1);
             assert.deepStrictEqual(result, ['a', 'd', 'e', 'b', 'c']);
+        });
+
+        test('moves 1st element to the 1st', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [0], 0);
+            assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
         });
     });
 
