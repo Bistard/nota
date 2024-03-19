@@ -1,4 +1,5 @@
 import { dfs as dfsRaw, bfs as bfsRaw } from "src/base/common/utilities/function";
+import { Numbers } from "src/base/common/utilities/number";
 import { panic } from "src/base/common/utilities/panic";
 import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
@@ -206,7 +207,7 @@ export namespace Arrays {
 
             itemsToMove.push(array[index]!);
             if (index <= destination) {
-                destination -= 1;
+                destination = Math.max(destination - 1, 0);
             }
         }
 
