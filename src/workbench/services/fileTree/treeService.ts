@@ -238,35 +238,34 @@ export interface IFileTreeService extends IDisposable, IService {
      *      items in the file tree, 
      *  - but DOES NOT move or modify the actual file or folder items on the 
      *      disk.
-     *  - this method does not trigger rerendering, the NEXT rendering will be 
-     *      affected.
+     *  - this method does not trigger rerendering, the effect will be shown on
+     *      the NEXT rendering.
      * 
      * @note This method directly manipulates the in-memory representation of 
      * the custom sorting metadata and then save these changes to disk. 
      *  - It is designed to be efficient by batching updates and minimizing disk 
      *      operations. 
      * 
-     * @note The 'Swap' operation type is intentionally excluded from this method 
-     * to simplify the API and avoid potential complexities. 
-     *  - If swapping is needed, it can be achieved through a combination of 
-     *      'Remove' and 'Add' operations.
-     * 
      * @note For 'Add' and 'Update' operations, the length of 'indice' must 
      *  match the length of the 'items'. 
      * 
      * @param type The type of change to apply to the metadata.
-     * @param items An array of {@link FileItem} objects that are subject to the 
+     * @param items For 'Add' and 'Update', an array of items involved in the 
      *              batch change.
-     * @param parent For 'Remove' operations, this parameter specifies the parent 
-     *               {@link FileItem} under which the items to be removed are 
-     *               located.
-     * @param indice An array of indices that correspond to the positions in the 
-     *               custom sorting order where the specified 'items' should be 
-     *               added, repositioned, or removed. 
+     * @param parent For 'Remove' and 'Move' types, specifies the parent 
+     *                  metadata from which items are removed or moved.
+     * @param indice For 'Add' and 'Update', specifies the indices where items 
+     *                  are added or updated.
+     *               For 'Remove', specifies the indices of items to remove.
+     *               For 'Move', specifies the current indices of items to move.
+     * @param destination Only for 'Move' type, specifies the new index within 
+     *              the parent metadata where the items should be moved to. 
+     *              Items retain their original order during the move.
      */
     updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
     updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
     updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
+    updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 
     /**
      * @description When moving or copying a directory, its corresponding 

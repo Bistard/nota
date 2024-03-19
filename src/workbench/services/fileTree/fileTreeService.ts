@@ -243,7 +243,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     public updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
     public updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
     public updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    public updateCustomSortingMetadata(type: OrderChangeType, itemsOrParent: FileItem[] | FileItem, indice: number[]): AsyncResult<void, Error | FileOperationError> {
+    public updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: any, itemsOrParent: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
         const sorter = this.__assertSorter();
         const customSorter = sorter.getCustomSorter();
         if (customSorter === null) {
@@ -251,7 +252,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         }
         
         // update metadata in a single batch
-        return customSorter.updateMetadataLot(type, itemsOrParent, indice);
+        return customSorter.updateMetadataLot(type, itemsOrParent, indice, destination);
     }
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
