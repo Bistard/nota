@@ -11,10 +11,15 @@ import { tryOrDefault } from "src/base/common/error";
 import { parse, posix } from "src/base/common/files/path";
 import { Strings } from "src/base/common/utilities/string";
 
+export interface IFileTarget {
+    readonly name: string;
+    readonly type: FileType;
+}
+
 /**
  * An interface only for {@link FileItem}.
  */
-export interface IFileItem<TItem extends IFileItem<TItem>> {
+export interface IFileItem<TItem extends IFileItem<TItem>> extends IFileTarget {
 
     /** 
      * The unique representation of the target. 

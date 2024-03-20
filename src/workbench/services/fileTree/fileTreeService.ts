@@ -455,5 +455,5 @@ async function __syncSorterMetadataBy(sorter: FileTreeSorter<FileItem>, folder: 
     }
     
     const customSorter = assert(sorter.getCustomSorter());
-    await customSorter.syncMetadataInCacheWithDisk(folder).unwrap();
+    await customSorter.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap();
 }

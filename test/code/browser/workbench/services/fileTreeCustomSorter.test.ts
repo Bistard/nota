@@ -34,7 +34,7 @@ suite('fileTreeCustomSorter-test', () => {
         sorter = new FileTreeCustomSorter({
             metadataRootPath: rootURI,
             hash: hash,
-            defaultComparator: defaultFileItemCompareFn,
+            defaultItemComparator: defaultFileItemCompareFn,
         }, fileService, new NullLogger());
         await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
     }
@@ -49,7 +49,7 @@ suite('fileTreeCustomSorter-test', () => {
      */
     const buildFileItem2 = (uri: URI) => buildFileItem(fileService, uri, {
         onError: error => console.log(error),
-        beforeCmp: async folder => await sorter.syncMetadataInCacheWithDisk(folder).unwrap(),
+        beforeCmp: async folder => await sorter.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap(),
         cmp: sorter.compare.bind(sorter),
     });
 

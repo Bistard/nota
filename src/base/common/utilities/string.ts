@@ -187,3 +187,24 @@ export namespace Strings {
  */
 export type UUID = string;
 
+/**
+ * @description Sorts two strings in ascending order.
+ * @param str1 The first string to compare.
+ * @param str2 The second string to compare.
+ * @returns A negative number if str1 should come before str2, a positive number 
+ *          if str1 should come after str2, or 0 if they are equal.
+ */
+export function sortStringsAsc(str1: string, str2: string): number {
+    return str1.localeCompare(str2);
+}
+
+/**
+ * @description Sorts two strings in descending order.
+ * @param str1 The first string to compare.
+ * @param str2 The second string to compare.
+ * @returns A positive number if str1 should come before str2, a negative number 
+ *          if str1 should come after str2, or 0 if they are equal.
+ */
+export function sortStringsDesc(str1: string, str2: string): number {
+    return str2.localeCompare(str1);
+}

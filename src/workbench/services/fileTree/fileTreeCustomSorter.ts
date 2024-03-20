@@ -11,7 +11,7 @@ import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
-import { IFileItem } from "src/workbench/services/fileTree/fileItem";
+import { IFileItem, IFileTarget } from "src/workbench/services/fileTree/fileItem";
 import { noop } from "src/base/common/performance";
 import { assert } from "src/base/common/utilities/panic";
 
@@ -137,21 +137,22 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     /**
      * @description Synchronizes the metadata in the cache for a given folder 
      * with the current state of its files on disk. 
-     * @param folder The folder whose metadata needs to be synchronized with its 
-     *               disk state.
+     * @param folderUri The folder whose metadata needs to be synchronized with 
+     *                  its disk state.
+     * @param folderChildren The children metadata for update.
      * 
      * @note This method aligns the metadata's custom sort order with the 
      *       current file arrangement on disk.
      * @note Invoke this only when the folder's metadata is not yet loaded into 
      *       memory.
      */
-    syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | Error>;
+    syncMetadataInCacheWithDisk(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<void, FileOperationError | Error>;
 }
 
-export interface IFileTreeCustomSorterOptions<TItem extends IFileItem<TItem>> {
+export interface IFileTreeCustomSorterOptions {
     readonly metadataRootPath: URI;
     readonly hash: (input: string) => string;
-    readonly defaultComparator: Comparator<TItem>;
+    readonly defaultItemComparator: Comparator<IFileTarget>;
 }
 
 /**
@@ -176,12 +177,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     ]>;
     private readonly _cacheClearDelay: Time;
     private readonly _hash: (input: string) => string;
-    private readonly _defaultComparator: Comparator<TItem>;
+    private readonly _defaultItemComparator: Comparator<IFileTarget>;
 
     // [constructor]
 
     constructor(
-        opts: IFileTreeCustomSorterOptions<TItem>,
+        opts: IFileTreeCustomSorterOptions,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
@@ -190,7 +191,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         this._metadataCache = new ResourceMap();
         this._cacheClearDelay = Time.min(5);
         this._hash = opts.hash;
-        this._defaultComparator = opts.defaultComparator;
+        this._defaultItemComparator = opts.defaultItemComparator;
     }
     
     // [public methods]
@@ -200,7 +201,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
         const order = this.__getMetadataFromCache(parent.uri);
         if (order === undefined) {
-            return this._defaultComparator(a, b);
+            return this._defaultItemComparator(a, b);
         }
 
         const indexA = order.indexOf(a.name);
@@ -222,7 +223,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         } 
         // Both items are not found, item A and B will be sort as default.
         else {
-            return this._defaultComparator(a, b);
+            return this._defaultItemComparator(a, b);
         }
     }
 
@@ -236,15 +237,16 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         
         const preparation = inCache 
             ? AsyncResult.ok<void, FileOperationError>()
-            : this.__loadMetadataIntoCache(parent);
+            : this.__loadMetadataIntoCache(parent.uri, parent.children);
 
         return preparation
         .andThen(() => {
-            this.__updateMetadataInCache(type, parent, item, index1, index2);
+            this.__updateMetadataInCache(type, parent.uri, item.name, index1, index2);
             return this.__saveMetadataIntoDisk(parent.uri);
         });
     }
 
+    // TODO: refactor 'Add' to support 'parent: URI' instead of require 'TItem'
     public updateMetadataLot(type: OrderChangeType.Add   , items: TItem[]  , indice: number[]): AsyncResult<void, FileOperationError | Error>;
     public updateMetadataLot(type: OrderChangeType.Update, items: TItem[]  , indice: number[]): AsyncResult<void, FileOperationError | Error>;
     public updateMetadataLot(type: OrderChangeType.Remove, parent: TItem   , indice: number[]): AsyncResult<void, FileOperationError | Error>;
@@ -255,7 +257,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         }
         
         let resolvedParent: TItem;
-        let resolvedItems: TItem[];
+        let resolvedItems : TItem[];
 
         // remove & move
         if (type === OrderChangeType.Remove || type === OrderChangeType.Move) {
@@ -264,9 +266,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         } 
         // add & update
         else {
-            const items: TItem[] = itemsOrParent;
+            const items    = itemsOrParent as TItem[];
             resolvedParent = assert(items[0]!.parent);
-            resolvedItems = items;
+            resolvedItems  = items;
 
             if (items.length === 0) {
                 return AsyncResult.ok();
@@ -287,7 +289,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         const inCache = this._metadataCache.has(resolvedParent.uri);
         const preparation = inCache 
             ? AsyncResult.ok<void, FileOperationError>()
-            : this.__loadMetadataIntoCache(resolvedParent);
+            : this.__loadMetadataIntoCache(resolvedParent.uri, resolvedParent.children);
         
         return preparation
         .andThen(() => {
@@ -314,23 +316,23 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             });
     }
 
-    public syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | Error> {
-        const inCache = this._metadataCache.get(folder.uri);
+    public syncMetadataInCacheWithDisk(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<void, FileOperationError | Error> {
+        const inCache = this._metadataCache.get(folderUri);
         if (inCache) {
             return AsyncResult.ok();
         }
         
-        return this.__loadMetadataIntoCache(folder)
+        return this.__loadMetadataIntoCache(folderUri, folderChildren)
         .andThen(() => {
-            const parentUri = folder.uri;
-            const currentFiles = folder.children;
+            const parentUri    = folderUri;
+            const currentFiles = folderChildren.map(child => child.name);
             
-            const resource = assert(this._metadataCache.get(parentUri));
+            const resource      = assert(this._metadataCache.get(parentUri));
             const existingOrder = resource[Resources.Order];
 
             // faster lookups
             const inCacheItems = new Set(existingOrder);
-            const inDiskItems = new Set(currentFiles.map(item => item.name));
+            const inDiskItems  = new Set(currentFiles);
             
             const updatedSortOrder: string[] = [];
             let hasChanges = false;
@@ -346,9 +348,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             // Add new items from disk that are not in cache
-            for (const file of currentFiles) {
-                if (!inCacheItems.has(file.name)) {
-                    updatedSortOrder.push(file.name);
+            for (const item of currentFiles) {
+                if (!inCacheItems.has(item)) {
+                    updatedSortOrder.push(item);
                     // found a new item on disk that is not in cache
                     hasChanges = true;
                 }
@@ -362,7 +364,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             resource[Resources.Order] = updatedSortOrder;
             resource[Resources.Scheduler].schedule(parentUri);
 
-            return this.__saveMetadataIntoDisk(folder.uri);
+            return this.__saveMetadataIntoDisk(folderUri);
         });
     }
     
@@ -382,11 +384,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
     /**
      * @description Check if the given folder has corresponding metadata file.
+     * @param folderUri The folder to load.
+     * @param folderChildren The initial children if need to create a new metadata.
      * @returns A URI points to either the existing file or the newly created one.
      */
-    private __findOrCreateMetadataFile(folder: TItem | URI): AsyncResult<URI, FileOperationError | SyntaxError> {
-        const resolvedUri = URI.isURI(folder) ? folder : folder.uri;
-        const metadataURI = this.__computeMetadataURI(resolvedUri);
+    private __findOrCreateMetadataFile(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<URI, FileOperationError | SyntaxError> {
+        const metadataURI = this.__computeMetadataURI(folderUri);
 
         return this.fileService.exist(metadataURI)
         .andThen(existed => {
@@ -397,10 +400,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             // the order file does not exist, we need to create a new one.
-            const itemChildren = URI.isURI(folder) ? [] : [...folder.children];
-            const defaultOrder = itemChildren
-                .sort(this._defaultComparator)
-                .map(item => item.name);
+            const defaultOrder = folderChildren
+                .sort(this._defaultItemComparator)
+                .map(target => target.name);
             
             // write to disk with the default order
             return jsonSafeStringify(defaultOrder, undefined, 4)
@@ -413,20 +415,21 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     /**
      * @description Only invoke this function when the corresponding folder has
      * no cache in the memory.
+     * @param folderUri The folder to load.
+     * @param folderChildren The initial children if need to create a new metadata.
      */
-    private __loadMetadataIntoCache(folder: TItem | URI): AsyncResult<void, FileOperationError | Error> {
-        const resolvedUri = URI.isURI(folder) ? folder : folder.uri;
+    private __loadMetadataIntoCache(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<void, FileOperationError | Error> {
         
-        return this.__findOrCreateMetadataFile(folder)
+        return this.__findOrCreateMetadataFile(folderUri, folderChildren)
             .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
             .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
             .andThen(order => {
                 const scheduler = this.__register(new UnbufferedScheduler<URI>(
                     this._cacheClearDelay, 
-                    () => this._metadataCache.delete(resolvedUri),
+                    () => this._metadataCache.delete(folderUri),
                 ));
-                this._metadataCache.set(resolvedUri, [scheduler, order]);
-                scheduler.schedule(resolvedUri);
+                this._metadataCache.set(folderUri, [scheduler, order]);
+                scheduler.schedule(folderUri);
                 return ok();
             });
     }
@@ -447,20 +450,20 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      *  - the given item has parent.
      *  - the metadata of the parent already in the cache.
      */
-    private __updateMetadataInCache(type: OrderChangeType, parent: TItem, item: TItem, index1?: number, index2?: number): void {
-        const order = assert(this.__getMetadataFromCache(parent.uri));
+    private __updateMetadataInCache(type: OrderChangeType, parentUri: URI, itemName: string, index1?: number, index2?: number): void {
+        const order = assert(this.__getMetadataFromCache(parentUri));
         switch (type) {
             case OrderChangeType.Add:
-                order.splice(index1!, 0, item.name);
+                order.splice(index1!, 0, itemName);
                 break;
             case OrderChangeType.Remove:
-                Arrays.remove(order, item.name, index1);
+                Arrays.remove(order, itemName, index1);
                 break;
             case OrderChangeType.Swap:
                 Arrays.swap(order, index1!, index2!);
                 break;
             case OrderChangeType.Update:
-                order[index1!] = item.name;
+                order[index1!] = itemName;
                 break;
         }
     }
