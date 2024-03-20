@@ -129,6 +129,8 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
      * @param oldDirUri The directory has changed.
      * @param destination The new destination of the directory.
      * @param cutOrCopy True means cut, false means copy.
+     * 
+     * @note If oldDirUri has no metadata file before, no operations is taken.
      */
     updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 
@@ -297,10 +299,19 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
         const oldMetadataURI = this.__computeMetadataURI(oldDirUri);
-        const newMetadataURI = this.__computeMetadataURI(destination);
-
-        const operation = cutOrCopy ? this.fileService.moveTo : this.fileService.copyTo;
-        return operation.call(this.fileService, oldMetadataURI, newMetadataURI, false).map(noop);
+        
+        return this.fileService.exist(oldMetadataURI)
+            .andThen(exist => {
+                if (!exist) {
+                    return ok();
+                }
+                
+                const newMetadataURI = this.__computeMetadataURI(destination);
+                const operation = cutOrCopy 
+                    ? this.fileService.moveTo 
+                    : this.fileService.copyTo;
+                return operation.call(this.fileService, oldMetadataURI, newMetadataURI, false).map(noop);
+            });
     }
 
     public syncMetadataInCacheWithDisk(folder: TItem): AsyncResult<void, FileOperationError | Error> {

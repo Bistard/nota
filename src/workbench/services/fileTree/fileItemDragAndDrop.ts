@@ -246,7 +246,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         /**
          * 'general hovering' drop handling logic
          */
-        
         if (!targetOver) {
             targetOver = this.fileTreeService.rootItem!;
         }
