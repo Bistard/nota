@@ -20,7 +20,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { Scheduler } from "src/base/common/utilities/async";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { Time } from "src/base/common/date";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
@@ -205,6 +205,32 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     public getHover(): FileItem[] {
         const tree = this.__assertTree();
         return tree.getViewHover().map(idx => tree.getItem(idx));
+    }
+
+    public setFocus(item: FileItem | null): void {
+        const tree = this.__assertTree();
+        tree.setFocus(item);
+    }
+
+    public setAnchor(item: FileItem): void {
+        const tree = this.__assertTree();
+        tree.setAnchor(item);
+    }
+
+    public setSelections(items: FileItem[]): void {
+        const tree = this.__assertTree();
+        tree.setSelections(items);
+    }
+    
+    public setHover(item: null): void;
+    public setHover(item: FileItem, recursive: boolean): void;
+    public setHover(item: FileItem | null, recursive?: boolean): void {
+        const tree = this.__assertTree();
+        if (item === null) {
+            tree.setHover(null);
+            return;
+        }
+        tree.setHover(item, assert(recursive));
     }
 
     public async highlightSelectionAsCut(items: FileItem[]): Promise<void> {

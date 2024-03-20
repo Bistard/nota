@@ -694,7 +694,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * @description Sets the given item as focused.
      */
-    setFocus(item: TRef): void;
+    setFocus(item: TRef | null): void;
 
     /**
      * @description Returns the focused item in the tree perspective.
@@ -979,7 +979,12 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._view.setAnchor(index);
     }
 
-    public setFocus(item: TRef): void {
+    public setFocus(item: TRef | null): void {
+        if (!item) {
+            this._view.setFocus(null);
+            return;
+        }
+
         const index = this._model.getNodeListIndex(item);
         if (index === -1) {
             // not visible in the list view level.

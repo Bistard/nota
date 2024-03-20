@@ -187,6 +187,31 @@ export interface IFileTreeService extends IDisposable, IService {
     getHover(): FileItem[];
 
     /**
+     * @description Sets the given item as focused.
+     */
+    setFocus(item: FileItem | null): void;
+    
+    /**
+     * @description Sets the given item as anchor.
+     */
+    setAnchor(item: FileItem): void;
+
+    /**
+     * @description Sets the given a series of items as selected.
+     */
+    setSelections(items: FileItem[]): void;
+
+    /**
+     * @description Sets the given item as hovered.
+     * @param item The item to be hovered. If null, means to clean all the 
+     *             current hovers.
+     * @param recursive When sets to true, the visible children of that item 
+     *                  will also be hovered.
+     */
+    setHover(item: null): void;
+    setHover(item: FileItem, recursive: boolean): void;
+
+    /**
      * @description Visually highlight the files have been selected for cutting.
      */
     highlightSelectionAsCut(items: FileItem[]): Promise<void>;
