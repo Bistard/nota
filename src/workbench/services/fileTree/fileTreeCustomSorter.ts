@@ -325,7 +325,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             const parentUri = folder.uri;
             const currentFiles = folder.children;
             
-            const resource = this._metadataCache.get(parentUri)!;
+            const resource = assert(this._metadataCache.get(parentUri));
             const existingOrder = resource[Resources.Order];
 
             // faster lookups

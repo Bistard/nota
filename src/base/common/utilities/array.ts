@@ -192,7 +192,7 @@ export namespace Arrays {
         
         // Validate destination and indicesToMove are within array bounds
         if (destination < 0 || destination > array.length) {
-            panic("[relocateByIndex] Destination index out of bounds");
+            panic(`[relocateByIndex] Destination index out of bounds: ${destination}`);
         }
 
         // Sort indices to maintain original order and simplify removal
@@ -202,7 +202,7 @@ export namespace Arrays {
         const itemsToMove: T[] = [];
         for (const index of sortedIndices) {
             if (index < 0 || index >= array.length) {
-                panic("[relocateByIndex] Index to move out of bounds");
+                panic(`[relocateByIndex] Index to move out of bounds: ${index}`);
             }
 
             itemsToMove.push(array[index]!);

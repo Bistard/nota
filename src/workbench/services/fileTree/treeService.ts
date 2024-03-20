@@ -290,7 +290,7 @@ export interface IFileTreeService extends IDisposable, IService {
     updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
     updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
     updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 
     /**
      * @description When moving or copying a directory, its corresponding 
