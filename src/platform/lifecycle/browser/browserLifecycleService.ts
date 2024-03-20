@@ -30,7 +30,7 @@ export const enum QuitReason {
     Reload,
 }
 
-export class BrowserLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> {
+export class BrowserLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> implements IBrowserLifecycleService {
 
     // [field]
 

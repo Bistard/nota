@@ -63,7 +63,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // initialization services
         this.initServices();
 
-        // create each UI part of the workbench
+        // create each UI part of the workbench recursively
         this.create();
 
         // register all the relevant listeners

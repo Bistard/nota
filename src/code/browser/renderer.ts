@@ -247,9 +247,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
         this.logService.trace('renderer', 'Start initializing core renderer services...');
 
         const configurationService = instantiationService.getService(IConfigurationService);
-        const environmentService = instantiationService.getService(IBrowserEnvironmentService);
-        const i18nService = instantiationService.getService(II18nService);
-        const productService = instantiationService.getService(IProductService);
+        const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
+        const i18nService          = instantiationService.getService(II18nService);
+        const productService       = instantiationService.getService(IProductService);
 
         await configurationService.init()
         .andThen(() => i18nService.init())
@@ -262,26 +262,26 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private rendererServiceRegistrations(): void {
 
         // registration
-        registerService(IKeyboardService, new ServiceDescriptor(KeyboardService, []));
-        registerService(IShortcutService, new ServiceDescriptor(ShortcutService, []));
-        registerService(ICommandService, new ServiceDescriptor(CommandService, []));
+        registerService(IKeyboardService          , new ServiceDescriptor(KeyboardService          , []));
+        registerService(IShortcutService          , new ServiceDescriptor(ShortcutService          , []));
+        registerService(ICommandService           , new ServiceDescriptor(CommandService           , []));
     
         // User Interface
-        registerService(ILayoutService, new ServiceDescriptor(LayoutService, []));
-        registerService(ISideBarService, new ServiceDescriptor(SideBar, []));
-        registerService(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent, []));
-        registerService(IEditorService, new ServiceDescriptor(Editor, []));
-        registerService(ISideViewService, new ServiceDescriptor(SideViewService, []));
+        registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
+        registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceComponent       , []));
+        registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
+        registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
-        registerService(IThemeService, new ServiceDescriptor(ThemeService, []));
-        registerService(IFileTreeService, new ServiceDescriptor(FileTreeService, []));
-        registerService(IContextMenuService, new ServiceDescriptor(ContextMenuService, []));
+        registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
+        registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
+        registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
     
         // utilities && tools
-        registerService(IContextService, new ServiceDescriptor(ContextService, []));
-        registerService(INotificationService, new ServiceDescriptor(NotificationService, []));
-        registerService(IDialogService, new ServiceDescriptor(BrowserDialogService, []));
-        registerService(IClipboardService, new ServiceDescriptor(BrowserClipboardService, []));
+        registerService(IContextService           , new ServiceDescriptor(ContextService           , []));
+        registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
+        registerService(IDialogService            , new ServiceDescriptor(BrowserDialogService     , []));
+        registerService(IClipboardService         , new ServiceDescriptor(BrowserClipboardService  , []));
     }
 
     // [end]

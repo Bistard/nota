@@ -8,7 +8,6 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
-import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
@@ -93,25 +92,26 @@ export abstract class WorkbenchLayout extends Component {
 
     private __registerSideViews(): void {
         this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
-        // TODO: others are also registered here.
+        // TODO: other side-views are also registered here.
     }
 
     private __assemblyWorkbenchParts(): void {
 
-        const splitViewOpt = {
+        const splitViewOpt: Required<ISplitViewOpts> = {
             orientation: Orientation.Horizontal,
-            viewOpts: <ISplitViewItemOpts[]>[],
-        } satisfies ISplitViewOpts;
+            viewOpts: [],
+        };
 
-        const configurations = [
-            [this.sideBarService, SideBar.WIDTH, SideBar.WIDTH, SideBar.WIDTH, Priority.Low],
-            [this.sideViewService, 100, SideView.WIDTH * 2, SideView.WIDTH, Priority.Normal],
-            [this.workspaceService, 0, Number.POSITIVE_INFINITY, 0, Priority.High],
+        const PartsConfiguration = [
+            [this.sideBarService  , SideBar.WIDTH, SideBar.WIDTH           , SideBar.WIDTH , Priority.Low   ],
+            [this.sideViewService , 100          , SideView.WIDTH * 2      , SideView.WIDTH, Priority.Normal],
+            [this.workspaceService, 0            , Number.POSITIVE_INFINITY, 0             , Priority.High  ],
         ] as const;
 
-        for (const [component, minSize, maxSize, initSize, priority] of configurations) {
+        for (const [component, minSize, maxSize, initSize, priority] of PartsConfiguration) {
             component.create(this);
             component.registerListeners();
+            
             splitViewOpt.viewOpts.push({
                 element: component.element.element,
                 minimumSize: minSize,
@@ -125,7 +125,7 @@ export abstract class WorkbenchLayout extends Component {
         this._splitView = new SplitView(this.element.element, splitViewOpt);
 
         // set the sash next to sideBar is visible and disabled.
-        const sash = this._splitView.getSashAt(0)!;
+        const sash = assert(this._splitView.getSashAt(0));
         sash.enable = false;
         sash.visible = true;
         sash.size = 1;
