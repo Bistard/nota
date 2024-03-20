@@ -121,7 +121,10 @@ export namespace FileCommands {
                 return false;
             }
             
+            // paste
             await this.__doPasteNormal(toPaste, destination, isCut);
+            
+            this.__clearFileTreeTraits();
             return true;
         }
 
@@ -167,6 +170,8 @@ export namespace FileCommands {
                 }
             }
 
+            this.__clearFileTreeTraits();
+
             /**
              * Since no file/dir is actually pasted, thus there will not trigger
              * the 'onDidResourceChange' event in the file system to update the
@@ -202,6 +207,7 @@ export namespace FileCommands {
             // update metadata to those who successes
             await this.__doUpdateMetadataLot(batch, isCut, toPaste, toPasteDir, destination, destinationIdx, insertAtSameParent);
 
+            // determine if any file/dir is actually move/copy in the file system
             const pasted = !insertAtSameParent && batch.passed.length > 0;
             return pasted;
         }
@@ -244,48 +250,77 @@ export namespace FileCommands {
             console.log('destination:', destination.basename);
             console.log('destinationIdx:', destinationIdx);
 
+            // debugger;
+
             if (insertAtSameParent) {
-                // TODO
                 console.log('insertAtSameParent detected');
-            }
-
-            /**
-             * Step 1: In the cut operation, after items are moved to their new 
-             * location, the metadata at the original location should be removed.
-             */
-            if (isCut) {
-                const removeParent = assert(toPaste[0]!.parent);
-                const removeIndice: number[] = [];
-                for (const item of passedItems) {
-                    const idx = this.fileTreeService.getItemIndex(item);
-                    removeIndice.push(idx);
+                /**
+                 * Step 0: Handling insertion within the same parent directory.
+                 * In scenarios where the items being pasted remain within the 
+                 * same parent directory from which they were cut or copied, the
+                 * removing and adding happens at the directory, we can integrate 
+                 * two operations. This operation effectively updates the sorting 
+                 * order of the items within the same directory.
+                 */
+                if (isCut) {
+                    const moveParent = assert(toPaste[0]!.parent);
+                    const toMoveIndice = passedItems.map(item => this.fileTreeService.getItemIndex(item));
+                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, moveParent, toMoveIndice, destinationIdx).unwrap();
+                } 
+                else {
+                    const addIndice = Arrays.fill(destinationIdx, passedItems.length);
+                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Add, passedItems, addIndice).unwrap();
                 }
-                
+            } 
+            else {
+                /**
+                 * Step 1: In the general cut operation, after items are moved 
+                 * to their new location, the metadata at the original location 
+                 * should be removed.
+                 */
+                if (isCut) {
+                    const removeParent = assert(toPaste[0]!.parent);
+                    const removeIndice: number[] = [];
+                    for (const item of passedItems) {
+                        const idx = this.fileTreeService.getItemIndex(item);
+                        removeIndice.push(idx);
+                    }
+                    
+                    await this.fileTreeService.updateCustomSortingMetadata(
+                        OrderChangeType.Remove, 
+                        removeParent, 
+                        removeIndice,
+                    ).unwrap();
+                }
+    
+                // TODO
+                const newPassedUri = undefined;
+                // const resourceName = URI.basename(resource);
+                // const newDestination = URI.join(destination.uri, resourceName);
+
+                /**
+                 * Step 2: Update the metadata at the new location with the newly 
+                 * pasting items.
+                 */
+                const addIndice = Arrays.fill(destinationIdx, passedItems.length);
                 await this.fileTreeService.updateCustomSortingMetadata(
-                    OrderChangeType.Remove, 
-                    removeParent, 
-                    removeIndice,
+                    OrderChangeType.Add,
+                    passedItems,
+                    addIndice,
                 ).unwrap();
-            }
 
-            /**
-             * Step 2: Update the metadata at the new location with the newly 
-             * pasting items.
-             */
-            const addIndice = Arrays.fill(destinationIdx, passedItems.length);
-            await this.fileTreeService.updateCustomSortingMetadata(
-                OrderChangeType.Add,
-                passedItems,
-                addIndice,
-            ).unwrap();
-
-            /**
-             * Step 3: To those who passed are directory, we need to move its entire
-             * metadata to a new location.
-             */
-            const passedDir = toPasteDir.filter(uri => passedSet.has(uri));
-            for (const oldDirUri of passedDir) {
-                await this.fileTreeService.updateDirectoryMetadata(oldDirUri, destination.uri, isCut).unwrap();
+                // FIX: support creating new directory metadata for this API
+                // FIX: SHOULD BE RECURSIVE
+                /**
+                 * Step 3: To those who passed are directory, we need to move its entire
+                 * metadata to a new location.
+                 */
+                const passedDir = toPasteDir.filter(uri => passedSet.has(uri));
+                for (const oldDirUri of passedDir) {
+                    const dirName = URI.basename(oldDirUri);
+                    const newDirUri = URI.join(destination.uri, dirName);
+                    await this.fileTreeService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();
+                }
             }
         }
 
@@ -405,6 +440,11 @@ export namespace FileCommands {
                     ]
                 });
             });
+        }
+
+        private __clearFileTreeTraits(): void {
+            this.fileTreeService.setSelections([]);
+            this.fileTreeService.setFocus(null);
         }
     }
 }

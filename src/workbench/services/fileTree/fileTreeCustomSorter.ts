@@ -241,7 +241,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         return preparation
         .andThen(() => {
             this.__updateMetadataInCache(type, parent, item, index1, index2);
-            return this.__saveMetadataIntoDisk(parent);
+            return this.__saveMetadataIntoDisk(parent.uri);
         });
     }
 
@@ -292,8 +292,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         return preparation
         .andThen(() => {
             // update metadata all in once
-            this.__updateMetadataInCacheLot(type, resolvedParent, resolvedItems, indice, destination);
-            return this.__saveMetadataIntoDisk(resolvedParent);
+            this.__updateMetadataInCacheLot(type, resolvedParent.uri, resolvedItems.map(item => item.name), indice, destination);
+            return this.__saveMetadataIntoDisk(resolvedParent.uri);
         });
     }
 
@@ -362,7 +362,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             resource[Resources.Order] = updatedSortOrder;
             resource[Resources.Scheduler].schedule(parentUri);
 
-            return this.__saveMetadataIntoDisk(folder);
+            return this.__saveMetadataIntoDisk(folder.uri);
         });
     }
     
@@ -384,8 +384,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * @description Check if the given folder has corresponding metadata file.
      * @returns A URI points to either the existing file or the newly created one.
      */
-    private __findOrCreateMetadataFile(folder: TItem): AsyncResult<URI, FileOperationError | SyntaxError> {
-        const metadataURI = this.__computeMetadataURI(folder.uri);
+    private __findOrCreateMetadataFile(folder: TItem | URI): AsyncResult<URI, FileOperationError | SyntaxError> {
+        const resolvedUri = URI.isURI(folder) ? folder : folder.uri;
+        const metadataURI = this.__computeMetadataURI(resolvedUri);
 
         return this.fileService.exist(metadataURI)
         .andThen(existed => {
@@ -396,7 +397,8 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             }
 
             // the order file does not exist, we need to create a new one.
-            const defaultOrder = [...folder.children]
+            const itemChildren = URI.isURI(folder) ? [] : [...folder.children];
+            const defaultOrder = itemChildren
                 .sort(this._defaultComparator)
                 .map(item => item.name);
             
@@ -412,17 +414,19 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * @description Only invoke this function when the corresponding folder has
      * no cache in the memory.
      */
-    private __loadMetadataIntoCache(folder: TItem): AsyncResult<void, FileOperationError | Error> {
+    private __loadMetadataIntoCache(folder: TItem | URI): AsyncResult<void, FileOperationError | Error> {
+        const resolvedUri = URI.isURI(folder) ? folder : folder.uri;
+        
         return this.__findOrCreateMetadataFile(folder)
             .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
             .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
             .andThen(order => {
                 const scheduler = this.__register(new UnbufferedScheduler<URI>(
                     this._cacheClearDelay, 
-                    () => this._metadataCache.delete(folder.uri),
+                    () => this._metadataCache.delete(resolvedUri),
                 ));
-                this._metadataCache.set(folder.uri, [scheduler, order]);
-                scheduler.schedule(folder.uri);
+                this._metadataCache.set(resolvedUri, [scheduler, order]);
+                scheduler.schedule(resolvedUri);
                 return ok();
             });
     }
@@ -430,9 +434,9 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
     /**
      * @note MAKE SURE the metadata of the given folder is already in cache.
      */
-    private __saveMetadataIntoDisk(folder: TItem): AsyncResult<void, FileOperationError | Error> {        
-        const metadataURI = this.__computeMetadataURI(folder.uri);
-        const metadata = assert(this.__getMetadataFromCache(folder.uri));
+    private __saveMetadataIntoDisk(folder: URI): AsyncResult<void, FileOperationError | Error> {        
+        const metadataURI = this.__computeMetadataURI(folder);
+        const metadata = assert(this.__getMetadataFromCache(folder));
         
         return jsonSafeStringify(metadata, undefined, 4).toAsync()
             .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: true, overwrite: true, }));
@@ -466,15 +470,15 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      *  - the given item array is not empty.
      *  - the metadata of the parent already in the cache.
      */
-    private __updateMetadataInCacheLot(type: OrderChangeType, parent: TItem, items: TItem[], index1: number[], index2?: number): void {
-        const order = assert(this.__getMetadataFromCache(parent.uri));
+    private __updateMetadataInCacheLot(type: OrderChangeType, parent: URI, itemNames: string[], index1: number[], index2?: number): void {
+        const order = assert(this.__getMetadataFromCache(parent));
         switch (type) {
             case OrderChangeType.Add:
-                Arrays.insertMultiple(order, items.map(item => item.name), index1);
+                Arrays.insertMultiple(order, itemNames, index1);
                 break;
             case OrderChangeType.Update:
-                Arrays.parallelEach([items, index1], (item, index) => {
-                    order[index] = item.name;
+                Arrays.parallelEach([itemNames, index1], (name, index) => {
+                    order[index] = name;
                 });
                 break;
             case OrderChangeType.Remove:

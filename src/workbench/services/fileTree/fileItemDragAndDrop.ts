@@ -239,7 +239,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 await this.__confirmDragAndDrop();
             }
             
-            await this.__performDropInsertion(event, currentDragItems, targetOver, targetIndex);
+            await this.__performDropInsertion(event, currentDragItems, targetOver);
             return;
         }
 
@@ -412,7 +412,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // TODO
     }
 
-    private async __performDropInsertion(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem, targetIndex?: number): Promise<void> {
+    private async __performDropInsertion(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): Promise<void> {
         assert(this._sorter.sortType === FileSortType.Custom);
         const insertionResult = assert(this._prevDragOverState.handledByInsertion);
         
@@ -439,7 +439,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
             }
         })();
-        let resolvedIdx = this.fileTreeService.getItemIndex(targetAbove) + 1;
 
         /** 
          * `resolvedDir` determines the target directory for pasting:
@@ -452,17 +451,11 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *      the parent of `targetAbove`.
          */
         const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
-        const resolvedDir = isExpandedDir
-            ? targetAbove
-            : assert(targetAbove.parent);
+        const resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
+        const resolvedIdx = isExpandedDir ? 0           : assert(targetAbove.parent).children.indexOf(targetAbove) + 1;
+        assert(resolvedIdx !== -1);
         
-        // inserting at the first children
-        if (isExpandedDir) {
-            resolvedIdx = 0;
-        }
-
         // tell the program we are doing insertion
-
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
         this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));
         
