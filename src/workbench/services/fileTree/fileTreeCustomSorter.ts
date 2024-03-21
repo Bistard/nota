@@ -1,6 +1,6 @@
 import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult, ok } from "src/base/common/result";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
@@ -23,6 +23,7 @@ import { assert } from "src/base/common/utilities/panic";
  * - `Remove`: Indicates that an item is being removed from the order.
  * - `Update`: Indicates that an existing item's position is being updated in the order.
  * - `Swap`: Indicates that two items are swapping positions within the order.
+ * - `Move`: Indicates that items are being moved to a new index within the order.
  */
 export const enum OrderChangeType {
     Add,
@@ -122,6 +123,14 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     updateMetadataLot(type: OrderChangeType.Update, items: TItem[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     updateMetadataLot(type: OrderChangeType.Remove, parent: TItem , indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     updateMetadataLot(type: OrderChangeType.Move,   parent: TItem , indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+
+    /**
+     * // TODO
+     */
+    updateExistMetadataLot(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    updateExistMetadataLot(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    updateExistMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    updateExistMetadataLot(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 
     /**
      * @description When moving or copying a directory, its corresponding 
@@ -292,11 +301,34 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
             : this.__loadMetadataIntoCache(resolvedParent.uri, resolvedParent.children);
         
         return preparation
-        .andThen(() => {
-            // update metadata all in once
-            this.__updateMetadataInCacheLot(type, resolvedParent.uri, resolvedItems.map(item => item.name), indice, destination);
-            return this.__saveMetadataIntoDisk(resolvedParent.uri);
-        });
+            .andThen(() => {
+                // update metadata all in once
+                this.__updateMetadataInCacheLot(type, resolvedParent.uri, resolvedItems.map(item => item.name), indice, destination);
+                return this.__saveMetadataIntoDisk(resolvedParent.uri);
+            });
+    }
+
+    public updateExistMetadataLot(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateExistMetadataLot(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateExistMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateExistMetadataLot(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    public updateExistMetadataLot(type: OrderChangeType, parent: URI, items: string[] | null, indice: number[], destination?: number): AsyncResult<void, FileOperationError | Error> {
+        if (type === OrderChangeType.Swap) {
+            return AsyncResult.err(new Error('[FileTreeCustomSorter] does not support "swap" operation in "updateMetadataLot"'));
+        }
+
+        // load metadata to the cache first (expect the metadata exists)
+        const inCache = this._metadataCache.has(parent);
+        const preparation = inCache 
+            ? AsyncResult.ok<void, FileOperationError>()
+            : this.__loadMetadataIntoCache(parent, true);
+
+        return preparation
+            .andThen(() => {
+                // update metadata all in once
+                this.__updateMetadataInCacheLot(type, parent, items ?? [], indice, destination);
+                return this.__saveMetadataIntoDisk(parent);
+            });
     }
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
@@ -388,7 +420,7 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * @param folderChildren The initial children if need to create a new metadata.
      * @returns A URI points to either the existing file or the newly created one.
      */
-    private __findOrCreateMetadataFile(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<URI, FileOperationError | SyntaxError> {
+    private __findOrCreateMetadataFile(folderUri: URI, expectExist: boolean, folderChildren: IFileTarget[] | null): AsyncResult<URI, FileOperationError | SyntaxError> {
         const metadataURI = this.__computeMetadataURI(folderUri);
 
         return this.fileService.exist(metadataURI)
@@ -399,8 +431,12 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 return ok(metadataURI);
             }
 
+            if (expectExist) {
+                return err(new Error(`Expect the metadata file to be exist. The corresponding folder URI is: ${URI.toString(folderUri)}`));
+            }
+
             // the order file does not exist, we need to create a new one.
-            const defaultOrder = folderChildren
+            const defaultOrder = (folderChildren ?? [])
                 .sort(this._defaultItemComparator)
                 .map(target => target.name);
             
@@ -416,11 +452,17 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
      * @description Only invoke this function when the corresponding folder has
      * no cache in the memory.
      * @param folderUri The folder to load.
+     * @param expectExist Expect the corresponding metadata file exist, otherwise error is returned.
      * @param folderChildren The initial children if need to create a new metadata.
      */
-    private __loadMetadataIntoCache(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<void, FileOperationError | Error> {
+    private __loadMetadataIntoCache(folderUri: URI, expectExist: true): AsyncResult<void, FileOperationError | Error>;
+    private __loadMetadataIntoCache(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<void, FileOperationError | Error>;
+    private __loadMetadataIntoCache(folderUri: URI, existOrChildren: IFileTarget[] | true): AsyncResult<void, FileOperationError | Error> {
+        const isArray = Array.isArray(existOrChildren);
+        const expectExist =      isArray ? false           : true;
+        const resolvedChildren = isArray ? existOrChildren : null;
         
-        return this.__findOrCreateMetadataFile(folderUri, folderChildren)
+        return this.__findOrCreateMetadataFile(folderUri, expectExist, resolvedChildren)
             .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
             .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
             .andThen(order => {
