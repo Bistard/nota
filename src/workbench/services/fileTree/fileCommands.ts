@@ -13,7 +13,7 @@ import { FileOperationError, FileOperationErrorType } from "src/base/common/file
 import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
-import { IBatchResult, createBatchResult } from "src/base/common/undoRedo";
+import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { noop } from "src/base/common/performance";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
@@ -128,7 +128,7 @@ export namespace FileCommands {
             return true;
         }
 
-        private async __doPasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<IBatchResult<URI, FileOperationError>> {
+        private async __doPasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<IBatchResult<IChange<URI>, FileOperationError>> {
             const operation = isCut ? this.__doMoveLot : this.__doCopyLot;
             const batch = await operation.call(this, toPaste, destination);
             
@@ -196,7 +196,7 @@ export namespace FileCommands {
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
             const batch = insertAtSameParent
-                ? createBatchResult({ passed: toPaste.map(item => item.uri) })
+                ? createBatchResult<IChange<URI>>({ passed: toPaste.map(item => ({ old: item.uri, new: URI.join(destination.uri, URI.basename(item.uri)) })) })
                 : await this.__doPasteNormal(toPasteUri, destination, isCut);
             
             // error handling to those who fails
@@ -213,12 +213,12 @@ export namespace FileCommands {
         }
 
         private async __doUpdateMetadataLot(
-            batch: IBatchResult<URI>, 
+            batch: IBatchResult<IChange<URI>>, 
             isCut: boolean, 
-            toPaste: FileItem[], 
+            pastedItems: FileItem[], 
             toPasteDir: URI[], 
             destination: FileItem, 
-            destinationIdx: number,
+            destinationIdx: number, // the view index of the destination relative to its parent
             insertAtSameParent: boolean,
         ): Promise<void> 
         {
@@ -241,8 +241,8 @@ export namespace FileCommands {
              *    fail, metadata will only be updated for the 7 successful files, 
              *    leaving the others unchanged.
              */
-            const passedSet   = new ResourceSet(batch.passed);
-            const passedItems = toPaste.filter(item => passedSet.has(item.uri));
+            const passedSet   = new ResourceSet(batch.passed.map(change => change.old));
+            const passedItems = pastedItems.filter(item => passedSet.has(item.uri));
             
             console.log('isCut:', isCut);
             console.log('passed items:', passedItems);
@@ -253,7 +253,6 @@ export namespace FileCommands {
             // debugger;
 
             if (insertAtSameParent) {
-                console.log('insertAtSameParent detected');
                 /**
                  * Step 0: Handling insertion within the same parent directory.
                  * In scenarios where the items being pasted remain within the 
@@ -263,7 +262,7 @@ export namespace FileCommands {
                  * order of the items within the same directory.
                  */
                 if (isCut) {
-                    const moveParent = assert(toPaste[0]!.parent);
+                    const moveParent = assert(pastedItems[0]!.parent);
                     const toMoveIndice = passedItems.map(item => this.fileTreeService.getItemIndex(item));
                     await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, moveParent, toMoveIndice, destinationIdx).unwrap();
                 } 
@@ -279,7 +278,7 @@ export namespace FileCommands {
                  * should be removed.
                  */
                 if (isCut) {
-                    const removeParent = assert(toPaste[0]!.parent);
+                    const removeParent = assert(pastedItems[0]!.parent);
                     const removeIndice: number[] = [];
                     for (const item of passedItems) {
                         const idx = this.fileTreeService.getItemIndex(item);
@@ -294,10 +293,8 @@ export namespace FileCommands {
                 }
     
                 // TODO
-                const newPassedUri = undefined;
-                // const resourceName = URI.basename(resource);
-                // const newDestination = URI.join(destination.uri, resourceName);
-
+                const resolvedPassedUri = passedItems.map(item => URI.join(destination.uri, URI.basename(item.uri)));
+                
                 /**
                  * Step 2: Update the metadata at the new location with the newly 
                  * pasting items.
@@ -309,7 +306,6 @@ export namespace FileCommands {
                     addIndice,
                 ).unwrap();
 
-                // FIX: support creating new directory metadata for this API
                 // FIX: SHOULD BE RECURSIVE
                 /**
                  * Step 3: To those who passed are directory, we need to move its entire
@@ -324,8 +320,8 @@ export namespace FileCommands {
             }
         }
 
-        private async __doMoveLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<URI, FileOperationError>> {
-            const result: IBatchResult<URI, FileOperationError> = {
+        private async __doMoveLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<IChange<URI>, FileOperationError>> {
+            const result: IBatchResult<IChange<URI>, FileOperationError> = {
                 passed: [],
                 failed: [],
                 failedError: [],
@@ -341,11 +337,13 @@ export namespace FileCommands {
             for (const resource of toPaste) {
                 const resourceName = URI.basename(resource);
                 const newDestination = URI.join(destination.uri, resourceName);
+                const change = { old: resource, new: newDestination };
+
                 const success = await this.fileService.moveTo(resource, newDestination);
 
                 // complete
                 if (success.isOk()) {
-                    result.passed.push(resource);
+                    result.passed.push(change);
                     continue;
                 }
                 const error = success.unwrapErr();
@@ -363,14 +361,14 @@ export namespace FileCommands {
                 );
 
                 if (!shouldOverwrite) {
-                    result.failed.push(resource);
+                    result.failed.push(change);
                     continue;
                 }
 
                 // re-move to overwrite
                 const move = await this.fileService.moveTo(resource, newDestination, true);
                 if (move.isOk()) {
-                    result.passed.push(resource);
+                    result.passed.push(change);
                     continue;
                 }
 
@@ -378,15 +376,15 @@ export namespace FileCommands {
                  * Error happens, we mark it as not completed, let the client to
                  * handle.
                  */
-                result.failed.push(resource);
+                result.failed.push(change);
                 result.failedError?.push(move.unwrapErr());
             }
 
             return result;
         }
 
-        private async __doCopyLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<URI, FileOperationError>> {
-            const result: IBatchResult<URI, FileOperationError> = {
+        private async __doCopyLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<IChange<URI>, FileOperationError>> {
+            const result: IBatchResult<IChange<URI>, FileOperationError> = {
                 passed: [],
                 failed: [],
                 failedError: [],
@@ -405,12 +403,13 @@ export namespace FileCommands {
                 if (URI.equals(resource, newDestination)) {
                     newDestination = URI.join(destination.uri, `${baseName}_copy${extName}`);
                 }
+                const change = { old: resource, new: newDestination };
                 
                 const copy = await this.fileService.copyTo(resource, newDestination);
                 
                 // complete
                 if (copy.isOk()) {
-                    result.passed.push(resource);
+                    result.passed.push(change);
                     continue;
                 }
 
@@ -418,17 +417,17 @@ export namespace FileCommands {
                  * Error happens, we mark it as not completed, let the client to
                  * handle.
                  */
-                result.failed.push(resource);
+                result.failed.push(change);
                 result.failedError?.push(copy.unwrapErr());
             }
 
             return result;
         }
 
-        private __onResourceBatchError(batch: IBatchResult<URI>, isCut: boolean, destination: URI): void {
+        private __onResourceBatchError(batch: IBatchResult<IChange<URI>>, isCut: boolean, destination: URI): void {
             Arrays.parallelEach([batch.failed, batch.failedError], (failed, error) => {
                 const operation = isCut ? 'move' : 'copy';
-                const targetName = URI.basename(failed);
+                const targetName = URI.basename(failed.old);
                 const destinName = URI.basename(destination);
 
                 this.notificationService.notify({ 
