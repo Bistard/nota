@@ -292,6 +292,11 @@ export interface IFileTreeService extends IDisposable, IService {
     updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
     updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 
+    updateCustomSortingExistMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingExistMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingExistMetadata(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingExistMetadata(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+
     /**
      * @description When moving or copying a directory, its corresponding 
      * metadata file must also be updated.
