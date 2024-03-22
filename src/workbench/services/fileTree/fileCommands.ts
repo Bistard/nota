@@ -17,7 +17,7 @@ import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRe
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { noop } from "src/base/common/performance";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
-import { ResourceSet } from "src/base/common/structures/map";
+import { ResourceMap } from "src/base/common/structures/map";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -156,11 +156,12 @@ export namespace FileCommands {
              * in the file system.
              */
             let anyPasted = false;
+            this.fileTreeService.freeze();
 
             /**
-             * This reduces the disk reading when updating custom sorting 
-             * metadata. Because we are pasting resources grouped by the same 
-             * parent at the same time.
+             * We are pasting resources grouped by the same parent at the same 
+             * time. This reduces the disk reading when updating custom sorting 
+             * metadata.
              */
             const groups = Arrays.group(dragItems, item => item.parent);
             for (const group of groups.values()) {
@@ -170,7 +171,9 @@ export namespace FileCommands {
                 }
             }
 
+            // after pasting, clear the traits in the view perspective.
             this.__clearFileTreeTraits();
+            this.fileTreeService.unfreeze();
 
             /**
              * Since no file/dir is actually pasted, thus there will not trigger
@@ -185,19 +188,12 @@ export namespace FileCommands {
         }
 
         private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<boolean> {
-            const toPasteUri: URI[] = [];
-            const toPasteDir: URI[] = [];
-            for (const item of toPaste) {
-                toPasteUri.push(item.uri);
-                item.isDirectory() && toPasteDir.push(item.uri);
-            }
-
             const toPasteParent = assert(toPaste[0]!.parent);
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
             const batch = insertAtSameParent
                 ? createBatchResult<IChange<URI>>({ passed: toPaste.map(item => ({ old: item.uri, new: URI.join(destination.uri, URI.basename(item.uri)) })) })
-                : await this.__doPasteNormal(toPasteUri, destination, isCut);
+                : await this.__doPasteNormal(toPaste.map(item => item.uri), destination, isCut);
             
             // error handling to those who fails
             if (batch.failed.length) {
@@ -205,9 +201,9 @@ export namespace FileCommands {
             }
 
             // update metadata to those who successes
-            await this.__doUpdateMetadataLot(batch, isCut, toPaste, toPasteDir, destination, destinationIdx, insertAtSameParent);
+            await this.__doUpdateMetadataLot(batch, isCut, toPaste, destination, destinationIdx, insertAtSameParent);
 
-            // determine if any file/dir is actually move/copy in the file system
+            // determine if any file/dir is actually pasted in the file system
             const pasted = !insertAtSameParent && batch.passed.length > 0;
             return pasted;
         }
@@ -216,7 +212,6 @@ export namespace FileCommands {
             batch: IBatchResult<IChange<URI>>, 
             isCut: boolean, 
             pastedItems: FileItem[], 
-            toPasteDir: URI[], 
             destination: FileItem, 
             destinationIdx: number, // the view index of the destination relative to its parent
             insertAtSameParent: boolean,
@@ -241,16 +236,49 @@ export namespace FileCommands {
              *    fail, metadata will only be updated for the 7 successful files, 
              *    leaving the others unchanged.
              */
-            const passedSet   = new ResourceSet(batch.passed.map(change => change.old));
-            const passedItems = pastedItems.filter(item => passedSet.has(item.uri));
+            const passedOldUriMap = new ResourceMap<URI>();
+            for (const passed of batch.passed) {
+                passedOldUriMap.set(passed.old, passed.new);
+            }
+
+            const passedItems: FileItem[] = [];
+            const passedCount = passedOldUriMap.size;
+
+            const passedOldDirUri: URI[] = [];
+            const passedNewDirUri: URI[] = [];
+            const passedOldUri   : URI[] = [];
+            const passedNewUri   : URI[] = [];
+            const oldParent: FileItem = assert(pastedItems[0]!.parent);
+
+            // filter out only the passed items
+            for (const pastedItem of pastedItems) {
+                const oldUri = pastedItem.uri;
+                const newUri = passedOldUriMap.get(oldUri);
+                if (!newUri) {
+                    continue;
+                }
+                passedItems.push(pastedItem);
+                passedOldUri.push(oldUri);
+                passedNewUri.push(newUri);
+
+                if (pastedItem.isDirectory()) {
+                    passedOldDirUri.push(oldUri);
+                    passedNewDirUri.push(newUri);
+                }
+            }
             
             console.log('isCut:', isCut);
-            console.log('passed items:', passedItems);
-            console.log('passed dir:', toPasteDir.filter(uri => passedSet.has(uri)));
-            console.log('destination:', destination.basename);
+            console.log('destinationName:', destination.basename);
             console.log('destinationIdx:', destinationIdx);
+            console.table({
+                passedItems,
+                passedOldDirUri,
+                passedNewDirUri,
+                passedOldUri,
+                passedNewUri,
+            });
 
-            // debugger;
+            // debugger; // TEST
 
             if (insertAtSameParent) {
                 /**
@@ -262,12 +290,11 @@ export namespace FileCommands {
                  * order of the items within the same directory.
                  */
                 if (isCut) {
-                    const moveParent = assert(pastedItems[0]!.parent);
                     const toMoveIndice = passedItems.map(item => this.fileTreeService.getItemIndex(item));
-                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, moveParent, toMoveIndice, destinationIdx).unwrap();
+                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, oldParent, toMoveIndice, destinationIdx).unwrap();
                 } 
                 else {
-                    const addIndice = Arrays.fill(destinationIdx, passedItems.length);
+                    const addIndice = Arrays.fill(destinationIdx, passedCount);
                     await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Add, passedItems, addIndice).unwrap();
                 }
             } 
@@ -278,7 +305,6 @@ export namespace FileCommands {
                  * should be removed.
                  */
                 if (isCut) {
-                    const removeParent = assert(pastedItems[0]!.parent);
                     const removeIndice: number[] = [];
                     for (const item of passedItems) {
                         const idx = this.fileTreeService.getItemIndex(item);
@@ -287,23 +313,22 @@ export namespace FileCommands {
                     
                     await this.fileTreeService.updateCustomSortingMetadata(
                         OrderChangeType.Remove, 
-                        removeParent, 
+                        oldParent, 
                         removeIndice,
                     ).unwrap();
                 }
     
-                // TODO
-                const resolvedPassedUri = passedItems.map(item => URI.join(destination.uri, URI.basename(item.uri)));
-                
                 /**
                  * Step 2: Update the metadata at the new location with the newly 
                  * pasting items.
                  */
-                const addIndice = Arrays.fill(destinationIdx, passedItems.length);
-                await this.fileTreeService.updateCustomSortingMetadata(
+                const passedNames = passedItems.map(item => item.name);
+                const addIndice = Arrays.fill(destinationIdx, passedCount);
+                await this.fileTreeService.updateCustomSortingExistMetadata(
                     OrderChangeType.Add,
-                    passedItems,
-                    addIndice,
+                    destination.uri,
+                    passedNames,
+                    addIndice
                 ).unwrap();
 
                 // FIX: SHOULD BE RECURSIVE
@@ -311,12 +336,9 @@ export namespace FileCommands {
                  * Step 3: To those who passed are directory, we need to move its entire
                  * metadata to a new location.
                  */
-                const passedDir = toPasteDir.filter(uri => passedSet.has(uri));
-                for (const oldDirUri of passedDir) {
-                    const dirName = URI.basename(oldDirUri);
-                    const newDirUri = URI.join(destination.uri, dirName);
+                Arrays.Async.parallelEach([passedOldDirUri, passedNewDirUri], async (oldDirUri, newDirUri) => {
                     await this.fileTreeService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();
-                }
+                });
             }
         }
 
