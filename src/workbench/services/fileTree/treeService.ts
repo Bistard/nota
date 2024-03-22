@@ -77,6 +77,20 @@ export interface IFileTreeService extends IDisposable, IService {
     refresh(data?: FileItem): Promise<void>;
 
     /**
+     * @description Freezes the file tree state, preventing any refresh actions. 
+     * Any attempts to refresh will be deferred until the next 'resume' action 
+     * is invoked.
+     */
+    freeze(): void;
+
+    /**
+     * @description Resumes the file tree state, allowing refresh actions to 
+     * proceed. This will execute any refresh actions that were deferred while 
+     * the file tree was frozen.
+     */
+    unfreeze(): void;
+
+    /**
      * @description Expands to the tree node with the given data.
      * @param data The data representation of the node.
      * @param recursive Determines if the operation is recursive (same operation 

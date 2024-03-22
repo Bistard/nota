@@ -1,4 +1,4 @@
-import { Emitter, RelayEmitter } from "src/base/common/event";
+import { DelayableEmitter, Emitter, RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -33,7 +33,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private _tree?: IFileTree<FileItem, void>;
     private _sorter?: FileTreeSorter<FileItem>;
-    
+    private _toRefresh?: DelayableEmitter<void>;
+
     // synchronizes lifecycle of the above properties
     private _treeCleanup: DisposableManager;
 
@@ -110,6 +111,14 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     public async refresh(data?: FileItem): Promise<void> {
         this._tree?.refresh(data);
+    }
+
+    public freeze(): void {
+        this._toRefresh?.pause();
+    }
+    
+    public unfreeze(): void {
+        this._toRefresh?.resume();
     }
 
     public async expand(data: FileItem, recursive?: boolean): Promise<void> {
@@ -430,6 +439,12 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const root = tree.root.uri;
         const cleanup = this._treeCleanup;
 
+        // to refresh event
+        this._toRefresh = cleanup.register(new DelayableEmitter());
+        cleanup.register(this._toRefresh.registerListener(() => {
+            tree.refresh();
+        }));
+
         // on did resource change callback
         const onDidResourceChange = cleanup.register(new Scheduler(
             Time.ms(100),
@@ -443,18 +458,20 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                 }
 
                 if (affected) {
-                    tree.refresh();
+                    this._toRefresh!.fire();
                 }
             }
         ));
 
-        // watch the root
+        /**
+         * Watch the root for any changes and schedule a refresh event if 
+         * changes are detected.
+         */
         this.fileService.watch(root, { recursive: true })
         .match<void>(
             (disposable) => cleanup.register(disposable),
             error => this.logService.warn('FileTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
         );
-        
         cleanup.register(this.fileService.onDidResourceChange(e => {
             onDidResourceChange.schedule(e.wrap());
         }));
