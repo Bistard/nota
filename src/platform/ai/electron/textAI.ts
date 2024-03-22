@@ -1,13 +1,13 @@
 import { Agent } from "openai/_shims";
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { IService } from "src/platform/instantiation/common/decorator";
 
-export const enum ModelType {
-    GPT,
+export const enum TextModelType {
+    GPT = 'GPT',
 }
 
-export type MessageRequestRole = 'system' | 'user' | 'assistant';
+export type MessageRequestRole  = 'system' | 'user' | 'assistant';
 export type MessageResponseRole = 'system' | 'user' | 'assistant' | 'tool';
 
 export interface IAIRequestTextMessage {
@@ -26,8 +26,8 @@ export interface IAIResponseTextMessage {
     readonly finishReason: 'stop' | 'length' | 'content_filter';
 }
 
-export interface IAICoreModel extends IDisposable {
-    init(opts: IAICoreModelOpts);
+export interface IAITextModel extends Disposable {
+    init(opts: IAITextModelOpts): void;
     sendTextRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts): AsyncResult<IAITextResponse, Error>;
 }
 
@@ -63,16 +63,16 @@ export interface IAITextResponse {
     readonly usage?: IAIRequestTokenUsage;
 }
 
-export interface IAiCoreService extends IDisposable, IService {
-    init(IAICoreModelOpts): void;
+export interface IAITextService extends Disposable, IService {
+    init(IAITextModelOpts: IAITextModelOpts): void;
 
-    switchModel(opts: IAiCoreServiceOpts): void;
+    switchModel(opts: IAITextServiceOpts): void;
 
     sendRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts): AsyncResult<IAITextResponse, Error>;
 }
 
-export interface IAiCoreServiceOpts {
-    modelType: ModelType,
+export interface IAITextServiceOpts {
+    readonly type: TextModelType;
 }
 
 export interface IAiTextRequestOpts {
@@ -83,11 +83,11 @@ export interface IAiTextRequestOpts {
      * table for details on which models work with the Chat API.
      */
     readonly model:
-    | 'gpt-4-turbo-preview'
-    | 'gpt-4'
-    | 'gpt-4-32k'
-    | 'gpt-3.5-turbo'
-    | 'gpt-3.5-turbo-16k';
+        | 'gpt-4-turbo-preview'
+        | 'gpt-4'
+        | 'gpt-4-32k'
+        | 'gpt-3.5-turbo'
+        | 'gpt-3.5-turbo-16k';
 
     /**
      * The maximum number of [tokens](/tokenizer) that can be generated in the chat
@@ -111,7 +111,7 @@ export interface IAiTextRequestOpts {
     temperature?: number | null;
 }
 
-export interface IAICoreModelOpts {
+export interface IAITextModelOpts {
 
     apiKey: string;
 

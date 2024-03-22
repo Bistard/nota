@@ -1,59 +1,42 @@
 import OpenAI from "openai";
 import { Disposable } from "src/base/common/dispose";
+import { InitProtector } from "src/base/common/error";
 import { AsyncResult, Result } from "src/base/common/result";
-import { Agent } from "http";
 import { panic } from "src/base/common/utilities/panic";
 import { ArrayToUnion } from "src/base/common/utilities/type";
-import { IAICoreModel, IAICoreModelOpts, IAIRequestTextMessage, IAIRequestTokenUsage, IAIResponseTextMessage, IAITextResponse, IAiTextRequestOpts, MessageResponseRole } from "src/platform/ai/electron/ai";
+import { IAITextModel, IAITextModelOpts, IAIRequestTextMessage, IAIResponseTextMessage, IAITextResponse, IAiTextRequestOpts, MessageResponseRole } from "src/platform/ai/electron/textAI";
 
-export class GPTModel extends Disposable implements IAICoreModel {
+export class GPTModel extends Disposable implements IAITextModel {
     
-    private _openAi?: OpenAI;
+    // [field]
+
+    private _model?: OpenAI;
+    private _initProtector: InitProtector;
     private readonly _textValidFinishReasons = ['stop', 'length', 'content_filter'] as const;
 
-    constructor(
-    ){
+    // [constructor]
+
+    constructor() {
         super();
+        this._initProtector = new InitProtector();
     }
 
-    public init(opts: IAICoreModelOpts): void {
-        this._openAi = new OpenAI({ ...opts });
+    // [public methods]
+
+    public init(opts: IAITextModelOpts): void {
+        this._initProtector.init('GPTModel cannot initialize twice').unwrap();
+        this._model = new OpenAI({ ...opts });
     }
 
     public sendTextRequest(messages: IAIRequestTextMessage[], opts: IAiTextRequestOpts): AsyncResult<IAITextResponse, Error> {
         const client = this.__assertModel();
-        return Result.fromPromise<IAITextResponse, Error>(async () => {
+        return Result.fromPromise(async () => {
             const completion = await client.chat.completions.create({
                 messages: messages,
                 stream: false,
                 ...opts
             });
-            
-            // const firstChoice = completion.choices[0];
-            // if (firstChoice === undefined) {
-            //     panic (new Error("No choices returned in the completion."));
-            // }
-            // const firstMessage = firstChoice.message;
 
-            // const alternativeMessages: IAIResponseTextMessage[] = 
-            // completion.choices.slice(1).map(choice => ({
-            //     content: choice.message.content,
-            //     role: choice.message.role,
-            //     finishReason: this.__assertFinishReasonValidity(choice.finish_reason, this._textValidFinishReasons)
-            // }));
-
-            // const tokenUsage = this.__processTokenUsage(completion.usage);
-
-            // const textResponse: IAITextResponse = {
-            //     primaryMessage: {
-            //         content: firstMessage.content, 
-            //         role: firstMessage.role, 
-            //         finishReason: this.__assertFinishReasonValidity(firstChoice.finish_reason, this._textValidFinishReasons)},
-            //     alternativeMessages: alternativeMessages,
-            //     usage: tokenUsage,
-            //     id: completion.id,
-            //     model: completion.model,
-            // };
             const textResponse = this.__constructTextResponse(
                 completion.id,
                 completion.model,
@@ -65,19 +48,20 @@ export class GPTModel extends Disposable implements IAICoreModel {
                     choice => choice.finish_reason,
                 )
             );
+
             return textResponse;
         });
     }
 
-    //TODO
     public sendTextRequestStream(
         messages: IAIRequestTextMessage[], 
         opts: IAiTextRequestOpts, 
-        onChunkReceived: (chunk: IAITextResponse) => void) 
+        onChunkReceived: (chunk: IAITextResponse) => void,
+    ): AsyncResult<void, Error>
     {
         const client = this.__assertModel();
 
-        return Result.fromPromise<void, Error>(async() => {
+        return Result.fromPromise(async() => {
             const stream = await client.chat.completions.create({
                 messages: messages,
                 stream: true,
@@ -85,21 +69,6 @@ export class GPTModel extends Disposable implements IAICoreModel {
             });
 
             for await (const chunk of stream) {
-                // const firstChoice = chunk.choices[0];
-                // if (firstChoice === undefined) {
-                //     panic(new Error("No choices returned in the chunk."));
-                // }
-
-                // const firstMessage = this.__createCompletionChunkTextMessage(firstChoice);
-                // const alternativeMessages = 
-                //     chunk.choices.slice(1).map(choice => this.__createCompletionChunkTextMessage(choice));
-
-                // const textResponse: IAITextResponse = {
-                //     primaryMessage: firstMessage,
-                //     alternativeMessages: alternativeMessages,
-                //     id: chunk.id,
-                //     model: chunk.model,
-                // };
                 const textResponse = this.__constructTextResponse(
                     chunk.id,
                     chunk.model,
@@ -117,6 +86,8 @@ export class GPTModel extends Disposable implements IAICoreModel {
         });
     }
 
+    // [private helper methods]
+
     private __assertFinishReasonValidity<TValidReasons extends readonly string[]>(finishReason: string | null, validReasons: TValidReasons): ArrayToUnion<TValidReasons>{
         if (finishReason === null || !validReasons.includes(finishReason)) {
             panic(new Error(`Text request finished with invalid reason: ${finishReason}`));
@@ -125,19 +96,10 @@ export class GPTModel extends Disposable implements IAICoreModel {
     }
 
     private __assertModel(): OpenAI {
-        if (!this._openAi) {
+        if (!this._model) {
             panic(new Error('Try to send request without ai model'));
         }
-        return this._openAi;
-    }
-
-    private __processTokenUsage(usage?: OpenAI.Completions.CompletionUsage): IAIRequestTokenUsage | undefined {
-        if (!usage) return undefined;
-        return {
-            completionTokens: usage.completion_tokens,
-            promptTokens: usage.prompt_tokens,
-            totalTokens: usage.total_tokens
-        };
+        return this._model;
     }
 
     private __createTextMessage<TChoice>(
