@@ -1,10 +1,10 @@
-import { dfs as dfsRaw, bfs as bfsRaw } from "src/base/common/utilities/function";
-import { Numbers } from "src/base/common/utilities/number";
+import { dfs as dfsRaw, bfs as bfsRaw, dfsAsync as dfsAsyncRaw, bfsAsync as bfsAsyncRaw } from "src/base/common/utilities/function";
 import { panic } from "src/base/common/utilities/panic";
 import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
 /**
- * @namespace Array A series of helper functions that relates to array.
+ * @namespace Arrays A series of helper functions that relates to array. To 
+ * access the asynchronous version, use {@link Arrays.Async}.
  */
 export namespace Arrays {
 
@@ -635,7 +635,6 @@ export namespace Arrays {
      * @returns The found item or undefined if not found.
      */
     export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => CompareOrder): T | undefined {
-
         let l = -1;
         let r = array.length;
 
@@ -745,6 +744,87 @@ export namespace Arrays {
      */
     export function fromObjectEntries<T>(obj: Record<string, T>): [string, T][] {
         return Object.entries(obj);
+    }
+
+    /**
+     * The asynchronous version of the namespace.
+     */
+    export namespace Async {
+
+        /**
+         * See {@link Arrays.parallelEach} for details.
+         */
+        export async function parallelEach<TArrays extends any[][]>(arrays: [...TArrays], forEach: (...elements: Flatten<TArrays>) => Promise<void>): Promise<void> {
+            if (arrays.length === 0) {
+                return;
+            }
+    
+            if (!arrays.every(array => array.length === arrays[0]!.length)) {
+                panic('[parallelEach] All arrays must have the same length');
+            }
+        
+            const arrayLength = arrays[0]!.length;
+            for (let i = 0; i < arrayLength; i++) {
+                const args: any = arrays.map(array => array[i]!);
+                await forEach(...args);
+            }
+        }
+
+        /**
+         * See {@link Arrays.dfs} for details.
+         */
+        export async function dfs<T>(arr: T[], visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+            for (const node of arr) {
+                await dfsAsyncRaw(node, visit, getChildren);
+            }
+        }
+        
+        /**
+         * See {@link Arrays.bfs} for details.
+         */
+        export async function bfs<T>(arr: T[], visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+            for (const node of arr) {
+                await bfsAsyncRaw(node, visit, getChildren);
+            }
+        }
+
+        /**
+         * See {@link Arrays.reverseIterate} for details.
+         */
+        export async function reverseIterate<T>(array: T[], each: (element: T, index: number) => Promise<boolean | void | undefined>): Promise<T[]> {
+            for (let idx = array.length - 1; idx >= 0; idx--) {
+                if (await each(array[idx]!, idx) === true) {
+                    break;
+                }
+            }
+            return array;
+        }
+
+        /**
+         * See {@link Arrays.binarySearch} for details.
+         */
+        export async function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => Promise<CompareOrder>): Promise<T | undefined> {
+            let l = -1;
+            let r = array.length;
+    
+            while (l + 1 < r) {
+                const m = ((l + r) / 2) | 0;
+                const value = array[m]!;
+                const result = await match(value);
+    
+                if (result === 0) {
+                    return value;
+                }
+    
+                if (result < 0) {
+                    l = m;
+                } else {
+                    r = m;
+                }
+            }
+    
+            return undefined;
+        }
     }
 }
 
