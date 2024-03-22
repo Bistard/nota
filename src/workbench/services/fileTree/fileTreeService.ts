@@ -448,6 +448,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         // to refresh event
         this._toRefresh = cleanup.register(new DelayableEmitter(noop));
         cleanup.register(this._toRefresh.registerListener(() => {
+            console.log('tree is about to refresh'); // TEST
             tree.refresh();
         }));
 
