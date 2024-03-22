@@ -24,6 +24,7 @@ import { assert, panic } from "src/base/common/utilities/panic";
 import { IFileTreeCustomSorter, OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
+import { noop } from "src/base/common/performance";
 
 export class FileTreeService extends Disposable implements IFileTreeService {
 
@@ -33,6 +34,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private _tree?: IFileTree<FileItem, void>;
     private _sorter?: FileTreeSorter<FileItem>;
+    
+    /**
+     * Able to pause and resume the refresh event. The refresh event will be 
+     * combined into a single one during the pause state.
+     */
     private _toRefresh?: DelayableEmitter<void>;
 
     // synchronizes lifecycle of the above properties
@@ -440,7 +446,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         const cleanup = this._treeCleanup;
 
         // to refresh event
-        this._toRefresh = cleanup.register(new DelayableEmitter());
+        this._toRefresh = cleanup.register(new DelayableEmitter(noop));
         cleanup.register(this._toRefresh.registerListener(() => {
             tree.refresh();
         }));
@@ -468,10 +474,10 @@ export class FileTreeService extends Disposable implements IFileTreeService {
          * changes are detected.
          */
         this.fileService.watch(root, { recursive: true })
-        .match<void>(
-            (disposable) => cleanup.register(disposable),
-            error => this.logService.warn('FileTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
-        );
+            .match<void>(
+                disposable => cleanup.register(disposable),
+                error => this.logService.warn('FileTreeService', 'Cannot watch the root directory.', { at: URI.toString(root), error: error, }),
+            );
         cleanup.register(this.fileService.onDidResourceChange(e => {
             onDidResourceChange.schedule(e.wrap());
         }));

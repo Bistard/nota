@@ -285,15 +285,17 @@ export class DelayableEmitter<T> extends Emitter<T> {
             return;
         }
 
-        // fires the saved events
+        // fire only once if reduce fn is provided
         if (this._reduceFn) {
             super.fire(this._reduceFn(Array.from(this._delayedEvents)));
             this._delayedEvents.clear();
-        } else {
-            while (this._delayed === false && this._delayedEvents.size() > 0) {
-                super.fire(this._delayedEvents.front()!.data);
-                this._delayedEvents.pop_front();
-            }
+            return;
+        } 
+         
+        // fire one by one
+        while (this._delayed === false && this._delayedEvents.size() > 0) {
+            super.fire(this._delayedEvents.front()!.data);
+            this._delayedEvents.pop_front();
         }
     }
 
