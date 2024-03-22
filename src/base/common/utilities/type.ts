@@ -311,6 +311,23 @@ export type AtLeastNArray<T, N extends number, R extends T[] = []> =
         : AtLeastNArray<T, N, [T, ...R]>;
 
 /**
+ * Represents a union type derived from the types of elements in an array `T`.
+ * 
+ * This utility type converts an array type into a union type consisting of the types of elements present in the array.
+ * It is particularly useful when you want to create a type that can be any one of the elements in a given array.
+ * 
+ * @example
+ * // Given an array type of specific strings
+ * const exampleArray = ['a', 'b', 'c'] as const;
+ * 
+ * // The resulting union type will be 'a' | 'b' | 'c'
+ * type ExampleUnion = ArrayToUnion<typeof exampleArray>;
+ * 
+ * @typeParam T - An array type or a tuple with readonly elements.
+ */
+export type ArrayToUnion<T extends readonly any[]> = T[number];
+
+/**
  * make every parameter of an object and its sub-objects recursively as readonly.
  * 
  * @note related built-in type: {@link Readonly}.
