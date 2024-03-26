@@ -227,7 +227,7 @@ export namespace FileCommands {
              * When updating the metadata in disk. I'm not sure if 'unwrap' is 
              * the right thing to do. The error expected to be disk-related. I 
              * guess there is not much that we can do if error encounters. So I 
-             * choose'unwrap' for now.
+             * choose 'unwrap' for now.
              */
 
             /**
@@ -324,6 +324,8 @@ export namespace FileCommands {
                  */
                 const passedNames = passedItems.map(item => item.name);
                 const addIndice = Arrays.fill(destinationIdx, passedCount);
+
+                // FIX: remove this api, integrate into the updateCustomSortingMetadata API
                 await this.fileTreeService.updateCustomSortingExistMetadata(
                     OrderChangeType.Add,
                     destination.uri,
@@ -336,7 +338,7 @@ export namespace FileCommands {
                  * need to retrieve the directory names before actual 
                  * moving/copying by `stat`.
                  */
-                
+
                 /**
                  * Step 3: To those who passed are directory, we need to move 
                  * its entire metadata to a new location.
