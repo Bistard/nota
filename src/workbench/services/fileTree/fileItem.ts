@@ -10,6 +10,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { tryOrDefault } from "src/base/common/error";
 import { parse, posix } from "src/base/common/files/path";
 import { Strings } from "src/base/common/utilities/string";
+import { assert } from "src/base/common/utilities/panic";
 
 export interface IFileTarget {
     readonly name: string;
@@ -152,6 +153,13 @@ export interface IFileItem<TItem extends IFileItem<TItem>> extends IFileTarget {
      * calling too frequently.
      */
     findDescendant(uri: URI): FileItem | undefined;
+
+    /**
+     * @description Returns an index of the current item within the children of 
+     * its parent.
+     * @panic make sure the parent exists.
+     */
+    getSelfIndexInParent(): number;
 }
 
 export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
@@ -415,6 +423,11 @@ export class FileItem implements IFileItem<FileItem> {
         }
 
         return this.__findChildByPath(uri.path, this.uri.path.length);
+    }
+
+    public getSelfIndexInParent(): number {
+        const resolvedParent = assert(this.parent);
+        return resolvedParent.children.indexOf(this);
     }
 
     // [private helper methods]
