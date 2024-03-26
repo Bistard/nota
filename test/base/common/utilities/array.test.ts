@@ -192,6 +192,12 @@ suite('array-test', () => {
             const result = Arrays.relocateByIndex(array, [0], 0);
             assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
         });
+
+        test('moves elements to the same index should not change the array', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [1, 2], 1);
+            assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
+        });
     });
 
     test('fill', () => {

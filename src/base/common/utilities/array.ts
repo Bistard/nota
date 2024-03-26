@@ -197,6 +197,7 @@ export namespace Arrays {
 
         // Sort indices to maintain original order and simplify removal
         const sortedIndices = indice.sort((a, b) => a - b);
+        let destAdjustment = 0;
 
         // Extract items to move
         const itemsToMove: T[] = [];
@@ -206,10 +207,11 @@ export namespace Arrays {
             }
 
             itemsToMove.push(array[index]!);
-            if (index <= destination) {
-                destination = Math.max(destination - 1, 0);
+            if (index < destination) {
+                destAdjustment++;
             }
         }
+        destination -= destAdjustment;
 
         // Remove items from original positions (in reverse to avoid indexing issues)
         for (const index of sortedIndices.reverse()) {
