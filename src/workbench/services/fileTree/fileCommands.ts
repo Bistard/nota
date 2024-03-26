@@ -192,7 +192,7 @@ export namespace FileCommands {
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
             const batch = insertAtSameParent
-                ? createBatchResult<IChange<URI>>({ passed: toPaste.map(item => ({ old: item.uri, new: URI.join(destination.uri, URI.basename(item.uri)) })) })
+                ? createBatchResult({ passed: toPaste.map(item => ({ old: item.uri, new: item.uri })) })
                 : await this.__doPasteNormal(toPaste.map(item => item.uri), destination, isCut);
             
             // error handling to those who fails
@@ -290,7 +290,7 @@ export namespace FileCommands {
                  * order of the items within the same directory.
                  */
                 if (isCut) {
-                    const toMoveIndice = passedItems.map(item => this.fileTreeService.getItemIndex(item));
+                    const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
                     await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, oldParent, toMoveIndice, destinationIdx).unwrap();
                 } 
                 else {
@@ -307,7 +307,7 @@ export namespace FileCommands {
                 if (isCut) {
                     const removeIndice: number[] = [];
                     for (const item of passedItems) {
-                        const idx = this.fileTreeService.getItemIndex(item);
+                        const idx = item.getSelfIndexInParent();
                         removeIndice.push(idx);
                     }
                     
@@ -331,10 +331,15 @@ export namespace FileCommands {
                     addIndice
                 ).unwrap();
 
-                // FIX: SHOULD BE RECURSIVE
                 /**
-                 * Step 3: To those who passed are directory, we need to move its entire
-                 * metadata to a new location.
+                 * // FIX: SHOULD BE RECURSIVE
+                 * need to retrieve the directory names before actual 
+                 * moving/copying by `stat`.
+                 */
+                
+                /**
+                 * Step 3: To those who passed are directory, we need to move 
+                 * its entire metadata to a new location.
                  */
                 Arrays.Async.parallelEach([passedOldDirUri, passedNewDirUri], async (oldDirUri, newDirUri) => {
                     await this.fileTreeService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();

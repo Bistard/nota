@@ -317,6 +317,8 @@ export interface IFileTreeService extends IDisposable, IService {
      * @param oldDirUri The directory has changed.
      * @param destination The new destination of the directory.
      * @param cutOrCopy True means cut, false means copy.
+     * 
+     * @note If oldDirUri has no metadata file before, no operations is taken.
      */
     updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 }

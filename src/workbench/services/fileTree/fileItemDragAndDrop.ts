@@ -452,7 +452,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          */
         const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
         const resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
-        const resolvedIdx = isExpandedDir ? 0           : assert(targetAbove.parent).children.indexOf(targetAbove) + 1;
+        const resolvedIdx = isExpandedDir ? 0           : targetAbove.getSelfIndexInParent() + 1;
         assert(resolvedIdx !== -1);
         
         // tell the program we are doing insertion
