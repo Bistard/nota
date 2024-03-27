@@ -133,6 +133,13 @@ export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends I
     updateExistMetadataLot(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 
     /**
+     * @description If the metadata of the corresponding directory exists in the
+     * file system.
+     * @param dirUri The directory URI.
+     */
+    isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, FileOperationError>;
+
+    /**
      * @description When moving or copying a directory, its corresponding 
      * metadata file must also be updated.
      * @param oldDirUri The directory has changed.
@@ -329,6 +336,11 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
                 this.__updateMetadataInCacheLot(type, parent, items ?? [], indice, destination);
                 return this.__saveMetadataIntoDisk(parent);
             });
+    }
+
+    public isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, FileOperationError> {
+        const metadataURI = this.__computeMetadataURI(dirUri);
+        return this.fileService.exist(metadataURI);
     }
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
