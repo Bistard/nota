@@ -2,7 +2,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IService, createService, renameDecorator } from "src/platform/instantiation/common/decorator";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
@@ -10,9 +10,10 @@ import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomS
 import { FileOperationError } from "src/base/common/files/file";
 
 export const IFileTreeService = createService<IFileTreeService>('file-tree-service');
+export const IFileTreeMetadataService = renameDecorator<IFileTreeService, IFileTreeMetadataService>(IFileTreeService);
 
 /**
- * The base interface for any tree services.
+ * The interface only for {@link FileTreeService}.
  */
 export interface IFileTreeService extends IDisposable, IService {
     
@@ -262,6 +263,30 @@ export interface IFileTreeService extends IDisposable, IService {
      * @note This will not trigger rerendering.
      */
     setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean>;
+}
+
+/**
+ * The interface only for {@link FileTreeService}.
+ */
+export interface IFileTreeMetadataService extends IDisposable, IService {
+
+    /**
+     * @description If the metadata of the corresponding directory exists in the
+     * file system.
+     * @param dirUri The directory URI.
+     */
+    isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, Error | FileOperationError>;
+
+    /**
+     * @description When moving or copying a directory, its corresponding 
+     * metadata file must also be updated.
+     * @param oldDirUri The directory has changed.
+     * @param destination The new destination of the directory.
+     * @param cutOrCopy True means cut, false means copy.
+     * 
+     * @note If oldDirUri has no metadata file before, no operations is taken.
+     */
+    updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 
     /**
      * @description This method provides a way to programmatically update the 
@@ -306,19 +331,13 @@ export interface IFileTreeService extends IDisposable, IService {
     updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
     updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 
+    updateCustomSortingMetadata2(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata2(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata2(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata2(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+
     updateCustomSortingExistMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
     updateCustomSortingExistMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
     updateCustomSortingExistMetadata(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
     updateCustomSortingExistMetadata(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-
-    /**
-     * @description When moving or copying a directory, its corresponding 
-     * metadata file must also be updated.
-     * @param oldDirUri The directory has changed.
-     * @param destination The new destination of the directory.
-     * @param cutOrCopy True means cut, false means copy.
-     * 
-     * @note If oldDirUri has no metadata file before, no operations is taken.
-     */
-    updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 }

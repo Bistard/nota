@@ -3,7 +3,7 @@ import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
-import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
@@ -26,7 +26,7 @@ import { IWorkbenchService } from "src/workbench/services/workbench/workbenchSer
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { noop } from "src/base/common/performance";
 
-export class FileTreeService extends Disposable implements IFileTreeService {
+export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
     declare _serviceMarker: undefined;
 
@@ -56,6 +56,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     ) {
         super();
         this._treeCleanup = new DisposableManager();
+        this.logService.trace('FileTreeService', 'FileTreeService constructed.');
     }
 
     // [event]
@@ -93,6 +94,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         if (this._tree) {
             return AsyncResult.err(new Error('[FileTreeService] cannot initialize since it is already initialized. Close it before initialize.'));
         }
+        this.logService.trace('FileTreeService', 'initializing...');
 
         return this.__initTree(container, root)
             .andThen(async tree => {
@@ -107,6 +109,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
                 this.__initListeners(tree);
 
+                this.logService.trace('FileTreeService', `initialized at: ${URI.toString(root)}.`);
                 this._onDidInitOrClose.fire(true);
             });
     }
@@ -181,6 +184,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         if (!this._tree) {
             return;
         }
+
+        this.logService.trace('FileTreeService', `closed at: ${this.root && URI.toString(this.root)}.`);
 
         this._treeCleanup.dispose();
         this._treeCleanup = new DisposableManager();
@@ -290,6 +295,15 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             .andThen(sorter => sorter.updateMetadataLot(type, itemsOrParent, indice, destination));
     }
 
+    public updateCustomSortingMetadata2(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata2(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata2(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata2(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata2(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
+        return this.__assertCustomSorter()
+            .andThen(sorter => sorter.updateMetadataLot2(type, parent, items, indice, destination));
+    }
+
     public updateCustomSortingExistMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingExistMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingExistMetadata(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
@@ -297,6 +311,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     public updateCustomSortingExistMetadata(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
         return this.__assertCustomSorter()
             .andThen(sorter => sorter.updateExistMetadataLot(type, parent, items, indice, destination));
+    }
+
+    public isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, Error | FileOperationError> {
+        return this.__assertCustomSorter()
+            .andThen(sorter => sorter.isDirectoryMetadataExist(dirUri));
     }
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
