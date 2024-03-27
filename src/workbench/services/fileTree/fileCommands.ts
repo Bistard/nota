@@ -2,7 +2,7 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
 import { Command } from "src/platform/command/common/command";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { URI } from "src/base/common/files/uri";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
@@ -56,6 +56,7 @@ export namespace FileCommands {
     export class FilePaste extends Command {
     
         private fileTreeService!: IFileTreeService;
+        private fileTreeMetadataService!: IFileTreeMetadataService;
         private clipboardService!: IClipboardService;
         private fileService!: IFileService;
         private notificationService!: INotificationService;
@@ -69,12 +70,13 @@ export namespace FileCommands {
         }
     
         public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx?: number, resources?: URI[]): Promise<boolean> {
-            this.fileTreeService     = provider.getOrCreateService(IFileTreeService);
-            this.clipboardService    = provider.getOrCreateService(IClipboardService);
-            const contextService     = provider.getOrCreateService(IContextService);
-            this.notificationService = provider.getOrCreateService(INotificationService);
-            this.fileService         = provider.getOrCreateService(IFileService);
-            this.commandService      = provider.getOrCreateService(ICommandService);
+            this.fileTreeService         = provider.getOrCreateService(IFileTreeService);
+            this.clipboardService        = provider.getOrCreateService(IClipboardService);
+            const contextService         = provider.getOrCreateService(IContextService);
+            this.notificationService     = provider.getOrCreateService(INotificationService);
+            this.fileService             = provider.getOrCreateService(IFileService);
+            this.commandService          = provider.getOrCreateService(ICommandService);
+            this.fileTreeMetadataService = provider.getOrCreateService(IFileTreeMetadataService);
 
             const toPaste  = await this.__getResourcesToPaste(resources);
             const isCut    = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
@@ -140,6 +142,9 @@ export namespace FileCommands {
         }
 
         private async __pasteInsert(destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+            assert(destination.isDirectory());
+            assert(!this.fileTreeService.isCollapsed(destination));
+            
             /**
              * On detecting an insertion, the operation must be conducted from 
              * the UI perspective. Therefore, instead of utilizing the given 
@@ -270,15 +275,6 @@ export namespace FileCommands {
             console.log('isCut:', isCut);
             console.log('destinationName:', destination.basename);
             console.log('destinationIdx:', destinationIdx);
-            console.table({
-                passedItems,
-                passedOldDirUri,
-                passedNewDirUri,
-                passedOldUri,
-                passedNewUri,
-            });
-
-            // debugger; // TEST
 
             if (insertAtSameParent) {
                 /**
@@ -291,11 +287,11 @@ export namespace FileCommands {
                  */
                 if (isCut) {
                     const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
-                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, oldParent, toMoveIndice, destinationIdx).unwrap();
+                    await this.fileTreeMetadataService.updateCustomSortingMetadata2(OrderChangeType.Move, oldParent.uri, null, toMoveIndice, destinationIdx).unwrap();
                 } 
                 else {
                     const addIndice = Arrays.fill(destinationIdx, passedCount);
-                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Add, passedItems, addIndice).unwrap();
+                    await this.fileTreeMetadataService.updateCustomSortingMetadata2(OrderChangeType.Add, oldParent.uri, passedItems.map(item => item.name), addIndice).unwrap();
                 }
             } 
             else {
@@ -311,9 +307,10 @@ export namespace FileCommands {
                         removeIndice.push(idx);
                     }
                     
-                    await this.fileTreeService.updateCustomSortingMetadata(
+                    await this.fileTreeMetadataService.updateCustomSortingMetadata2(
                         OrderChangeType.Remove, 
-                        oldParent, 
+                        oldParent.uri, 
+                        null,
                         removeIndice,
                     ).unwrap();
                 }
@@ -325,8 +322,7 @@ export namespace FileCommands {
                 const passedNames = passedItems.map(item => item.name);
                 const addIndice = Arrays.fill(destinationIdx, passedCount);
 
-                // FIX: remove this api, integrate into the updateCustomSortingMetadata API
-                await this.fileTreeService.updateCustomSortingExistMetadata(
+                await this.fileTreeMetadataService.updateCustomSortingMetadata2(
                     OrderChangeType.Add,
                     destination.uri,
                     passedNames,
@@ -344,7 +340,7 @@ export namespace FileCommands {
                  * its entire metadata to a new location.
                  */
                 Arrays.Async.parallelEach([passedOldDirUri, passedNewDirUri], async (oldDirUri, newDirUri) => {
-                    await this.fileTreeService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();
+                    await this.fileTreeMetadataService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();
                 });
             }
         }
