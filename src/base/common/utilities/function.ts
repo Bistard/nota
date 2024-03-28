@@ -94,7 +94,7 @@ export function dfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T)
 export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
     await visit(node);
     for (const child of await getChildren(node)) {
-        dfsAsync(child, visit, getChildren);
+        await dfsAsync(child, visit, getChildren);
     }
 }
 
