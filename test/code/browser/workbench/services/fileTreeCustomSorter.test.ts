@@ -9,7 +9,6 @@ import { FileService, IFileService } from 'src/platform/files/common/fileService
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem } from 'src/workbench/services/fileTree/fileItem';
 import { FileSortOrder, FileSortType, FileTreeSorter, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeSorter";
-import { FileTreeCustomSorter } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
 import { SAMPLE_TREE_LIKE, buildFileItem, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 import { executeOnce } from 'src/base/common/utilities/function';

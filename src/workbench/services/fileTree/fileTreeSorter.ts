@@ -194,8 +194,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 if (this._customSorter) {
                     break;
                 }
-
-                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, <any>this._customSorterOpts);
+                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, this._customSorterOpts);
                 this._compare = this._customSorter.compare.bind(this._customSorter);
                 break;
             }

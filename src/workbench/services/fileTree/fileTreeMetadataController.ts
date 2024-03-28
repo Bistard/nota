@@ -15,7 +15,7 @@ import { Comparator } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItem, IFileTarget } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
-import { FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
+import { FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { IFileTreeMetadataService } from "src/workbench/services/fileTree/treeService";
 
 /**
@@ -36,6 +36,9 @@ export const enum OrderChangeType {
     Move,
 }
 
+/**
+ * An option for {@link FileTreeMetadataController}.
+ */
 export interface IFileTreeMetadataControllerOptions extends IFileTreeCustomSorterOptions {
     readonly metadataRootPath: URI;
     readonly hash: (input: string) => string;
@@ -92,6 +95,8 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     // [public methods]
 
     public getMetadataFromCache(dirUri: URI): string[] | undefined {
+        this.__assertCustomMode();
+
         const resource = this._metadataCache.get(dirUri);
         if (resource === undefined) {
             return undefined;
@@ -104,13 +109,13 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     }
 
     public isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, FileOperationError> {
-        this.__assertCustomSorter();
+        this.__assertCustomMode();
         const metadataURI = this.__computeMetadataURI(dirUri);
         return this.fileService.exist(metadataURI);
     }
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
-        this.__assertCustomSorter();
+        this.__assertCustomMode();
 
         const oldMetadataURI = this.__computeMetadataURI(oldDirUri);
         return this.fileService.exist(oldMetadataURI)
@@ -128,7 +133,7 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     }
 
     public syncMetadataInCacheWithDisk(folderUri: URI, folderChildren: IFileTarget[]): AsyncResult<void, FileOperationError | Error> {
-        this.__assertCustomSorter();
+        this.__assertCustomMode();
         
         const inCache = this._metadataCache.get(folderUri);
         if (inCache) {
@@ -186,6 +191,8 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     public updateCustomSortingMetadata(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType       , item: FileItem, index1?: number, index2?: number): AsyncResult<void, FileOperationError | Error> {
+        this.__assertCustomMode();
+
         const parent = assert(item.parent);
         const inCache = this._metadataCache.has(parent.uri);
         
@@ -205,7 +212,7 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     public updateCustomSortingMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadataLot(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadataLot(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
-        this.__assertCustomSorter();
+        this.__assertCustomMode();
         
         if (type === OrderChangeType.Swap) {
             return AsyncResult.err(new Error('[FileTreeCustomSorter] does not support "swap" operation in "updateMetadataLot"'));
@@ -239,9 +246,8 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
 
     // [private helper methods]
 
-    private __assertCustomSorter(): void {
-        const customSorter = this._sorter.getCustomSorter();
-        if (customSorter === null) {
+    private __assertCustomMode(): void {
+        if (this._sorter.sortType !== FileSortType.Custom) {
             panic(new Error('[FileTreeService] cannot update custom sorting metadata since it is not in custom sorting mode.'));
         }
     }
