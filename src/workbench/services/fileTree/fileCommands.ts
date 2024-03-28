@@ -287,11 +287,11 @@ export namespace FileCommands {
                  */
                 if (isCut) {
                     const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
-                    await this.fileTreeMetadataService.updateCustomSortingMetadata(OrderChangeType.Move, oldParent.uri, null, toMoveIndice, destinationIdx).unwrap();
+                    await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParent.uri, null, toMoveIndice, destinationIdx).unwrap();
                 } 
                 else {
                     const addIndice = Arrays.fill(destinationIdx, passedCount);
-                    await this.fileTreeMetadataService.updateCustomSortingMetadata(OrderChangeType.Add, oldParent.uri, passedItems.map(item => item.name), addIndice).unwrap();
+                    await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParent.uri, passedItems.map(item => item.name), addIndice).unwrap();
                 }
             } 
             else {
@@ -307,7 +307,7 @@ export namespace FileCommands {
                         removeIndice.push(idx);
                     }
                     
-                    await this.fileTreeMetadataService.updateCustomSortingMetadata(
+                    await this.fileTreeMetadataService.updateCustomSortingMetadataLot(
                         OrderChangeType.Remove, 
                         oldParent.uri, 
                         null,
@@ -322,7 +322,7 @@ export namespace FileCommands {
                 const passedNames = passedItems.map(item => item.name);
                 const addIndice = Arrays.fill(destinationIdx, passedCount);
 
-                await this.fileTreeMetadataService.updateCustomSortingMetadata(
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(
                     OrderChangeType.Add,
                     destination.uri,
                     passedNames,

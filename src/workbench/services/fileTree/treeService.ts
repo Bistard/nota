@@ -303,10 +303,10 @@ export interface IFileTreeMetadataService extends IDisposable, IService {
      * 
      * @panic when missing the provided index1 or index2.
      */
-    updateCustomSortingMetadataSingle(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingMetadataSingle(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingMetadataSingle(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingMetadataSingle(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
     
 
     /**
@@ -347,8 +347,8 @@ export interface IFileTreeMetadataService extends IDisposable, IService {
      *              the parent metadata where the items should be moved to. 
      *              Items retain their original order during the move.
      */
-    updateCustomSortingMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 }

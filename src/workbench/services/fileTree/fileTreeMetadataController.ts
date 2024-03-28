@@ -181,11 +181,11 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         });
     }
 
-    public updateCustomSortingMetadataSingle(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadataSingle(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadataSingle(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadataSingle(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadataSingle(type: OrderChangeType       , item: FileItem, index1?: number, index2?: number): AsyncResult<void, FileOperationError | Error> {
+    public updateCustomSortingMetadata(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType       , item: FileItem, index1?: number, index2?: number): AsyncResult<void, FileOperationError | Error> {
         const parent = assert(item.parent);
         const inCache = this._metadataCache.has(parent.uri);
         
@@ -200,11 +200,11 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         });
     }
 
-    public updateCustomSortingMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadata(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
         this.__assertCustomSorter();
         
         if (type === OrderChangeType.Swap) {
