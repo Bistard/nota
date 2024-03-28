@@ -14,10 +14,10 @@ import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
 import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
-import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { noop } from "src/base/common/performance";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
 import { ResourceMap } from "src/base/common/structures/map";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -287,11 +287,11 @@ export namespace FileCommands {
                  */
                 if (isCut) {
                     const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
-                    await this.fileTreeMetadataService.updateCustomSortingMetadata2(OrderChangeType.Move, oldParent.uri, null, toMoveIndice, destinationIdx).unwrap();
+                    await this.fileTreeMetadataService.updateCustomSortingMetadata(OrderChangeType.Move, oldParent.uri, null, toMoveIndice, destinationIdx).unwrap();
                 } 
                 else {
                     const addIndice = Arrays.fill(destinationIdx, passedCount);
-                    await this.fileTreeMetadataService.updateCustomSortingMetadata2(OrderChangeType.Add, oldParent.uri, passedItems.map(item => item.name), addIndice).unwrap();
+                    await this.fileTreeMetadataService.updateCustomSortingMetadata(OrderChangeType.Add, oldParent.uri, passedItems.map(item => item.name), addIndice).unwrap();
                 }
             } 
             else {
@@ -307,7 +307,7 @@ export namespace FileCommands {
                         removeIndice.push(idx);
                     }
                     
-                    await this.fileTreeMetadataService.updateCustomSortingMetadata2(
+                    await this.fileTreeMetadataService.updateCustomSortingMetadata(
                         OrderChangeType.Remove, 
                         oldParent.uri, 
                         null,
@@ -322,7 +322,7 @@ export namespace FileCommands {
                 const passedNames = passedItems.map(item => item.name);
                 const addIndice = Arrays.fill(destinationIdx, passedCount);
 
-                await this.fileTreeMetadataService.updateCustomSortingMetadata2(
+                await this.fileTreeMetadataService.updateCustomSortingMetadata(
                     OrderChangeType.Add,
                     destination.uri,
                     passedNames,
