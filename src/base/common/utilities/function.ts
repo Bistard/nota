@@ -77,12 +77,17 @@ export function to01(value: any): 1 | 0 {
 /**
  * @description Performs a depth-first search (DFS) on a tree.
  * @param node The starting node for the DFS.
- * @param visit A function to visit on each node.
+ * @param visit A function to visit on each node. When a boolean is returned, it
+ *              indicates if the dfs should continue to visit.
  * @param getChildren A function that returns an array of child nodes for the 
  *                    given node.
  */
-export function dfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T) => T[]): void {
-    visit(node);
+export function dfs<T>(node: T, visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
+    const cont = visit(node);
+    if (!cont) {
+        return;
+    }
+
     for (const child of getChildren(node)) {
         dfs(child, visit, getChildren);
     }
@@ -91,8 +96,12 @@ export function dfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T)
 /**
  * @description An async version of {@link dfs}.
  */
-export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
-    await visit(node);
+export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+    const cont = await visit(node);
+    if (!cont) {
+        return;
+    }
+
     for (const child of await getChildren(node)) {
         await dfsAsync(child, visit, getChildren);
     }
@@ -101,16 +110,20 @@ export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void>, ge
 /**
  * @description Performs a breadth-first search (BFS) on a tree.
  * @param node The starting node for the BFS.
- * @param visit A function to visit on each node.
+ * @param visit A function to visit on each node. When a boolean is returned, it
+ *              indicates if the bfs should continue to visit.
  * @param getChildren A function that returns an array of child nodes for the 
  *                    given node.
  */
-export function bfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+export function bfs<T>(node: T, visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
     const queue = [node];
 
     while (queue.length > 0) {
         const currentNode = queue.shift()!;
-        visit(currentNode);
+        const cont = visit(currentNode);
+        if (!cont) {
+            return;
+        }
 
         const children = getChildren(currentNode);
         for (const child of children) {
@@ -122,12 +135,15 @@ export function bfs<T>(node: T, visit: (node: T) => void, getChildren: (node: T)
 /**
  * @description An async version of {@link bfs}.
  */
-export async function bfsAsync<T>(node: T, visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+export async function bfsAsync<T>(node: T, visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
     const queue = [node];
 
     while (queue.length > 0) {
         const currentNode = queue.shift()!;
-        await visit(currentNode);
+        const cont = await visit(currentNode);
+        if (!cont) {
+            return;
+        }
 
         const children = await getChildren(currentNode);
         for (const child of children) {
