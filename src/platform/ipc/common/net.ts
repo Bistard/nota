@@ -13,7 +13,7 @@ import { IProtocol } from "src/platform/ipc/common/protocol";
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
 
 /**
- * Data types are allowed to be transfered between {@link ClientBase} and 
+ * Data types are allowed to be transferred between {@link ClientBase} and 
  * {@link ServerBase}.
  */
 export const enum DataType {
@@ -218,7 +218,7 @@ class BufferDeserializer {
 
 export interface IChannelClient {
     /**
-     * @desciption Get a {@link IChannel} given the channel name.
+     * @description Get a {@link IChannel} given the channel name.
      * @note Channel might not exist since the return object is not the actual
      * object which does the job, instead it works like a proxy and it will send
      * the command as a request to the other side and waiting for a response.
@@ -601,7 +601,7 @@ export interface IClientConnectEvent {
  * @class Caller can register a {@link IServerChannel} with {@link ChannelType}. 
  * Every time a client try to connect, the server will follow the same protocol
  * with the client and listen to its request. Once a request is received, it
- * will try to find a corresonding {@link IServerChannel} to finish the job and
+ * will try to find a corresponding {@link IServerChannel} to finish the job and
  * send back a response.
  * 
  * Built upon of a {@link ChannelServer}.
@@ -618,7 +618,7 @@ export class ServerBase extends Disposable implements IChannelServer {
     constructor(onClientConnect: Register<IClientConnectEvent>, protected readonly logService?: ILogService) {
         super();
         /**
-         * When client connect to the server and recieve its first request, we 
+         * When client connect to the server and receive its first request, we 
          * register all the current channels to it and register its onDisconnect
          * event.
          */

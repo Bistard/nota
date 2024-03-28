@@ -21,7 +21,7 @@ export const enum IpcChannel {
     WindowMaximized = 'window-maximized',
     WindowUnmaximized = 'window-unmaximized',
     WindowFocused = 'window-focused',
-    WindowBlured = 'window-blured',
+    WindowBlurred = 'window-blurred',
 }
 
 /**
@@ -37,7 +37,7 @@ export type ChannelType = IpcChannel | string;
  * argument. It always returns a promise (even if the command does not return a 
  * promise) that resolves a maximum one return value.
  * 
- * If you want to pass mutiple arguments, use array instead.
+ * If you want to pass multiple arguments, use array instead.
  * 
  * Similar to the command, you can register an event listener from the channel. 
  * It returns an event register for registration.

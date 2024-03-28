@@ -21,7 +21,7 @@ export interface ITraitChangeEvent {
  * 
  * @implements
  * Each {@link ListTrait} binds to a {@link ListTraitRenderer} so that the trait
- * can control the behaviours of when to render the trait manually.
+ * can control the behaviors of when to render the trait manually.
  */
 export class ListTrait<T> implements IDisposable {
 
@@ -173,7 +173,7 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
     
     /**
      * The reason the renderer needs to bind to the corresponding {@link ListTrait}
-     * is because the view component cannot aware of the changes of the updatest
+     * is because the view component cannot aware of the changes of the latest
      * traits that might be changed by the splicing operation.
      * 
      * To solve this, the `update` function of the renderer will ask for the

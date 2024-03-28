@@ -11,7 +11,7 @@ export const IMainLifecycleService = createService<IMainLifecycleService>('life-
 
 /**
  * Represents the different phases of the whole application. Notices that the
- * phse cannot go BACKWARDS.
+ * phase cannot go BACKWARDS.
  */
 export const enum LifecyclePhase {
     /**
@@ -172,7 +172,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
             this.__fireOnBeforeQuit(QuitReason.Quit)
                 .finally(async () => {
-                    this.logService.info('MainLifecycleService', 'application is quiting...');
+                    this.logService.info('MainLifecycleService', 'application is about to quit...');
 
                     if (this._pendingQuitBlocker) {
                         this._pendingQuitBlocker.resolve();

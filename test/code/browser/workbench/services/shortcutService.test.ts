@@ -32,12 +32,14 @@ suite('shortcutService-test', () => {
         const fileService = new FileService(logService);
         contextService = new ContextService();
         
-        commandRegistrant = new CommandRegistrant();
-        shortcutRegistrant = new ShortcutRegistrant(commandRegistrant);
-        
         const registrantService = new RegistrantService(new NullLogger());
-        registrantService.registerRegistrant(commandRegistrant);
+
+        shortcutRegistrant = new ShortcutRegistrant();
         registrantService.registerRegistrant(shortcutRegistrant);
+
+        commandRegistrant = new CommandRegistrant(new NullLogger(), registrantService);
+        registrantService.registerRegistrant(commandRegistrant);
+
         DI.register(IRegistrantService, registrantService);
 
         const commandService = new CommandService(DI, logService, registrantService);
@@ -72,16 +74,17 @@ suite('shortcutService-test', () => {
 
         let pressed = 0;
         
-        commandRegistrant.registerCommand({ id: 'test-shortcut' }, () => pressed++);
+        commandRegistrant.registerCommandBasic({ id: 'test-shortcut', command: () => pressed++ });
 
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         const precondition = CreateContextKeyExpr.Equal('value', true);
 
-        const unregister = shortcutRegistrant.register({
+        const unregister = shortcutRegistrant.register(
+            'test-shortcut', {
             shortcut: shortcut,
             when: precondition,
-            commandID: 'test-shortcut',
             weight: ShortcutWeight.ExternalExtension,
+            commandArgs: [],
         });
 
         contextService.setContext('value', false);

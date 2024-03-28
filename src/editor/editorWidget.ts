@@ -23,7 +23,7 @@ import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
-import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -280,7 +280,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             option[key] = value.value;
         }
 
-        this.configurationService.set('editor', option);
+        this.configurationService.set('editor', option, { type: ConfigurationModuleType.Memory });
     }
 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {
@@ -311,7 +311,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         disposables.register(view.onPaste(e => this._onPaste.fire(e)));
         disposables.register(view.onDrop(e => this._onDrop.fire(e)));
 
-        // TODO: configuration auto updation
+        // TODO: configuration auto update
 
         return disposables;
     }

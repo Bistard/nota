@@ -12,6 +12,11 @@ export interface IBrowserLifecycleService extends ILifecycleServiceInterface<Lif
 
 export const enum LifecyclePhase {
     Starting,
+    
+    /**
+     * The browser has finished initializing core services and completing the 
+     * rendering of the UI. Ready to interact.
+     */
     Ready,
 }
 
@@ -30,7 +35,7 @@ export const enum QuitReason {
     Reload,
 }
 
-export class BrowserLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> {
+export class BrowserLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> implements IBrowserLifecycleService {
 
     // [field]
 

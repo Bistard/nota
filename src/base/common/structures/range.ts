@@ -1,4 +1,4 @@
-import { IMeasureable } from "src/base/common/utilities/size";
+import { IMeasurable } from "src/base/common/utilities/size";
 
 export interface ISpliceable<T> {
 	splice(index: number, deleteCount: number, itemsToInsert?: T[]): T[] | void;
@@ -133,12 +133,12 @@ export namespace Range {
 	}
 
 	/**
-	 * @description Returns a mutiple intersections of a {@link IRange} with all 
+	 * @description Returns a multiple intersections of a {@link IRange} with all 
 	 * other {@link IRangeList}s, each intersection is also a {@link IRangeList} 
 	 * with the same size.
 	 * @param range The range.
 	 * @param rangeLists The array of range list.
-	 * @returns The muti-intersections.
+	 * @returns The multi-intersections.
 	 */
 	export function listIntersection(range: IRange, rangeLists: IRangeList[]): IRangeList[] {
 		const intersects: IRangeList[] = [];
@@ -247,7 +247,7 @@ export class RangeTable {
      * @param items Elements to insert into the {@link RangeTable} in place of 
 	 * the deleted items.
      */
-	public splice<T extends IMeasureable>(index: number, deleteCount: number, items: T[] = []): void {
+	public splice<T extends IMeasurable>(index: number, deleteCount: number, items: T[] = []): void {
 
 		// selects all the items before the splice.
 		const before: IRangeList[] = Range.listIntersection({start: 0, end: index}, this._list);

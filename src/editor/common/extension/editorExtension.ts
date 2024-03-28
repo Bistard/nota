@@ -86,7 +86,7 @@ export abstract class EditorExtension extends ProseExtension implements IEditorE
     // [protected methods]
 
     /**
-	 * @description Trys to register a disposable object. Once this.dispose() is 
+	 * @description Try to register a disposable object. Once this.dispose() is 
 	 * invoked, all the registered disposables will be disposed.
 	 * 
 	 * If this object is already disposed, a console warning will be printed.

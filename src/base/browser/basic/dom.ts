@@ -135,8 +135,8 @@ export function createStyleInCSS(element: HTMLElement): IStyleDisposable {
 }
 
 /**
- * @description Check if the web envrionment (DOM content) has been loaded.
- * @returns A promise that will fullfilled when everything is loaded.
+ * @description Check if the web environment (DOM content) has been loaded.
+ * @returns A promise that will fulfilled when everything is loaded.
  */
 export function waitDomToBeLoad(): Promise<unknown> {
 	return new Promise<unknown>(resolve => {
@@ -150,7 +150,7 @@ export function waitDomToBeLoad(): Promise<unknown> {
 }
 
 /**
- * @description A uitility namespace that contains all the helper functions 
+ * @description A utility namespace that contains all the helper functions 
  * relates to DOM.
  * 
  * {@link DomUtility.Attrs}
@@ -171,10 +171,10 @@ export namespace DomUtility
 	 */
 	export namespace Attrs {
 		/**
-		 * A template function to get the resired CSS property from a given element.
+		 * A template function to get the desired CSS property from a given element.
 		 * @param element The HTMLElement.
-		 * @param property The CSS properpty name.
-		 * @returns The numerated resired property.
+		 * @param property The CSS property name.
+		 * @returns The numerated desired property.
 		 * 
 		 * @warn If property cannot be convert to numerated form, -1 will be returned.
 		 */
@@ -263,7 +263,7 @@ export namespace DomUtility
 		/**
 		 * @description Get the height of the content excluding padding and border.
 		 * @param element The HTMLElement.
-		 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
+		 * @note If the element is NOT in the DOM tree, the behavior is undefined.
 		 */
 		export function getContentHeight(element: HTMLElement): number {
 			const padding = getPaddingTop(element) + getPaddingBottom(element);
@@ -274,7 +274,7 @@ export namespace DomUtility
 		/**
 		 * @description Get the width of the content excluding padding and border.
 		 * @param element The HTMLElement.
-		 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
+		 * @note If the element is NOT in the DOM tree, the behavior is undefined.
 		 */
 		export function getContentWidth(element: HTMLElement): number {
 			const padding = getPaddingLeft(element) + getPaddingRight(element);
@@ -392,7 +392,7 @@ export namespace DomUtility
 		/**
 		 * @description Check if the given HTMLElement is considered as a input type.
 		 */
-		export function isInputElement(target: HTMLElement): boolean {
+		export function isInputElement(target: Element): boolean {
 			return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 		}
 

@@ -4,7 +4,7 @@ import { delayFor } from 'src/base/common/utilities/async';
 import { AbstractLifecycleService } from 'src/platform/lifecycle/common/abstractLifecycleService';
 import { NullLogger } from 'test/utils/testService';
 
-suite('abstract-lifecycle-service-test', () => {
+suite('AbstractLifecycleService-test', () => {
 
     const enum TestPhase {
         start,

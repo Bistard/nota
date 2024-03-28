@@ -25,7 +25,7 @@ import { RGBA } from 'src/base/common/color';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { IExplorerTreeService } from 'src/workbench/services/explorerTree/treeService';
+import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -73,8 +73,8 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IHostService private readonly hostService: IHostService,
-        @IBrowserEnvironmentService private readonly envrionmentService: IBrowserEnvironmentService,
-        @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
+        @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
         super(ExplorerViewID, parentElement, themeService, componentService);
 
@@ -84,19 +84,19 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     // [getter]
 
     get isOpened(): boolean {
-        return this.explorerTreeService.isOpened;
+        return this.fileTreeService.isOpened;
     }
 
     get root(): URI | undefined {
-        return this.explorerTreeService.root;
+        return this.fileTreeService.root;
     }
 
     // [public method]
 
     public async open(root: URI): Promise<void> {
 
-        if (this.explorerTreeService.isOpened) {
-            this.logService.warn('ExplorerView', `view is already opened.`, { at: URI.toString(this.explorerTreeService.root!, true) });
+        if (this.fileTreeService.isOpened) {
+            this.logService.warn('ExplorerView', `view is already opened.`, { at: URI.toString(this.fileTreeService.root!, true) });
             return;
         }
 
@@ -111,9 +111,9 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         /**
          * Once the element is put into the DOM tree, we now can relayout to 
-         * calcualte the correct size of the view.
+         * calculate the correct size of the view.
          */
-        this.explorerTreeService.layout();
+        this.fileTreeService.layout();
     }
 
     public async close(): Promise<void> {
@@ -121,14 +121,14 @@ export class ExplorerView extends SideView implements IExplorerViewService {
             return;
         }
 
-        await this.explorerTreeService.close();
+        await this.fileTreeService.close();
 
         this.__unloadCurrentView();
         const emptyView = this.__createEmptyView();
         this.__loadCurrentView(emptyView, true);
     }
 
-    // [protected overrdie method]
+    // [protected override method]
 
     protected override __createTitlePart(): ExplorerTitlePart {
         return new ExplorerTitlePart(this.i18nService);
@@ -145,7 +145,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
          */
-        const uriToOpen = this.envrionmentService.configuration.uriOpenConfiguration;
+        const uriToOpen = this.environmentService.configuration.uriOpenConfiguration;
         if (uriToOpen.directory) {
             this.open(uriToOpen.directory);
         }
@@ -170,8 +170,8 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     private async __onApplicationClose(): Promise<void> {
 
         // save the last opened workspace root path.
-        const openedWorkspace = this.explorerTreeService.root 
-            ? URI.toString(URI.join(this.explorerTreeService.root, '|directory'))
+        const openedWorkspace = this.fileTreeService.root 
+            ? URI.toString(URI.join(this.fileTreeService.root, '|directory'))
             : '';
         await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
     }
@@ -202,7 +202,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * @description Try to open the explorer tree view at the given path.
      * @param path The given path.
      * @returns Returns a new {@link HTMLElement} of the view and a boolean 
-     * indicates if operation successed.
+     * indicates if operation succeeded.
      */
     private async __tryOpen(path: URI): Promise<[HTMLElement, boolean]> {
         let success = true;
@@ -212,7 +212,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * Open the root in the explorer tree service who will handle the 
          * complicated stuff for us.
          */
-        const init = await this.explorerTreeService.init(container, path);
+        const init = await this.fileTreeService.init(container, path);
         if (init.isOk()) {
             this._onDidOpen.fire({ path: path });
         } 
@@ -267,7 +267,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         const disposables = this._currentListeners;
 
         /**
-         * Empty view openning directory dialog listener (only open the last 
+         * Empty view opening directory dialog listener (only open the last 
          * selected one).
          */
         const emptyView = this._currentView;
@@ -291,12 +291,12 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         /**
          * The tree model of the tree-service requires the correct height thus 
-         * we need to update it everytime we are resizing.
+         * we need to update it every time we are resizing.
          */
-        disposables.register(this.workbenchService.onDidLayout(() => this.explorerTreeService.layout()));
+        disposables.register(this.workbenchService.onDidLayout(() => this.fileTreeService.layout()));
 
-        // on openning file.
-        disposables.register(this.explorerTreeService.onSelect(e => {
+        // on opening file.
+        disposables.register(this.fileTreeService.onSelect(e => {
             this.editorService.openSource(e.item.uri);
         }));
 

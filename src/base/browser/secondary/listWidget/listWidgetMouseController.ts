@@ -93,7 +93,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
             this.__multiSelectionInRange(e);
             return;
         } else if (this.__isSelectingInSingleEvent(e)) {
-            this._mutliSelectionInSingle(e);
+            this._multiSelectionInSingle(e);
             return;
         }
 
@@ -189,7 +189,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
     /**
      * @description Applies multi-selection when selecting in single.
      */
-    private _mutliSelectionInSingle(e: IListMouseEvent<T>): void {
+    private _multiSelectionInSingle(e: IListMouseEvent<T>): void {
         const toFocused = e.actualIndex!;
 
         const currSelection = this._view.getSelections();

@@ -39,7 +39,7 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
 
     /**
      * @description Refresh the subtree of the given tree node.
-     * The tree model will rebuild and reculate all the metadata of the subtree
+     * The tree model will rebuild and recalculate all the metadata of the subtree
      * of the given tree node automatically if the client modify the tree node
      * correctly.
      * @param node The given node. Defaults to root.
@@ -48,7 +48,7 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 
     /**
-     * @description See details in {@link IFlexIndexTreeModel.triggerOnDidSplice}.
+     * @description See details in {@link IFlexIndexTreeModel['triggerOnDidSplice']}.
      * @param event The event to be fired.
      */
     triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
@@ -165,7 +165,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
     }
 
     protected __createSpliceOptions(opts: ITreeModelSpliceOptions<T, TFilter>): ITreeModelSpliceOptions<T, TFilter> {
-        const inserted = new Set<T>();
+        const justInserted = new Set<T>();
 
         const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
             // avoid root
@@ -175,34 +175,29 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
 
             // remember the mapping
             this._nodes.set(node.data, node);
-            inserted.add(node.data);
+            justInserted.add(node.data);
 
-            // other callback
-            if (opts.onDidCreateNode) {
-                opts.onDidCreateNode(node);
-            }
+            opts.onDidCreateNode?.(node);
         };
 
-        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
+        const onDidDeleteData = (data: T): void => {
             // avoid root
-            if (node.data === this.root) {
+            if (data === this.root) {
 				return;
 			}
 
-            // prevent accidently delete what we just inserted.
-            if (inserted.has(node.data) === false) {
-                this._nodes.delete(node.data);
-
-                // other callback
-                if (opts.onDidDeleteNode) {
-                    opts.onDidDeleteNode(node);
-                }
+            // prevent accidentally delete what we just inserted.
+            if (justInserted.has(data)) {
+                return;
             }
+
+            this._nodes.delete(data);
+            opts.onDidDeleteData?.(data);
         };
 
         return {
             onDidCreateNode,
-            onDidDeleteNode,
+            onDidDeleteData,
         };
     }
 }
@@ -212,7 +207,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
  * 
  * Unlike {@link IndexTreeModel} searching is determined by a series of indices,
  * {@link MultiTreeModel} has an internal binding between user-defined data and 
- * internal treenode type, so that the caller can do searching without knowing 
+ * internal tree node type, so that the caller can do searching without knowing 
  * the location of the actual tree node.
  */
 export class MultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilter> implements IMultiTreeModel<T, TFilter> {

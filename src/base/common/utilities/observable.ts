@@ -223,7 +223,7 @@ export class Observable<T extends {}> implements IObservable<T> {
 /**
  * Options for {@link observable} construction.
  */
-export interface IObserverableOptions {
+export interface IObservableOptions {
 
     /**
      * Callback function when observing. A custom observer function that 
@@ -252,7 +252,7 @@ const OB_KEY = '$OB$properties';
 type ObserveList = { propKey: string, types: ObserveType[] }[];
 
 export const DEFAULT_OBSERVER = createDefaultObserver();
-const DEFAULT_OBSERVABLE_OPTS: IObserverableOptions = {
+const DEFAULT_OBSERVABLE_OPTS: IObservableOptions = {
     observer: DEFAULT_OBSERVER,
     ignoreUnderscores: true,
     stackTrace: false,
@@ -312,9 +312,9 @@ export function observe(types: NonEmptyArray<ObserveType>) {
  * // observing 'set' operations.
  * ```
  */
-export function observable<T extends Constructor>(options: IObserverableOptions = DEFAULT_OBSERVABLE_OPTS) {
+export function observable<T extends Constructor>(options: IObservableOptions = DEFAULT_OBSERVABLE_OPTS) {
 
-    const opts = mixin<Required<IObserverableOptions>>(options, DEFAULT_OBSERVABLE_OPTS, false);
+    const opts = mixin<Required<IObservableOptions>>(options, DEFAULT_OBSERVABLE_OPTS, false);
     const observer = opts.observer;
     function isFnIgnored(propKey: string): boolean {
         return opts.ignoreUnderscores && propKey.startsWith('_');
@@ -412,8 +412,8 @@ export function observable<T extends Constructor>(options: IObserverableOptions 
     };
 }
 
-export function createDefaultObserver (handleMessage?: (opts: IObserverableOptions, message: string, ...args: any[]) => void) { 
-    return function defaultObserver<TType extends ObserveType>(opts: IObserverableOptions, className: string, property: string, type: TType, param: any[]): void {
+export function createDefaultObserver (handleMessage?: (opts: IObservableOptions, message: string, ...args: any[]) => void) { 
+    return function defaultObserver<TType extends ObserveType>(opts: IObservableOptions, className: string, property: string, type: TType, param: any[]): void {
         
         let message = `[${getCurrTimeStamp().slice(0, -4)}] [${className}] `;
 

@@ -124,13 +124,13 @@ export const enum FileSystemProviderCapability {
  * Specific FileSystemProviders
  ******************************************************************************/
 
-/** @readonly Corressponds to FileSystemProviderCapability.FileReadWrite */
+/** @readonly Corresponds to FileSystemProviderCapability.FileReadWrite */
 export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
 	readFile(uri: URI): Promise<Uint8Array>;
 	writeFile(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 }
 
-/** @readonly Corressponds to FileSystemProviderCapability.FileOpenReadWriteClose */
+/** @readonly Corresponds to FileSystemProviderCapability.FileOpenReadWriteClose */
 export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemProvider {
 	open(uri: URI, opts: IOpenFileOptions): Promise<number>;
 	close(fd: number): Promise<void>;
@@ -138,7 +138,7 @@ export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemPr
 	write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 }
 
-/** @readonly Corressponds to FileSystemProviderCapability.FileFolderCopy */
+/** @readonly Corresponds to FileSystemProviderCapability.FileFolderCopy */
 export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 	copy(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void>;
 }

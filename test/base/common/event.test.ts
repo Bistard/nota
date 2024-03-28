@@ -66,7 +66,7 @@ suite('event-test', () => {
         assert.strictEqual(counter, 2);
     });
 
-    test('emitter - mutiple listeners', () => {
+    test('emitter - multiple listeners', () => {
         let counter = 0;
         const callback = (e: undefined) => {
             counter++;
@@ -90,7 +90,7 @@ suite('event-test', () => {
     });
 
     
-    test('emitter - mutiple listeners disposables', () => {
+    test('emitter - multiple listeners disposables', () => {
         let counter = 0;
         const callback = (e: undefined) => {
             counter++;

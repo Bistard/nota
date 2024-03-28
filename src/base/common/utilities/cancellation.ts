@@ -26,7 +26,7 @@ export interface ICancellationToken extends ICancellable, IDisposable {
     cancel(): void;
 
     /**
-     * @description Make the token no longer avaliable.
+     * @description Make the token no longer available.
      */
     dispose(): void;
 }
@@ -36,7 +36,7 @@ export interface ICancellationToken extends ICancellable, IDisposable {
  * event when the cancellation is requested.
  * 
  * @note A little different than normal emitter, even the token is already 
- * cancelled, listenning to the event will not raise an error, instead, the 
+ * cancelled, listening to the event will not raise an error, instead, the 
  * callback will be invoked immediately on the next event loop.
  */
 export class CancellationToken implements ICancellationToken {

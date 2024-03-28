@@ -1,4 +1,5 @@
 import { URI } from "src/base/common/files/uri";
+import { panic } from "src/base/common/utilities/panic";
 import { Constructor, isObject } from "src/base/common/utilities/type";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
@@ -11,7 +12,7 @@ export interface IReviverRegistrant extends IRegistrant<RegistrantType.Reviver> 
     /**
      * @description Register a prototype for future reviving process.
      * @param prototype The prototype to be registered.
-     * @param matcher A matcher function to match if the given object mathces 
+     * @param matcher A matcher function to match if the given object matches 
      *                this registered prototype, if yes, the object will be 
      *                recreated with the prototype.
      */
@@ -28,7 +29,7 @@ export interface IReviverRegistrant extends IRegistrant<RegistrantType.Reviver> 
  * When processes are communicating with each other under IPC. After the 
  * deserialization process of `JSON.stringify` and `JSON.parse` the new 
  * serialized object will not inherit the original prototype which may cause 
- * unexpected behaviours during the runtime.
+ * unexpected behaviors during the runtime.
  * 
  * To solve the above situation, you may register a prototype with a given 
  * matcher to match the object when reviving. When invoking `this.revive(object)`
@@ -51,6 +52,12 @@ export class ReviverRegistrant implements IReviverRegistrant {
 
     public initRegistrations(): void {
         
+        /**
+         * Since the {@link ReviverRegistrant} is constructed in both main
+         * and renderer process. Do not register here unless it is shared in 
+         * both processes.
+         */
+
         // URI-reviver
         this.registerPrototype(URI, (obj: unknown) => {
             if (Object.prototype.hasOwnProperty.call(obj, 'scheme') &&
@@ -67,12 +74,12 @@ export class ReviverRegistrant implements IReviverRegistrant {
 
     public registerPrototype(prototype: Constructor<any>, matcher: PrototypeMatcher): void {
         if (typeof prototype !== 'function') {
-            throw new Error('The prototype is not a constructor.');
+            panic('[ReviverRegistrant] The prototype is not a constructor.');
         }
 
         const exist = this._prototypes.has(prototype);
         if (exist) {
-            throw new Error('The prototype is already registered.');
+            panic('[ReviverRegistrant] The prototype is already registered.');
         }
 
         this._prototypes.set(prototype, matcher);

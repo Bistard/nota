@@ -34,6 +34,8 @@ export namespace Numbers {
     /**
      * @description Restricts the given number to a given range.
      * @param num The given number.
+     * @param min The minimum boundary.
+     * @param max The maximum boundary.
      */
     export function clamp(num: number, min: number, max: number): number {
         if (num <= min) {
@@ -63,7 +65,7 @@ export namespace Bit {
     }
 
     /**
-     * @description Returns the lowest signicant bit of the given number.
+     * @description Returns the lowest significant bit of the given number.
      */
     export function lowbit(x: number): number {
         return x & (x ^ (x - 1));

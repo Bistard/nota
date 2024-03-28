@@ -8,7 +8,7 @@ import { IEnvironmentOpts, IMainEnvironmentService } from "src/platform/environm
 
 /**
  * @class A {@link IEnvironmentService} that used in main process. Storing the
- * basic and essential native enviroment related information.
+ * basic and essential native environment related information.
  * 
  * @note The service will also take in CLI as environment parameter (eg. 
  * `process.argv`, see more from {@link ICLIArguments}).

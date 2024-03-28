@@ -10,12 +10,12 @@ interface IFocusTracker extends IDisposable {
 	onDidFocus: Register<void>;
 
 	/** 
-	 * Fires when the element is blured. 
+	 * Fires when the element is blurred. 
 	 */
 	onDidBlur: Register<void>;
 
 	/** 
-	 * Fires when the component is either focused or blured (true represents 
+	 * Fires when the component is either focused or blurred (true represents 
 	 * focused). 
 	 */
 	onDidFocusChange: Register<boolean>;
@@ -80,7 +80,7 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 		this._disposables.dispose();
 	}
 
-	// [private heleper methods]
+	// [private helper methods]
 
 	private __onFocus(): void {
 		this._loosingFocused = false;

@@ -7,7 +7,7 @@ import { Character } from "src/base/common/utilities/char";
 export namespace Random {
 
     /**
-     * @desscription Generates a random integer given the upper bounds. The 
+     * @description Generates a random integer given the upper bounds. The 
      * range is [0, bound).
      * @param bound The upper bound.
      */
@@ -16,7 +16,7 @@ export namespace Random {
     }
 
     /**
-     * @desscription Generates a random integer given the bounds. The range is 
+     * @description Generates a random integer given the bounds. The range is 
      * [min, max).
      * @param min The min bound.
      * @param max The max bound.

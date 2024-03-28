@@ -90,7 +90,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private registerListeners(): void {
         Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
 
-        // interept unexpected errors so that the error will not go back to `main.ts`
+        // interrupt unexpected errors so that the error will not go back to `main.ts`
         process.on('uncaughtException', err => ErrorHandler.onUnexpectedError(err));
         process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
@@ -112,10 +112,10 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
-        // main-window-serivce
+        // main-window-service
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
-        // dialog-sevice
+        // dialog-service
         appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
@@ -151,7 +151,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
-        this.logService.trace('App', 'Openning the first window...');
+        this.logService.trace('App', 'Opening the first window...');
 
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
@@ -227,6 +227,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private __onUnexpectedError(error: any): void {
-        this.logService.error('App', `Uncought exception occured.`, error);
+        this.logService.error('App', `Uncaught exception occurred.`, error);
     }
 }

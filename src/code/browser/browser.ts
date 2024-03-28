@@ -39,7 +39,7 @@ export class BrowserInstance implements IBrowser {
         this.lifecycleService.when(LifecyclePhase.Ready)
         .then(() => {
             
-            // save user configurations on quite
+            // save user configurations on quit
             this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save()));
         });
     }

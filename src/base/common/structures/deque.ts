@@ -1,5 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { IIterable } from "src/base/common/utilities/iterable";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * Interface for {@link IDeque}.
@@ -52,7 +53,7 @@ export class Deque<T> implements IDeque<T> {
 
     public at(index: number): T {
         if (index < 0 || index >= this.size()) {
-            throw new Error(`Invalid index when getting elements in deque at ${index}.`);
+            panic(`Invalid index when getting elements in deque at ${index}.`);
         }
         return this._arr[index]!;
     }
@@ -75,21 +76,21 @@ export class Deque<T> implements IDeque<T> {
 
     public popBack(): T {
         if (this.empty()) {
-            throw new Error('Cannot pop back from deque because it is empty.');
+            panic('Cannot pop back from deque because it is empty.');
         }
         return this._arr.pop()!;
     }
 
     public popFront(): T {
         if (this.empty()) {
-            throw new Error('Cannot pop front from deque because it is empty.');
+            panic('Cannot pop front from deque because it is empty.');
         }
         return this._arr.splice(0, 1)[0]!;
     }
 
     public insert(index: number, element: T): void {
         if (index < 0 || index > this.size()) {
-            throw new Error(`Invalid index when inserting elements in deque at ${index}.`);
+            panic(`Invalid index when inserting elements in deque at ${index}.`);
         }
         this._arr.splice(index, 0, element);
     }
@@ -97,7 +98,7 @@ export class Deque<T> implements IDeque<T> {
     public remove(index: number): T {
         const removed = this._arr.splice(index, 1);
         if (!removed.length) {
-            throw new Error(`Cannot remove elements from deque at invalid index ${index}.`);
+            panic(`Cannot remove elements from deque at invalid index ${index}.`);
         }
         return removed[0]!;
     }

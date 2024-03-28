@@ -1,5 +1,3 @@
-import { Strings } from "src/base/common/utilities/string";
-import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * To prevent potential circular dependency issues due to the wide use of `panic` 
@@ -19,7 +17,7 @@ import { isNullable } from "src/base/common/utilities/type";
  */
 
 export function panic(error: unknown): never {
-    if (isNullable(error)) {
+    if (error === undefined || error === null) {
         // eslint-disable-next-line local/code-no-throw
         throw new Error('unknown panic error');
     }
@@ -34,10 +32,41 @@ export function panic(error: unknown): never {
 }
 
 /**
+ * @description Asserts that the provided object is neither `undefined` nor 
+ * `null`. 
+ * @param obj The object to assert.
+ * @param message Optional. The custom error message
+ * @panic 
+ */
+export function assert<T>(obj: T, message?: string): NonNullable<T>;
+export function assert<T>(obj: any, message?: string): T {
+    if (obj === undefined || obj === null) {
+        panic(message ?? `assert error: ${obj}`);
+    }
+    return obj;
+}
+
+/**
+ * @description Asserts that an object is of a specific type. If the assertion 
+ * fails, the function panic.
+ * 
+ * @param obj The object to assert.
+ * @param assert A predicate function that checks if the object is of type T.
+ * @param message Optional. The custom error message
+ * @panic 
+ */
+export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?: string): T {
+    if (assert(obj)) {
+        return obj;
+    }
+    panic(message ?? `assert error: ${obj}`);
+}
+
+/**
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.
  * @param verbose If output the stack trace.
- * @returns A string formated error message.
+ * @returns A string formatted error message.
  *
  * @note This function never throws.
  */
@@ -51,7 +80,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
         const firstErrorMessage = errorToMessage(errors[0], verbose);
 
         if (errors.length > 1) {
-            return Strings.format('{0}, ({1} more errors in total)', [firstErrorMessage, errors.length - 1]);
+            return `${firstErrorMessage}, (${errors.length - 1} more errors in total)`;
         }
 
         return firstErrorMessage;
@@ -62,7 +91,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
     }
 
     if (error.stack && verbose) {
-        return Strings.format('{0} (stack trace - {1})', [error.message || UNKNOWN_MESSAGE, __stackToMessage(error.stack)]);
+        return `${error.message || UNKNOWN_MESSAGE} (stack trace - ${__stackToMessage(error.stack)})`;
     }
 
     if (error.message) {
@@ -72,7 +101,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
     return `${UNKNOWN_MESSAGE}: ${JSON.stringify(error)}`;
 }
 
-const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for more details.';
+const UNKNOWN_MESSAGE = 'An unknown error occurred. Please consult the log for more details.';
 function __stackToMessage(stack: any): string {
     if (Array.isArray(stack)) {
         return stack.join('\n');

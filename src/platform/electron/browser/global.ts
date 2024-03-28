@@ -1,5 +1,6 @@
 import { IpcRenderer } from "electron";
 import { executeOnce } from "src/base/common/utilities/function";
+import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";
 import { ISandboxProcess } from "src/platform/electron/common/electronType";
 import { IWindowConfiguration } from "src/platform/window/common/window";
@@ -21,8 +22,8 @@ import { IWindowConfiguration } from "src/platform/window/common/window";
  * line script.
  * 
  * {@link global} Scripts running under Node.js have an object called global as 
- * their global object. It may be undefined once the Node.js is not accessable
- * in the current envrioment.
+ * their global object. It may be undefined once the Node.js is not accessible
+ * in the current environment.
  */
 
 /**
@@ -51,6 +52,6 @@ export const initExposedElectronAPIs = executeOnce(function () {
         (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
         (<Mutable<IWindowConfiguration>>WIN_CONFIGURATION) = GLOBAL.nota.WIN_CONFIGURATION;
     } else {
-        throw new Error('Cannot init exposed electron APIs');
+        panic('Cannot init exposed electron APIs');
     }
 });

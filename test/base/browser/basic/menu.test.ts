@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Menu, MenuWithSubmenu } from 'src/base/browser/basic/menu/menu';
-import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from 'src/base/browser/basic/menu/menuItem';
+import { CheckMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from 'src/base/browser/basic/menu/menuItem';
 import { KeyCode, Shortcut } from 'src/base/common/keyboard';
 
 suite('menu-test', () => {
@@ -9,9 +9,9 @@ suite('menu-test', () => {
 
         /**
          * - action1
-         * - seperator
+         * - separator
          * - action2
-         * - seperator
+         * - separator
          * - action3
          */
         const menu = new Menu(document.body, {
@@ -29,7 +29,7 @@ suite('menu-test', () => {
                 },
                 shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
             }),
-            MenuSeperatorAction.instance,
+            MenuSeparatorAction.instance,
             new SimpleMenuAction({
                 id: 'action2',
                 extraClassName: 'action2',
@@ -39,7 +39,7 @@ suite('menu-test', () => {
                 },
                 shortcut: new Shortcut(true, true, false, false, KeyCode.KeyA),
             }),
-            MenuSeperatorAction.instance,
+            MenuSeparatorAction.instance,
             new SimpleMenuAction({
                 id: 'action3',
                 extraClassName: 'action3',
@@ -53,7 +53,7 @@ suite('menu-test', () => {
 
         assert.strictEqual(menu.size(), 5);
         assert.ok(menu.has('action1'));
-        assert.ok(menu.has('seperator'));
+        assert.ok(menu.has('separator'));
         assert.ok(menu.has('action2'));
         assert.ok(menu.has('action3'));
         assert.ok(!menu.has('action4'));
@@ -86,7 +86,7 @@ suite('menu-test', () => {
                     extraClassName: 'action1',
                     shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
                 }),
-                MenuSeperatorAction.instance,
+                MenuSeparatorAction.instance,
                 new SimpleMenuAction({
                     callback: () => cnt++,
                     enabled: false,
@@ -102,7 +102,7 @@ suite('menu-test', () => {
                     tip: 'simple action 3 tip',
                     extraClassName: 'action3',
                 }),
-                MenuSeperatorAction.instance,
+                MenuSeparatorAction.instance,
                 new SimpleMenuAction({
                     callback: () => console.log('action 4 executed'),
                     enabled: true,
@@ -120,7 +120,7 @@ suite('menu-test', () => {
                             tip: 'simple action 6 tip',
                             extraClassName: 'action6',
                         }),
-                        MenuSeperatorAction.instance,
+                        MenuSeparatorAction.instance,
                         new SimpleMenuAction({
                             callback: () => console.log('action 7 executed'),
                             enabled: true,
@@ -135,7 +135,7 @@ suite('menu-test', () => {
                             tip: 'simple action 8 tip',
                             extraClassName: 'action8',
                         }),
-                        MenuSeperatorAction.instance,
+                        MenuSeparatorAction.instance,
                         new SimpleMenuAction({
                             callback: () => console.log('action 9 executed'),
                             enabled: true,
@@ -153,7 +153,7 @@ suite('menu-test', () => {
     
             assert.strictEqual(menu.size(), 3);
             assert.ok(menu.has('simple action 1'));
-            assert.ok(menu.has('seperator'));
+            assert.ok(menu.has('separator'));
             assert.ok(menu.has('submenu 5'));
             assert.ok(menu.has('simple action 2'));
             assert.ok(menu.has('simple action 3'));

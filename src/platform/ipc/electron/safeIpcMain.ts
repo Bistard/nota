@@ -69,7 +69,7 @@ export interface ISafeIpcMain {
  * with additional channel naming validation. The channel sending from main 
  * process will be validate with correct channel name.
  * 
- * @note Implemented using signleton. Get the instance by {@link SafeIpcMain.instance()}.
+ * @note Implemented using singleton. Get the instance by {@link SafeIpcMain.instance()}.
  */
 export class SafeIpcMain implements ISafeIpcMain {
 

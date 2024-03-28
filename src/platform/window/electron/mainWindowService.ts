@@ -7,7 +7,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState } from "src/platform/window/common/window";
+import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
@@ -133,23 +133,15 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     private doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
 
-        let window: IWindowInstance = undefined!;
+        let window: IWindowInstance | undefined = undefined;
 
-        // get openning URIs configuration
-        let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
-        if (optionalConfiguration.uriToOpen && optionalConfiguration.uriToOpen.length > 0) {
-            const resolveResult = UriToOpenResolver.resolve(optionalConfiguration.uriToOpen);
-            uriToOpenConfiguration = resolveResult[0];
-
-            // logging any errored openning URIs
-            const errorURIs = resolveResult[1];
-            if (errorURIs.length) {
-                let message = 'Invalid URI when openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`. The erroring URIs are: ';
-                for (const uri of errorURIs) {
-                    message += '\n\t' + URI.toString(uri);
-                }
-                this.logService.error('MainWindowService', message);
-            }
+        // get opening URIs configuration
+        let uriToOpenConfiguration: IUriToOpenConfiguration = {};
+        if (optionalConfiguration.uriToOpen) {
+            uriToOpenConfiguration = UriToOpenResolver.resolve(
+                optionalConfiguration.uriToOpen, 
+                errorMessage => this.logService.error('MainWindowService', errorMessage),
+            );
         }
 
         const defaultConfiguration: IWindowCreationOptions = {
@@ -185,15 +177,15 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          * application (provided opts, app config, environment and so on). This
          * configuration will be passed when creating a `BrowserWindow`.
          */
-        const configuration: IWindowCreationOptions = mixin(defaultConfiguration, optionalConfiguration, true);
+        const configuration: Mutable<IWindowCreationOptions> = mixin(defaultConfiguration, optionalConfiguration, true);
 
         // open a new window instance
         window = this.__openInNewWindow(configuration);
-        (<Mutable<typeof configuration>>configuration).windowID = window.id;
+        configuration.windowID = window.id;
 
         // load window
         this.logService.trace('MainWindowService', 'Loading window...');
-        window.load(configuration);
+        window.load(configuration).then(() => this.logService.trace('MainWindowService', 'Window loaded successfully.'));
 
         return window;
     }
@@ -223,6 +215,23 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
 namespace UriToOpenResolver {
 
+    export function resolve(uriToOpen: URI[], onError: (message: string) => void): IUriToOpenConfiguration {
+        const resolveResult = __parse(uriToOpen);
+        const uriToOpenConfiguration = resolveResult[0];
+
+        // logging any errored opening URIs
+        const errorURIs = resolveResult[1];
+        if (errorURIs.length) {
+            let message = 'Invalid URI when opening in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`. The erroring URIs are: ';
+            for (const uri of errorURIs) {
+                message += '\n\t' + URI.toString(uri);
+            }
+            onError(message);
+        }
+
+        return uriToOpenConfiguration;
+    }
+
     /**
      * @description Given an array of URIs, resolves the ones that follow the
      * following parsing rule.
@@ -233,7 +242,7 @@ namespace UriToOpenResolver {
      *      File      - file_path|file(|gotoLine)
      * ```
      */
-    export function resolve(uris: URI[]): [IUriToOpenConfiguration, URI[]] {
+    function __parse(uris: URI[]): [IUriToOpenConfiguration, URI[]] {
         const config: Mutable<IUriToOpenConfiguration> = {};
         const errorURIs: URI[] = [];
 
@@ -265,7 +274,7 @@ namespace UriToOpenResolver {
 
     // [private helper methods]
 
-    const __parseURI = function (uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean; } {
+    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean; } {
         const sections = URI.toFsPath(uri).split('|');
 
         const resource = sections[0];
@@ -277,8 +286,8 @@ namespace UriToOpenResolver {
             fail = true;
         }
 
-        const isDir = type === 'directory' ? ToOpenType.Directory : ToOpenType.Unknown;
-        const isFile = type === 'file' ? ToOpenType.File : ToOpenType.Unknown;
+        const isDir =  (type === 'directory') ? ToOpenType.Directory : ToOpenType.Unknown;
+        const isFile = (type === 'file')      ? ToOpenType.File      : ToOpenType.Unknown;
 
         if (isDir === ToOpenType.Unknown && isFile === ToOpenType.Unknown) {
             fail = true;
@@ -290,5 +299,5 @@ namespace UriToOpenResolver {
             gotoLine: gotoLine,
             fail: fail,
         };
-    };
+    }
 }

@@ -147,7 +147,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return true;
         }
 
-        // pressing modifier twice, but we only display modifer for once.
+        // pressing modifier twice, but we only display modifier for once.
         if (Keyboard.sameEvent(this._prevEvent, event) && Keyboard.isEventModifier(event)) {
             return false;
         }

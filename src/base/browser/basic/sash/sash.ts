@@ -37,7 +37,7 @@ export interface ISashOpts {
      * The range (closed interval) that the {@link Sash} is allowed to move 
      * between.
      * 
-     * @note If -1 provided in any interals, means no restrictions.
+     * @note If -1 provided in any intervals, means no restrictions.
      * @note When reaching the edge of the range, the position (left / top) of 
      *       the sash will not be placed at the exact 
      * @default range { start: -1, end: -1 }.
@@ -45,7 +45,7 @@ export interface ISashOpts {
     readonly range?: IRange;
 
     /**
-     * If a controller is provided, the behaviours of the sash under the 
+     * If a controller is provided, the behaviors of the sash under the 
      * operations from the users can be customized by the caller.
      * 
      * @warn Considers the non-perfect design of {@link AbstractSashController},
@@ -154,7 +154,7 @@ export interface ISash {
     readonly onDidMove: Register<ISashEvent>;
     
     /**
-     * Fires when the sash dragging is stoped (mouse-up).
+     * Fires when the sash dragging is stopped (mouse-up).
      */
     readonly onDidEnd: Register<void>;
 
@@ -213,7 +213,7 @@ export class Sash extends Disposable implements ISash {
      * when vertical: the draggable range of the sash in x.
      * when horizontal: the draggable range of the sash in y.
      * 
-     * @note If -1 provided in any interals, means no restrictions.
+     * @note If -1 provided in any intervals, means no restrictions.
      */
     private _range: IRange;
 

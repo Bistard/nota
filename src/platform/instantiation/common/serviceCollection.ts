@@ -2,6 +2,7 @@ import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor"
 import { IService, ServiceIdentifier } from "src/platform/instantiation/common/decorator";
 import { Constructor } from "src/base/common/utilities/type";
 import { InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
+import { panic } from "src/base/common/utilities/panic";
 
 export class ServiceCollection {
 
@@ -41,7 +42,7 @@ export function registerService<T extends IService, TCtor extends Constructor>(i
 export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: InstantiationRequiredParameters<TCtor>, supportsDelayedInstantiation?: boolean): void {
 	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
 		if (!args) {
-			throw new Error(`[registerService] Arguments parameter must be provided when a service (${id.name}) is registered.`);
+			panic(`[registerService] Arguments parameter must be provided when a service (${id.name}) is registered.`);
 		}
 		ctorOrDescriptor = new ServiceDescriptor(ctorOrDescriptor, args, supportsDelayedInstantiation);
 	}

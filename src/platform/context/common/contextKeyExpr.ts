@@ -1,3 +1,4 @@
+import { panic } from "src/base/common/utilities/panic";
 import { CompareOrder, isBoolean, isNonNullable, isNumber, isObject, isString } from "src/base/common/utilities/type";
 import { IReadonlyContext } from "src/platform/context/common/context";
 
@@ -9,10 +10,10 @@ import { IReadonlyContext } from "src/platform/context/common/context";
  * All the expressions (except False, True, And, Or) requires a `key` input as
  * the key of the context during the evaluation.
  * 
- * When there is an action requires a pre-condition on the current context, this 
- * is where the context key expression comes into place.
+ * When there is an action or command requires a pre-condition on the current 
+ * context, this is where the context key expression comes into place.
  * 
- * @note To create a context key expression, the only valid way is by using the
+ * @note To create a context key expression, the ONLY valid way is by using the
  * methods from namespace {@link CreateContextKeyExpr}.
  * @note The context key expression is also easy for human reading since every 
  * expression is serializable and deserializable.
@@ -101,7 +102,7 @@ export const enum ContextKeyExprType {
 }
 
 /**
- * A namespace that collects all the context key exprresion cosntruction method.
+ * A namespace that collects all the context key expression construction method.
  * You cannot create the expression by your own.
  */
 export namespace CreateContextKeyExpr {
@@ -835,7 +836,7 @@ class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
     }
 
     public negate(): ContextKeyExpr {
-        throw new Error('Context key expression IN does not support negate.');
+        panic('Context key expression IN does not support negate.');
     }
 
     public serialize(): string {
@@ -874,7 +875,7 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
     }
 
     public negate(): ContextKeyExpr {
-        throw new Error('Context key expression REGEX does not support negate.');
+        panic('Context key expression REGEX does not support negate.');
     }
 
     public serialize(): string {

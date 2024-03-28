@@ -1,5 +1,5 @@
 
-export interface IMeasureable {
+export interface IMeasurable {
 	size: number;
 }
 

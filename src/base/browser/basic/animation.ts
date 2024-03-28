@@ -2,7 +2,7 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Callable } from "src/base/common/utilities/type";
 
 /**
- * when the current enviroment is too old to support `requestAnimationFrame`, we 
+ * when the current environment is too old to support `requestAnimationFrame`, we 
  * try to simulate it (not perfect though).
  */
 const _simulateRequestAnimationFrame = (callback: Callable<[], void>) => setTimeout(() => callback(), 0);
@@ -23,12 +23,12 @@ const _simulateRequestAnimationFrame = (callback: Callable<[], void>) => setTime
  * @link more details from http://www.javascriptkit.com/javatutors/requestanimationframe.shtml
  * 
  * @readonly The reason using a wrapper anonymous here (doRequestAnimationFrame()) 
- * beacuse when importing this file as below:
+ * because when importing this file as below:
  * ```js
  * import * as animation from "src/base/common/animation";
  * animation.requestAnimationFrame( () => {} );
  * ```
- * An error will be thrown since requestAnimationFrame must be excuted via the 
+ * An error will be thrown since requestAnimationFrame must be executed via the 
  * context of `window`. To fix this, a wrapper function will fix this properly
  * by using `.call()`.
  */
@@ -53,7 +53,7 @@ const __cancelAnimationFrame = (handle: number): void => {
 
 /**
  * @description Continue requesting at next animation frame on the provided 
- * callback and returns a diposable to stop it.
+ * callback and returns a Disposable to stop it.
  * @param animateFn The animation callback.
  */
 export function requestAnimate(animateFn: () => void): IDisposable {

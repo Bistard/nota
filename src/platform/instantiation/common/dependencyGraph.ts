@@ -91,7 +91,7 @@ export class Graph<T> {
         toNode.from[this._getName(from)] = fromNode;
     }
 
-    // debuging purpose
+    // debugging purpose
     public toString(): string {
 		const data: string[] = [];
 		forEach(this._nodes, entry => {

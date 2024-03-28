@@ -4,7 +4,7 @@ const currPath = __dirname;
 
 /*******************************************************************************
  * This is a file that runs every `benchmark.js` from the child directories. 
- * This file will be excuted through the script in the `package.json`.
+ * This file will be executed through the script in the `package.json`.
  ******************************************************************************/
 
 // Reads all the name of sub-directories.

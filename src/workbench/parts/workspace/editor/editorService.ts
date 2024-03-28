@@ -13,7 +13,7 @@ export interface IEditorService extends IComponent, IService {
     readonly editor: IEditorWidget | null;
 
     /**
-     * @description Openning a source given the URI in the editor.
+     * @description Opening a source given the URI in the editor.
      * @param source The {@link URI} or an RUI in the string form.
      */
     openSource(source: URI | string): void;

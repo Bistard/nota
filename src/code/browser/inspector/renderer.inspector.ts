@@ -31,28 +31,28 @@ export class Renderer {
 
         ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
-        let instantiaionService: IInstantiationService | undefined;
+        let instantiationService: IInstantiationService | undefined;
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
             Error.stackTraceLimit = Infinity;
 
             // core service construction
-            instantiaionService = this.createCoreServices();
+            instantiationService = this.createCoreServices();
 
             // service initialization
             await Promise.all([
-                // this.initServices(instantiaionService),
-                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web envrionment (DOM content) has been loaded.')),
+                // this.initServices(instantiationService),
+                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web environment (DOM content) has been loaded.')),
             ]);
 
             // TODO: view initialize
         }
         catch (error: any) {
             // try to log out the error message
-            if (instantiaionService) {
+            if (instantiationService) {
                 try {
-                    const logService = instantiaionService.getService(ILogService);
+                    const logService = instantiationService.getService(ILogService);
                     logService.error('renderer', 'error encountered', error);
                 } catch { }
             }

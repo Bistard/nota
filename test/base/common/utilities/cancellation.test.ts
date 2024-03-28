@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { CancellationToken } from 'src/base/common/utilities/cacellation';
+import { CancellationToken } from 'src/base/common/utilities/cancellation';
 
 suite('cancellation-test', () => {
     

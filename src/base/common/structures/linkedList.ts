@@ -73,7 +73,7 @@ export interface ILinkedList<T> extends IIterable<T> {
     /**
      * @description Determines if the given data is in the list.
      * @param data Data for determining purpose.
-     * @returns The result of existance.
+     * @returns The result of existence.
      */
     exist(data: T): boolean;
 }
@@ -297,7 +297,7 @@ export class LinkedList<T> {
      * @param newNode The existed node.
      * @returns Returns the node we just pushed.
      * 
-     * @undefined_behaviour when list is empty.
+     * @undefined_behavior when list is empty.
      */
     private __pushAtFirst(newNode: ListNode<T>): ListNode<T> {
         newNode.next = this._first;
@@ -314,7 +314,7 @@ export class LinkedList<T> {
      * @param newNode The existed node.
      * @returns Returns the node we just pushed.
      * 
-     * @undefined_behaviour when list is empty.
+     * @undefined_behavior when list is empty.
      */
     private __pushAtLast(newNode: ListNode<T>): ListNode<T> {
         newNode.prev = this._last;

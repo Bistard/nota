@@ -40,7 +40,7 @@ export interface IFakeConsoleOptions {
     readonly enable?: boolean;
 
     /**
-     * Callback to recieve the log message.
+     * Callback to receive the log message.
      * @param message The primary message to log. This could be any data type.
      * @param optionalParams Additional parameters that may accompany the 
      *                       primary message, often used for formatting.

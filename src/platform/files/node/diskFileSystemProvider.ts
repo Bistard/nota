@@ -14,6 +14,7 @@ import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/platform/files/common/watcher";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { Time } from "src/base/common/date";
+import { OS_CASE_SENSITIVE } from "src/base/common/platform";
 
 export class DiskFileSystemProvider extends Disposable implements
     IFileSystemProviderWithFileReadWrite,
@@ -37,8 +38,7 @@ export class DiskFileSystemProvider extends Disposable implements
         FileSystemProviderCapability.FileReadWrite |
         FileSystemProviderCapability.FileOpenReadWriteClose |
         FileSystemProviderCapability.ReadFileStream |
-        FileSystemProviderCapability.FileFolderCopy |
-        FileSystemProviderCapability.PathCaseSensitive;
+        FileSystemProviderCapability.FileFolderCopy;
 
     private _watcher?: IWatcher;
 
@@ -48,6 +48,9 @@ export class DiskFileSystemProvider extends Disposable implements
         private readonly logService?: ILogService,
     ) {
         super();
+        if (OS_CASE_SENSITIVE) {
+            this.capabilities |= FileSystemProviderCapability.PathCaseSensitive;
+        }
     }
 
     /***************************************************************************
@@ -61,9 +64,9 @@ export class DiskFileSystemProvider extends Disposable implements
         }
         catch (err: any) {
             if (err.code === 'ENOENT') {
-                throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
+                panic(new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND));
             }
-            throw err;
+            panic(err);
         }
     }
 
@@ -81,11 +84,11 @@ export class DiskFileSystemProvider extends Disposable implements
                 const exist = await fileExists(path);
 
                 if (exist && opts.overwrite === false) {
-                    throw new FileSystemProviderError(`File already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS);
+                    panic(new FileSystemProviderError(`File already exists: ${URI.toString(uri)}`, FileOperationErrorType.FILE_EXISTS));
                 }
 
                 else if (!exist && opts.create === false) {
-                    throw new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND);
+                    panic(new FileSystemProviderError(`File does not exist: ${URI.toString(uri)}`, FileOperationErrorType.FILE_NOT_FOUND));
                 }
             }
 
@@ -97,7 +100,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (error) {
-            throw this.__toError(error);
+            panic(this.__toError(error));
         }
 
         finally {
@@ -156,7 +159,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -164,7 +167,7 @@ export class DiskFileSystemProvider extends Disposable implements
         try {
             fs.closeSync(fd);
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -177,7 +180,7 @@ export class DiskFileSystemProvider extends Disposable implements
             return bytesRead;
 
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -209,7 +212,7 @@ export class DiskFileSystemProvider extends Disposable implements
             const stat = await this.stat(from);
 
             if (await fileExists(toPath) && opts.overwrite === false) {
-                throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.FILE_EXISTS);
+                panic(new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.FILE_EXISTS));
             }
 
             if (stat.type === FileType.DIRECTORY) {
@@ -220,7 +223,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -228,7 +231,7 @@ export class DiskFileSystemProvider extends Disposable implements
         try {
             await fs.promises.mkdir(URI.toFsPath(uri), { recursive: true });
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -284,11 +287,11 @@ export class DiskFileSystemProvider extends Disposable implements
 
         try {
             if (await fileExists(toPath) && opts.overwrite === false) {
-                throw 'file already exists';
+                panic('file already exists');
             }
             await fs.promises.rename(fromPath, toPath);
         } catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -316,7 +319,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -350,7 +353,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (err) {
-            throw this.__toError(err);
+            panic(this.__toError(err));
         }
     }
 
@@ -393,7 +396,7 @@ export class DiskFileSystemProvider extends Disposable implements
         }
 
         catch (error) {
-            throw this.__toError(error);
+            panic(this.__toError(error));
         }
     }
 

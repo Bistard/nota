@@ -1,6 +1,7 @@
 import { memoize } from "src/base/common/memoization";
 import { CharCode } from "src/base/common/utilities/char";
 import { Numbers } from "src/base/common/utilities/number";
+import { panic } from "src/base/common/utilities/panic";
 import { DightInString } from "src/base/common/utilities/type";
 
 /**
@@ -73,7 +74,7 @@ export namespace TextColors {
 
 	/**
 	 * @description Sets the ANSI (RGB) foreground for a given string of text. 
-	 * The color is only supported with morden command line.
+	 * The color is only supported with modern command line.
 	 * @param text The text to be colored.
 	 * @returns The text string prefixed with ANSI color codes and suffixed with 
 	 * a reset color code.
@@ -218,7 +219,7 @@ function __getHexDight(char: number): number {
 		return char - CharCode.A + 10;
 	}
 
-	throw new Error(`invalid hex digit ${char}.`);
+	panic(`invalid hex digit ${char}.`);
 }
 
 function __roundFloat(number: number, decimalPoints: number): number {

@@ -43,7 +43,7 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     /**
      * @description Gets the widget item by their id.
      * @param id The id of the widget item.
-     * @returns Returns the coressponding widget, undefined if widget does not
+     * @returns Returns the corresponding widget, undefined if widget does not
      * exist.
      */
     getItem(id: string): T | undefined;
@@ -63,7 +63,7 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     /**
      * @description Gets the index of the widget which has the provided id.
      * @param id The id of the widget item.
-     * @returns Returns the index of the widget in the bar. -1 if wdiget does not
+     * @returns Returns the index of the widget in the bar. -1 if widget does not
      * exist.
      */
     getItemIndex(id: string): number;

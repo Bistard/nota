@@ -35,7 +35,7 @@ export class ThemeService extends Disposable implements IThemeService {
         super();
 
         // TODO: read configuration about theme
-        const themeConfiguraion = new ThemeConfiguration(configurationService);
+        const themeconfiguration = new ThemeConfiguration(configurationService);
 
         // TODO: get theme data based on the configuration
 

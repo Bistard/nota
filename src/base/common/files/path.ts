@@ -6,7 +6,7 @@
 
 /*******************************************************************************
  * @note VSCode's copy of nodejs path lib to be usable in common (non-NodeJS) 
- * enviroment.
+ * environment.
  * {@link https://github.com/nodejs/node/blob/v14.16.0/lib/path.js}
  ******************************************************************************/
 

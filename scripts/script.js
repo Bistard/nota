@@ -34,7 +34,7 @@ const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${
 (async function () {
     
     // Read script configuration
-    const scriptConfiguraion = require(SCRIPT_CONFIG_PATH);
+    const scriptconfiguration = require(SCRIPT_CONFIG_PATH);
 
     // try interpret CLI
     const cliArgs = process.argv.slice(2);
@@ -45,10 +45,10 @@ const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${
         executeHelp();
     } 
     else if (cmd === 'list') {
-        executeList(scriptConfiguraion);
+        executeList(scriptconfiguration);
     }
     else {
-        executeScript(cmd, args, scriptConfiguraion);
+        executeScript(cmd, args, scriptconfiguration);
     }
 })();
 

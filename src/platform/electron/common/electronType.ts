@@ -132,7 +132,7 @@ export interface ISandboxProcess extends INodeProcess {
 	 *
 	 * @deprecated this property will be removed once sandbox is enabled.
 	 *
-	 * TODO@bpasero remove this property when sandbox is on
+	 * // TODO remove this property when sandbox is on
 	 */
 	readonly pid: number;
 
