@@ -289,6 +289,27 @@ export interface IFileTreeMetadataService extends IDisposable, IService {
     updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
 
     /**
+     * @description Modifies the metadata based on the specified change type, 
+     * such as adding, removing, updating, or swapping items in the custom order.
+     * 
+     * @param type The type of change to apply to the order metadata.
+     * @param item The file tree item that is subject to the change.
+     * @param index1 For 'Add' and 'Update', this is the index where the item is 
+     *               added or updated. For 'Remove', it's the index of the item 
+     *               to remove, and it's optional. For 'Swap', it's the index of 
+     *               the first item to be swapped.
+     * @param index2 For 'Swap', this is the index of the second item to be 
+     *               swapped with the first. Not used for other change types.
+     * 
+     * @panic when missing the provided index1 or index2.
+     */
+    updateCustomSortingMetadataSingle(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataSingle(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataSingle(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataSingle(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    
+
+    /**
      * @description This method provides a way to programmatically update the 
      * custom sorting metadata (the rendering order) of the file tree. The 
      * changes can include adding new items, updating existing items, or 

@@ -302,11 +302,20 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         return controller.updateDirectoryMetadata(oldDirUri, destination, cutOrCopy);
     }
 
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: any, item: any, index1?: any, index2?: any): AsyncResult<void, FileOperationError | Error> {
+        const controller = this.__assertController();
+        return controller.updateCustomSortingMetadataSingle(type, item, index1, index2);
+    }
+
     public updateCustomSortingMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadata(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
+    public updateCustomSortingMetadata(type: any, parent: any, items: any, indice: any, destination?: any): AsyncResult<void, FileOperationError | Error> {
         const controller = this.__assertController();
         return controller.updateCustomSortingMetadata(type, parent, items, indice, destination);
     }

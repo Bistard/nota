@@ -181,6 +181,25 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         });
     }
 
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataSingle(type: OrderChangeType       , item: FileItem, index1?: number, index2?: number): AsyncResult<void, FileOperationError | Error> {
+        const parent = assert(item.parent);
+        const inCache = this._metadataCache.has(parent.uri);
+        
+        const preparation = inCache 
+            ? AsyncResult.ok<void, FileOperationError>()
+            : this.__loadMetadataIntoCache(parent.uri, parent.children);
+
+        return preparation
+        .andThen(() => {
+            this.__updateMetadataInCache(type, parent.uri, item.name, index1, index2);
+            return this.__saveMetadataIntoDisk(parent.uri);
+        });
+    }
+
     public updateCustomSortingMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
     public updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;

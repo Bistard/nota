@@ -5,21 +5,25 @@ import { URI } from 'src/base/common/files/uri';
 import { Arrays } from 'src/base/common/utilities/array';
 import { generateMD5Hash } from 'src/base/common/utilities/hash';
 import { Pair } from 'src/base/common/utilities/type';
-import { FileService } from 'src/platform/files/common/fileService';
+import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileItem } from 'src/workbench/services/fileTree/fileItem';
-import { defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeSorter";
-import { FileTreeCustomSorter, OrderChangeType } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
+import { FileSortOrder, FileSortType, FileTreeSorter, defaultFileItemCompareFn } from "src/workbench/services/fileTree/fileTreeSorter";
+import { FileTreeCustomSorter } from 'src/workbench/services/fileTree/fileTreeCustomSorter';
 import { SAMPLE_TREE_LIKE, buildFileItem, buildFileTree, findFileItemByPath, printFileStat } from 'test/utils/helpers';
 import { NullLogger, TestURI } from 'test/utils/testService';
 import { executeOnce } from 'src/base/common/utilities/function';
+import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from 'src/workbench/services/fileTree/fileTreeMetadataController';
+import { InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { ILogService } from 'src/base/common/logger';
 
 suite('fileTreeCustomSorter-test', () => {
 
     const hash = (input: string) => generateMD5Hash(input);
     const fileService = new FileService(new NullLogger());
     const rootURI = URI.join(TestURI, 'fileTreeCustomSorterTest');
-    let sorter!: FileTreeCustomSorter<FileItem>;
+    let sorter!: FileTreeSorter<FileItem>;
+    let controller!: FileTreeMetadataController;
 
     async function init() {
         const provider = new DiskFileSystemProvider();
@@ -29,13 +33,23 @@ suite('fileTreeCustomSorter-test', () => {
 
     // Always refresh the tree structure to the file system hierarchy befor every test
     async function refreshFileSystem() {
-        // build the file tree hierarchy
-        sorter?.dispose();
-        sorter = new FileTreeCustomSorter({
+        
+        const opts: IFileTreeMetadataControllerOptions = {
             metadataRootPath: rootURI,
             hash: hash,
             defaultItemComparator: defaultFileItemCompareFn,
-        }, fileService, new NullLogger());
+            getMetadataFromCache: folder => controller.getMetadataFromCache(folder),
+        };
+
+        const di = new InstantiationService();
+        di.register(ILogService, new NullLogger());
+        di.register(IFileService, fileService);
+
+        // build the file tree hierarchy
+        sorter?.dispose();
+        sorter = new FileTreeSorter(FileSortType.Custom, FileSortOrder.Ascending, opts, di);
+        controller = new FileTreeMetadataController(sorter, opts, fileService, new NullLogger());
+
         await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
     }
 
@@ -49,7 +63,7 @@ suite('fileTreeCustomSorter-test', () => {
      */
     const buildFileItem2 = (uri: URI) => buildFileItem(fileService, uri, {
         onError: error => console.log(error),
-        beforeCmp: async folder => await sorter.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap(),
+        beforeCmp: async folder => await controller.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap(),
         cmp: sorter.compare.bind(sorter),
     });
 
@@ -198,7 +212,7 @@ suite('fileTreeCustomSorter-test', () => {
         return item;
     }
 
-    suite('Cache to Disk (updateMetadata)', () => {
+    suite('Cache to Disk (updateCustomSortingMetadataSingle)', () => {
 
         before(() => init());
         beforeEach(async () => refreshFileSystem());
@@ -208,7 +222,7 @@ suite('fileTreeCustomSorter-test', () => {
             await assertMetadataAction({
                 action: async root => {
                     const item = __getFileItemBy(root, 'folder1');
-                    await sorter.updateMetadata(OrderChangeType.Remove, item, 0).unwrap();
+                    await controller.updateCustomSortingMetadataSingle(OrderChangeType.Remove, item, 0).unwrap();
                 },
                 assertFn: async () => {
                     await assertMetadataInDisk(
@@ -223,7 +237,7 @@ suite('fileTreeCustomSorter-test', () => {
             await assertMetadataAction({
                 action: async root => {
                     const item = __getFileItemBy(root, 'folder1');
-                    await sorter.updateMetadata(OrderChangeType.Swap, item, 0, 1).unwrap();
+                    await controller.updateCustomSortingMetadataSingle(OrderChangeType.Swap, item, 0, 1).unwrap();
                 },
                 assertFn: async () => {
                     await assertMetadataInDisk(
@@ -250,7 +264,7 @@ suite('fileTreeCustomSorter-test', () => {
                     );
 
                     // Add
-                    await sorter.updateMetadata(OrderChangeType.Add, folder3, 2).unwrap();
+                    await controller.updateCustomSortingMetadataSingle(OrderChangeType.Add, folder3, 2).unwrap();
                 },
                 assertFn: async () => {
                     await assertMetadataInDisk(
@@ -275,7 +289,7 @@ suite('fileTreeCustomSorter-test', () => {
                     const folder3 = new FileItem(toStat, root, []);
 
                     // Update
-                    await sorter.updateMetadata(OrderChangeType.Update, folder3, 1).unwrap();
+                    await controller.updateCustomSortingMetadataSingle(OrderChangeType.Update, folder3, 1).unwrap();
                 },
                 assertFn: async () => {
                     await assertMetadataInDisk(
@@ -307,7 +321,7 @@ suite('fileTreeCustomSorter-test', () => {
                 await assertMetadataAction({
                     action: async root => {
                         const item = __getFileItemBy(root, itemIndicateLevel);
-                        await sorter.updateMetadataLot(OrderChangeType.Remove, item.parent!, deleteIdx).unwrap();
+                        await controller.updateCustomSortingMetadata(OrderChangeType.Remove, item.parent!.uri, null, deleteIdx).unwrap();
                     },
                     assertFn: async () => {
                         await assertMetadataInDisk(
@@ -367,7 +381,7 @@ suite('fileTreeCustomSorter-test', () => {
                             toAdd.push(item);
                         }
 
-                        await sorter.updateMetadataLot(OrderChangeType.Add, toAdd, addIdx).unwrap();
+                        await controller.updateCustomSortingMetadata(OrderChangeType.Add, toAdd[0]!.parent!.uri, toAdd.map(item => item.name), addIdx).unwrap();
                     },
                     assertFn: async () => {
                         await assertMetadataInDisk(
@@ -425,7 +439,7 @@ suite('fileTreeCustomSorter-test', () => {
 
                             toUpdate.push(newItem);
                         }
-                        await sorter.updateMetadataLot(OrderChangeType.Update, toUpdate, updateIdx).unwrap();
+                        await controller.updateCustomSortingMetadata(OrderChangeType.Update, toUpdate[0]!.parent!.uri, toUpdate.map(item => item.name), updateIdx).unwrap();
                     },
                     assertFn: async () => {
                         await assertMetadataInDisk(
@@ -472,7 +486,7 @@ suite('fileTreeCustomSorter-test', () => {
                 await assertMetadataAction({
                     action: async root => {
                         const parentItem = parentName === 'root' ? root : __getFileItemBy(root, parentName);
-                        await sorter.updateMetadataLot(OrderChangeType.Move, parentItem, moveIdx, destination).unwrap();
+                        await controller.updateCustomSortingMetadata(OrderChangeType.Move, parentItem.uri, null, moveIdx, destination).unwrap();
                     },
                     assertFn: async () => {
                         await assertMetadataInDisk(
@@ -580,7 +594,7 @@ suite('fileTreeCustomSorter-test', () => {
 
             // move under the root
             const folder1 = __getFileItemBy(rootItem, 'folder1');
-            await sorter.updateDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1'), true).unwrap();
+            await controller.updateDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1'), true).unwrap();
 
             // new metadata file after move
             await assertMetadataInDisk(
@@ -606,7 +620,7 @@ suite('fileTreeCustomSorter-test', () => {
 
             // move under the root
             const folder1 = __getFileItemBy(rootItem, 'folder1');
-            await sorter.updateDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1'), false).unwrap();
+            await controller.updateDirectoryMetadata(folder1.uri, URI.join(rootURI, 'root', 'folder2', 'folder1'), false).unwrap();
 
             // new metadata file after move
             await assertMetadataInDisk(
