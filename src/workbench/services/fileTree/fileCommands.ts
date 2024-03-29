@@ -53,6 +53,27 @@ export namespace FileCommands {
             return __handleCutOrCopy(provider, 'copy');
         }
     }
+
+    function __handleCutOrCopy(provider: IServiceProvider, type: 'cut' | 'copy'): boolean {
+        const service = provider.getOrCreateService(IFileTreeService);
+        const clipboard = provider.getOrCreateService(IClipboardService);
+    
+        const selections = service.getSelections();
+        if (selections.length === 0) {
+            return false;
+        }
+    
+        if (type === 'copy') {
+            service.highlightSelectionAsCopy(selections);
+        } else {
+            service.highlightSelectionAsCut(selections);
+        }
+    
+        const resources = selections.map(item => item.uri);
+        clipboard.write(ClipboardType.Resources, resources);
+    
+        return true;
+    }
     
     export class FilePaste extends Command {
     
@@ -82,6 +103,12 @@ export namespace FileCommands {
             const toPaste  = await this.__getResourcesToPaste(resources);
             const isCut    = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
             const isInsert = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnInsertKey));
+
+            /**
+             * // FIX
+             * isInsert should not be the correct boolean to identify should or 
+             * not update the metadata, custom mode is the correct boolean.
+             */
 
             // nothing to paste, nothing happens.
             if (toPaste.length === 0) {
@@ -197,10 +224,14 @@ export namespace FileCommands {
             const toPasteParent = assert(toPaste[0]!.parent);
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
-            // TODO
+            /**
+             * //  TODO
+             */
             const recursiveDirUris = insertAtSameParent
-                ? await this.__getRecursiveDirBeforePaste(toPaste) 
-                : [];
+                ? []
+                : await this.__fetchOldDirRecursive(toPaste) ;
+
+            console.log('recursiveDirUris', recursiveDirUris);
 
             // actual paste operation
             const batch = insertAtSameParent
@@ -225,9 +256,9 @@ export namespace FileCommands {
 
             // update metadata to those who successes
             if (insertAtSameParent) {
-                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, details.passedCount, destinationIdx);
+                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, destinationIdx);
             } else {
-                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, details.passedCount, destinationIdx, destination, details.passedOldDirUri, details.passedNewDirUri);
+                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, destinationIdx, destination, details.passedOldDirUri, details.passedNewDirUri);
             }
 
             // determine if any file/dir is actually pasted in the file system
@@ -285,7 +316,6 @@ export namespace FileCommands {
             isCut: boolean, 
             passedItems: FileItem[],
             oldParentItem: FileItem,
-            passedCount: number, 
             destinationIdx: number,
         ): Promise<void> {
             /**
@@ -301,7 +331,7 @@ export namespace FileCommands {
                 await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParentItem.uri, null, toMoveIndice, destinationIdx).unwrap();
             } 
             else {
-                const addIndice = Arrays.fill(destinationIdx, passedCount);
+                const addIndice = Arrays.fill(destinationIdx, passedItems.length);
                 await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParentItem.uri, passedItems.map(item => item.name), addIndice).unwrap();
             }
         }
@@ -310,7 +340,6 @@ export namespace FileCommands {
             isCut: boolean,
             passedItems: FileItem[],
             oldParentItem: FileItem,
-            passedCount: number,
             destinationIdx: number,
             destination: FileItem,
             passedOldDirUri: URI[],
@@ -341,7 +370,7 @@ export namespace FileCommands {
              * pasting items.
              */
             const passedNames = passedItems.map(item => item.name);
-            const addIndice = Arrays.fill(destinationIdx, passedCount);
+            const addIndice = Arrays.fill(destinationIdx, passedItems.length);
 
             await this.fileTreeMetadataService.updateCustomSortingMetadataLot(
                 OrderChangeType.Add,
@@ -491,7 +520,7 @@ export namespace FileCommands {
             this.fileTreeService.setFocus(null);
         }
 
-        private async __getRecursiveDirBeforePaste(toPaste: FileItem[]): Promise<URI[]> {
+        private async __fetchOldDirRecursive(toPaste: FileItem[]): Promise<URI[]> {
             const uris: URI[] = [];
             
             /**
@@ -511,7 +540,7 @@ export namespace FileCommands {
                     stat, 
                     async stat => {
                         if (stat.type === FileType.DIRECTORY &&
-                            await this.fileTreeMetadataService.isDirectoryMetadataExist(stat.uri).unwrap()
+                                 true === await this.fileTreeMetadataService.isDirectoryMetadataExist(stat.uri).unwrap()
                         ) {
                             uris.push(stat.uri);
                             return true;
@@ -526,25 +555,4 @@ export namespace FileCommands {
             return uris;
         }
     }
-}
-
-function __handleCutOrCopy(provider: IServiceProvider, type: 'cut' | 'copy'): boolean {
-    const service = provider.getOrCreateService(IFileTreeService);
-    const clipboard = provider.getOrCreateService(IClipboardService);
-
-    const selections = service.getSelections();
-    if (selections.length === 0) {
-        return false;
-    }
-
-    if (type === 'copy') {
-        service.highlightSelectionAsCopy(selections);
-    } else {
-        service.highlightSelectionAsCut(selections);
-    }
-
-    const resources = selections.map(item => item.uri);
-    clipboard.write(ClipboardType.Resources, resources);
-
-    return true;
 }

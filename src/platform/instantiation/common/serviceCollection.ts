@@ -42,14 +42,13 @@ export function registerService<T extends IService, TCtor extends Constructor>(i
 export function registerService<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, args?: InstantiationRequiredParameters<TCtor>, supportsDelayedInstantiation?: boolean): void {
 	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
 		if (!args) {
-			panic(`[registerService] Arguments parameter must be provided when a service (${id.name}) is registered.`);
+			panic(`[registerService] Arguments parameter must be provided when a service (${id}) is registered.`);
 		}
 		ctorOrDescriptor = new ServiceDescriptor(ctorOrDescriptor, args, supportsDelayedInstantiation);
 	}
 
 	const registered = _singletonDependencies.get(id);
 	if (registered) {
-		console.warn(`[registerService] duplicate service is registered: ${id.name}`);
 		return;
 	}
 

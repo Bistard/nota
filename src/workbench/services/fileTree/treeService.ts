@@ -274,6 +274,8 @@ export interface IFileTreeMetadataService extends IDisposable, IService {
      * @description If the metadata of the corresponding directory exists in the
      * file system.
      * @param dirUri The directory URI.
+     * 
+     * @note Make sure the provided URI is indeed a directory.
      */
     isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, Error | FileOperationError>;
 
