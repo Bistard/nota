@@ -1,4 +1,4 @@
-import { posix } from "path";
+import { posix } from "src/base/common/files/path";
 import { CharCode } from "src/base/common/utilities/char";
 
 /**
