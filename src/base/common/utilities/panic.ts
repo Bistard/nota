@@ -35,7 +35,7 @@ export function panic(error: unknown): never {
  * @description Asserts that the provided object is neither `undefined` nor 
  * `null`. 
  * @param obj The object to assert.
- * @param message Optional. The custom error message
+ * @param message Optional. The custom error message.
  * @panic 
  */
 export function assert<T>(obj: T, message?: string): NonNullable<T>;
@@ -52,7 +52,7 @@ export function assert<T>(obj: any, message?: string): T {
  * 
  * @param obj The object to assert.
  * @param assert A predicate function that checks if the object is of type T.
- * @param message Optional. The custom error message
+ * @param message Optional. The custom error message.
  * @panic 
  */
 export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?: string): T {
@@ -62,6 +62,15 @@ export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?
     panic(message ?? `assert error: ${obj}`);
 }
 
+/**
+ * @description Validates an object against a given predicate. Panic if the 
+ * validation fails.
+ * 
+ * @param obj The object to assert.
+ * @param assert A predicate function to test the object.
+ * @param message Optional. The custom error message
+ * @panic 
+ */
 export function assertValue<T>(obj: T, assert: (obj: T) => boolean, message?: string): T {
     if (assert(obj)) {
         return obj;
