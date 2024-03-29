@@ -4,6 +4,37 @@ import { CompareOrder, isNumber } from 'src/base/common/utilities/type';
 
 suite('array-test', () => {
 
+    suite('is', function () {
+        test('should return true if the object is an array', function () {
+            assert.strictEqual(Arrays.is<number>([1, 2, 3]), true);
+        });
+
+        test('should return false if the object is not an array', function () {
+            assert.strictEqual(Arrays.is<number>({ a: 1, b: 2 }), false);
+        });
+    });
+
+    suite('isEmpty', function () {
+        test('should return true for an empty array', function () {
+            assert.strictEqual(Arrays.isEmpty([]), true);
+        });
+
+        test('should return false for a non-empty array', function () {
+            assert.strictEqual(Arrays.isEmpty([1]), false);
+        });
+    });
+
+    suite('isNonEmpty', function () {
+        test('should return false for an empty array', function () {
+            assert.strictEqual(Arrays.isNonEmpty([]), false);
+        });
+
+        test('should return true for a non-empty array', function () {
+            assert.strictEqual(Arrays.isNonEmpty([1]), true);
+        });
+    });
+    
+
     test('clear', () => {
         assert.strictEqual(Arrays.clear([]).length, 0);
         assert.strictEqual(Arrays.clear([1, 2, 3]).length, 0);

@@ -9,6 +9,27 @@ import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/t
 export namespace Arrays {
 
     /**
+     * @description Is the given object is an array.
+     */
+    export function is<T>(obj: any): obj is T[] {
+        return Array.isArray(obj);
+    }
+
+    /**
+     * @description If the given array is empty.
+     */
+    export function isEmpty<T>(array: T[]): boolean {
+        return array.length === 0;
+    }
+
+    /**
+     * @description If the given array is not empty.
+     */
+    export function isNonEmpty<T>(array: T[]): boolean {
+        return array.length !== 0;
+    }
+
+    /**
      * @description Clear an array.
      * @returns Returns the same array.
      */
