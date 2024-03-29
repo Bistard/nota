@@ -21,7 +21,7 @@ export interface INavigationViewChangeEvent {
     /**
      * The current displaying view.
      */
-    readonly view?: INavigationView;
+    readonly view?: INavView;
 }
 
 /**
@@ -40,7 +40,7 @@ export interface INavigationViewService extends IComponent, IService {
      * @param id The id of the view for future look up.
      * @param viewCtor The side view.
      */
-    registerView(id: string, viewCtor: Constructor<INavigationView>): void;
+    registerView(id: string, viewCtor: Constructor<INavView>): void;
 
     /**
      * @description Unregister a view if ever registered.
@@ -64,20 +64,20 @@ export interface INavigationViewService extends IComponent, IService {
      * @description Returns the registered view by the given ID.
      * @param id The id of the view.
      */
-    getView<T extends INavigationView>(id: string): T | undefined;
+    getView<T extends INavView>(id: string): T | undefined;
 
     /**
      * @description Returns the current displaying side view. Undefined is
      * returned if no views are displaying.
      */
-    currView<T extends INavigationView>(): T | undefined;
+    currView<T extends INavView>(): T | undefined;
 }
 
 /**
  * @class The service manages and displays different {@link INavigationView}. It is
  * also a {@link Component}.
  */
-export class NavigationViewService extends Component implements INavigationViewService {
+export class NavigationView extends Component implements INavigationViewService {
 
     declare _serviceMarker: undefined;
 
@@ -89,7 +89,7 @@ export class NavigationViewService extends Component implements INavigationViewS
     /** The container that only contains the {@link INavigationView}. */
     private _viewContainer?: HTMLElement;
 
-    private readonly _viewCtors: Map<string, Constructor<INavigationView>>;
+    private readonly _viewCtors: Map<string, Constructor<INavView>>;
 
     // [event]
 
@@ -110,11 +110,11 @@ export class NavigationViewService extends Component implements INavigationViewS
 
     // [public method]
 
-    public registerView(id: string, viewCtor: Constructor<INavigationView>): void {
-        this.logService.trace('NavigationViewService', `registers a view with ID`, { ID: id });
+    public registerView(id: string, viewCtor: Constructor<INavView>): void {
+        this.logService.trace('NavigationView', `registers a view with ID`, { ID: id });
 
         if (this.hasComponent(id)) {
-            this.logService.warn('NavigationViewService', `The side view with ID is already registered`, { ID: id });
+            this.logService.warn('NavigationView', `The side view with ID is already registered`, { ID: id });
             return;
         }
 
@@ -137,7 +137,7 @@ export class NavigationViewService extends Component implements INavigationViewS
          * If the corresponding view does not exist, returns false indicates
          * the operation fails.
          */
-        const view = this.getComponent<INavigationView>(id);
+        const view = this.getComponent<INavView>(id);
         if (!view) {
             return false;
         }
@@ -162,7 +162,7 @@ export class NavigationViewService extends Component implements INavigationViewS
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn('NavigationViewService', `Cannot switch to view with ID.`, { ID: id });
+            this.logService.warn('NavigationView', `Cannot switch to view with ID.`, { ID: id });
             return;
         }
         this.__switchView(view);
@@ -175,7 +175,7 @@ export class NavigationViewService extends Component implements INavigationViewS
         this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
 
-    public getView<T extends INavigationView>(id: string): T | undefined {
+    public getView<T extends INavView>(id: string): T | undefined {
         const view = this.getComponent<T>(id);
         if (view) {
             return view;
@@ -190,7 +190,7 @@ export class NavigationViewService extends Component implements INavigationViewS
         return newView;
     }
 
-    public currView<T extends INavigationView>(): T | undefined {
+    public currView<T extends INavView>(): T | undefined {
         if (this._currView) {
             return this.getComponent<T>(this._currView);
         }
@@ -211,7 +211,7 @@ export class NavigationViewService extends Component implements INavigationViewS
 
     // [private helper methods]
 
-    private __getOrConstructView<T extends INavigationView>(id: string): T | undefined {
+    private __getOrConstructView<T extends INavView>(id: string): T | undefined {
         const view = this.getComponent<T>(id);
         if (view) {
             return view;
@@ -232,7 +232,7 @@ export class NavigationViewService extends Component implements INavigationViewS
         return newView as T;
     }
 
-    private __switchView(view: INavigationView): void {
+    private __switchView(view: INavView): void {
         if (!this._viewContainer) {
             return;
         }
@@ -254,13 +254,13 @@ export class NavigationViewService extends Component implements INavigationViewS
             return;
         }
 
-        const currView = this.getComponent<INavigationView>(id)!;
+        const currView = this.getComponent<INavView>(id)!;
         this._viewContainer.removeChild(currView.element.element);
         this._currView = undefined;
     }
 
     private __destroyView(id: string): void {
-        const view = this.getComponent<INavigationView>(id);
+        const view = this.getComponent<INavView>(id);
         if (view) {
             this.unregisterComponent(id);
             view.dispose();
@@ -279,7 +279,7 @@ export class NavigationViewService extends Component implements INavigationViewS
 /**
  * An interface only for {@link NavigationView}.
  */
-export interface INavigationView extends IComponent {
+export interface INavView extends IComponent {
 
     /**
      * The ID of the view.
@@ -289,9 +289,9 @@ export interface INavigationView extends IComponent {
 
 /**
  * @class The base class to be inherited from to be inserted into 
- * {@link NavigationViewService}.
+ * {@link NavigationView}.
  */
-export abstract class NavigationView extends Component implements INavigationView {
+export abstract class NavView extends Component implements INavView {
 
     // [field]
 
