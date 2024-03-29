@@ -229,7 +229,7 @@ export namespace FileCommands {
              */
             const recursiveDirUris = insertAtSameParent
                 ? []
-                : await this.__fetchOldDirRecursive(toPaste) ;
+                : await this.__fetchOldDirRecursive(toPaste);
 
             console.log('recursiveDirUris', recursiveDirUris);
 
@@ -247,6 +247,13 @@ export namespace FileCommands {
             if (batch.passed.length === 0) {
                 return false;
             }
+
+            /**
+             * //  FIX
+             * After the paste succeeded:
+             *      1. How do I know which one of the previous recursiveDirUris succeeded?
+             *      2. How do I get the new URIs of those succeeded old URIs?
+             */
 
             const details = this.__extractBatchDetails(batch, toPaste);
 
