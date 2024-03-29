@@ -10,7 +10,7 @@ import { Priority } from "src/base/common/event";
 import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { assert } from "src/base/common/utilities/panic";
 
-import { INavigationViewService, NavigationView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { INavigationViewService, NavView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
@@ -19,7 +19,7 @@ export interface INavigationPanelService extends IComponent, IService {
 
 }
 
-export class NavigationPanelComponent extends Component implements INavigationPanelService {
+export class NavigationPanel extends Component implements INavigationPanelService {
 
     declare _serviceMarker: undefined;
 
@@ -39,7 +39,7 @@ export class NavigationPanelComponent extends Component implements INavigationPa
     // [protected override methods]
 
     protected override _createContent(): void {
-        this.__assemblyWorkbenchParts();
+        this.__assemblyParts();
     }
 
     protected override _registerListeners(): void {
@@ -48,7 +48,7 @@ export class NavigationPanelComponent extends Component implements INavigationPa
 
     // [private helper methods]
 
-    private __assemblyWorkbenchParts(): void {
+    private __assemblyParts(): void {
         const splitViewOpt: Required<ISplitViewOpts> = {
             orientation: Orientation.Vertical,
             viewOpts: [],
@@ -56,7 +56,7 @@ export class NavigationPanelComponent extends Component implements INavigationPa
 
         const PartsConfiguration = [
             [this.toolBarService, ToolBar.WIDTH, ToolBar.WIDTH, ToolBar.WIDTH, Priority.Low],
-            [this.navigationViewService, NavigationView.WIDTH * 2, NavigationView.WIDTH, NavigationView.WIDTH, Priority.Normal],
+            [this.navigationViewService, NavView.WIDTH * 2, NavView.WIDTH, NavView.WIDTH, Priority.Normal],
         ] as const;
 
         for (const [component, minSize, maxSize, initSize, priority] of PartsConfiguration) {
