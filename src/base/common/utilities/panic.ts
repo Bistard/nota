@@ -62,6 +62,13 @@ export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?
     panic(message ?? `assert error: ${obj}`);
 }
 
+export function assertValue<T>(obj: T, assert: (obj: T) => boolean, message?: string): T {
+    if (assert(obj)) {
+        return obj;
+    }
+    panic(message ?? `assert error: ${obj}`);
+}
+
 /**
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.

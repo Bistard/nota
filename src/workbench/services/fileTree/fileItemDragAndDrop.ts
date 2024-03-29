@@ -15,7 +15,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
-import { assert } from "src/base/common/utilities/panic";
+import { assert, assertValue } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -452,8 +452,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          */
         const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
         const resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
-        const resolvedIdx = isExpandedDir ? 0           : targetAbove.getSelfIndexInParent() + 1;
-        assert(resolvedIdx !== -1);
+        const resolvedIdx = isExpandedDir ? 0           : assertValue(targetAbove.getSelfIndexInParent(), idx =>idx !== -1) + 1;
         
         // tell the program we are doing insertion
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
