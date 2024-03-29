@@ -110,11 +110,12 @@ export namespace Arrays {
     /**
      * @description Performs a depth-first search (DFS) on an array.
      * @param arr The array for the DFS.
-     * @param visit A function to visit on each node.
+     * @param visit A function to visit on each node. When a boolean is returned, 
+     *              it indicates if the dfs should continue to visit.
      * @param getChildren A function that returns an array of child nodes for the 
      *                    given node.
      */
-    export function dfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+    export function dfs<T>(arr: T[], visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
         for (const node of arr) {
             dfsRaw(node, visit, getChildren);
         }
@@ -123,11 +124,12 @@ export namespace Arrays {
     /**
      * @description Performs a breadth-first search (DFS) on an array.
      * @param arr The array for the BFS.
-     * @param visit A function to visit on each node.
+     * @param visit A function to visit on each node. When a boolean is returned, 
+     *              it indicates if the bfs should continue to visit.
      * @param getChildren A function that returns an array of child nodes for the 
      *                    given node.
      */
-    export function bfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+    export function bfs<T>(arr: T[], visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
         for (const node of arr) {
             bfsRaw(node, visit, getChildren);
         }
@@ -775,7 +777,7 @@ export namespace Arrays {
         /**
          * See {@link Arrays.dfs} for details.
          */
-        export async function dfs<T>(arr: T[], visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+        export async function dfs<T>(arr: T[], visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
             for (const node of arr) {
                 await dfsAsyncRaw(node, visit, getChildren);
             }
@@ -784,7 +786,7 @@ export namespace Arrays {
         /**
          * See {@link Arrays.bfs} for details.
          */
-        export async function bfs<T>(arr: T[], visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+        export async function bfs<T>(arr: T[], visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
             for (const node of arr) {
                 await bfsAsyncRaw(node, visit, getChildren);
             }

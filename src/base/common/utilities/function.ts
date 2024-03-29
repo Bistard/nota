@@ -84,7 +84,7 @@ export function to01(value: any): 1 | 0 {
  */
 export function dfs<T>(node: T, visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
     const cont = visit(node);
-    if (!cont) {
+    if (cont === false) {
         return;
     }
 
@@ -98,7 +98,7 @@ export function dfs<T>(node: T, visit: (node: T) => void | boolean, getChildren:
  */
 export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
     const cont = await visit(node);
-    if (!cont) {
+    if (cont === false) {
         return;
     }
 
@@ -121,7 +121,7 @@ export function bfs<T>(node: T, visit: (node: T) => void | boolean, getChildren:
     while (queue.length > 0) {
         const currentNode = queue.shift()!;
         const cont = visit(currentNode);
-        if (!cont) {
+        if (cont === false) {
             return;
         }
 
@@ -141,7 +141,7 @@ export async function bfsAsync<T>(node: T, visit: (node: T) => Promise<void | bo
     while (queue.length > 0) {
         const currentNode = queue.shift()!;
         const cont = await visit(currentNode);
-        if (!cont) {
+        if (cont === false) {
             return;
         }
 

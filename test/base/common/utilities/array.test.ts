@@ -251,14 +251,14 @@ suite('array-test', () => {
         test('DFS should visit all nodes', () => {
             const nodes = ['a', 'b', 'c'];
             const visited: string[] = [];
-            Arrays.dfs(nodes, node => visited.push(node), node => []);
+            Arrays.dfs(nodes, node => { visited.push(node); }, node => []);
             assert.deepEqual(visited, nodes);
         });
 
         test('DFS should follow child nodes', () => {
             const nodes = { a: ['b'], b: ['c'], c: [] };
             const visited: string[] = [];
-            Arrays.dfs(['a'], node => visited.push(node), node => nodes[node]);
+            Arrays.dfs(['a'], node => { visited.push(node); }, node => nodes[node]);
             assert.deepEqual(visited, ['a', 'b', 'c']);
         });
     });
@@ -267,14 +267,14 @@ suite('array-test', () => {
         test('BFS should visit all nodes', () => {
             const nodes = ['a', 'b', 'c'];
             const visited: string[] = [];
-            Arrays.bfs(nodes, node => visited.push(node), node => []);
+            Arrays.bfs(nodes, node => { visited.push(node); }, node => []);
             assert.deepEqual(visited, nodes);
         });
 
         test('BFS should visit nodes level by level', () => {
             const nodes = { a: ['b', 'c'], b: ['d'], c: [], d: [] };
             const visited: string[] = [];
-            Arrays.bfs(['a'], node => visited.push(node), node => nodes[node]);
+            Arrays.bfs(['a'], node => { visited.push(node); }, node => nodes[node]);
             assert.deepEqual(visited, ['a', 'b', 'c', 'd']);
         });
     });

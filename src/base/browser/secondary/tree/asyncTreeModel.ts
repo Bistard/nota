@@ -4,7 +4,7 @@ import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/structures/range";
 import { Arrays } from "src/base/common/utilities/array";
 import { Blocker } from "src/base/common/utilities/async";
-import { cond, dfs } from "src/base/common/utilities/function";
+import { cond } from "src/base/common/utilities/function";
 
 /**
  * An interface only for {@link AsyncTreeModel}.
@@ -204,7 +204,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
          * the 1-dimensional array.
          */
         Arrays.dfs(node.children, 
-            child => oldChildrenData.push(child.data), 
+            child => { oldChildrenData.push(child.data); }, 
             child => child.children,
         );
 
