@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { URI } from 'src/base/common/files/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
+import { isString } from 'src/base/common/utilities/type';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 
 
@@ -645,6 +646,85 @@ suite('URI-test', () => {
 		assert.strictEqual(
 			URI.toString(URI.join(URI.from({ scheme: 'myScheme', authority: 'authority', path: '/path', query: 'query', fragment: 'fragment' }), '/file.js')),
 			'myScheme://authority/path/file.js?query#fragment');
+	});
+
+	function assertEqualURI(actual: URI, expected: URI, message?: string, /** ignoreCase?: boolean */) {
+		if (!URI.equals(expected, actual)) {
+			assert.strictEqual(URI.toString(actual), URI.toString(expected), message);
+		}
+	}
+
+	function assertRelativePath(u1: URI, u2: URI, expectedPath: string | undefined, ignoreJoin?: boolean, /** ignoreCase?: boolean */) {
+		assert.strictEqual(
+			URI.relative(u1, u2), 
+			expectedPath, 
+			`from '${URI.toString(u1)}' to '${URI.toString(u2)}'`,
+		);
+		
+		// if (isString(expectedPath) && !ignoreJoin) {
+		// 	assertEqualURI(
+		// 		removeTrailingPathSeparator(URI.join(u1, expectedPath)), 
+		// 		removeTrailingPathSeparator(u2), 
+		// 		'`join` on `relative` should be equal',
+		// 	);
+		// }
+	}
+
+	test('relative (common)', () => {
+		assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://a/foo/bar'), 'bar');
+		assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://a/foo/bar/'), 'bar');
+		assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://a/foo/bar/goo'), 'bar/goo');
+		assertRelativePath(URI.parse('foo://a/'), URI.parse('foo://a/foo/bar/goo'), 'foo/bar/goo');
+		assertRelativePath(URI.parse('foo://a/foo/xoo'), URI.parse('foo://a/foo/bar'), '../bar');
+		assertRelativePath(URI.parse('foo://a/foo/xoo/yoo'), URI.parse('foo://a'), '../../..', true);
+		assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://a/foo/'), '');
+		assertRelativePath(URI.parse('foo://a/foo/'), URI.parse('foo://a/foo'), '');
+		assertRelativePath(URI.parse('foo://a/foo/'), URI.parse('foo://a/foo/'), '');
+		assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://a/foo'), '');
+		assertRelativePath(URI.parse('foo://a'), URI.parse('foo://a'), '', true);
+		assertRelativePath(URI.parse('foo://a/'), URI.parse('foo://a/'), '');
+		assertRelativePath(URI.parse('foo://a/'), URI.parse('foo://a'), '', true);
+		assertRelativePath(URI.parse('foo://a/foo?q'), URI.parse('foo://a/foo/bar#h'), 'bar', true);
+		assertRelativePath(URI.parse('foo://'), URI.parse('foo://a/b'), undefined);
+		assertRelativePath(URI.parse('foo://a2/b'), URI.parse('foo://a/b'), undefined);
+		assertRelativePath(URI.parse('goo://a/b'), URI.parse('foo://a/b'), undefined);
+
+		// @Bistard these unit test need to be enabled when supporing ignorecase in `relative`
+		// assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://A/FOO/bar/goo'), 'bar/goo', false, /** true */);
+		// assertRelativePath(URI.parse('foo://a/foo'), URI.parse('foo://A/FOO/BAR/GOO'), 'BAR/GOO', false, /** true */);
+		// assertRelativePath(URI.parse('foo://a/foo/xoo'), URI.parse('foo://A/FOO/BAR/GOO'), '../BAR/GOO', false, /** true */);
+		// assertRelativePath(URI.parse('foo:///c:/a/foo'), URI.parse('foo:///C:/a/foo/xoo/'), 'xoo', false, /** true */);
+	});
+
+	test('relative (windows)', function () {
+		if (!IS_WINDOWS) {
+			this.skip();
+		}
+
+		assertRelativePath(URI.fromFile('c:\\foo\\bar'), URI.fromFile('c:\\foo\\bar'), '');
+		assertRelativePath(URI.fromFile('c:\\foo\\bar\\huu'), URI.fromFile('c:\\foo\\bar'), '..');
+		assertRelativePath(URI.fromFile('c:\\foo\\bar\\a1\\a2'), URI.fromFile('c:\\foo\\bar'), '../..');
+		assertRelativePath(URI.fromFile('c:\\foo\\bar\\'), URI.fromFile('c:\\foo\\bar\\a1\\a2'), 'a1/a2');
+		assertRelativePath(URI.fromFile('c:\\foo\\bar\\'), URI.fromFile('c:\\foo\\bar\\a1\\a2\\'), 'a1/a2');
+		assertRelativePath(URI.fromFile('c:\\'), URI.fromFile('c:\\foo\\bar'), 'foo/bar');
+		assertRelativePath(URI.fromFile('\\\\server\\share\\some\\'), URI.fromFile('\\\\server\\share\\some\\path'), 'path');
+		assertRelativePath(URI.fromFile('\\\\server\\share\\some\\'), URI.fromFile('\\\\server\\share2\\some\\path'), '../../share2/some/path', true); // ignore joinPath assert: path.join is not root aware
+	});
+
+	test('relative (posix)', function () {
+		if (IS_WINDOWS) {
+			this.skip();
+		}
+
+		assertRelativePath(URI.fromFile('/a/foo'), URI.fromFile('/a/foo/bar'), 'bar');
+		assertRelativePath(URI.fromFile('/a/foo'), URI.fromFile('/a/foo/bar/'), 'bar');
+		assertRelativePath(URI.fromFile('/a/foo'), URI.fromFile('/a/foo/bar/goo'), 'bar/goo');
+		assertRelativePath(URI.fromFile('/a/'), URI.fromFile('/a/foo/bar/goo'), 'foo/bar/goo');
+		assertRelativePath(URI.fromFile('/'), URI.fromFile('/a/foo/bar/goo'), 'a/foo/bar/goo');
+		assertRelativePath(URI.fromFile('/a/foo/xoo'), URI.fromFile('/a/foo/bar'), '../bar');
+		assertRelativePath(URI.fromFile('/a/foo/xoo/yoo'), URI.fromFile('/a'), '../../..');
+		assertRelativePath(URI.fromFile('/a/foo'), URI.fromFile('/a/foo/'), '');
+		assertRelativePath(URI.fromFile('/a/foo'), URI.fromFile('/b/foo/'), '../../b/foo');
 	});
 
     test('URI.toString() wrongly encode IPv6 literals', function () {
