@@ -279,6 +279,30 @@ export class URI implements IURI {
 	}
 	
 	/**
+	 * @description Calculates a URI based on a base URI and a path, which can 
+	 * be either relative or absolute.
+	 * @param base The base URI used as the starting point.
+	 * @param path The path to resolve against the base URI.
+	 * @returns The resulting URI after resolving the given path against the base URI.
+	 * 
+	 * @note The provided path may follow either POSIX or Windows standards.
+	 */
+	public static resolve(base: URI, path: string): URI {
+		if (base.scheme === Schemas.FILE) {
+			const newURI = URI.fromFile(paths.resolve(URI.toFsPath(base, true), path));
+			return URI.with(base, {
+				authority: newURI.authority,
+				path: newURI.path
+			});
+		}
+
+		path = toPosixPath(path); // we allow path to be a windows path
+		return URI.with(base, {
+			path: paths.posix.resolve(base.path, path)
+		});
+	}
+
+	/**
 	 * @description If the candidate is the parent of the given uri.
 	 * @param uri The given uri.
 	 * @param candidate The possible parent of the given uri.
