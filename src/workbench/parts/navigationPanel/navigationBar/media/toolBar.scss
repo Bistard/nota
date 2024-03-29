@@ -1,0 +1,64 @@
+#tool-bar {
+
+    /* display in row */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
+    position: relative;
+    width: 50px;
+    min-width: 50px;
+    height: 100%;
+    background-color: #fcfcfc;
+    
+    -webkit-app-region: drag; /* draggable */
+
+    & > div {
+        position: absolute;
+    }
+
+    & > .logo {
+        top: 5px;
+        justify-content: center;
+        
+        font-size: 26px;
+        font-family: 'happy family';
+
+        &:hover {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+    }
+
+    & > .general-button-container {
+        top: 70px;
+    }
+
+    & > .secondary-button-container {
+        bottom: 0px;
+    }
+
+    & .side-button {
+        width: 50px;
+        height: 50px;
+        align-content: center;
+        display: flex;
+
+        & > .icon {
+            font-size: 18px;
+        }
+
+        &:hover {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+
+        &:active {
+            opacity: 70%;
+        }
+
+        &.focus {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+    }
+}

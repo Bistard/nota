@@ -7,6 +7,7 @@ import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * An interface only for {@link SplitView}.
@@ -85,7 +86,7 @@ export interface ISplitViewOpts {
     /**
      * Determines the layout direction of the {@link ISplitView}.
      */
-    readonly orientation: Orientation;
+    orientation: Orientation;
 
     /**
      * Options of constructing initial views during the construction of 
@@ -216,8 +217,8 @@ export class SplitView extends Disposable implements ISplitView {
     }
     
     public swapView(first: number, second: number): void {
-        first = Math.min(Math.max(first, 0), this.viewItems.length);
-        second = Math.min(Math.max(second, 0), this.viewItems.length);
+        first = Numbers.clamp(first, 0, this.viewItems.length);
+        second = Numbers.clamp(second, 0, this.viewItems.length);
 
         if (first === second) {
             return;
@@ -562,3 +563,5 @@ export class SplitViewSpaceError extends Error {
         super(`split-view space error: cannot fit all the views (${contentSize}px) into split-view (${splitViewSize}px)`);
     }
 }
+
+export { Orientation };

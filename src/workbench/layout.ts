@@ -2,6 +2,7 @@ import { addDisposableListener, DomUtility, EventType, Orientation } from "src/b
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { SideBar, ISideBarService, SideButtonType } from "src/workbench/parts/sideBar/sideBar";
 import { ISideViewService, SideView } from "src/workbench/parts/sideView/sideView";
+
 import { Component } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -103,9 +104,14 @@ export abstract class WorkbenchLayout extends Component {
         };
 
         const PartsConfiguration = [
-            [this.sideBarService  , SideBar.WIDTH, SideBar.WIDTH           , SideBar.WIDTH , Priority.Low   ],
-            [this.sideViewService , 100          , SideView.WIDTH * 2      , SideView.WIDTH, Priority.Normal],
-            [this.workspaceService, 0            , Number.POSITIVE_INFINITY, 0             , Priority.High  ],
+            // TODO: Use SplitView with orientation: Orientation.Vertical to combine 
+            // SideBar and SideView in navigationPanel.ts
+
+            // [this.sideBarService  , SideBar.WIDTH, SideBar.WIDTH           , SideBar.WIDTH , Priority.Low   ],
+            // [this.sideViewService , 100          , SideView.WIDTH * 2      , SideView.WIDTH, Priority.Normal],
+
+            // [this.nagivationPanelService, 100 , NavigationPanel.WIDTH * 2 , NavigationPanel.WIDTH, Priority.Normal],
+            [this.workspaceService      , 0   , Number.POSITIVE_INFINITY  , 0                    , Priority.High  ],
         ] as const;
 
         for (const [component, minSize, maxSize, initSize, priority] of PartsConfiguration) {
