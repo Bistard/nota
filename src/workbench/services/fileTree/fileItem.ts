@@ -266,7 +266,6 @@ export class FileItem implements IFileItem<FileItem> {
 
     get children(): FileItem[] { return this._children; }
 
-    @memoize
     get mapChildren(): Map<string, FileItem> {
         if (this._mapChildrenCache) {
             return this._mapChildrenCache;
