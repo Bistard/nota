@@ -12,7 +12,7 @@ export class FunctionBar {
 
     constructor(private container: HTMLElement) {
         // Initialize the function bar container
-        this.container.className += ' function-bar';
+        this.container.className = 'function-bar';
         // Add buttons or other elements as needed
     }
 
