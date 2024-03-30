@@ -8,6 +8,7 @@ import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { assert, panic } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
+import { ISashOpts } from "src/base/browser/basic/sash/sash";
 
 export interface ICreatable {
     create(): void;
@@ -20,6 +21,8 @@ export interface IComponentsConfiguration {
     maxSize: number;
     initSize: number;
     priority: Priority;
+
+    sashConfiguration?: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>;
 }
 
 /**
@@ -399,19 +402,21 @@ export abstract class Component extends Themable implements IComponent {
         // construct the split-view
         this._splitView = this.__register(new SplitView(this.element.element, splitViewOpt));
     
-        // apply sash configuration
+        // apply sash configuration if any
         for (let i = 0; i < this._splitView.size - 1; i++) {
+            const config = configurations[i]!;
+
+            const sashOpts = config.sashConfiguration;
+            if (!sashOpts) {
+                continue;
+            }
+            
             const sash = assert(this._splitView.getSashAt(i));
-            sash.enable = true;
-            sash.visible = true;
-            sash.size = 4;
+            sash.enable  = sashOpts.enable ?? sash.enable;
+            sash.visible = sashOpts.visible ?? sash.visible;
+            sash.size    = sashOpts.size ?? sash.size;
+            sash.range   = sashOpts.range ?? sash.range;
         }
-    
-        // set the sash next to sideBar is visible and disabled.
-        const sash = assert(this._splitView.getSashAt(0));
-        sash.enable = false;
-        sash.visible = true;
-        sash.size = 1;
     
         // register listeners
         this.__register(addDisposableListener(window, EventType.resize, () => {

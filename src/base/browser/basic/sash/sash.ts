@@ -288,6 +288,10 @@ export class Sash extends Disposable implements ISash {
     }
 
     set size(val: number) {
+        if (val === this._size) {
+            return;
+        }
+
         this._size = val;
         if (this._orientation === Orientation.Vertical) {
             this._element.style.width = `${val}px`;
