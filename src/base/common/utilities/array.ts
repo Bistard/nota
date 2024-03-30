@@ -1,10 +1,53 @@
+import { dfs as dfsRaw, bfs as bfsRaw, dfsAsync as dfsAsyncRaw, bfsAsync as bfsAsyncRaw } from "src/base/common/utilities/function";
 import { panic } from "src/base/common/utilities/panic";
 import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/type";
 
 /**
- * @namespace Array A series of helper functions that relates to array.
+ * @namespace Arrays A series of helper functions that relates to array. To 
+ * access the asynchronous version, use {@link Arrays.Async}.
  */
 export namespace Arrays {
+
+    /**
+     * @description Is the given object is an array.
+     */
+    export function is<T>(obj: any): obj is T[] {
+        return Array.isArray(obj);
+    }
+
+    /**
+     * @description Determines if all elements in an array are of a specified 
+     * type, based on a provided type-checking function.
+     * @param array The array to check.
+     * @param check A function that checks if the given element is of type T.
+     * 
+     * @note This function assumes the type of all elements in the array based 
+     *       on the type of the first element. 
+     * @note If the array is empty, it is considered to be of the specified type 
+     *       by default.
+     */
+    export function isType<T>(array: any[], check: (firstElement: any) => boolean): array is T[] {
+        if (array.length === 0) {
+            return true;
+        }
+
+        const firstElement = array[0]!;
+        return check(firstElement);
+    }
+
+    /**
+     * @description If the given array is empty.
+     */
+    export function isEmpty<T>(array: T[]): boolean {
+        return array.length === 0;
+    }
+
+    /**
+     * @description If the given array is not empty.
+     */
+    export function isNonEmpty<T>(array: T[]): boolean {
+        return array.length !== 0;
+    }
 
     /**
      * @description Clear an array.
@@ -34,7 +77,7 @@ export namespace Arrays {
     }
 
     /**
-     * @description Whether the given value exsits in the given array.
+     * @description Whether the given value exists in the given array.
      */
     export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {
         return array.indexOf(value) >= 0;
@@ -106,6 +149,34 @@ export namespace Arrays {
     }
 
     /**
+     * @description Performs a depth-first search (DFS) on an array.
+     * @param arr The array for the DFS.
+     * @param visit A function to visit on each node. When a boolean is returned, 
+     *              it indicates if the dfs should continue to visit.
+     * @param getChildren A function that returns an array of child nodes for the 
+     *                    given node.
+     */
+    export function dfs<T>(arr: T[], visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
+        for (const node of arr) {
+            dfsRaw(node, visit, getChildren);
+        }
+    }
+    
+    /**
+     * @description Performs a breadth-first search (DFS) on an array.
+     * @param arr The array for the BFS.
+     * @param visit A function to visit on each node. When a boolean is returned, 
+     *              it indicates if the bfs should continue to visit.
+     * @param getChildren A function that returns an array of child nodes for the 
+     *                    given node.
+     */
+    export function bfs<T>(arr: T[], visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
+        for (const node of arr) {
+            bfsRaw(node, visit, getChildren);
+        }
+    }
+
+    /**
      * @description Try to removes the first given item from the given array (
      * will mutate the original array).
      * @param array The given array.
@@ -129,12 +200,17 @@ export namespace Arrays {
      * @param array The given array.
      * @param indice An array of indice at which elements should be removed. 
      *               Indices do not need to be in any particular order.
+     * @param sort If to sort the given indice in descending order. If the 
+     *             original indice is already sorted, set this to false. Default
+     *             is true.
      * @returns Returns the same array.
      */
-    export function removeByIndex<T>(array: T[], indice: number[]): T[] {
+    export function removeByIndex<T>(array: T[], indice: number[], sort: boolean = true): T[] {
         
         // Sort the indexes in descending order
-        indice = indice.sort((a, b) => b - a);
+        if (sort) {
+            indice = indice.sort((a, b) => b - a);
+        }
 
         for (const index of indice) {
             if (index >= 0 && index < array.length) {
@@ -142,6 +218,51 @@ export namespace Arrays {
             }
         }
 
+        return array;
+    }
+
+    /**
+     * @description Moves specified elements in an array to a given target index.
+     * The specified elements remain the same order after moved.
+     * 
+     * @param array The array to modify.
+     * @param indice Indices of elements to move.
+     * @param destination Target index for moved elements.
+     * @returns Returns the same array.
+     * @panic If any index is out of bounds.
+     */
+    export function relocateByIndex<T>(array: T[], indice: number[], destination: number): T[] {
+        
+        // Validate destination and indicesToMove are within array bounds
+        if (destination < 0 || destination > array.length) {
+            panic(`[relocateByIndex] Destination index out of bounds: ${destination}`);
+        }
+
+        // Sort indices to maintain original order and simplify removal
+        const sortedIndices = indice.sort((a, b) => a - b);
+        let destAdjustment = 0;
+
+        // Extract items to move
+        const itemsToMove: T[] = [];
+        for (const index of sortedIndices) {
+            if (index < 0 || index >= array.length) {
+                panic(`[relocateByIndex] Index to move out of bounds: ${index}`);
+            }
+
+            itemsToMove.push(array[index]!);
+            if (index < destination) {
+                destAdjustment++;
+            }
+        }
+        destination -= destAdjustment;
+
+        // Remove items from original positions (in reverse to avoid indexing issues)
+        for (const index of sortedIndices.reverse()) {
+            array.splice(index, 1);
+        }
+
+        // Insert items at destination index
+        array.splice(destination, 0, ...itemsToMove);
         return array;
     }
 
@@ -222,6 +343,69 @@ export namespace Arrays {
         }
 
         return array;
+    }
+
+    /**
+     * @description Inserts multiple items into an array at specified indice,
+     * modifying the original array.
+     *
+     * @param arr The original array to be modified.
+     * @param items An array of items to be inserted.
+     * @param indice An array of indice at which the corresponding items from 
+     *               `items` should be inserted. The indice refer to 
+     *               positions in the array before any insertions have taken 
+     *               place.
+     *
+     * @panic If items and indice does not have the same length, or the indice 
+     *        is out of range.
+     * 
+     * @example
+     * // The array `arr` is modified in place to become [0, 1, 2, 3, 4]
+     * const arr = [1, 4];
+     * insertMultiple(arr, [0, 2, 3], [0, 1, 1]);
+     */
+    export function insertMultiple<T>(array: T[], items: T[], indice: number[]): void {
+        if (items.length !== indice.length) {
+            panic('[insertMultiple] items and indice must have the same length');
+        }
+        
+        let offset = 0;
+        for (let i = 0; i < indice.length; i++) {
+            const index = indice[i]! + offset;
+            if (index < 0 || index > array.length) {
+                panic('[insertMultiple] Index out of range');
+            }
+            
+            const item = items[i]!;
+            array.splice(index, 0, item);
+            offset++;
+        }
+    }
+
+    /**
+     * @description Groups elements of an array based on a given key and returns 
+     * a map of the groups.
+     * @template T The type of elements in the input array.
+     * @template K The type of the key by which the array is grouped.
+     * @param array The array of elements to be grouped.
+     * @param getKey A function that computes the grouping key for each element.
+     * @returns A map where each key is a grouping key and the value is an array 
+     * of elements that share that key.
+     */
+    export function group<T, K>(array: ReadonlyArray<T>, getKey: (item: T) => K): Map<K, T[]> {
+        const map = new Map<K, T[]>();
+    
+        for (const item of array) {
+            const key = getKey(item);
+            const collection = map.get(key);
+            if (!collection) {
+                map.set(key, [item]);
+            } else {
+                collection.push(item);
+            }
+        }
+    
+        return map;
     }
 
     /**
@@ -496,7 +680,6 @@ export namespace Arrays {
      * @returns The found item or undefined if not found.
      */
     export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => CompareOrder): T | undefined {
-
         let l = -1;
         let r = array.length;
 
@@ -607,6 +790,87 @@ export namespace Arrays {
     export function fromObjectEntries<T>(obj: Record<string, T>): [string, T][] {
         return Object.entries(obj);
     }
+
+    /**
+     * The asynchronous version of the namespace.
+     */
+    export namespace Async {
+
+        /**
+         * See {@link Arrays.parallelEach} for details.
+         */
+        export async function parallelEach<TArrays extends any[][]>(arrays: [...TArrays], forEach: (...elements: Flatten<TArrays>) => Promise<void>): Promise<void> {
+            if (arrays.length === 0) {
+                return;
+            }
+    
+            if (!arrays.every(array => array.length === arrays[0]!.length)) {
+                panic('[parallelEach] All arrays must have the same length');
+            }
+        
+            const arrayLength = arrays[0]!.length;
+            for (let i = 0; i < arrayLength; i++) {
+                const args: any = arrays.map(array => array[i]!);
+                await forEach(...args);
+            }
+        }
+
+        /**
+         * See {@link Arrays.dfs} for details.
+         */
+        export async function dfs<T>(arr: T[], visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+            for (const node of arr) {
+                await dfsAsyncRaw(node, visit, getChildren);
+            }
+        }
+        
+        /**
+         * See {@link Arrays.bfs} for details.
+         */
+        export async function bfs<T>(arr: T[], visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+            for (const node of arr) {
+                await bfsAsyncRaw(node, visit, getChildren);
+            }
+        }
+
+        /**
+         * See {@link Arrays.reverseIterate} for details.
+         */
+        export async function reverseIterate<T>(array: T[], each: (element: T, index: number) => Promise<boolean | void | undefined>): Promise<T[]> {
+            for (let idx = array.length - 1; idx >= 0; idx--) {
+                if (await each(array[idx]!, idx) === true) {
+                    break;
+                }
+            }
+            return array;
+        }
+
+        /**
+         * See {@link Arrays.binarySearch} for details.
+         */
+        export async function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => Promise<CompareOrder>): Promise<T | undefined> {
+            let l = -1;
+            let r = array.length;
+    
+            while (l + 1 < r) {
+                const m = ((l + r) / 2) | 0;
+                const value = array[m]!;
+                const result = await match(value);
+    
+                if (result === 0) {
+                    return value;
+                }
+    
+                if (result < 0) {
+                    l = m;
+                } else {
+                    r = m;
+                }
+            }
+    
+            return undefined;
+        }
+    }
 }
 
 function __getActualStartIndex<T>(array: T[], index: number): number {
@@ -616,3 +880,4 @@ function __getActualStartIndex<T>(array: T[], index: number): number {
         return Math.min(index, array.length);
     }
 }
+

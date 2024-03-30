@@ -1,12 +1,14 @@
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
-import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
+import { DelayableEmitter, Emitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
+import { Arrays } from "src/base/common/utilities/array";
+import { panic } from "src/base/common/utilities/panic";
 
 const INVALID_INDEX = -1;
 
 /**
- * Option type for {@link IIndexTreeModel.splice}.
+ * Option type for {@link IIndexTreeModel["splice"]}.
  */
 export interface ITreeModelSpliceOptions<T, TFilter> {
     
@@ -16,9 +18,9 @@ export interface ITreeModelSpliceOptions<T, TFilter> {
     onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
 
     /**
-     * Invokes when the tree node is deleted.
+     * Invokes when the tree data is deleted.
      */
-    onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
+    onDidDeleteData?: (node: T) => void;
 }
 
 /**
@@ -75,9 +77,9 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
     
     /**
      * @description Refresh the subtree of the given tree node.
-     * The tree model will rebuild and reculate all the metadata of the subtree
-     * of the given tree node automatically if the client modify the tree node
-     * correctly.
+     * The tree model will rebuild and recalculate all the metadata of the 
+     * subtree of the given tree node automatically if the client modify the 
+     * tree node correctly.
      * @param node The given node. Defaults to root.
      * @param opts The option for splicing.
      */
@@ -132,7 +134,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             visibleNodeCount: 0,
         };
 
-        this._collapsedByDefault = !!(opt?.collapsedByDefault);
+        this._collapsedByDefault = opt?.collapsedByDefault ?? false;
         this._filter = opt.filter;
     }
 
@@ -181,7 +183,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const node = this.__getNode(location, this._root);
         
         if (!node) {
-            throw new Error('cannot find the node given the location.');
+            panic('cannot find the node given the location.');
         }
 
         return node;
@@ -207,7 +209,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const node = this.__getNode(location, this._root);
         
         if (!node) {
-            throw new Error(`tree node not found at: ${location}`);
+            panic(`tree node not found at: ${location}`);
         }
 
         return node.collapsible;
@@ -228,10 +230,14 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const node = this.__getNode(location, this._root);
         
         if (!node) {
-            throw new Error(`tree node not found at: ${location}`);
+            panic(`tree node not found at: ${location}`);
         }
 
-        return node.collapsible && node.collapsed;
+        if (!node.collapsible) {
+            panic(`tree node is not collapsible at: ${location}`);
+        }
+
+        return node.collapsed;
     }
 
     public setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean  {
@@ -271,7 +277,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
          */
 
         if (location.length === 0) {
-            throw new Error('invalid tree location');
+            panic('invalid tree location');
         }
         
         const { node, listIndex, visible } = this.__getNodeWithListIndex(location);
@@ -442,7 +448,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     }
 
     /**
-     * @description Rerturns the list index of the parent of the given location.
+     * @description Returns the list index of the parent of the given location.
      * @param location The location representation of the node.
      * @param node The node to start with, default is the root.
      * 
@@ -466,7 +472,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             const index = location[i]!;
             
             if (index < 0 || index > node.children.length) {
-                throw new Error('invalid location');
+                panic('invalid location');
             }
 
             for (let j = 0; j < index; j++) {
@@ -495,7 +501,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     }
 
     /**
-     * @description Rerturns the list index of the given location.
+     * @description Returns the list index of the given location.
      * @param location The location representation of the node.
      * 
      * @returns An object that contains three info:
@@ -520,7 +526,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         const lastIndex = location[location.length - 1]!;
         
         if (lastIndex < 0 || lastIndex > parent.children.length) {
-            throw new Error('invalid location');
+            panic('invalid location');
         }
 
         const requiredNode = parent.children[lastIndex]!;
@@ -703,7 +709,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             const index = location[i]!;
             node = node.children[index];
             if (!node) {
-                throw new Error('invalid location');
+                panic('invalid location');
             }
 
             changed = changed || (node.collapsible !== collapsible);
@@ -720,7 +726,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
  * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
  * same data structure as Index Binary Tree (IBT).
  * 
- * The tree model represents a multiway tree-like structure. The prefix `index` 
+ * The tree model represents a multi-way tree-like structure. The prefix `index` 
  * means the tree node can be found by a series of indices.
  * 
  * Client may provide a new tree-like structure using {@link ITreeNodeItem} that
@@ -759,15 +765,16 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         // update view
         if (visible) {
 
-            // calcualte the old visible children node count
+            // calculate the old visible children node count
             let oldVisibleCount = 0;
             for (const child of deletedChildren) {
                 if (child.visible) {
                     oldVisibleCount += child.visibleNodeCount;
                 }
             }
-
             this.__updateAncestorsVisibleNodeCount(parent, newVisibleCount - oldVisibleCount);
+
+            // update the view
             this._view.splice(listIndex, oldVisibleCount, treeNodeListToBeRendered);
         }
         
@@ -778,12 +785,8 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         }
 
         // deletion callback
-        if (opts.onDidDeleteNode && deletedChildren.length > 0) {
-            const deleteVisitor = (node: ITreeNode<T, TFilter>) => {
-                opts.onDidDeleteNode!(node);
-                node.children.forEach(deleteVisitor);
-            };
-            deletedChildren.forEach(node => deleteVisitor(node));
+        if (opts.onDidDeleteData && deletedChildren.length > 0) {
+            Arrays.dfs(deletedChildren, node => { opts.onDidDeleteData?.(node.data); }, node => node.children);
         }
 
         // fire events
@@ -893,6 +896,8 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             treeNodeChildrenToInsert.push(node);
         }
 
+        // recalculate the visible node count
+        const oldVisibleCount = node.visibleNodeCount;
         let newVisibleCount = 1;
         for (const element of node.children) {
             this.__refreshNode(element, node, treeNodeListToBeRendered, opts.onDidCreateNode);
@@ -900,47 +905,29 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             newVisibleCount += element.visibleNodeCount;
         }
 
-        let prevhasChildrenState = false;
+        const prevHasChildrenState = oldVisibleCount > 1;
         const currHasChildrenState = node.children.length > 0;
 
         // update view
         if (visible) {
-            
-            // calcualte the old visible children node count
-            let oldVisibleCount = 1;
-            if (node.oldChildren) {
-                prevhasChildrenState = !!node.oldChildren.length;
-
-                for (const child of node.oldChildren) {
-                    if (child.visible) {
-                        oldVisibleCount += child.visibleNodeCount;
-                    }
-                }
-            }
-            
             const changedVisibleCount = newVisibleCount - oldVisibleCount;
             this.__updateAncestorsVisibleNodeCount(node, changedVisibleCount);
             this._view.splice(listIndex, oldVisibleCount, treeNodeListToBeRendered);
         }
 
         // update the ancestors collapsible state
-        if (prevhasChildrenState !== currHasChildrenState) {
+        if (prevHasChildrenState !== currHasChildrenState) {
             this.setCollapsible(location, currHasChildrenState);
         }
-
-        // deletion callback
-        if (opts.onDidDeleteNode && node.oldChildren) {
-            const deleteVisitor = (node: IFlexNode<T, TFilter>) => {
-                opts.onDidDeleteNode!(node);
-                node.children?.forEach(deleteVisitor);
-                node.oldChildren?.forEach(deleteVisitor);
-            };
-            node.oldChildren.forEach(deleteVisitor);
+        
+        const deletedChildren = node.toDeleted ?? [];
+        if (opts.onDidDeleteData && deletedChildren.length > 0) {
+            deletedChildren.forEach(data => opts.onDidDeleteData!(data));
         }
-
-        // actual delete the old children
-        node.oldChildren = undefined;
+        
+        // state reset
         node.stale = false;
+        node.toDeleted = [];
 
         // fire events
         this._onDidSplice.fire({ inserted: treeNodeListToBeRendered });
@@ -959,6 +946,13 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void,
     ): void {
         node.stale = false;
+        node.depth = parent.depth + 1;
+        
+        // If the collapsible setting somehow sets to false, we may correct it here.
+        node.collapsible ||= node.children.length > 0;
+        
+        // If collapse never set by the client, we use the default setting.
+        node.collapsed ??= this._collapsedByDefault;
 
         node.visible = parent.visible ? !parent.collapsed : false;
         if (node.visible) {
@@ -971,8 +965,6 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         //     this.__filterNode(newNode);
         // }
 
-        node.depth = parent.depth + 1;
-
         let newVisibleCount = 1;
         for (const child of node.children) {
             this.__refreshNode(child, node, toBeRendered, onDidCreateNode);
@@ -980,12 +972,6 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         }
 
         node.visibleNodeCount = node.visible ? newVisibleCount : 0;
-
-        // If the collapsible setting somehow sets to false, we may correct it here.
-        node.collapsible = node.collapsible || node.children.length > 0;
-        
-        // If collapse never set by the client, we use the default setting.
-        node.collapsed = node.collapsed ?? this._collapsedByDefault;
 
         // treats refreshed node as new created node
         if (onDidCreateNode) {

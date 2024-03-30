@@ -29,7 +29,7 @@ export class MainDialogService implements IMainDialogService {
 
     /** 
      * Each {@link BrowserWindow} has its own dialog box queue to ensure does 
-     * not exist two boxs at the same time.
+     * not exist two boxes at the same time.
      * @note -1 is the queue that contains all the dialogs with no bonded 
      *       BrowserWindow.
      */

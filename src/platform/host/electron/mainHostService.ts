@@ -58,7 +58,7 @@ export class MainHostService extends Disposable implements IMainHostService {
     private readonly _onDidFocusWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowFocused, (_e, window: BrowserWindow) => window.id));
     public readonly onDidFocusWindow = this._onDidFocusWindow.registerListener;
 
-    private readonly _onDidBlurWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowBlured, (_e, window: BrowserWindow) => window.id));
+    private readonly _onDidBlurWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowBlurred, (_e, window: BrowserWindow) => window.id));
     public readonly onDidBlurWindow = this._onDidBlurWindow.registerListener;
 
     @memoize

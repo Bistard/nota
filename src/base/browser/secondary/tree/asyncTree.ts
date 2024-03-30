@@ -29,7 +29,7 @@ export interface IAsyncNode<T, TFilter> extends IFlexNode<T, TFilter> {
  * @implements
  * It may help the tree to re-use memory when encountering the same client data.
  */
-export interface IIdentiityProivder<T> {
+export interface IIdentityProvider<T> {
     /**
      * @description Returns the representative ID of the given client data.
      * @param data The given client-provided data.
@@ -51,6 +51,12 @@ export interface IChildrenProvider<T> {
      * @description Get the children from the given data.
      */
     getChildren(data: T): T[] | Promise<T[]>;
+
+    /**
+     * @description Mark the given data as unresolved. This will not clean the
+     * children of the given data.
+     */
+    markAsUnresolved?(data: T): void;
 
     /**
      * @description Forget the children of the given data so that it will be
@@ -110,7 +116,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed. Await to ensure the operation is done.
+     * @returns If the operation succeeded. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning potential refreshing to the latest children 
      * nodes, thus asynchronous is required.
@@ -124,12 +130,22 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed. Await to ensure the operation is done.
+     * @returns If the operation succeeded. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
      */
     toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean>;
+
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): Promise<void>;
+
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): Promise<void>;
 }
 
 /**
@@ -163,7 +179,7 @@ export interface IAsyncTreeWidgetOpts<T, TFilter> extends IMultiTreeWidgetOpts<T
 }
 
 /**
- * @class Used to override and add additional controller behaviours. But in async
+ * @class Used to override and add additional controller behaviors. But in async
  * tree level there is currently no need for additional features.
  */
 export class AsyncTreeWidget<T, TFilter> extends MultiTreeWidget<T, TFilter> {}
@@ -256,7 +272,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * @note The subtree will be refreshed automatically once the collapse state of 
  * the tree node is changed.
  * 
- * @warn If data type `T` is a primitive type, might raises undefined behaviours
+ * @warn If data type `T` is a primitive type, might raises undefined behaviors
  * if there are two values are the same. For example, `size()` will not work 
  * properly since the tree cannot decide which is which.
  * 
@@ -268,7 +284,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * Visual Studio Code. They maintain two isomorphismic tree structures to avoid 
  * excessive rerendering.
  * 
- * The {@link AsyncTree} goes one step further, it elimates another tree 
+ * The {@link AsyncTree} goes one step further, it eliminates another tree 
  * structure and only maintaining one tree which causes less memory usage and 
  * runs faster.
  * 
@@ -284,10 +300,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
      * Indicates if any tree nodes is collapse changing, prevent parallel 
      * collapse changing.
      */
-    private readonly _ongoingCollapseChange = new AsyncQueue();
+    private readonly _ongoingCollapseChange = new AsyncQueue<void>();
 
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
-    private _onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
+    private _onDidDeleteData?: (node: T) => void;
 
     // [event]
 
@@ -341,7 +357,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         });
 
         this._onDidCreateNode = opts.onDidCreateNode;
-        this._onDidDeleteNode = opts.onDidDeleteNode;
+        this._onDidDeleteData = opts.onDidDeleteData;
 
         this.__register(this._tree);
         this.__register(this._ongoingCollapseChange);
@@ -353,7 +369,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [public methods]
 
     public async refresh(data: T = this._tree.root): Promise<void> {
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
 
         // wait until nothing is refreshing
         if (asyncNode.refreshing) {
@@ -412,7 +428,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return false;
         }
 
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
@@ -446,7 +462,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             return false;
         }
 
-        const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
+        const asyncNode = this.__getAsyncNode(data);
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
@@ -461,12 +477,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return successOrNot;
     }
 
-    public collapseAll(): void {
+    public async collapseAll(): Promise<void> {
         this._tree.collapseAll();
+        await this._ongoingCollapseChange.waitNext();
     }
 
-    public expandAll(): void {
+    public async expandAll(): Promise<void> {
         this._tree.expandAll();
+        await this._ongoingCollapseChange.waitNext();
     }
 
     public setAnchor(item: T): void {
@@ -571,6 +589,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     // [private helper methods]
 
+    private __getAsyncNode(data: T): IAsyncNode<T, TFilter> {
+        return this._tree.getNode(data);
+    }
+
     /**
      * @description Only rerenders the subtree of the given tree node.
      * @param node The given tree node.
@@ -580,13 +602,13 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             node,
             {
                 onDidCreateNode: this._onDidCreateNode,
-                onDidDeleteNode: this._onDidDeleteNode,
+                onDidDeleteData: this._onDidDeleteData,
             },
         );
     }
 
     /**
-     * @description Presets the behaviours when the collapsing state is changed.
+     * @description Presets the behaviors when the collapsing state is changed.
      */
     private async __onDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
         

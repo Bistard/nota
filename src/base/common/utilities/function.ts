@@ -2,15 +2,14 @@ import { panic } from "src/base/common/utilities/panic";
 import { Callable } from "src/base/common/utilities/type";
 
 /**
- * @description Wraps the input function to ensure it can only be executed once. 
- *  If called more than once, it throws an error.
- * @param fn The function to be wrapped, ensuring it is only executed once.
+ * @description Wraps the 'fn' to ensure it can only be executed once. 
+ * @panic
  */
 export function executeOnce<T extends Callable<any[], any>>(fn: T): T {
     let executed = false;
     return <any>(function (this: any, ...args: any[]) {
         if (executed) {
-            panic(`The function '${fn}' can only be executed once.`);
+            panic(`The function '${fn.name}' can only be executed once.`);
         }
         executed = true;
         return fn.apply(this, args);
@@ -58,5 +57,97 @@ export class Reactivator {
         executable?.();
 
         this._isActivated = false;
+    }
+}
+
+/**
+ * @description Function version of a ternary operator.
+ */
+export function cond<T>(condition: boolean, onTrue: T, onFalse: T): T {
+    return condition ? onTrue : onFalse;
+}
+
+/**
+ * @description Convert a value to '1' if truthy, '0' if falsy.
+ */
+export function to01(value: any): 1 | 0 {
+    return value ? 1 : 0;
+}
+
+/**
+ * @description Performs a depth-first search (DFS) on a tree.
+ * @param node The starting node for the DFS.
+ * @param visit A function to visit on each node. When a boolean is returned, it
+ *              indicates if the dfs should continue to visit.
+ * @param getChildren A function that returns an array of child nodes for the 
+ *                    given node.
+ */
+export function dfs<T>(node: T, visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
+    const cont = visit(node);
+    if (cont === false) {
+        return;
+    }
+
+    for (const child of getChildren(node)) {
+        dfs(child, visit, getChildren);
+    }
+}
+
+/**
+ * @description An async version of {@link dfs}.
+ */
+export async function dfsAsync<T>(node: T, visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+    const cont = await visit(node);
+    if (cont === false) {
+        return;
+    }
+
+    for (const child of await getChildren(node)) {
+        await dfsAsync(child, visit, getChildren);
+    }
+}
+
+/**
+ * @description Performs a breadth-first search (BFS) on a tree.
+ * @param node The starting node for the BFS.
+ * @param visit A function to visit on each node. When a boolean is returned, it
+ *              indicates if the bfs should continue to visit.
+ * @param getChildren A function that returns an array of child nodes for the 
+ *                    given node.
+ */
+export function bfs<T>(node: T, visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
+    const queue = [node];
+
+    while (queue.length > 0) {
+        const currentNode = queue.shift()!;
+        const cont = visit(currentNode);
+        if (cont === false) {
+            return;
+        }
+
+        const children = getChildren(currentNode);
+        for (const child of children) {
+            queue.push(child);
+        }
+    }
+}
+
+/**
+ * @description An async version of {@link bfs}.
+ */
+export async function bfsAsync<T>(node: T, visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+    const queue = [node];
+
+    while (queue.length > 0) {
+        const currentNode = queue.shift()!;
+        const cont = await visit(currentNode);
+        if (cont === false) {
+            return;
+        }
+
+        const children = await getChildren(currentNode);
+        for (const child of children) {
+            queue.push(child);
+        }
     }
 }

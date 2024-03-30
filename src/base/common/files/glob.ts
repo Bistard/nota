@@ -57,7 +57,7 @@ export function compareSubstringIgnoreCase(a: string, b: string, aStart: number 
 			return compareSubstring(a.toLowerCase(), b.toLowerCase(), aStart, aEnd, bStart, bEnd);
 		}
 
-		// mapper lower-case ascii letter onto upper-case varinats
+		// mapper lower-case ascii letter onto upper-case variants
 		// [97-122] (lower ascii) --> [65-90] (upper ascii)
 		if (Character.isLowerAscii(codeA)) {
 			codeA -= 32;
@@ -84,14 +84,14 @@ export function compareSubstringIgnoreCase(a: string, b: string, aStart: number 
 		return CompareOrder.Second;
 	}
 
-	return 0;
+	return CompareOrder.Same;
 }
 
 /**
  * @description Compare the substrings of a and b, 
- * return a negative number if the substring of a is smaller, 
- * return a positive number if the substring of b is smaller,
- * return 0 if the substring of a and substring of b is equal.
+ * 		- return a negative number if the substring of a is smaller, 
+ * 		- return a positive number if the substring of b is smaller,
+ * 		- return 0 if the substring of a and substring of b is equal.
  * @param a The first full string.
  * @param b The second full string.
  * @param aStart The index of the start of a's substring in a.
@@ -99,7 +99,7 @@ export function compareSubstringIgnoreCase(a: string, b: string, aStart: number 
  * @param bStart The index of the start of b's substring in b.
  * @param bEnd The index of the end of b's substring in b.
  */
-export function compareSubstring(a: string, b: string, aStart: number = 0, aEnd: number = a.length, bStart: number = 0, bEnd: number = b.length): number {
+export function compareSubstring(a: string, b: string, aStart: number = 0, aEnd: number = a.length, bStart: number = 0, bEnd: number = b.length): CompareOrder {
 	for (; aStart < aEnd && bStart < bEnd; aStart++, bStart++) {
 		const codeA = a.charCodeAt(aStart);
 		const codeB = b.charCodeAt(bStart);
@@ -116,5 +116,5 @@ export function compareSubstring(a: string, b: string, aStart: number = 0, aEnd:
 	} else if (aLen > bLen) {
 		return CompareOrder.Second;
 	}
-	return 0;
+	return CompareOrder.Same;
 }

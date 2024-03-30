@@ -361,7 +361,7 @@ export type MapTypes<T, R extends { from: any; to: any; }> = {
 
 /**
  * @description Recursively unwraps the "awaited type" of a type. Non-promise 
- * "thenables" should resolve to never. This emulates the behavior of await.
+ * "thenable" should resolve to never. This emulates the behavior of await.
  * 
  * @deprecated
  * An alias type for the built-in type {@link Awaited}.
@@ -446,6 +446,22 @@ export function checkTrue<T extends true>(): void { }
  * checkFalse<true>();  // Error: Argument of type 'true' is not assignable to parameter of type 'false'.
  */
 export function checkFalse<T extends false>(): void { }
+
+/**
+ * @description Checks if the provided value is "truthy". A "truthy" value is 
+ * any value that is considered true when evaluated in a boolean context.
+ */
+export function isTruthy(value: any): boolean {
+    return !!value;
+}
+
+/**
+ * @description Checks if the provided value is "falsy". A "falsy" value is any 
+ * value that is considered false when evaluated in a boolean context.
+ */
+export function isFalsy(value: any): boolean {
+    return !value;
+}
 
 /**
  * @description Is the given variable is a primitive type: number , string , 

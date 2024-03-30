@@ -285,15 +285,17 @@ export class DelayableEmitter<T> extends Emitter<T> {
             return;
         }
 
-        // fires the saved events
+        // fire only once if reduce fn is provided
         if (this._reduceFn) {
             super.fire(this._reduceFn(Array.from(this._delayedEvents)));
             this._delayedEvents.clear();
-        } else {
-            while (this._delayed === false && this._delayedEvents.size() > 0) {
-                super.fire(this._delayedEvents.front()!.data);
-                this._delayedEvents.pop_front();
-            }
+            return;
+        } 
+         
+        // fire one by one
+        while (this._delayed === false && this._delayedEvents.size() > 0) {
+            super.fire(this._delayedEvents.front()!.data);
+            this._delayedEvents.pop_front();
         }
     }
 
@@ -500,8 +502,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
-        const newRegister = (listener: Listener<E>, disposibles?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(to(e)), disposibles, thisArgs);
+        const newRegister = (listener: Listener<E>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
+            return register((e) => listener(to(e)), disposables, thisArgs);
         };
         return newRegister;
     }
@@ -514,8 +516,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
-        const newRegister = (listener: Listener<T>, disposibles?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(each(e)), disposibles, thisArgs);
+        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
+            return register((e) => listener(each(e)), disposables, thisArgs);
         };
         return newRegister;
     }
@@ -531,8 +533,8 @@ export namespace Event {
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
         const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
-            const allDiposables = registers.map(register => register(listener, disposables, thisArgs));
-            const parentDisposable = toDisposable(() => disposeAll(allDiposables));
+            const allDisposables = registers.map(register => register(listener, disposables, thisArgs));
+            const parentDisposable = toDisposable(() => disposeAll(allDisposables));
             return parentDisposable;            
         };
         return newRegister;

@@ -1,8 +1,10 @@
 import { Emitter, Register } from "src/base/common/event";
 import { IJsonSchema } from "src/base/common/json";
 import { Arrays } from "src/base/common/utilities/array";
+import { panic } from "src/base/common/utilities/panic";
 import { Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
+import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export type IConfigurationSchema = IJsonSchema & {
@@ -107,7 +109,7 @@ export interface IConfigurationRegistrant extends IRegistrant<RegistrantType.Con
     registerConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
     /**
-     * @description Unregisters default configuration(s).
+     * @description Unregister default configuration(s).
      */
     unregisterConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
@@ -174,8 +176,13 @@ export class ConfigurationRegistrant implements IConfigurationRegistrant {
 
     // [public methods]
 
-    public initRegistrations(): void {
-        // Common registrations goes here
+    public initRegistrations(provider: IServiceProvider): void {
+        
+        /**
+         * Since the {@link ConfigurationRegistrant} is constructed in both main
+         * and renderer process. Do not register here unless it is shared in 
+         * both processes.
+         */
     }
 
     public registerConfigurations(configurations: IConfigurationUnit | IConfigurationUnit[]): void {
@@ -186,7 +193,7 @@ export class ConfigurationRegistrant implements IConfigurationRegistrant {
         }
 
         if (Arrays.matchAny(this._registeredUnits, configurations, (registered, toBeRegistered) => registered === toBeRegistered)) {
-            throw new Error('ConfigurationRegistrant - Cannot register configuration unit that is already registered.');
+            panic('[ConfigurationRegistrant] Cannot register configuration unit that is already registered.');
         }
 
         for (const configuration of configurations) {
@@ -317,7 +324,7 @@ export class ConfigurationRegistrant implements IConfigurationRegistrant {
             return `Cannot register the schema with id '${schema.id ?? '[unknown]'}', the property name '${key}' is already registered.`;
         }
 
-        // type check: defaule value
+        // type check: default value
         const defaultTypeCheck = (schema: IConfigurationSchema): string => {
 
             // ignore: null or default value not provided

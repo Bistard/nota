@@ -1,6 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { PriorityQueue } from "src/base/common/structures/priorityQueue";
+import { panic } from "src/base/common/utilities/panic";
 import { isString } from "src/base/common/utilities/type";
 
 const trueGlobalAsync = {
@@ -109,7 +110,7 @@ export namespace FakeAsync {
                 options.onError(err);
             }
             else if (!options?.onError) {
-                throw err;
+                panic(err);
             }
         }
     }
@@ -223,7 +224,7 @@ namespace FakeGlobalAsync {
 
     const __customizedSetTimeout = (handler: TimerHandler, timeout: number = 0) => {
         if (isString(handler)) {
-            throw new Error('String handler args should not be used and are not supported');
+            panic('String handler args should not be used and are not supported');
         }
         
         let taskID: number;
@@ -252,7 +253,7 @@ namespace FakeGlobalAsync {
 
     const __customizedSetInterval = (handler: TimerHandler, interval: number) => {
         if (isString(handler)) {
-            throw new Error('String handler args should not be used and are not supported');
+            panic('String handler args should not be used and are not supported');
         }
 
         let iterCount = 0;
@@ -370,7 +371,7 @@ private readonly _pqueue: PriorityQueue<ITaskWithID>;
 
     public schedule(task: ITask): ITaskWithID {
         if (task.time < FakeGlobalAsync.now()) {
-			throw new Error(`Scheduled time (${task.time}) must be equal to or greater than the current time (${FakeGlobalAsync.now()}).`);
+			panic(`Scheduled time (${task.time}) must be equal to or greater than the current time (${FakeGlobalAsync.now()}).`);
 		}
 
         const ID = this._uuid++;

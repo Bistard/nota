@@ -1,11 +1,13 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
+import { AllCommands, AllCommandsArgumentsTypes, AllCommandsReturnTypes } from "src/workbench/services/workbench/commandList";
 import { ICommandEvent, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { panic } from "src/base/common/utilities/panic";
 
 export const ICommandService = createService<ICommandService>('command-service');
 
@@ -20,14 +22,42 @@ export interface ICommandService extends IService {
     readonly onDidExecuteCommand: Register<ICommandEvent>;
 
     /**
-     * @description Execute the command that is registered in the 
-     * {@link ICommandRegistrant}. Returns a promise that will resolve if the 
-     * execution successed, it will resolve either the command is not found or
-     * encounter errors during the execution.
-     * @param id The id of the command.
-     * @param args The optional arguments for the command executor.
+     * @description Executes a predefined command using its unique identifier 
+     * (ID). 
+     * 
+     * @note Ensures type safety by enforcing specific argument and return types 
+     *       for each command as defined in:
+     *  - {@link AllCommandsArgumentsTypes} and 
+     *  - {@link AllCommandsReturnTypes}.
+     * 
+     * @param id The ID of the predefined command from {@link AllCommands}.
+     * @param args The arguments required for the command.
+     * @returns A {@link Promise} resolving with the command's result, or 
+     *          rejects if an error occurs.
+     * 
+     * @example
+     * // Execute a command without arguments
+     * commandService.executeCommand(AllCommands.reloadWindow);
      */
-    executeCommand<T = unknown>(id: string, ...args: any[]): Promise<T>;
+    executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
+    
+    /**
+     * @description Executes a command that may not be predefined in the 
+     * application. 
+     * 
+     * @note This method is more flexible and accepts any command ID as a string 
+     *       along with any number of arguments.
+     * 
+     * @param id The arbitrary string ID of the command.
+     * @param args Any number of arguments for the command.
+     * @returns A {@link Promise} resolving with the command's result, or 
+     *          rejects if an error occurs.
+     * 
+     * @example
+     * // Execute a custom command with arbitrary arguments
+     * commandService.executeAnyCommand('customCommand', customArg1, customArg2);
+     */
+    executeAnyCommand(id: string, ...args: any[]): Promise<any>;
 }
 
 /**
@@ -52,28 +82,33 @@ export class CommandService extends Disposable implements ICommandService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
-        // type: Registrants
         this._registrant = registrantService.getRegistrant(RegistrantType.Command);
     }
 
     // [public methods]
 
-    public executeCommand<T = unknown>(id: string, ...args: any[]): Promise<T> {
+    public executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
+    public executeCommand<T>(id: string, ...args: any[]): Promise<T>;
+    public executeCommand(id: string, ...args: any[]): Promise<any> {
+        return this.executeAnyCommand(id, ...args);
+    }
 
+    public async executeAnyCommand(id: string, ...args: any[]): Promise<any> {
         const command = this._registrant.getCommand(id);
         if (!command) {
-            return Promise.reject(new Error(`command with ID '${id}' is not found`));
+            return panic(new Error(`command with ID '${id}' is not found`));
         }
 
         try {
-            const result = command.command(this.instantiationService, ...args);
-            this._onDidExecuteCommand.fire({ commandID: id, args: args });
+            const ret = await command.command(this.instantiationService, ...args);
             this.logService.trace('CommandService', `executed the command '${id}'`);
-            return Promise.resolve(<T>result);
+
+            this._onDidExecuteCommand.fire({ id });
+            return ret;
         }
         catch (error: any) {
             this.logService.error('CommandService', `encounters an error with command '${id}'.`, error);
-            return Promise.reject();
+            panic(error);
         }
     }
 }

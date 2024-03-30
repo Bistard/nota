@@ -63,7 +63,7 @@ export class FileTreeKeyboardController<T extends FileItem, TFilter> extends Mul
 }
 
 /**
- * @class Used to override and add additional controller behaviours.
+ * @class Used to override and add additional controller behaviors.
  */
 export class FileTreeWidget<T extends FileItem, TFilter> extends AsyncTreeWidget<T, TFilter> {
 
@@ -78,7 +78,7 @@ export class FileTreeWidget<T extends FileItem, TFilter> extends AsyncTreeWidget
 export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TFilter> {
 
     /**
-     * Fires when a file / notepage in the explorer tree is about to be opened.
+     * Fires when a file/dir in the explorer tree is about to be opened.
      */
     readonly onSelect: Register<IFileTreeOpenEvent<T>>;
 

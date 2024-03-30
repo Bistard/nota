@@ -17,7 +17,7 @@ export interface IScrollBarHost {
     onSliderDragStart(): void;
     
     /**
-     * callback when slider dragging stoped. Provided by the host.
+     * callback when slider dragging stopped. Provided by the host.
      */
     onSliderDragStop(): void;
 }
@@ -257,7 +257,7 @@ export abstract class AbstractScrollbar extends Widget {
         let mouseoverDisposable: IDisposable = Disposable.NONE;
         let onClickDisposable: IDisposable = Disposable.NONE;
 
-        // oncick listener
+        // onclick listener
         const onClick = () => {
             // dispose listeners
             mouseoverDisposable.dispose();
@@ -275,12 +275,12 @@ export abstract class AbstractScrollbar extends Widget {
     }
 
     /**
-     * @description Sets the slider to the mousedowned position then make it draggable.
+     * @description Sets the slider to the mousedown position then make it draggable.
      * @param event The mouse event when dragging happens.
      */
     private __scrollbarOnDrag(event: MouseEvent): void {
         
-        // first, set the slider to the current mousedowned position (half slider size offset)
+        // first, set the slider to the current mousedown position (half slider size offset)
         const currSliderPosition = this._scrollable.getSliderPosition();
         const sliderOffset = Math.round(this._scrollable.getSliderSize() / 2);
         const currMousePosition = this.__getMousePosition(event);
@@ -303,12 +303,12 @@ export abstract class AbstractScrollbar extends Widget {
     }
 
     /**
-     * @description Determines the behaviour of mousedown on the scrollbar.
+     * @description Determines the behavior of mousedown on the scrollbar.
      * @param event The mouse event when mousedown on scrollbar.
      */
     private __scrollbarOrSliderOnDrag(event: MouseEvent): void {
 
-        // determine which part is mousedowned
+        // determine which part is mousedown
         const scrollbarTop = this.element.getClientRects()[0]!.top;
         const mousePosition = this.__getMousePosition(event);
         const sliderStart = scrollbarTop + this._scrollable.getSliderPosition();

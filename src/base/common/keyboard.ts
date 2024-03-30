@@ -102,7 +102,7 @@ export namespace Keyboard {
 }
 
 /**
- * The standard keyboard event used acroess the application .
+ * The standard keyboard event used across the application .
  * (replace {@link KeyboardEvent}).
  */
 export interface IStandardKeyboardEvent {

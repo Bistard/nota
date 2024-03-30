@@ -8,7 +8,7 @@ import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray, TreeLike } from "src/base/common/utilities/type";
 import { IFileService } from 'src/platform/files/common/fileService';
-import { FileItem } from 'src/workbench/services/fileTree/fileItem';
+import { FileItem, IFileItemResolveOptions } from 'src/workbench/services/fileTree/fileItem';
 
 let _hitCount = 0;
 
@@ -251,21 +251,6 @@ export function printFileStat(stat: IResolvedFileStat): void {
     );
 }
 
-/**
- * @description Prints the file structure starting from the given 'root' 
- * FileItem. This is a specialized usage of {@link printNaryTreeLike} function 
- * tailored for printing file items.
- * @param root The root of the file structure to be printed.
- */
-export function printFileItem(root: FileItem): void {
-    printNaryTreeLike(
-        root,
-        node => node.name,
-        node => node.children.length > 0,
-        node => node.children,
-    );
-}
-
 export interface IBuildFileTreeOptions {
     /**
      * If clean all the existing files/folders before build.
@@ -282,6 +267,85 @@ export type FileTreeNode = {
     readonly name: string;
     readonly type: FileType;
     readonly data?: string | DataBuffer;
+};
+
+/**
+ * Do not modify this sample since there are unit tests are based on this.
+ *  - basic files without extension name
+ *  - basic folders
+ */
+export const SAMPLE_TREE_LIKE: TreeLike<FileTreeNode> = {
+    value: {
+        name: 'root',
+        type: FileType.DIRECTORY,
+    },
+    children: [
+        { value: { name: 'file1', type: FileType.FILE, data: 'Data for file1' } },
+        { value: { name: 'file2', type: FileType.FILE, data: 'Data for file2' } },
+        { value: { name: 'file3', type: FileType.FILE, data: 'Data for file3' } },
+        {
+            value: { name: 'folder1', type: FileType.DIRECTORY },
+            children: [
+                { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
+                { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
+                { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+            ],
+        },
+        { value: { name: 'folder2', type: FileType.DIRECTORY } },
+    ],
+};
+
+/**
+ * Do not modify this sample since there are unit tests are based on this.
+ *  - basic files with extension name
+ *  - basic folders
+ */
+export const SAMPLE_TREE_LIKE2: TreeLike<FileTreeNode> = {
+    value: {
+        name: 'root',
+        type: FileType.DIRECTORY,
+    },
+    children: [
+        { value: { name: 'file1.js', type: FileType.FILE, data: 'Data for file1.js' } },
+        { value: { name: 'file2.js', type: FileType.FILE, data: 'Data for file2.js' } },
+        { value: { name: 'file3.txt', type: FileType.FILE, data: 'Data for file3.txt' } },
+        {
+            value: { name: 'folder1', type: FileType.DIRECTORY },
+            children: [
+                { value: { name: 'folder1_file1', type: FileType.FILE, data: 'Data for folder1_file1' } },
+                { value: { name: 'folder1_file2', type: FileType.FILE, data: 'Data for folder1_file2' } },
+                { value: { name: 'folder1_file3', type: FileType.FILE, data: 'Data for folder1_file3' } },
+            ],
+        },
+        { value: { name: 'folder2', type: FileType.DIRECTORY } },
+    ],
+};
+
+/**
+ * Do not modify this sample since there are unit tests are based on this.
+ *  - basic files with extension
+ *  - basic folders
+ *  - case sensitive
+ */
+export const SAMPLE_TREE_LIKE3: TreeLike<FileTreeNode> = {
+    value: {
+        name: 'root',
+        type: FileType.DIRECTORY,
+    },
+    children: [
+        { value: { name: 'FILE1.js', type: FileType.FILE, data: 'Data for FILE1.js' } },
+        { value: { name: 'file2.JS', type: FileType.FILE, data: 'Data for file2.JS' } },
+        { value: { name: 'File3.txt', type: FileType.FILE, data: 'Data for File3.txt' } },
+        {
+            value: { name: 'folder1', type: FileType.DIRECTORY },
+            children: [
+                { value: { name: 'folder1_file1.ts', type: FileType.FILE, data: 'Data for folder1_file1.ts' } },
+                { value: { name: 'folder1_file2.TS', type: FileType.FILE, data: 'Data for folder1_file2.TS' } },
+                { value: { name: 'FOLDER1_file3.TXT', type: FileType.FILE, data: 'Data for FOLDER1_file3.TXT' } },
+            ],
+        },
+        { value: { name: 'folder2', type: FileType.DIRECTORY } },
+    ],
 };
 
 /**
@@ -333,6 +397,45 @@ export async function buildFileTree<T extends FileTreeNode>(fileService: IFileSe
 
     // Start building the tree from the root
     await dfs(rootURI, tree);
+}
+
+/**
+ * @description A helper function to build a {@link FileItem} hierarchy 
+ * based on the provided URI in the file system hierarchy.
+ * @note Make sure the file system hierarchy is already built.
+ */
+export async function buildFileItem(fileService: IFileService, uri: URI, opts?: IFileItemResolveOptions<FileItem>): Promise<FileItem> {
+    
+    // stat
+    const resolvedStat = await fileService.stat(URI.join(uri, 'root'), {
+        resolveChildren: true,
+        resolveChildrenRecursive: true,
+    }).unwrap();
+
+    // resolve FileItem
+    const root = await FileItem.resolve(resolvedStat, null, opts ?? {
+        onError: error => console.log(error),
+    });
+
+    // for test purpose if needed
+    // printFileItem(root);
+
+    return root;
+}
+
+/**
+ * @description Prints the file structure starting from the given 'root' 
+ * FileItem. This is a specialized usage of {@link printNaryTreeLike} function 
+ * tailored for printing file items.
+ * @param root The root of the file structure to be printed.
+ */
+export function printFileItem(root: FileItem): void {
+    printNaryTreeLike(
+        root,
+        node => node.name,
+        node => node.children.length > 0,
+        node => node.children,
+    );
 }
 
 /**

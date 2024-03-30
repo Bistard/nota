@@ -7,20 +7,21 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
-import { FileOperationErrorType } from "src/base/common/files/file";
 import { Time } from "src/base/common/date";
-import { IExplorerTreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
-import { noop } from "src/base/common/performance";
-import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, assertValue } from "src/base/common/utilities/panic";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { ICommandService } from "src/platform/command/common/commandService";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
+import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
+import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -41,7 +42,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
      * handling purpose.
      */
     private readonly _prevDragOverState: { 
-        event?: DragEvent,                           // previous event for later comparsion usage
+        event?: DragEvent,                           // previous event for later comparison usage
         handledByInsertion: IInsertionResult | null, // is handled by row insertion previously
         isDroppable: boolean,                        // the previous droppability
     };
@@ -63,9 +64,11 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         sorter: IFileTreeSorter<FileItem>,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
+        @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @INotificationService private readonly notificationService: INotificationService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @ICommandService private readonly commandService: ICommandService,
+        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
         super();
         this._sorter = sorter;
@@ -133,16 +136,12 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             return { allowDrop: prevResult };
         }
         
-        const droppable = this.__isDroppable(event, currentDragItems, targetOver);
+        const droppable = this.__isDroppable(event, currentDragItems, targetOver) as Mutable<IDragOverResult>;
         this._prevDragOverState.isDroppable = droppable.allowDrop;
-        
+
         // derender every single time
         this._insertionController?.derender();
         this.__derenderDropOnRootEffect();
-
-        if (!droppable.allowDrop) {
-            return { allowDrop: false };
-        }
 
         /**
          * Row insertion need to be checked on every single 'onDragOver'.
@@ -161,7 +160,12 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 this._tree.setHover(null);
             }
 
+            droppable.allowDrop = true;
             return droppable;
+        }
+
+        if (!droppable.allowDrop) {
+            return { allowDrop: false };
         }
 
         /**
@@ -207,7 +211,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
                 return;
             }
     
-            // the target is collapsed thus it requies a delay of expanding
+            // the target is collapsed thus it requires a delay of expanding
             if (this._tree.isCollapsed(targetOver)) {
                 this._tree.setHover(targetOver, false);
                 this._pendingExpand.schedule({ item: targetOver, index: targetIndex }, true);
@@ -223,26 +227,29 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
     }
 
     public async onDragDrop(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem | undefined, targetIndex?: number | undefined): Promise<void> {
-        
+        const confirmDragAndDrop = this.configurationService.get<boolean>(WorkbenchConfiguration.ExplorerConfirmDragAndDrop, true);
+
         /**
          * 'row insertion' drop handling logic
          */
         if (this._prevDragOverState.handledByInsertion) {
-            // TODO: confirmDragAndDrop
-            await this.__performDropInsertion(currentDragItems, targetOver);
+            if (confirmDragAndDrop) {
+                await this.__confirmDragAndDrop();
+            }
+            
+            await this.__performDropInsertion(event, currentDragItems, targetOver);
             return;
         }
 
         /**
          * 'general hovering' drop handling logic
          */
-        
         if (!targetOver) {
-            targetOver = this.explorerTreeService.rootItem!;
+            targetOver = this.fileTreeService.rootItem!;
         }
 
         if (targetOver.isFile()) {
-            targetOver = targetOver.parent!;
+            targetOver = assert(targetOver.parent);
         }
 
         // expand folder immediately when drops
@@ -251,16 +258,14 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             await this._tree.expand(targetOver);
         }
 
-        const confirmDragAndDrop = this.configurationService.get<boolean>(SideViewConfiguration.ExplorerconfirmDragAndDrop, true);
         if (confirmDragAndDrop) {
             await this.__confirmDragAndDrop();
         }
 
-        if (__isCopyOperation(event)) {
-            return await this.__performDropCopy(currentDragItems, targetOver);
-        }
-
-        await this.__performDropMove(currentDragItems, targetOver);
+        const operation = __isCopyOperation(event) 
+            ? this.__performDropCopy
+            : this.__performDropMove;
+        await operation.call(this, currentDragItems, targetOver);
     }
 
     public onDragEnd(event: DragEvent): void {
@@ -287,7 +292,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private __initInsertionController(): void {
         
-        // only enable insertion indicator during custom sortering
+        // only enable insertion indicator during custom sorting
         const setIndicatorBy = (order: FileSortType) => {
             if (order === FileSortType.Custom) {
                 this._insertionController ??= new RowInsertionController();
@@ -298,15 +303,15 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         };
 
         // init
-        const sortOrder = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+        const sortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
         setIndicatorBy(sortOrder);
 
         // configuration self update
         this.configurationService.onDidConfigurationChange(e => {
-            if (!e.match(SideViewConfiguration.ExplorerFileSortType)) {
+            if (!e.match(WorkbenchConfiguration.ExplorerFileSortType)) {
                 return;
             }
-            const newSortOrder = this.configurationService.get<FileSortType>(SideViewConfiguration.ExplorerFileSortType);
+            const newSortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
             setIndicatorBy(newSortOrder);
         });
     }
@@ -338,9 +343,9 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private __isDroppable(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): IDragOverResult {
 
-        // dropping on no targets, meanning we are dropping at the parent.
+        // dropping on no targets, meaning we are dropping at the parent.
         if (!targetOver) {
-            targetOver = this.explorerTreeService.rootItem!;
+            targetOver = assert(this.fileTreeService.rootItem);
         }
 
         /**
@@ -350,24 +355,24 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         if (targetOver.isFile()) {
             return this.__isDroppable(event, currentDragItems, targetOver.parent ?? undefined);
         }
-        const targetDir = targetOver;
 
+        // copy operation is always allowed
         if (__isCopyOperation(event)) {
             return { allowDrop: true, effect: DragOverEffect.Copy };
         }
 
         /**
-         * Either following case cannot perform drop operation if one of the 
+         * Either following case cannot perform drop operation if ONE of the 
          * selecting item is:
          *  - dropping to itself.
          *  - dropping to its direct parent.
          *  - dropping to its child folder.
          */
         const anyCannotDrop = currentDragItems.some(dragItem => {
-            const destination = URI.join(targetDir.uri, dragItem.name);
-            return dragItem === targetDir
+            const destination = URI.join(targetOver.uri, dragItem.name);
+            return dragItem === targetOver
                 || URI.equals(dragItem.uri, destination)
-                || URI.isParentOf(targetDir.uri, dragItem.uri)
+                || URI.isParentOf(targetOver.uri, dragItem.uri)
             ;
         });
 
@@ -405,19 +410,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // TODO
     }
 
-    private async __performDropInsertion(currentDragItems: FileItem[], targetOver?: FileItem): Promise<void> {
-        if (this._sorter.sortType !== FileSortType.Custom) {
-            return;
-        }
-
-        const insertionResult = this._prevDragOverState.handledByInsertion;
-        if (!insertionResult) {
-            return;
-        }
-
+    private async __performDropInsertion(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): Promise<void> {
+        assert(this._sorter.sortType === FileSortType.Custom);
+        const insertionResult = assert(this._prevDragOverState.handledByInsertion);
+        
         // If no specific target is given, insert at the end within the root item.
         if (!targetOver) {
-            targetOver = this.explorerTreeService.rootItem!;
+            targetOver = this.fileTreeService.rootItem!;
             await this.__performDropMove(currentDragItems, targetOver);
             return;
         }
@@ -428,116 +427,60 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *      - If inserting above the 'targetOver', move to a position that 
          *          above it.
          *      - If inserting below the 'targetOver', the moving destination is
-         *        simly 'targetOver'.
+         *        simply 'targetOver'.
          */
         const targetAbove = (() => {
             if (insertionResult.near === 'bottom') {
                 return targetOver;
-            } else {
-                const aboveItemIdx = this._tree.getItemIndex(targetOver) - 1;
-                return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
-            }
+            } 
+            const aboveItemIdx = this._tree.getItemIndex(targetOver) - 1;
+            return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
         })();
 
-        // TEST
-        console.log('targetAbove:', targetAbove.basename);
-
-        // the actual move
-        // TODO: disabled for now
-        await this.__performDropMove(currentDragItems, targetAbove);
-
-        /**
-         * The dragging items should be the same level with 'dragAbove'. The 
-         * only exception is if the 'dragAbove' is a directory, we drop the 
-         * dragging items at as the first children of that directory.
+        /** 
+         * `resolvedDir` determines the target directory for pasting:
+         *   1. If `targetAbove` is a directory and expanded, `resolvedDir` 
+         *      is set to `targetAbove`, making it as the parent for pasted 
+         *      items.
          * 
-         * Sorting metadata need to be changed before perform the actual move
-         * action.
+         *   2. If `targetAbove` is a directory but collapsed, or if 
+         *      `targetAbove` is not a directory, `resolvedDir` is set to 
+         *      the parent of `targetAbove`.
          */
-        const sorter = this._sorter.getCustomSorter();
+        const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
+        const resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
+        const resolvedIdx = isExpandedDir ? 0           : assertValue(targetAbove.getSelfIndexInParent(), idx =>idx !== -1) + 1;
         
-        // TODO: remove the current drag items order metadata
-        for (const dragItem of currentDragItems) {
-            // await sorter.updateMetadata(OrderChangeType.Remove, dragItem).unwrap();
-        }
+        // tell the program we are doing insertion
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
+        this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));
+        await this.commandService.executeCommand(AllCommands.filePaste, resolvedDir, resolvedIdx, currentDragItems);
 
-        if (this._tree.isCollapsible(targetAbove)) {
-            // drop the dragging items at the first children of the directory
-            
-            
-            // TODO: add to the new destination order metadata
-            
-        } else {
-            // drop at the same level with 'dragAbove'
-            
-            // TODO: add to the new destination order metadata
-        }
+        // make sure the insert finishes no matter what
+        this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, false);
     }
 
     private async __performDropCopy(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
 
-        /**
-         * Iterate every selecting items and try to copy to the destination. If
-         * a duplicate item name is encountered, append '_copy' as a postfix to 
-         * the name of the copied item.
-         */
-        for (const dragItem of currentDragItems) {
-            
-            let destination = URI.join(targetOver.uri, dragItem.name);
-            if (URI.equals(dragItem.uri, destination)) {
-                destination = URI.join(targetOver.uri, `${dragItem.basename}_copy${dragItem.extname}`);
-            }
-            
-            await this.fileService.copyTo(dragItem.uri, destination).match(
-                noop,
-                error => panic(error), // TODO: this.dialogService.error(error);
-            );
-        }
+        // simulate drop action (copy) as copy, so that we can able to paste.
+        this.fileTreeService.simulateSelectionCutOrCopy(false);
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems);
     }
     
     private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
-        /**
-         * Iterate every selecting items and try to move to the destination. If 
-         * any existing files or folders found at the destination, a window will 
-         * pop up and ask for user permission if to overwrite.
-         */
-        for (const dragItem of currentDragItems) {
-            const destination = URI.join(targetOver.uri, dragItem.name);
-            const success = await this.fileService.moveTo(dragItem.uri, destination);
-
-            // complete
-            if (success.isOk()) {
-                continue;
-            }
-            const error = success.unwrapErr();
-
-            // only expect `FILE_EXISTS` error
-            if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                // TODO: this.dialogService.error(error);
-                panic(error);
-            }
-
-            // duplicate item found, ask permission from the user.
-            const shouldOverwrite = await this.notificationService.confirm(
-                'Overwrite Warning',
-                `An item named ${dragItem.name} already exists in this location. Do you want to replace it with the one you're moving?`
-            );
-
-            if (!shouldOverwrite) {
-                continue;
-            }
-
-            await this.fileService.moveTo(dragItem.uri, destination, true).match(
-                noop, 
-                error => panic(error), // TODO: this.dialogService.error(error);
-            );
-        }
+        // simulate drop action (move) as cut, so that we can able to paste.
+        this.fileTreeService.simulateSelectionCutOrCopy(true);
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems);
     }
 }
 
 function __isCopyOperation(event: DragEvent): boolean {
     return (event.ctrlKey && !IS_MAC) || (event.altKey && IS_MAC);
+}
+
+function __isCutOperation(event: DragEvent): boolean {
+    return !__isCopyOperation(event);
 }
 
 interface IInsertionResult {
@@ -589,7 +532,7 @@ class RowInsertionController extends Disposable {
     }
     
     /**
-     * @description Returns a result type indicates the attemptation successed,
+     * @description Returns a result type indicates the attempt succeeded,
      * otherwise return false.
      */
     public attemptInsert(event: DragEvent, targetIndex: number | undefined): IInsertionResult | false {
@@ -622,9 +565,9 @@ class RowInsertionController extends Disposable {
 
         const mouseY = event.clientY - DomUtility.Attrs.getViewportTop(this._tree.DOMElement);
         
-        const thershold = 10;
-        const isNearTop = Math.abs(mouseY - currentItemTop) <= thershold;
-        const isNearBot = Math.abs(mouseY - currentItemBottom) <= thershold;
+        const threshold = 10;
+        const isNearTop = Math.abs(mouseY - currentItemTop) <= threshold;
+        const isNearBot = Math.abs(mouseY - currentItemBottom) <= threshold;
 
         if (!isNearTop && !isNearBot) {
             return undefined;

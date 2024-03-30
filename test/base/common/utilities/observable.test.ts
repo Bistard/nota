@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { afterEach, beforeEach } from 'mocha';
 import { deepCopy, mixin } from 'src/base/common/utilities/object';
-import { IObservable, IObserverableOptions, Observable, ObserveType, createDefaultObserver, observable, observe } from 'src/base/common/utilities/observable';
+import { IObservable, IObservableOptions, Observable, ObserveType, createDefaultObserver, observable, observe } from 'src/base/common/utilities/observable';
 
 suite('Observable-test', function() {
     type TestObject = {
@@ -133,7 +133,7 @@ suite('observable-test', () => {
     }[] = [];
     
     const TEST_OBSERVER = createDefaultObserver(
-        function testObserver(opts: IObserverableOptions, message: string, ...param: any[]): void {
+        function testObserver(opts: IObservableOptions, message: string, ...param: any[]): void {
         
             const className: string = param[0]!;
             const property: string = param[1]!;
@@ -161,7 +161,7 @@ suite('observable-test', () => {
         }
     );
 
-    const basicOpt: IObserverableOptions = {
+    const basicOpt: IObservableOptions = {
         observer: TEST_OBSERVER,
     };
 

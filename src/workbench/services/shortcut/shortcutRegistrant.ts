@@ -1,10 +1,14 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
+import { HashNumber } from "src/base/common/utilities/hash";
+import { panic } from "src/base/common/utilities/panic";
 import { isNumber } from "src/base/common/utilities/type";
+import { AllCommands, AllCommandsArgumentsTypes } from "src/workbench/services/workbench/commandList";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -17,18 +21,12 @@ export const enum ShortcutWeight {
     ExternalExtension = 400,
 }
 
-interface IShortcutBase {
-    /**
-     * The id of the command. It indicates which command the shortcut is binding
-     * to. When shortcut is triggered, the application will try to lookup by the
-     * ID in the {@link ICommandRegistrant}.
-     */
-    readonly commandID: string;
-
+interface IShortcutBase<TArgs extends any[]> {
+    
     /**
      * The arguments for the command when it is executed.
      */
-    readonly commandArgs?: any[];
+    readonly commandArgs: TArgs;
 
     /**
      * The command will only be executed when the expression (precondition) 
@@ -47,51 +45,31 @@ interface IShortcutBase {
 }
 
 /**
- * An interface describes the shortcut when registrating programmatically.
+ * An interface describes the shortcut for register programmatically.
  */
-export interface IShortcutRegistration extends IShortcutBase {
+export type IShortcutRegistration<ID extends string> = (
+    ID extends AllCommands
+     ? IShortcutBase<AllCommandsArgumentsTypes[ID]>
+     : IShortcutBase<any[]>
+) & {
 
     /**
      * The shortcut of the given command.
      */
     readonly shortcut: Shortcut;
-}
-
-/**
- * Another way to register a shortcut along with the command itself. The command
- * will be registered into the {@link ICommandRegistrant}.
- */
-export interface IShortcutWithCommandRegistration extends IShortcutRegistration {
-
-    /**
-     * The command to be executed when the shortcut is invoked. The arguments 
-     * will be provided by the shortcut registration.
-     */
-    readonly command: (provider: IServiceProvider, ...args: any[]) => void;
-
-    /**
-     * The description of the command if provided.
-     */
-    readonly description?: string;
-
-    /**
-     * If to overwrite the existing command.
-     * @default false
-     */
-    readonly overwrite?: boolean;
-}
+};
 
 /**
  * The data structure used to represent the registered shortcut.
  */
-export interface IShortcutItem extends IShortcutBase {
-    /** @internal */
-    readonly id: number;
-}
-
-interface IShortcutItems {
-    readonly commands: Set<string>;
-    readonly shortcuts: IShortcutItem[];
+export interface IShortcutReference extends IShortcutBase<any[]> {
+    
+    /**
+     * The id of the command. It indicates which command the shortcut is binding
+     * to. When shortcut is triggered, the application will try to lookup by the
+     * ID in the {@link ICommandRegistrant}.
+     */
+    readonly commandID: string;
 }
 
 /**
@@ -100,22 +78,13 @@ interface IShortcutItems {
 export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut> {
 
     /**
-     * @description Register a {@link Shortcut}.
+     * @description Register a {@link Shortcut} that binds to a command with the
+     * given 'commandID'.
+     * @param commandID An ID refers to a registered command in the command service.
      * @param registration The shortcut registration information.
-     * @returns A disposable to unregister the shortcut itself.
+     * @returns A disposable to unregister the shortcut.
      */
-    register(registration: IShortcutRegistration): IDisposable;
-
-    /**
-     * @description Except a general registration, you may also register a 
-     * shortcut alongs with a new command which will be also registered into
-     * {@link ICommandRegistrant}.
-     * @param registration The shortcut registration with command information.
-     * @returns A disposable to unregister the shortcut itself. 
-     * 
-     * @note When unregistering, the command will not be unregistered.
-     */
-    registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable;
+    register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable;
 
     /**
      * @description Check if the command is already registered with the given
@@ -130,14 +99,14 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
      * contains all the items that have the same shortcut.
      * @param shortcut The given shortcut or the hashcode.
      */
-    findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutItem[];
+    findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutReference[];
 
     /**
      * @description Returns all the registered shortcuts. Mapping from the hash 
      * code of the shortcut to an array that stores all the commands that binds
      * to that shortcut.
      */
-    getAllShortcutRegistrations(): Map<number, IShortcutItem[]>;
+    getAllShortcutRegistrations(): Map<HashNumber, IShortcutReference[]>;
 }
 
 export class ShortcutRegistrant implements IShortcutRegistrant {
@@ -146,8 +115,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
     public readonly type = RegistrantType.Shortcut;
 
-    private static _shortcutID = 0;
-    private readonly _commandRegistrant: ICommandRegistrant;
+    private static _shortcutUUID = 0;
 
     /**
      * A map that stores all the registered shortcuts. Mapping from the hash 
@@ -155,22 +123,27 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
      * where the set stores all the unique names of each binding command and the
      * array stores all the binding shortcuts.
      */
-    private readonly _shortcuts: Map<number, IShortcutItems>;
+    private readonly _shortcuts: Map<HashNumber, {
+        readonly commands: Set<string>;
+        readonly shortcuts: (IShortcutReference & {
+            // A unique ID of the shortcut after registered, auto-generated.
+            readonly uuid: number;
+        })[];
+    }>;
 
     // [constructor]
 
-    constructor(commandRegistrant: ICommandRegistrant) {
+    constructor() {
         this._shortcuts = new Map();
-        this._commandRegistrant = commandRegistrant;
     }
 
     // [public methods]
 
-    public initRegistrations(): void {
-        // noop
+    public initRegistrations(provider: IServiceProvider): void {
+        rendererWorkbenchShortcutRegister(provider);
     }
 
-    public register(registration: IShortcutRegistration): IDisposable {
+    public register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable {
 
         const hashcode = registration.shortcut.toHashcode();
         let items = this._shortcuts.get(hashcode);
@@ -186,15 +159,14 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
          * Checks if there is a same command with the same shortcut that is 
          * registered.
          */
-        const commandID = registration.commandID;
         if (items.commands.has(commandID)) {
-            throw new Error(`There exists a command with ID '${commandID}' that is already registered`);
+            panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
         }
 
-        // registere the shortcut
-        const ID = ShortcutRegistrant._shortcutID++;
+        // register the shortcut
+        const uuid = ShortcutRegistrant._shortcutUUID++;
         items.shortcuts.push({
-            id: ID,
+            uuid: uuid,
             commandID: commandID,
             commandArgs: registration.commandArgs,
             when: registration.when,
@@ -204,26 +176,13 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
         return toDisposable(() => {
             if (items) {
-                const itemIdx = items.shortcuts.findIndex((item) => item.id === ID);
+                const itemIdx = items.shortcuts.findIndex((item) => item.uuid === uuid);
                 items.shortcuts.splice(itemIdx, 1);
                 if (items.shortcuts.length === 0) {
                     this._shortcuts.delete(hashcode);
                 }
             }
         });
-    }
-
-    public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
-        const unregister = this.register(registration);
-        this._commandRegistrant.registerCommand(
-            {
-                id: registration.commandID,
-                description: registration.description,
-                overwrite: registration.overwrite
-            },
-            registration.command,
-        );
-        return unregister;
     }
 
     public isRegistered(shortcut: Shortcut | ShortcutHash, commandID: string): boolean {
@@ -234,7 +193,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
         return items?.commands.has(commandID) ?? false;
     }
 
-    public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutItem[] {
+    public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutReference[] {
         if (!isNumber(shortcut)) {
             shortcut = shortcut.toHashcode();
         }
@@ -242,7 +201,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
         return registered ?? [];
     }
 
-    public getAllShortcutRegistrations(): Map<number, IShortcutItem[]> {
+    public getAllShortcutRegistrations(): Map<HashNumber, IShortcutReference[]> {
         const map = new Map();
 
         for (const [hashcode, shortcuts] of this._shortcuts) {

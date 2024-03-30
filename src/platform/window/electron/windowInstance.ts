@@ -3,11 +3,10 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/files/path";
 import { ILogService } from "src/base/common/logger";
-import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
@@ -96,7 +95,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
-        logService.trace('WindowInstance', 'WindowInstance constructing...');
+        logService.trace('WindowInstance', 'Constructing a window with the configuration...', { configuration });
         
         const displayOptions = configuration.displayOptions;
         this._window = this.doCreateWindow(displayOptions);
@@ -107,7 +106,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
         
         this.registerListeners();
-        logService.trace('WindowInstance', 'WindowInstance constructed.');
+        logService.trace('WindowInstance', 'Window constructed.');
     }
 
     // [getter / setter]
@@ -156,8 +155,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             width: displayOpts.width,
             x: displayOpts.x,
             y: displayOpts.y,
-            minHeight: displayOpts.minHeight ?? WindowMinimumState.height,
-            minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
+            minHeight: displayOpts.minHeight ?? WINDOW_MINIMUM_STATE.height,
+            minWidth: displayOpts.minWidth ?? WINDOW_MINIMUM_STATE.width,
             webPreferences: {
                 preload: resolve(join(__dirname, 'preload.js')),
 
@@ -198,7 +197,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         };
 
         // frame
-        if (!IS_MAC && displayOpts.frameless) {
+        if (displayOpts.frameless) {
             browserOption.frame = false;
         }
 
@@ -224,7 +223,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private registerListeners(): void {
 
         this._window.webContents.on('did-finish-load', () => {
-            this.logService.trace('WindowInstance', `load successed.`, { ID: this._id });
+            this.logService.trace('WindowInstance', `load succeeded.`, { ID: this._id });
             this._window.show();
         });
 
@@ -239,7 +238,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
 
         this._window.on('blur', (e: Event) => {
-            electron.app.emit(IpcChannel.WindowBlured, e, this._window);
+            electron.app.emit(IpcChannel.WindowBlurred, e, this._window);
         });
 
         this._window.on('maximize', (e: Event) => {

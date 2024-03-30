@@ -1,13 +1,11 @@
 import { Time } from "src/base/common/date";
 import { IDisposable, Disposable } from "src/base/common/dispose";
-import { URI } from "src/base/common/files/uri";
-import { panic } from "src/base/common/utilities/panic";
+import { FileType } from "src/base/common/files/file";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
-import { generateMD5Hash } from "src/base/common/utilities/hash";
 import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IFileItem } from "src/workbench/services/fileTree/fileItem";
-import { FileTreeCustomSorter, IFileTreeCustomSorter } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { IFileItem, IFileTarget } from "src/workbench/services/fileTree/fileItem";
+import { FileTreeCustomSorter, IFileTreeCustomSorter, IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 /**
  * Enum for specifying the type of sorting to apply to files/folders.
@@ -75,7 +73,7 @@ export interface IFileTreeSorter<TItem extends IFileItem<TItem>> extends IDispos
      * @description Exposing the internal custom sorter. Only invoke this if you
      * know what you are doing exactly.
      */
-    getCustomSorter(): IFileTreeCustomSorter<TItem>;
+    getCustomSorter(): IFileTreeCustomSorter<TItem> | null;
 }
 
 /**
@@ -90,9 +88,9 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     
     private _sortType!: FileSortType;
     private _sortOrder!: FileSortOrder;
-    private readonly _metadataRootPath: URI;
     
-    private _customSorter?: IFileTreeCustomSorter<TItem>;
+    private _customSorter?: FileTreeCustomSorter<TItem>;
+    private _customSorterOpts: IFileTreeCustomSorterOptions;
     
     /**
      * A scheduler that prevent potential extra calculations if the 
@@ -105,11 +103,11 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     constructor(
         sortType: FileSortType,
         sortOrder: FileSortOrder,
-        metadataRootPath: URI,
+        customSorterOpts: IFileTreeCustomSorterOptions,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super();
-        this._metadataRootPath = metadataRootPath;
+        this._customSorterOpts = customSorterOpts;
         this._pendingCustomSorterDisposable = new UnbufferedScheduler(Time.sec(10), () => {
             this._customSorter?.dispose();
             this._customSorter = undefined;
@@ -157,9 +155,9 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         return true;
     }
 
-    public getCustomSorter(): IFileTreeCustomSorter<TItem> {
+    public getCustomSorter(): IFileTreeCustomSorter<TItem> | null {
         if (!this._customSorter) {
-            panic(`[FileItemOrder] customSorter is undefined. Current sorting type is: '${this._sortType}'`);
+            return null;
         }
         return this._customSorter;
     }
@@ -196,16 +194,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
                 if (this._customSorter) {
                     break;
                 }
-
-                const metadataRoot = URI.join(this._metadataRootPath, 'sortings');
-                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, {
-                    metadataRootPath: metadataRoot,
-                    hash: generateMD5Hash,
-                    defaultComparator: (...args) => {
-                        const cmp = this.sortOrder === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
-                        return cmp(...args);
-                    },
-                });
+                this._customSorter = this.instantiationService.createInstance(FileTreeCustomSorter, this._customSorterOpts);
                 this._compare = this._customSorter.compare.bind(this._customSorter);
                 break;
             }
@@ -220,20 +209,20 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 export const defaultFileItemCompareFn = defaultFileItemCompareFnAsc;
 
 // Default
-function defaultFileItemCompareFnAsc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
+export function defaultFileItemCompareFnAsc(a: IFileTarget, b: IFileTarget): number {
     if (a.type === b.type) {
         return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
-    } else if (a.isDirectory()) {
+    } else if (a.type === FileType.DIRECTORY) {
         return CompareOrder.First;
     } else {
         return CompareOrder.Second;
     }
 }
 
-function defaultFileItemCompareFnDesc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
+export function defaultFileItemCompareFnDesc(a: IFileTarget, b: IFileTarget): number {
     if (a.type === b.type) {
         return (a.name < b.name) ? CompareOrder.Second : CompareOrder.First;
-    } else if (a.isDirectory()) {
+    } else if (a.type === FileType.DIRECTORY) {
         return CompareOrder.First;
     } else {
         return CompareOrder.Second;
@@ -241,11 +230,11 @@ function defaultFileItemCompareFnDesc<TItem extends IFileItem<TItem>>(a: TItem, 
 }
 
 // Alphabetical
-function compareByNameAsc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+function compareByNameAsc(a: IFileTarget, b: IFileTarget): CompareOrder {
     return a.name.localeCompare(b.name);
 }
 
-function compareByNameDesc<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): CompareOrder {
+function compareByNameDesc(a: IFileTarget, b: IFileTarget): CompareOrder {
     return b.name.localeCompare(a.name);
 }
 
