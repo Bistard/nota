@@ -121,6 +121,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
+        // ai-service
+
         this.logService.trace('App', 'Application services constructed.');
         return appInstantiationService;
     }
@@ -146,6 +148,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const dialogService = provider.getService(IMainDialogService);
         const dialogChannel = ProxyChannel.wrapService(dialogService);
         server.registerChannel(IpcChannel.Dialog, dialogChannel);
+
+        // ai-service-channel
+
 
         this.logService.trace('App', 'IPC channels registered successfully.');
     }
