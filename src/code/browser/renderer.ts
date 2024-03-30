@@ -56,6 +56,7 @@ import { FileTreeService } from "src/workbench/services/fileTree/fileTreeService
 import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
+import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -298,6 +299,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(service.createInstance(ShortcutRegistrant));
         registrant.registerRegistrant(this.initCommandRegistrant(service));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
+        registrant.registerRegistrant(service.createInstance(ColorRegistrant));
 
         // initialize all the registrations
         registrant.init(service);

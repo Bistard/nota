@@ -8,6 +8,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { ColorRegistrant} from "src/workbench/services/theme/colorRegistrant";
 
 /**
  * An enumeration representing the different types of registrants.
@@ -22,6 +23,7 @@ export const enum RegistrantType {
     Shortcut = 'Shortcut',
     Command = 'Command',
     Reviver = 'Reviver',
+    Color = 'Color'
 }
 
 /**
@@ -57,6 +59,7 @@ type RegistrantTypeMapping = {
     [RegistrantType.Command]: CommandRegistrant;
     [RegistrantType.Shortcut]: ShortcutRegistrant;
     [RegistrantType.Reviver]: ReviverRegistrant;
+    [RegistrantType.Color]: ColorRegistrant;
 };
 
 /**
@@ -134,6 +137,7 @@ export const enum RegistrantTypeDeprecated {
     Configuration = 'configuration',
     Shortcut = 'shortcut',
     Reviver = 'reviver',
+    Color = 'color',
     DocumentNode = 'document-node',
     EditorExtension = 'editor-extension',
 }
