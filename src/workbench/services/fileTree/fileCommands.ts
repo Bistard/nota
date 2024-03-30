@@ -224,15 +224,6 @@ export namespace FileCommands {
             const toPasteParent = assert(toPaste[0]!.parent);
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
-            /**
-             * //  TODO
-             */
-            const recursiveDirUris = insertAtSameParent
-                ? []
-                : await this.__fetchOldDirRecursive(toPaste);
-
-            console.log('recursiveDirUris', recursiveDirUris);
-
             // actual paste operation
             const batch = insertAtSameParent
                 ? createBatchResult({ passed: toPaste.map(item => ({ old: item.uri, new: item.uri })) })
@@ -387,12 +378,6 @@ export namespace FileCommands {
             ).unwrap();
 
             /**
-             * // FIX: SHOULD BE RECURSIVE
-             * need to retrieve the directory names before actual 
-             * moving/copying by `stat`.
-             */
-
-            /**
              * Step 3: To those who passed are directory, we need to move 
              * its entire metadata to a new location.
              */
@@ -525,41 +510,6 @@ export namespace FileCommands {
         private __clearFileTreeTraits(): void {
             this.fileTreeService.setSelections([]);
             this.fileTreeService.setFocus(null);
-        }
-
-        private async __fetchOldDirRecursive(toPaste: FileItem[]): Promise<URI[]> {
-            const uris: URI[] = [];
-            
-            /**
-             * When visiting the targets that is about to be pasted. Only 
-             * continue to visit deeper if:
-             *      1. it is a directory and
-             *      2. has corresponding metadata file. 
-             * 
-             * Because when a directory has no metadata file, its 
-             * children directories will also be missing metadata 
-             * files. Thus no need to move its metadata files to a
-             * new location.
-             */
-            for (const toPasteItem of toPaste) {
-                const stat = await this.fileService.stat(toPasteItem.uri, { resolveChildren: true, resolveChildrenRecursive: true }).unwrap();
-                await dfsAsync(
-                    stat, 
-                    async stat => {
-                        if (stat.type === FileType.DIRECTORY &&
-                                 true === await this.fileTreeMetadataService.isDirectoryMetadataExist(stat.uri).unwrap()
-                        ) {
-                            uris.push(stat.uri);
-                            return true;
-                        }
-
-                        return false;
-                    },
-                    async stat => [...stat.children ?? []],
-                );
-            }
-
-            return uris;
         }
     }
 }

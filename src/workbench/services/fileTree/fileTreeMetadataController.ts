@@ -40,8 +40,16 @@ export const enum OrderChangeType {
  * An option for {@link FileTreeMetadataController}.
  */
 export interface IFileTreeMetadataControllerOptions extends IFileTreeCustomSorterOptions {
-    readonly metadataRootPath: URI;
-    readonly hash: (input: string) => string;
+    
+    /**
+     * The root of the file tree.
+     */
+    readonly fileTreeRoot: URI;
+
+    /**
+     * The root for all metadata directories.
+     */
+    readonly metadataRoot: URI;
 }
 
 /**
@@ -59,17 +67,14 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     // [fields]
 
     private _sorter: FileTreeSorter<FileItem>;
-    
-    /**
-     * The root path for all metadata directories.
-     */
     private readonly _metadataRoot: URI;
+    private readonly _fileTreeRoot: URI;
+
     private readonly _metadataCache: ResourceMap<[
         clearTimeout: UnbufferedScheduler<URI>, // [1]
         orders: string[],                       // [2]
     ]>;
     private readonly _cacheClearDelay: Time;
-    private readonly _hash: (input: string) => string;
     private readonly _defaultItemComparator: Comparator<IFileTarget>;
 
     // [constructor]
@@ -84,11 +89,9 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         this._sorter = sorter;
         this._metadataCache = new ResourceMap();
         this._cacheClearDelay = Time.min(5);
-
-        this._metadataRoot = opts.metadataRootPath;
-        this._hash = opts.hash;
+        this._metadataRoot = opts.metadataRoot;
+        this._fileTreeRoot = opts.fileTreeRoot;
         this._defaultItemComparator = opts.defaultItemComparator;
-
         this.logService.debug('FileTreeMetadataController', 'FileTreeMetadataController constructed.');
     }
 
@@ -117,18 +120,18 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
         this.__assertCustomMode();
 
-        const oldMetadataURI = this.__computeMetadataURI(oldDirUri);
-        return this.fileService.exist(oldMetadataURI)
+        const oldMetadataDir = this.__computeMetadataDir(oldDirUri);
+        return this.fileService.exist(oldMetadataDir)
             .andThen(exist => {
                 if (!exist) {
                     return ok();
                 }
                 
-                const newMetadataURI = this.__computeMetadataURI(destination);
+                const newMetadataDir = this.__computeMetadataDir(destination);
                 const operation = cutOrCopy 
                     ? this.fileService.moveTo 
                     : this.fileService.copyTo;
-                return operation.call(this.fileService, oldMetadataURI, newMetadataURI, false).map(noop);
+                return operation.call(this.fileService, oldMetadataDir, newMetadataDir, false).map(noop);
             });
     }
 
@@ -374,21 +377,42 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
     }
 
     /**
-     * @description Computes and returns the metadata URI for a given resource URI by 
-     * generating a hash from the resource URI and using it to construct a 
-     * structured file path within the metadata directory.
+     * @description Computes and returns the metadata URI for a given resource 
+     * URI by construct a same tree structure of the file tree.
      * 
      * @example
      * Assuming:
-     *      - `_metadataRoot` is '/metadata' 
-     *      - and the uri is 'https://example.com/path'
-     * The resulting metadata URI might be '/metadata/3f/4c9b6f3a.json', if 
-     * assuming the hash is '3f4c9b6f3a'.
+     *      - fileTreeRoot -> 'C:\\treeRoot'
+     *      - metadataRoot -> 'C:\\user\appData\metadataRoot'
+     * 
+     * If dirUri  -> 'C:\\treeRoot\dir1\dir2'
+     * It returns -> 'C:\\user\appData\metadataRoot\dir1\dir2.json'
      */
-    private __computeMetadataURI(uri: URI): URI {
-        const hashCode = this._hash(URI.toString(uri));
-        const orderFileName = hashCode.slice(2) + '.json';
-        const metadataURI = URI.join(this._metadataRoot, hashCode.slice(0, 2), orderFileName);
+    private __computeMetadataURI(dirUri: URI): URI {
+        const metadataDir = this.__computeMetadataDir(dirUri);
+        const metadataURI = URI.join(metadataDir, `${URI.basename(dirUri)}.json`);
         return metadataURI;
+    }
+
+    /**
+     * @description Computes and returns the metadata URI for a given resource 
+     * URI by construct a same tree structure of the file tree.
+     * 
+     * @example
+     * Assuming:
+     *      - fileTreeRoot -> 'C:\\treeRoot'
+     *      - metadataRoot -> 'C:\\user\appData\metadataRoot'
+     * 
+     * If dirUri  -> 'C:\\treeRoot\dir1\dir2'
+     * It returns -> 'C:\\user\appData\metadataRoot\dir1\dir2'
+     */
+    private __computeMetadataDir(dirUri: URI): URI {
+        const relative = URI.relative(this._fileTreeRoot, dirUri);
+        if (relative === undefined) {
+            panic(`[FileTreeMetadataController] Cannot compute the metadata URI of the given URI: '${URI.toString(dirUri)}'`);
+        }
+
+        const metadataDir = URI.resolve(this._metadataRoot, relative);
+        return metadataDir;
     }
 }
