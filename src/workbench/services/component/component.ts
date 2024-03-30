@@ -399,7 +399,13 @@ export abstract class Component extends Themable implements IComponent {
         // construct the split-view
         this._splitView = this.__register(new SplitView(this.element.element, splitViewOpt));
     
-        // TODO: apply sash configuration
+        // apply sash configuration
+        for (let i = 0; i < this._splitView.size - 1; i++) {
+            const sash = assert(this._splitView.getSashAt(i));
+            sash.enable = true;
+            sash.visible = true;
+            sash.size = 4;
+        }
     
         // set the sash next to sideBar is visible and disabled.
         const sash = assert(this._splitView.getSashAt(0));
@@ -413,5 +419,5 @@ export abstract class Component extends Themable implements IComponent {
             const _dimension = assert(this.dimension);
             this._splitView?.layout(_dimension.width, _dimension.height);
         }));
-    }    
+    }
 }
