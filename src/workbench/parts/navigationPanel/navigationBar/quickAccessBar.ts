@@ -1,20 +1,14 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/quickAccessBar.scss';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
+import { Component } from 'src/workbench/services/component/component';
 
-export class QuickAccessBar {
-    private searchBox: SearchBar;
+export class QuickAccessBar extends Component{
+    protected override _createContent(): void {
+        // TODO: Create quick-access icon and the search box
 
-    constructor(container: HTMLElement) {
-        const barContainer = document.createElement('div');
-        barContainer.className = 'quick-access-bar';
-
-        // Create search box
-        this.searchBox = new SearchBar();
-        const searchBoxContainer = document.createElement('div');
-        searchBoxContainer.className = 'search-box';
-        this.searchBox.render(searchBoxContainer);
-
-        barContainer.appendChild(searchBoxContainer);
-        container.appendChild(barContainer);
     }
+    protected override _registerListeners(): void {
+
+    }
+       
 }

@@ -1,6 +1,6 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { Component, IComponentsConfiguration } from "src/workbench/services/component/component";
+import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { Priority } from "src/base/common/event";
@@ -64,7 +64,7 @@ export abstract class WorkbenchLayout extends Component {
         toolBarBuilder.registerButtons();
 
         // assembly the workbench layout
-        this.__assemblyWorkbenchParts();
+        this.__assemblyWorkbenchComponents();
     }
 
     protected __registerLayoutListeners(): void {
@@ -87,15 +87,26 @@ export abstract class WorkbenchLayout extends Component {
         // TODO: other side-views are also registered here.
     }
 
-    private __assemblyWorkbenchParts(): void {
-
-        const workbenchConfigurations: IComponentsConfiguration[] = [
-            { component: this.navigationPanelService, minSize: 100, maxSize: NavigationPanel.WIDTH * 2, initSize: NavigationPanel.WIDTH, priority: Priority.Normal },
-            { component: this.workspaceService, minSize: 0, maxSize: Number.POSITIVE_INFINITY, initSize: 0, priority: Priority.High },
+    private __assemblyWorkbenchComponents(): void {
+        const workbenchConfigurations: IAssembleComponentOpts[] = [
+            { 
+                component: this.navigationPanelService,
+                minSize: 100,
+                maxSize: NavigationPanel.WIDTH * 2,
+                initSize: NavigationPanel.WIDTH,
+                priority: Priority.Normal,
+            },
+            { 
+                component: this.workspaceService,
+                minSize: 0,
+                maxSize: Number.POSITIVE_INFINITY,
+                initSize: 0,
+                priority: Priority.High,
+            },
         ];
-
+    
         this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
-    }
+    } 
 }
 
 class SideBarBuilder {

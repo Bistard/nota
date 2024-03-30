@@ -1,6 +1,6 @@
 // import 'src/workbench/parts/workspace/media/workspace.scss';
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { Component, IComponent, IComponentsConfiguration } from "src/workbench/services/component/component";
+import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IThemeService } from "src/workbench/services/theme/themeService";
@@ -44,12 +44,23 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     }
 
     private __assemblyWorkbenchParts(): void {
-
-        const workbenchConfigurations: IComponentsConfiguration[] = [
-            { component: this.toolBarService, minSize: ToolBar.WIDTH, maxSize: ToolBar.WIDTH, initSize: ToolBar.WIDTH, priority: Priority.Low },
-            { component: this.navigationViewService, minSize: NavView.WIDTH * 2, maxSize: NavView.WIDTH, initSize: NavView.WIDTH, priority: Priority.Normal },
+        const workbenchConfigurations: IAssembleComponentOpts[] = [
+            { 
+                component: this.toolBarService,
+                minSize: ToolBar.WIDTH,
+                maxSize: ToolBar.WIDTH,
+                initSize: ToolBar.WIDTH,
+                priority: Priority.Low,
+            },
+            { 
+                component: this.navigationViewService,
+                minSize: NavView.WIDTH * 2,
+                maxSize: NavView.WIDTH,
+                initSize: NavView.WIDTH,
+                priority: Priority.Normal,
+            },
         ];
-    
         this.assembleComponents(Orientation.Vertical, workbenchConfigurations);
     }
+    
 }
