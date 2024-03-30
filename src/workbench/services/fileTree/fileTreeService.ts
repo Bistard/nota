@@ -25,8 +25,7 @@ import { IWorkbenchService } from "src/workbench/services/workbench/workbenchSer
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { noop } from "src/base/common/performance";
 import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
-import { generateMD5Hash } from "src/base/common/utilities/hash";
-import { memoize } from "src/base/common/memoization";
+import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -375,7 +374,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             this._sorter = cleanup.register(sorter);
             this._metadataController = cleanup.register(this.instantiationService.createInstance(
                 FileTreeMetadataController, sorter, 
-                this.__createMetadataControllerOptions(),
+                this.__createMetadataControllerOptions(rootStat.uri),
             ));
 
             const fileItemResolveOpts: IFileItemResolveOptions<FileItem> = { 
@@ -423,7 +422,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             FileTreeSorter, 
             fileSortType, 
             fileSortOrder, 
-            this.__createMetadataControllerOptions(),
+            this.__createCustomSorterOptions(),
         );
 
         const register = (tree: IFileTree<FileItem, void>) => {
@@ -497,11 +496,16 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         }));
     }
 
-    @memoize 
-    private __createMetadataControllerOptions(): IFileTreeMetadataControllerOptions {
+    private __createMetadataControllerOptions(treeRoot: URI): IFileTreeMetadataControllerOptions {
         return {
-            metadataRootPath: URI.join(this.environmentService.appConfigurationPath, 'sorting'),
-            hash: generateMD5Hash,
+            ...this.__createCustomSorterOptions(),
+            fileTreeRoot: treeRoot,
+            metadataRoot: URI.join(this.environmentService.appConfigurationPath, 'sorting', URI.basename(treeRoot)),
+        };
+    }
+
+    private __createCustomSorterOptions(): IFileTreeCustomSorterOptions {
+        return {
             getMetadataFromCache: folder => this.__assertController().getMetadataFromCache(folder),
             defaultItemComparator: (...args) => {
                 const cmp = this.getFileSortingOrder() === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
