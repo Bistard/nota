@@ -9,16 +9,16 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileOperationError, FileOperationErrorType, FileType } from "src/base/common/files/file";
+import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
 import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
 import { noop } from "src/base/common/performance";
-import { assert, errorToMessage } from "src/base/common/utilities/panic";
+import { assert, assertArray, errorToMessage } from "src/base/common/utilities/panic";
 import { ResourceMap } from "src/base/common/structures/map";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
-import { dfsAsync } from "src/base/common/utilities/function";
+import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -91,7 +91,7 @@ export namespace FileCommands {
             });
         }
     
-        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx?: number, resources?: URI[]): Promise<boolean> {
+        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]): Promise<boolean> {
             this.fileTreeService         = provider.getOrCreateService(IFileTreeService);
             this.clipboardService        = provider.getOrCreateService(IClipboardService);
             const contextService         = provider.getOrCreateService(IContextService);
@@ -100,15 +100,9 @@ export namespace FileCommands {
             this.commandService          = provider.getOrCreateService(ICommandService);
             this.fileTreeMetadataService = provider.getOrCreateService(IFileTreeMetadataService);
 
-            const toPaste  = await this.__getResourcesToPaste(resources);
-            const isCut    = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
-            const isInsert = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnInsertKey));
-
-            /**
-             * // FIX
-             * isInsert should not be the correct boolean to identify should or 
-             * not update the metadata, custom mode is the correct boolean.
-             */
+            const toPaste = await this.__getResourcesToPaste(resources);
+            const isCut   = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
+            const isNormalPaste = this.fileTreeService.getFileSortingType() !== FileSortType.Custom;
 
             // nothing to paste, nothing happens.
             if (toPaste.length === 0) {
@@ -116,22 +110,31 @@ export namespace FileCommands {
             }
             
             // paste (normal)
-            if (!isInsert) {
-                return await this.__pasteNormal(toPaste, destination, isCut);
-            }
+            if (isNormalPaste) {
+                const toPasteURI = Arrays.isType<FileItem>(toPaste, element => URI.isURI(element)) 
+                        ? toPaste.map(item => item.uri)
+                        : toPaste;
+                return await this.__pasteNormal(toPasteURI, destination, isCut);
+            } 
             
-            // paste (custom sorting)
-            await this.__pasteInsert(destination, destinationIdx ?? 0, isCut);
-            
+            /**
+             * // paste (custom sorting)
+             * 
+             * On detecting an insertion, the operation must be conducted from 
+             * the UI perspective. Therefore must make sure the `toPaste` is an
+             * array of `FileItem`.
+             */
+            const toPasteItems = assertArray<FileItem>(toPaste, arr => Arrays.isType(arr, element => !URI.isURI(element)));
+            await this.__pasteInsert(toPasteItems, destination, destinationIdx ?? 0, isCut);
             return true;
         }
 
         // [private helper methods]
 
-        private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
+        private async __getResourcesToPaste(resources?: URI[] | FileItem[]): Promise<URI[] | FileItem[]> {
             
             // paste the provided resources for higher priority
-            let toPaste: URI[] = resources ?? [];
+            let toPaste = resources ?? [];
 
             /**
              * If no provided resources, fallback to read the sources from the
@@ -142,8 +145,11 @@ export namespace FileCommands {
             }
 
             // check parent-child relationship
-            const resolvedToPaste = URI.distinctParents(toPaste);
-            return resolvedToPaste;
+            if (Arrays.isType<URI>(toPaste, element => URI.isURI(element))) {
+                return URI.distinctParents(toPaste);
+            } else {
+                return URI.distinctParentsByUri(toPaste, item => item.uri);
+            }
         }
 
         private async __pasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<boolean> {
@@ -169,19 +175,11 @@ export namespace FileCommands {
             return batch;
         }
 
-        private async __pasteInsert(destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+        private async __pasteInsert(toInsert: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
             assert(destination.isDirectory());
             assert(!this.fileTreeService.isCollapsed(destination));
             
-            /**
-             * On detecting an insertion, the operation must be conducted from 
-             * the UI perspective. Therefore, instead of utilizing the given 
-             * URIs (toPaste), we retrieve 'FileItem's directly from the 
-             * clipboard.
-             * 
-             * This also check parent-child relationship.
-             */
-            const toInsert = assert(await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'dndInsertionItems'));
+            // This also check parent-child relationship.
             const dragItems = URI.distinctParentsByUri(toInsert, item => item.uri);
 
             /**
@@ -239,18 +237,7 @@ export namespace FileCommands {
                 return false;
             }
 
-            /**
-             * //  FIX
-             * After the paste succeeded:
-             *      1. How do I know which one of the previous recursiveDirUris succeeded?
-             *      2. How do I get the new URIs of those succeeded old URIs?
-             */
-
             const details = this.__extractBatchDetails(batch, toPaste);
-
-            console.log('isCut:', isCut);
-            console.log('destinationName:', destination.basename);
-            console.log('destinationIdx:', destinationIdx);
 
             // update metadata to those who successes
             if (insertAtSameParent) {

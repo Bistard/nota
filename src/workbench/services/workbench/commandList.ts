@@ -97,7 +97,7 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.newFolder]: [];
     [AllCommands.fileCut]: [];
     [AllCommands.fileCopy]: [];
-    [AllCommands.filePaste]: [destination: FileItem, destinationIdx?: number, resources?: URI[]];
+    [AllCommands.filePaste]: [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
     [AllCommands.fileMove]: [];
 };
 
