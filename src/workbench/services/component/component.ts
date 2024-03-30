@@ -16,7 +16,7 @@ export interface ICreatable {
 }
 
 export interface IComponentsConfiguration {
-    component: any;
+    component: IComponent;
     minSize: number;
     maxSize: number;
     initSize: number;
@@ -391,7 +391,7 @@ export abstract class Component extends Themable implements IComponent {
             component.registerListeners();
     
             splitViewOpt.viewOpts.push({
-                element: component.element,
+                element: component.element.element,
                 minimumSize: minSize,
                 maximumSize: maxSize,
                 initSize,
