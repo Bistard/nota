@@ -3,7 +3,6 @@ import { after, before, beforeEach } from 'mocha';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { URI } from 'src/base/common/files/uri';
 import { Arrays } from 'src/base/common/utilities/array';
-import { generateMD5Hash } from 'src/base/common/utilities/hash';
 import { Pair } from 'src/base/common/utilities/type';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
@@ -18,24 +17,26 @@ import { ILogService } from 'src/base/common/logger';
 
 suite('fileTreeCustomSorter-test', () => {
 
-    const hash = (input: string) => generateMD5Hash(input);
-    const fileService = new FileService(new NullLogger());
-    const rootURI = URI.join(TestURI, 'fileTreeCustomSorterTest');
+    const fileService     = new FileService(new NullLogger());
+    const rootURI         = URI.join(TestURI, 'fileTreeCustomSorterTest');
+    const metadataRootURI = URI.join(TestURI, 'fileTreeCustomSorterTest_order');
+    
     let sorter!: FileTreeSorter<FileItem>;
     let controller!: FileTreeMetadataController;
 
-    async function init() {
+    async function init(): Promise<void> {
         const provider = new DiskFileSystemProvider();
         fileService.registerProvider('file', provider);
         await fileService.createDir(rootURI).unwrap();
+        await fileService.createDir(metadataRootURI).unwrap();
     }
 
     // Always refresh the tree structure to the file system hierarchy befor every test
-    async function refreshFileSystem() {
+    async function refreshFileSystem(): Promise<void> {
         
         const opts: IFileTreeMetadataControllerOptions = {
-            metadataRootPath: rootURI,
-            hash: hash,
+            fileTreeRoot: URI.join(rootURI, 'root'),
+            metadataRoot: metadataRootURI,
             defaultItemComparator: defaultFileItemCompareFn,
             getMetadataFromCache: folder => controller.getMetadataFromCache(folder),
         };
@@ -49,11 +50,13 @@ suite('fileTreeCustomSorter-test', () => {
         sorter = new FileTreeSorter(FileSortType.Custom, FileSortOrder.Ascending, opts, di);
         controller = new FileTreeMetadataController(sorter, opts, fileService, new NullLogger());
 
+        await fileService.delete(metadataRootURI, { recursive: true }).unwrap();
         await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE);
     }
 
     async function cleanCache(): Promise<void> {
         await fileService.delete(rootURI, { recursive: true }).unwrap();
+        await fileService.delete(metadataRootURI, { recursive: true }).unwrap();
     }
 
     /**
@@ -67,13 +70,9 @@ suite('fileTreeCustomSorter-test', () => {
     });
 
     function getMetadataURI(folder: URI): URI {
-        const root = rootURI;
-        const rawHash = hash(URI.toString(folder));
-
-        const subDir = rawHash.slice(0, 2);
-        const metadataName = rawHash.slice(2);
-
-        const metadataURI = URI.join(root, subDir, `${metadataName}.json`);
+        const relative = URI.relative(URI.join(rootURI, 'root'), folder)!;
+        const metadataDir = URI.resolve(metadataRootURI, relative);
+        const metadataURI = URI.join(metadataDir, `${URI.basename(folder)}.json`);
         return metadataURI;
     }
 
@@ -84,6 +83,12 @@ suite('fileTreeCustomSorter-test', () => {
             const rootStat = await fileService.stat(rootURI, { resolveChildren: true, resolveChildrenRecursive: true }).unwrap();
             printFileStat(rootStat);
         }
+        
+        public static async printMeatadataRootStat(): Promise<void> {
+            const rootStat = await fileService.stat(metadataRootURI, { resolveChildren: true, resolveChildrenRecursive: true }).unwrap();
+            printFileStat(rootStat);
+        }
+
         public static async getMetadataContent(folder: URI): Promise<string> {
             return (await fileService.readFile(getMetadataURI(folder)).unwrap()).toString();
         }
