@@ -1,5 +1,5 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { DomUtility, Orientation } from "src/base/browser/basic/dom";
+import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
 import { IComponentService } from "src/workbench/services/component/componentService";
@@ -14,7 +14,7 @@ export interface ICreatable {
     registerListeners(): void;
 }
 
-export interface IPartConfiguration {
+export interface IComponentsConfiguration {
     component: any;
     minSize: number;
     maxSize: number;
@@ -171,6 +171,8 @@ export abstract class Component extends Themable implements IComponent {
 
     private _created: boolean;
     private _registered: boolean;
+    
+    private _splitView: ISplitView | undefined;
 
     // [event]
 
@@ -370,7 +372,11 @@ export abstract class Component extends Themable implements IComponent {
         }
     }
 
-    public assembleParts(orientation: Orientation, configurations: IPartConfiguration[]): void {
+    public assembleComponents(orientation: Orientation, configurations: IComponentsConfiguration[]): void {
+        if (this._splitView) {
+            panic("Cannot apply the function `` twice. ");
+        }
+    
         const splitViewOpt: Required<ISplitViewOpts> = {
             orientation,
             viewOpts: [],
@@ -382,7 +388,7 @@ export abstract class Component extends Themable implements IComponent {
             component.registerListeners();
     
             splitViewOpt.viewOpts.push({
-                element: component.element.element,
+                element: component.element,
                 minimumSize: minSize,
                 maximumSize: maxSize,
                 initSize,
@@ -391,12 +397,21 @@ export abstract class Component extends Themable implements IComponent {
         }
     
         // construct the split-view
-        const splitView = new SplitView(this.element.element, splitViewOpt);
+        this._splitView = this.__register(new SplitView(this.element.element, splitViewOpt));
+    
+        // TODO: apply sash configuration
     
         // set the sash next to sideBar is visible and disabled.
-        const sash = assert(splitView.getSashAt(0));
+        const sash = assert(this._splitView.getSashAt(0));
         sash.enable = false;
         sash.visible = true;
         sash.size = 1;
-    }
+    
+        // register listeners
+        this.__register(addDisposableListener(window, EventType.resize, () => {
+            this.layout();
+            const _dimension = assert(this.dimension);
+            this._splitView?.layout(_dimension.width, _dimension.height);
+        }));
+    }    
 }

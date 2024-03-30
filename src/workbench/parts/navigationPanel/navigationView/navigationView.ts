@@ -1,4 +1,4 @@
-import 'src/workbench/parts/navigationView/media/navigationView.scss';
+import 'src/workbench/parts/navigationPanel/navigationView/media/navigationView.scss';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';

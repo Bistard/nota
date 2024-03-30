@@ -1,9 +1,8 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { Component, IPartConfiguration } from "src/workbench/services/component/component";
+import { Component, IComponentsConfiguration } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { ISplitView} from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { Icons } from "src/base/browser/icon/icons";
@@ -14,7 +13,7 @@ import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
-import { assert } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
 import { IToolBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
@@ -26,8 +25,6 @@ import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/na
 export abstract class WorkbenchLayout extends Component {
 
     // [fields]
-
-    private _splitView: ISplitView | undefined;
 
     // [constructor]
 
@@ -72,13 +69,6 @@ export abstract class WorkbenchLayout extends Component {
 
     protected __registerLayoutListeners(): void {
 
-        // window resizing
-        this.__register(addDisposableListener(window, EventType.resize, () => {
-            this.layout();
-            const dimension = assert(this.dimension);
-            this._splitView?.layout(dimension.width, dimension.height);
-        }));
-
         /**
          * Listens to each SideBar button click events and notifies the 
          * navigationView to switch the view.
@@ -99,12 +89,12 @@ export abstract class WorkbenchLayout extends Component {
 
     private __assemblyWorkbenchParts(): void {
 
-        const workbenchConfigurations: IPartConfiguration[] = [
+        const workbenchConfigurations: IComponentsConfiguration[] = [
             { component: this.navigationPanelService, minSize: 100, maxSize: NavigationPanel.WIDTH * 2, initSize: NavigationPanel.WIDTH, priority: Priority.Normal },
             { component: this.workspaceService, minSize: 0, maxSize: Number.POSITIVE_INFINITY, initSize: 0, priority: Priority.High },
         ];
 
-        this.assembleParts(Orientation.Horizontal, workbenchConfigurations);
+        this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
     }
 }
 
@@ -261,7 +251,7 @@ class SideBarBuilder {
             if (!element) {
                 const button = this.toolBarService.getButton(buttonType);
                 if (!button) {
-                    throw new Error(`Cannot find side bar button with id: ${buttonType}`);
+                    panic(`Cannot find side bar button with id: ${buttonType}`);
                 }
                 element = button.element;
             }

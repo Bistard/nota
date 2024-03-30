@@ -24,6 +24,9 @@ import { DomUtility, EventType, addDisposableListener } from 'src/base/browser/b
 import { Event } from 'src/base/common/event';
 import { FocusTracker } from 'src/base/browser/basic/focusTracker';
 import { WorkbenchContextKey } from 'src/workbench/services/workbench/workbenchContextKeys';
+import { INavigationPanelService } from 'src/workbench/parts/navigationPanel/navigationPanel';
+import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -45,13 +48,14 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigurationService configurationService: IConfigurationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ISideBarService sideBarService: ISideBarService,
-        @ISideViewService sideViewService: ISideViewService,
+        @INavigationPanelService navigationPanelService : INavigationPanelService,
+        @IToolBarService toolBarService: IToolBarService,
+        @INavigationViewService navigationViewService: INavigationViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(instantiationService, logService, layoutService, componentService, themeService, sideBarService, sideViewService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, toolBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
         logService.trace('Workbench', 'Workbench constructed.');
     }
 
@@ -102,7 +106,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // open the side view with default one
         const defaultView = this.configurationService.get<string>(WorkbenchConfiguration.DefaultSideView, 'explorer');
-        this.sideViewService.switchView(defaultView);
+        this.navigationViewService.switchView(defaultView);
     }
 
     /**
