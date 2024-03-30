@@ -15,7 +15,7 @@ export interface ICreatable {
     registerListeners(): void;
 }
 
-export interface IComponentsConfiguration {
+export interface IAssembleComponentOpts {
     component: IComponent;
     minSize: number;
     maxSize: number;
@@ -375,7 +375,7 @@ export abstract class Component extends Themable implements IComponent {
         }
     }
 
-    public assembleComponents(orientation: Orientation, configurations: IComponentsConfiguration[]): void {
+    public assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void {
         if (this._splitView) {
             panic("Cannot apply the function `` twice. ");
         }
@@ -385,7 +385,7 @@ export abstract class Component extends Themable implements IComponent {
             viewOpts: [],
         };
     
-        for (const config of configurations) {
+        for (const config of options) {
             const { component, minSize, maxSize, initSize, priority } = config;
             component.create(this);
             component.registerListeners();
@@ -404,9 +404,9 @@ export abstract class Component extends Themable implements IComponent {
     
         // apply sash configuration if any
         for (let i = 0; i < this._splitView.size - 1; i++) {
-            const config = configurations[i]!;
+            const option = options[i]!;
 
-            const sashOpts = config.sashConfiguration;
+            const sashOpts = option.sashConfiguration;
             if (!sashOpts) {
                 continue;
             }
