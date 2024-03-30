@@ -563,5 +563,3 @@ export class SplitViewSpaceError extends Error {
         super(`split-view space error: cannot fit all the views (${contentSize}px) into split-view (${splitViewSize}px)`);
     }
 }
-
-export { Orientation };

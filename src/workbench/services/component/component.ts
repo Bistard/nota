@@ -1,16 +1,25 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { DomUtility } from "src/base/browser/basic/dom";
-import { Emitter, Register } from "src/base/common/event";
+import { DomUtility, Orientation } from "src/base/browser/basic/dom";
+import { Emitter, Priority, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
+import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 
 export interface ICreatable {
     create(): void;
     registerListeners(): void;
+}
+
+export interface IPartConfiguration {
+    component: any;
+    minSize: number;
+    maxSize: number;
+    initSize: number;
+    priority: Priority;
 }
 
 /**
@@ -361,4 +370,33 @@ export abstract class Component extends Themable implements IComponent {
         }
     }
 
+    public assembleParts(orientation: Orientation, configurations: IPartConfiguration[]): void {
+        const splitViewOpt: Required<ISplitViewOpts> = {
+            orientation,
+            viewOpts: [],
+        };
+    
+        for (const config of configurations) {
+            const { component, minSize, maxSize, initSize, priority } = config;
+            component.create(this);
+            component.registerListeners();
+    
+            splitViewOpt.viewOpts.push({
+                element: component.element.element,
+                minimumSize: minSize,
+                maximumSize: maxSize,
+                initSize,
+                priority,
+            });
+        }
+    
+        // construct the split-view
+        const splitView = new SplitView(this.element.element, splitViewOpt);
+    
+        // set the sash next to sideBar is visible and disabled.
+        const sash = assert(splitView.getSashAt(0));
+        sash.enable = false;
+        sash.visible = true;
+        sash.size = 1;
+    }
 }

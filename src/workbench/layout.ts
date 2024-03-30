@@ -1,12 +1,9 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { SideBar, ISideBarService, SideButtonType } from "src/workbench/parts/sideBar/sideBar";
-import { ISideViewService, SideView } from "src/workbench/parts/sideView/sideView";
-
-import { Component } from "src/workbench/services/component/component";
+import { Component, IPartConfiguration } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
+import { ISplitView} from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { Icons } from "src/base/browser/icon/icons";
@@ -18,6 +15,9 @@ import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
 import { assert } from "src/base/common/utilities/panic";
+import { IToolBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -37,8 +37,9 @@ export abstract class WorkbenchLayout extends Component {
         @ILayoutService protected readonly layoutService: ILayoutService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ISideBarService protected readonly sideBarService: ISideBarService,
-        @ISideViewService protected readonly sideViewService: ISideViewService,
+        @IToolBarService protected readonly toolBarService: IToolBarService,
+        @INavigationViewService protected readonly navigationViewService: INavigationViewService,
+        @INavigationPanelService protected readonly navigationPanelService: INavigationPanelService,
         @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
         @IConfigurationService protected readonly configurationService: IConfigurationService,
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
@@ -62,8 +63,8 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register side buttons
-        const sideBarBuilder = new SideBarBuilder(this.sideBarService, this.contextMenuService);
-        sideBarBuilder.registerButtons();
+        const toolBarBuilder = new SideBarBuilder(this.toolBarService, this.contextMenuService);
+        toolBarBuilder.registerButtons();
 
         // assembly the workbench layout
         this.__assemblyWorkbenchParts();
@@ -80,11 +81,11 @@ export abstract class WorkbenchLayout extends Component {
 
         /**
          * Listens to each SideBar button click events and notifies the 
-         * sideView to switch the view.
+         * navigationView to switch the view.
          */
-        this.__register(this.sideBarService.onDidClick(e => {
+        this.__register(this.toolBarService.onDidClick(e => {
             if (e.isPrimary) {
-                this.sideViewService.switchView(e.ID);
+                this.navigationViewService.switchView(e.ID);
             }
         }));
     }
@@ -92,56 +93,25 @@ export abstract class WorkbenchLayout extends Component {
     // [private helper functions]
 
     private __registerSideViews(): void {
-        this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
+        this.navigationViewService.registerView(ToolButtonType.EXPLORER, ExplorerView);
         // TODO: other side-views are also registered here.
     }
 
     private __assemblyWorkbenchParts(): void {
 
-        const splitViewOpt: Required<ISplitViewOpts> = {
-            orientation: Orientation.Horizontal,
-            viewOpts: [],
-        };
+        const workbenchConfigurations: IPartConfiguration[] = [
+            { component: this.navigationPanelService, minSize: 100, maxSize: NavigationPanel.WIDTH * 2, initSize: NavigationPanel.WIDTH, priority: Priority.Normal },
+            { component: this.workspaceService, minSize: 0, maxSize: Number.POSITIVE_INFINITY, initSize: 0, priority: Priority.High },
+        ];
 
-        const PartsConfiguration = [
-            // TODO: Use SplitView with orientation: Orientation.Vertical to combine 
-            // SideBar and SideView in navigationPanel.ts
-
-            // [this.sideBarService  , SideBar.WIDTH, SideBar.WIDTH           , SideBar.WIDTH , Priority.Low   ],
-            // [this.sideViewService , 100          , SideView.WIDTH * 2      , SideView.WIDTH, Priority.Normal],
-
-            // [this.nagivationPanelService, 100 , NavigationPanel.WIDTH * 2 , NavigationPanel.WIDTH, Priority.Normal],
-            [this.workspaceService      , 0   , Number.POSITIVE_INFINITY  , 0                    , Priority.High  ],
-        ] as const;
-
-        for (const [component, minSize, maxSize, initSize, priority] of PartsConfiguration) {
-            component.create(this);
-            component.registerListeners();
-            
-            splitViewOpt.viewOpts.push({
-                element: component.element.element,
-                minimumSize: minSize,
-                maximumSize: maxSize,
-                initSize: initSize,
-                priority: priority,
-            });
-        }
-
-        // construct the split-view
-        this._splitView = new SplitView(this.element.element, splitViewOpt);
-
-        // set the sash next to sideBar is visible and disabled.
-        const sash = assert(this._splitView.getSashAt(0));
-        sash.enable = false;
-        sash.visible = true;
-        sash.size = 1;
+        this.assembleParts(Orientation.Horizontal, workbenchConfigurations);
     }
 }
 
 class SideBarBuilder {
 
     constructor(
-        private readonly sideBarService: ISideBarService,
+        private readonly toolBarService: IToolBarService,
         private readonly contextMenuService: IContextMenuService,
     ) {
     }
@@ -153,18 +123,18 @@ class SideBarBuilder {
          */
         [
             {
-                id: SideButtonType.EXPLORER,
+                id: ToolButtonType.EXPLORER,
                 icon: Icons.Folder,
             },
             {
-                id: SideButtonType.OUTLINE,
+                id: ToolButtonType.OUTLINE,
                 icon: Icons.List,
             },
-            // { id: SideButtonType.SEARCH, icon: Icons.Search },
-            // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
+            // { id: ToolButtonType.SEARCH, icon: Icons.Search },
+            // { id: ToolButtonType.GIT, icon: Icons.CodeBranch },
         ]
             .forEach(({ id, icon }) => {
-                this.sideBarService.registerPrimaryButton({
+                this.toolBarService.registerPrimaryButton({
                     id: id,
                     icon: icon,
                     isPrimary: true,
@@ -177,15 +147,15 @@ class SideBarBuilder {
          */
         [
             {
-                id: SideButtonType.HELPER,
+                id: ToolButtonType.HELPER,
                 icon: Icons.CommentQuestion,
             },
             {
-                id: SideButtonType.SETTINGS,
+                id: ToolButtonType.SETTINGS,
                 icon: Icons.Settings,
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
-                        getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),
+                        getAnchor: this.__getButtonElement(ToolButtonType.SETTINGS).bind(this),
                         // TODO: this is only for test purpose
                         getActions: () => {
                             return [
@@ -276,7 +246,7 @@ class SideBarBuilder {
             },
         ]
             .forEach(({ id, icon, onDidClick }) => {
-                this.sideBarService.registerSecondaryButton({
+                this.toolBarService.registerSecondaryButton({
                     id: id,
                     icon: icon,
                     isPrimary: true,
@@ -285,11 +255,11 @@ class SideBarBuilder {
             });
     }
 
-    private __getButtonElement(buttonType: SideButtonType): () => HTMLElement {
+    private __getButtonElement(buttonType: ToolButtonType): () => HTMLElement {
         let element: HTMLElement | undefined;
         return () => {
             if (!element) {
-                const button = this.sideBarService.getButton(buttonType);
+                const button = this.toolBarService.getButton(buttonType);
                 if (!button) {
                     throw new Error(`Cannot find side bar button with id: ${buttonType}`);
                 }
