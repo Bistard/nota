@@ -1,4 +1,4 @@
-import 'src/workbench/parts/toolBar/media/toolBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';

@@ -52,5 +52,4 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     
         this.assembleParts(Orientation.Vertical, workbenchConfigurations);
     }
-
 }
