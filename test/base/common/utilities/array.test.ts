@@ -14,6 +14,23 @@ suite('array-test', () => {
         });
     });
 
+    suite('isType', function() {
+        test('should return true for empty array', function() {
+            const result = Arrays.isType([], (element): element is number => typeof element === 'number');
+            assert.strictEqual(result, true);
+        });
+    
+        test('should return true for all elements matching the type', function() {
+            const result = Arrays.isType([1, 2, 3], (element): element is number => typeof element === 'number');
+            assert.strictEqual(result, true);
+        });
+    
+        test('should return false if first element does not match the type', function() {
+            const result = Arrays.isType(['a', 2, 3], (element): element is number => typeof element === 'number');
+            assert.strictEqual(result, false);
+        });
+    });
+
     suite('isEmpty', function () {
         test('should return true for an empty array', function () {
             assert.strictEqual(Arrays.isEmpty([]), true);

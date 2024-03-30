@@ -55,7 +55,7 @@ export function assert<T>(obj: any, message?: string): T {
  * @param message Optional. The custom error message.
  * @panic 
  */
-export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?: string): T {
+export function assertType<T>(obj: any, assert: (obj: any) => boolean, message?: string): T {
     if (assert(obj)) {
         return obj;
     }
@@ -68,7 +68,7 @@ export function assertType<T>(obj: any, assert: (obj: any) => obj is T, message?
  * 
  * @param obj The object to assert.
  * @param assert A predicate function to test the object.
- * @param message Optional. The custom error message
+ * @param message Optional. The custom error message.
  * @panic 
  */
 export function assertValue<T>(obj: T, assert: (obj: T) => boolean, message?: string): T {
@@ -76,6 +76,31 @@ export function assertValue<T>(obj: T, assert: (obj: T) => boolean, message?: st
         return obj;
     }
     panic(message ?? `assert error: ${obj}`);
+}
+
+/**
+ * @description Validates that the first element of an array meets a specified 
+ * condition. Assumes uniformity across the array.
+ * 
+ * @param array The array to check.
+ * @param assert The predicate function for the assertion.
+ * @param message Optional. The custom error message.
+ * @returns The validated array.
+ * 
+ * @note An empty array passes the check. 
+ * @panic If the first element fails the assertion.
+ */
+export function assertArray<T>(array: any[], assert: (firstElement: any) => boolean, message?: string): T[] {
+    if (array.length === 0) {
+        return array;
+    }
+
+    const firstElement = array[0]!;
+    if (!assert(firstElement)) {
+        panic(message ?? `assertArray error: ${array}`);
+    }
+
+    return array;
 }
 
 /**

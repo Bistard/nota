@@ -16,6 +16,26 @@ export namespace Arrays {
     }
 
     /**
+     * @description Determines if all elements in an array are of a specified 
+     * type, based on a provided type-checking function.
+     * @param array The array to check.
+     * @param check A function that checks if the given element is of type T.
+     * 
+     * @note This function assumes the type of all elements in the array based 
+     *       on the type of the first element. 
+     * @note If the array is empty, it is considered to be of the specified type 
+     *       by default.
+     */
+    export function isType<T>(array: any[], check: (firstElement: any) => boolean): array is T[] {
+        if (array.length === 0) {
+            return true;
+        }
+
+        const firstElement = array[0]!;
+        return check(firstElement);
+    }
+
+    /**
      * @description If the given array is empty.
      */
     export function isEmpty<T>(array: T[]): boolean {
