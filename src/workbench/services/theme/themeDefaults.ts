@@ -2,7 +2,7 @@ import { ColorMap } from "src/base/common/color";
 import { RGBA } from "src/base/common/color";
 
 export const THEME_COLORS = {
-    // defualt colors
+    // default colors
 
     // light theme special
     seaGreen: new RGBA(60, 179, 113),
@@ -23,7 +23,7 @@ export const defaultThemeColors: ColorMap = {
     "menu-border-color": THEME_COLORS.ghostWhite,
     "sidebar-background-color": THEME_COLORS.seaGreen,
     "search-bar-background": THEME_COLORS.ghostWhite,
-    "selection-colour": THEME_COLORS.lightSkyBlue,
+    "selection-color": THEME_COLORS.lightSkyBlue,
     "toolbar-container-background": THEME_COLORS.ghostWhite,
     "light-menu-border-color": THEME_COLORS.gainsboro,
 };

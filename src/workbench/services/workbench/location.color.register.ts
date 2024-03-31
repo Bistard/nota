@@ -6,7 +6,7 @@ export const rendererThemeLocationRegister = createRegister(
     (registrant) => {
         registrant.registerTemplate('menu-item-focus-background-color');
         registrant.registerTemplate('search-bar-background');
-        registrant.registerTemplate('selection-colour');
+        registrant.registerTemplate('selection-color');
         registrant.registerTemplate('toolbar-container-background');
         registrant.registerTemplate('light-menu-border-color');
     },

@@ -8,7 +8,7 @@ export const rendererLightThemeColorRegister = createRegister(
     (registrant) => {
         registrant.registerColor(PresetColorTheme.LightModern, 'sidebar-background-color', THEME_COLORS.seaGreen);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-background', THEME_COLORS.ghostWhite); 
-        registrant.registerColor(PresetColorTheme.LightModern, 'selection-colour', THEME_COLORS.lightSkyBlue); 
+        registrant.registerColor(PresetColorTheme.LightModern, 'selection-color', THEME_COLORS.lightSkyBlue); 
         registrant.registerColor(PresetColorTheme.LightModern, 'toolbar-container-background', THEME_COLORS.ghostWhite); 
         registrant.registerColor(PresetColorTheme.LightModern, 'light-menu-border-color', THEME_COLORS.gainsboro); 
     },
