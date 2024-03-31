@@ -145,8 +145,12 @@ export class ThemeService extends Disposable implements IThemeService {
 
         // The ID is not identified, try to read it from the disk.
         const themePath = URI.join(this.themeRootPath, `${id}.json`);
+        
+        // read from the disk and try to parse it
         return this.fileService.readFile(themePath)
             .andThen(themeData => jsonSafeParse(themeData.toString())
+            
+            // validate the raw data and apply the theme
             .andThen<IColorTheme, Error>(themeRawData => {
                 if (!this.__isValidTheme(themeRawData)) {
                     return err(new Error(`Error loading theme from URI: ${URI.toString(themePath)}.`));
@@ -160,7 +164,7 @@ export class ThemeService extends Disposable implements IThemeService {
             .match(
                 newTheme => newTheme,
                 error => {
-                    this.logService.error("themeService", `Cannot switch to the theme '${id}'. The reason is:`, error);
+                    this.logService.error('themeService', `Cannot switch to the theme '${id}'. The reason is:`, error);
                     this.notificationService.notify({
                         message: `Failed to switch to theme '${id}'. Please check the theme settings and try again.`,
                         actions: [{
@@ -182,7 +186,7 @@ export class ThemeService extends Disposable implements IThemeService {
     
     public async init(): Promise<void> {
         this._initProtector.init('Cannot init twice').unwrap();
-        this.__initializePresetThemes();
+        this.__assertPresetThemes();
     
         const themeID = this.configurationService.get<string>(
             WorkbenchConfiguration.ColorTheme,
@@ -193,7 +197,11 @@ export class ThemeService extends Disposable implements IThemeService {
     
     // [private methods]
     
-    private __initializePresetThemes(): void {
+    /**
+     * @description Assert and make sure all the preset themes are all valid 
+     * {@link ColorTheme}s.
+     */
+    private __assertPresetThemes(): void {
         const themeNames = [
             PresetColorTheme.LightModern,
             PresetColorTheme.DarkModern,
@@ -208,6 +216,35 @@ export class ThemeService extends Disposable implements IThemeService {
             const theme = new ColorTheme(rawColorMap);
             this._presetThemes.set(rawColorMap.name, theme);
         }
+    }
+
+    private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
+        if (!isObject(rawData)) {
+            return false;
+        }
+    
+        // Basic validation for the structure of 'rawData'
+        const basicValidation = isString(rawData['type']) &&
+                                isString(rawData['name']) &&
+                                isString(rawData['description']) &&
+                                isObject(rawData['colors']);
+        if (!basicValidation) {
+            return false;
+        }
+
+        // Ensure every required color location is present in the theme
+        const template = this._registrant.getTemplate();
+        const allColorsPresent = [...template].every(location => isString(rawData['colors'][location]));
+    
+        return allColorsPresent;
+    }
+
+    private __applyColorTheme(newTheme?: IColorTheme): IColorTheme {
+        newTheme ??= assert(this._presetThemes.get(PresetColorTheme.LightModern));
+        this._currentTheme = newTheme;
+        this.__updateDynamicCSSRules();
+        this._onDidChangeTheme.fire(newTheme);
+        return newTheme;
     }
 
     private __updateDynamicCSSRules(): void {
@@ -237,34 +274,5 @@ export class ThemeService extends Disposable implements IThemeService {
             // If a <style> element already exists, update its content
             (themeStyles[0] as HTMLStyleElement).textContent = styleSheetContent;
         }
-    }
-      
-    private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
-        if (typeof rawData !== 'object' || rawData === null) {
-            return false;
-        }
-    
-        // Basic validation for the structure of 'rawData'
-        const basicValidation = isString(rawData['type']) &&
-                                isString(rawData['name']) &&
-                                isString(rawData['description']) &&
-                                isObject(rawData['colors']);
-        if (!basicValidation) {
-            return false;
-        }
-
-        // Ensure every required color location is present in the theme
-        const template = this._registrant.getTemplate();
-        const allColorsPresent = [...template].every(location => isString(rawData['colors'][location]));
-    
-        return allColorsPresent;
-    }
-
-    private __applyColorTheme(newTheme?: IColorTheme): IColorTheme {
-        newTheme ??= assert(this._presetThemes.get(PresetColorTheme.LightModern));
-        this._currentTheme = newTheme;
-        this.__updateDynamicCSSRules();
-        this._onDidChangeTheme.fire(newTheme);
-        return newTheme;
     }
 }
