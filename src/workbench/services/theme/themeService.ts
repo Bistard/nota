@@ -239,16 +239,21 @@ export class ThemeService extends Disposable implements IThemeService {
         return allColorsPresent;
     }
 
+    /**
+     * @description When `undefined` if provided, applying {@link PresetColorTheme.LightModern}
+     * as default.
+     */
     private __applyColorTheme(newTheme?: IColorTheme): IColorTheme {
         newTheme ??= assert(this._presetThemes.get(PresetColorTheme.LightModern));
+        
+        this.__updateDynamicCSSRules(newTheme);
         this._currentTheme = newTheme;
-        this.__updateDynamicCSSRules();
+
         this._onDidChangeTheme.fire(newTheme);
         return newTheme;
     }
 
-    private __updateDynamicCSSRules(): void {
-        const theme = this.getCurrTheme(); 
+    private __updateDynamicCSSRules(theme: IColorTheme): void {
         const finalColors = mixin<ColorMap>(this.defaultColors, theme.getColorMap(), true);
         
         const cssRules = new Set<string>();
