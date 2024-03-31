@@ -9,7 +9,7 @@ import { IBrowserEnvironmentService } from "src/platform/environment/common/envi
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
-import { ColorTheme, IColorTheme } from "src/workbench/services/theme/colorTheme";
+import { ColorTheme, IColorTheme, isPresetColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, isObject, isString } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
@@ -21,7 +21,6 @@ import { ColorMap } from "src/base/common/color";
 import { noop } from "src/base/common/performance";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
-import { defaultThemeColors } from "src/workbench/services/theme/themeDefaults";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -103,7 +102,6 @@ export class ThemeService extends Disposable implements IThemeService {
     private readonly _initProtector: InitProtector;
     
     private readonly _presetThemes: Map<string, IColorTheme>;
-    private readonly defaultColors = defaultThemeColors;
     private _currentTheme?: IColorTheme;
 
     // [constructor]
@@ -254,16 +252,32 @@ export class ThemeService extends Disposable implements IThemeService {
     }
 
     private __updateDynamicCSSRules(theme: IColorTheme): void {
-        const finalColors = mixin<ColorMap>(this.defaultColors, theme.getColorMap(), true);
-        
+        const resolvedColorMap = this.__mergeWithPresetColorMap(theme);
         const cssRules = new Set<string>();
 
         // Generate CSS variables for each color in the theme
-        Object.entries(finalColors).forEach(([colorName, colorValue]) => {
+        Object.entries(resolvedColorMap).forEach(([colorName, colorValue]) => {
             cssRules.add(`:root { --${colorName}: ${colorValue}; }`); // REVIEW
         });
         const cssString = Array.from(cssRules).join('\n');
         this.__applyRules(cssString, theme.name); 
+    }
+
+    /**
+     * Consider the user provided {@link IColorTheme} might miss colors, to
+     * make sure all the colors are present, we mixin the {@link ColorMap}
+     * to the corresponding preset one.
+     */
+    private __mergeWithPresetColorMap(theme: IColorTheme): ColorMap {
+        if (isPresetColorTheme(theme)) {
+            return theme.getColorMap();
+        } 
+        
+        const baseColorMap = theme.type === ColorThemeType.Light
+            ? assert(this._presetThemes.get(PresetColorTheme.LightModern))
+            : assert(this._presetThemes.get(PresetColorTheme.DarkModern));
+        
+        return mixin(baseColorMap, theme.getColorMap(), true);
     }
 
     private __applyRules(styleSheetContent: string, rulesClassName: string): void {

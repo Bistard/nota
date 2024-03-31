@@ -1,8 +1,13 @@
 import { ColorMap, RGBA } from "src/base/common/color";
 import { iterProp } from "src/base/common/utilities/object";
 import { assert } from "src/base/common/utilities/panic";
-import { ColorThemeType } from "src/workbench/services/theme/theme";
+import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
+
+export function isPresetColorTheme(theme: IColorTheme): boolean {
+    return theme.name === PresetColorTheme.LightModern ||
+           theme.name === PresetColorTheme.DarkModern;
+}
 
 /**
  * A {@link IColorTheme} is a data structure that is constructed from a valid
