@@ -8,6 +8,5 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('search-bar-background');
         registrant.registerTemplate('selection-color');
         registrant.registerTemplate('toolbar-container-background');
-        registrant.registerTemplate('light-menu-border-color');
     },
 );

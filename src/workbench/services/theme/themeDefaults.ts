@@ -25,5 +25,4 @@ export const defaultThemeColors: ColorMap = {
     "search-bar-background": THEME_COLORS.ghostWhite,
     "selection-color": THEME_COLORS.lightSkyBlue,
     "toolbar-container-background": THEME_COLORS.ghostWhite,
-    "light-menu-border-color": THEME_COLORS.gainsboro,
 };
