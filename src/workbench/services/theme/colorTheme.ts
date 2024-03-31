@@ -9,10 +9,28 @@ export function isPresetColorTheme(name: string): boolean {
            name === PresetColorTheme.DarkModern;
 }
 
-export const PRESET_COLOR_THEME_ARR = [
-    PresetColorTheme.LightModern,
-    PresetColorTheme.DarkModern,
+export const PRESET_COLOR_THEME_METADATA: { name: PresetColorTheme, type: ColorThemeType, description: string }[] = [
+    {
+        name: PresetColorTheme.LightModern,
+        type: ColorThemeType.Light,
+        description: 'Default theme (Light Modern)',
+    },
+    {
+        name: PresetColorTheme.DarkModern,
+        type: ColorThemeType.Dark,
+        description: 'Default theme (Light Modern)',
+    },
 ];
+
+/**
+ * Returns the css variable name for the given color identifier. Dots (`.`) are 
+ * replaced with hyphens (`-`) and everything is prefixed with `--nota-`.
+ *
+ * @sample `navigationPanel.background` is `--nota-navigationPanel-background`.
+ */
+export function toCssVariableName(name: string): string {
+    return `--nota-${name.replace(/\./g, '-')}`;
+}
 
 /**
  * A {@link IColorTheme} is a data structure that is constructed from a valid

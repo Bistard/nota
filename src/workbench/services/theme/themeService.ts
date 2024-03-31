@@ -9,7 +9,7 @@ import { IBrowserEnvironmentService } from "src/platform/environment/common/envi
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
-import { ColorTheme, IColorTheme, PRESET_COLOR_THEME_ARR, isPresetColorTheme } from "src/workbench/services/theme/colorTheme";
+import { ColorTheme, IColorTheme, PRESET_COLOR_THEME_METADATA, isPresetColorTheme, toCssVariableName } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, isObject, isString } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
@@ -201,12 +201,12 @@ export class ThemeService extends Disposable implements IThemeService {
      * {@link ColorTheme}s.
      */
     private __assertPresetThemes(): void {
-        for (const themeName of PRESET_COLOR_THEME_ARR) {
-            const rawColorMap = this._registrant.getRegisteredColorMap(themeName);  
+        for (const themeMetadata of PRESET_COLOR_THEME_METADATA) {
+            const rawColorMap = this._registrant.getRegisteredColorMap(themeMetadata.name);  
 
-            const validation = this.__isValidTheme(rawColorMap, true);
+            const validation = this.__isValidTheme({ ...themeMetadata, colors: rawColorMap }, true);
             if (!validation.valid) {
-                panic(new Error(`[ThemeService] Preset color theme is not a valid theme: ${themeName}. The reason is: ${validation.reason}`));
+                panic(new Error(`[ThemeService] Preset color theme is not a valid theme: ${themeMetadata.name}. The reason is: ${validation.reason}`));
             }
 
             const validMap = validation.rawData;
@@ -266,14 +266,17 @@ export class ThemeService extends Disposable implements IThemeService {
 
     private __updateDynamicCSSRules(theme: IColorTheme): void {
         const resolvedColorMap = this.__mergeWithPresetColorMap(theme);
-        const cssRules = new Set<string>();
-
+        
         // Generate CSS variables for each color in the theme
+        const cssRules = new Set<string>();
         Object.entries(resolvedColorMap).forEach(([colorName, colorValue]) => {
-            cssRules.add(`:root { --${colorName}: ${colorValue}; }`); // REVIEW
+            cssRules.add(`${toCssVariableName(colorName)}: ${colorValue};`);
         });
-        const cssString = Array.from(cssRules).join('\n');
-        this.__applyRules(cssString, theme.name); 
+        
+        const cssVariables = [...cssRules].join('\n');
+        const cssStylesInString = `:root { ${cssVariables} }`;
+
+        this.__applyRulesToDocument(cssStylesInString, theme.name); 
     }
 
     /**
@@ -293,18 +296,20 @@ export class ThemeService extends Disposable implements IThemeService {
         return mixin(baseColorMap, theme.getColorMap(), true);
     }
 
-    private __applyRules(styleSheetContent: string, rulesClassName: string): void {
-        const themeStyles = document.head.getElementsByClassName(rulesClassName);
+    private __applyRulesToDocument(styleSheetContent: string, themeName: string): void {
+        const themeStyles = document.head.getElementsByClassName(themeName);
     
         if (themeStyles.length === 0) {
             // If no existing <style> element for the theme, create a new one
-            const elStyle = document.createElement('style');
-            elStyle.className = rulesClassName;
-            elStyle.textContent = styleSheetContent;
-            document.head.appendChild(elStyle);
+            const style = document.createElement('style');
+            style.type = 'text/css';
+            style.media = 'screen';
+            style.className = themeName;
+            style.textContent = styleSheetContent;
+            document.head.appendChild(style);
         } else {
             // If a <style> element already exists, update its content
-            (themeStyles[0] as HTMLStyleElement).textContent = styleSheetContent;
+            assert(themeStyles[0]).textContent = styleSheetContent;
         }
     }
 }
