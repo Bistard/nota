@@ -187,10 +187,7 @@ export class ThemeService extends Disposable implements IThemeService {
         this._initProtector.init('Cannot init twice').unwrap();
         this.__assertPresetThemes();
     
-        const themeID = this.configurationService.get<string>(
-            WorkbenchConfiguration.ColorTheme,
-            PresetColorTheme.LightModern,
-        );
+        const themeID = this.configurationService.get<string>(WorkbenchConfiguration.ColorTheme, PresetColorTheme.LightModern);
         await this.switchTo(themeID);
     }
     
