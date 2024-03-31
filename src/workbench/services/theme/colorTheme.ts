@@ -48,7 +48,7 @@ export interface IColorTheme {
     readonly name: string;
 
     /**
-     * The description of the theme. No descriptions if not provided.
+     * The description of the theme.
      */
     readonly description?: string;
 
@@ -59,7 +59,8 @@ export interface IColorTheme {
     getColor(id: string): RGBA | undefined;
 
     /**
-     * // TODO
+     * @description Retrieves a map of all colors in the theme.
+     * @returns The complete color map of the theme.
      */
     getColorMap(): ColorMap;
 }

@@ -46,16 +46,13 @@ export interface IThemeService extends Disposable, IService {
     getCurrTheme(): IColorTheme;
 
     /**
-     * // REVIEW: out of update doc
-     * @description Changes the current theme to the new theme with the given ID.
-     * @param id If the id is an URI, the service will try to read the URI
-     *           as a JSON file for theme data. If id is an string, it will be
-     *           considered as the JSON file name to read at the {@link themeRootPath}.
-     * 
-     * @note This will fire {@link onDidChangeTheme} once successful.
-     * @note When the AsyncResult is resolved as ok, means the new theme is 
-     *       loaded successfully and returned. Otherwise an Error must 
-     *       encountered.
+     * @description Changes the current theme to the specified theme.
+     * @param id The identifier for the new theme. If the identifier is not one
+     *           of the preset theme, it is considered the filename within 
+     *           {@link themeRootPath}.
+     * @returns A promise that resolves to the new {@link IColorTheme} upon 
+     *          successful theme switch. If fails, returns the current one.
+     * @note Triggers {@link onDidChangeTheme} upon success.
      */
     switchTo(id: string): Promise<IColorTheme>;
 
@@ -70,10 +67,11 @@ export interface IThemeService extends Disposable, IService {
 }
 
 /**
- * An interface only for {@link RawThemeJsonReadingData}
- * 
- * @description A valid theme .json file should have four keys: 1. Theme type 
- * 2. Name of the theme 3. theme description 4. colors used in the theme
+ * @description A valid theme .json file should have four keys: 
+ *  1. Theme type 
+ *  2. Theme name
+ *  3. Theme description 
+ *  4. Colors mapping
  */
 export interface IRawThemeJsonReadingData {
     readonly type: ColorThemeType;
@@ -83,7 +81,8 @@ export interface IRawThemeJsonReadingData {
 }
 
 /**
- * @class
+ * @class Manages the application's visual theme, including loading, applying, 
+ * and switching themes.
  */
 export class ThemeService extends Disposable implements IThemeService {
 

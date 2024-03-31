@@ -19,6 +19,9 @@ export const THEME_COLORS = {
     outerSpace: new RGBA(41, 49, 51),
 } satisfies ColorMap;
 
+/**
+ * A color mapping that is shared in the preset color themes.
+ */
 export const SHARED_COLORS_DEFAULT: ColorMap = {
     // TODO
 };
