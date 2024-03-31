@@ -20,6 +20,15 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'menuItem-focus-background', THEME_COLORS.seaGreen);
 
         // NavigationPanel
+
+        // NavigationView
+
+        // Explorer (NavView)
+
+        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-focused-background', THEME_COLORS.mediumTeal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-selected-background', THEME_COLORS.mediumTeal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-hovered-background', THEME_COLORS.lightTeal);
+
         // Workspace
     },
 );

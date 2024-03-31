@@ -20,15 +20,15 @@
     // }
 
     &.focused {
-        outline: 1px solid #cf6060;
+        outline: 1px solid var(--nota-explorer-item-focused-background);
     }
     
     &.selected {
-        background-color: #f0e8e8;
+        background-color: var(--nota-explorer-item-selected-background);
     }
 
     &.hovered {
-        background-color: #fcf3f3;
+        background-color: var(--nota-explorer-item-hovered-background);
     }
     
     & > .tree-list-row > .icon {

@@ -13,6 +13,15 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('menuItem-focus-background');
 
         // NavigationPanel
+
+        // NavigationView
+
+        // Explorer (NavView)
+
+        registrant.registerTemplate('explorer-item-focused-background');
+        registrant.registerTemplate('explorer-item-selected-background');
+        registrant.registerTemplate('explorer-item-hovered-background');
+
         // Workspace
     },
 );
