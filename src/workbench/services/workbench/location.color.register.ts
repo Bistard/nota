@@ -4,9 +4,15 @@ export const rendererThemeLocationRegister = createRegister(
     RegistrantType.Color,
     'rendererThemeLocation',
     (registrant) => {
-        registrant.registerTemplate('menu-item-focus-background-color');
-        registrant.registerTemplate('search-bar-background');
+        
+        // general
         registrant.registerTemplate('selection-color');
-        registrant.registerTemplate('toolbar-container-background');
+
+        // utility
+        registrant.registerTemplate('search-bar-background');
+        registrant.registerTemplate('menu-item-focus-background-color');
+
+        // NavigationPanel
+        // Workspace
     },
 );

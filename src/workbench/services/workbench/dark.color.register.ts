@@ -6,9 +6,15 @@ export const rendererDarkThemeColorRegister = createRegister(
     RegistrantType.Color,
     'rendererThemeColor',
     (registrant) => {
-        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-focus-background-color', THEME_COLORS.onyx);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.charcoal); 
+
+        // general
         registrant.registerColor(PresetColorTheme.DarkModern, 'selection-color', THEME_COLORS.midnightBlue); 
-        registrant.registerColor(PresetColorTheme.DarkModern, 'toolbar-container-background', THEME_COLORS.ebony); 
+
+        // utility
+        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.charcoal); 
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-focus-background-color', THEME_COLORS.onyx);
+
+        // NavigationPanel
+        // Workspace
     },
 );
