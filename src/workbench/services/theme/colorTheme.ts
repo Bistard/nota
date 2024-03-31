@@ -1,5 +1,4 @@
 import { ColorMap, RGBA } from "src/base/common/color";
-import { iterProp } from "src/base/common/utilities/object";
 import { assert } from "src/base/common/utilities/panic";
 import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
@@ -81,11 +80,12 @@ export class ColorTheme implements IColorTheme {
         this.type = rawData.type;
         this.name = rawData.name;
         this.description = rawData.description;
-        
         this._colors = {};
-        iterProp(rawData.colors, propName => {
-            const colorInHex = rawData.colors[propName]!;
-            this._colors[propName] = assert(RGBA.parse(colorInHex), `[ColorTheme] Cannot parse the raw data at the color '${propName}' with the hexadecimal '${colorInHex}'`);
+
+        Object.entries(rawData.colors).forEach(([propName, hexOrRGBA]) => {
+            this._colors[propName] = RGBA.is(hexOrRGBA) 
+                ? hexOrRGBA 
+                : assert(RGBA.parse(hexOrRGBA), `[ColorTheme] Cannot parse the raw data at the color '${propName}' with the hexadecimal '${hexOrRGBA}'`);
         });
     }
     

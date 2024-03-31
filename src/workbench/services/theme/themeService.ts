@@ -17,7 +17,7 @@ import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { assert, panic } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { mixin } from "src/base/common/utilities/object";
-import { ColorMap } from "src/base/common/color";
+import { ColorMap, RGBA } from "src/base/common/color";
 import { noop } from "src/base/common/performance";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
@@ -79,7 +79,7 @@ export interface IRawThemeJsonReadingData {
     readonly type: ColorThemeType;
     readonly name: string;
     readonly description: string;
-    readonly colors: Dictionary<string, string>;
+    readonly colors: Dictionary<string, string | RGBA>;
 }
 
 /**
@@ -209,8 +209,8 @@ export class ThemeService extends Disposable implements IThemeService {
                 panic(new Error(`[ThemeService] Preset color theme is not a valid theme: ${themeMetadata.name}. The reason is: ${validation.reason}`));
             }
 
-            const validMap = validation.rawData;
-            this._presetThemes.set(validMap.name, new ColorTheme(validMap));
+            const validRaw = validation.rawData;
+            this._presetThemes.set(validRaw.name, new ColorTheme(validRaw));
         }
     }
 
@@ -240,7 +240,7 @@ export class ThemeService extends Disposable implements IThemeService {
         if (isPreset) {
             const template = this._registrant.getTemplate();
             for (const location of template) {
-                const isPresent = isString(rawData['colors'][location]);
+                const isPresent = RGBA.is(rawData['colors'][location]);
                 if (!isPresent) {
                     return { valid: false, reason: `The theme is missing the color: '${location}'` };
                 }
