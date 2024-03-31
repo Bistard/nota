@@ -356,7 +356,6 @@ export class Toolbar {
         // toolbar container
         const toolBarContainer = document.createElement('div');
         toolBarContainer.className = 'toolbar-container';
-        toolBarContainer.style.setProperty('--toolbar-container-background', (new RGBA(0, 0, 0, 0.05)).toString());
         this._buttons.render(toolBarContainer);
 
         this._element.appendChild(toolBarContainer);

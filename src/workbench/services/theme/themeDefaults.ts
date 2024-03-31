@@ -7,7 +7,7 @@ export const THEME_COLORS = {
     // light theme special
     seaGreen: new RGBA(60, 179, 113),
     ghostWhite: new RGBA(248, 248, 255),
-    lightSkyBlue: new RGBA(135, 206, 250),
+    lightSkyBlue: new RGBA(179, 212, 252),
     lavenderBlush: new RGBA(255, 240, 245),
     gainsboro: new RGBA(220, 220, 220),
     
