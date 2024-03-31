@@ -251,11 +251,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
         const i18nService          = instantiationService.getService(II18nService);
         const productService       = instantiationService.getService(IProductService);
+        const themeService         = instantiationService.getOrCreateService(IThemeService);
 
         await configurationService.init()
-        .andThen(() => i18nService.init())
-        .andThen(() => productService.init(environmentService.productProfilePath))
-        .unwrap();
+            .andThen(() => i18nService.init())
+            .andThen(() => productService.init(environmentService.productProfilePath))
+            .andThen(() => themeService.init())
+            .unwrap();
         
         this.logService.trace('renderer', 'All core renderer services are initialized successfully.');
     }
