@@ -1,11 +1,16 @@
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
-import { THEME_COLORS } from "src/workbench/services/theme/themeDefaults";
+import { SHARED_COLORS_DEFAULT, THEME_COLORS } from "src/workbench/services/theme/themeDefaults";
 
 export const rendererLightThemeColorRegister = createRegister(
     RegistrantType.Color,
     'rendererLightThemeColor',
     (registrant) => {
+
+        // shared
+        Object.entries(SHARED_COLORS_DEFAULT).forEach(([colorName, colorRGBA]) => {
+            registrant.registerColor(PresetColorTheme.LightModern, colorName, colorRGBA);
+        });
 
         // general
         registrant.registerColor(PresetColorTheme.LightModern, 'selection-color', THEME_COLORS.lightSkyBlue); 

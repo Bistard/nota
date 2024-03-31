@@ -17,12 +17,8 @@ export const THEME_COLORS = {
     midnightBlue: new RGBA(25, 25, 112),
     ebony: new RGBA(85, 93, 80),
     outerSpace: new RGBA(41, 49, 51),
-};
+} satisfies ColorMap;
 
-export const defaultThemeColors: ColorMap = {
-    "menu-border-color": THEME_COLORS.ghostWhite,
-    "sidebar-background-color": THEME_COLORS.seaGreen,
-    "search-bar-background": THEME_COLORS.ghostWhite,
-    "selection-color": THEME_COLORS.lightSkyBlue,
-    "toolbar-container-background": THEME_COLORS.ghostWhite,
+export const SHARED_COLORS_DEFAULT: ColorMap = {
+    // TODO
 };
