@@ -9,7 +9,7 @@ import { IBrowserEnvironmentService } from "src/platform/environment/common/envi
 import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
-import { ColorTheme, IColorTheme, isPresetColorTheme } from "src/workbench/services/theme/colorTheme";
+import { ColorTheme, IColorTheme, PRESET_COLOR_THEME_ARR, isPresetColorTheme } from "src/workbench/services/theme/colorTheme";
 import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, isObject, isString } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
@@ -127,7 +127,7 @@ export class ThemeService extends Disposable implements IThemeService {
 
     public getCurrTheme(): IColorTheme {
         if (!this._currentTheme) {
-            panic("Theme has not been initialized!");
+            panic("[ThemeService] ThemeService has not been initialized!");
         }
         return this._currentTheme;
     }
@@ -149,12 +149,13 @@ export class ThemeService extends Disposable implements IThemeService {
             .andThen(themeData => jsonSafeParse(themeData.toString())
             
             // validate the raw data and apply the theme
-            .andThen<IColorTheme, Error>(themeRawData => {
-                if (!this.__isValidTheme(themeRawData)) {
-                    return err(new Error(`Error loading theme from URI: ${URI.toString(themePath)}.`));
+            .andThen<IColorTheme, Error>(rawData => {
+                const validation = this.__isValidTheme(rawData, false);
+                if (!validation.valid) {
+                    return err(new Error(`Cannot validate the theme at: '${URI.toString(themePath)}'. The reason is: ${validation.reason}`));
                 }
                 
-                const newTheme = new ColorTheme(themeRawData);
+                const newTheme = new ColorTheme(validation.rawData);
                 this.__applyColorTheme(newTheme);
 
                 return ok(newTheme);
@@ -200,25 +201,22 @@ export class ThemeService extends Disposable implements IThemeService {
      * {@link ColorTheme}s.
      */
     private __assertPresetThemes(): void {
-        const themeNames = [
-            PresetColorTheme.LightModern,
-            PresetColorTheme.DarkModern,
-        ];
-
-        for (const themeName of themeNames) {
+        for (const themeName of PRESET_COLOR_THEME_ARR) {
             const rawColorMap = this._registrant.getRegisteredColorMap(themeName);  
-            if (!this.__isValidTheme(rawColorMap)) {
-                panic(new Error(`Preset color theme is not a valid theme: ${themeName}`));
+
+            const validation = this.__isValidTheme(rawColorMap, true);
+            if (!validation.valid) {
+                panic(new Error(`[ThemeService] Preset color theme is not a valid theme: ${themeName}. The reason is: ${validation.reason}`));
             }
 
-            const theme = new ColorTheme(rawColorMap);
-            this._presetThemes.set(rawColorMap.name, theme);
+            const validMap = validation.rawData;
+            this._presetThemes.set(validMap.name, new ColorTheme(validMap));
         }
     }
 
-    private __isValidTheme(rawData: unknown): rawData is IRawThemeJsonReadingData {
+    private __isValidTheme(rawData: unknown, isPreset: boolean): ColorThemeValidateResult {
         if (!isObject(rawData)) {
-            return false;
+            return { valid: false, reason: 'The theme raw data is not an object type.' };
         }
     
         // Basic validation for the structure of 'rawData'
@@ -227,14 +225,29 @@ export class ThemeService extends Disposable implements IThemeService {
                                 isString(rawData['description']) &&
                                 isObject(rawData['colors']);
         if (!basicValidation) {
-            return false;
+            return { valid: false, reason: 'The theme is missing the basic metadata: "type", "name", "description" or "colors".' };
         }
 
-        // Ensure every required color location is present in the theme
-        const template = this._registrant.getTemplate();
-        const allColorsPresent = [...template].every(location => isString(rawData['colors'][location]));
-    
-        return allColorsPresent;
+        if (!isPreset && isPresetColorTheme(rawData['name'])) {
+            return { valid: false, reason: `The theme shares its name with a preset theme: ${rawData['name']}.` };
+        }
+
+        /**
+         * Ensure every required color location is present in the theme when it 
+         * is a preset theme. The user theme is allow to have partial colors
+         * since the missing one will be filled with the preset one.
+         */
+        if (isPreset) {
+            const template = this._registrant.getTemplate();
+            for (const location of template) {
+                const isPresent = isString(rawData['colors'][location]);
+                if (!isPresent) {
+                    return { valid: false, reason: `The theme is missing the color: '${location}'` };
+                }
+            }
+        }
+        
+        return { valid: true, rawData: <any>rawData };
     }
 
     /**
@@ -269,7 +282,7 @@ export class ThemeService extends Disposable implements IThemeService {
      * to the corresponding preset one.
      */
     private __mergeWithPresetColorMap(theme: IColorTheme): ColorMap {
-        if (isPresetColorTheme(theme)) {
+        if (isPresetColorTheme(theme.name)) {
             return theme.getColorMap();
         } 
         
@@ -294,4 +307,16 @@ export class ThemeService extends Disposable implements IThemeService {
             (themeStyles[0] as HTMLStyleElement).textContent = styleSheetContent;
         }
     }
+}
+
+type ColorThemeValidateResult = IOkColorThemeResult | IErrColorThemeResult;
+
+interface IOkColorThemeResult {
+    readonly valid: true;
+    readonly rawData: IRawThemeJsonReadingData;
+}
+
+interface IErrColorThemeResult {
+    readonly valid: false;
+    readonly reason: string;
 }

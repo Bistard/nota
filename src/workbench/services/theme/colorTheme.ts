@@ -4,10 +4,15 @@ import { assert } from "src/base/common/utilities/panic";
 import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
 
-export function isPresetColorTheme(theme: IColorTheme): boolean {
-    return theme.name === PresetColorTheme.LightModern ||
-           theme.name === PresetColorTheme.DarkModern;
+export function isPresetColorTheme(name: string): boolean {
+    return name === PresetColorTheme.LightModern ||
+           name === PresetColorTheme.DarkModern;
 }
+
+export const PRESET_COLOR_THEME_ARR = [
+    PresetColorTheme.LightModern,
+    PresetColorTheme.DarkModern,
+];
 
 /**
  * A {@link IColorTheme} is a data structure that is constructed from a valid
