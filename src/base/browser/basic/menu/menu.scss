@@ -1,7 +1,6 @@
 @use 'src/styles/components/visualization';
 
 $menu-item-height: var(--menu-item-height);
-$menu-item-focus-background-color: var(--menu-item-focus-background-color);
 
 .menu {
     height: 100%;
@@ -63,7 +62,7 @@ $menu-item-focus-background-color: var(--menu-item-focus-background-color);
     & > .menu-item {
         
         &.focused {
-            background-color: $menu-item-focus-background-color;
+            background-color: var(--nota-menuItem-focus-background);
         }
 
         & > .left-part {

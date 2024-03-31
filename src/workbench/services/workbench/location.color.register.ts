@@ -6,11 +6,11 @@ export const rendererThemeLocationRegister = createRegister(
     (registrant) => {
         
         // general
-        registrant.registerTemplate('selection-color');
+        registrant.registerTemplate('selection-background');
 
         // utility
         registrant.registerTemplate('search-bar-background');
-        registrant.registerTemplate('menu-item-focus-background-color');
+        registrant.registerTemplate('menuItem-focus-background');
 
         // NavigationPanel
         // Workspace

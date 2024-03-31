@@ -13,11 +13,11 @@ export const rendererDarkThemeColorRegister = createRegister(
         });
 
         // general
-        registrant.registerColor(PresetColorTheme.DarkModern, 'selection-color', THEME_COLORS.midnightBlue); 
+        registrant.registerColor(PresetColorTheme.DarkModern, 'selection-background', THEME_COLORS.midnightBlue); 
 
         // utility
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.charcoal); 
-        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-focus-background-color', THEME_COLORS.onyx);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menuItem-focus-background', THEME_COLORS.onyx);
 
         // NavigationPanel
         // Workspace
