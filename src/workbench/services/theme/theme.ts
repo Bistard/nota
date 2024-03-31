@@ -14,7 +14,7 @@ export const enum ColorThemeType {
  * A list of preset themes.
  */
 export const enum PresetColorTheme {
-    LightModern = 'lightModern',
+    LightModern = 'LightModern',
     DarkModern = 'DarkModern',
 }
 

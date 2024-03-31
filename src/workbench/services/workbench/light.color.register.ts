@@ -4,7 +4,7 @@ import { THEME_COLORS } from "src/workbench/services/theme/themeDefaults";
 
 export const rendererLightThemeColorRegister = createRegister(
     RegistrantType.Color,
-    'rendererThemeColor',
+    'rendererLightThemeColor',
     (registrant) => {
 
         // general
