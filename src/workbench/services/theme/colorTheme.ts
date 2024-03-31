@@ -57,7 +57,7 @@ export class ColorTheme implements IColorTheme {
         this._colors = {};
         iterProp(rawData.colors, propName => {
             const colorInHex = rawData.colors[propName]!;
-            this._colors[propName] = assert(RGBA.parse(colorInHex));
+            this._colors[propName] = assert(RGBA.parse(colorInHex), `[ColorTheme] Cannot parse the raw data at the color '${propName}' with the hexadecimal '${colorInHex}'`);
         });
     }
     
