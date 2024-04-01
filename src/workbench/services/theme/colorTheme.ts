@@ -1,8 +1,35 @@
 import { ColorMap, RGBA } from "src/base/common/color";
-import { iterProp } from "src/base/common/utilities/object";
 import { assert } from "src/base/common/utilities/panic";
-import { ColorThemeType } from "src/workbench/services/theme/theme";
+import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
+
+export function isPresetColorTheme(name: string): boolean {
+    return name === PresetColorTheme.LightModern ||
+           name === PresetColorTheme.DarkModern;
+}
+
+export const PRESET_COLOR_THEME_METADATA: { name: PresetColorTheme, type: ColorThemeType, description: string }[] = [
+    {
+        name: PresetColorTheme.LightModern,
+        type: ColorThemeType.Light,
+        description: 'Default theme (Light Modern)',
+    },
+    {
+        name: PresetColorTheme.DarkModern,
+        type: ColorThemeType.Dark,
+        description: 'Default theme (Light Modern)',
+    },
+];
+
+/**
+ * Returns the css variable name for the given color identifier. Dots (`.`) are 
+ * replaced with hyphens (`-`) and everything is prefixed with `--nota-`.
+ *
+ * @sample `navigationPanel.background` is `--nota-navigationPanel-background`.
+ */
+export function toCssVariableName(name: string): string {
+    return `--nota-${name.replace(/\./g, '-')}`;
+}
 
 /**
  * A {@link IColorTheme} is a data structure that is constructed from a valid
@@ -21,7 +48,7 @@ export interface IColorTheme {
     readonly name: string;
 
     /**
-     * The description of the theme. No descriptions if not provided.
+     * The description of the theme.
      */
     readonly description?: string;
 
@@ -32,7 +59,8 @@ export interface IColorTheme {
     getColor(id: string): RGBA | undefined;
 
     /**
-     * // TODO
+     * @description Retrieves a map of all colors in the theme.
+     * @returns The complete color map of the theme.
      */
     getColorMap(): ColorMap;
 }
@@ -53,11 +81,12 @@ export class ColorTheme implements IColorTheme {
         this.type = rawData.type;
         this.name = rawData.name;
         this.description = rawData.description;
-        
         this._colors = {};
-        iterProp(rawData.colors, propName => {
-            const colorInHex = rawData.colors[propName]!;
-            this._colors[propName] = assert(RGBA.parse(colorInHex));
+
+        Object.entries(rawData.colors).forEach(([propName, hexOrRGBA]) => {
+            this._colors[propName] = RGBA.is(hexOrRGBA) 
+                ? hexOrRGBA 
+                : assert(RGBA.parse(hexOrRGBA), `[ColorTheme] Cannot parse the raw data at the color '${propName}' with the hexadecimal '${hexOrRGBA}'`);
         });
     }
     

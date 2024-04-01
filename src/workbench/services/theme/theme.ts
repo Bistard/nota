@@ -14,12 +14,20 @@ export const enum ColorThemeType {
  * A list of preset themes.
  */
 export const enum PresetColorTheme {
-    LightModern = 'lightModern',
+    LightModern = 'LightModern',
     DarkModern = 'DarkModern',
 }
 
 /**
- * // TODO
+ * @class Provides a base class for components that are theme-aware within an 
+ * application.
+ * 
+ * It integrates with a theme service to automatically update its theme-related 
+ * properties and styles whenever the application's theme changes.
+ *
+ * This abstract class requires the implementation of the `__updateStyles` 
+ * method to specify how the component should update its styles in response to 
+ * theme changes.
  */
 export abstract class Themable extends Disposable {
 

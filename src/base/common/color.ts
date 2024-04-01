@@ -144,6 +144,21 @@ export class RGBA {
 		return `rgb(${this.r},${this.g},${this.b},${this.a})`;
 	}
 
+	public static is(obj: any): obj is RGBA {
+		if (obj instanceof RGBA) {
+			return true;
+		}
+
+		if (!obj) {
+			return false;
+		}
+
+		return typeof obj['r'] === 'number' 
+			&& typeof obj['g'] === 'number' 
+			&& typeof obj['b'] === 'number'
+			&& typeof obj['a'] === 'number';
+	}
+
     public static toString(color: RGBA): string {
         return `rgb(${color.r},${color.g},${color.b},${color.a})`;
     }
