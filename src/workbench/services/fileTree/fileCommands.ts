@@ -2,7 +2,7 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
 import { Command } from "src/platform/command/common/command";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { URI } from "src/base/common/files/uri";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
@@ -14,10 +14,11 @@ import { parse } from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
 import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
-import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { noop } from "src/base/common/performance";
-import { assert, errorToMessage } from "src/base/common/utilities/panic";
+import { assert, assertArray, errorToMessage } from "src/base/common/utilities/panic";
 import { ResourceMap } from "src/base/common/structures/map";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
+import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -52,10 +53,32 @@ export namespace FileCommands {
             return __handleCutOrCopy(provider, 'copy');
         }
     }
+
+    function __handleCutOrCopy(provider: IServiceProvider, type: 'cut' | 'copy'): boolean {
+        const service = provider.getOrCreateService(IFileTreeService);
+        const clipboard = provider.getOrCreateService(IClipboardService);
+    
+        const selections = service.getSelections();
+        if (selections.length === 0) {
+            return false;
+        }
+    
+        if (type === 'copy') {
+            service.highlightSelectionAsCopy(selections);
+        } else {
+            service.highlightSelectionAsCut(selections);
+        }
+    
+        const resources = selections.map(item => item.uri);
+        clipboard.write(ClipboardType.Resources, resources);
+    
+        return true;
+    }
     
     export class FilePaste extends Command {
     
         private fileTreeService!: IFileTreeService;
+        private fileTreeMetadataService!: IFileTreeMetadataService;
         private clipboardService!: IClipboardService;
         private fileService!: IFileService;
         private notificationService!: INotificationService;
@@ -68,17 +91,18 @@ export namespace FileCommands {
             });
         }
     
-        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx?: number, resources?: URI[]): Promise<boolean> {
-            this.fileTreeService     = provider.getOrCreateService(IFileTreeService);
-            this.clipboardService    = provider.getOrCreateService(IClipboardService);
-            const contextService     = provider.getOrCreateService(IContextService);
-            this.notificationService = provider.getOrCreateService(INotificationService);
-            this.fileService         = provider.getOrCreateService(IFileService);
-            this.commandService      = provider.getOrCreateService(ICommandService);
+        public override async run(provider: IServiceProvider, destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]): Promise<boolean> {
+            this.fileTreeService         = provider.getOrCreateService(IFileTreeService);
+            this.clipboardService        = provider.getOrCreateService(IClipboardService);
+            const contextService         = provider.getOrCreateService(IContextService);
+            this.notificationService     = provider.getOrCreateService(INotificationService);
+            this.fileService             = provider.getOrCreateService(IFileService);
+            this.commandService          = provider.getOrCreateService(ICommandService);
+            this.fileTreeMetadataService = provider.getOrCreateService(IFileTreeMetadataService);
 
-            const toPaste  = await this.__getResourcesToPaste(resources);
-            const isCut    = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
-            const isInsert = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnInsertKey));
+            const toPaste = await this.__getResourcesToPaste(resources);
+            const isCut   = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
+            const isNormalPaste = this.fileTreeService.getFileSortingType() !== FileSortType.Custom;
 
             // nothing to paste, nothing happens.
             if (toPaste.length === 0) {
@@ -86,22 +110,31 @@ export namespace FileCommands {
             }
             
             // paste (normal)
-            if (!isInsert) {
-                return await this.__pasteNormal(toPaste, destination, isCut);
-            }
+            if (isNormalPaste) {
+                const toPasteURI = Arrays.isType<FileItem>(toPaste, element => URI.isURI(element)) 
+                        ? toPaste.map(item => item.uri)
+                        : toPaste;
+                return await this.__pasteNormal(toPasteURI, destination, isCut);
+            } 
             
-            // paste (custom sorting)
-            await this.__pasteInsert(destination, destinationIdx ?? 0, isCut);
-            
+            /**
+             * // paste (custom sorting)
+             * 
+             * On detecting an insertion, the operation must be conducted from 
+             * the UI perspective. Therefore must make sure the `toPaste` is an
+             * array of `FileItem`.
+             */
+            const toPasteItems = assertArray<FileItem>(toPaste, arr => Arrays.isType(arr, element => !URI.isURI(element)));
+            await this.__pasteInsert(toPasteItems, destination, destinationIdx ?? 0, isCut);
             return true;
         }
 
         // [private helper methods]
 
-        private async __getResourcesToPaste(resources?: URI[]): Promise<URI[]> {
+        private async __getResourcesToPaste(resources?: URI[] | FileItem[]): Promise<URI[] | FileItem[]> {
             
             // paste the provided resources for higher priority
-            let toPaste: URI[] = resources ?? [];
+            let toPaste = resources ?? [];
 
             /**
              * If no provided resources, fallback to read the sources from the
@@ -112,8 +145,11 @@ export namespace FileCommands {
             }
 
             // check parent-child relationship
-            const resolvedToPaste = URI.distinctParents(toPaste);
-            return resolvedToPaste;
+            if (Arrays.isType<URI>(toPaste, element => URI.isURI(element))) {
+                return URI.distinctParents(toPaste);
+            } else {
+                return URI.distinctParentsByUri(toPaste, item => item.uri);
+            }
         }
 
         private async __pasteNormal(toPaste: URI[], destination: FileItem, isCut: boolean): Promise<boolean> {
@@ -139,16 +175,11 @@ export namespace FileCommands {
             return batch;
         }
 
-        private async __pasteInsert(destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
-            /**
-             * On detecting an insertion, the operation must be conducted from 
-             * the UI perspective. Therefore, instead of utilizing the given 
-             * URIs (toPaste), we retrieve 'FileItem's directly from the 
-             * clipboard.
-             * 
-             * This also check parent-child relationship.
-             */
-            const toInsert = assert(await this.clipboardService.read<FileItem[]>(ClipboardType.Arbitrary, 'dndInsertionItems'));
+        private async __pasteInsert(toInsert: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+            assert(destination.isDirectory());
+            assert(!this.fileTreeService.isCollapsed(destination));
+            
+            // This also check parent-child relationship.
             const dragItems = URI.distinctParentsByUri(toInsert, item => item.uri);
 
             /**
@@ -191,8 +222,9 @@ export namespace FileCommands {
             const toPasteParent = assert(toPaste[0]!.parent);
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
+            // actual paste operation
             const batch = insertAtSameParent
-                ? createBatchResult<IChange<URI>>({ passed: toPaste.map(item => ({ old: item.uri, new: URI.join(destination.uri, URI.basename(item.uri)) })) })
+                ? createBatchResult({ passed: toPaste.map(item => ({ old: item.uri, new: item.uri })) })
                 : await this.__doPasteNormal(toPaste.map(item => item.uri), destination, isCut);
             
             // error handling to those who fails
@@ -200,58 +232,45 @@ export namespace FileCommands {
                 this.__onResourceBatchError(batch, isCut, destination.uri);
             }
 
+            // no passed items, do nothing for metadata update.
+            if (batch.passed.length === 0) {
+                return false;
+            }
+
+            const details = this.__extractBatchDetails(batch, toPaste);
+
             // update metadata to those who successes
-            await this.__doUpdateMetadataLot(batch, isCut, toPaste, destination, destinationIdx, insertAtSameParent);
+            if (insertAtSameParent) {
+                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, destinationIdx);
+            } else {
+                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, destinationIdx, destination, details.passedOldDirUri, details.passedNewDirUri);
+            }
 
             // determine if any file/dir is actually pasted in the file system
-            const pasted = !insertAtSameParent && batch.passed.length > 0;
+            const pasted = !insertAtSameParent;
             return pasted;
         }
 
-        private async __doUpdateMetadataLot(
-            batch: IBatchResult<IChange<URI>>, 
-            isCut: boolean, 
-            pastedItems: FileItem[], 
-            destination: FileItem, 
-            destinationIdx: number, // the view index of the destination relative to its parent
-            insertAtSameParent: boolean,
-        ): Promise<void> 
-        {
-            // no passed items, do nothing for metadata update.
-            if (batch.passed.length === 0) {
-                return;
+        private __extractBatchDetails(batch: IBatchResult<IChange<URI>>, toPaste: FileItem[]) {
+            const passedOldUriMap = new ResourceMap<URI>();
+            for (const passed of batch.passed) {
+                passedOldUriMap.set(passed.old, passed.new);
             }
-
-            /**
-             * // REVIEW
-             * When updating the metadata in disk. I'm not sure if 'unwrap' is 
-             * the right thing to do. The error expected to be disk-related. I 
-             * guess there is not much that we can do if error encounters. So I 
-             * choose'unwrap' for now.
-             */
-
+        
             /**
              * Update metadata only for successfully processed resources. 
              *  - e.g, if an operation involving 10 files where 7 succeed and 3 
              *    fail, metadata will only be updated for the 7 successful files, 
              *    leaving the others unchanged.
              */
-            const passedOldUriMap = new ResourceMap<URI>();
-            for (const passed of batch.passed) {
-                passedOldUriMap.set(passed.old, passed.new);
-            }
-
             const passedItems: FileItem[] = [];
-            const passedCount = passedOldUriMap.size;
-
             const passedOldDirUri: URI[] = [];
             const passedNewDirUri: URI[] = [];
-            const passedOldUri   : URI[] = [];
-            const passedNewUri   : URI[] = [];
-            const oldParent: FileItem = assert(pastedItems[0]!.parent);
-
-            // filter out only the passed items
-            for (const pastedItem of pastedItems) {
+            const passedOldUri: URI[] = [];
+            const passedNewUri: URI[] = [];
+            const oldParentItem: FileItem = assert(toPaste[0]!.parent);
+        
+            for (const pastedItem of toPaste) {
                 const oldUri = pastedItem.uri;
                 const newUri = passedOldUriMap.get(oldUri);
                 if (!newUri) {
@@ -260,86 +279,98 @@ export namespace FileCommands {
                 passedItems.push(pastedItem);
                 passedOldUri.push(oldUri);
                 passedNewUri.push(newUri);
-
+        
                 if (pastedItem.isDirectory()) {
                     passedOldDirUri.push(oldUri);
                     passedNewDirUri.push(newUri);
                 }
             }
-            
-            console.log('isCut:', isCut);
-            console.log('destinationName:', destination.basename);
-            console.log('destinationIdx:', destinationIdx);
-            console.table({
+        
+            return {
+                passedCount: passedOldUriMap.size,
                 passedItems,
                 passedOldDirUri,
                 passedNewDirUri,
                 passedOldUri,
                 passedNewUri,
-            });
+                oldParentItem,
+            };
+        }
 
-            // debugger; // TEST
-
-            if (insertAtSameParent) {
-                /**
-                 * Step 0: Handling insertion within the same parent directory.
-                 * In scenarios where the items being pasted remain within the 
-                 * same parent directory from which they were cut or copied, the
-                 * removing and adding happens at the directory, we can integrate 
-                 * two operations. This operation effectively updates the sorting 
-                 * order of the items within the same directory.
-                 */
-                if (isCut) {
-                    const toMoveIndice = passedItems.map(item => this.fileTreeService.getItemIndex(item));
-                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Move, oldParent, toMoveIndice, destinationIdx).unwrap();
-                } 
-                else {
-                    const addIndice = Arrays.fill(destinationIdx, passedCount);
-                    await this.fileTreeService.updateCustomSortingMetadata(OrderChangeType.Add, passedItems, addIndice).unwrap();
-                }
+        private async __updateMetadataAtSameParent(
+            isCut: boolean, 
+            passedItems: FileItem[],
+            oldParentItem: FileItem,
+            destinationIdx: number,
+        ): Promise<void> {
+            /**
+             * Handling insertion within the same parent directory. In scenarios 
+             * where the items being pasted remain within the same parent 
+             * directory from which they were cut or copied, the removing and 
+             * adding happens at the directory, we can integrate two operations. 
+             * This operation effectively updates the sorting order of the items 
+             * within the same directory.
+             */
+            if (isCut) {
+                const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParentItem.uri, null, toMoveIndice, destinationIdx).unwrap();
             } 
             else {
-                /**
-                 * Step 1: In the general cut operation, after items are moved 
-                 * to their new location, the metadata at the original location 
-                 * should be removed.
-                 */
-                if (isCut) {
-                    const removeIndice: number[] = [];
-                    for (const item of passedItems) {
-                        const idx = this.fileTreeService.getItemIndex(item);
-                        removeIndice.push(idx);
-                    }
-                    
-                    await this.fileTreeService.updateCustomSortingMetadata(
-                        OrderChangeType.Remove, 
-                        oldParent, 
-                        removeIndice,
-                    ).unwrap();
-                }
-    
-                /**
-                 * Step 2: Update the metadata at the new location with the newly 
-                 * pasting items.
-                 */
-                const passedNames = passedItems.map(item => item.name);
-                const addIndice = Arrays.fill(destinationIdx, passedCount);
-                await this.fileTreeService.updateCustomSortingExistMetadata(
-                    OrderChangeType.Add,
-                    destination.uri,
-                    passedNames,
-                    addIndice
-                ).unwrap();
-
-                // FIX: SHOULD BE RECURSIVE
-                /**
-                 * Step 3: To those who passed are directory, we need to move its entire
-                 * metadata to a new location.
-                 */
-                Arrays.Async.parallelEach([passedOldDirUri, passedNewDirUri], async (oldDirUri, newDirUri) => {
-                    await this.fileTreeService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();
-                });
+                const addIndice = Arrays.fill(destinationIdx, passedItems.length);
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParentItem.uri, passedItems.map(item => item.name), addIndice).unwrap();
             }
+        }
+        
+        private async __updateMetadataAtDiffParent(
+            isCut: boolean,
+            passedItems: FileItem[],
+            oldParentItem: FileItem,
+            destinationIdx: number,
+            destination: FileItem,
+            passedOldDirUri: URI[],
+            passedNewDirUri: URI[],
+        ): Promise<void> {
+            /**
+             * Step 1: In the general cut operation, after items are moved 
+             * to their new location, the metadata at the original location 
+             * should be removed.
+             */
+            if (isCut) {
+                const removeIndice: number[] = [];
+                for (const item of passedItems) {
+                    const idx = item.getSelfIndexInParent();
+                    removeIndice.push(idx);
+                }
+                
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(
+                    OrderChangeType.Remove, 
+                    oldParentItem.uri, 
+                    null,
+                    removeIndice,
+                ).unwrap();
+            }
+
+            /**
+             * Step 2: Update the metadata at the new location with the newly 
+             * pasting items.
+             */
+            const passedNames = passedItems.map(item => item.name);
+            const addIndice = Arrays.fill(destinationIdx, passedItems.length);
+
+            await this.fileTreeMetadataService.updateCustomSortingMetadataLot(
+                OrderChangeType.Add,
+                destination.uri,
+                passedNames,
+                addIndice
+            ).unwrap();
+
+            /**
+             * Step 3: To those who passed are directory, we need to move 
+             * its entire metadata to a new location.
+             */
+            Arrays.Async.parallelEach([passedOldDirUri, passedNewDirUri], async (oldDirUri, newDirUri) => {
+                await this.fileTreeMetadataService.updateDirectoryMetadata(oldDirUri, newDirUri, isCut).unwrap();
+            });
         }
 
         private async __doMoveLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<IChange<URI>, FileOperationError>> {
@@ -468,25 +499,4 @@ export namespace FileCommands {
             this.fileTreeService.setFocus(null);
         }
     }
-}
-
-function __handleCutOrCopy(provider: IServiceProvider, type: 'cut' | 'copy'): boolean {
-    const service = provider.getOrCreateService(IFileTreeService);
-    const clipboard = provider.getOrCreateService(IClipboardService);
-
-    const selections = service.getSelections();
-    if (selections.length === 0) {
-        return false;
-    }
-
-    if (type === 'copy') {
-        service.highlightSelectionAsCopy(selections);
-    } else {
-        service.highlightSelectionAsCut(selections);
-    }
-
-    const resources = selections.map(item => item.uri);
-    clipboard.write(ClipboardType.Resources, resources);
-
-    return true;
 }

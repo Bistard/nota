@@ -2,7 +2,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItemChangeEvent, ListView } from "src/base/browser/secondary/listView/listView";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IListDragAndDropProvider, IScrollOnEdgeOptions, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { ListTrait, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
@@ -13,9 +13,10 @@ import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "sr
 import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
+import { isNullable, isNumber, nullToUndefined } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
@@ -266,11 +267,6 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
  */
 export interface IListWidgetOpts<T> extends IListViewOpts {
     
-    /**
-     * A provider that has ability to provide Drag and Drop Support (dnd).
-     */
-    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
-
     /** 
      * If allows mouse support. 
      * @default true
@@ -288,6 +284,17 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
      * @default true
      */
     readonly keyboardSupport?: boolean;
+
+    /**
+     * If allows to auto-scroll when hovering on edges.
+     * @default enabled
+     */
+    readonly scrollOnEdgeSupport?: IScrollOnEdgeOptions;
+
+    /**
+     * A provider that has ability to provide Drag and Drop Support (dnd).
+     */
+    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
 
     /**
      * Provides functionality to determine the uniqueness of each 
@@ -606,7 +613,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * drop behavior.
      */
     protected __createDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
-        return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
+        return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e), opts.scrollOnEdgeSupport);
     }
 
     // [private helper methods]
@@ -732,9 +739,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
         const actualIndex = this.view.indexFromEventTarget(event.target);
-        
+        const itemCount   = this.view.viewSize();
+
         // valid item index
-        if (actualIndex && actualIndex >= 0 && actualIndex < this.view.viewSize()) {
+        if (!isNullable(actualIndex) && Numbers.isValidIndex(actualIndex, itemCount)) {
             const item = this.view.getItem(actualIndex);
             return {
                 browserEvent: event,

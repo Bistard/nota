@@ -7,6 +7,7 @@ import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollabl
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
+import { assert } from "src/base/common/utilities/panic";
 
 export interface IScrollableWidget extends IWidget {
 
@@ -31,8 +32,8 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     private readonly _opts: IScrollableWidgetOpts;
 
-    protected _scrollable: Scrollable;
-    protected _scrollbar: AbstractScrollbar;
+    protected readonly _scrollable: Scrollable;
+    protected readonly _scrollbar: AbstractScrollbar;
 
     protected _isSliderDragging: boolean;
     protected _isMouseOver: boolean;
@@ -106,7 +107,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         // mouse wheel scroll support
         this.onWheel(this.element, event => this.__onDidWheel(event));
         
-        // touchpad scroll support
+        // touch pad scroll support
         if (this._opts.touchSupport) {
             const touchController = new TouchController(this, this._scrollbar);
             touchController.onDidTouchmove(delta => this.__actualScroll(delta));
@@ -126,7 +127,11 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             return;
         }
 
-        const delta = this._scrollbar.getWheelDelta(event);
+        let delta = this._scrollbar.getWheelDelta(event);
+        if (event.altKey) {
+            delta *= this._opts.fastScrollSensibility;
+        }
+
         this.__actualScroll(delta);
     }
 
@@ -151,7 +156,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
          * ceil or floor the position to avoid getting a position less than zero 
          * or larger than maximum after adding the recalculated delta.
          * 
-         * still posible to get a -0 position, but should not make a difference 
+         * still possible to get a -0 position, but should not make a difference 
          * in this case.
          */
         let newScrollPosition: number;
@@ -230,7 +235,7 @@ class TouchController implements IDisposable {
             }
 
             const disposables = new DisposableManager();
-            const touch = event.changedTouches[0]!;
+            const touch = assert(event.changedTouches[0]);
             this._currPosition = this._scrollbar.getTouchPosition(touch);
 
             disposables.register(widget.onTouchmove(element, (e) => this.__onTouchmove(e)));
@@ -261,7 +266,7 @@ class TouchController implements IDisposable {
 
         event.preventDefault();
 
-        const touch = event.changedTouches[0]!;
+        const touch = assert(event.changedTouches[0]);
         const touchPosition = this._scrollbar.getTouchPosition(touch);
         const delta = this._currPosition - touchPosition;
 

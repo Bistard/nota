@@ -1,6 +1,6 @@
 {
 	"name": "nota",
-	"version": "0.0.1",
+	"version": "0.5.1",
 	"description": "an open-sourced markdown editor",
 	"main": "./dist/main-bundle.js",
 	"type": "commonjs",
@@ -91,6 +91,7 @@
 		"chokidar": "^3.5.3",
 		"codemirror": "^6.0.1",
 		"minimist": "^1.2.8",
+		"openai": "^4.28.0",
 		"prosemirror-model": "^1.18.1",
 		"prosemirror-state": "^1.4.2",
 		"prosemirror-transform": "^1.7.0",

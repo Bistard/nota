@@ -9,6 +9,7 @@ import { isPrimitive } from "src/base/common/utilities/type";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { panic } from "src/base/common/utilities/panic";
+import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 
 /**
  * An interface only for {@link MultiTreeBase}.
@@ -126,6 +127,15 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
  */
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
+    constructor(
+        container: HTMLElement,
+        renderers: IListViewRenderer<any, any>[],
+        itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
+        opts: IMultiTreeWidgetOpts<T, TFilter>
+    ) {
+        super(container, renderers, itemProvider, opts);
+    }
+
     protected override __createKeyboardController(opts: IMultiTreeWidgetOpts<T, TFilter>): MultiTreeKeyboardController<T, TFilter> {
         return new MultiTreeKeyboardController<T, TFilter>(this, opts.tree);
     }
@@ -152,7 +162,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IMultiTreeOptions<T, TFilter> = {}
+        opts: IMultiTreeOptions<T, TFilter>
     ) {
         if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
             panic('[MultiTreeBase] does not support primitive types');
@@ -176,7 +186,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
 
     // [protected override method]
 
-    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, T>): TreeWidget<T, TFilter, T> {
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IMultiTreeWidgetOpts<T, TFilter>): TreeWidget<T, TFilter, T> {
         return new MultiTreeWidget(container, renderers, itemProvider, opts);
     }
 }

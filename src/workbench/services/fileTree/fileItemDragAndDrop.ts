@@ -15,14 +15,13 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
-import { assert } from "src/base/common/utilities/panic";
+import { assert, assertValue } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
-import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -70,7 +69,6 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @ICommandService private readonly commandService: ICommandService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
-        @IClipboardService private readonly clipboardService: IClipboardService,
     ) {
         super();
         this._sorter = sorter;
@@ -163,6 +161,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             }
 
             droppable.allowDrop = true;
+            droppable.effect = DragOverEffect.Move;
             return droppable;
         }
 
@@ -434,10 +433,9 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         const targetAbove = (() => {
             if (insertionResult.near === 'bottom') {
                 return targetOver;
-            } else {
-                const aboveItemIdx = this._tree.getItemIndex(targetOver) - 1;
-                return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
-            }
+            } 
+            const aboveItemIdx = this._tree.getItemIndex(targetOver) - 1;
+            return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
         })();
 
         /** 
@@ -452,15 +450,12 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          */
         const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
         const resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
-        const resolvedIdx = isExpandedDir ? 0           : assert(targetAbove.parent).children.indexOf(targetAbove) + 1;
-        assert(resolvedIdx !== -1);
+        const resolvedIdx = isExpandedDir ? 0           : assertValue(targetAbove.getSelfIndexInParent(), idx =>idx !== -1) + 1;
         
         // tell the program we are doing insertion
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
         this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));
-        
-        await this.clipboardService.write(ClipboardType.Arbitrary, currentDragItems, 'dndInsertionItems');
-        await this.commandService.executeCommand(AllCommands.filePaste, resolvedDir, resolvedIdx, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, resolvedDir, resolvedIdx, currentDragItems);
 
         // make sure the insert finishes no matter what
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, false);
@@ -470,14 +465,14 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // simulate drop action (copy) as copy, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(false);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems);
     }
     
     private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
         // simulate drop action (move) as cut, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(true);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems.map(item => item.uri));
+        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems);
     }
 }
 
@@ -509,6 +504,9 @@ interface IInsertionResult {
 class RowInsertionController extends Disposable {
 
     // [fields]
+
+    public readonly DETECT_THRESHOLD = 10;
+    public readonly OVERPLAY_HEIGHT  = 4;
 
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
     
@@ -571,18 +569,27 @@ class RowInsertionController extends Disposable {
 
         const mouseY = event.clientY - DomUtility.Attrs.getViewportTop(this._tree.DOMElement);
         
-        const threshold = 10;
-        const isNearTop = Math.abs(mouseY - currentItemTop) <= threshold;
+        const threshold = this.DETECT_THRESHOLD;
+        const isNearTop = Math.abs(mouseY - currentItemTop)    <= threshold;
         const isNearBot = Math.abs(mouseY - currentItemBottom) <= threshold;
 
         if (!isNearTop && !isNearBot) {
             return undefined;
         }
 
-        const renderTop = isNearTop ? currentItemTop : currentItemBottom;
+        let renderTop = isNearTop ? currentItemTop : currentItemBottom;
+        
+        /**
+         * Only render the overlay at the center when not inserting at the top 
+         * of the first item.
+         */
+        if ((index === 0 && isNearTop) === false) {
+            renderTop -= this.OVERPLAY_HEIGHT / 2;
+        }
+
         return {
             near: isNearTop ? 'top' : 'bottom',
-            renderTop: renderTop - 2,
+            renderTop: renderTop,
         };
     }
 
@@ -596,6 +603,8 @@ class RowInsertionController extends Disposable {
         insertionElement.className = 'row-insertion';
         insertionElement.style.top = `${result.renderTop}px`;
         this._tree.DOMElement.appendChild(insertionElement);
+
+        insertionElement.style.setProperty('--nota-overlay-height', `${this.OVERPLAY_HEIGHT}px`);
 
         this._rowDisposable = toDisposable(() => {
             insertionElement.remove();

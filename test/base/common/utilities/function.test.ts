@@ -111,34 +111,34 @@ suite('function-test', () => {
         });
     
         test('DFS should visit nodes in depth-first order', () => {
-            dfs(tree, (node) => visitOrder.push(node.value), (node) => node.children);
+            dfs(tree, (node) => { visitOrder.push(node.value); }, (node) => node.children);
             assert.deepStrictEqual(visitOrder, [1, 2, 4, 3, 5, 6]);
         });
     
         test('BFS should visit nodes in breadth-first order', () => {
-            bfs(tree, (node) => visitOrder.push(node.value), (node) => node.children);
+            bfs(tree, (node) => { visitOrder.push(node.value); }, (node) => node.children);
             assert.deepStrictEqual(visitOrder, [1, 2, 3, 4, 5, 6]);
         });
     
         test('DFS with single-node tree', () => {
             const singleNodeTree = node(1);
-            dfs(singleNodeTree, (node) => visitOrder.push(node.value), (node) => node.children);
+            dfs(singleNodeTree, (node) => { visitOrder.push(node.value); }, (node) => node.children);
             assert.deepStrictEqual(visitOrder, [1]);
         });
     
         test('BFS with single-node tree', () => {
             const singleNodeTree = node(1);
-            bfs(singleNodeTree, (node) => visitOrder.push(node.value), (node) => node.children);
+            bfs(singleNodeTree, (node) => { visitOrder.push(node.value); }, (node) => node.children);
             assert.deepStrictEqual(visitOrder, [1]);
         });
     
         test('DFS with empty children function', () => {
-            dfs(tree, (node) => visitOrder.push(node.value), () => []);
+            dfs(tree, (node) => { visitOrder.push(node.value); }, () => []);
             assert.deepStrictEqual(visitOrder, [1]);
         });
     
         test('BFS with empty children function', () => {
-            bfs(tree, (node) => visitOrder.push(node.value), () => []);
+            bfs(tree, (node) => { visitOrder.push(node.value); }, () => []);
             assert.deepStrictEqual(visitOrder, [1]);
         });
     });

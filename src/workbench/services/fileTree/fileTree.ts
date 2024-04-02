@@ -22,7 +22,7 @@ export interface IFileTreeOptions<T extends FileItem, TFilter> extends IAsyncTre
  * Option for constructing a {@link FileTreeWidget}. 
  */
 export interface IFileTreeWidgetOpts<T extends FileItem, TFilter> extends IAsyncTreeWidgetOpts<T, TFilter> {
-    readonly extraArguments: [IFileTree<T, TFilter>];
+    readonly asyncTree: IFileTree<T, TFilter>;
 }
 
 /**
@@ -68,7 +68,7 @@ export class FileTreeKeyboardController<T extends FileItem, TFilter> extends Mul
 export class FileTreeWidget<T extends FileItem, TFilter> extends AsyncTreeWidget<T, TFilter> {
 
     protected override __createKeyboardController(opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeKeyboardController<T, TFilter> {
-        return new FileTreeKeyboardController(this, opts.extraArguments[0]);
+        return new FileTreeKeyboardController(this, opts.asyncTree);
     }
 }
 
@@ -143,7 +143,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
 
     // [protected override method]
 
-    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeWidget<T, TFilter> {
+    protected override __createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IFileTreeWidgetOpts<T, TFilter>): FileTreeWidget<T, TFilter> {
         return new FileTreeWidget<T, TFilter>(container, renderers, itemProvider, opts);
     }
 

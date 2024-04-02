@@ -53,9 +53,10 @@ import { IShortcutService, ShortcutService } from "src/workbench/services/shortc
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
 import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
 import { FileTreeService } from "src/workbench/services/fileTree/fileTreeService";
-import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
+import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -250,11 +251,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
         const i18nService          = instantiationService.getService(II18nService);
         const productService       = instantiationService.getService(IProductService);
+        const themeService         = instantiationService.getOrCreateService(IThemeService);
 
         await configurationService.init()
-        .andThen(() => i18nService.init())
-        .andThen(() => productService.init(environmentService.productProfilePath))
-        .unwrap();
+            .andThen(() => i18nService.init())
+            .andThen(() => productService.init(environmentService.productProfilePath))
+            .andThen(() => themeService.init())
+            .unwrap();
         
         this.logService.trace('renderer', 'All core renderer services are initialized successfully.');
     }
@@ -275,6 +278,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
+        registerService(IFileTreeMetadataService  , new ServiceDescriptor(FileTreeService          , []));
         registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
     
         // utilities && tools
@@ -297,6 +301,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(service.createInstance(ShortcutRegistrant));
         registrant.registerRegistrant(this.initCommandRegistrant(service));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
+        registrant.registerRegistrant(service.createInstance(ColorRegistrant));
 
         // initialize all the registrations
         registrant.init(service);

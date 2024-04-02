@@ -3,7 +3,7 @@ import { URI } from "src/base/common/files/uri";
 import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/fileTree/fileTree";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
-import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
@@ -13,7 +13,7 @@ import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTre
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { FileSortOrder, FileSortType, FileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
+import { FileSortOrder, FileSortType, FileTreeSorter, defaultFileItemCompareFnAsc, defaultFileItemCompareFnDesc } from "src/workbench/services/fileTree/fileTreeSorter";
 import { FileOperationError } from "src/base/common/files/file";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
@@ -21,12 +21,13 @@ import { Scheduler } from "src/base/common/utilities/async";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { Time } from "src/base/common/date";
 import { assert, panic } from "src/base/common/utilities/panic";
-import { IFileTreeCustomSorter, OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { noop } from "src/base/common/performance";
+import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
+import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 
-export class FileTreeService extends Disposable implements IFileTreeService {
+export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
     declare _serviceMarker: undefined;
 
@@ -34,6 +35,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
     private _tree?: IFileTree<FileItem, void>;
     private _sorter?: FileTreeSorter<FileItem>;
+    private _metadataController?: FileTreeMetadataController;
     
     /**
      * Able to pause and resume the refresh event. The refresh event will be 
@@ -56,6 +58,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
     ) {
         super();
         this._treeCleanup = new DisposableManager();
+        this.logService.trace('FileTreeService', 'FileTreeService constructed.');
     }
 
     // [event]
@@ -93,6 +96,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         if (this._tree) {
             return AsyncResult.err(new Error('[FileTreeService] cannot initialize since it is already initialized. Close it before initialize.'));
         }
+        this.logService.trace('FileTreeService', 'initializing...');
 
         return this.__initTree(container, root)
             .andThen(async tree => {
@@ -107,6 +111,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
                 this.__initListeners(tree);
 
+                this.logService.trace('FileTreeService', `initialized at: ${URI.toString(root)}.`);
                 this._onDidInitOrClose.fire(true);
             });
     }
@@ -182,6 +187,8 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             return;
         }
 
+        this.logService.trace('FileTreeService', `closed at: ${this.root && URI.toString(this.root)}.`);
+
         this._treeCleanup.dispose();
         this._treeCleanup = new DisposableManager();
 
@@ -190,6 +197,9 @@ export class FileTreeService extends Disposable implements IFileTreeService {
 
         this._sorter?.dispose();
         this._sorter = undefined;
+
+        this._metadataController?.dispose();
+        this._metadataController = undefined;
 
         this._onDidInitOrClose.fire(false);
     }
@@ -281,32 +291,32 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return success;
     }
 
-    public updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    public updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    public updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    public updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingMetadata(type: any, itemsOrParent: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
-        return this.__assertCustomSorter()
-            .andThen(sorter => sorter.updateMetadataLot(type, itemsOrParent, indice, destination));
-    }
-
-    public updateCustomSortingExistMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingExistMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingExistMetadata(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingExistMetadata(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-    public updateCustomSortingExistMetadata(type: any, parent: URI, items: any, indice: number[], destination?: any): AsyncResult<void, FileOperationError | Error> {
-        return this.__assertCustomSorter()
-            .andThen(sorter => sorter.updateExistMetadataLot(type, parent, items, indice, destination));
+    public isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, Error | FileOperationError> {
+        const controller = this.__assertController();
+        return controller.isDirectoryMetadataExist(dirUri);
     }
 
     public updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError> {
-        const sorter = this.__assertSorter();
-        const customSorter = sorter.getCustomSorter();
-        if (customSorter === null) {
-            return AsyncResult.err(new Error('[FileTreeService] cannot update custom sorting metadata since it is not in custom sorting mode.'));
-        }
+        const controller = this.__assertController();
+        return controller.updateDirectoryMetadata(oldDirUri, destination, cutOrCopy);
+    }
 
-        return customSorter.updateDirectoryMetadata(oldDirUri, destination, cutOrCopy);
+    public updateCustomSortingMetadata(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadata(type: any, item: any, index1?: any, index2?: any): AsyncResult<void, FileOperationError | Error> {
+        const controller = this.__assertController();
+        return controller.updateCustomSortingMetadata(type, item, index1, index2);
+    }
+
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
+    public updateCustomSortingMetadataLot(type: any, parent: any, items: any, indice: any, destination?: any): AsyncResult<void, FileOperationError | Error> {
+        const controller = this.__assertController();
+        return controller.updateCustomSortingMetadataLot(type, parent, items, indice, destination);
     }
 
     public override dispose(): void {
@@ -330,13 +340,11 @@ export class FileTreeService extends Disposable implements IFileTreeService {
         return this._sorter;
     }
 
-    private __assertCustomSorter(): AsyncResult<IFileTreeCustomSorter<FileItem>, Error> {
-        const sorter = this.__assertSorter();
-        const customSorter = sorter.getCustomSorter();
-        if (customSorter === null) {
-            return AsyncResult.err(new Error('[FileTreeService] cannot update custom sorting metadata since it is not in custom sorting mode.'));
+    private __assertController(): FileTreeMetadataController {
+        if (!this._metadataController) {
+            panic('[FileTreeService] file tree is not initialized yet.');
         }
-        return AsyncResult.ok(customSorter);
+        return this._metadataController;
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
@@ -364,11 +372,15 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             // construct sorter and initialize it after
             const [sorter, registerSorterListener] = this.__initSorter();
             this._sorter = cleanup.register(sorter);
+            this._metadataController = cleanup.register(this.instantiationService.createInstance(
+                FileTreeMetadataController, sorter, 
+                this.__createMetadataControllerOptions(rootStat.uri),
+            ));
 
             const fileItemResolveOpts: IFileItemResolveOptions<FileItem> = { 
                 onError: error => this.logService.error('FileItem', 'Encounters an error when resolving FileItem recursively', error), 
                 cmp: sorter.compare.bind(sorter), 
-                beforeCmp: async folder => __syncSorterMetadataBy(sorter, folder),
+                beforeCmp: async folder => this.__syncMetadataInCacheWithDisk(sorter, folder),
                 filters: filterOpts,
             };
 
@@ -390,6 +402,16 @@ export class FileTreeService extends Disposable implements IFileTreeService {
                     collapsedByDefault: true,
                     filter: new FileItemFilter(),
                     dnd: dndProvider,
+
+                    touchSupport: true,
+                    mouseSupport: true,
+                    keyboardSupport: true,
+                    multiSelectionSupport: true,
+                    scrollOnEdgeSupport: { edgeThreshold: 50 },
+
+                    scrollSensibility: 0.4,
+                    fastScrollSensibility: 5,
+                    scrollbarSize: 10,
                 },
             );
 
@@ -410,7 +432,7 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             FileTreeSorter, 
             fileSortType, 
             fileSortOrder, 
-            this.environmentService.appConfigurationPath,
+            this.__createCustomSorterOptions(),
         );
 
         const register = (tree: IFileTree<FileItem, void>) => {
@@ -483,13 +505,30 @@ export class FileTreeService extends Disposable implements IFileTreeService {
             onDidResourceChange.schedule(e.wrap());
         }));
     }
-}
 
-async function __syncSorterMetadataBy(sorter: FileTreeSorter<FileItem>, folder: FileItem): Promise<void> {
-    if (sorter.sortType !== FileSortType.Custom) {
-        return;
+    private __createMetadataControllerOptions(treeRoot: URI): IFileTreeMetadataControllerOptions {
+        return {
+            ...this.__createCustomSorterOptions(),
+            fileTreeRoot: treeRoot,
+            metadataRoot: URI.join(this.environmentService.appConfigurationPath, 'sorting', URI.basename(treeRoot)),
+        };
     }
-    
-    const customSorter = assert(sorter.getCustomSorter());
-    await customSorter.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap();
+
+    private __createCustomSorterOptions(): IFileTreeCustomSorterOptions {
+        return {
+            getMetadataFromCache: folder => this.__assertController().getMetadataFromCache(folder),
+            defaultItemComparator: (...args) => {
+                const cmp = this.getFileSortingOrder() === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
+                return cmp(...args);
+            },
+        };
+    }
+
+    private async __syncMetadataInCacheWithDisk(sorter: FileTreeSorter<FileItem>, folder: FileItem): Promise<void> {
+        if (sorter.sortType !== FileSortType.Custom) {
+            return;
+        }
+        const controller = this.__assertController();
+        await controller.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap();
+    }
 }

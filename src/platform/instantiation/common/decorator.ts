@@ -49,6 +49,10 @@ export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIden
     return <ServiceIdentifier<T>>serviceIdentifier;
 }
 
+export function renameDecorator<T1, T>(serviceIdentifier: ServiceIdentifier<T1>): ServiceIdentifier<T> {
+    return <any>serviceIdentifier;
+}
+
 export type ServiceDependency<T extends IService> = {
     readonly id: ServiceIdentifier<T>;
     readonly index: number;

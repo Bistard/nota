@@ -1,7 +1,7 @@
-import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { PresetColorTheme } from "src/workbench/services/theme/theme";
 
 export const enum WorkbenchConfiguration {
 
@@ -47,8 +47,7 @@ export const rendererWorkbenchConfigurationRegister = createRegister(
                         },
                         ['colorTheme']: {
                             type: 'string',
-                            enum: [ColorThemeType.Light, ColorThemeType.Dark],
-                            default: ColorThemeType.Light,
+                            default: PresetColorTheme.LightModern,
                         },
                         ['keyboardScreenCast']: {
                             type: 'boolean',

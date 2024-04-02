@@ -252,12 +252,11 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
  * An option for constructing a {@link TreeWidget}.
  */
 export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
+    
     /**
      * The tree that inherits {@link AbstractTree} and controls the widget.
      */
     readonly tree: IAbstractTree<T, TFilter, TRef>;
-
-    readonly extraArguments: any[];
 }
 
 /**
@@ -790,8 +789,10 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
  * An interface for the constructor options of the {@link AbstractTree}. The 
  * interface includes the base interface of a {@link ITreeModel} options.
  */
-export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
-
+export interface IAbstractTreeOptions<T, TFilter> extends 
+    IIndexTreeModelOptions<T, TFilter>, 
+    Omit<IListWidgetOpts<ITreeNode<T, TFilter>>, 'dragAndDropProvider' | 'identityProvider'> 
+{
     /**
      * Provides the functionality to achieve drag and drop support in the tree.
      */
@@ -804,16 +805,15 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
     readonly identityProvider?: IIdentityProvider<T>;
 
     /**
-     * An option for the external to provide a function to create the tree 
-     * widget instead of inheritance.
+     * An option for the external to provide a function to create a customized 
+     * {@link TreeWidget} instead of inheritance.
+     * 
+     * This option is useful when the external is wrapping an {@link AbstractTree}
+     * instead of directly inheriting it. Thus the inherited class cannot 
+     * override {@link AbstractTree.createTreeWidget} directly to replace the 
+     * default {@link TreeWidget}.
      */
     readonly createTreeWidgetExternal?: (container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>) => TreeWidget<T, TFilter, any>;
-
-    /**
-     * An array of arguments that passed by the inheritance. These arguments 
-     * will be used in the {@link ITreeWidgetOpts}.
-     */
-    readonly extraArguments?: any[];
 }
 
 /**
@@ -842,7 +842,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IAbstractTreeOptions<T, TFilter> = {},
+        opts: IAbstractTreeOptions<T, TFilter>,
     ) {
         super();
 
@@ -857,22 +857,38 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
         // tree view
-        const treeWidgetArguments = 
-        [
+        const createTreeWidgetArguments = <const>[
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
             {
+                /** {@see IScrollableWidgetExtensionOpts} */
+                scrollSensibility: opts.scrollSensibility,
+                fastScrollSensibility: opts.fastScrollSensibility,
+                reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
+                touchSupport: opts.touchSupport,
+                
+                /** {@see listViewOpts} */
+                layout: opts.layout,
+                transformOptimization: opts.transformOptimization,
+                scrollbarSize: opts.scrollbarSize,
+                
+                /** {@see listWidgetOpts} */
+                mouseSupport: opts.mouseSupport,
+                multiSelectionSupport: opts.multiSelectionSupport,
+                keyboardSupport: opts.keyboardSupport,
+                scrollOnEdgeSupport: opts.scrollOnEdgeSupport,
+                
+                // others
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
-                extraArguments: opts.extraArguments ?? [],
-            },
-        ] as const;
+            } as ITreeWidgetOpts<T, TFilter, any>,
+        ];
         if (opts.createTreeWidgetExternal) {
-            this._view = opts.createTreeWidgetExternal(...treeWidgetArguments);
+            this._view = opts.createTreeWidgetExternal(...createTreeWidgetArguments);
         } else {
-            this._view = this.createTreeWidget(...treeWidgetArguments);
+            this._view = this.createTreeWidget(...createTreeWidgetArguments);
         }
 
         // create the tree model from abstraction, client may override it.

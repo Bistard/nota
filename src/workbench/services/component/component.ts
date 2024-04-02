@@ -9,6 +9,7 @@ import { IThemeService } from "src/workbench/services/theme/themeService";
 import { assert, panic } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 
 export interface ICreatable {
     create(): void;
@@ -247,6 +248,12 @@ export abstract class Component extends Themable implements IComponent {
     protected abstract _registerListeners(): void;
 
     // [protected override method]
+
+    protected override __onThemeChange(newTheme: IColorTheme): void {
+        if (this._created) {
+            super.__onThemeChange(newTheme);
+        }
+    }
 
     protected override __updateStyles(): void { /** noop */ }
 

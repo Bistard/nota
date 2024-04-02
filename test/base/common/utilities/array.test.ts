@@ -4,6 +4,54 @@ import { CompareOrder, isNumber } from 'src/base/common/utilities/type';
 
 suite('array-test', () => {
 
+    suite('is', function () {
+        test('should return true if the object is an array', function () {
+            assert.strictEqual(Arrays.is<number>([1, 2, 3]), true);
+        });
+
+        test('should return false if the object is not an array', function () {
+            assert.strictEqual(Arrays.is<number>({ a: 1, b: 2 }), false);
+        });
+    });
+
+    suite('isType', function() {
+        test('should return true for empty array', function() {
+            const result = Arrays.isType([], (element): element is number => typeof element === 'number');
+            assert.strictEqual(result, true);
+        });
+    
+        test('should return true for all elements matching the type', function() {
+            const result = Arrays.isType([1, 2, 3], (element): element is number => typeof element === 'number');
+            assert.strictEqual(result, true);
+        });
+    
+        test('should return false if first element does not match the type', function() {
+            const result = Arrays.isType(['a', 2, 3], (element): element is number => typeof element === 'number');
+            assert.strictEqual(result, false);
+        });
+    });
+
+    suite('isEmpty', function () {
+        test('should return true for an empty array', function () {
+            assert.strictEqual(Arrays.isEmpty([]), true);
+        });
+
+        test('should return false for a non-empty array', function () {
+            assert.strictEqual(Arrays.isEmpty([1]), false);
+        });
+    });
+
+    suite('isNonEmpty', function () {
+        test('should return false for an empty array', function () {
+            assert.strictEqual(Arrays.isNonEmpty([]), false);
+        });
+
+        test('should return true for a non-empty array', function () {
+            assert.strictEqual(Arrays.isNonEmpty([1]), true);
+        });
+    });
+    
+
     test('clear', () => {
         assert.strictEqual(Arrays.clear([]).length, 0);
         assert.strictEqual(Arrays.clear([1, 2, 3]).length, 0);
@@ -192,6 +240,12 @@ suite('array-test', () => {
             const result = Arrays.relocateByIndex(array, [0], 0);
             assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
         });
+
+        test('moves elements to the same index should not change the array', function () {
+            const array = [1, 2, 3, 4, 5];
+            const result = Arrays.relocateByIndex(array, [1, 2], 1);
+            assert.deepStrictEqual(result, [1, 2, 3, 4, 5]);
+        });
     });
 
     test('fill', () => {
@@ -245,14 +299,14 @@ suite('array-test', () => {
         test('DFS should visit all nodes', () => {
             const nodes = ['a', 'b', 'c'];
             const visited: string[] = [];
-            Arrays.dfs(nodes, node => visited.push(node), node => []);
+            Arrays.dfs(nodes, node => { visited.push(node); }, node => []);
             assert.deepEqual(visited, nodes);
         });
 
         test('DFS should follow child nodes', () => {
             const nodes = { a: ['b'], b: ['c'], c: [] };
             const visited: string[] = [];
-            Arrays.dfs(['a'], node => visited.push(node), node => nodes[node]);
+            Arrays.dfs(['a'], node => { visited.push(node); }, node => nodes[node]);
             assert.deepEqual(visited, ['a', 'b', 'c']);
         });
     });
@@ -261,14 +315,14 @@ suite('array-test', () => {
         test('BFS should visit all nodes', () => {
             const nodes = ['a', 'b', 'c'];
             const visited: string[] = [];
-            Arrays.bfs(nodes, node => visited.push(node), node => []);
+            Arrays.bfs(nodes, node => { visited.push(node); }, node => []);
             assert.deepEqual(visited, nodes);
         });
 
         test('BFS should visit nodes level by level', () => {
             const nodes = { a: ['b', 'c'], b: ['d'], c: [], d: [] };
             const visited: string[] = [];
-            Arrays.bfs(['a'], node => visited.push(node), node => nodes[node]);
+            Arrays.bfs(['a'], node => { visited.push(node); }, node => nodes[node]);
             assert.deepEqual(visited, ['a', 'b', 'c', 'd']);
         });
     });

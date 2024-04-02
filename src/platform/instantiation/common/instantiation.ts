@@ -159,10 +159,10 @@ export class InstantiationService implements IInstantiationService {
     // [constructor]
 
     constructor(
-        serviceCollections: ServiceCollection = new ServiceCollection(), 
+        serviceCollections?: ServiceCollection, 
         parent?: InstantiationService,
     ) {
-        this.serviceCollections = serviceCollections;
+        this.serviceCollections = serviceCollections ?? new ServiceCollection();
         this.parent = parent;
     }
 
@@ -182,6 +182,7 @@ export class InstantiationService implements IInstantiationService {
         if (service === undefined || service instanceof ServiceDescriptor) {
             panic(`[getService] Cannot get service with identifier '${serviceIdentifier.toString()}'`);
         }
+        
         return service;
     }
 

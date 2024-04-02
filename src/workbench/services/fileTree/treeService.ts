@@ -2,17 +2,18 @@ import { IDisposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IService, createService, renameDecorator } from "src/platform/instantiation/common/decorator";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeOpenEvent } from "src/workbench/services/fileTree/fileTree";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
-import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { FileOperationError } from "src/base/common/files/file";
+import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 
 export const IFileTreeService = createService<IFileTreeService>('file-tree-service');
+export const IFileTreeMetadataService = renameDecorator<IFileTreeService, IFileTreeMetadataService>(IFileTreeService);
 
 /**
- * The base interface for any tree services.
+ * The interface only for {@link FileTreeService}.
  */
 export interface IFileTreeService extends IDisposable, IService {
     
@@ -262,6 +263,53 @@ export interface IFileTreeService extends IDisposable, IService {
      * @note This will not trigger rerendering.
      */
     setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean>;
+}
+
+/**
+ * The interface only for {@link FileTreeService}.
+ */
+export interface IFileTreeMetadataService extends IDisposable, IService {
+
+    /**
+     * @description If the metadata of the corresponding directory exists in the
+     * file system.
+     * @param dirUri The directory URI.
+     * 
+     * @note Make sure the provided URI is indeed a directory.
+     */
+    isDirectoryMetadataExist(dirUri: URI): AsyncResult<boolean, Error | FileOperationError>;
+
+    /**
+     * @description When moving or copying a directory, its corresponding 
+     * metadata file must also be updated.
+     * @param oldDirUri The directory has changed.
+     * @param destination The new destination of the directory.
+     * @param cutOrCopy True means cut, false means copy.
+     * 
+     * @note If oldDirUri has no metadata file before, no operations is taken.
+     */
+    updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
+
+    /**
+     * @description Modifies the metadata based on the specified change type, 
+     * such as adding, removing, updating, or swapping items in the custom order.
+     * 
+     * @param type The type of change to apply to the order metadata.
+     * @param item The file tree item that is subject to the change.
+     * @param index1 For 'Add' and 'Update', this is the index where the item is 
+     *               added or updated. For 'Remove', it's the index of the item 
+     *               to remove, and it's optional. For 'Swap', it's the index of 
+     *               the first item to be swapped.
+     * @param index2 For 'Swap', this is the index of the second item to be 
+     *               swapped with the first. Not used for other change types.
+     * 
+     * @panic when missing the provided index1 or index2.
+     */
+    updateCustomSortingMetadata(type: OrderChangeType.Add   , item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadata(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
+    
 
     /**
      * @description This method provides a way to programmatically update the 
@@ -301,22 +349,8 @@ export interface IFileTreeService extends IDisposable, IService {
      *              the parent metadata where the items should be moved to. 
      *              Items retain their original order during the move.
      */
-    updateCustomSortingMetadata(type: OrderChangeType.Add   , items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    updateCustomSortingMetadata(type: OrderChangeType.Update, items: FileItem[], indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    updateCustomSortingMetadata(type: OrderChangeType.Remove, parent: FileItem , indice: number[]): AsyncResult<void, Error | FileOperationError>;
-    updateCustomSortingMetadata(type: OrderChangeType.Move,   parent: FileItem , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-
-    updateCustomSortingExistMetadata(type: OrderChangeType.Add   , parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingExistMetadata(type: OrderChangeType.Update, parent: URI, items: string[], indice: number[]): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingExistMetadata(type: OrderChangeType.Remove, parent: URI, items: null    , indice: number[]): AsyncResult<void, FileOperationError | Error>;
-    updateCustomSortingExistMetadata(type: OrderChangeType.Move  , parent: URI, items: null    , indice: number[], destination: number): AsyncResult<void, FileOperationError | Error>;
-
-    /**
-     * @description When moving or copying a directory, its corresponding 
-     * metadata file must also be updated.
-     * @param oldDirUri The directory has changed.
-     * @param destination The new destination of the directory.
-     * @param cutOrCopy True means cut, false means copy.
-     */
-    updateDirectoryMetadata(oldDirUri: URI, destination: URI, cutOrCopy: boolean): AsyncResult<void, Error | FileOperationError>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Add   , parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Update, parent: URI, items: string[], indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Remove, parent: URI, items: null,     indice:  number[]): AsyncResult<void, FileOperationError | Error>;
+    updateCustomSortingMetadataLot(type: OrderChangeType.Move,   parent: URI, items: null,     indice:  number[], destination: number): AsyncResult<void, FileOperationError | Error>;
 }

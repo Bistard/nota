@@ -9,6 +9,47 @@ import { CompareOrder, Flatten, NonUndefined } from "src/base/common/utilities/t
 export namespace Arrays {
 
     /**
+     * @description Is the given object is an array.
+     */
+    export function is<T>(obj: any): obj is T[] {
+        return Array.isArray(obj);
+    }
+
+    /**
+     * @description Determines if all elements in an array are of a specified 
+     * type, based on a provided type-checking function.
+     * @param array The array to check.
+     * @param check A function that checks if the given element is of type T.
+     * 
+     * @note This function assumes the type of all elements in the array based 
+     *       on the type of the first element. 
+     * @note If the array is empty, it is considered to be of the specified type 
+     *       by default.
+     */
+    export function isType<T>(array: any[], check: (firstElement: any) => boolean): array is T[] {
+        if (array.length === 0) {
+            return true;
+        }
+
+        const firstElement = array[0]!;
+        return check(firstElement);
+    }
+
+    /**
+     * @description If the given array is empty.
+     */
+    export function isEmpty<T>(array: T[]): boolean {
+        return array.length === 0;
+    }
+
+    /**
+     * @description If the given array is not empty.
+     */
+    export function isNonEmpty<T>(array: T[]): boolean {
+        return array.length !== 0;
+    }
+
+    /**
      * @description Clear an array.
      * @returns Returns the same array.
      */
@@ -110,11 +151,12 @@ export namespace Arrays {
     /**
      * @description Performs a depth-first search (DFS) on an array.
      * @param arr The array for the DFS.
-     * @param visit A function to visit on each node.
+     * @param visit A function to visit on each node. When a boolean is returned, 
+     *              it indicates if the dfs should continue to visit.
      * @param getChildren A function that returns an array of child nodes for the 
      *                    given node.
      */
-    export function dfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+    export function dfs<T>(arr: T[], visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
         for (const node of arr) {
             dfsRaw(node, visit, getChildren);
         }
@@ -123,11 +165,12 @@ export namespace Arrays {
     /**
      * @description Performs a breadth-first search (DFS) on an array.
      * @param arr The array for the BFS.
-     * @param visit A function to visit on each node.
+     * @param visit A function to visit on each node. When a boolean is returned, 
+     *              it indicates if the bfs should continue to visit.
      * @param getChildren A function that returns an array of child nodes for the 
      *                    given node.
      */
-    export function bfs<T>(arr: T[], visit: (node: T) => void, getChildren: (node: T) => T[]): void {
+    export function bfs<T>(arr: T[], visit: (node: T) => void | boolean, getChildren: (node: T) => T[]): void {
         for (const node of arr) {
             bfsRaw(node, visit, getChildren);
         }
@@ -197,6 +240,7 @@ export namespace Arrays {
 
         // Sort indices to maintain original order and simplify removal
         const sortedIndices = indice.sort((a, b) => a - b);
+        let destAdjustment = 0;
 
         // Extract items to move
         const itemsToMove: T[] = [];
@@ -206,10 +250,11 @@ export namespace Arrays {
             }
 
             itemsToMove.push(array[index]!);
-            if (index <= destination) {
-                destination = Math.max(destination - 1, 0);
+            if (index < destination) {
+                destAdjustment++;
             }
         }
+        destination -= destAdjustment;
 
         // Remove items from original positions (in reverse to avoid indexing issues)
         for (const index of sortedIndices.reverse()) {
@@ -773,7 +818,7 @@ export namespace Arrays {
         /**
          * See {@link Arrays.dfs} for details.
          */
-        export async function dfs<T>(arr: T[], visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+        export async function dfs<T>(arr: T[], visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
             for (const node of arr) {
                 await dfsAsyncRaw(node, visit, getChildren);
             }
@@ -782,7 +827,7 @@ export namespace Arrays {
         /**
          * See {@link Arrays.bfs} for details.
          */
-        export async function bfs<T>(arr: T[], visit: (node: T) => Promise<void>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
+        export async function bfs<T>(arr: T[], visit: (node: T) => Promise<void | boolean>, getChildren: (node: T) => Promise<T[]>): Promise<void> {
             for (const node of arr) {
                 await bfsAsyncRaw(node, visit, getChildren);
             }

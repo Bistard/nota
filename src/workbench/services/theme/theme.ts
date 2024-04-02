@@ -1,19 +1,33 @@
-import { RGBA } from "src/base/common/color";
 import { Disposable } from "src/base/common/dispose";
-import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 
-export interface IColorTheme {
-    /**
-     * The name of the theme.
-     */
-    readonly name: ColorThemeType;
-
-    getColor(id: string, useDefault?: boolean): RGBA;
+/**
+ * The type of the theme. This is useful to categorize themes.
+ */
+export const enum ColorThemeType {
+    Light = 'light',
+    Dark = 'dark',
 }
 
 /**
- * // TODO
+ * A list of preset themes.
+ */
+export const enum PresetColorTheme {
+    LightModern = 'LightModern',
+    DarkModern = 'DarkModern',
+}
+
+/**
+ * @class Provides a base class for components that are theme-aware within an 
+ * application.
+ * 
+ * It integrates with a theme service to automatically update its theme-related 
+ * properties and styles whenever the application's theme changes.
+ *
+ * This abstract class requires the implementation of the `__updateStyles` 
+ * method to specify how the component should update its styles in response to 
+ * theme changes.
  */
 export abstract class Themable extends Disposable {
 
@@ -23,7 +37,7 @@ export abstract class Themable extends Disposable {
     constructor(themeService: IThemeService) {
         super();
         this.themeService = themeService;
-        this._theme = this.themeService.getTheme();
+        this._theme = this.themeService.getCurrTheme();
         this.__register(themeService.onDidChangeTheme(newTheme => this.__onThemeChange(newTheme)));
     }
 
