@@ -16,19 +16,42 @@ export namespace Numbers {
      * @description Counts the total number of digits of the given number.
      */
     export function totalDigit(num: number): number {
-        let digits = (num < 0) ? 1 : 0;
-        while (num) {
-            num /= 10;
+        num = Math.abs(num);
+        let digits = 0;
+        do {
+            num = Math.floor(num / 10);
             ++digits;
-        }
+        } while (num > 0);
         return digits;
     }
 
     /**
-     * @description Get the nth digit of the given number.
+     * @description Extracts the nth digit from a given number, counting from 
+     * the right (0-based index).
+     * 
+     * @param num The number from which to extract the digit.
+     * @param n The 0-based position of the digit from the right.
+     * @returns The nth digit of `num`. Returns -1 if:
+     *      - `n` is negative or 
+     *      - if `n`is >= the number of digits in `num`.
+     * 
+     * @note The function treats the number as an absolute value and ignores the 
+     *       sign.
      */
-    export function getDigitAt(num: number, n: number) {
-        return num / 10**n % 10;
+    export function getDigitAt(num: number, n: number): number {
+        if (n < 0 || n >= totalDigit(num)) {
+            return -1;
+        }
+
+        if (n === 0) {
+            return Math.abs(num) % 10;
+        }
+
+        // perf (extend as needed)
+        const powersOf10 = [1, 10, 100, 1000, 10000];
+        const divisor = n < powersOf10.length ? powersOf10[n]! : Math.pow(10, n);
+    
+        return Math.floor(Math.abs(num) / divisor) % 10;
     }
 
     /**
@@ -47,6 +70,36 @@ export namespace Numbers {
         return num;
     }
 
+    /**
+     * @description Checks if a number is within a specified range.
+     * @param num The number to check.
+     * @param start Start of the range.
+     * @param end End of the range.
+     * @param includeStart If `true`, includes `start` in the range.
+     * @param includeEnd If `true`, includes `end` in the range.
+     */
+    export function within(num: number, start: number, end: number, includeStart: boolean, includeEnd: boolean): boolean {
+        const startCond = includeStart ? num >= start : num > start;
+        const endCond   = includeEnd   ? num <= end   : num < end;
+        return startCond && endCond;
+    }
+
+    /**
+     * @description Checks if a given number is within a specified range. The 
+     * function verifies if:
+     *      - the number is >= to 0 and 
+     *      - < the specified size.
+     *
+     * @param num The number to check.
+     * @param size The upper bound of the range (exclusive).
+     * 
+     * @note Usefully when checking a given index (0-based) is within a given 
+     * size.
+     * @note If you want more flexibility, use {@link Numbers.within}.
+     */
+    export function isValidIndex(num: number, size: number): boolean {
+        return 0 <= num && num < size;
+    }
 }
 
 /**
@@ -67,7 +120,7 @@ export namespace Bit {
     /**
      * @description Returns the lowest significant bit of the given number.
      */
-    export function lowbit(x: number): number {
+    export function lowBit(x: number): number {
         return x & (x ^ (x - 1));
     }
 
