@@ -8,15 +8,20 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { isPrimitive } from "src/base/common/utilities/type";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { panic } from "src/base/common/utilities/panic";
+import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 
 /**
  * An interface only for {@link MultiTreeBase}.
  */
 export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
+    
     /**
      * @description Returns the number of nodes in the current tree model.
+     * @note The size is counted in a tree perspective. Collapsing item 
+     * (invisible) will also be count.
      */
-    size(): number;
+    treeSize(): number;
 
     /**
      * @description Rerenders the whole view only with the corresponding tree 
@@ -47,7 +52,7 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
      * @description Refresh the subtree of the given tree node.
-     * The tree model will rebuild and reculate all the metadata of the subtree
+     * The tree model will rebuild and recalculate all the metadata of the subtree
      * of the given tree node automatically if the client modify the tree node
      * correctly.
      * @param node The given node. Defaults to root.
@@ -68,7 +73,7 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
 export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {
     /**
      * If force to enable use primitive type for client data.
-     * @warn Enable using primitive type might raises undefined behaviours if
+     * @warn Enable using primitive type might raises undefined behaviors if
      * two of the client data have the same values.
      * @default false
      */
@@ -84,7 +89,7 @@ export interface IMultiTreeWidgetOpts<T, TFilter> extends ITreeWidgetOpts<T, TFi
 
 /**
  * @internal
- * @class Overrides the keyboard controller with addtional behaviours in the
+ * @class Overrides the keyboard controller with additional behaviors in the
  * perspective of tree level.
  */
 export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
@@ -107,7 +112,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
     // [protected override methods]
 
     protected override __onEnter(e: IStandardKeyboardEvent): void {
-        super.__onEnter(e); 
+        super.__onEnter(e);
         
         const anchor = this._view.getAnchorData();
         if (anchor) {
@@ -118,20 +123,29 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
 
 /**
  * @internal
- * @class Used to override and add additional controller behaviours.
+ * @class Used to override and add additional controller behaviors.
  */
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
+    constructor(
+        container: HTMLElement,
+        renderers: IListViewRenderer<any, any>[],
+        itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
+        opts: IMultiTreeWidgetOpts<T, TFilter>
+    ) {
+        super(container, renderers, itemProvider, opts);
+    }
+
     protected override __createKeyboardController(opts: IMultiTreeWidgetOpts<T, TFilter>): MultiTreeKeyboardController<T, TFilter> {
-        return new MultiTreeKeyboardController(this, opts.tree);
+        return new MultiTreeKeyboardController<T, TFilter>(this, opts.tree);
     }
 }
 
 /**
  * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
  * 
- * @warn If data type `T` is a primitive type, might raises undefined behaviours
- * if there are two values are the same. For example, `size()` will not work 
+ * @warn If data type `T` is a primitive type, might raises undefined behaviors
+ * if there are two values are the same. For example, `treeSize()` will not work 
  * properly since the tree cannot decide which is which.
  */
 abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTreeBase<T, TFilter> {
@@ -148,10 +162,10 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IMultiTreeOptions<T, TFilter> = {}
+        opts: IMultiTreeOptions<T, TFilter>
     ) {
         if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
-            throw new Error('mutli tree does not support primitive types');
+            panic('[MultiTreeBase] does not support primitive types');
         }
         super(container, rootData, renderers, itemProvider, opts);
     }
@@ -166,13 +180,13 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         this._model.rerender(item);
     }
 
-    public size(): number {
+    public treeSize(): number {
         return this._model.size();
     }
 
     // [protected override method]
 
-    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, T>): TreeWidget<T, TFilter, T> {
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IMultiTreeWidgetOpts<T, TFilter>): TreeWidget<T, TFilter, T> {
         return new MultiTreeWidget(container, renderers, itemProvider, opts);
     }
 }
@@ -215,7 +229,7 @@ export class MultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> implements 
 }
 
 /**
- * @class An optimization that differents from {@link MultiTree}. Instead of 
+ * @class An optimization that differences from {@link MultiTree}. Instead of 
  * letting client provide a new tree-like structure, client modify the existed 
  * one and the model will rebuild the tree structure automatically after calling 
  * the method {@link FlexMultiTree.refresh}.

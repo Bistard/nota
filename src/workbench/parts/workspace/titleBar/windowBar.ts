@@ -17,7 +17,7 @@ export class WindowBar extends Component {
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
-        @ILifecycleService private readonly lifeCycleSerivce: IBrowserLifecycleService,
+        @ILifecycleService private readonly lifeCycleService: IBrowserLifecycleService,
     ) {
         super('window-bar', null, themeService, componentService);
 
@@ -42,7 +42,7 @@ export class WindowBar extends Component {
             { id: 'dropdown-btn', icon: Icons.AngleDown, classes: [], fn: () => { } },
             { id: 'min-btn', icon: Icons.Minuss, classes: [], fn: () => this.hostService.minimizeWindow() },
             { id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
-            { id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.lifeCycleSerivce.quit() },
+            { id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.lifeCycleService.quit() },
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new WindowButton({

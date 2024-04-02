@@ -2,7 +2,7 @@ import "src/base/browser/secondary/listView/listView.scss";
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
 import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
-import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
+import { IScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
@@ -12,15 +12,16 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { panic } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
- * The consturtor options for {@link ListView}.
+ * The constructor options for {@link ListView}.
  */
-export interface IListViewOpts {
+export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scrollbarType'> {
+    
     /**
      * When constructing the view, decide whether to layout the view immediately.
-     * `layout` meanning to update the size of the view and causes rerendering.
+     * `layout` meaning to update the size of the view and causes rerendering.
      * 
      * Sometimes the provided HTMLElement container is NOT in the DOM tree yet, 
      * so it cannot decide how big the view should be. If this is the case, set
@@ -35,35 +36,10 @@ export interface IListViewOpts {
     readonly transformOptimization?: boolean;
     
     /**
-     * A multiplier to be used on the `deltaX` and `deltaY` of a mouse 
-     * wheel scroll event.
-	 * @default 1
-     */
-    readonly mouseWheelScrollSensitivity?: number;
-
-    /**
-     * A multiplier to be used for wheel scroll event when `ALT` 
-     * keyword is pressed.
-     * @default 5
-     */
-	readonly fastScrollSensitivity?: number;
-
-    /**
-     * If reverse the mouse wheel direction.
-     */
-    readonly reverseMouseWheelDirection?: boolean;
-
-    /**
      * The width of thee scrollbar.
      * @default 10
      */
     readonly scrollbarSize?: number;
-
-    /**
-     * If supports a touchpad scroll.
-     * @default true
-     */
-    readonly touchSupport?: boolean;
 }
 
 /**
@@ -111,7 +87,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
     /** Fires when the {@link IListView} itself is focused. */
     get onDidFocus(): Register<void>;
 
-    /** Fires when the {@link IListView} itself is blured. */
+    /** Fires when the {@link IListView} itself is blurred. */
     get onDidBlur(): Register<void>;
 
     /** Fires when the item in the {@link IListView} is clicked. */
@@ -123,16 +99,16 @@ export interface IListView<T> extends IList<T>, IDisposable {
     /** Fires when the item in the {@link IListView} is mouseovered. */
     get onMouseover(): Register<MouseEvent>;
     
-    /** Fires when the item in the {@link IListView} is mousedouted. */
+    /** Fires when the item in the {@link IListView} is mouseout. */
     get onMouseout(): Register<MouseEvent>;
     
-    /** Fires when the item in the {@link IListView} is mousedowned. */
+    /** Fires when the item in the {@link IListView} is mousedown. */
     get onMousedown(): Register<MouseEvent>;
     
-    /** Fires when the item in the {@link IListView} is mouseuped. */
+    /** Fires when the item in the {@link IListView} is mouseup. */
     get onMouseup(): Register<MouseEvent>;
     
-    /** Fires when the item in the {@link IListView} is mousemoved. */
+    /** Fires when the item in the {@link IListView} is mousemove. */
     get onMousemove(): Register<MouseEvent>;
 
     /** 
@@ -254,7 +230,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
      * the DOM attribute from the target.
      * @param target The {@link EventTarget}.
      * 
-     * @throws If the target is not found, undefined is returned.
+     * @note If the target is not found, undefined is returned.
      */
     indexFromEventTarget(target: EventTarget | null): number | undefined;
 }
@@ -377,13 +353,9 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
         
         this.scrollableWidget = new ScrollableWidget(
-            this.scrollable, 
-            {
-                scrollSensibility: opts.mouseWheelScrollSensitivity,
-                mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,
-                reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
+            this.scrollable, {
+                ...opts,
                 scrollbarType: ScrollbarType.vertical,
-                touchSupport: opts.touchSupport ?? true,
             },
         );
         this.scrollableWidget.render(this.element);
@@ -503,6 +475,13 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         return;
     }
+    
+    public viewSize(onlyVisible: boolean = false): number {
+        if (onlyVisible) {
+            return this._visibleRange.end - this._visibleRange.start;
+        }
+        return this.items.length; 
+    }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         
@@ -523,7 +502,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public reveal(index: number, relativePositionPercentage?: number): void {
-        if (index < 0 && index >= this.getItemCount()) {
+        if (index < 0 && index >= this.viewSize()) {
             return;
         }
 
@@ -637,10 +616,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     public getVisibleRange(): IRange {
         return this._visibleRange;
-    }
-
-    public getItemCount(): number { 
-        return this.items.length; 
     }
 
     public getItem(index: number): T {
@@ -888,7 +863,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         }
         
         const offset = items.length - deleteCount;
-        // recalcualte the render range (since we have modifed the range table)
+        // recalculate the render range (since we have modified the range table)
         const renderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         this._visibleRange = renderRange;
 

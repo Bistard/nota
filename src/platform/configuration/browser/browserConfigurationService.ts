@@ -10,6 +10,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { Arrays } from "src/base/common/utilities/array";
 import { JsonSchemaValidator } from "src/base/common/json";
 import { AsyncResult, err, ok } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -30,11 +31,11 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
     // [public methods]
 
-    public async set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void> {
+    public async set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void> {
         await this.__updateConfiguration(section, value, options);
     }
 
-    public async delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void> {
+    public async delete(section: Section, options: IConfigurationUpdateOptions): Promise<void> {
         await this.__updateConfiguration(section, undefined, options);
     }
 
@@ -56,26 +57,26 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
     // [private helper methods]
 
-    private async __updateConfiguration(section: Section, value: unknown, options?: IConfigurationUpdateOptions): Promise<void> {
+    private async __updateConfiguration(section: Section, value: unknown, options: IConfigurationUpdateOptions): Promise<void> {
         const module = options?.type;
 
         if (module === ConfigurationModuleType.Default) {
-            throw new Error(`[BrowserConfigurationService] cannot update the configuration wtih module type: '${ConfigurationModuleTypeToString(module)}'`);
+            panic(`[BrowserConfigurationService] cannot update the configuration with module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
 
         /**
          * Before update the configuration, we need to ensure two things based 
          * on the configuration schemas:
          *   1. The section is valid.
-         *   2. The value is vlaid.
+         *   2. The value is valid.
          */
         if (!this.__validateConfigurationUpdateInSection(section)) {
-            throw new Error(`[BrowserConfigurationService] cannot update the configuration because the section is invalid: ${section}`);
+            panic(`[BrowserConfigurationService] cannot update the configuration because the section is invalid: ${section}`);
         }
 
         // ignore value check when deleting the configuration
         if (value !== undefined  && !this.__validateConfigurationUpdateInValue(section, value)) {
-            throw new Error(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}`);
+            panic(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}`);
         }
         
         /**
@@ -89,7 +90,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
             await this.__updateUserConfiguration(section, value);
         }
         else {
-            throw new Error(`[BrowserConfigurationService] cannot update configuration with unknown module type: '${ConfigurationModuleTypeToString(module)}'`);
+            panic(`[BrowserConfigurationService] cannot update configuration with unknown module type: '${ConfigurationModuleTypeToString(module)}'`);
         }
     }
 

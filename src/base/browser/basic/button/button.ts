@@ -56,7 +56,7 @@ export interface IButton extends IWidget {
     // [method]
 
     /**
-     * @description Programtically clicks the button.
+     * @description Programmatically clicks the button.
      */
     click(): void;
 

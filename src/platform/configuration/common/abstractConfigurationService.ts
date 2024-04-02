@@ -162,15 +162,15 @@ export interface IConfigurationChangeEvent {
     readonly properties: Set<Section>;
 
     /**
-     * @description Check if the given section finds an exact match in the 
-     * changing events.
+     * @description Check if the given section finds an exact match or find a 
+     * child of the section in the changing events.
      * @param section The given section.
      */
     affect(section: Section): boolean;
 
     /**
-     * @description Check if the given section finds an exact match or find a 
-     * child of the section in the changing events.
+     * @description Check if the given section finds an exact match in the 
+     * changing events.
      * @param section The given section.
      */
     match(section: Section): boolean;

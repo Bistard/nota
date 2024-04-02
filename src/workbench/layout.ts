@@ -8,18 +8,18 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
-import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
-import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
+import { assert } from "src/base/common/utilities/panic";
 
 /**
- * @description A base class for Workbench to create and manage the behaviour of
+ * @description A base class for Workbench to create and manage the behavior of
  * each sub-component.
  */
 export abstract class WorkbenchLayout extends Component {
@@ -73,12 +73,13 @@ export abstract class WorkbenchLayout extends Component {
         // window resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
-            this._splitView?.layout(this.dimension!.width, this.dimension!.height);
+            const dimension = assert(this.dimension);
+            this._splitView?.layout(dimension.width, dimension.height);
         }));
 
         /**
          * Listens to each SideBar button click events and notifies the 
-         * sideView to swtich the view.
+         * sideView to switch the view.
          */
         this.__register(this.sideBarService.onDidClick(e => {
             if (e.isPrimary) {
@@ -91,24 +92,26 @@ export abstract class WorkbenchLayout extends Component {
 
     private __registerSideViews(): void {
         this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
+        // TODO: other side-views are also registered here.
     }
 
     private __assemblyWorkbenchParts(): void {
 
-        const splitViewOpt = {
+        const splitViewOpt: Required<ISplitViewOpts> = {
             orientation: Orientation.Horizontal,
-            viewOpts: <ISplitViewItemOpts[]>[],
-        } satisfies ISplitViewOpts;
+            viewOpts: [],
+        };
 
-        const configurations = [
-            [this.sideBarService, SideBar.WIDTH, SideBar.WIDTH, SideBar.WIDTH, Priority.Low],
-            [this.sideViewService, 100, SideView.WIDTH * 2, SideView.WIDTH, Priority.Normal],
-            [this.workspaceService, 0, Number.POSITIVE_INFINITY, 0, Priority.High],
+        const PartsConfiguration = [
+            [this.sideBarService  , SideBar.WIDTH, SideBar.WIDTH           , SideBar.WIDTH , Priority.Low   ],
+            [this.sideViewService , 100          , SideView.WIDTH * 2      , SideView.WIDTH, Priority.Normal],
+            [this.workspaceService, 0            , Number.POSITIVE_INFINITY, 0             , Priority.High  ],
         ] as const;
 
-        for (const [component, minSize, maxSize, initSize, priority] of configurations) {
+        for (const [component, minSize, maxSize, initSize, priority] of PartsConfiguration) {
             component.create(this);
             component.registerListeners();
+            
             splitViewOpt.viewOpts.push({
                 element: component.element.element,
                 minimumSize: minSize,
@@ -122,7 +125,7 @@ export abstract class WorkbenchLayout extends Component {
         this._splitView = new SplitView(this.element.element, splitViewOpt);
 
         // set the sash next to sideBar is visible and disabled.
-        const sash = this._splitView.getSashAt(0)!;
+        const sash = assert(this._splitView.getSashAt(0));
         sash.enable = false;
         sash.visible = true;
         sash.size = 1;
@@ -177,7 +180,7 @@ class SideBarBuilder {
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
                         getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),
-                        // TODO
+                        // TODO: this is only for test purpose
                         getActions: () => {
                             return [
                                 new SimpleMenuAction({
@@ -188,7 +191,7 @@ class SideBarBuilder {
                                     extraClassName: 'action1',
                                     shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
                                 }),
-                                MenuSeperatorAction.instance,
+                                MenuSeparatorAction.instance,
                                 new CheckMenuAction({
                                     onChecked: (checked) => {
                                         console.log('checked:', checked);
@@ -207,7 +210,7 @@ class SideBarBuilder {
                                     tip: 'simple action 3 tip',
                                     extraClassName: 'action3',
                                 }),
-                                MenuSeperatorAction.instance,
+                                MenuSeparatorAction.instance,
                                 new SimpleMenuAction({
                                     callback: () => console.log('action 4 executed'),
                                     enabled: true,
@@ -225,7 +228,7 @@ class SideBarBuilder {
                                             tip: 'simple action 6 tip',
                                             extraClassName: 'action6',
                                         }),
-                                        MenuSeperatorAction.instance,
+                                        MenuSeparatorAction.instance,
                                         new SimpleMenuAction({
                                             callback: () => console.log('action 7 executed'),
                                             enabled: true,
@@ -240,7 +243,7 @@ class SideBarBuilder {
                                             tip: 'simple action 8 tip',
                                             extraClassName: 'action8',
                                         }),
-                                        MenuSeperatorAction.instance,
+                                        MenuSeparatorAction.instance,
                                         new SimpleMenuAction({
                                             callback: () => console.log('action 9 executed'),
                                             enabled: true,

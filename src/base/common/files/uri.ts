@@ -1,13 +1,11 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
 import { CharCode } from "src/base/common/utilities/char";
 import * as paths from "src/base/common/files/path";
 import { IS_WINDOWS, OS_CASE_SENSITIVE } from "src/base/common/platform";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { isParentOf } from "src/base/common/files/glob";
+import { panic } from "src/base/common/utilities/panic";
+import { toForwardSlash, toPosixPath } from "src/base/common/files/extpath";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -125,6 +123,14 @@ export class URI implements IURI {
 			&& typeof (<URI>obj).scheme === 'string';
 	}
 
+	public static isAbsolutePath(resource: URI): boolean {
+		return !!resource.path && resource.path[0] === '/';
+	}
+
+	public static isEqualAuthority(a1: string | undefined, a2: string | undefined): boolean {
+		return a1 === a2 || (a1 !== undefined && a2 !== undefined && Strings.IgnoreCase.equals(a1, a2));
+	}
+
 	/**
 	 * @description Compute the file system path for the given URI. 
 	 */
@@ -214,7 +220,7 @@ export class URI implements IURI {
 	 */
 	public static join(uri: URI, ...path: string[]): URI {
 		if (!uri.path) {
-			throw new Error(`[UriError]: cannot call joinPath on URI without path`);
+			panic(`[URI]: cannot call joinPath on URI without path`);
 		}
 
 		if (path.length === 0) {
@@ -229,6 +235,71 @@ export class URI implements IURI {
 		}
 
 		return URI.with(uri, { path: newPath });
+	}
+
+	/**
+	 * @description Computes the relative path from one URI to another. If both 
+	 * URIs share the same scheme and authority.
+	 * @param from The starting URI from which to calculate the relative path.
+	 * @param to The target URI to which the relative path is calculated.
+	 * @returns The relative path from the `from` URI to the `to` URI, if 
+	 * 			applicable, otherwise `undefined`.
+	 * 
+	 * @note When dealing with file URIs on a Windows system, the resulting path 
+	 * 		 is converted to use forward slashes.
+	 * @note If the URIs have different schemes or authorities, or if the 
+	 * 		 calculation is not applicable, the function returns `undefined`.
+	 */
+	public static relative(from: URI, to: URI): string | undefined {
+		if (from.scheme !== to.scheme || !URI.isEqualAuthority(from.authority, to.authority)) {
+			return undefined;
+		}
+		if (from.scheme === Schemas.FILE) {
+			const relativePath = paths.relative(URI.toFsPath(from, true), URI.toFsPath(to, true));
+			return IS_WINDOWS ? toForwardSlash(relativePath) : relativePath;
+		}
+		let fromPath = from.path || '/';
+		const toPath = to.path || '/';
+		
+		// disabled by now (@Bistard)
+		if (null) {
+			// make casing of fromPath match toPath
+			let i = 0;
+			for (const len = Math.min(fromPath.length, toPath.length); i < len; i++) {
+				if (fromPath.charCodeAt(i) !== toPath.charCodeAt(i)) {
+					if (fromPath.charAt(i).toLowerCase() !== toPath.charAt(i).toLowerCase()) {
+						break;
+					}
+				}
+			}
+			fromPath = toPath.substr(0, i) + fromPath.substr(i);
+		}
+
+		return paths.posix.relative(fromPath, toPath);
+	}
+	
+	/**
+	 * @description Calculates a URI based on a base URI and a path, which can 
+	 * be either relative or absolute.
+	 * @param base The base URI used as the starting point.
+	 * @param path The path to resolve against the base URI.
+	 * @returns The resulting URI after resolving the given path against the base URI.
+	 * 
+	 * @note The provided path may follow either POSIX or Windows standards.
+	 */
+	public static resolve(base: URI, path: string): URI {
+		if (base.scheme === Schemas.FILE) {
+			const newURI = URI.fromFile(paths.resolve(URI.toFsPath(base, true), path));
+			return URI.with(base, {
+				authority: newURI.authority,
+				path: newURI.path
+			});
+		}
+
+		path = toPosixPath(path); // we allow path to be a windows path
+		return URI.with(base, {
+			path: paths.posix.resolve(base.path, path)
+		});
 	}
 
 	/**
@@ -259,6 +330,71 @@ export class URI implements IURI {
 		});
 
 		return URI.toString(uri1) === URI.toString(uri2);
+	}
+
+	/**
+	 * @description Identifies and returns a list of unique parent URIs from a 
+	 * given array, excluding any URIs that are children of others in the array. 
+	 * 
+	 * @param uris An array of URI objects to be evaluated for parent-child 
+	 * 			   relationships.
+	 * @returns An array of URI objects representing distinct parent URIs, with 
+	 * 			no child URIs included.
+	 * 
+	 * @note This function is useful for filtering out URIs to ensure that only 
+	 * top-level (parent) resources are considered, without any duplicates.
+	 */
+	public static distinctParents(uris: URI[]): URI[] {
+		const distinct: URI[] = [];
+
+		for (let i = 0; i < uris.length; i++) {
+			const uri = uris[i]!;
+
+			const isChildOrParent = uris.some((other, idx) => {
+				if (idx === i) {
+					return false;
+				}
+
+				return URI.isParentOf(uri, other) || URI.equals(uri, other);
+			});
+
+			if (!isChildOrParent) {
+				distinct.push(uri);
+			}
+		}
+
+		return distinct;
+	}
+	
+	/**
+	 * @description Same as {@link URI.distinctParents}, but instead of directly
+	 * filtering the URI, this is filtering a generic type T.
+	 * @param items Array of items of generic type T.
+	 * @param getURI Function to extract URI from an item.
+	 * @returns Array of distinct items based on their URIs.
+	 */
+	public static distinctParentsByUri<T>(items: T[], getURI: (item: T) => URI): T[] {
+		const distinct: T[] = [];
+
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i]!;
+			const uri = getURI(item);
+
+			const isChildOrParent = items.some((other, idx) => {
+				if (idx === i) {
+					return false;
+				}
+
+				const otherUri = getURI(other);
+				return URI.isParentOf(uri, otherUri) || URI.equals(uri, otherUri);
+			});
+
+			if (!isChildOrParent) {
+				distinct.push(item);
+			}
+		}
+
+		return distinct;
 	}
 
 	/**
@@ -580,13 +716,13 @@ function __validateUri(ret: URI, _strict?: boolean): void {
 
 	// scheme, must be set
 	if (!ret.scheme && _strict) {
-		throw new Error(`[UriError]: Scheme is missing: {scheme: "", authority: "${ret.authority}", path: "${ret.path}", query: "${ret.query}", fragment: "${ret.fragment}"}`);
+		panic(`[URI]: Scheme is missing: {scheme: "", authority: "${ret.authority}", path: "${ret.path}", query: "${ret.query}", fragment: "${ret.fragment}"}`);
 	}
 
 	// scheme, https://tools.ietf.org/html/rfc3986#section-3.1
 	// ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 	if (ret.scheme && !_schemePattern.test(ret.scheme)) {
-		throw new Error('[UriError]: Scheme contains illegal characters.');
+		panic('[URI]: Scheme contains illegal characters.');
 	}
 
 	// path, http://tools.ietf.org/html/rfc3986#section-3.3
@@ -597,11 +733,11 @@ function __validateUri(ret: URI, _strict?: boolean): void {
 	if (ret.path) {
 		if (ret.authority) {
 			if (!_singleSlashStart.test(ret.path)) {
-				throw new Error('[UriError]: If a URI contains an authority component, then the path component must either be empty or begin with a slash ("/") character');
+				panic('[URI]: If a URI contains an authority component, then the path component must either be empty or begin with a slash ("/") character');
 			}
 		} else {
 			if (_doubleSlashStart.test(ret.path)) {
-				throw new Error('[UriError]: If a URI does not contain an authority component, then the path cannot begin with two slash characters ("//")');
+				panic('[URI]: If a URI does not contain an authority component, then the path cannot begin with two slash characters ("//")');
 			}
 		}
 	}

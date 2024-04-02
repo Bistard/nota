@@ -1,6 +1,22 @@
 
+.file-tree.focused {
+    outline-offset: -1px;
+    outline: 1px solid #cf6060;
+}
+
 .file-tree.on-drop-target {
 
     // simulate: hovered entirely
     background-color: #fcf3f3;
+}
+
+.row-insertion {
+    position: absolute;
+
+    width: 100%;
+    height: var(--nota-overlay-height);
+    background-color: #cf6060;
+
+    /** the insertion should be inactive */
+    pointer-events: none;
 }

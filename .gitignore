@@ -8,3 +8,5 @@
 
 /assets/src-svg
 /**/*.woff2
+
+/.idea

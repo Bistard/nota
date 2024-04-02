@@ -1,24 +1,25 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeparatorItem as MenuSeparatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
 import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type";
-import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
+import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { RGBA } from "src/base/common/color";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
 }
 
 /**
- * An inteface only for {@link BaseMenu}.
+ * An interface only for {@link BaseMenu}.
  */
 export interface IMenu extends IActionList<MenuAction, IMenuItem> {
 
@@ -43,7 +44,7 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
     readonly onDidRun: Register<IMenuActionRunEvent>;
     
     /**
-     * Fires when the menu is blured.
+     * Fires when the menu is blurred.
      */
     readonly onDidBlur: Register<void>;
 
@@ -64,7 +65,7 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
      * @param index The index of the item to be focused. If not provided, focus
      *              the first one. If index equals -1, only focus the entire 
      *              menu.
-     * @note The index will NOT be recalculated to avoid the unenabled items.
+     * @note The index will NOT be recalculated to avoid the disabled items.
      */
     focus(index?: number): void;
 
@@ -144,7 +145,6 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         // TODO: move into ThemeService
         {
             this._element.style.setProperty('--menu-item-height', '30px');
-            this._element.style.setProperty('--menu-item-focus-background-color', (new RGBA(100, 200, 100).toString()));
         }
 
         this._currFocusedIndex = -1;
@@ -173,7 +173,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
     public build(actions: MenuAction[]): void {
         if (this._built) {
-            throw new Error('Menu cannot build twice.');
+            panic('Menu cannot build twice.');
         }
         this.insert(actions);
         this._built = true;
@@ -221,7 +221,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
             
             const fragment = <HTMLElement><unknown>document.createDocumentFragment();
             items.forEach((item, index) => {
-                // bind the item runnning environment to the action list
+                // bind the item running environment to the action list
                 item.actionRunner = this.run.bind(this);
                 
                 // render the item
@@ -395,8 +395,8 @@ export class Menu extends BaseMenu {
     constructor(container: HTMLElement, opts: IMenuOptions) {
         super(container, opts);
         this.addActionItemProvider((action: MenuAction) => {
-            if (action.type === MenuItemType.Seperator) {
-                return new MenuSeperatorItem(action);
+            if (action.type === MenuItemType.Separator) {
+                return new MenuSeparatorItem(action);
             }
     
             else if (action.type === MenuItemType.General) {
@@ -517,7 +517,7 @@ export abstract class MenuDecorator implements IMenu {
 }
 
 /**
- * @class With additionals to {@link Menu}, the class supports to construct a
+ * @class With additional to {@link Menu}, the class supports to construct a
  * submenu also with interface {@link IMenu}.
  */
 export class MenuWithSubmenu extends MenuDecorator {
@@ -629,7 +629,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         
         const submenuBox = submenuContainer.element.getBoundingClientRect();
         const { top, left } = this.__calculateSubmenuPosition(
-            Dimension.create(submenuBox),
+            { width: submenuBox.width, height: submenuBox.height },
             anchorBox,
             Direction.Right,
         );
@@ -713,7 +713,7 @@ export class MenuWithSubmenu extends MenuDecorator {
     private __focusParentMenu(): void {
         
         /**
-         * When focusing the parent menu making sure there is no exisitng 
+         * When focusing the parent menu making sure there is no existing 
          * focused item.
          */
         if (!this._menu.anyFocused()) {

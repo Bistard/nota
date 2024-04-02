@@ -42,7 +42,7 @@ class WebpackPluginProvider {
          * circular dependency plugin
          */
 
-        const MAX_CYCLES = 3;
+        const MAX_CYCLES = 0;
         let detectedCycleCount = 0;
 
         if (opts && opts.circular) {
@@ -51,6 +51,9 @@ class WebpackPluginProvider {
                     exclude: /a\.js|node_modules/,
                     include: /src/,
                     cwd: cwd,
+
+                    failOnError: true,
+                    allowAsyncCycles: false,
                     
                     // `onStart` is called before the cycle detection starts
                     onStart({ _compilation }) {
@@ -187,7 +190,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     }
 
     #consturctInspectorProcess(baseConfiguration) {
-        const lookupConfiguraion = 
+        const lookupconfiguration = 
             Object.assign(
                 baseConfiguration, 
                 {
@@ -201,7 +204,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                     },
                 },
             );
-        return lookupConfiguraion;
+        return lookupconfiguration;
     }
 }
 

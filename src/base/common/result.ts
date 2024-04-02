@@ -1,5 +1,5 @@
-import { Strings } from "src/base/common/utilities/string";
-import { Callable, isNullable } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
+import { Callable } from "src/base/common/utilities/type";
 
 /**
  * An namespace that contains a list of helper functions that relates to 
@@ -615,31 +615,6 @@ export class Err<T, E> implements IResult<T, E> {
     public toAsync(): AsyncResult<T, E> {
         return new AsyncResult(Promise.resolve(err(this.error)));
     }
-}
-
-/**
- * @description Panics the program by throwing an error with the provided message.
- *
- * @remark `panic` is for situations where the error is unrecoverable and the
- * program cannot proceed further. Use it very carefully.
- *
- * @param messageOrError - The error to be thrown.
- * @throws Will throw an error.
- * @returns This function never returns normally; always throws an error.
- */
-export function panic(error: unknown): never {
-    if (isNullable(error)) {
-        // eslint-disable-next-line local/code-no-throw
-        throw new Error('unknown panic error');
-    }
-
-    if (error instanceof Error) {
-        // eslint-disable-next-line local/code-no-throw
-        throw error;
-    }
-
-    // eslint-disable-next-line local/code-no-throw
-    throw new Error(Strings.errorToMessage(error));
 }
 
 /**

@@ -419,7 +419,7 @@ export class PieceTable implements IPieceTable {
             return;
         }
 
-        // Deletion affects mutiple nodes (pieces).
+        // Deletion affects multiple nodes (pieces).
         const toBeDeleted: PieceNode[] = [];
 
         this.__deletePieceTailAt(startNode, startDeleteBufferPosition);
@@ -475,7 +475,7 @@ export class PieceTable implements IPieceTable {
              */
             if (danglingCarriageReturn) {
                 /**
-                 * The CRLF is splited into two pieces, we pretend LF is at the 
+                 * The CRLF is splitted into two pieces, we pretend LF is at the 
                  * previous one.
                  */
                 if (buffer.charCodeAt(firstCharOffset) === CharCode.LineFeed) {
@@ -511,7 +511,7 @@ export class PieceTable implements IPieceTable {
                 ) {
                     /**
                      * The end of the piece contains a CR, it is possible that
-                     * a CRLF got splited into two pieces, so we mark it as 
+                     * a CRLF got splitted into two pieces, so we mark it as 
                      * dangling and ignore the CR character until next node.
                      */
                     danglingCarriageReturn = true;
@@ -524,7 +524,7 @@ export class PieceTable implements IPieceTable {
             }
 
             /**
-             * Now the piece will contain mutiple lines. We need to use three
+             * Now the piece will contain multiple lines. We need to use three
              * different stages to store these lines:
              *      - store the first line (partial)
              *      - store the middle lines (full)
@@ -760,7 +760,7 @@ export class PieceTable implements IPieceTable {
             return this.__splitIntoPieces(text);
         }
 
-        const addBuffer = this._buffer[0]!;
+        const addBuffer: Mutable<TextBuffer> = this._buffer[0]!;
         let addBufferLength = addBuffer.buffer.length;
         const linestart = TextBuffer.readLineStarts(text, addBufferLength).linestart;
         
@@ -790,13 +790,13 @@ export class PieceTable implements IPieceTable {
                 linestart[i]! += 1;
             }
             
-            (<Mutable<string>>addBuffer.buffer) = addBuffer.buffer.concat('_', text);
-            (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.splice(1));
+            addBuffer.buffer = addBuffer.buffer.concat('_', text);
+            addBuffer.linestart = addBuffer.linestart.concat(linestart.splice(1));
         } 
         // If not, simply update the as normal.
         else {
-            (<Mutable<string>>addBuffer.buffer) = addBuffer.buffer.concat(text);
-            (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.splice(1));
+            addBuffer.buffer = addBuffer.buffer.concat(text);
+            addBuffer.linestart = addBuffer.linestart.concat(linestart.splice(1));
         }
 
         /**
@@ -883,9 +883,9 @@ export class PieceTable implements IPieceTable {
             text += EndOfLine.LF;
         }
 
-        const addBuffer = this._buffer[0]!;
+        const addBuffer: Mutable<TextBuffer> = this._buffer[0]!;
         const addBufferStartOffset = addBuffer.buffer.length;
-        (<Mutable<string>>addBuffer.buffer) += text;
+        addBuffer.buffer += text;
 
         const linestart = TextBuffer.readLineStarts(text, addBufferStartOffset).linestart;
         
@@ -905,7 +905,7 @@ export class PieceTable implements IPieceTable {
             };
         }
 
-        (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.slice(1));
+        addBuffer.linestart = addBuffer.linestart.concat(linestart.slice(1));
         const newPieceEndPosition = {
             lineNumber: addBuffer.linestart.length - 1,
             lineOffset: addBuffer.buffer.length - addBuffer.linestart[addBuffer.linestart.length - 1]!

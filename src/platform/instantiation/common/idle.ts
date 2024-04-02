@@ -1,4 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface IIdleDeadline {
 	readonly didTimeout: boolean;
@@ -81,7 +82,7 @@ export class IdleValue<T> {
 			this._executor();
 		}
 		if (this._error) {
-			throw this._error;
+			panic(this._error);
 		}
 		return this._value!;
 	}

@@ -31,7 +31,8 @@ export interface IConfigurationService extends IDisposable, IService {
     readonly appConfigurationPath: URI;
 
     /**
-     * Fires whenever the configuraion has changed.
+     * Fires when the configuration has changed. Any of {@link ConfigurationModuleType}
+     * type of update will trigger this event.
      */
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
 
@@ -59,21 +60,21 @@ export interface IConfigurationService extends IDisposable, IService {
      * section.
      * @param section The {@link Section} string of the required configuration.
      * @param value The new value of the configuration.
-     * @param options The options for updation.
+     * @param options The options for update.
      * 
      * @throws An exception will be thrown if the section is invalid.
-     * @note If section is null, it overries the entire configuration.
+     * @note If section is null, it overrides the entire configuration.
      */
-    set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
+    set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Delete the configuration under the provided section.
      * @param section The {@link Section} string of the required configuration.
-     * @param options The options for updation.
+     * @param options The options for update.
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
-    delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
+    delete(section: Section, options: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Saves the configuration.
@@ -91,7 +92,7 @@ export interface IConfigurationServiceOptions {
 export interface IConfigurationUpdateOptions {
 
     /**
-     * Your target module for updation.
+     * Your target module for update.
      */
     readonly type: ConfigurationModuleType;
 }
@@ -125,14 +126,14 @@ export function ConfigurationModuleTypeToString(type: any): string {
  * specific configuration aspects.
  * 
  * @note Double initialization will throw an exception.
- * @note The model does not support direct configuraiton modifications.
+ * @note The model does not support direct configuration modifications.
  */
 export interface IConfigurationModule<TType extends ConfigurationModuleType, TOnDidChangeEvent> extends IDisposable {
 
     readonly type: TType;
 
     /**
-     * Fires when the configuration chanages.
+     * Fires when the configuration changes.
      */
     readonly onDidConfigurationChange: Register<TOnDidChangeEvent>;
 
@@ -156,7 +157,7 @@ export interface IConfigurationModule<TType extends ConfigurationModuleType, TOn
 export interface IDefaultConfigurationModule extends IConfigurationModule<ConfigurationModuleType.Default, IRawConfigurationChangeEvent> {
 
     /**
-     * Fires when the configuration chanages.
+     * Fires when the configuration changes.
      * @note This fires when the default configuration changes in memory.
      */
     readonly onDidConfigurationChange: Register<IRawConfigurationChangeEvent>;
@@ -165,7 +166,7 @@ export interface IDefaultConfigurationModule extends IConfigurationModule<Config
 export interface IUserConfigurationModule extends IConfigurationModule<ConfigurationModuleType.User, void> {
     
     /**
-     * Fires when the configuration chanages.
+     * Fires when the configuration changes.
      * @note This fires when the the user configuration changes in disk.
      */
     readonly onDidConfigurationChange: Register<void>;

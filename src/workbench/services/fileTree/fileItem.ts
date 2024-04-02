@@ -5,37 +5,82 @@ import { URI } from "src/base/common/files/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { CompareFn, CompareOrder, Mutable } from "src/base/common/utilities/type";
+import { Comparator } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
+import { tryOrDefault } from "src/base/common/error";
+import { parse, posix } from "src/base/common/files/path";
+import { Strings } from "src/base/common/utilities/string";
+import { assert } from "src/base/common/utilities/panic";
+
+export interface IFileTarget {
+    readonly name: string;
+    readonly type: FileType;
+}
 
 /**
  * An interface only for {@link FileItem}.
  */
-export interface IFileItem<TItem extends IFileItem<TItem>> {
+export interface IFileItem<TItem extends IFileItem<TItem>> extends IFileTarget {
 
-    /** The unique representation of the target. */
+    /** 
+     * The unique representation of the target. 
+     */
     readonly id: string;
 
-    /** The {@link URI} of the target. */
+    /** 
+     * The {@link URI} of the target. 
+     */
     readonly uri: URI;
 
-    /** The name of the target. */
+    /** 
+     * The name of the target. 
+     * @example file.js
+     */
     readonly name: string;
+    
+    /** 
+     * The basename of the target without the extension name. 
+     * @example file.js -> file
+     */
+    readonly basename: string;
+    
+    /** 
+     * The extension name of the target. 
+     * @example file.js -> .js
+     */
+    readonly extname: string;
 
-    /** The type of the target. */
+    /** 
+     * The type of the target. 
+     */
     readonly type: FileType;
 
-    /** The creation date in milliseconds. */
+    /** 
+     * The creation date in milliseconds. 
+     */
     readonly createTime: number;
 
-    /** The last modified date in milliseconds.*/
+    /** 
+     * The last modified date in milliseconds.
+     */
     readonly modifyTime: number;
 
-    /** The parent of the target. Null if current target is the root. */
+    /** 
+     * The parent of the target. Null if current target is the root. 
+     */
     readonly parent: TItem | null;
 
-    /** The direct children of the target. */
+    /** 
+     * The direct children of the target. 
+     */
     readonly children: TItem[];
+    
+    /** 
+     * A mapping of the direct children of the target. Lazy loading mechanism. 
+     * @note If the current operating system is case sensitive, the keys are 
+     * all lowercased here.
+     */
+    readonly mapChildren: Map<string, FileItem>;
 
     /**
      * @description Returns the root of the current target
@@ -62,7 +107,8 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
     isFile(): boolean;
 
     /**
-     * @description Is the current item has ever update its children before.
+     * @description Is the current item is updated. If the item has ever update 
+     * its children before, this returns false.
      * @complexity O(1)
      */
     isChildrenResolved(): boolean;
@@ -79,30 +125,78 @@ export interface IFileItem<TItem extends IFileItem<TItem>> {
      * item.
      * @param fileService The given {@link IFileService} for fetching the 
      * children of the current item.
-     * @param onError Make sure the error is provided to outside.
-     * @param filters Providing filter options during the resolution process can 
-     * prevent unnecessary performance loss compares to we filter the result 
-     * after the process.
-     * @param cmpFn A compare function to sort the children.
-     * @cimplexity 
+     * @param opts Options for building {@link FileItem} when refreshing.
+     * @complexity 
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
      */
-    refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
+    refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<TItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError>;
 
     /**
-     * @description Forgets all the children of the current item.
+     * @description Simply mark the item as unresolved. This does not clean its
+     * children.
+     */
+    markAsUnresolved(): void;
+
+    /**
+     * @description Forgets all the children of the current item. Will also mark
+     * the item as unresolved.
      */
     forgetChildren(): void;
+
+    /**
+     * @description Try to find a child item if it is under the parent of the 
+     * current item (recursive).
+     * @param uri The uri of the child.
+     * 
+     * @note Some string comparison happens here. Might raise perf issue is 
+     * calling too frequently.
+     */
+    findDescendant(uri: URI): FileItem | undefined;
+
+    /**
+     * @description Returns an index of the current item within the children of 
+     * its parent.
+     * @panic make sure the parent exists.
+     */
+    getSelfIndexInParent(): number;
+}
+
+export interface IFileItemResolveOptions<TItem extends IFileItem<TItem>> {
+
+    /**
+     * @description What happens when error encounters.
+     */
+    onError: (error: unknown) => void;
+    
+    /**
+     * @description A filter options that provides ability to filter out unwanted
+     * file items.
+     */
+    readonly filters?: IFilterOpts;
+
+    /**
+     * @description Provide a compare function that provides ability to decide
+     * the order of every folder children.
+     */
+    cmp?: Comparator<FileItem>;
+
+    /**
+     * @description Provide a chance that client can be notified before every
+     * compare.
+     * @param folder The folder which children is about to sort.
+     */
+    beforeCmp?: (folder: TItem) => void | Promise<void>;
 }
 
 /**
- * @class A data structure to be stored as each tree node in a 
- * {@link FileTreeService}. The item will build the tree structure 
- * recursively once constructed by the provided stat.
+ * @class A tree-like data structure. The item will build the tree structure 
+ * recursively by the provided stat.
  * 
  * If stat is out of updated, invoking refreshChildren will automatically 
  * rebuild the whole tree structure.
+ * 
+ * @note Use {@link FileItem.resolve} to build the hierarchy.
  */
 export class FileItem implements IFileItem<FileItem> {
 
@@ -111,7 +205,7 @@ export class FileItem implements IFileItem<FileItem> {
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
     /** An array to store the children and will be updated during the refresh. */
-    private _children: FileItem[] = [];
+    private _children: FileItem[];
     /** the parent of the current item. */
     private _parent: FileItem | null = null;
 
@@ -121,38 +215,29 @@ export class FileItem implements IFileItem<FileItem> {
      */
     private _isResolved = false;
 
+    /**
+     * Perf reason: for fast lookup, lazy loading mechanism. 
+     * Do not access this directly, use 'this.mapChildren' instead.
+     * @note The keys (name of the child) is smartly adjusted by the case 
+     *       sensitive.
+     */
+    private _mapChildrenCache?: Map<string, FileItem>;
+
     // [constructor]
 
+    /**
+     * Use {@link FileItem.build} instead. Do not construct 
+     */
     constructor(
         stat: IResolvedFileStat,
         parent: FileItem | null,
-        onError: (error: Error) => void,
-        filters?: IFilterOpts,
-        cmpFn?: CompareFn<FileItem>
+        children: FileItem[],
     ) {
         this._stat = stat;
         this._parent = parent;
-        cmpFn ??= defaultFileItemCompareFn;
-
+        this._children = children;
         if (stat.children) {
             this._isResolved = true;
-
-            for (const child of stat.children) {
-                if (filters && isFiltered(child.name, filters)) {
-                    continue;
-                }
-                this._children.push(new FileItem(child, this, onError, filters, cmpFn));
-            }
-        }
-
-        if (cmpFn) {
-            try {
-                // TODO: load order before sort
-                this._children.sort(cmpFn);
-            } catch (error: any) {
-                this._children.sort();
-                onError(error);
-            }
         }
     }
 
@@ -164,6 +249,12 @@ export class FileItem implements IFileItem<FileItem> {
     get uri(): URI { return this._stat.uri; }
 
     get name(): string { return this._stat.name; }
+    
+    @memoize
+    get basename(): string { return parse(this._stat.name).name; }
+
+    @memoize
+    get extname(): string { return parse(this._stat.name).ext; }
 
     get type(): FileType { return this._stat.type; }
 
@@ -174,6 +265,60 @@ export class FileItem implements IFileItem<FileItem> {
     get parent(): FileItem | null { return this._parent; }
 
     get children(): FileItem[] { return this._children; }
+
+    get mapChildren(): Map<string, FileItem> {
+        if (this._mapChildrenCache) {
+            return this._mapChildrenCache;
+        }
+        
+        this._mapChildrenCache = new Map();
+        for (const child of this._children) {
+            const resolvedName = Strings.Smart.adjust(child.name);
+            this._mapChildrenCache.set(resolvedName, child);
+        }
+        
+        return this._mapChildrenCache;
+    }
+
+    // [public static method]
+
+    /**
+     * @description Resolving a tree-like structure of {@link FileItem} based on
+     * the given {@link IResolvedFileStat}.
+     * @returns A resolved {@link FileItem} that corresponds to the provided 
+     *          resolved stat.
+     */
+    public static async resolve(
+        stat: IResolvedFileStat, 
+        parent: FileItem | null,
+        opts: IFileItemResolveOptions<FileItem>,
+    ): Promise<FileItem> 
+    {
+        const filters = opts.filters;
+        const cmp = opts.cmp;
+        
+        const children: FileItem[] = [];
+        const root = new FileItem(stat, parent, children);
+
+        if (stat.children) {
+            for (const childStat of stat.children) {
+                if (filters && isFiltered(childStat.name, filters)) {
+                    continue;
+                }
+
+                const child = await FileItem.resolve(childStat, root, opts);
+                children.push(child);
+            }
+        }
+
+        // empty folder will not be notified
+        if (children.length && cmp) {
+            await tryOrDefault(null, () => opts.beforeCmp?.(root), opts.onError);
+            children.sort(cmp);
+        }
+        
+        return root;
+    }
 
     // [public method]
 
@@ -204,8 +349,12 @@ export class FileItem implements IFileItem<FileItem> {
         return this.isDirectory();
     }
 
-    public refreshChildren(fileService: IFileService, onError: (error: Error) => void, filters?: IFilterOpts, cmpFn?: CompareFn<FileItem>): AsyncResult<void, FileOperationError> {
-        const promise = (async () => {
+    public refreshChildren(fileService: IFileService, opts: IFileItemResolveOptions<FileItem>): Result<void, FileOperationError> | AsyncResult<void, FileOperationError> {
+        if (this._isResolved) {
+            return ok();
+        }
+
+        return new AsyncResult((async () => {
 
             /**
              * Only refresh the children from the disk if this is not resolved
@@ -215,35 +364,104 @@ export class FileItem implements IFileItem<FileItem> {
                 const resolving = await fileService.stat(this._stat.uri, { resolveChildren: true });
 
                 if (resolving.isErr()) {
-                    return err<void, FileOperationError>(resolving.error);
+                    return err(resolving.error);
                 }
 
                 const updatedStat = resolving.data;
                 this._stat = updatedStat;
-                this._isResolved = true;
             }
 
-            // update the children stat recursively
+            // resolve FileItem recursively based on the stat
             this._children = [];
             for (const childStat of (this._stat.children ?? [])) {
-                this._children.push(new FileItem(childStat, this, onError, filters, cmpFn));
+                if (opts.filters && isFiltered(childStat.name, opts.filters)) {
+                    continue;
+                }
+
+                const child = await FileItem.resolve(childStat, this, opts);
+                this._children.push(child);
             }
 
-            if (cmpFn) {
-                this._children.sort(cmpFn);
+            if (this._children.length && opts.cmp) {
+                await tryOrDefault(null, () => opts.beforeCmp?.(this), opts.onError);
+                this._children.sort(opts.cmp);
             }
 
+            this._isResolved = true;
             return ok<void, FileOperationError>();
-        })();
+        })());
+    }
 
-        return new AsyncResult(promise);
+    public markAsUnresolved(): void {
+        this._isResolved = false;
     }
 
     public forgetChildren(): void {
         this._children = [];
+        this._mapChildrenCache = undefined;
         this._isResolved = false;
-        (<Mutable<typeof this._stat.children>>this._stat.children) = undefined;
+        (<any>this._stat.children) = undefined;
+    }   
+
+    public findDescendant(uri: URI): FileItem | undefined {
+        
+        /**
+         * For perf reason, try to do some comparison first to see it needs to 
+         * go deeper.
+         */
+        if (this.uri.scheme !== uri.scheme) {
+            return undefined;
+        }
+
+        if (!Strings.Smart.equals(this.uri.authority, uri.authority)) {
+            return undefined;
+        }
+
+        if (!Strings.Smart.startsWith(uri.path, this.uri.path)) {
+            return undefined;
+        }
+
+        return this.__findChildByPath(uri.path, this.uri.path.length);
     }
+
+    public getSelfIndexInParent(): number {
+        const resolvedParent = assert(this.parent);
+        return resolvedParent.children.indexOf(this);
+    }
+
+    // [private helper methods]
+
+    private __findChildByPath(path: string, index: number): FileItem | undefined {
+		if (Strings.Smart.equals(Strings.rtrim(this.uri.path, posix.sep), path)) {
+			return this;
+		}
+
+		if (this.isFile()) {
+			return undefined;
+		}
+
+        // Ignore separator to more easily deduct the next name to search
+        while (index < path.length && path[index] === posix.sep) {
+            index++;
+        }
+
+        let indexOfNextSep = path.indexOf(posix.sep, index);
+        if (indexOfNextSep === -1) {
+            // If there is no separator take the remainder of the path
+            indexOfNextSep = path.length;
+        }
+
+        // The name to search is between two separators
+        const name = Strings.Smart.adjust(path.substring(index, indexOfNextSep));
+        const child = this.mapChildren.get(name);
+
+        if (child) {
+            // We found a child with the given name, continue search deeper
+            return child.__findChildByPath(path, indexOfNextSep);
+        }
+
+        return undefined;
+	}
 }
 
 /**
@@ -257,8 +475,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
     constructor(
         private readonly logService: ILogService,
         private readonly fileService: IFileService,
-        private readonly filterOpts?: IFilterOpts,
-        private readonly cmpFn: CompareFn<FileItem> = defaultFileItemCompareFn,
+        private readonly opts: IFileItemResolveOptions<FileItem>,
     ) { }
 
     // [public methods]
@@ -280,7 +497,7 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         };
 
         // refresh the children recursively
-        const refreshPromise = data.refreshChildren(this.fileService, onError, this.filterOpts, this.cmpFn);
+        const refreshPromise = data.refreshChildren(this.fileService, this.opts);
 
         // the provided item's children are already resolved, we simply return it.
         if (!AsyncResult.is(refreshPromise)) {
@@ -307,25 +524,15 @@ export class FileItemChildrenProvider implements IChildrenProvider<FileItem> {
         return data.isChildrenResolved();
     }
 
+    public markAsUnresolved(data: FileItem): void {
+        data.markAsUnresolved();
+    }
+
     public forgetChildren(data: FileItem): void {
         data.forgetChildren();
     }
 
     public collapseByDefault(data: FileItem): boolean {
         return true;
-    }
-}
-
-/**
- * @description Directory goes first, otherwise sorts in ascending, ASCII 
- * character order.
- */
-export function defaultFileItemCompareFn<TItem extends IFileItem<TItem>>(a: TItem, b: TItem): number {
-    if (a.type === b.type) {
-        return (a.name < b.name) ? CompareOrder.First : CompareOrder.Second;
-    } else if (a.isDirectory()) {
-        return CompareOrder.First;
-    } else {
-        return CompareOrder.Second;
     }
 }

@@ -11,14 +11,14 @@ export const DEFAULT_HTML = './src/index.html';
 export const INSPECTOR_HTML = './src/code/browser/inspector/index.html';
 
 export const enum WindowDisplayMode {
-    Normal,
-    Minimized,
-    Maximized,
-    Fullscreen
+    Normal = 'Normal',
+    Minimized = 'Minimized',
+    Maximized = 'Maximized',
+    Fullscreen = 'Fullscreen'
 }
 
-export const WindowMinimumState = {
-    wdith: 400,
+export const WINDOW_MINIMUM_STATE = {
+    width: 400,
     height: 300
 };
 
@@ -46,14 +46,14 @@ export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.
 }
 
 /**
- * Indicates different type of openning option.
+ * Indicates different type of opening option.
  */
 export const enum ToOpenType {
     /** @internal */
     Unknown = 0,
-    /** Openning a directory to the window. */
+    /** Opening a directory to the window. */
     Directory,
-    /** Openning a file to the window. */
+    /** Opening a file to the window. */
     File,
 }
 

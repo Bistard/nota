@@ -53,13 +53,13 @@ export interface IWatcher {
     watch(request: IWatchRequest): Promise<IDisposable>;
 
     /**
-     * @description Closes all the current watchings asynchronously.
+     * @description Closes all the current watching asynchronously.
      */
     close(): Promise<any>;
 
     /**
      * @description Disposes all the registered listeners and closes all the
-     * current watchings asynchronously.
+     * current watching asynchronously.
      */
     dispose(): void;
 }

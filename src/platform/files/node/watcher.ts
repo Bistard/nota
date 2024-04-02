@@ -11,6 +11,8 @@ import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInstance, IWatchRequest, ResourceChangeType } from 'src/platform/files/common/watcher';
 import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';
 import { Time } from 'src/base/common/date';
+import { noop } from 'src/base/common/performance';
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * @class A `Watcher` can watch on resources on the disk filesystem. Check more
@@ -159,7 +161,7 @@ export class WatchInstance implements IWatchInstance {
         }
         catch (error: any) {
             this.logService?.error(`Error encounters on watching the resource '${resource}'`, error);
-            throw error;
+            panic(error);
         }
     }
 
@@ -203,7 +205,7 @@ export class WatchInstance implements IWatchInstance {
             this.__onEventFire({ type: ResourceChangeType.UPDATED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('error', (error: Error) => {
-            throw error;
+            panic(error);
         })
         .on('ready', () => {
             this._onReady.fire();
@@ -252,7 +254,7 @@ export class WatchInstance implements IWatchInstance {
                 this.__clearMetadata();
             }
         })
-            .catch(); /** ignores error from the debouncer when closing */
+            .catch(noop); /** ignores error from the debouncer when closing */
     }
 
     private __clearMetadata(): void {

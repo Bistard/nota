@@ -3,6 +3,7 @@ import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } 
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/utilities/async";
 import { Callable } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -23,8 +24,12 @@ import { Callable } from "src/base/common/utilities/type";
  * the required event type will be returned as a parameter.
  */
 export type Listener<E> = (e: E) => any;
-
 export type AsyncListener<E> = (e: E) => Promise<any>;
+
+/**
+ * Retrieve the event type T from the {@link Register}.
+ */
+export type GetEventType<R> = R extends Register<infer T> ? T : never;
 
 /**
  * @readonly A register is essentially a function that registers a listener to 
@@ -149,7 +154,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         
         // cannot register to a disposed emitter
         if (this._disposed) {
-            throw new Error('emitter is already disposed, cannot register a new listener.');
+            panic('emitter is already disposed, cannot register a new listener.');
         }
 
         this._register ??= (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
@@ -280,15 +285,17 @@ export class DelayableEmitter<T> extends Emitter<T> {
             return;
         }
 
-        // fires the saved events
+        // fire only once if reduce fn is provided
         if (this._reduceFn) {
             super.fire(this._reduceFn(Array.from(this._delayedEvents)));
             this._delayedEvents.clear();
-        } else {
-            while (this._delayed === false && this._delayedEvents.size() > 0) {
-                super.fire(this._delayedEvents.front()!.data);
-                this._delayedEvents.pop_front();
-            }
+            return;
+        } 
+         
+        // fire one by one
+        while (this._delayed === false && this._delayedEvents.size() > 0) {
+            super.fire(this._delayedEvents.front()!.data);
+            this._delayedEvents.pop_front();
         }
     }
 
@@ -364,6 +371,9 @@ export class AsyncEmitter<T> extends Emitter<T> {
         }
     }
 
+    override get registerListener(): AsyncRegister<T> {
+        return super.registerListener;
+    }
 }
 
 /**
@@ -492,8 +502,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
-        const newRegister = (listener: Listener<E>, disposibles?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(to(e)), disposibles, thisArgs);
+        const newRegister = (listener: Listener<E>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
+            return register((e) => listener(to(e)), disposables, thisArgs);
         };
         return newRegister;
     }
@@ -506,8 +516,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
-        const newRegister = (listener: Listener<T>, disposibles?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(each(e)), disposibles, thisArgs);
+        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
+            return register((e) => listener(each(e)), disposables, thisArgs);
         };
         return newRegister;
     }
@@ -517,11 +527,14 @@ export namespace Event {
      * event register that fires whenever any of the provided events fires.
      * @param registers The provided a series of event registers.
      * @returns The new event register.
+     * 
+     * @note Supports heterogeneous `Register<T>` types, combining them into a 
+     * single register with a union of their event types.
      */
-    export function any<T>(registers: Register<T>[]): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
-            const allDiposables = registers.map(register => register(listener, disposables, thisArgs));
-            const parentDisposable = toDisposable(() => disposeAll(allDiposables));
+    export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
+        const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
+            const allDisposables = registers.map(register => register(listener, disposables, thisArgs));
+            const parentDisposable = toDisposable(() => disposeAll(allDisposables));
             return parentDisposable;            
         };
         return newRegister;
@@ -580,4 +593,22 @@ export namespace Event {
     export function toPromise<T>(register: Register<T>): Promise<T> {
 		return new Promise(resolve => once(register)(resolve));
 	}
+
+    /**
+     * @description Executes the listener immediately with an optional initial 
+     * event value, and subsequently whenever the event fires. 
+     * @param register The event register.
+     * @param listener The function to execute immediately and whenever an event 
+     *                 is emitted.
+     * @param initial An initial event value to pass to the listener 
+     *                immediately.
+     * @returns An IDisposable that can be used to stop listening to the event 
+     *          emissions.
+     */
+    export function runAndListen<T>(register: Register<T>, listener: (e?: T) => void): IDisposable;
+    export function runAndListen<T>(register: Register<T>, listener: (e: T) => void, initial: T): IDisposable;
+    export function runAndListen<T>(register: Register<T>, listener: (e?: T) => void, initial?: T): IDisposable {
+        listener(initial);
+        return register(e => listener(e));
+    }
 }

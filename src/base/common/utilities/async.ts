@@ -1,10 +1,10 @@
 import { Time } from "src/base/common/date";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { CancellationError } from "src/base/common/error";
-import { panic } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { noop } from "src/base/common/performance";
-import { CancellationToken, ICancellable } from "src/base/common/utilities/cacellation";
+import { CancellationToken, ICancellable } from "src/base/common/utilities/cancellation";
+import { panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 
 /**
@@ -119,8 +119,8 @@ export class JoinablePromise {
 }
 
 /**
- * @class A class that simulates the native behaviours of {@link Promise} but 
- * with an addtional {@link CancellationToken}. You may decide the control flow
+ * @class A class that simulates the native behaviors of {@link Promise} but 
+ * with an additional {@link CancellationToken}. You may decide the control flow
  * by the token. If the token is cancelled, the corresponding cancellable 
  * promise will reject with an {@link CancellationError}.
  */
@@ -549,7 +549,7 @@ export interface IScheduler<T> extends IDisposable {
 	schedule(event: T, clearBuffer?: boolean, delay?: Time): void;
 
 	/**
-	 * @description Executes the callack with the existed event buffer if any.
+	 * @description Executes the callback with the existed event buffer if any.
 	 */
 	execute(): void;
 
@@ -560,7 +560,7 @@ export interface IScheduler<T> extends IDisposable {
 
 	/**
 	 * @description Cancels the current scheduled execution if has any and 
-	 * returns a boolean specifies whether the cancelation successed.
+	 * returns a boolean specifies whether the cancelation succeeded.
 	 * @param clearBuffer If to cancel the previous event buffer.
 	 */
 	cancel(clearBuffer?: boolean): boolean;
@@ -569,7 +569,7 @@ export interface IScheduler<T> extends IDisposable {
 /**
  * @class A `Scheduler` can schedule a new execution with the provided events on 
  * the given callback with a delay time when invoking {@link Scheduler.schedule}. 
- * The new schedule will cancel the previous schedule, the canceld event will be 
+ * The new schedule will cancel the previous schedule, the canceled event will be 
  * stored for the next scheduling.
  */
 export class Scheduler<T> implements IScheduler<T> {
@@ -650,7 +650,7 @@ export interface IUnbufferedScheduler<T> extends IDisposable {
 
 	/**
 	 * @description Cancels the current scheduled execution if has any and 
-	 * returns a boolean specifies whether the cancelation successed.
+	 * returns a boolean specifies whether the cancelation succeeded.
 	 */
 	cancel(): boolean;
 }
@@ -801,12 +801,12 @@ export interface IDebouncer<T> extends IDisposable {
 	queue(newTask: ITask<T> | IAsyncTask<T>, delay?: DelayType): Promise<T>;
 
 	/**
-	 * @description Determines if the debouncer is currently on shceduling.
+	 * @description Determines if the debouncer is currently on scheduling.
 	 */
 	onSchedule(): boolean;
 
 	/**
-	 * @description Unschedules the current timer if has one.
+	 * @description Unschedule the current timer if has one.
 	 */
 	unschedule(): void;
 }
@@ -827,7 +827,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 	private readonly _defaultDelay: DelayType;
 	private _schedule?: __Scheduler;
 	private _blocker?: Blocker<T | Promise<T>>;
-	private _lastestTask?: ITask<T> | IAsyncTask<T>;
+	private _latestTask?: ITask<T> | IAsyncTask<T>;
 
 	// [constructor]
 
@@ -835,12 +835,12 @@ export class Debouncer<T> implements IDebouncer<T> {
 		this._defaultDelay = defaultDelay;
 	}
 
-	// [public mehtods]
+	// [public methods]
 
 	public async queue(newTask: ITask<T> | IAsyncTask<T>, delay = this._defaultDelay): Promise<T> {
 		
 		// update the task to be executed when scheduled
-		this._lastestTask = newTask;
+		this._latestTask = newTask;
 		
 		// clear the previous schedule if has one
 		this.__clearSchedule();
@@ -852,10 +852,10 @@ export class Debouncer<T> implements IDebouncer<T> {
 
 		// callback when the schedule has reached
 		const onSchedule = () => {
-			const result = this._lastestTask!();
+			const result = this._latestTask!();
 			this._blocker?.resolve(result);
 
-			this._lastestTask = undefined;
+			this._latestTask = undefined;
 			this._blocker = undefined;
 			this._schedule = undefined;
 		};
@@ -903,18 +903,18 @@ export class Debouncer<T> implements IDebouncer<T> {
 	}
 
 	private __scheduleAsMicrotask(fn: () => void): __Scheduler {
-		let schedulingOrDiposed = true;
+		let schedulingOrDisposed = true;
 		
 		queueMicrotask(() => {
-			if (schedulingOrDiposed) {
-				schedulingOrDiposed = false;
+			if (schedulingOrDisposed) {
+				schedulingOrDisposed = false;
 				fn();
 			}
 		});
 	
 		return {
-			onSchedule: () => schedulingOrDiposed,
-			dispose: () => schedulingOrDiposed = false,
+			onSchedule: () => schedulingOrDisposed,
+			dispose: () => schedulingOrDisposed = false,
 		};
 	}
 }

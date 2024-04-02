@@ -124,13 +124,13 @@ suite('indexTreeModel-test', () => {
         ]);
         assert.strictEqual(cnt, 3);
         let insertedValues: number[] = [];
-        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        inserted.forEach(child => dfs(child, 'children', node => { insertedValues.push(node.data); }));
         assert.deepStrictEqual([1, 3, 2], insertedValues);
 
         model.splice([0], 3, []);
         assert.strictEqual(cnt, 3);
         insertedValues = [];
-        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        inserted.forEach(child => dfs(child, 'children', node => { insertedValues.push(node.data); }));
         assert.deepStrictEqual([], insertedValues);
     });
 
@@ -825,7 +825,6 @@ suite('flexIndexTreeModel-test', () => {
     }
 
     function setNewChildren<T, TFilter>(node: IFlexNode<T, TFilter>, children: IFlexNode<T, TFilter>[]): void {
-        node.oldChildren = node.children;
         node.children = children;
         node.stale = true;
     }
@@ -950,7 +949,7 @@ suite('flexIndexTreeModel-test', () => {
         assert.strictEqual(cnt, 3);
         
         let insertedValues: number[] = [];
-        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        inserted.forEach(child => dfs(child, 'children', node => { insertedValues.push(node.data); }));
         assert.deepStrictEqual([1, 3, 2], insertedValues);
 
         setNewChildren(root, []);
@@ -958,7 +957,7 @@ suite('flexIndexTreeModel-test', () => {
         assert.strictEqual(cnt, 3);
 
         insertedValues = [];
-        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        inserted.forEach(child => dfs(child, 'children', node => { insertedValues.push(node.data); }));
         assert.deepStrictEqual([], insertedValues);
     });
 

@@ -1,11 +1,12 @@
 import { BaseElement, IBaseElement } from "src/base/browser/basic/dom";
+import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";
 
 export interface IWidget extends IBaseElement {
     
     /**
      * The HTMLElement of the widget. 
-     * @throws If not rendered, this getter will throw an error.
+     * @panic If not rendered, this getter will throw an error.
      */
     readonly element: HTMLElement;
 
@@ -21,7 +22,7 @@ export interface IWidget extends IBaseElement {
      * element.
      * 
      * @note A widget can only be rendered once.
-     * @throws If the element is undefined or null, an throw will be thrown.
+     * @panic If the element is undefined or null, an throw will be thrown.
      */
     render(element: HTMLElement): void;
 }
@@ -48,7 +49,7 @@ export abstract class Widget extends BaseElement implements IWidget {
 
     get element(): HTMLElement {
         if (!this._element) {
-            throw new Error('The widget is not rendered');
+            panic('[The widget is not rendered');
         }
         return this._element;
     }
@@ -65,7 +66,7 @@ export abstract class Widget extends BaseElement implements IWidget {
 
         (<Mutable<HTMLElement>>this._element) = element;
         if (!this._element) {
-            throw new Error('The widget is not rendered properly');
+            panic('The widget is not rendered properly');
         }
         
         this._rendered = true;
