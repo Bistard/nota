@@ -89,10 +89,10 @@ export namespace Numbers {
      * function verifies if:
      *      - the number is >= to 0 and 
      *      - < the specified size.
-     *
      * @param num The number to check.
      * @param size The upper bound of the range (exclusive).
      * 
+     * @example isValidIndex => (0 <= num < size)
      * @note Usefully when checking a given index (0-based) is within a given 
      * size.
      * @note If you want more flexibility, use {@link Numbers.within}.

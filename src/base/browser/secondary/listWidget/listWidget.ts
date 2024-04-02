@@ -13,9 +13,10 @@ import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "sr
 import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { isNumber, nullToUndefined } from "src/base/common/utilities/type";
+import { isNullable, isNumber, nullToUndefined } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
@@ -738,9 +739,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
         const actualIndex = this.view.indexFromEventTarget(event.target);
-        
+        const itemCount   = this.view.viewSize();
+
         // valid item index
-        if (actualIndex && actualIndex >= 0 && actualIndex < this.view.viewSize()) {
+        if (!isNullable(actualIndex) && Numbers.isValidIndex(actualIndex, itemCount)) {
             const item = this.view.getItem(actualIndex);
             return {
                 browserEvent: event,
