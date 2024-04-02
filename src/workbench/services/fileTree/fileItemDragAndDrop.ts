@@ -161,6 +161,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             }
 
             droppable.allowDrop = true;
+            droppable.effect = DragOverEffect.Move;
             return droppable;
         }
 
@@ -504,6 +505,9 @@ class RowInsertionController extends Disposable {
 
     // [fields]
 
+    public readonly DETECT_THRESHOLD = 10;
+    public readonly OVERPLAY_HEIGHT  = 4;
+
     private readonly _tree!: IFileTree<FileItem, FuzzyScore>;
     
     /** The dom element for row insertion displaying */
@@ -565,8 +569,8 @@ class RowInsertionController extends Disposable {
 
         const mouseY = event.clientY - DomUtility.Attrs.getViewportTop(this._tree.DOMElement);
         
-        const threshold = 10;
-        const isNearTop = Math.abs(mouseY - currentItemTop) <= threshold;
+        const threshold = this.DETECT_THRESHOLD;
+        const isNearTop = Math.abs(mouseY - currentItemTop)    <= threshold;
         const isNearBot = Math.abs(mouseY - currentItemBottom) <= threshold;
 
         if (!isNearTop && !isNearBot) {
@@ -576,7 +580,7 @@ class RowInsertionController extends Disposable {
         const renderTop = isNearTop ? currentItemTop : currentItemBottom;
         return {
             near: isNearTop ? 'top' : 'bottom',
-            renderTop: renderTop - 2,
+            renderTop: renderTop - (this.OVERPLAY_HEIGHT / 2),
         };
     }
 
@@ -590,6 +594,8 @@ class RowInsertionController extends Disposable {
         insertionElement.className = 'row-insertion';
         insertionElement.style.top = `${result.renderTop}px`;
         this._tree.DOMElement.appendChild(insertionElement);
+
+        insertionElement.style.setProperty('--nota-overlay-height', `${this.OVERPLAY_HEIGHT}px`);
 
         this._rowDisposable = toDisposable(() => {
             insertionElement.remove();
