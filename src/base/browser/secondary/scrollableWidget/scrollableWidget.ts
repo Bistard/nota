@@ -7,6 +7,7 @@ import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollabl
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
+import { assert } from "src/base/common/utilities/panic";
 
 export interface IScrollableWidget extends IWidget {
 
@@ -234,7 +235,7 @@ class TouchController implements IDisposable {
             }
 
             const disposables = new DisposableManager();
-            const touch = event.changedTouches[0]!;
+            const touch = assert(event.changedTouches[0]);
             this._currPosition = this._scrollbar.getTouchPosition(touch);
 
             disposables.register(widget.onTouchmove(element, (e) => this.__onTouchmove(e)));
@@ -265,7 +266,7 @@ class TouchController implements IDisposable {
 
         event.preventDefault();
 
-        const touch = event.changedTouches[0]!;
+        const touch = assert(event.changedTouches[0]);
         const touchPosition = this._scrollbar.getTouchPosition(touch);
         const delta = this._currPosition - touchPosition;
 
