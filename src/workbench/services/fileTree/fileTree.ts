@@ -42,8 +42,6 @@ export class FileTreeKeyboardController<T extends FileItem, TFilter> extends Mul
         tree: IFileTree<T, TFilter>,
     ) {
         super(view, tree);
-
-        console.log('========================', tree);
     }
 
     // [protected override methods]
