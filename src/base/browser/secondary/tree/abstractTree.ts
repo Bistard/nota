@@ -842,7 +842,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IAbstractTreeOptions<T, TFilter> = {},
+        opts: IAbstractTreeOptions<T, TFilter>,
     ) {
         super();
 
@@ -862,7 +862,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
-            {
+            <ITreeWidgetOpts<T, TFilter, any>>{
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,

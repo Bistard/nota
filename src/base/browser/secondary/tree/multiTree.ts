@@ -152,7 +152,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IMultiTreeOptions<T, TFilter> = {}
+        opts: IMultiTreeOptions<T, TFilter>
     ) {
         if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
             panic('[MultiTreeBase] does not support primitive types');
