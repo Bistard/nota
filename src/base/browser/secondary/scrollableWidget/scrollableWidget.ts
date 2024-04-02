@@ -31,8 +31,8 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     private readonly _opts: IScrollableWidgetOpts;
 
-    protected _scrollable: Scrollable;
-    protected _scrollbar: AbstractScrollbar;
+    protected readonly _scrollable: Scrollable;
+    protected readonly _scrollbar: AbstractScrollbar;
 
     protected _isSliderDragging: boolean;
     protected _isMouseOver: boolean;
