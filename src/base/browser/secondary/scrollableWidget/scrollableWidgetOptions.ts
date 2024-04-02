@@ -11,33 +11,33 @@ export interface IScrollableWidgetExtensionOpts {
      * 
      * @note (right now it cannot support both types at the same time)
      */
-    scrollbarType?: ScrollbarType;
+    readonly scrollbarType?: ScrollbarType;
 
     /**
      * A multiplier to be used on the `deltaX` and `deltaY` of a mouse wheel 
      * scroll event.
 	 * @default 1
      */
-    scrollSensibility?: number;
+    readonly scrollSensibility?: number;
 
     /**
      * A multiplier to be used for wheel scroll event when `ALT` keyword is 
      * pressed.
      * @default 5
      */
-    mouseWheelFastScrollSensibility?: number;
+    readonly fastScrollSensibility?: number;
 
     /**
      * When this option is on, mouse wheel goes up, the slider goes down.
      * @default false
      */
-    reverseMouseWheelDirection?: boolean;
+    readonly reverseMouseWheelDirection?: boolean;
 
     /**
      * Whether to support touching pad support.
      * @default true
      */
-    touchSupport?: boolean;
+    readonly touchSupport?: boolean;
 }
 
 export type IScrollableWidgetOpts = Required<IScrollableWidgetExtensionOpts>;
@@ -52,7 +52,7 @@ export function resolveScrollableWidgetExtensionOpts(opts: IScrollableWidgetExte
     return {
         scrollbarType:                   opts.scrollbarType ?? ScrollbarType.vertical,
         scrollSensibility:               opts.scrollSensibility ?? 1,
-        mouseWheelFastScrollSensibility: opts.mouseWheelFastScrollSensibility ?? 5,
+        fastScrollSensibility: opts.fastScrollSensibility ?? 5,
         reverseMouseWheelDirection:      opts.reverseMouseWheelDirection ?? false,
         touchSupport:                    opts.touchSupport ?? true,
     };

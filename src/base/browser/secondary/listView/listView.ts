@@ -2,7 +2,7 @@ import "src/base/browser/secondary/listView/listView.scss";
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
 import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
-import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
+import { IScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
@@ -17,7 +17,8 @@ import { panic } from "src/base/common/utilities/panic";
 /**
  * The constructor options for {@link ListView}.
  */
-export interface IListViewOpts {
+export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scrollbarType'> {
+    
     /**
      * When constructing the view, decide whether to layout the view immediately.
      * `layout` meaning to update the size of the view and causes rerendering.
@@ -35,35 +36,10 @@ export interface IListViewOpts {
     readonly transformOptimization?: boolean;
     
     /**
-     * A multiplier to be used on the `deltaX` and `deltaY` of a mouse 
-     * wheel scroll event.
-	 * @default 1
-     */
-    readonly mouseWheelScrollSensitivity?: number;
-
-    /**
-     * A multiplier to be used for wheel scroll event when `ALT` 
-     * keyword is pressed.
-     * @default 5
-     */
-	readonly fastScrollSensitivity?: number;
-
-    /**
-     * If reverse the mouse wheel direction.
-     */
-    readonly reverseMouseWheelDirection?: boolean;
-
-    /**
      * The width of thee scrollbar.
      * @default 10
      */
     readonly scrollbarSize?: number;
-
-    /**
-     * If supports a touchpad scroll.
-     * @default true
-     */
-    readonly touchSupport?: boolean;
 }
 
 /**
@@ -377,13 +353,9 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
         
         this.scrollableWidget = new ScrollableWidget(
-            this.scrollable, 
-            {
-                scrollSensibility: opts.mouseWheelScrollSensitivity,
-                mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,
-                reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
+            this.scrollable, {
+                ...opts,
                 scrollbarType: ScrollbarType.vertical,
-                touchSupport: opts.touchSupport ?? true,
             },
         );
         this.scrollableWidget.render(this.element);

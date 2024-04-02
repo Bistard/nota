@@ -402,6 +402,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     collapsedByDefault: true,
                     filter: new FileItemFilter(),
                     dnd: dndProvider,
+
+                    scrollSensibility: 0.1, // TEST
                 },
             );
 

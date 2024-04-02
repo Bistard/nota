@@ -252,6 +252,7 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
  * An option for constructing a {@link TreeWidget}.
  */
 export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
+    
     /**
      * The tree that inherits {@link AbstractTree} and controls the widget.
      */
@@ -790,8 +791,10 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
  * An interface for the constructor options of the {@link AbstractTree}. The 
  * interface includes the base interface of a {@link ITreeModel} options.
  */
-export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
-
+export interface IAbstractTreeOptions<T, TFilter> extends 
+    IIndexTreeModelOptions<T, TFilter>, 
+    Omit<IListWidgetOpts<ITreeNode<T, TFilter>>, 'dragAndDropProvider' | 'identityProvider'> 
+{
     /**
      * Provides the functionality to achieve drag and drop support in the tree.
      */
@@ -863,6 +866,24 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
             renderers, 
             new TreeListItemProvider(itemProvider), 
             <ITreeWidgetOpts<T, TFilter, any>>{
+                
+                /** {@see IScrollableWidgetExtensionOpts} */
+                scrollSensibility: opts.scrollSensibility,
+                fastScrollSensibility: opts.fastScrollSensibility,
+                reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
+                scrollbarSize: opts.scrollbarSize,
+                touchSupport: opts.touchSupport,
+
+                /** {@see listViewOpts} */
+                layout: opts.layout,
+                transformOptimization: opts.transformOptimization,
+                
+                /** {@see listWidgetOpts} */
+                mouseSupport: opts.mouseSupport,
+                multiSelectionSupport: opts.multiSelectionSupport,
+                keyboardSupport: opts.keyboardSupport,
+                
+                // others
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,

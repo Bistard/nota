@@ -266,11 +266,6 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
  */
 export interface IListWidgetOpts<T> extends IListViewOpts {
     
-    /**
-     * A provider that has ability to provide Drag and Drop Support (dnd).
-     */
-    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
-
     /** 
      * If allows mouse support. 
      * @default true
@@ -288,6 +283,11 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
      * @default true
      */
     readonly keyboardSupport?: boolean;
+
+    /**
+     * A provider that has ability to provide Drag and Drop Support (dnd).
+     */
+    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
 
     /**
      * Provides functionality to determine the uniqueness of each 
