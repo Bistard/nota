@@ -106,7 +106,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         // mouse wheel scroll support
         this.onWheel(this.element, event => this.__onDidWheel(event));
         
-        // touchpad scroll support
+        // touch pad scroll support
         if (this._opts.touchSupport) {
             const touchController = new TouchController(this, this._scrollbar);
             touchController.onDidTouchmove(delta => this.__actualScroll(delta));
@@ -126,7 +126,11 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             return;
         }
 
-        const delta = this._scrollbar.getWheelDelta(event);
+        let delta = this._scrollbar.getWheelDelta(event);
+        if (event.altKey) {
+            delta *= this._opts.fastScrollSensibility;
+        }
+
         this.__actualScroll(delta);
     }
 
@@ -151,7 +155,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
          * ceil or floor the position to avoid getting a position less than zero 
          * or larger than maximum after adding the recalculated delta.
          * 
-         * still posible to get a -0 position, but should not make a difference 
+         * still possible to get a -0 position, but should not make a difference 
          * in this case.
          */
         let newScrollPosition: number;

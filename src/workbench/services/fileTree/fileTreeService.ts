@@ -403,7 +403,14 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     filter: new FileItemFilter(),
                     dnd: dndProvider,
 
-                    scrollSensibility: 0.1, // TEST
+                    touchSupport: true,
+                    mouseSupport: true,
+                    keyboardSupport: true,
+                    multiSelectionSupport: true,
+
+                    scrollSensibility: 0.4,
+                    fastScrollSensibility: 5,
+                    scrollbarSize: 10,
                 },
             );
 
