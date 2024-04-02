@@ -39,7 +39,7 @@ export namespace Numbers {
      *       sign.
      */
     export function getDigitAt(num: number, n: number): number {
-        if (n < 0 || n >= totalDigit(num)) {
+        if (n < 0 || !Number.isInteger(n) || n >= totalDigit(num)) {
             return -1;
         }
 
