@@ -31,52 +31,54 @@ const NULL_NODE = PieceTableInternal.NULL;
 namespace PieceTableTester {
     
     export function assertPieceTable(T: IPieceTable): void {
-        assert.strictEqual(NULL_NODE.color, RBColor.BLACK);
-        assert.strictEqual(NULL_NODE.parent, NULL_NODE);
-        assert.strictEqual(NULL_NODE.left, NULL_NODE);
-        assert.strictEqual(NULL_NODE.right, NULL_NODE);
-        assert.strictEqual(NULL_NODE.leftSubtreeBufferLength, 0);
-        assert.strictEqual(NULL_NODE.leftSubtreelfCount, 0);
-        assertValidTree(T);
-    }
-
-    const assertValidTree = function (T: IPieceTable): void {
-        if (T.root === NULL_NODE) {
-            return;
-        }
-        assert.strictEqual(T.root.color, RBColor.BLACK);
-        assert.strictEqual(blackDepth(T.root.left), blackDepth(T.root.right));
-        assertValidNode(T.root);
-    };
-
-    const assertValidNode = function (n: IPieceNode): { size: number; lf_cnt: number } {
-        if (n === NULL_NODE) {
-            return { size: 0, lf_cnt: 0 };
-        }
-
-        const l = n.left;
-        const r = n.right;
-
-        if (n.color === RBColor.RED) {
-            assert.strictEqual(l.color, RBColor.BLACK);
-            assert.strictEqual(r.color, RBColor.BLACK);
-        }
-
-        const actualLeft = assertValidNode(l);
-        assert.strictEqual(actualLeft.lf_cnt, n.leftSubtreelfCount);
-        assert.strictEqual(actualLeft.size, n.leftSubtreeBufferLength);
-        const actualRight = assertValidNode(r);
-
-        return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
-    };
-
-    const blackDepth = function (n: IPieceNode): number {
-        if (n === NULL_NODE) {
-            return 1;
-        }
-        assert.strictEqual(blackDepth(n.left), blackDepth(n.right));
-        return (n.color === RBColor.BLACK ? 1 : 0) + blackDepth(n.left);
-    };
+		assert.strictEqual(NULL_NODE.color, RBColor.BLACK, "NULL_NODE should be BLACK");
+		assert.strictEqual(NULL_NODE.parent, NULL_NODE, "NULL_NODE's parent should be itself");
+		assert.strictEqual(NULL_NODE.left, NULL_NODE, "NULL_NODE's left child should be itself");
+		assert.strictEqual(NULL_NODE.right, NULL_NODE, "NULL_NODE's right child should be itself");
+		assert.strictEqual(NULL_NODE.leftSubtreeBufferLength, 0, "NULL_NODE's left subtree buffer length should be 0");
+		assert.strictEqual(NULL_NODE.leftSubtreelfCount, 0, "NULL_NODE's left subtree leaf count should be 0");
+		assertValidTree(T);
+	}
+	
+	const assertValidTree = function (T: IPieceTable): void {
+		if (T.root === NULL_NODE) {
+			return;
+		}
+		assert.strictEqual(T.root.color, RBColor.BLACK, "Root should be BLACK");
+		assert.strictEqual(blackDepth(T.root.left), blackDepth(T.root.right), "Black depths of left and right children should be equal");
+		assertValidNode(T.root);
+	};
+	
+	const assertValidNode = function (n: IPieceNode): { size: number; lf_cnt: number } {
+		if (n === NULL_NODE) {
+			return { size: 0, lf_cnt: 0 };
+		}
+	
+		const l = n.left;
+		const r = n.right;
+	
+		if (n.color === RBColor.RED) {
+			assert.strictEqual(l.color, RBColor.BLACK, "Left child of a RED node must be BLACK");
+			assert.strictEqual(r.color, RBColor.BLACK, "Right child of a RED node must be BLACK");
+		}
+	
+		const actualLeft = assertValidNode(l);
+		assert.strictEqual(actualLeft.lf_cnt, n.leftSubtreelfCount, "Left subtree leaf count must match");
+		assert.strictEqual(actualLeft.size, n.leftSubtreeBufferLength, "Left subtree buffer length must match");
+		const actualRight = assertValidNode(r);
+	
+		return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
+	};
+	
+	const blackDepth = function (n: IPieceNode): number {
+		if (n === NULL_NODE) {
+			return 1;
+		}
+		const leftBlackDepth = blackDepth(n.left);
+		const rightBlackDepth = blackDepth(n.right);
+		assert.strictEqual(leftBlackDepth, rightBlackDepth, "Black depths of left and right subtrees should be equal");
+		return (n.color === RBColor.BLACK ? 1 : 0) + leftBlackDepth;
+	};
 
     export function printTree(table: IPieceTable, title?: string): void {
         const length = depth(table.root);
