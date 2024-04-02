@@ -407,6 +407,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     mouseSupport: true,
                     keyboardSupport: true,
                     multiSelectionSupport: true,
+                    scrollOnEdgeSupport: { edgeThreshold: 50 },
 
                     scrollSensibility: 0.4,
                     fastScrollSensibility: 5,

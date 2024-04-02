@@ -2,7 +2,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItemChangeEvent, ListView } from "src/base/browser/secondary/listView/listView";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IListDragAndDropProvider, IScrollOnEdgeOptions, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { ListTrait, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidgetTrait";
@@ -283,6 +283,12 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
      * @default true
      */
     readonly keyboardSupport?: boolean;
+
+    /**
+     * If allows to auto-scroll when hovering on edges.
+     * @default enabled
+     */
+    readonly scrollOnEdgeSupport?: IScrollOnEdgeOptions;
 
     /**
      * A provider that has ability to provide Drag and Drop Support (dnd).
@@ -606,7 +612,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * drop behavior.
      */
     protected __createDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
-        return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
+        return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e), opts.scrollOnEdgeSupport);
     }
 
     // [private helper methods]

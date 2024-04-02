@@ -1,6 +1,6 @@
 import { IListDragEvent, IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 import { requestAnimate } from "src/base/browser/basic/animation";
 import { Arrays } from "src/base/common/utilities/array";
@@ -188,11 +188,10 @@ class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider
  * @internal
  * @class An internal class that handles the dnd support of {@link IListWidget}.
  */
-export class ListWidgetDragAndDropController<T> implements IDisposable {
+export class ListWidgetDragAndDropController<T> extends Disposable {
 
     // [field]
 
-    private readonly _disposables = new DisposableManager();
     private readonly _view: IListWidget<T>;
     private readonly _provider!: ListWidgetDragAndDropProvider<T>;
 
@@ -201,25 +200,22 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
      */
     private _currDragItems: T[] = [];
     private _allowDrop: boolean = false;
-    private _scrollAnimationOnEdgeDisposable?: IDisposable;
-    private _scrollAnimationMouseTop?: number;
+    private readonly _scrollOnEdgeController: ScrollOnEdgeController;
 
     // [constructor]
 
     constructor(
         view: IListWidget<T>,
         dragAndDropProvider: IListDragAndDropProvider<T>,
-        toListDragEvent: (e: DragEvent) => IListDragEvent<T>
+        toListDragEvent: (e: DragEvent) => IListDragEvent<T>,
+        opts?: IScrollOnEdgeOptions,
     ) {
+        super();
         this._view = view;
         this._provider = new ListWidgetDragAndDropProvider(view, dragAndDropProvider);
+        this._scrollOnEdgeController = this.__register(new ScrollOnEdgeController(view, opts));
+
         this.__enableDragAndDropSupport(toListDragEvent);
-    }
-
-    // [public method]
-
-    public dispose(): void {
-        this._disposables.dispose();
     }
 
     // [private helper methods]
@@ -229,15 +225,15 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
      */
     private __enableDragAndDropSupport(converter: (e: DragEvent) => IListDragEvent<T>): void {
         const dom = this._view.DOMElement;
-        this._disposables.register(addDisposableListener(dom, EventType.dragover, e => this.__onDragOver(converter(e))));
-        this._disposables.register(addDisposableListener(dom, EventType.drop, e => this.__onDragDrop(converter(e))));
-        this._disposables.register(addDisposableListener(dom, EventType.dragenter, e => this.__onDragEnter(converter(e))));
-        this._disposables.register(addDisposableListener(dom, EventType.dragleave, e => this.__onDragLeave(converter(e))));
-        this._disposables.register(addDisposableListener(dom, EventType.dragend, e => this.__onDragEnd(e)));
+        this.__register(addDisposableListener(dom, EventType.dragover, e => this.__onDragOver(converter(e))));
+        this.__register(addDisposableListener(dom, EventType.drop, e => this.__onDragDrop(converter(e))));
+        this.__register(addDisposableListener(dom, EventType.dragenter, e => this.__onDragEnter(converter(e))));
+        this.__register(addDisposableListener(dom, EventType.dragleave, e => this.__onDragLeave(converter(e))));
+        this.__register(addDisposableListener(dom, EventType.dragend, e => this.__onDragEnd(e)));
 
         // dragstart listener
-        this._disposables.register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
-        this._disposables.register(this._view.onRemoveItemInDOM((e: IViewItemChangeEvent<T>) => e.item.dragStart?.dispose()));
+        this.__register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
+        this.__register(this._view.onRemoveItemInDOM((e: IViewItemChangeEvent<T>) => e.item.dragStart?.dispose()));
     }
 
     /**
@@ -302,8 +298,8 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
         event.browserEvent.preventDefault();
 
-        // set up dnd scroll edge animation
-        this.__setScrollAnimationOnEdge(event.browserEvent);
+        // try scroll on edge animation
+        this._scrollOnEdgeController.attemptScrollOnEdge(event.browserEvent);
 
         if (event.browserEvent.dataTransfer === null) {
             return;
@@ -378,14 +374,47 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
     private __clearDragoverData(): void {
         this._currDragItems = [];
         this._allowDrop = false;
-        this._scrollAnimationMouseTop = undefined;
-        this._scrollAnimationOnEdgeDisposable?.dispose();
-        this._scrollAnimationOnEdgeDisposable = undefined;
+        this._scrollOnEdgeController.clearCache();
     }
 
-    // [private animation helper methods]
+}
 
-    private __setScrollAnimationOnEdge(event: DragEvent): void {
+/**
+ * Options for {@link ScrollOnEdgeController}.
+ */
+export interface IScrollOnEdgeOptions {
+
+    /**
+     * Distance in pixels from the edge to trigger auto-scroll.
+     * @default 35
+     */
+    readonly edgeThreshold?: number;
+}
+
+class ScrollOnEdgeController extends Disposable {
+
+    // [fields]
+
+    private _scrollAnimationOnEdgeDisposable?: IDisposable;
+    private _scrollAnimationMouseTop?: number;
+    private readonly _view: IListWidget<unknown>;
+    private readonly _opts: Required<IScrollOnEdgeOptions>;
+    // [constructor]
+
+    constructor(
+        view: IListWidget<unknown>,
+        opts?: IScrollOnEdgeOptions,
+    ) {
+        super();
+        this._view = view;
+        this._opts = {
+            edgeThreshold: opts?.edgeThreshold ?? 35,
+        };
+    }
+
+    // [public methods]
+
+    public attemptScrollOnEdge(event: DragEvent): void {
         if (!this._scrollAnimationOnEdgeDisposable) {
             const top = DomUtility.Attrs.getViewportTop(this._view.DOMElement);
             this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
@@ -393,18 +422,37 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
         this._scrollAnimationMouseTop = event.pageY;
     }
 
+    public clearCache(): void {
+        this._scrollAnimationMouseTop = undefined;
+        this._scrollAnimationOnEdgeDisposable?.dispose();
+        this._scrollAnimationOnEdgeDisposable = undefined;
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this.clearCache();
+    }
+
+    // [private helper methods]
+
     private __animationOnEdge(viewTop: number): void {
         if (this._scrollAnimationMouseTop === undefined) {
             return;
         }
 
         const diff = this._scrollAnimationMouseTop - viewTop;
-		const upperLimit = this._view.getViewportSize() - 35;
+        
+        const edgeThreshold  = this._opts.edgeThreshold;
+        const lowerLimit     = edgeThreshold;
+		const upperLimit     = Math.max(0, this._view.getViewportSize() - edgeThreshold);
         const scrollPosition = this._view.getScrollPosition();
         
-		if (diff < 35) {
-			this._view.setScrollPosition(scrollPosition + Math.max(-14, Math.floor(0.3 * (diff - 35))));
-		} else if (diff > upperLimit) {
+        // scrolling on top
+		if (diff < lowerLimit) {
+			this._view.setScrollPosition(scrollPosition + Math.max(-14, Math.floor(0.3 * (diff - edgeThreshold))));
+		} 
+        // scrolling on bottom
+        else if (diff > upperLimit) {
             this._view.setScrollPosition(scrollPosition + Math.min(14, Math.floor(0.3 * (diff - upperLimit))));
 		}
     }

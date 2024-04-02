@@ -877,6 +877,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
                 mouseSupport: opts.mouseSupport,
                 multiSelectionSupport: opts.multiSelectionSupport,
                 keyboardSupport: opts.keyboardSupport,
+                scrollOnEdgeSupport: opts.scrollOnEdgeSupport,
                 
                 // others
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
