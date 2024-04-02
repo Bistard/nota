@@ -281,7 +281,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * avoid having same property names.
  * 
  * The idea of the architecture is inspired by a class named `AsyncDataTree` in
- * Visual Studio Code. They maintain two isomorphismic tree structures to avoid 
+ * Visual Studio Code. They maintain two isomorphic tree structures to avoid 
  * excessive rerendering.
  * 
  * The {@link AsyncTree} goes one step further, it eliminates another tree 
