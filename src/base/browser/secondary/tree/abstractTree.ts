@@ -257,8 +257,6 @@ export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITree
      * The tree that inherits {@link AbstractTree} and controls the widget.
      */
     readonly tree: IAbstractTree<T, TFilter, TRef>;
-
-    readonly extraArguments: any[];
 }
 
 /**
@@ -816,12 +814,6 @@ export interface IAbstractTreeOptions<T, TFilter> extends
      * default {@link TreeWidget}.
      */
     readonly createTreeWidgetExternal?: (container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>) => TreeWidget<T, TFilter, any>;
-
-    /**
-     * An array of arguments that passed by the inheritance. These arguments 
-     * will be used in the {@link ITreeWidgetOpts}.
-     */
-    readonly extraArguments?: any[];
 }
 
 /**
@@ -890,7 +882,6 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
-                extraArguments: opts.extraArguments ?? [],
             } as ITreeWidgetOpts<T, TFilter, any>,
         ];
         if (opts.createTreeWidgetExternal) {

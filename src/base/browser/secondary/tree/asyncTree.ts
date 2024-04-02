@@ -1,4 +1,5 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
@@ -172,17 +173,33 @@ export interface IAsyncTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFil
  * Constructor options for {@link AsyncTreeWidget}.
  */
 export interface IAsyncTreeWidgetOpts<T, TFilter> extends IMultiTreeWidgetOpts<T, TFilter> {
+
     /**
-     * The extra arguments that contains the self reference as the first one.
+     * The reference to the {@link AsyncTree}. 
+     * 
+     * @note The async tree is a BASE class that does not inherit any classes.
+     * This parameter is different than the parameter {@link ITreeWidgetOpts.tree}.
+     * 
+     * This tree has asynchronous operations.
      */
-    readonly extraArguments: [IAsyncTree<T, TFilter>];
+    readonly asyncTree: IAsyncTree<T, TFilter>;
 }
 
 /**
  * @class Used to override and add additional controller behaviors. But in async
  * tree level there is currently no need for additional features.
  */
-export class AsyncTreeWidget<T, TFilter> extends MultiTreeWidget<T, TFilter> {}
+export class AsyncTreeWidget<T, TFilter> extends MultiTreeWidget<T, TFilter> {
+
+    constructor(
+        container: HTMLElement,
+        renderers: IListViewRenderer<any, any>[],
+        itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
+        opts: IAsyncTreeWidgetOpts<T, TFilter>
+    ) {
+        super(container, renderers, itemProvider, opts);
+    }
+}
 
 /**
  * @internal
@@ -352,8 +369,12 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         
         this._tree = new AsyncMultiTree(container, rootData, {
             ...opts,
-            createTreeWidgetExternal: (...args) => this.createTreeWidget(...args),
-            extraArguments: [this, ...(opts.extraArguments ?? [])],
+            /**
+             * Since {@link AsyncTree} does not inherit {@link AbstractTree}
+             * directly, we need to use this API to create our customized view
+             * externally.
+             */
+            createTreeWidgetExternal: (...args) => this.createTreeWidgetExternal(...args),
         });
 
         this._onDidCreateNode = opts.onDidCreateNode;
@@ -583,7 +604,17 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     // [protected override method]
 
-    protected createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>): AsyncTreeWidget<T, TFilter> {
+    private createTreeWidgetExternal(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>): AsyncTreeWidget<T, TFilter> {
+        return this.__createTreeWidget(container, renderers, itemProvider, { 
+            ...<IMultiTreeWidgetOpts<T, TFilter>>opts, 
+            asyncTree: this,
+        });
+    }
+
+    /**
+     * @note For the client to override and create their own view.
+     */
+    protected __createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IAsyncTreeWidgetOpts<T, TFilter>): AsyncTreeWidget<T, TFilter> {
         return new AsyncTreeWidget(container, renderers, itemProvider, opts);
     }
 
