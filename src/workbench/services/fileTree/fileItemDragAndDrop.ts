@@ -577,10 +577,19 @@ class RowInsertionController extends Disposable {
             return undefined;
         }
 
-        const renderTop = isNearTop ? currentItemTop : currentItemBottom;
+        let renderTop = isNearTop ? currentItemTop : currentItemBottom;
+        
+        /**
+         * Only render the overlay at the center when not inserting at the top 
+         * of the first item.
+         */
+        if ((index === 0 && isNearTop) === false) {
+            renderTop -= this.OVERPLAY_HEIGHT / 2;
+        }
+
         return {
             near: isNearTop ? 'top' : 'bottom',
-            renderTop: renderTop - (this.OVERPLAY_HEIGHT / 2),
+            renderTop: renderTop,
         };
     }
 
