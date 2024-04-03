@@ -1,5 +1,6 @@
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
 
@@ -13,13 +14,14 @@ export const enum WorkbenchConfiguration {
 
     // [sideView]
     
-    DefaultSideView = 'sideView.defaultView',
-    ExplorerViewMode = 'sideView.explorer.mode',
-    ExplorerViewInclude = 'sideView.explorer.include',
-    ExplorerViewExclude = 'sideView.explorer.exclude',
-    ExplorerFileSortType = 'sideView.explorer.fileSortType',
-    ExplorerFileSortOrder = 'sideView.explorer.fileSortOrder',
-    ExplorerConfirmDragAndDrop = 'sideView.explorer.confirmDragAndDrop',
+    DefaultSideView             = 'sideView.defaultView',
+    ExplorerViewMode            = 'sideView.explorer.mode',
+    ExplorerViewInclude         = 'sideView.explorer.include',
+    ExplorerViewExclude         = 'sideView.explorer.exclude',
+    ExplorerFileSortType        = 'sideView.explorer.fileSortType',
+    ExplorerFileSortOrder       = 'sideView.explorer.fileSortOrder',
+    ExplorerConfirmDragAndDrop  = 'sideView.explorer.confirmDragAndDrop',
+    ExplorerIncrementFileNaming = 'sideView.explorer.incrementFileNaming',
 }
 
 /**
@@ -110,6 +112,11 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                     type: 'boolean',
                                     default: true,
                                 },
+                                ['incrementFileNaming']: {
+                                    type: 'string',
+                                    default: IncrementFileType.Simple,
+                                    enum: [IncrementFileType.Simple, IncrementFileType.Smart],
+                                }
                             }
                         }
                     }
