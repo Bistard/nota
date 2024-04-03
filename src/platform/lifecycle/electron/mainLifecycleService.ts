@@ -115,7 +115,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
         this.logService.trace('MainLifecycleService', 'kill()');
 
         // Give the other services a chance to be notified and complete their job.
-        await this.__fireOnBeforeQuit(QuitReason.Kill);
+        await this.__fireOnBeforeQuit(QuitReason.Kill, exitcode);
 
         await Promise.race([
             // ensure wait no more than 1s.
@@ -244,10 +244,14 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      * @description We need to notify the other services and give them a chance 
      * to do things before we actual start to quit.
      * @param reason The reason of the quitting.
+     * @param exitcode The exit code.
      * @returns A promise to be wait until all the other listeners are completed.
      */
-    private __fireOnBeforeQuit(reason: QuitReason): Promise<void> {
-        this.logService.info('MainLifecycleService', 'Application is about to quit...', { reason: parseQuitReason(reason) });
+    private __fireOnBeforeQuit(reason: QuitReason, exitcode: number = 0): Promise<void> {
+        this.logService.info('MainLifecycleService', 'Application is about to quit...', { 
+            reason: parseQuitReason(reason), 
+            exitcode: exitcode,
+        });
 
         if (this._ongoingBeforeQuitParticipants) {
             return this._ongoingBeforeQuitParticipants;
