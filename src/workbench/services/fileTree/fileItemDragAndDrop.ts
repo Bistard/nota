@@ -246,7 +246,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          * 'general hovering' drop handling logic
          */
         if (!targetOver) {
-            targetOver = this.fileTreeService.rootItem!;
+            targetOver = assert(this.fileTreeService.rootItem);
         }
 
         if (targetOver.isFile()) {
@@ -417,7 +417,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         
         // If no specific target is given, insert at the end within the root item.
         if (!targetOver) {
-            targetOver = this.fileTreeService.rootItem!;
+            targetOver = assert(this.fileTreeService.rootItem);
             await this.__performDropMove(currentDragItems, targetOver);
             return;
         }
