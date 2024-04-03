@@ -382,29 +382,29 @@ export class ExplorerTitlePart extends SideViewTitlePart {
     public override render(element: HTMLElement): void {
         super.render(element);
 
-        // left part
-        const leftContainer = document.createElement('div');
-        leftContainer.className = 'left-part';
+        // // left part
+        // const leftContainer = document.createElement('div');
+        // leftContainer.className = 'left-part';
 
-        // title text
-        const topText = document.createElement('div');
-        topText.className = 'title-text';
-        topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
-        // dropdown icon
-        const dropdownIcon = createIcon(Icons.AngleDown);
+        // // title text
+        // const topText = document.createElement('div');
+        // topText.className = 'title-text';
+        // topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
+        // // dropdown icon
+        // const dropdownIcon = createIcon(Icons.AngleDown);
 
-        // right part
-        const rightContainer = document.createElement('div');
-        rightContainer.className = 'right-part';
-        // menu dots
-        const menuDots = createIcon(Icons.MenuDots);
+        // // right part
+        // const rightContainer = document.createElement('div');
+        // rightContainer.className = 'right-part';
+        // // menu dots
+        // const menuDots = createIcon(Icons.MenuDots);
 
-        leftContainer.append(topText);
-        leftContainer.append(dropdownIcon);
+        // leftContainer.append(topText);
+        // leftContainer.append(dropdownIcon);
 
-        rightContainer.append(menuDots);
+        // rightContainer.append(menuDots);
 
-        this.element.appendChild(leftContainer);
-        this.element.appendChild(rightContainer);
+        // this.element.appendChild(leftContainer);
+        // this.element.appendChild(rightContainer);
     }
 }
