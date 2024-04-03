@@ -126,6 +126,7 @@ export namespace FileCommands {
              */
             const toPasteItems = assertArray<FileItem>(toPaste, arr => Arrays.isType(arr, element => !URI.isURI(element)));
             await this.__pasteInsert(toPasteItems, destination, destinationIdx ?? 0, isCut);
+            
             return true;
         }
 
@@ -156,10 +157,7 @@ export namespace FileCommands {
             if (destination.isFile()) {
                 return false;
             }
-            
-            // paste
             await this.__doPasteNormal(toPaste, destination, isCut);
-            
             this.__clearFileTreeTraits();
             return true;
         }
@@ -380,8 +378,6 @@ export namespace FileCommands {
                 failedError: [],
             };
 
-            // TODO: seems like if move fails, file or folders got deleted?
-
             /**
              * Iterate every pasting items and try to move to the destination. 
              * If any existing files or folders found at the destination, a 
@@ -392,6 +388,11 @@ export namespace FileCommands {
                 const newDestination = URI.join(destination.uri, resourceName);
                 const change = { old: resource, new: newDestination };
 
+                const valid = await this.__validateBeforeMove(newDestination);
+                if (!valid) {
+                    continue;
+                }
+
                 const success = await this.fileService.moveTo(resource, newDestination);
 
                 // complete
@@ -399,30 +400,11 @@ export namespace FileCommands {
                     result.passed.push(change);
                     continue;
                 }
-                const error = success.unwrapErr();
-
+                
                 // only expect `FILE_EXISTS` error
+                const error = success.unwrapErr();
                 if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                    await this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
-                    continue;
-                }
-
-                // duplicate item found, ask permission from the user.
-                const shouldOverwrite = await this.notificationService.confirm(
-                    'Overwrite Warning',
-                    `An item named ${resourceName} already exists in this location. Do you want to replace it with the one you're moving?`
-                );
-
-                if (!shouldOverwrite) {
-                    result.failed.push(change);
-                    continue;
-                }
-
-                // re-move to overwrite
-                const move = await this.fileService.moveTo(resource, newDestination, true);
-                if (move.isOk()) {
-                    result.passed.push(change);
-                    continue;
+                    this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
                 }
 
                 /**
@@ -430,10 +412,27 @@ export namespace FileCommands {
                  * handle.
                  */
                 result.failed.push(change);
-                result.failedError?.push(move.unwrapErr());
+                result.failedError?.push(error);
             }
 
             return result;
+        }
+
+        private async __validateBeforeMove(destination: URI): Promise<boolean> {
+            const exist = await this.fileService.exist(destination);
+            if (exist.isErr()) {
+                return false;
+            }
+
+            if (!exist.unwrap()) {
+                return true;
+            }
+
+            const confirmed = await this.notificationService.confirm(
+                'Overwrite Warning', 
+                `A file or folder with the name '${URI.basename(destination)}' already exists in the destination folder. Do you want to replace it?`,
+            );
+            return confirmed;
         }
 
         private async __doCopyLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<IChange<URI>, FileOperationError>> {
