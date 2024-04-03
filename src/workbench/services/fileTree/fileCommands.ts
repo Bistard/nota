@@ -15,10 +15,11 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
 import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
 import { noop } from "src/base/common/performance";
-import { assert, assertArray, errorToMessage } from "src/base/common/utilities/panic";
+import { assert, assertArray, assertDefault, errorToMessage } from "src/base/common/utilities/panic";
 import { ResourceMap } from "src/base/common/structures/map";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { isNonNullable } from "src/base/common/utilities/type";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -125,7 +126,7 @@ export namespace FileCommands {
              * array of `FileItem`.
              */
             const toPasteItems = assertArray<FileItem>(toPaste, arr => Arrays.isType(arr, element => !URI.isURI(element)));
-            await this.__pasteInsert(toPasteItems, destination, destinationIdx ?? 0, isCut);
+            await this.__pasteInsert(toPasteItems, destination, isCut, destinationIdx);
             
             return true;
         }
@@ -173,7 +174,7 @@ export namespace FileCommands {
             return batch;
         }
 
-        private async __pasteInsert(toInsert: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+        private async __pasteInsert(toInsert: FileItem[], destination: FileItem, isCut: boolean, destinationIdx?: number): Promise<void> {
             assert(destination.isDirectory());
             assert(!this.fileTreeService.isCollapsed(destination));
             
@@ -194,7 +195,7 @@ export namespace FileCommands {
              */
             const groups = Arrays.group(dragItems, item => item.parent);
             for (const group of groups.values()) {
-                const pasted = await this.__doPasteInsert(group, destination, destinationIdx, isCut);
+                const pasted = await this.__doPasteInsert(group, destination, isCut, destinationIdx);
                 if (pasted) {
                     anyPasted = true;
                 }
@@ -216,12 +217,12 @@ export namespace FileCommands {
             }
         }
 
-        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<boolean> {
+        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, isCut: boolean, destinationIdx?: number): Promise<boolean> {
             const toPasteParent = assert(toPaste[0]!.parent);
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
             // actual paste operation
-            const batch = insertAtSameParent
+            const batch = (insertAtSameParent && isCut)
                 ? createBatchResult({ passed: toPaste.map(item => ({ old: item.uri, new: item.uri })) })
                 : await this.__doPasteNormal(toPaste.map(item => item.uri), destination, isCut);
             
@@ -239,9 +240,9 @@ export namespace FileCommands {
 
             // update metadata to those who successes
             if (insertAtSameParent) {
-                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, destinationIdx);
+                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, details.passedNewUri, destinationIdx);
             } else {
-                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, destinationIdx, destination, details.passedOldDirUri, details.passedNewDirUri);
+                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, destinationIdx ?? 0, destination, details.passedOldDirUri, details.passedNewDirUri);
             }
 
             // determine if any file/dir is actually pasted in the file system
@@ -299,7 +300,8 @@ export namespace FileCommands {
             isCut: boolean, 
             passedItems: FileItem[],
             oldParentItem: FileItem,
-            destinationIdx: number,
+            passedNewUri: URI[],
+            destinationIdx?: number,
         ): Promise<void> {
             /**
              * Handling insertion within the same parent directory. In scenarios 
@@ -310,12 +312,17 @@ export namespace FileCommands {
              * within the same directory.
              */
             if (isCut) {
+                const resolvedIdx = assertDefault(destinationIdx, 0, 'Expecting a defined destination index when inserting at the same parent.');
                 const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
-                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParentItem.uri, null, toMoveIndice, destinationIdx).unwrap();
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParentItem.uri, null, toMoveIndice, resolvedIdx).unwrap();
             } 
             else {
-                const addIndice = Arrays.fill(destinationIdx, passedItems.length);
-                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParentItem.uri, passedItems.map(item => item.name), addIndice).unwrap();
+                // if undefined, prefer to insert at the bottom of the last selected item.
+                const resolvedIdx = isNonNullable(destinationIdx) 
+                    ? destinationIdx
+                    : assert(passedItems[0]).getSelfIndexInParent() + 1;
+                const addIndice = Arrays.fill(resolvedIdx, passedItems.length);
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParentItem.uri, passedNewUri.map(uri => URI.basename(uri)), addIndice).unwrap();
             }
         }
         
