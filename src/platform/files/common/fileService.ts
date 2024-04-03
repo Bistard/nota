@@ -94,12 +94,16 @@ export interface IFileService extends IDisposable, IService {
 
     /** 
      * @description Moves a file/directory to a new location described by a given URI. 
+     * @param {boolean} [overwrite=false] - Optional. whether should the 
+     *      destination should be overwritten.
      * @note No action is taken if the 'from' and 'to' are identical.
      */
     moveTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;
 
     /** 
      * @description Copy a file/directory to a new location. 
+     * @param {boolean} [overwrite=false] - Optional. whether should the 
+     *      destination should be overwritten.
      * @note No action is taken if the 'from' and 'to' are identical.
      */
     copyTo(from: URI, to: URI, overwrite?: boolean): AsyncResult<IResolvedFileStat, FileOperationError>;

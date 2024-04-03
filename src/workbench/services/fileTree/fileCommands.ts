@@ -404,7 +404,7 @@ export namespace FileCommands {
                     continue;
                 }
 
-                const success = await this.fileService.moveTo(resource, newDestination);
+                const success = await this.fileService.moveTo(resource, newDestination, false);
 
                 // complete
                 if (success.isOk()) {
@@ -471,7 +471,7 @@ export namespace FileCommands {
                 }
 
                 const change = { old: resource, new: newDestination };
-                const copy = await this.fileService.copyTo(resource, newDestination);
+                const copy = await this.fileService.copyTo(resource, newDestination, false);
                 
                 // complete
                 if (copy.isOk()) {
