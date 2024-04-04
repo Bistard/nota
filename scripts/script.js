@@ -16,20 +16,44 @@ const utils = require('./utility');
  */
 
 const SCRIPT_CONFIG_PATH = './script.config.js';
-
 const USAGE = `
-usage: npm run script (<command> | list | help) [--] [<argument>...]
-    
-    Run 'npm run script list' to see all the valid srcipts.
+Usage: npm run script <command> [--] [options]
 
-    eg. npm run script help
-        npm run script list
-        npm run script start -- -a --arg1 --arg2=arg3
+    Execute a script command with optional arguments. Available commands include running specific scripts, listing all available scripts, and displaying this help message.
+
+Commands:
+    <command>    Execute the specified script with optional arguments.
+    list         Display a list of all available scripts.
+    help         Show this usage information.
+
+Examples:
+    npm run script help               Display this usage information.
+    npm run script list               List all available scripts.
+    npm run script start -- -a --arg1 Optional arguments can be passed after the '--'.
+
+Note:
+    Use '--' before specifying any arguments to ensure they are correctly passed to the script.
 `;
-const HELP_STRING = `To see a list of valid scripts, run:
+const HELP_STRING = `Help Guide:
+
+- To execute a specific script along with any optional arguments, use the following format:
+    npm run script <command> [--] [options]
+
+- To view all available scripts and understand their purpose, run:
+    npm run script list
+
+- For a summary of usage commands and examples, use:
     npm run script help
+
+Feel free to append '--' before any options to ensure they are passed correctly to the script.
 `;
-const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${USAGE}.`;
+const INVALID_SCRIPT_COMMAND = `Error: The script command you entered is not recognized or improperly formatted.
+
+Quick Tips:
+- Ensure the command follows the structure: npm run script <command> [--] [options]
+- For a list of available commands, run: npm run script list
+- For further assistance, refer to: npm run script help
+`;
 
 (async function () {
     
