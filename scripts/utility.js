@@ -5,6 +5,87 @@ const childProcess = require("child_process");
 
 const _perfRecord = [];
 
+/**
+ * ANSI escape color codes for foreground color.
+ */
+const fgColor = {
+    Reset: '\x1b[39m',
+	Black: '\x1b[30m',
+    Red: '\x1b[31m',
+    Green: '\x1b[32m',
+    Yellow: '\x1b[33m',
+    Blue: '\x1b[34m',
+    Magenta: '\x1b[35m',
+    Cyan: '\x1b[36m',
+    White: '\x1b[37m',
+	LightGray: '\x1b[90m',
+    LightRed: '\x1b[91m',
+    LightGreen: '\x1b[92m',
+    LightYellow: '\x1b[93m',
+    LightBlue: '\x1b[94m',
+    LightMagenta: '\x1b[95m',
+    LightCyan: '\x1b[96m',
+    LightWhite: '\x1b[97m',
+}
+
+/**
+ * ANSI escape color codes for background color.
+ */
+const bgColor = {
+    Reset: '\x1b[49m',
+	Black: '\x1b[40m',
+    Red: '\x1b[41m',
+    Green: '\x1b[42m',
+    Yellow: '\x1b[43m',
+    Blue: '\x1b[44m',
+    Magenta: '\x1b[45m',
+    Cyan: '\x1b[46m',
+    White: '\x1b[47m',
+    LightGray: '\x1b[100m',
+    LightRed: '\x1b[101m',
+    LightGreen: '\x1b[102m',
+    LightYellow: '\x1b[103m',
+    LightBlue: '\x1b[104m',
+    LightMagenta: '\x1b[105m',
+    LightCyan: '\x1b[106m',
+    LightWhite: '\x1b[107m',
+}
+
+class TextColors {
+	
+    /**
+	 * @description Sets the ANSI foreground and background colors for a given 
+	 * string of text.
+	 * 
+	 * @param {string} text The text to be colored.
+	 * @param {} fgColor The ANSI foreground color code to set for the text.
+	 * @param {} bgColor The ANSI background color code to set for the text.
+	 * @returns - The text string prefixed with ANSI color codes and suffixed 
+	 * with a reset color code.
+	 *
+	 * @example
+	 * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
+	 * console.log(coloredText); // Prints the message in red color with white background in the console.
+	 */
+	static setANSIColor(text, bgColor, fgColor) {
+		return `${fgColor ?? ''}${bgColor ?? ''}${text}\x1b[0m`;
+	}
+
+	/**
+	 * @description Sets the ANSI (RGB) foreground for a given string of text. 
+	 * The color is only supported with modern command line.
+	 * @param {string} text The text to be colored.
+     * @param {number} r 
+     * @param {number} g
+     * @param {number} b 
+	 * @returns The text string prefixed with ANSI color codes and suffixed with 
+	 * a reset color code.
+	 */
+	static setRGBColor(text, r, g, b) {
+		return `\x1b[38;2;${r};${g};${b}m${text}\x1b[0m`;
+	}
+}
+
 const utils = new (class UtilCollection {
    
     // predefined color
@@ -130,4 +211,4 @@ const utils = new (class UtilCollection {
 });
 
 // export
-module.exports = utils;
+module.exports = { utils, TextColors, fgColor, bgColor };

@@ -9,7 +9,7 @@
 
 const childProcess = require("child_process");
 const path = require("path");
-const utils = require('./utility');
+const { utils } = require('./utility');
 
 /**
  * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration

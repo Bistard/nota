@@ -1,4 +1,4 @@
-const utils = require('../utility');
+const { utils } = require('../utility');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');

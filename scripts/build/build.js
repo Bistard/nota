@@ -1,6 +1,6 @@
 const childProcess = require("child_process");
 const path = require("path");
-const utils = require("../utility");
+const { utils } = require("../utility");
 
 (async () => {
     
