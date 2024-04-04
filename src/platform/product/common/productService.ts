@@ -46,7 +46,7 @@ export class ProductService implements IProductService {
     }
 
     public init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
-        this.logService.trace('ProductService', `Initializing at '${URI.toString(productURI)}'...`);
+        this.logService.debug('ProductService', `Initializing at '${URI.toString(productURI)}'...`);
 
         return this._protector.init('cannot initialize twice.')
         .toAsync()
@@ -60,7 +60,7 @@ export class ProductService implements IProductService {
     
             this._profile = parsed;
 
-            this.logService.trace('ProductService', `initialized successfully.`);
+            this.logService.debug('ProductService', `initialized successfully.`);
             return ok();
         });
     }

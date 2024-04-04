@@ -73,7 +73,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             this._onDidAllResourceClosed.fire();
         }));
 
-        logService.trace('BrowserFileChannel', 'constructed.');
+        logService.debug('BrowserFileChannel', 'constructed.');
     }
 
     // [public methods]

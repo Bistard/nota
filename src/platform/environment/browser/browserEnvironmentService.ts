@@ -28,7 +28,7 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
             this.inspect();
         }
 
-        logService.trace('BrowserEnvironmentService', 'BrowserEnvironmentService constructed.');
+        logService.debug('BrowserEnvironmentService', 'BrowserEnvironmentService constructed.');
     }
 
     get machineID(): string { return this._configuration.machineID; }

@@ -26,7 +26,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super(options, instantiationService, logService, registrantService);
-        this.logService.trace('BrowserConfigurationService', 'Constructed.');
+        this.logService.debug('BrowserConfigurationService', 'Constructed.');
     }
 
     // [public methods]

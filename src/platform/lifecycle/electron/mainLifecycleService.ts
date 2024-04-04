@@ -102,17 +102,17 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             return this._pendingQuitBlocker.waiting();
         }
 
-        this.logService.trace('MainLifecycleService', 'quit()');
+        this.logService.debug('MainLifecycleService', 'quit()');
         this._pendingQuitBlocker = new Blocker<void>();
 
-        this.logService.trace('MainLifecycleService', 'app.quit()');
+        this.logService.debug('MainLifecycleService', 'app.quit()');
         app.quit();
 
         return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
-        this.logService.trace('MainLifecycleService', 'kill()');
+        this.logService.debug('MainLifecycleService', 'kill()');
 
         // Give the other services a chance to be notified and complete their job.
         await this.__fireOnBeforeQuit(QuitReason.Kill, exitcode);
@@ -165,7 +165,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * which will not be prevented and will quit normally.
          */
         app.once('will-quit', (event: Electron.Event) => {
-            this.logService.trace('MainLifecycleService', 'app.once("will-quit")');
+            this.logService.debug('MainLifecycleService', 'app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
             event.preventDefault();
@@ -201,7 +201,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * 'window-all-closed' will not emit.
          */
         onWindowAllClosed = () => {
-            this.logService.trace('MainLifecycleService', 'app.addListener("window-all-closed")');
+            this.logService.debug('MainLifecycleService', 'app.addListener("window-all-closed")');
             // mac: only quit when requested
             if (IS_MAC && this._requestQuit) {
                 app.quit();
@@ -222,10 +222,10 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
                 return;
             }
 
-            this.logService.trace('MainLifecycleService', 'app.addListener("before-quit")');
+            this.logService.debug('MainLifecycleService', 'app.addListener("before-quit")');
             this._requestQuit = true;
 
-            this.logService.trace('MainLifecycleService', 'onBeforeQuit.fire()');
+            this.logService.debug('MainLifecycleService', 'onBeforeQuit.fire()');
             this._onBeforeQuit.fire();
 
             /**

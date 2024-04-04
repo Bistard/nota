@@ -191,7 +191,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         (<any>this.lifecycleService) = lifecycleService;
         (<any>this.statusService) = statusService;
 
-        this.logService.trace('MainProcess', 'All core services are constructed.');
+        this.logService.debug('MainProcess', 'All core services are constructed.');
     }
 
     /**
@@ -199,7 +199,7 @@ const main = new class extends class MainProcess implements IMainProcess {
      * services are created.
      */
     private async initServices(): Promise<any> {
-        this.logService.trace('MainProcess', 'Start initializing core services...');
+        this.logService.debug('MainProcess', 'Start initializing core services...');
 
         /**
         * At the very beginning state of the program, we need to initialize
@@ -222,7 +222,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             .unwrap();
 
 
-        this.logService.trace('MainProcess', 'All core services are initialized successfully.');
+        this.logService.debug('MainProcess', 'All core services are initialized successfully.');
     }
 
     private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
@@ -237,7 +237,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     }
 
     private async resolveSingleApplication(): Promise<void> {
-        this.logService.trace('MainProcess', `Resolving application by listening to pipe (${this.environmentService.mainIpcHandle})...`);
+        this.logService.debug('MainProcess', `Resolving application by listening to pipe (${this.environmentService.mainIpcHandle})...`);
 
         try {
             /**
@@ -278,7 +278,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         if (isExpectedError(error)) {
             if (error.message) {
-                this.logService.trace('MainProcess', `${error.message}`);
+                this.logService.debug('MainProcess', `Expected error: ${error.message}`);
             }
         }
         else {

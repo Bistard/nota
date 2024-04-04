@@ -65,7 +65,7 @@ export class RegistrantService implements IRegistrantService {
     constructor(
         @ILogService private readonly logService: ILogService,
     ) {
-        this.logService.trace('RegistrantService', 'RegistrantService constructed.');
+        this.logService.debug('RegistrantService', 'RegistrantService constructed.');
         this._initProtector = new InitProtector();
         this._registrants = new Map();
     }

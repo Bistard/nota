@@ -161,7 +161,7 @@ export class FileService extends Disposable implements IFileService {
 
     constructor(@ILogService private readonly logService: ILogService) {
         super();
-        logService.trace('FileService', 'FileService constructed.');
+        logService.debug('FileService', 'FileService constructed.');
     }
 
     /***************************************************************************
@@ -173,7 +173,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace('FileService', `stop watching at: ${URI.toString(uri)}`);
+            this.logService.debug('FileService', `stop watching at: ${URI.toString(uri)}`);
 
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
@@ -183,7 +183,7 @@ export class FileService extends Disposable implements IFileService {
             }
         }));
 
-        this.logService.trace('FileService', `Provider registered with scheme: ${scheme}`);
+        this.logService.debug('FileService', `Provider registered with scheme: ${scheme}`);
     }
 
     public getProvider(scheme: string | Schemas): IFileSystemProvider | undefined {
@@ -331,7 +331,7 @@ export class FileService extends Disposable implements IFileService {
             return AsyncResult.ok(Disposable.NONE);
         }
 
-        this.logService.trace('FileService', `Start watching on file (${URI.toString(uri)})...`);
+        this.logService.debug('FileService', `Start watching on file (${URI.toString(uri)})...`);
 
         const get = this.__getProvider(uri);
         if (get.isErr()) {

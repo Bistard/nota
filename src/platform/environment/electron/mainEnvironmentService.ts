@@ -22,11 +22,11 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
     ) {
         super(CLIArgv, opts, logService);
 
-        if (CLIArgv.log === 'trace') {
+        if (CLIArgv.log === 'debug') {
             this.inspect();
         }
 
-        logService.trace('MainEnvironmentService', 'MainEnvironmentService constructed.');
+        logService.debug('MainEnvironmentService', 'MainEnvironmentService constructed.');
     }
 
     @memoize
