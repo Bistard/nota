@@ -9,10 +9,10 @@
 
 const childProcess = require("child_process");
 const path = require("path");
-const { utils, Colors, Times, Loggers } = require('./utility');
+const { utils, Colors, Times, Loggers, ScriptProcess } = require('./utility');
 
 /**
- * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
+ * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfigurationType
  */
 
 const SCRIPT_CONFIG_PATH = './script.config.js';
@@ -58,7 +58,7 @@ Quick Tips:
 (async function () {
     
     // Read script configuration
-    const scriptconfiguration = require(SCRIPT_CONFIG_PATH);
+    const scriptConfig = require(SCRIPT_CONFIG_PATH);
 
     // try interpret CLI
     const cliArgs = process.argv.slice(2);
@@ -69,10 +69,10 @@ Quick Tips:
         executeHelp();
     } 
     else if (cmd === 'list') {
-        executeList(scriptconfiguration);
+        executeList(scriptConfig);
     }
     else {
-        executeScript(cmd, args, scriptconfiguration);
+        executeScript(cmd, args, scriptConfig);
     }
 })();
 
@@ -96,7 +96,7 @@ function executeHelp() {
 }
 
 /**
- * @param {ScriptConfiguration} configuration 
+ * @param {ScriptConfigurationType} configuration 
  */
 function executeList(configuration) {
     console.log(`${'[command]'.padStart(10, ' ')}`);
@@ -122,46 +122,26 @@ function executeList(configuration) {
 }
 
 /**
- * @param {string} command 
+ * @param {string} script 
  * @param {string[]} args 
- * @param {ScriptConfiguration} configuration
+ * @param {ScriptConfigurationType} configurations
  */
-function executeScript(command, args, configuration) {
+function executeScript(script, args, configurations) {
 
     // validate the corresponding script configuration
-    let scriptConfiguration = configuration[command];
-    if (!scriptConfiguration) {
-        console.log(`Invalid script command '${command}'. ${HELP_STRING}.`);
+    const config = configurations[script];
+    if (!config) {
+        console.log(`Invalid script '${script}'. ${HELP_STRING}.`);
         process.exit(1);
     }
 
-    // concat the command in string
-    const actualCommand = scriptConfiguration.command + ' ' + args.join(' ');
-    Loggers.print(`Executing script: ${utils.c.BgWhite}${utils.c.FgBlack}${command}\x1b[0m`);
-    Loggers.print(`Executing command: ${actualCommand}`);
-    
-    // run command with a new process
-    const proc = childProcess.spawn(
-        actualCommand, 
-        [], 
-        {
-            env: process.env,
-            cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root directory
-            shell: true,
+    new ScriptProcess(script, config.command, args, [], {
+        env: process.env,
+        cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root directory
+        shell: true,
 
-            // inherits the stdin / stdout / stderr
-            stdio: "inherit",
-        },
-    );
-
-    // listeners
-    proc.on('close', (code) => {
-        if (code) {
-            process.stderr.write(`${Times.getTime()} ${Colors.red(`The script '${command}' exits with error code ${code}.\n`)}`);
-            process.exit(code);
-        } else {
-            process.exit(0);
-        }
+        // inherits the stdin / stdout / stderr
+        stdio: "inherit",
     });
 }
 

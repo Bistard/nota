@@ -54,32 +54,19 @@ const bgColor = {
 class Colors {
 	
     /**
-	 * @description Sets the ANSI foreground and background colors for a given 
-	 * string of text.
-	 * 
 	 * @param {string} text The text to be colored.
-	 * @param {} bgColor The ANSI background color code to set for the text.
-	 * @param {} fgColor The ANSI foreground color code to set for the text.
-	 * @returns - The text string prefixed with ANSI color codes and suffixed 
-	 * with a reset color code.
-	 *
-	 * @example
-	 * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
-	 * console.log(coloredText); // Prints the message in red color with white background in the console.
+	 * @param {string} bgColor The ANSI background color code to set for the text.
+	 * @param {string} fgColor The ANSI foreground color code to set for the text.
 	 */
 	static setANSIColor(text, fgColor, bgColor) {
 		return `${fgColor ?? ''}${bgColor ?? ''}${text}\x1b[0m`;
 	}
 
 	/**
-	 * @description Sets the ANSI (RGB) foreground for a given string of text. 
-	 * The color is only supported with modern command line.
 	 * @param {string} text The text to be colored.
      * @param {number} r 
      * @param {number} g
      * @param {number} b 
-	 * @returns The text string prefixed with ANSI color codes and suffixed with 
-	 * a reset color code.
 	 */
 	static setRGBColor(text, r, g, b) {
 		return `\x1b[38;2;${r};${g};${b}m${text}\x1b[0m`;
@@ -197,12 +184,11 @@ class ScriptProcess {
         const procArgsString = procArgs.join(' ');
         const actualCommand = `${scriptCommand} ${cmdArgsString}`;
         
-        Loggers.print(`${utils.c.BgWhite}${utils.c.FgBlack}${scriptName}\x1b[0m`);
+        Loggers.print(`${bgColor.White}${fgColor.Black}${scriptName}\x1b[0m`);
         console.log(`   🔧 Command: ${scriptCommand}`);
         console.log(`   📝 Argument: ${cmdArgsString || 'N/A'}`);
         console.log(`   🚀 actual command: ${actualCommand}`);
         console.log();
-
         console.log(`   📦 Process argument: ${procArgsString || 'N/A'}`);
         console.log(`   🌍 Process configuration`);
         console.log(`       📂 CWD: ${procOpts.cwd || 'N/A'}`);
@@ -229,6 +215,7 @@ class ScriptProcess {
              */
             p.on('close', code => {
                 if (!code) {
+                    Loggers.print(`The script '${Colors.gray(scriptName)}' finished.\n`);
                     process.exit(0);
                 }
                 Loggers.printRed(`The script '${scriptName}' exits with error code ${code}.\n`);
