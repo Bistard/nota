@@ -5,6 +5,7 @@ import { memoize } from "src/base/common/memoization";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
 import { IEnvironmentOpts, IMainEnvironmentService } from "src/platform/environment/common/environment";
+import { IProductService } from "src/platform/product/common/productService";
 
 /**
  * @class A {@link IEnvironmentService} that used in main process. Storing the
@@ -19,6 +20,7 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
         CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
         @ILogService logService: ILogService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super(CLIArgv, opts, logService);
 
@@ -30,18 +32,18 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
     }
 
     @memoize
-    get mainIpcHandle(): string { return createMainIpcHandle(URI.toFsPath(this.userDataPath), 'main', '0.1.0'); }
+    get mainIpcHandle(): string { return createMainIpcHandle(URI.toFsPath(this.userDataPath), this.productService.profile.version, 'main'); }
 }
 
 /**
  * Using {@link version} so that running different versions of programs will not
  * affect each other.
  */
-function createMainIpcHandle(userDir: string, type: string, version: string): string {
+function createMainIpcHandle(userDir: string, version: string, type: string): string {
 
     // Windows: use pipe
     if (process.platform === "win32") {
-        // REVIEW: should take useDir into account
+        // TODO: should take useDir into account
         return `\\\\.\\pipe\\${version}-${type}-sock`;
     }
 

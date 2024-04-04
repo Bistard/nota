@@ -137,14 +137,18 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IRegistrantService, registrantService);
         this.initRegistrant(instantiationService, registrantService);
 
-        // environment-service
-        const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService);
-        instantiationService.register(IEnvironmentService, environmentService);
-
         // file-service
         const fileService = new FileService(logService);
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
         instantiationService.register(IFileService, fileService);
+
+        // product-service
+        const productService = new ProductService(fileService, logService);
+        instantiationService.register(IProductService, productService);
+
+        // environment-service
+        const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService, productService);
+        instantiationService.register(IEnvironmentService, environmentService);
 
         // logger-service
         const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
@@ -158,10 +162,6 @@ const main = new class extends class MainProcess implements IMainProcess {
             fileLoggerService.createLogger(environmentService.logPath, { description: 'main', name: `main-${getFormatCurrTimeStamp()}.txt` }),
         ]);
         logService.setLogger(pipelineLogger);
-
-        // product-service
-        const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
 
         // life-cycle-service
         const lifecycleService = new MainLifecycleService(logService);
