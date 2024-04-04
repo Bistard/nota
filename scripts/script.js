@@ -9,7 +9,7 @@
 
 const childProcess = require("child_process");
 const path = require("path");
-const { utils, Colors, Times } = require('./utility');
+const { utils, Colors, Times, Loggers } = require('./utility');
 
 /**
  * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
@@ -137,8 +137,8 @@ function executeScript(command, args, configuration) {
 
     // concat the command in string
     const actualCommand = scriptConfiguration.command + ' ' + args.join(' ');
-    console.log(`${Times.getTime()} Executing script: ${utils.c.BgWhite}${utils.c.FgBlack}${command}\x1b[0m`);
-    console.log(`${Times.getTime()} Executing command: ${actualCommand}`);
+    Loggers.print(`Executing script: ${utils.c.BgWhite}${utils.c.FgBlack}${command}\x1b[0m`);
+    Loggers.print(`Executing command: ${actualCommand}`);
     
     // run command with a new process
     const proc = childProcess.spawn(
