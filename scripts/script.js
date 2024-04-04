@@ -6,10 +6,8 @@
  * The script acts like a central management that can access all the pre-defined
  * scripts. The script configurations can be found at {@link SCRIPT_CONFIG_PATH}.
  */
-
-const childProcess = require("child_process");
 const path = require("path");
-const { utils, Colors, Times, Loggers, ScriptProcess } = require('./utility');
+const { Colors, Times, ScriptProcess, Loggers } = require('./utility');
 
 /**
  * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfigurationType
@@ -85,7 +83,7 @@ Quick Tips:
 function validateCLI(args) {
     const command = args[0];
     if (!command) {
-        process.stderr.write(`${Times.getTime()} ${Colors.red('Invalid Script Command')}\n ${INVALID_SCRIPT_COMMAND}`);
+        Loggers.printRed(`Invalid Script Command\n${INVALID_SCRIPT_COMMAND}`);
         process.exit(1);
     }
     return [command, args.slice(1)];

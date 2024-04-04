@@ -197,6 +197,7 @@ class ScriptProcess {
         console.log();
 
         // create the actual process
+        const startTime = performance.now();
         const p = childProcess.spawn(actualCommand, procArgs, procOpts);
         this._proc = p;
 
@@ -214,12 +215,34 @@ class ScriptProcess {
              * process have been closed.
              */
             p.on('close', code => {
+                const colorName = `${Colors.gray(scriptName)}`;
+
+                // perf log
+                const endTime = performance.now();
+                const spentInSec = (endTime - startTime) / 1000;
+                Loggers.print(`🕒 The script executed in ${Math.round(spentInSec * 100) / 100} seconds.`);
+
+                // exitcode (0)
                 if (!code) {
-                    Loggers.print(`The script '${Colors.gray(scriptName)}' finished.\n`);
+                    Loggers.print(`✅ The script '${colorName}' finished.`);
                     process.exit(0);
                 }
-                Loggers.printRed(`The script '${scriptName}' exits with error code ${code}.\n`);
+
+                // exitcode (non zero)
+                Loggers.printRed(`⚠️ The script '${colorName}' exits with error code ${code}.`);
                 process.exit(code);
+            });
+
+            /**
+             * The event is emitted whenever:
+             *  - The proc cannot be spawned.
+             *  - The proc could not be killed.
+             *  - Sending a message to the child proc failed.
+             *  - The child proc was aborted via the `signal` option.
+             */
+            p.on('error', error => {
+                Loggers.printRed(`⚠️ Script error encounters:`);
+                console.log(error);
             });
         }
     }
