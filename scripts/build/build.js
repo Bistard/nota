@@ -1,12 +1,12 @@
 const childProcess = require("child_process");
 const path = require("path");
-const { utils } = require("../utility");
+const { utils, TextColors, bgColor, fgColor, Times } = require("../utility");
 
 (async () => {
     
     // Start building...
     utils.perf('build');
-    console.log(`${utils.getTime(utils.c.FgGreen)} Building...`);
+    console.log(`${Times.getTime()} ${TextColors.green('Building...')}`);
 
     const rootDir = process.cwd();
 
@@ -38,7 +38,7 @@ const { utils } = require("../utility");
     // #region helper functions
 
     async function compileFontIcons(rootDir) {
-        console.log(`${utils.getTime()} Compiling font icons...`);
+        console.log(`${Times.getTime()} Compiling font icons...`);
         
         try {
             const iconScriptPath = path.join(rootDir, './scripts/icons/icon.js');
@@ -50,15 +50,15 @@ const { utils } = require("../utility");
             });
         } 
         catch (code) {
-            console.error(`${utils.getTime(utils.c.FgRed)} Font icons compile failed with exit code ${code}.`);
+            console.error(`${Times.getTime()} ${TextColors.red(`Font icons compile failed with exit code ${code}.`)}`);
             process.exit(code);
         }
-        console.log(`${utils.getTime(utils.c.FgGreen)} Font icons completed.`);
+        console.log(`${Times.getTime()} ${TextColors.green('Font icons completed.')}`);
     }
         
     function parsingCLI() {
         const CLIArgv = utils.parseCLI();
-        console.log(`${utils.getTime()} [Building arguments]`, CLIArgv);
+        console.log(`${Times.getTime()} [Building arguments]`, CLIArgv);
         process.env.NODE_ENV = CLIArgv.NODE_ENV ?? 'development';
         process.env.CIRCULAR = CLIArgv.circular ?? CLIArgv.c ?? 'true';
         process.env.WATCH_MODE = CLIArgv.watch ?? CLIArgv.w ?? 'false';
@@ -67,7 +67,7 @@ const { utils } = require("../utility");
     function wrapSpawn() {
         for (const arg of arguments) {
 
-            let output = `${utils.getTime()} `;
+            let output = `${Times.getTime()} `;
             if (typeof arg === 'string') {
                 output += `[Executing command] ${arg}\n`;
             } 
@@ -79,7 +79,7 @@ const { utils } = require("../utility");
                 }
             } 
             else {
-                const stamp = utils.getTime();
+                const stamp = Times.getTime();
                 output = `${stamp} [CWD]: ${arg.cwd}\n`;
                 output += `${stamp} [NODE_ENV]: ${arg.env.NODE_ENV ?? 'N/A'}\n`;
                 output += `${stamp} [ELECTRON_VER]: ${process.versions.electron ?? 'N/A'}\n`;
@@ -100,11 +100,11 @@ const { utils } = require("../utility");
     function registerSpawnListeners(spawn) {
 
         spawn.stdout.on('data', (output) => {
-            process.stdout.write(`${utils.getTime()} ${output}`);
+            process.stdout.write(`${Times.getTime()} ${output}`);
         });
         
         spawn.stderr.on('data', (error) => {
-            console.error(`${utils.getTime()} ${error}`);
+            console.error(`${Times.getTime()} ${error}`);
         });
         
         spawn.on('close', (code) => {
@@ -113,9 +113,9 @@ const { utils } = require("../utility");
 
             if (code) {
                 fail = true;
-                process.stdout.write(`${utils.getTime(utils.c.FgRed)} child process exited with error code ${code}`);
+                process.stdout.write(`${Times.getTime()} ${TextColors.red(`child process exited with error code ${code}`)}`);
             } else {
-                process.stdout.write(`${utils.getTime(utils.c.FgGreen)} Building success`);
+                process.stdout.write(`${Times.getTime()} ${TextColors.green('Building success')}`);
             }
             utils.perf('build');
 

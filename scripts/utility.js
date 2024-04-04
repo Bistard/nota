@@ -246,7 +246,7 @@ const utils = new (class UtilCollection {
                 
                 if (code) {
                     fail = true;
-                    process.stdout.write(`${utils.getTime(utils.c.FgRed)} child process exited with error code ${code}`);
+                    process.stdout.write(`${Times.getTime()} ${TextColors.red(`child process exited with error code ${code}`)}`);
                 }
                 
                 if (fail) {
