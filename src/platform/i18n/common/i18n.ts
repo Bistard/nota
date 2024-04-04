@@ -186,7 +186,7 @@ export class i18n implements II18nService {
     }
 
     public init(): AsyncResult<void, FileOperationError | SyntaxError> {
-        this.logService.trace('i18n', 'i18n intializing...');
+        this.logService.trace('i18n', 'i18n initializing...');
         
         const uri = URI.join(this._path, this.language + this._extension);
         return this.__readLocale(uri)
@@ -195,7 +195,7 @@ export class i18n implements II18nService {
             return err(error);
         })
         .andThen(() => {
-            this.logService.trace('i18n', 'i18n intialized.');
+            this.logService.trace('i18n', 'i18n initialized.');
             return ok();
         });
     }

@@ -91,7 +91,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         
         // configuration initialization
         .andThen(() => {
-            this.logService.trace('ConfigurationService', 'initializing...', { at: URI.toString(this.options.appConfiguration.path, true) });
+            this.logService.trace('ConfigurationService', `initializing at '${URI.toString(this.options.appConfiguration.path, true)}'...`);
 
             return this._defaultConfiguration.init()
                 .toAsync()
@@ -133,7 +133,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace('ConfigurationService', `Configuration changes.`, { type: ConfigurationModuleTypeToString(type), configurationKeys: change.properties });
+        this.logService.trace('ConfigurationService', `Configuration changes. Details:`, { type: ConfigurationModuleTypeToString(type), configurationKeys: change.properties });
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

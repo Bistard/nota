@@ -209,7 +209,7 @@ export class WatchInstance implements IWatchInstance {
         })
         .on('ready', () => {
             this._onReady.fire();
-            this.logService?.trace('WatchInstance', `filesystem watcher is ready.`, { at: resource });
+            this.logService?.trace('WatchInstance', `filesystem watcher is ready at: ${resource}`);
         });
 
         return watcher;

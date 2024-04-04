@@ -100,11 +100,11 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     }
 
     public init(): AsyncResult<void, FileOperationError> {
-        this.logService.trace('MainStatusService', `initializing...`);
+        this.logService.trace('MainStatusService', `initializing at '${URI.toString(this._storage.resource)}'...`);
 
         return this._storage.init()
         .andThen(() => { 
-            this.logService.trace('MainStatusService', `initialized.`, { at: URI.toString(this._storage.resource) });
+            this.logService.trace('MainStatusService', `initialized.`);
             return ok();
         });
     }

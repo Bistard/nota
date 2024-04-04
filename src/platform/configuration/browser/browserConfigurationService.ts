@@ -51,7 +51,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
             return err(error);
         })
         .andThen(() => {
-            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration`, { at: URI.toString(this.appConfigurationPath) }));
+            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration at :${URI.toString(this.appConfigurationPath)}`));
         });
     }
 

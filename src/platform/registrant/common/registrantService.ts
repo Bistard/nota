@@ -65,7 +65,7 @@ export class RegistrantService implements IRegistrantService {
     constructor(
         @ILogService private readonly logService: ILogService,
     ) {
-        this.logService.trace('RegistrantService', 'Registrant service constructed.');
+        this.logService.trace('RegistrantService', 'RegistrantService constructed.');
         this._initProtector = new InitProtector();
         this._registrants = new Map();
     }
@@ -84,7 +84,7 @@ export class RegistrantService implements IRegistrantService {
 
         this._registrants.set(registrant.type, registrant);
 
-        this.logService.info('RegistrantService', 'Registrant registered.', { type: registrant.type });
+        this.logService.info('RegistrantService', `Registrant registered: ${registrant.type}`);
     }
 
     public getRegistrant<T extends RegistrantType>(type: T): GetRegistrantByType<T> {
@@ -105,11 +105,11 @@ export class RegistrantService implements IRegistrantService {
 
         this._registrants.forEach((registrant, key) => {
             try {
-                this.logService.info('RegistrantService', 'Initializing registrant...', { type: registrant.type });
+                this.logService.info('RegistrantService', `(${registrant.type}) Initializing registrant...`);
                 registrant.initRegistrations(provider);
-                this.logService.info('RegistrantService', 'Registrant initialized successfully.', { type: registrant.type });
+                this.logService.info('RegistrantService', `(${registrant.type}) Registrant initialized successfully.`);
             } catch (error: any) {
-                this.logService.error('RegistrantService', `Registrant (${registrant.type}) initialization failed.`, error);
+                this.logService.error('RegistrantService', `(${registrant.type}) Registrant initialization failed.`, error);
             }
         });
     }

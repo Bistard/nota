@@ -96,7 +96,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     public async open(root: URI): Promise<void> {
 
         if (this.fileTreeService.isOpened) {
-            this.logService.warn('ExplorerView', `view is already opened.`, { at: URI.toString(this.fileTreeService.root!, true) });
+            this.logService.warn('ExplorerView', `view is already opened at: ${URI.toString(this.fileTreeService.root!, true)}`);
             return;
         }
 

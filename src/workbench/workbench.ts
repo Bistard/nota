@@ -72,7 +72,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // once everything is done we layout the workbench
         this.layout();
 
-        this.logService.trace('Workbench', 'Initialized.');
+        this.logService.trace('Workbench', 'Initialized successfully.');
     }
 
     public getContextKey<T>(name: string): IContextKey<T> | undefined {

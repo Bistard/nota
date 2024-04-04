@@ -172,10 +172,12 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
     private __readConfigurationFromDisk(): AsyncResult<void, Error> {
 
+        this.logService.debug('ShortcutService', `Loading shortcut configuration at: ${URI.toString(this._resource)}`);
+
         return this.fileService.exist(this._resource)
         .andThen<DataBuffer | void, FileOperationError>(exist => {
             if (!exist) {
-                this.logService.debug('ShortcutService', `shortcut configuration cannot found.`, { at: URI.toString(this._resource) });
+                this.logService.debug('ShortcutService', `shortcut configuration cannot found at: ${URI.toString(this._resource)}`);
                 return ok();
             }
 
@@ -198,7 +200,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 return ok();
             }
             
-            this.logService.debug('ShortcutService', `shortcut configuration loaded.`, { at: URI.toString(this._resource) });
+            this.logService.debug('ShortcutService', `Shortcut configuration loaded successfully at: ${URI.toString(this._resource)}.`);
 
             for (const { commandID, shortcut: name, when, weight } of configuration) {
                 const load = this.__loadCommandBy(commandID, name, when, weight);

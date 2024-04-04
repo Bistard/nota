@@ -31,9 +31,9 @@ export class IpcServer extends ServerBase {
     // [constructor]
 
     constructor(logService: ILogService) {
-        logService.trace('IPCServer', 'constructing...');
+        logService.trace('IPCServer', 'IPCServer constructing...');
         super(IpcServer.__createOnClientConnect(), logService);
-        logService.trace('IPCServer', 'constructed.');
+        logService.trace('IPCServer', 'IPCServer constructed.');
     }
 
     // [public methods]

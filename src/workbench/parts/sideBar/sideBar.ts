@@ -233,7 +233,7 @@ export class SideBar extends Component implements ISideBarService {
         const button = new SideButton(opts);
 
         if (widgetBar.hasItem(opts.id)) {
-            this.logService.warn('SideBarService', `Cannot register the side bar button with duplicate ID.`, { ID: opts.id });
+            this.logService.warn('SideBarService', `Cannot register the side bar button with duplicate ID: ${opts.id}`);
             return false;
         }
 

@@ -237,7 +237,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     }
 
     private async resolveSingleApplication(): Promise<void> {
-        this.logService.trace('MainProcess', 'Resolving application by listening to pipe...', { pipe: this.environmentService.mainIpcHandle });
+        this.logService.trace('MainProcess', `Resolving application by listening to pipe (${this.environmentService.mainIpcHandle})...`);
 
         try {
             /**

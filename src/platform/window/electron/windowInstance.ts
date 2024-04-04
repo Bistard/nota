@@ -122,7 +122,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [public methods]
 
     public load(configuration: IWindowConfiguration): Promise<void> {
-        this.logService.trace('WindowInstance', `Loading window...`, { ID: this._id });
+        this.logService.trace('WindowInstance', `Loading window (ID: ${this._id})...`);
 
         this._configurationIpcAccessible.updateData(configuration);
 
@@ -216,14 +216,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.show();
         }
 
-        this.logService.trace('WindowInstance', `window created.`, { ID: window.id });
+        this.logService.trace('WindowInstance', `window created (ID: ${window.id}).`);
         return window;
     }
 
     private registerListeners(): void {
 
         this._window.webContents.on('did-finish-load', () => {
-            this.logService.trace('WindowInstance', `load succeeded.`, { ID: this._id });
+            this.logService.trace('WindowInstance', `load succeeded (ID: ${this._id}).`);
             this._window.show();
         });
 
