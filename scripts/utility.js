@@ -58,8 +58,8 @@ class TextColors {
 	 * string of text.
 	 * 
 	 * @param {string} text The text to be colored.
-	 * @param {} fgColor The ANSI foreground color code to set for the text.
 	 * @param {} bgColor The ANSI background color code to set for the text.
+	 * @param {} fgColor The ANSI foreground color code to set for the text.
 	 * @returns - The text string prefixed with ANSI color codes and suffixed 
 	 * with a reset color code.
 	 *
@@ -67,7 +67,7 @@ class TextColors {
 	 * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
 	 * console.log(coloredText); // Prints the message in red color with white background in the console.
 	 */
-	static setANSIColor(text, bgColor, fgColor) {
+	static setANSIColor(text, fgColor, bgColor) {
 		return `${fgColor ?? ''}${bgColor ?? ''}${text}\x1b[0m`;
 	}
 
@@ -84,8 +84,57 @@ class TextColors {
 	static setRGBColor(text, r, g, b) {
 		return `\x1b[38;2;${r};${g};${b}m${text}\x1b[0m`;
 	}
+
+    static green(text) {
+        return `${fgColor.Green}${text}\x1b[0m`;
+    }
+    
+    static red(text) {
+        return `${fgColor.Red}${text}\x1b[0m`;
+    }
+    
+    static yellow(text) {
+        return `${fgColor.Yellow}${text}\x1b[0m`;
+    }
+    
+    static gray(text) {
+        return `${fgColor.LightGray}${text}\x1b[0m`;
+    }
 }
 
+class Times {
+
+    /**
+     * @description Get the time in string format with the given color.
+     * @param {string} color 
+     * @example [16:04:08]
+     */
+    static getTime(color) {
+        return color
+            ? `${color}[${this.getSimpleCurrTimeStamp()}]\x1b[0m`
+            : `${fgColor.LightGray}[${this.getSimpleCurrTimeStamp()}]\x1b[0m`;
+    }
+
+    /**
+     * @example 2024-04-04 16:04:08.910
+     */
+    static getCurrTimeStamp() {
+        const currentTime = new Date();
+        return `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')} ${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}:${(currentTime.getSeconds()).toString().padStart(2, '0')}.${(currentTime.getMilliseconds()).toString().padStart(3, '0')}`;
+    }
+
+    /**
+     * @example 16:04:08
+     */
+    static getSimpleCurrTimeStamp() {
+        const currentTime = new Date();
+        return `${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}:${(currentTime.getSeconds()).toString().padStart(2, '0')}`;
+    }
+}
+
+/**
+ * @deprecated
+ */
 const utils = new (class UtilCollection {
    
     // predefined color
@@ -211,4 +260,4 @@ const utils = new (class UtilCollection {
 });
 
 // export
-module.exports = { utils, TextColors, fgColor, bgColor };
+module.exports = { utils, TextColors, fgColor, bgColor, Times, };
