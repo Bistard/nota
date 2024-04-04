@@ -1,4 +1,3 @@
-const { utils } = require('../utility');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');
@@ -24,7 +23,7 @@ class WebpackPluginProvider {
         
         const cwd = opts.cwd;
         if (!cwd || typeof cwd != 'string') {
-            console.log(`${utils.color(utils.c.FgYellow, '[WebpackPluginProvider]')} cwd is not provided or provided with wrong type: '${typeof cwd}'!`);
+            console.log(`[WebpackPluginProvider] CWD is not provided or provided with wrong type: '${typeof cwd}'!`);
         }
 
         /**
