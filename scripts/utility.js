@@ -162,6 +162,92 @@ class Loggers {
     }
 }
 
+class ScriptProcess {
+    
+    /**
+     * @typedef {import('child_process').StdioPipe} StdioPipe
+     * @typedef {import('child_process').ChildProcessByStdio<StdioPipe, StdioPipe, StdioPipe>} ProcOptions
+     */
+
+    /**
+     * @type {ReturnType<childProcess.spawn>}
+     */
+    _proc;
+    
+    /**
+     * @type {boolean}
+     */
+    _spawned = false;
+
+    /**
+     * @param {string} scriptName
+     * @param {string} scriptCommand 
+     * @param {string[]} commandArgs 
+     * @param {string[]} procArgs 
+     * @param {ProcOptions} procOpts 
+     */
+    constructor(
+        scriptName,
+        scriptCommand,
+        commandArgs,
+        procArgs,
+        procOpts,
+    ) {
+        const cmdArgsString = commandArgs.join(' ');
+        const procArgsString = procArgs.join(' ');
+        const actualCommand = `${scriptCommand} ${cmdArgsString}`;
+        
+        Loggers.print(`${utils.c.BgWhite}${utils.c.FgBlack}${scriptName}\x1b[0m`);
+        console.log(`   🔧 Command: ${scriptCommand}`);
+        console.log(`   📝 Argument: ${cmdArgsString || 'N/A'}`);
+        console.log(`   🚀 actual command: ${actualCommand}`);
+        console.log();
+
+        console.log(`   📦 Process argument: ${procArgsString || 'N/A'}`);
+        console.log(`   🌍 Process configuration`);
+        console.log(`       📂 CWD: ${procOpts.cwd || 'N/A'}`);
+        console.log(`       📂 shell: ${procOpts.shell || 'N/A'}`);
+        console.log(`       📂 stdio: ${procOpts.stdio || 'N/A'}`);
+        console.log();
+
+        // create the actual process
+        const p = childProcess.spawn(actualCommand, procArgs, procOpts);
+        this._proc = p;
+
+        // listeners
+        {
+            /**
+             * Event fires once the child process has spawned successfully.
+             */
+            p.on('spawn', () => {
+                this._spawned = true;
+            });
+
+            /**
+             * After the process has ended and the stdio streams of a child 
+             * process have been closed.
+             */
+            p.on('close', code => {
+                if (!code) {
+                    process.exit(0);
+                }
+                Loggers.printRed(`The script '${scriptName}' exits with error code ${code}.\n`);
+                process.exit(code);
+            });
+        }
+    }
+
+    /** The actual process reference. */
+    get proc() {
+        return this._proc;
+    }
+
+    /** Is the process spawned successfully. */
+    get isSpawned() {
+        return this._spawned;
+    }
+}
+
 /**
  * @deprecated
  */
@@ -290,4 +376,4 @@ const utils = new (class UtilCollection {
 });
 
 // export
-module.exports = { utils, Colors, fgColor, bgColor, Times, Loggers };
+module.exports = { utils, Colors, fgColor, bgColor, Times, Loggers, ScriptProcess };
