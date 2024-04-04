@@ -9,7 +9,7 @@
 
 const childProcess = require("child_process");
 const path = require("path");
-const { utils, TextColors, Times } = require('./utility');
+const { utils, Colors, Times } = require('./utility');
 
 /**
  * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
@@ -85,7 +85,7 @@ Quick Tips:
 function validateCLI(args) {
     const command = args[0];
     if (!command) {
-        process.stderr.write(`${Times.getTime()} ${TextColors.red('Invalid Script Command')}\n ${INVALID_SCRIPT_COMMAND}`);
+        process.stderr.write(`${Times.getTime()} ${Colors.red('Invalid Script Command')}\n ${INVALID_SCRIPT_COMMAND}`);
         process.exit(1);
     }
     return [command, args.slice(1)];
@@ -104,7 +104,7 @@ function executeList(configuration) {
     for (const [cmdName, config] of Object.entries(configuration)) {
         
         const { _command, description, options } = config;
-        const coloredName = TextColors.green(config.commandDescription ?? cmdName);
+        const coloredName = Colors.green(config.commandDescription ?? cmdName);
         console.log(coloredName);
         console.log(description);
         
@@ -157,7 +157,7 @@ function executeScript(command, args, configuration) {
     // listeners
     proc.on('close', (code) => {
         if (code) {
-            process.stderr.write(`${Times.getTime()} ${TextColors.red(`The script '${command}' exits with error code ${code}.\n`)}`);
+            process.stderr.write(`${Times.getTime()} ${Colors.red(`The script '${command}' exits with error code ${code}.\n`)}`);
             process.exit(code);
         } else {
             process.exit(0);

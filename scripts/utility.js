@@ -51,7 +51,7 @@ const bgColor = {
     LightWhite: '\x1b[107m',
 }
 
-class TextColors {
+class Colors {
 	
     /**
 	 * @description Sets the ANSI foreground and background colors for a given 
@@ -129,6 +129,36 @@ class Times {
     static getSimpleCurrTimeStamp() {
         const currentTime = new Date();
         return `${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}:${(currentTime.getSeconds()).toString().padStart(2, '0')}`;
+    }
+}
+
+class Loggers {
+
+    /**
+     * @description Print the given text with the color (if provided) with a 
+     * time prefix.
+     * @param {string} text
+     * @param {string} fgColor 
+     * @param {string} bgColor 
+     */
+    static print(text, fgColor, bgColor) {
+        console.log(`${Times.getTime()} ${fgColor ?? ''}${bgColor ?? ''}${text}\x1b[0m`);
+    }
+
+    static printGreen(text) {
+        this.print(text, fgColor.Green);
+    }
+
+    static printRed(text) {
+        this.print(text, fgColor.Red);
+    }
+
+    static printYellow(text) {
+        this.print(text, fgColor.Yellow);
+    }
+
+    static printGray(text) {
+        this.print(text, fgColor.Gray);
     }
 }
 
@@ -246,7 +276,7 @@ const utils = new (class UtilCollection {
                 
                 if (code) {
                     fail = true;
-                    process.stdout.write(`${Times.getTime()} ${TextColors.red(`child process exited with error code ${code}`)}`);
+                    process.stdout.write(`${Times.getTime()} ${Colors.red(`child process exited with error code ${code}`)}`);
                 }
                 
                 if (fail) {
@@ -260,4 +290,4 @@ const utils = new (class UtilCollection {
 });
 
 // export
-module.exports = { utils, TextColors, fgColor, bgColor, Times, };
+module.exports = { utils, Colors, fgColor, bgColor, Times, Loggers };
