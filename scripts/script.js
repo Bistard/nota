@@ -128,18 +128,19 @@ function executeList(configuration) {
  */
 function executeScript(command, args, configuration) {
 
+    // validate the corresponding script configuration
     let scriptConfiguration = configuration[command];
     if (!scriptConfiguration) {
         console.log(`Invalid script command '${command}'. ${HELP_STRING}.`);
         process.exit(1);
     }
 
-    let actualCommand = scriptConfiguration.command;
-    const argsInString = args.join(' ');
-    actualCommand += ' ' + argsInString;
-
+    // concat the command in string
+    const actualCommand = scriptConfiguration.command + ' ' + args.join(' ');
     console.log(`${utils.getTime()} Executing script: ${utils.c.BgWhite}${utils.c.FgBlack}${command}\x1b[0m`);
     console.log(`${utils.getTime()} Executing command: ${actualCommand}`);
+    
+    // run command with a new process
     const proc = childProcess.spawn(
         actualCommand, 
         [], 
@@ -153,6 +154,7 @@ function executeScript(command, args, configuration) {
         },
     );
 
+    // listeners
     proc.on('close', (code) => {
         if (code) {
             process.stderr.write(`${utils.getTime(utils.c.FgRed)} The script '${command}' exits with error code ${code}.\n`);
