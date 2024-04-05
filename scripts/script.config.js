@@ -39,10 +39,17 @@ const configuration = {
             {
                 flags: ['--circular', '-c'], 
                 descriptions: [
-                    'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies amoung all the used modules.',
+                    'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies among all the used modules.',
                     'default = true.',
                 ]
             },
+            {
+                flags: ['--mode'],
+                descriptions: [
+                    'Choose the building mode. The value can be either "development", "production" or "none".',
+                    'default = "development"',
+                ]
+            }
         ]
     },
 
@@ -143,7 +150,7 @@ const configuration = {
             {
                 flags: ['--extra=NewIconName1|NewIconName2'],
                 descriptions: [
-                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names separated by \'|\'. Each name should be in Hanguarian Notation except that the first character should also be capitalized.'
+                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names separated by \'|\'. Each name should be in Hungarian Notation except that the first character should also be capitalized.'
                 ]
             }
         ]
