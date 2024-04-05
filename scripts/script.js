@@ -7,7 +7,7 @@
  * scripts. The script configurations can be found at {@link SCRIPT_CONFIG_PATH}.
  */
 const path = require("path");
-const { Colors, Times, ScriptProcess, Loggers } = require('./utility');
+const { Colors, ScriptProcess, Loggers } = require('./utility');
 
 /**
  * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfigurationType

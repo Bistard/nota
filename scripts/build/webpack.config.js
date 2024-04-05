@@ -103,7 +103,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         this.#cwd = cwd;
 
         // init environment constant
-        this.#envMode = process.env.NODE_ENV ?? 'development';
+        this.#envMode = process.env.mode ?? 'development';
         this.#isWatchMode = (process.env.WATCH_MODE == 'true');
     }
 

@@ -1,42 +1,50 @@
-const childProcess = require("child_process");
 const path = require("path");
-const { utils, Colors, bgColor, fgColor, Times, Loggers } = require("../utility");
+const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
 
 (async () => {
-    
-    // Start building...
-    utils.perf('build');
-    Loggers.printGreen('Building...');
-
-    const rootDir = process.cwd();
+    const CLIArgv = ScriptHelper.init('build');
+    const envPair = ScriptHelper.setEnv({
+        CIRCULAR: { 
+            value: CLIArgv.circular ?? CLIArgv.c, 
+            defaultValue: 'true' 
+        },
+        WATCH_MODE: {
+            value: CLIArgv.watch ?? CLIArgv.w,
+            defaultValue: 'false',
+        },
+        BUILD_MODE: {
+            value: CLIArgv.mode,
+            defaultValue: 'development',
+        }
+    });
 
     // compile necessary binary files before actual building
-    await compileFontIcons(rootDir);
+    // TODO: replace with new 'icon2' script
+    await compileFontIcons(process.cwd());
 
-    // wrap spawn so that we may print message properly
-    const oldSpawn = childProcess.spawn;
-    childProcess.spawn = wrapSpawn;
-
-    // parse CLI arguments
-    parsingCLI();
-
-    // spawn the child process
-    const spawn = childProcess.spawn(
-        'webpack --config ./scripts/build/webpack.config.js', 
-        [], 
+    // build with webpack
+    const proc = new ScriptProcess(
+        'webpack',
+        'webpack',
+        ['--config', './scripts/build/webpack.config.js'],
+        [],
         {
             env: process.env,
-            cwd: rootDir,
+            cwd: process.cwd(),
             shell: true,
+            logConfiguration: [
+                ['ELECTRON_VER', process.versions.electron ?? 'N/A'],
+                ['CHROME_VER', process.versions.chrome ?? 'N/A'],
+                ['V8_VER', process.versions.v8 ?? 'N/A'],
+                ['NODE_VER', process.versions.node ?? 'N/A'],
+                ...envPair,
+            ],
         },
     );
 
-    // register spawn listeners
-    registerSpawnListeners(spawn);
-
+    registerSpawnListeners(proc.proc);
 
     // #region helper functions
-
     async function compileFontIcons(rootDir) {
         Loggers.print('Compiling font icons...');
         
@@ -55,47 +63,6 @@ const { utils, Colors, bgColor, fgColor, Times, Loggers } = require("../utility"
         }
         Loggers.printGreen('Font icons completed.');
     }
-        
-    function parsingCLI() {
-        const CLIArgv = utils.parseCLI();
-        Loggers.print(`[Building arguments] ${CLIArgv}`);
-        process.env.NODE_ENV = CLIArgv.NODE_ENV ?? 'development';
-        process.env.CIRCULAR = CLIArgv.circular ?? CLIArgv.c ?? 'true';
-        process.env.WATCH_MODE = CLIArgv.watch ?? CLIArgv.w ?? 'false';
-    }
-
-    function wrapSpawn() {
-        for (const arg of arguments) {
-
-            let output = `${Times.getTime()} `;
-            if (typeof arg === 'string') {
-                output += `[Executing command] ${arg}\n`;
-            } 
-            else if (Array.isArray(arg)) {
-                if (arg.length === 0) {
-                    output += `[Command arguments] N/A\n`;
-                } else {
-                    output += `[Command arguments] ${arg}\n`;
-                }
-            } 
-            else {
-                const stamp = Times.getTime();
-                output = `${stamp} [CWD]: ${arg.cwd}\n`;
-                output += `${stamp} [NODE_ENV]: ${arg.env.NODE_ENV ?? 'N/A'}\n`;
-                output += `${stamp} [ELECTRON_VER]: ${process.versions.electron ?? 'N/A'}\n`;
-                output += `${stamp} [CHROME_VER]: ${process.versions.chrome ?? 'N/A'}\n`;
-                output += `${stamp} [V8_VER]: ${process.versions.v8 ?? 'N/A'}\n`;
-                output += `${stamp} [NODE_VER]: ${process.versions.node ?? 'N/A'}\n`;
-                output += `${stamp} [WATCH_MODE]: ${process.env.WATCH_MODE ?? 'false'}\n`;
-                output += `${stamp} [CIRCULAR_CHECK]: ${process.env.CIRCULAR ?? 'true'}\n`;
-            }
-            
-            process.stdout.write(output);
-        }
-
-        var result = oldSpawn.apply(this, arguments);
-        return result;
-    }
 
     function registerSpawnListeners(spawn) {
 
@@ -113,16 +80,11 @@ const { utils, Colors, bgColor, fgColor, Times, Loggers } = require("../utility"
 
             if (code) {
                 fail = true;
-                process.stdout.write(`${Times.getTime()} ${Colors.red(`child process exited with error code ${code}`)}`);
+                process.stdout.write(`${Times.getTime()} ${Colors.red(`child process exited with error code ${code}`)}\n`);
             } else {
-                process.stdout.write(`${Times.getTime()} ${Colors.green('Building success')}`);
+                process.stdout.write(`${Times.getTime()} ${Colors.green('Building success')}\n`);
             }
-            utils.perf('build');
-
-            const [begin, end] = utils.getPerf();
-            const spentInSec = (end.time - begin.time) / 1000;
-            process.stdout.write(` in ${Math.round(spentInSec * 100) / 100} seconds.\n`);
-
+            
             if (fail) {
                 process.exit(code);
             }
