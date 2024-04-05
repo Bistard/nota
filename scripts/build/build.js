@@ -1,7 +1,8 @@
 const path = require("path");
-const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
+const { Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
 
 (async () => {
+    const cwd     = process.cwd();
     const CLIArgv = ScriptHelper.init('build');
     const envPair = ScriptHelper.setEnv({
         CIRCULAR: { 
@@ -18,9 +19,20 @@ const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("
         }
     });
 
-    // compile necessary binary files before actual building
-    // TODO: replace with new 'icon2' script
-    await compileFontIcons(process.cwd());
+    // compile codicon
+    const codiconProc = new ScriptProcess(
+        'codicon',
+        `node ${path.join(cwd, './scripts/icons/codicon.js')}`,
+        [],
+        [],
+        {
+            env: process.env,
+            cwd: cwd,
+            shell: true,
+            stdio: "inherit",
+        }
+    );
+    await codiconProc.waiting();
 
     // build with webpack
     const proc = new ScriptProcess(
@@ -30,7 +42,7 @@ const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("
         [],
         {
             env: process.env,
-            cwd: process.cwd(),
+            cwd: cwd,
             shell: true,
             logConfiguration: [
                 ['ELECTRON_VER', process.versions.electron ?? 'N/A'],
@@ -44,27 +56,6 @@ const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("
     );
 
     registerSpawnListeners(proc.proc);
-
-    // #region helper functions
-    async function compileFontIcons(rootDir) {
-        Loggers.print('Compiling font icons...');
-        
-        try {
-            const iconScriptPath = path.join(rootDir, './scripts/icons/icon.js');
-            await utils.spawnChildProcess(`node ${iconScriptPath}`, [], {
-                env: process.env,
-                cwd: rootDir,
-                shell: true,
-                stdio: "inherit",
-            });
-        } 
-        catch (code) {
-            Loggers.printRed(`Font icons compile failed with exit code ${code}.`);
-            process.exit(code);
-        }
-        Loggers.printGreen('Font icons completed.');
-    }
-
     function registerSpawnListeners(spawn) {
 
         spawn.stdout.on('data', (output) => {
@@ -91,6 +82,4 @@ const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("
             }
         });
     }
-
-    //#endregion
 })();
