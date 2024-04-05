@@ -328,9 +328,9 @@ export class Toolbar {
             render: false,
         });
         [
-            { id: 'new-file', icon: Icons.AddDocument, classes: [], fn: () => { } },
-            { id: 'new-directory', icon: Icons.AddFolder, classes: [], fn: () => { } },
-            { id: 'collapse-all', icon: Icons.FolderMinus, classes: [], fn: () => { } },
+            { id: 'new-file', icon: Icons.Help, classes: [], fn: () => { } },
+            { id: 'new-directory', icon: Icons.Help, classes: [], fn: () => { } },
+            { id: 'collapse-all', icon: Icons.Help, classes: [], fn: () => { } },
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new Button({

@@ -148,11 +148,11 @@ class SideBarBuilder {
         [
             {
                 id: SideButtonType.EXPLORER,
-                icon: Icons.Folder,
+                icon: Icons.FolderDefault,
             },
             {
                 id: SideButtonType.OUTLINE,
-                icon: Icons.List,
+                icon: Icons.Help,
             },
             // { id: SideButtonType.SEARCH, icon: Icons.Search },
             // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
@@ -172,11 +172,11 @@ class SideBarBuilder {
         [
             {
                 id: SideButtonType.HELPER,
-                icon: Icons.CommentQuestion,
+                icon: Icons.Help,
             },
             {
                 id: SideButtonType.SETTINGS,
-                icon: Icons.Settings,
+                icon: Icons.Setting,
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
                         getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),

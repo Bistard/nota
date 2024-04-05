@@ -492,7 +492,7 @@ export class CheckMenuItem extends SimpleMenuItem {
             return container;
         }
 
-        const checkIcon = createIcon(Icons.Check, ['submenu-item-check']);
+        const checkIcon = createIcon(Icons.Help, ['submenu-item-check']);
         container.leftPart.appendChild(checkIcon);
 
         return container;
@@ -586,7 +586,7 @@ export class SubmenuItem extends AbstractMenuItem {
         name.className = 'menu-item-name';
         name.textContent = this.action.id;
 
-        const arrow = createIcon(Icons.AngleRight, ['submenu-item-arrow']);
+        const arrow = createIcon(Icons.Help, ['submenu-item-arrow']);
         
         container.content.appendChild(name);
         container.rightPart.appendChild(arrow);
