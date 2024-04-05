@@ -21,7 +21,7 @@ import { IMainStatusService, MainStatusService } from 'src/platform/status/elect
 import { ICLIArguments } from 'src/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
-import { EventBlocker } from 'src/base/common/utilities/async';
+import { Blocker, EventBlocker } from 'src/base/common/utilities/async';
 import { APP_CONFIG_NAME, IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/platform/product/common/productService';
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
@@ -254,7 +254,11 @@ const main = new class extends class MainProcess implements IMainProcess {
                     resolve(tcpServer);
                 });
             });
-            Event.once(this.lifecycleService.onWillQuit)(() => server.close());
+            Event.once(this.lifecycleService.onWillQuit)(async p => {
+                const blocker = new Blocker<void>();
+                server.close(() => blocker.resolve());
+                p.join(blocker.waiting());
+            });
         }
         catch (error: any) {
             // unexpected errors
