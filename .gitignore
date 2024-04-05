@@ -7,7 +7,7 @@
 /.VSCodeCounter
 
 /assets/src-svg
-/assets/codicons
+/assets/codicons/**/*
 /**/*.woff2
 
 /.idea
