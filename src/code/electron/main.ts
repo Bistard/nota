@@ -132,6 +132,8 @@ const main = new class extends class MainProcess implements IMainProcess {
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
 
+        logService.debug('MainProcess', 'Start constructing core services...');
+
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
         instantiationService.register(IRegistrantService, registrantService);
@@ -286,7 +288,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             if (error.stack) {
                 this.logService.error('MainProcess', error.message, error);
             } else {
-                this.logService.error('MainProcess', error.message, new Error(`Main process error: ${error.toString()}`));
+                this.logService.error('MainProcess', error.message, new Error(`MainProcess process error: ${error.toString()}`));
             }
         }
 
