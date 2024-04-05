@@ -180,8 +180,8 @@ class ScriptHelper {
     
     /**
      * @template T
-     * @param {T} argv An array of strings representing keys to map from environment variables.
-     * @returns {{ [K in T[number]: string] }} An object where each key from the input array maps to a string value from the environment variables.
+     * @param {T} argv An array of strings representing keys of env variables.
+     * @returns {{ [K in T[number]: string] }}
      */
     static getEnv(argv) {
         const argMapping = {};

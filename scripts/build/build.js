@@ -39,6 +39,7 @@ const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("
                 ['NODE_VER', process.versions.node ?? 'N/A'],
                 ...envPair,
             ],
+            // stdio: "inherit"
         },
     );
 
