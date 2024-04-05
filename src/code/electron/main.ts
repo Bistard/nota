@@ -29,6 +29,7 @@ import { IRegistrantService, RegistrantService } from 'src/platform/registrant/c
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { panic } from "src/base/common/utilities/panic";
+import { IS_WINDOWS } from 'src/base/common/platform';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -107,7 +108,7 @@ const main = new class extends class MainProcess implements IMainProcess {
                     e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
 
-                await this.resolveSingleApplication();
+                await this.resolveSingleApplication(true);
 
                 const instance = this.instantiationService.createInstance(ApplicationInstance);
                 await instance.run();
@@ -236,7 +237,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         registrant.init(service);
     }
 
-    private async resolveSingleApplication(): Promise<void> {
+    private async resolveSingleApplication(retry: boolean): Promise<void> {
         this.logService.trace('MainProcess', 'Resolving application by listening to pipe...', { pipe: this.environmentService.mainIpcHandle });
 
         try {
@@ -265,6 +266,37 @@ const main = new class extends class MainProcess implements IMainProcess {
             if (error.code !== 'EADDRINUSE') {
                 this.logService.error('MainProcess', 'unexpected error (expect EADDRINUSE)', error);
                 panic(error);
+            }
+
+            let socket: net.Socket;
+            try {
+                socket = await new Promise<net.Socket>((resolve, reject) => {
+                    const socket = net.createConnection(this.environmentService.mainIpcHandle, () => {
+                        socket.removeListener('error', reject);
+                        resolve(socket);
+                    });
+                    socket.once('error', reject);
+                });
+            } catch (error: any) {
+
+                // Handle unexpected connection errors by showing a dialog to the user
+                if (!retry || IS_WINDOWS || error.code !== 'ECONNREFUSED') {
+                    if (error.code === 'EPERM') {
+						electron.dialog.showMessageBoxSync({
+                            title: this.productService.profile.applicationName,
+                            message: `Another instance of '${this.productService.profile.applicationName}' is already running as administrator`,
+                            detail: 'Please close the other instance and try again.',
+                            type: 'warning',
+                            buttons: ['close'],
+                        });
+					}
+                    panic(error);
+                }
+
+                // todo: unlink
+
+                // retry one more time
+                return this.resolveSingleApplication(false);
             }
 
             // there is a running application, we stop the current application.
