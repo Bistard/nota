@@ -14,54 +14,42 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-addDocument:before {
+.icon-ai-default:before {
     content: "\f101";
 }
-.icon-addFolder:before {
+.icon-ai-open:before {
     content: "\f102";
 }
-.icon-angleDown:before {
+.icon-arrow-forward-right:before {
     content: "\f103";
 }
-.icon-angleRight:before {
+.icon-cloud-upload:before {
     content: "\f104";
 }
-.icon-caretDown:before {
+.icon-extension:before {
     content: "\f105";
 }
-.icon-check:before {
+.icon-folder-default:before {
     content: "\f106";
 }
-.icon-codeBranch:before {
+.icon-folder-open:before {
     content: "\f107";
 }
-.icon-commentQuestion:before {
+.icon-help:before {
     content: "\f108";
 }
-.icon-cross:before {
+.icon-menu:before {
     content: "\f109";
 }
-.icon-folder:before {
+.icon-search:before {
     content: "\f10a";
 }
-.icon-folderMinus:before {
+.icon-setting:before {
     content: "\f10b";
 }
-.icon-list:before {
+.icon-source-control-default:before {
     content: "\f10c";
 }
-.icon-menuDots:before {
+.icon-source-control-open:before {
     content: "\f10d";
-}
-.icon-minuss:before {
-    content: "\f10e";
-}
-.icon-search:before {
-    content: "\f10f";
-}
-.icon-settings:before {
-    content: "\f110";
-}
-.icon-square:before {
-    content: "\f111";
 }
