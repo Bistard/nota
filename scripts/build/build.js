@@ -67,6 +67,7 @@ const { Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../util
         });
         
         spawn.on('close', (code) => {
+            // TODO: remove this piece of code
             let fail = false;
             for (let i = 0; i < 3; i++) console.log(); // left some spaces
 
