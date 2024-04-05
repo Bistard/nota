@@ -177,6 +177,19 @@ class ScriptHelper {
         });
         return envPair;
     }
+    
+    /**
+     * @template T
+     * @param {T} argv An array of strings representing keys to map from environment variables.
+     * @returns {{ [K in T[number]: string] }} An object where each key from the input array maps to a string value from the environment variables.
+     */
+    static getEnv(argv) {
+        const argMapping = {};
+        for (const arg of argv) {
+            argMapping[arg] = process.env[arg];
+        }
+        return argMapping;
+    }
 
     /**
      * @description Parses the command line interface of the current script.

@@ -2,6 +2,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
+const { ScriptHelper } = require('../utility');
 
 class WebpackPluginProvider {
 
@@ -95,33 +96,41 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     #cwd;
 
     /** @type {string} environment mode */
-    #envMode;
+    #buildMode;
     #isWatchMode;
+    #isCircular;
 
     constructor(cwd) {
         super();
         this.#cwd = cwd;
 
+        /** @type {['BUILD_MODE', 'WATCH_MODE', 'CIRCULAR']} */
+        const envList = ['BUILD_MODE', 'WATCH_MODE', 'CIRCULAR'];
+        const env = ScriptHelper.getEnv(envList);
+
+        console.log(`   🌍 Webpack environments: ${JSON.stringify(env)}`);
+        
         // init environment constant
-        this.#envMode = process.env.mode ?? 'development';
-        this.#isWatchMode = (process.env.WATCH_MODE == 'true');
+        this.#buildMode     =  env.BUILD_MODE;
+        this.#isWatchMode = (env.WATCH_MODE == 'true');
+        this.#isCircular  = (env.CIRCULAR === 'true');
     }
 
     // [public - configuration initialization]
 
-    consturct() {
+    construct() {
         this.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
 
         // base configuration
         const baseConfiguration = Object.assign(
             {},
             super.construct({
-                mode: this.#envMode,
+                mode: this.#buildMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
                 plugins: (new WebpackPluginProvider()).getPlugins({ 
                     cwd: this.#cwd,
-                    circular: process.env.CIRCULAR === 'true', 
+                    circular: this.#isCircular, 
                 }),
             }),
         );
@@ -146,7 +155,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         return [
             this.#constructMainProcess(Object.assign({}, baseConfiguration)),
             this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
-            this.#consturctInspectorProcess(Object.assign({}, baseConfiguration)),
+            this.#constructInspectorProcess(Object.assign({}, baseConfiguration)),
         ];
     }
 
@@ -188,8 +197,8 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         return rendererConfiguration;
     }
 
-    #consturctInspectorProcess(baseConfiguration) {
-        const lookupconfiguration = 
+    #constructInspectorProcess(baseConfiguration) {
+        const lookupConfiguration = 
             Object.assign(
                 baseConfiguration, 
                 {
@@ -203,10 +212,11 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                     },
                 },
             );
-        return lookupconfiguration;
+        return lookupConfiguration;
     }
 }
 
 // entries
+ScriptHelper.init('webpack');
 const provider = new WebpackConfigurationProvider(process.cwd());
-module.exports = provider.consturct();
+module.exports = provider.construct();

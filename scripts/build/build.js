@@ -6,7 +6,7 @@ const { utils, Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("
     const envPair = ScriptHelper.setEnv({
         CIRCULAR: { 
             value: CLIArgv.circular ?? CLIArgv.c, 
-            defaultValue: 'true' 
+            defaultValue: 'false' 
         },
         WATCH_MODE: {
             value: CLIArgv.watch ?? CLIArgv.w,
