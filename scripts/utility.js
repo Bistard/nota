@@ -149,6 +149,52 @@ class Loggers {
     }
 }
 
+class ScriptHelper {
+    
+    /**
+     * @param {string} name The script name
+     * @return {import('minimist').ParsedArgs}
+     */
+    static init(name) {
+        Loggers.print(`🚀 Executing '${name}'...`);
+        const args = this.parseCLI();
+        console.log(`   📝 Script arguments: ${JSON.stringify(args)}`);
+        return args;
+    }
+
+    /**
+     * @param {Record<string, { value?: string, defaultValue: string }>} newEnv 
+     * @returns {[string, string][]}
+     */
+    static setEnv(newEnv) {
+        const envPair = [];
+        Object.entries(newEnv).forEach(([envName, { value, defaultValue }]) => {
+            if (process.env[envName] !== null && process.env[envName] !== undefined) {
+                console.log(Colors.yellow(`    Overwriting the existing environment: ${envName}`));
+            }
+            process.env[envName] = value ?? defaultValue;
+            envPair.push([envName, value ?? defaultValue]);
+        });
+        return envPair;
+    }
+
+    /**
+     * @description Parses the command line interface of the current script.
+     * @returns Returning an object that contains all the command line 
+     * arguments. Already processed by minimist.
+     * 
+     * @example
+     * ```
+     * > node ./scripts/script.js "a" "-b" "--c=d" "---e"
+     * { _: [ 'a' ], b: true, c: 'd', '-e': true }
+     * ```
+     */
+    static parseCLI() {
+        const CLIArgv = minimist(process.argv.slice(2));
+        return CLIArgv;
+    }
+}
+
 class ScriptProcess {
     
     /**
@@ -171,7 +217,7 @@ class ScriptProcess {
      * @param {string} scriptCommand 
      * @param {string[]} commandArgs 
      * @param {string[]} procArgs 
-     * @param {ProcOptions} procOpts 
+     * @param {ProcOptions & { logConfiguration?: [string, string | undefined][] }} procOpts 
      */
     constructor(
         scriptName,
@@ -185,15 +231,18 @@ class ScriptProcess {
         const actualCommand = `${scriptCommand} ${cmdArgsString}`;
         
         Loggers.print(`${bgColor.White}${fgColor.Black}${scriptName}\x1b[0m`);
-        console.log(`   🔧 Command: ${scriptCommand}`);
-        console.log(`   📝 Argument: ${cmdArgsString || 'N/A'}`);
-        console.log(`   🚀 actual command: ${actualCommand}`);
+        console.log(`   🔧 Script: ${scriptCommand}`);
+        console.log(`   🔨 Argument: ${cmdArgsString || 'N/A'}`);
+        console.log(`   🛠️ Command: ${actualCommand}`);
         console.log();
         console.log(`   📦 Process argument: ${procArgsString || 'N/A'}`);
         console.log(`   🌍 Process configuration`);
         console.log(`       📂 CWD: ${procOpts.cwd || 'N/A'}`);
         console.log(`       📂 shell: ${procOpts.shell || 'N/A'}`);
         console.log(`       📂 stdio: ${procOpts.stdio || 'N/A'}`);
+        for (const [configName, configValue] of procOpts.logConfiguration ?? []) {
+            console.log(`       📂 ${configName}: ${configValue || 'N/A'}`);
+        }
         console.log();
 
         // create the actual process
@@ -215,22 +264,17 @@ class ScriptProcess {
              * process have been closed.
              */
             p.on('close', code => {
-                const colorName = `${Colors.gray(scriptName)}`;
+                let finishMessage = code
+                    ? Colors.red(`⚠️ The script '${scriptName}' exits with error code ${code}.`)
+                    : `✅ The script '${scriptName}' finished.`;
 
                 // perf log
                 const endTime = performance.now();
                 const spentInSec = (endTime - startTime) / 1000;
-                Loggers.print(`🕒 The script executed in ${Math.round(spentInSec * 100) / 100} seconds.`);
+                finishMessage += ` Executed in ${Math.round(spentInSec * 100) / 100} seconds.`;
 
-                // exitcode (0)
-                if (!code) {
-                    Loggers.print(`✅ The script '${colorName}' finished.`);
-                    process.exit(0);
-                }
-
-                // exitcode (non zero)
-                Loggers.printRed(`⚠️ The script '${colorName}' exits with error code ${code}.`);
-                process.exit(code);
+                Loggers.print(finishMessage);
+                process.exit(code ?? 0);
             });
 
             /**
@@ -386,4 +430,4 @@ const utils = new (class UtilCollection {
 });
 
 // export
-module.exports = { utils, Colors, fgColor, bgColor, Times, Loggers, ScriptProcess };
+module.exports = { utils, Colors, fgColor, bgColor, Times, Loggers, ScriptProcess, ScriptHelper };
