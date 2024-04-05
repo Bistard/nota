@@ -281,20 +281,21 @@ const main = new class extends class MainProcess implements IMainProcess {
 
                 // Handle unexpected connection errors by showing a dialog to the user
                 if (!retry || IS_WINDOWS || error.code !== 'ECONNREFUSED') {
-                    if (error.code === 'EPERM') {
-						electron.dialog.showMessageBoxSync({
-                            title: this.productService.profile.applicationName,
-                            message: `Another instance of '${this.productService.profile.applicationName}' is already running as administrator`,
-                            detail: 'Please close the other instance and try again.',
-                            type: 'warning',
-                            buttons: ['close'],
-                        });
-					}
+                    electron.dialog.showMessageBoxSync({
+                        title: this.productService.profile.applicationName,
+                        message: `Another instance of '${this.productService.profile.applicationName}' is already running as administrator`,
+                        detail: 'Please close the other instance and try again.',
+                        type: 'warning',
+                        buttons: ['close'],
+                    });
                     panic(error);
                 }
 
-                // todo: unlink
-
+                /**
+                 * It happens on Linux and OS X that the pipe is left behind 
+                 * let's delete it, since we can't connect to it and then retry the whole thing
+                 */
+                
                 // retry one more time
                 return this.resolveSingleApplication(false);
             }
