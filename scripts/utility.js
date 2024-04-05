@@ -168,7 +168,9 @@ class ScriptHelper {
      */
     static setEnv(newEnv) {
         const envPair = [];
-        Object.entries(newEnv).forEach(([envName, { value, defaultValue }]) => {
+        Object
+        .entries(newEnv)
+        .forEach(([envName, { value, defaultValue }]) => {
             if (process.env[envName] !== null && process.env[envName] !== undefined) {
                 console.log(Colors.yellow(`    Overwriting the existing environment: ${envName}`));
             }
@@ -289,15 +291,15 @@ class ScriptProcess {
              */
             p.on('close', code => {
                 let finishMessage = code
-                    ? Colors.red(`⚠️ The script '${scriptName}' exits with error code ${code}.`)
-                    :            `✅ The script '${scriptName}' finished.`;
+                    ? `❌ The script '${scriptName}' exits with error code ${code}.`
+                    : `✅ The script '${scriptName}' finished.`;
 
                 // perf log
                 const endTime = performance.now();
                 const spentInSec = (endTime - startTime) / 1000;
                 finishMessage += ` Executed in ${Math.round(spentInSec * 100) / 100} seconds.`;
 
-                Loggers.print(`${finishMessage}\n\n`);
+                Loggers.print(`${finishMessage}\n\n`, code ? fgColor.Red : '');
                 if (code) {
                     procReject(code);
                 } else {
