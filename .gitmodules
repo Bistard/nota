@@ -1,0 +1,3 @@
+[submodule "assets/codicons"]
+	path = assets/codicons
+	url = https://github.com/Bistard/nota-codicons.git
