@@ -1,6 +1,6 @@
 import * as electron from 'electron';
 import * as net from 'net';
-import { mkdir } from 'fs/promises';
+import { mkdir, unlink } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/files/uri';
@@ -30,6 +30,7 @@ import { ConfigurationRegistrant } from 'src/platform/configuration/common/confi
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { panic } from "src/base/common/utilities/panic";
 import { IS_WINDOWS } from 'src/base/common/platform';
+import { unlinkSync } from 'fs';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -292,10 +293,16 @@ const main = new class extends class MainProcess implements IMainProcess {
                 }
 
                 /**
-                 * It happens on Linux and OS X that the pipe is left behind 
-                 * let's delete it, since we can't connect to it and then retry the whole thing
+                 * It happens on Linux and OS X that the pipe is left behind.
+                 * Delete it and then retry the whole thing.
                  */
-                
+                try {
+					await unlink(this.environmentService.mainIpcHandle);
+				} catch (error) {
+					this.logService.error('Main', 'Could not delete obsolete instance handle.', error);
+					panic(error);
+				}
+
                 // retry one more time
                 return this.resolveSingleApplication(false);
             }
