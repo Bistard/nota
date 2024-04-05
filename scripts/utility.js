@@ -339,6 +339,31 @@ class ScriptProcess {
     }
 }
 
+class Git {
+    static Submodule = class {
+        
+        /**
+         * @param {string} submodulePath 
+         * @param {string[]} gitOptions
+         * @returns {Promise<void>}
+         */
+        static async init(submodulePath, gitOptions = []) {
+            const proc = new ScriptProcess(
+                'git submodule',
+                'git submodule update',
+                ['--init', ...gitOptions, submodulePath],
+                [],
+                {
+                    env: process.env,
+                    cwd: process.cwd(),
+                    shell: true,
+                }
+            );
+            return proc.waiting();
+        }
+    }
+}
+
 /**
  * @deprecated
  */
@@ -467,4 +492,6 @@ const utils = new (class UtilCollection {
 });
 
 // export
-module.exports = { utils, Colors, fgColor, bgColor, Times, Loggers, ScriptProcess, ScriptHelper };
+module.exports = { utils, fgColor, bgColor, 
+    Colors, Times, Loggers, ScriptProcess, ScriptHelper, Git 
+};
