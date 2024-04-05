@@ -133,13 +133,17 @@ function executeScript(script, args, configurations) {
         process.exit(1);
     }
 
-    new ScriptProcess(script, config.command, args, [], {
+    const proc = new ScriptProcess(script, config.command, args, [], {
         env: process.env,
         cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root directory
         shell: true,
 
         // inherits the stdin / stdout / stderr
         stdio: "inherit",
+    });
+
+    proc.waiting().then(code => {
+        process.exit(code);
     });
 }
 

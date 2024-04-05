@@ -218,12 +218,17 @@ class ScriptProcess {
     /**
      * @type {ReturnType<childProcess.spawn>}
      */
-    _proc;
+    #proc;
     
     /**
      * @type {boolean}
      */
-    _spawned = false;
+    #spawned = false;
+
+    /**
+     * @type {Promise<number>}
+     */
+    #waiting;
 
     /**
      * @param {string} scriptName
@@ -242,12 +247,11 @@ class ScriptProcess {
         const cmdArgsString = commandArgs.join(' ');
         const procArgsString = procArgs.join(' ');
         const actualCommand = `${scriptCommand} ${cmdArgsString}`;
-        
-        Loggers.print(`${bgColor.White}${fgColor.Black}${scriptName}\x1b[0m`);
+
+        Loggers.print(`\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
         console.log(`   🔧 Script: ${scriptCommand}`);
         console.log(`   🔨 Argument: ${cmdArgsString || 'N/A'}`);
         console.log(`   🛠️ Command: ${actualCommand}`);
-        console.log();
         console.log(`   📦 Process argument: ${procArgsString || 'N/A'}`);
         console.log(`   🌍 Process configuration`);
         console.log(`       📂 CWD: ${procOpts.cwd || 'N/A'}`);
@@ -256,12 +260,19 @@ class ScriptProcess {
         for (const [configName, configValue] of procOpts.logConfiguration ?? []) {
             console.log(`       📂 ${configName}: ${configValue || 'N/A'}`);
         }
-        console.log();
+        console.log('\n');
 
         // create the actual process
         const startTime = performance.now();
         const p = childProcess.spawn(actualCommand, procArgs, procOpts);
-        this._proc = p;
+        this.#proc = p;
+
+
+        let procResolve, procReject;
+        this.#waiting = new Promise((res, rej) => {
+            procResolve = res;
+            procReject  = rej;
+        });
 
         // listeners
         {
@@ -269,7 +280,7 @@ class ScriptProcess {
              * Event fires once the child process has spawned successfully.
              */
             p.on('spawn', () => {
-                this._spawned = true;
+                this.#spawned = true;
             });
 
             /**
@@ -279,15 +290,19 @@ class ScriptProcess {
             p.on('close', code => {
                 let finishMessage = code
                     ? Colors.red(`⚠️ The script '${scriptName}' exits with error code ${code}.`)
-                    : `✅ The script '${scriptName}' finished.`;
+                    :            `✅ The script '${scriptName}' finished.`;
 
                 // perf log
                 const endTime = performance.now();
                 const spentInSec = (endTime - startTime) / 1000;
                 finishMessage += ` Executed in ${Math.round(spentInSec * 100) / 100} seconds.`;
 
-                Loggers.print(finishMessage);
-                process.exit(code ?? 0);
+                Loggers.print(`${finishMessage}\n\n`);
+                if (code) {
+                    procReject(code);
+                } else {
+                    procResolve(0);
+                }
             });
 
             /**
@@ -306,12 +321,19 @@ class ScriptProcess {
 
     /** The actual process reference. */
     get proc() {
-        return this._proc;
+        return this.#proc;
     }
 
     /** Is the process spawned successfully. */
     get isSpawned() {
-        return this._spawned;
+        return this.#spawned;
+    }
+
+    /**
+     * @description You may await this method to wait the process to complete.
+     */
+    async waiting() {
+        return this.#waiting;
     }
 }
 
