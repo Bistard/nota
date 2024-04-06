@@ -2,8 +2,8 @@ import { isDisposable } from "src/base/common/dispose";
 
 /**
  * An interface defining a lazy-loadable object with disposable capabilities.
- * @template T The lazy-loaded object type, extending from a disposable interface.
- * @template TArgs The types of arguments required to initialize the lazy-loaded object.
+ * @template T The lazy-loaded type.
+ * @template TArgs The arguments type to initialize the lazy-loaded object.
  */
 export interface ILazy<T, TArgs extends any[]> {
     
@@ -22,6 +22,12 @@ export interface ILazy<T, TArgs extends any[]> {
     dispose(): void;
 }
 
+/**
+ * @class This class allows for the deferred initialization of an object until 
+ * its first use.
+ * @note The class support object and array. It means when 'dispose' is invoked,
+ *       the class loses the actual reference.
+ */
 export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
 
     // [fields]
@@ -52,12 +58,10 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
             return;
         }
 
-        if (Array.isArray(this._lazyValue)) {
-            this._lazyValue = null;
-        }
-
         if (isDisposable(this._lazyValue)) {
             this._lazyValue.dispose();
         }
+
+        this._lazyValue = null;
     }
 }
