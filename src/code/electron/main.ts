@@ -29,6 +29,8 @@ import { IRegistrantService, RegistrantService } from 'src/platform/registrant/c
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { panic } from "src/base/common/utilities/panic";
+import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
+import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -54,6 +56,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     private readonly logService!: ILogService;
     private readonly lifecycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
+    private readonly diagnosticsService!: IDiagnosticsService;
     private readonly CLIArgv!: ICLIArguments;
 
     // [constructor]
@@ -148,6 +151,10 @@ const main = new class extends class MainProcess implements IMainProcess {
         const productService = new ProductService(fileService, logService);
         instantiationService.register(IProductService, productService);
 
+        // diagnostics-service
+        const diagnosticsService = new DiagnosticsService(productService);
+        instantiationService.register(IDiagnosticsService, diagnosticsService);
+
         // environment-service
         const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService, productService);
         instantiationService.register(IEnvironmentService, environmentService);
@@ -192,7 +199,8 @@ const main = new class extends class MainProcess implements IMainProcess {
         (<any>this.logService) = logService;
         (<any>this.lifecycleService) = lifecycleService;
         (<any>this.statusService) = statusService;
-
+        (<any>this.diagnosticsService) = diagnosticsService;
+        
         this.logService.debug('MainProcess', 'All core services are constructed.');
     }
 
@@ -223,8 +231,8 @@ const main = new class extends class MainProcess implements IMainProcess {
             .andThen(() => this.configurationService.init())
             .unwrap();
 
-
         this.logService.debug('MainProcess', 'All core services are initialized successfully.');
+        this.logService.debug('MainProcess', `System Information:`, this.diagnosticsService.getDiagnostics());
     }
 
     private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
