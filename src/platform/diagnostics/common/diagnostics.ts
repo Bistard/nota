@@ -9,10 +9,10 @@ export interface IDiagnosticsService extends IService {
     
     /**
      * @description Gathers and returns diagnostic information about the current 
-     * system and application as a formatted string. Includes details such as 
-     * app version, operating system, kernel version, CPU, memory, and more.
+     * system and application. Includes details such as app version, operating 
+     * system, kernel version, CPU, memory, and more.
      */
-    getDiagnostics(): string;
+    getDiagnostics(): Record<string, string>;
     getSystemsInfo(): ISystemsInfo;
     getMachineInfo(): IMachineInfo;
 }

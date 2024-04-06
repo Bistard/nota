@@ -25,29 +25,30 @@ export class DiagnosticsService implements IDiagnosticsService {
 
     // [public methods]
 
-    public getDiagnostics(): string {
-        const output: string[] = [];
+    public getDiagnostics(): Record<string, string> {
+        const output = {};
+
         const info = this.getSystemsInfo();
 
-        output.push(`App Version:      ${this.productService.profile.applicationName} ${this.productService.profile.version}`);
-		output.push(`OS Version:       ${info.os}`);
-        output.push(`Kernel Version:   ${info.kernel}`);
+        output['App Version'] = `${this.productService.profile.applicationName} ${this.productService.profile.version}`;
+		output['OS Version'] = `${info.os}`;
+        output['Kernel Version'] = `${info.kernel}`;
         
 		if (info.cpus) {
-        output.push(`CPUs:             ${info.cpus}`);
+        output['CPUs'] = `${info.cpus}`;
 		}
 
-		output.push(`Memory (System):  ${info.memory}`);
+		output['Memory (System)'] = `${info.memory}`;
 		if (info.loadAverage) {
-        output.push(`Load (avg):       ${info.loadAverage}`);
+        output['Load (avg)'] = `${info.loadAverage}`;
 		}
 
-		output.push(`Screen Reader:    ${info.accessibilitySupport}`);
-		output.push(`Process PID:      ${info.procPID}`);
-        output.push(`Process Argv:     ${info.procArgs}`);
-		output.push(`GPU Status:       ${this.__expandGPUFeatures(info.gpuStatus)}`);
+		output['Screen Reader'] = `${info.accessibilitySupport}`;
+		output['Process PID'] = `${info.procPID}`;
+        output['Process Argv'] = `${info.procArgs}`;
+		output['GPU Status'] = info.gpuStatus;
 
-        return output.join('\n');
+        return output;
     }
 
     public getMachineInfo(): IMachineInfo {
