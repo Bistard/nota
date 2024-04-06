@@ -1,11 +1,11 @@
-import { IDisposable } from "src/base/common/dispose";
+import { isDisposable } from "src/base/common/dispose";
 
 /**
  * An interface defining a lazy-loadable object with disposable capabilities.
  * @template T The lazy-loaded object type, extending from a disposable interface.
  * @template TArgs The types of arguments required to initialize the lazy-loaded object.
  */
-export interface ILazy<T extends Partial<IDisposable>, TArgs extends any[]> {
+export interface ILazy<T, TArgs extends any[]> {
     
     /**
      * @description Returns the lazy-loaded object, initializing it if not 
@@ -22,7 +22,7 @@ export interface ILazy<T extends Partial<IDisposable>, TArgs extends any[]> {
     dispose(): void;
 }
 
-export class Lazy<T extends Partial<IDisposable>, TArgs extends any[] = []> implements ILazy<T, TArgs> {
+export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
 
     // [fields]
 
@@ -48,6 +48,16 @@ export class Lazy<T extends Partial<IDisposable>, TArgs extends any[] = []> impl
     }
 
     public dispose(): void {
-        this._lazyValue?.dispose?.();
+        if (!this._lazyValue) {
+            return;
+        }
+
+        if (Array.isArray(this._lazyValue)) {
+            this._lazyValue = undefined;
+        }
+
+        if (isDisposable(this._lazyValue)) {
+            this._lazyValue.dispose();
+        }
     }
 }
