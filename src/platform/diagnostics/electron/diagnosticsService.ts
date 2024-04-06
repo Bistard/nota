@@ -4,7 +4,13 @@ import { IDiagnosticsService, IMachineInfo, ISystemsInfo } from "src/platform/di
 import { ByteSize } from "src/base/common/files/file";
 import { IS_LINUX, IS_WINDOWS } from "src/base/common/platform";
 import { Mutable } from "src/base/common/utilities/type";
+import { IProductService } from 'src/platform/product/common/productService';
 
+/**
+ * @class Provides services for gathering and reporting diagnostic information 
+ * about the system and application. This includes details such as application 
+ * version, operating system, CPU, memory, and other system information.
+ */
 export class DiagnosticsService implements IDiagnosticsService {
 
     declare _serviceMarker: undefined;
@@ -13,14 +19,33 @@ export class DiagnosticsService implements IDiagnosticsService {
 
     // [constructor]
 
-    constructor() {}
+    constructor(
+        @IProductService private readonly productService: IProductService,
+    ) {}
 
     // [public methods]
 
-    public async getDiagnostics(): Promise<string> {
+    public getDiagnostics(): string {
         const output: string[] = [];
+        const info = this.getSystemsInfo();
 
-        // TODO
+        output.push(`App Version:      ${this.productService.profile.applicationName} ${this.productService.profile.version}`);
+		output.push(`OS Version:       ${info.os}`);
+        output.push(`Kernel Version:   ${info.kernel}`);
+        
+		if (info.cpus) {
+        output.push(`CPUs:             ${info.cpus}`);
+		}
+
+		output.push(`Memory (System):  ${info.memory}`);
+		if (info.loadAverage) {
+        output.push(`Load (avg):       ${info.loadAverage}`);
+		}
+
+		output.push(`Screen Reader:    ${info.accessibilitySupport}`);
+		output.push(`Process PID:      ${info.procPID}`);
+        output.push(`Process Argv:     ${info.procArgs}`);
+		output.push(`GPU Status:       ${this.__expandGPUFeatures(info.gpuStatus)}`);
 
         return output.join('\n');
     }
@@ -65,4 +90,12 @@ export class DiagnosticsService implements IDiagnosticsService {
 
         return info;
     }
+
+    // [private helper methods]
+
+    private __expandGPUFeatures(gpuFeatures: any): string {
+		const longestFeatureName = Math.max(...Object.keys(gpuFeatures).map(feature => feature.length));
+		// Make columns aligned by adding spaces after feature name
+		return Object.keys(gpuFeatures).map(feature => `${feature}:  ${' '.repeat(longestFeatureName - feature.length)}  ${gpuFeatures[feature]}`).join('\n                  ');
+	}
 }

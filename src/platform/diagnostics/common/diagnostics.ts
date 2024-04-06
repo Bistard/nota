@@ -1,36 +1,20 @@
-import { IService } from "src/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
+
+export const IDiagnosticsService = createService<IDiagnosticsService>('diagnostics-service');
 
 /**
  * An interface only for {@link DiagnosticsService}.
  */
 export interface IDiagnosticsService extends IService {
-    getDiagnostics(): Promise<string>;
+    
+    /**
+     * @description Gathers and returns diagnostic information about the current 
+     * system and application as a formatted string. Includes details such as 
+     * app version, operating system, kernel version, CPU, memory, and more.
+     */
+    getDiagnostics(): string;
     getSystemsInfo(): ISystemsInfo;
     getMachineInfo(): IMachineInfo;
-}
-
-export interface ILinuxEnvInfo {
-	readonly desktopSession?: string;
-	readonly xdgSessionDesktop?: string;
-	readonly xdgCurrentDesktop?: string;
-	readonly xdgSessionType?: string;
-}
-
-export interface IMachineInfo {
-	
-    /** Operating system basic info. */
-    readonly os: string;
-
-    /** Kernel version. */
-    readonly kernel: string;
-
-    /**
-     * Returns an array of objects containing information about each logical CPU 
-     * core.
-     */
-	readonly cpus?: string;
-	readonly memory: string;
-    readonly linuxEnv?: ILinuxEnvInfo;
 }
 
 export interface ISystemsInfo extends IMachineInfo {
@@ -73,4 +57,33 @@ export interface ISystemsInfo extends IMachineInfo {
      * @platform darwin
      */
     readonly loadAverage?: string;
+}
+
+
+export interface IMachineInfo {
+	
+    /** 
+     * Operating system basic info. 
+     */
+    readonly os: string;
+
+    /** 
+     * Kernel version.
+     */
+    readonly kernel: string;
+
+    /**
+     * Returns an array of objects containing information about each logical CPU 
+     * core.
+     */
+	readonly cpus?: string;
+	readonly memory: string;
+    readonly linuxEnv?: ILinuxEnvInfo;
+}
+
+export interface ILinuxEnvInfo {
+	readonly desktopSession?: string;
+	readonly xdgSessionDesktop?: string;
+	readonly xdgCurrentDesktop?: string;
+	readonly xdgSessionType?: string;
 }
