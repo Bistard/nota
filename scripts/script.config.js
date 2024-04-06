@@ -118,6 +118,11 @@ const configuration = {
         ]
     },
 
+    "codicons": {
+        command: 'node ./scripts/icons/codicon.js',
+        description: 'Compiles the all project-related icons from svg format into a font file. All the icons are stored at "https://github.com/Bistard/nota-codicons.git". The command will fetch the latest version and compile them. The more detailed configuration is at "src/base/browser/icon/.fantasticonrc.js".'
+    },
+
     "benchmark": {
         command: "node benchmark/benchmark.js",
         description: 'Run the benchmark tests.'
