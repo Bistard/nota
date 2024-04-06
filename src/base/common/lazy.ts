@@ -1,3 +1,4 @@
+import { Time } from "src/base/common/date";
 import { isDisposable } from "src/base/common/dispose";
 
 /**
@@ -26,6 +27,9 @@ export interface ILazy<T, TArgs extends any[]> {
 /**
  * @class This class allows for the deferred initialization of an object until 
  * its first use.
+ * 
+ * @note When a 'timeout' is provided. The internal object will be released once
+ *       reaches the time. The timeout will be refreshed by every access.
  * @note The class support object and array. It means when 'dispose' is invoked,
  *       the class loses the actual reference.
  */
@@ -35,21 +39,31 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
 
     private _lazyValue: T | null;
     private _obtainValue: (...args: TArgs) => T;
+    
+    private readonly _timeout?: Time;
+    private _delay?: any;
 
     // [constructor]
 
     constructor(
         obtainValue: (...args: TArgs) => T,
+        timeout?: Time,
     ) {
         this._lazyValue = null;
         this._obtainValue = obtainValue;
+        this._timeout = timeout;
     }
 
     // [public methods]
 
     public value(...args: TArgs): T {
+        if (this._delay) {
+            this.__resetTimeout();
+        }
+        
         if (this._lazyValue === null) {
             this._lazyValue = this._obtainValue(...args);
+            this.__resetTimeout();
         }
         return this._lazyValue;
     }
@@ -64,5 +78,21 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
         }
 
         this._lazyValue = null;
+    }
+
+    // [private helper methods]
+
+    private __resetTimeout(timeout = this._timeout): any {
+        if (this._delay) {
+            clearTimeout(this._delay);
+        }
+
+        if (!timeout) {
+            return;
+        }
+        
+        this._delay = setTimeout(() => {
+            this.dispose();
+        }, timeout.toMs().time);
     }
 }
