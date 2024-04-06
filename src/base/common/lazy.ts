@@ -17,7 +17,8 @@ export interface ILazy<T, TArgs extends any[]> {
 
     /**
      * @description Dispose the value (only if it is loaded) if the value is 
-     * disposable.
+     * disposable. 
+     * @note It is ok to re-obtain the value after dispose.
      */
     dispose(): void;
 }
