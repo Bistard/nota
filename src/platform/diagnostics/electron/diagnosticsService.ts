@@ -1,7 +1,7 @@
-import { IDiagnosticsService, IMachineInfo, ISystemsInfo } from "src/platform/diagnostics/common/diagnostics";
 import * as os from 'os';
-import { ByteSize } from "src/base/common/files/file";
 import { app } from "electron";
+import { IDiagnosticsService, IMachineInfo, ISystemsInfo } from "src/platform/diagnostics/common/diagnostics";
+import { ByteSize } from "src/base/common/files/file";
 import { IS_LINUX, IS_WINDOWS } from "src/base/common/platform";
 import { Mutable } from "src/base/common/utilities/type";
 
@@ -28,6 +28,7 @@ export class DiagnosticsService implements IDiagnosticsService {
     public getMachineInfo(): IMachineInfo {
         const info: Mutable<IMachineInfo> = {
             os: `${os.type()} ${os.arch()} ${os.release()}`,
+            kernel: `${os.version()}`,
             memory: `${(os.totalmem() / ByteSize.GB).toFixed(2)}GB (${(os.freemem() / ByteSize.GB).toFixed(2)}GB free)`,
         };
     

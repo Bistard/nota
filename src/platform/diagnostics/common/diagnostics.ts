@@ -17,7 +17,12 @@ export interface ILinuxEnvInfo {
 }
 
 export interface IMachineInfo {
-	readonly os: string;
+	
+    /** Operating system basic info. */
+    readonly os: string;
+
+    /** Kernel version. */
+    readonly kernel: string;
 
     /**
      * Returns an array of objects containing information about each logical CPU 
