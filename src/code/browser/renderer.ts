@@ -39,8 +39,8 @@ import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
-import { ISideBarService, SideBar } from "src/workbench/parts/sideBar/sideBar";
-import { ISideViewService, SideViewService } from "src/workbench/parts/sideView/sideView";
+// import { ISideBarService, SideBar } from "src/workbench/parts/sideBar/sideBar";
+// import { ISideViewService, SideViewService } from "src/workbench/parts/sideView/sideView";
 import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
@@ -57,6 +57,9 @@ import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/servic
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
+import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { INavigationViewService, NavigationView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -271,10 +274,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
     
         // User Interface
         registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
-        registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
+        // registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
+        // registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
+        registerService(IToolBarService           , new ServiceDescriptor(ToolBar                  , []));
+        registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
+        registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
         registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceComponent       , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
-        registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));

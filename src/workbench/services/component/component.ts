@@ -410,7 +410,7 @@ export abstract class Component extends Themable implements IComponent {
         this._splitView = this.__register(new SplitView(this.element.element, splitViewOpt));
     
         // apply sash configuration if any
-        for (let i = 0; i < this._splitView.size - 1; i++) {
+        for (let i = 0; i < this._splitView.count - 1; i++) {
             const option = options[i]!;
 
             const sashOpts = option.sashConfiguration;

@@ -91,7 +91,7 @@ export abstract class WorkbenchLayout extends Component {
         const workbenchConfigurations: IAssembleComponentOpts[] = [
             { 
                 component: this.navigationPanelService,
-                minSize: 100,
+                minSize: NavigationPanel.WIDTH,
                 maxSize: NavigationPanel.WIDTH * 2,
                 initSize: NavigationPanel.WIDTH,
                 priority: Priority.Normal,
@@ -100,7 +100,7 @@ export abstract class WorkbenchLayout extends Component {
                 component: this.workspaceService,
                 minSize: 0,
                 maxSize: Number.POSITIVE_INFINITY,
-                initSize: 0,
+                initSize: NavigationPanel.WIDTH,
                 priority: Priority.High,
             },
         ];

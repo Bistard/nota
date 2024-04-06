@@ -20,9 +20,14 @@ export interface ISplitView extends Disposable {
     readonly element: HTMLElement;
 
     /**
-     * The number of views in the split view.
+     * The total visible width / height of the split view.
      */
     readonly size: number;
+
+    /**
+     * The number of views in the split view.
+     */
+    readonly count: number;
 
     /**
      * Fires when the sash is reset to the default position (double-click).
@@ -178,6 +183,10 @@ export class SplitView extends Disposable implements ISplitView {
 
     get size(): number {
         return this._size;
+    }
+
+    get count(): number {
+        return this.viewItems.length;
     }
     
     public override dispose(): void {

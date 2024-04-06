@@ -48,16 +48,22 @@ export class NavigationPanel extends Component implements INavigationPanelServic
             { 
                 component: this.toolBarService,
                 minSize: ToolBar.WIDTH,
-                maxSize: ToolBar.WIDTH,
+                maxSize: ToolBar.WIDTH * 2,
                 initSize: ToolBar.WIDTH,
                 priority: Priority.Low,
+                sashConfiguration: {
+                    visible: true
+                }
             },
             { 
                 component: this.navigationViewService,
-                minSize: NavView.WIDTH * 2,
-                maxSize: NavView.WIDTH,
+                minSize: NavView.WIDTH,
+                maxSize: NavView.WIDTH * 2,
                 initSize: NavView.WIDTH,
                 priority: Priority.Normal,
+                sashConfiguration: {
+                    visible: true
+                }
             },
         ];
         this.assembleComponents(Orientation.Vertical, workbenchConfigurations);

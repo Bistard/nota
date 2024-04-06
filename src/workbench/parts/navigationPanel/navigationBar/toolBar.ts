@@ -98,7 +98,7 @@ export class ToolBar extends Component implements IToolBarService {
 
     // [field]
 
-    public static readonly WIDTH = 50;
+    public static readonly WIDTH = 300;
 
     private readonly _logoButton!: ToolButton;
     private readonly _primary: WidgetBar<ToolButton>;
