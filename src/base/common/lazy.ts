@@ -26,7 +26,7 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
 
     // [fields]
 
-    private _lazyValue?: T;
+    private _lazyValue: T | null;
     private _obtainValue: (...args: TArgs) => T;
 
     // [constructor]
@@ -34,26 +34,26 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
     constructor(
         obtainValue: (...args: TArgs) => T,
     ) {
-        this._lazyValue = undefined;
+        this._lazyValue = null;
         this._obtainValue = obtainValue;
     }
 
     // [public methods]
 
     public value(...args: TArgs): T {
-        if (!this._lazyValue) {
+        if (this._lazyValue === null) {
             this._lazyValue = this._obtainValue(...args);
         }
         return this._lazyValue;
     }
 
     public dispose(): void {
-        if (!this._lazyValue) {
+        if (this._lazyValue === null) {
             return;
         }
 
         if (Array.isArray(this._lazyValue)) {
-            this._lazyValue = undefined;
+            this._lazyValue = null;
         }
 
         if (isDisposable(this._lazyValue)) {
