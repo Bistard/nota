@@ -5,7 +5,7 @@ import { panic } from "src/base/common/utilities/panic";
 /**
  * An interface for {@link ISplitViewItem} construction.
  */
- export interface ISplitViewItemOpts {
+export interface ISplitViewItemOpts {
 
     /**
      * The HTMLElement of the view.

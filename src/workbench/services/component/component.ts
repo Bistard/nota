@@ -10,20 +10,16 @@ import { assert, panic } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
+import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 
 export interface ICreatable {
     create(): void;
     registerListeners(): void;
 }
 
-export interface IAssembleComponentOpts {
-    component: IComponent;
-    minSize: number;
-    maxSize: number;
-    initSize: number;
-    priority: Priority;
-
-    sashConfiguration?: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>;
+export interface IAssembleComponentOpts extends Pick<ISplitViewItemOpts, 'minimumSize' | 'maximumSize' | 'initSize' | 'priority'> {
+    readonly component: IComponent;
+    readonly sashConfiguration?: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>;
 }
 
 /**
@@ -393,14 +389,14 @@ export abstract class Component extends Themable implements IComponent {
         };
     
         for (const config of options) {
-            const { component, minSize, maxSize, initSize, priority } = config;
+            const { component, minimumSize, maximumSize, initSize, priority } = config;
             component.create(this);
             component.registerListeners();
     
             splitViewOpt.viewOpts.push({
                 element: component.element.element,
-                minimumSize: minSize,
-                maximumSize: maxSize,
+                minimumSize: minimumSize,
+                maximumSize: maximumSize,
                 initSize,
                 priority,
             });

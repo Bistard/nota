@@ -36,37 +36,37 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     // [protected override methods]
 
     protected override _createContent(): void {
-        this.__assemblyWorkbenchParts();
+        this.__assemblyParts();
     }
 
     protected override _registerListeners(): void {
         // Register any listeners needed for the navigation panel
     }
 
-    private __assemblyWorkbenchParts(): void {
-        const workbenchConfigurations: IAssembleComponentOpts[] = [
+    private __assemblyParts(): void {
+        const partConfigurations: IAssembleComponentOpts[] = [
             { 
                 component: this.toolBarService,
-                minSize: ToolBar.WIDTH,
-                maxSize: ToolBar.WIDTH * 2,
+                minimumSize: ToolBar.WIDTH,
+                maximumSize: ToolBar.WIDTH * 2,
                 initSize: ToolBar.WIDTH,
-                priority: Priority.Low,
+                priority: Priority.Normal,
                 sashConfiguration: {
                     visible: true
                 }
             },
             { 
                 component: this.navigationViewService,
-                minSize: NavView.WIDTH,
-                maxSize: NavView.WIDTH * 2,
+                minimumSize: NavView.WIDTH,
+                maximumSize: NavView.WIDTH * 3,
                 initSize: NavView.WIDTH,
-                priority: Priority.Normal,
+                priority: Priority.High,
                 sashConfiguration: {
                     visible: true
                 }
             },
         ];
-        this.assembleComponents(Orientation.Vertical, workbenchConfigurations);
+        this.assembleComponents(Orientation.Vertical, partConfigurations);
     }
     
 }
