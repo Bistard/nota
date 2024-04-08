@@ -48,7 +48,12 @@ async function run() {
     codiconProc.proc.stderr.on('data', (error) => {
         console.error(`${Times.getTime()} ${error}`);
     });
-    await codiconProc.waiting();
+    try {
+        await codiconProc.waiting();
+    } catch (error) {
+        console.log(error);
+        process.exit(1);
+    }
 
     // repairing the generated files (initial generated version does not work)
     await repair(outputRoot);
