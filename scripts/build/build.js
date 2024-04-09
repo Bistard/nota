@@ -1,5 +1,5 @@
 const path = require("path");
-const { Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
+const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
 
 (async () => {
     const cwd     = process.cwd();
@@ -20,7 +20,7 @@ const { Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../util
     });
 
     // compile codicon
-    const codiconProc = new ScriptProcess(
+    const codicon = new ScriptProcess(
         'codicon',
         `node ${path.join(cwd, './scripts/icons/codicon.js')}`,
         [],
@@ -32,10 +32,15 @@ const { Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../util
             stdio: "inherit",
         }
     );
-    await codiconProc.waiting();
+    
+    try {
+        await codicon.waiting();
+    } catch (err) {
+        process.exit(1);
+    }
 
     // build with webpack
-    const proc = new ScriptProcess(
+    const webpack = new ScriptProcess(
         'webpack',
         'webpack',
         ['--config', './scripts/build/webpack.config.js'],
@@ -52,35 +57,18 @@ const { Colors, Times, Loggers, ScriptProcess, ScriptHelper } = require("../util
                 ...envPair,
             ],
             // stdio: "inherit"
+            onStdout: (output) => {
+                process.stdout.write(`${Times.getTime()} ${output}`);
+            },
+            onStderr: (error) => {
+                Loggers.printRed(`${error}`);
+            }
         },
     );
 
-    registerSpawnListeners(proc.proc);
-    function registerSpawnListeners(spawn) {
-
-        spawn.stdout.on('data', (output) => {
-            process.stdout.write(`${Times.getTime()} ${output}`);
-        });
-        
-        spawn.stderr.on('data', (error) => {
-            Loggers.printRed(`${error}`);
-        });
-        
-        spawn.on('close', (code) => {
-            // TODO: remove this piece of code
-            let fail = false;
-            for (let i = 0; i < 3; i++) console.log(); // left some spaces
-
-            if (code) {
-                fail = true;
-                process.stdout.write(`${Times.getTime()} ${Colors.red(`child process exited with error code ${code}`)}\n`);
-            } else {
-                process.stdout.write(`${Times.getTime()} ${Colors.green('Building success')}\n`);
-            }
-            
-            if (fail) {
-                process.exit(code);
-            }
-        });
+    try {
+        await webpack.waiting();
+    } catch (err) {
+        process.exit(1);
     }
 })();

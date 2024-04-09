@@ -237,7 +237,13 @@ class ScriptProcess {
      * @param {string} scriptCommand 
      * @param {string[]} commandArgs 
      * @param {string[]} procArgs 
-     * @param {ProcOptions & { logConfiguration?: [string, string | undefined][] }} procOpts 
+     * @param {ProcOptions & { 
+     *      logConfiguration?: [string, string | undefined][]; 
+     *      eventHandlers?: Record<string, () => any>; 
+     *      onStdin?:  (chuck: any) => void; 
+     *      onStdout?: (chuck: any) => void; 
+     *      onStderr?: (error: any) => void; 
+     * }} procOpts 
      */
     constructor(
         scriptName,
@@ -268,7 +274,6 @@ class ScriptProcess {
         const startTime = performance.now();
         const p = childProcess.spawn(actualCommand, procArgs, procOpts);
         this.#proc = p;
-
 
         let procResolve, procReject;
         this.#waiting = new Promise((res, rej) => {
@@ -318,6 +323,20 @@ class ScriptProcess {
                 Loggers.printRed(`⚠️ Script error encounters:`);
                 console.log(error);
             });
+
+            // Setup custom event handlers if provided
+            if (procOpts.eventHandlers) {
+                for (const [event, handler] of Object.entries(procOpts.eventHandlers)) {
+                    p.on(event, handler);
+                }
+            }
+
+            if (procOpts.onStdout) {
+                p.stdout.on('data', procOpts.onStdout);
+            }
+            if (procOpts.onStderr) {
+                p.stderr.on('data', procOpts.onStderr);
+            }
         }
     }
 
@@ -336,6 +355,15 @@ class ScriptProcess {
      */
     async waiting() {
         return this.#waiting;
+    }
+
+    /**
+     * Terminates the child process.
+     */
+    terminate() {
+        if (this.#spawned) {
+            this.#proc.kill();
+        }
     }
 }
 

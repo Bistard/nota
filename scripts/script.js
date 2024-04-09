@@ -142,9 +142,14 @@ function executeScript(script, args, configurations) {
         stdio: "inherit",
     });
 
-    proc.waiting().then(code => {
+    proc.waiting()
+    .then(code => {
         process.exit(code);
-    });
+    })
+    .catch(error => {
+        Loggers.printRed(`Executing script "${script}" encounters error: ${JSON.stringify(error)}`);
+        process.exit(1);
+    })
 }
 
 // #endregion

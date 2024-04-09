@@ -50,9 +50,8 @@ async function run() {
     });
     try {
         await codiconProc.waiting();
-    } catch (error) {
-        console.log(error);
-        process.exit(1);
+    } catch (exitcode) {
+        process.exit(exitcode);
     }
 
     // repairing the generated files (initial generated version does not work)
