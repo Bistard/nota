@@ -50,7 +50,7 @@ export class TitleBar extends Component {
 
         // search bar
         const searchBar = new SearchBar({
-            icon: Icons.Search,
+            icon: Icons.Help,
             placeHolder: this.productService.profile.applicationName,
         });
         searchBar.render(document.createElement('div'));

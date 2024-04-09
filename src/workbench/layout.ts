@@ -148,11 +148,11 @@ class SideBarBuilder {
         [
             {
                 id: SideButtonType.EXPLORER,
-                icon: Icons.FolderDefault,
+                icon: Icons.Folder,
             },
             {
                 id: SideButtonType.OUTLINE,
-                icon: Icons.Help,
+                icon: Icons.Outline,
             },
             // { id: SideButtonType.SEARCH, icon: Icons.Search },
             // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
