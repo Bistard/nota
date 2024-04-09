@@ -15,21 +15,19 @@
 		transform: translateX(3px);
 
 		height: 100%;
+
+		&::before {
+			border-radius: 20px;
+		}
+
+		&.collapsed::before {
+			// transform: rotate(-90deg);
+		}
 	}
 
 	& > .tree-list-content {
 		flex: 1;
 		height: 100%;
 		overflow: hidden;
-	}
-
-	& > .tree-list-indent {
-		&::before {
-			border-radius: 20px;
-		}
-
-		&.collapsed::before {
-			transform: rotate(-90deg);
-		}
 	}
 }
