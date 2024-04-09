@@ -5,6 +5,7 @@
 /.wisp
 /.vscode
 /.VSCodeCounter
+/.temp
 
 /assets/src-svg
 /assets/codicons/**/*
