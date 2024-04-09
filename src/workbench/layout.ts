@@ -13,10 +13,11 @@ import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
-import { assert, panic } from "src/base/common/utilities/panic";
+import { panic } from "src/base/common/utilities/panic";
 import { IToolBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
+import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -35,6 +36,7 @@ export abstract class WorkbenchLayout extends Component {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @IToolBarService protected readonly toolBarService: IToolBarService,
+        @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationPanelService protected readonly navigationPanelService: INavigationPanelService,
         @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
@@ -60,7 +62,7 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register side buttons
-        const toolBarBuilder = new SideBarBuilder(this.toolBarService, this.contextMenuService);
+        const toolBarBuilder = new SideBarBuilder(this.toolBarService, this.functionBarService, this.contextMenuService);
         toolBarBuilder.registerButtons();
 
         // assembly the workbench layout
@@ -113,6 +115,7 @@ class SideBarBuilder {
 
     constructor(
         private readonly toolBarService: IToolBarService,
+        private readonly functionBarService: IFunctionBarService,
         private readonly contextMenuService: IContextMenuService,
     ) {
     }
@@ -134,7 +137,7 @@ class SideBarBuilder {
             // { id: ToolButtonType.SEARCH, icon: Icons.Search },
             // { id: ToolButtonType.GIT, icon: Icons.CodeBranch },
         ]
-            .forEach(({ id, icon }) => {
+            .forEach(({ id, icon}) => {
                 this.toolBarService.registerPrimaryButton({
                     id: id,
                     icon: icon,
@@ -246,11 +249,11 @@ class SideBarBuilder {
                 },
             },
         ]
-            .forEach(({ id, icon, onDidClick }) => {
-                this.toolBarService.registerSecondaryButton({
+            .forEach(({ id, icon, onDidClick}) => {
+                this.functionBarService.registerSecondaryButton({
                     id: id,
                     icon: icon,
-                    isPrimary: true,
+                    isPrimary: false,
                     onDidClick: onDidClick,
                 });
             });

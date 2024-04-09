@@ -59,6 +59,7 @@ import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboar
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
 import { INavigationViewService, NavigationView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 
 /**
@@ -278,6 +279,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
         registerService(IToolBarService           , new ServiceDescriptor(ToolBar                  , []));
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
+        registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
         registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceComponent       , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));

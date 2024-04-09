@@ -27,6 +27,7 @@ import { WorkbenchContextKey } from 'src/workbench/services/workbench/workbenchC
 import { INavigationPanelService } from 'src/workbench/parts/navigationPanel/navigationPanel';
 import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
+import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -51,11 +52,12 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @INavigationPanelService navigationPanelService : INavigationPanelService,
         @IToolBarService toolBarService: IToolBarService,
         @INavigationViewService navigationViewService: INavigationViewService,
+        @IFunctionBarService functionBarService: IFunctionBarService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(instantiationService, logService, layoutService, componentService, themeService, toolBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, toolBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
         logService.trace('Workbench', 'Workbench constructed.');
     }
 

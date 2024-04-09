@@ -67,25 +67,11 @@ export interface IToolBarService extends IComponent, IService {
     getPrimaryButton(ID: string): ToolButton | undefined;
 
     /**
-     * @description Returns a secondary button by provided a button ID.
-     * @param ID The ID of the required button.
-     * @returns The required button. Returns undefined if it does not exists.
-     */
-    getSecondaryButton(ID: string): ToolButton | undefined;
-
-    /**
      * @description Register a new primary button.
      * @param opts The options to construct the button.
      * @returns A boolean indicates if the button has created.
      */
     registerPrimaryButton(opts: IToolButtonOptions): boolean;
-
-    /**
-     * @description Register a new secondary button.
-     * @param opts The options to construct the button.
-     * @returns A boolean indicates if the button has created.
-     */
-    registerSecondaryButton(opts: IToolButtonOptions): boolean;
 }
 
 /**
@@ -102,7 +88,6 @@ export class ToolBar extends Component implements IToolBarService {
 
     private readonly _logoButton!: ToolButton;
     private readonly _primary: WidgetBar<ToolButton>;
-    private readonly _secondary: WidgetBar<ToolButton>;
 
     private _currButtonType: string = ToolButtonType.NONE;
 
@@ -117,30 +102,21 @@ export class ToolBar extends Component implements IToolBarService {
         @ILogService private readonly logService: ILogService,
     ) {
         super('tool-bar', null, themeService, componentService);
-        this._primary = new WidgetBar(undefined, { orientation: Orientation.Vertical });
-        this._secondary = new WidgetBar(undefined, { orientation: Orientation.Vertical });
+        this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
 
     // [public method]
 
     public getButton(ID: string): ToolButton | undefined {
-        return this.getPrimaryButton(ID) || this.getSecondaryButton(ID);
+        return this.getPrimaryButton(ID);
     }
 
     public getPrimaryButton(ID: string): ToolButton | undefined {
         return this._primary.getItem(ID);
     }
 
-    public getSecondaryButton(ID: string): ToolButton | undefined {
-        return this._secondary.getItem(ID);
-    }
-
     public registerPrimaryButton(opts: IToolButtonOptions): boolean {
         return this.__registerButton(opts, this._primary);
-    }
-
-    public registerSecondaryButton(opts: IToolButtonOptions): boolean {
-        return this.__registerButton(opts, this._secondary);
     }
 
     // [protected override method]
@@ -155,26 +131,16 @@ export class ToolBar extends Component implements IToolBarService {
         primaryContainer.className = 'general-button-container';
         this._primary.render(primaryContainer);
 
-        // lower button group
-        const secondaryContainer = document.createElement('div');
-        secondaryContainer.className = 'secondary-button-container';
-        this._secondary.render(secondaryContainer);
-
         this.element.appendChild(logo.element);
         this.element.appendChild(primaryContainer);
-        this.element.appendChild(secondaryContainer);
 
         this.__register(this._primary);
-        this.__register(this._secondary);
     }
 
     protected override _registerListeners(): void {
 
         // Register all the buttons click event.
         this._primary.items().forEach(item => {
-            item.onDidClick(() => this.__buttonClick(item.id));
-        });
-        this._secondary.items().forEach(item => {
             item.onDidClick(() => this.__buttonClick(item.id));
         });
 

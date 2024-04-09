@@ -8,6 +8,7 @@ import { Priority } from "src/base/common/event";
 import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavigationView, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
@@ -28,6 +29,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @IToolBarService protected readonly toolBarService: IToolBarService,
+        @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @IThemeService themeService: IThemeService,
     ) {
         super('navigation-panel', null, themeService, componentService);
@@ -49,11 +51,8 @@ export class NavigationPanel extends Component implements INavigationPanelServic
                 component: this.toolBarService,
                 minimumSize: ToolBar.WIDTH,
                 maximumSize: ToolBar.WIDTH * 2,
-                initSize: ToolBar.WIDTH,
+                initSize: 40,
                 priority: Priority.Normal,
-                sashConfiguration: {
-                    visible: true
-                }
             },
             { 
                 component: this.navigationViewService,
@@ -61,12 +60,15 @@ export class NavigationPanel extends Component implements INavigationPanelServic
                 maximumSize: NavView.WIDTH * 3,
                 initSize: NavView.WIDTH,
                 priority: Priority.High,
-                sashConfiguration: {
-                    visible: true
-                }
+            },
+            { 
+                component: this.functionBarService,
+                minimumSize: FunctionBar.WIDTH,
+                maximumSize: FunctionBar.WIDTH,
+                initSize: FunctionBar.WIDTH,
+                priority: Priority.Low,
             },
         ];
         this.assembleComponents(Orientation.Vertical, partConfigurations);
-    }
-    
+    } 
 }

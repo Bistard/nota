@@ -1,4 +1,4 @@
-#tool-bar {
+#tool-bar, #function-bar {
 
     /* display in row */
     display: flex;
@@ -8,8 +8,8 @@
     width: 100%;
 
     position: relative;
-    width: 50px;
-    min-width: 50px;
+    max-width: 600px;
+    min-width: 300px;
     height: 100%;
     background-color: #fcfcfc;
     
@@ -20,7 +20,8 @@
     }
 
     & > .logo {
-        top: 5px;
+        top: 2px;
+        padding-left: 10px;
         justify-content: center;
         
         font-size: 26px;
@@ -32,21 +33,29 @@
     }
 
     & > .general-button-container {
-        top: 70px;
+        top: 40px;
+        height: 40px;
+        width: 100%;
+        justify-content: center;
+        background-color: rgb(242, 242, 242);
     }
 
     & > .secondary-button-container {
         bottom: 0px;
+        height: 40px;
+        width: 100%;
+        justify-content: center;
+        background-color: #fcfcfc;
     }
 
     & .side-button {
-        width: 50px;
-        height: 50px;
+        width: 80px;
+        height: 80px;
         align-content: center;
         display: flex;
 
         & > .icon {
-            font-size: 18px;
+            font-size: 24px;
         }
 
         &:hover {
