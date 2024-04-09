@@ -14,42 +14,78 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-ai-default:before {
+.icon-add-new:before {
     content: "\f101";
 }
-.icon-ai-open:before {
+.icon-close:before {
     content: "\f102";
 }
-.icon-arrow-forward-right:before {
+.icon-cloud-upload:before {
     content: "\f103";
 }
-.icon-cloud-upload:before {
+.icon-collapse-all:before {
     content: "\f104";
 }
-.icon-extension:before {
+.icon-command:before {
     content: "\f105";
 }
-.icon-folder-default:before {
+.icon-create-new-folder:before {
     content: "\f106";
 }
-.icon-folder-open:before {
+.icon-create-new-note:before {
     content: "\f107";
 }
-.icon-help:before {
+.icon-extension:before {
     content: "\f108";
 }
-.icon-menu:before {
+.icon-folder-open:before {
     content: "\f109";
 }
-.icon-search:before {
+.icon-folder:before {
     content: "\f10a";
 }
-.icon-setting:before {
+.icon-help:before {
     content: "\f10b";
 }
-.icon-source-control-default:before {
+.icon-maximize:before {
     content: "\f10c";
 }
-.icon-source-control-open:before {
+.icon-minimize:before {
     content: "\f10d";
+}
+.icon-more-horizontal:before {
+    content: "\f10e";
+}
+.icon-nota-ai-default:before {
+    content: "\f10f";
+}
+.icon-nota-ai-on:before {
+    content: "\f110";
+}
+.icon-notifications-active:before {
+    content: "\f111";
+}
+.icon-notifications-off:before {
+    content: "\f112";
+}
+.icon-notifications-unread:before {
+    content: "\f113";
+}
+.icon-outline:before {
+    content: "\f114";
+}
+.icon-restore-window:before {
+    content: "\f115";
+}
+.icon-setting:before {
+    content: "\f116";
+}
+.icon-sort-by-alpha:before {
+    content: "\f117";
+}
+.icon-source-control-default:before {
+    content: "\f118";
+}
+.icon-source-control-on:before {
+    content: "\f119";
 }
