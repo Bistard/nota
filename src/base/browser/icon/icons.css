@@ -29,10 +29,10 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-command:before {
     content: "\f105";
 }
-.icon-create-new-folder:before {
+.icon-create-new-file:before {
     content: "\f106";
 }
-.icon-create-new-note:before {
+.icon-create-new-folder:before {
     content: "\f107";
 }
 .icon-extension:before {
