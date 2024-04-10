@@ -8,6 +8,8 @@ import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
+import { QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
+import { ActionBar } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -86,7 +88,13 @@ export class ToolBar extends Component implements IToolBarService {
 
     public static readonly WIDTH = 300;
 
-    private readonly _logoButton!: ToolButton;
+    private _quickAccessBar: QuickAccessBar;
+    // private _actionBar: ActionBar;
+    // private _filterBar: FilterBar;
+
+    // This flag toggles between ActionBar and FilterBar
+    private _toggleState: boolean = false;  /** ONLY FOR TEST PRUPOSES */
+
     private readonly _primary: WidgetBar<ToolButton>;
 
     private _currButtonType: string = ToolButtonType.NONE;
@@ -102,6 +110,9 @@ export class ToolBar extends Component implements IToolBarService {
         @ILogService private readonly logService: ILogService,
     ) {
         super('tool-bar', null, themeService, componentService);
+        this._quickAccessBar = new QuickAccessBar(componentService, themeService);
+        // this._actionBar = new ActionBar(componentService, themeService, logService);
+        // this._filterBar = new FilterBar();
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
 
@@ -123,18 +134,17 @@ export class ToolBar extends Component implements IToolBarService {
 
     protected override _createContent(): void {
 
-        // logo
-        const logo = this.__createLogo();
+        const quickAccessContainer = document.createElement('div');
+        quickAccessContainer.className = 'quick-bar-container';
 
-        // upper button group
-        const primaryContainer = document.createElement('div');
-        primaryContainer.className = 'general-button-container';
-        this._primary.render(primaryContainer);
+        this._quickAccessBar.render(quickAccessContainer);
 
-        this.element.appendChild(logo.element);
-        this.element.appendChild(primaryContainer);
+        // const actionBarContainer = document.createElement('div');
+        // actionBarContainer.className = 'general-button-container';
+        // this._actionBar.render(actionBarContainer);
 
-        this.__register(this._primary);
+        this.element.appendChild(quickAccessContainer);
+        // this.element.appendChild(actionBarContainer);
     }
 
     protected override _registerListeners(): void {
@@ -157,6 +167,32 @@ export class ToolBar extends Component implements IToolBarService {
      * @note Method will fire `this._onDidClick`.
      */
     private __buttonClick(buttonType: string): void {
+
+        /** ONLY FOR `ACTION BAR` TEST PRUPOSES */
+
+        // const event: IToolBarButtonClickEvent = {
+        //     ID: buttonType,
+        //     prevType: this._currButtonType,
+        //     isPrimary: false
+        // };
+        
+        // // Determine which bar to delegate to based on the clicked button
+        // if (buttonType === ToolButtonType.LOGO) {
+        //     // Toggle the state and call the appropriate handle function
+        //     this._toggleState = !this._toggleState;
+        //     if (this._toggleState) {
+        //         // If the toggle state is true, then it corresponds to the FilterBar
+        //         // this._filterBar.handleButtonClick(event);
+        //     } else {
+        //         // If the toggle state is false, then it corresponds to the ActionBar
+        //         this._actionBar.handleButtonClick(event);
+        //     }
+        // }
+
+        // Update the current button type
+        this._currButtonType = buttonType;
+
+        /** ONLY FOR TEST PRUPOSES */
 
         const button = this.getButton(buttonType)!;
         const previousType = this._currButtonType;
@@ -210,16 +246,5 @@ export class ToolBar extends Component implements IToolBarService {
         });
 
         return true;
-    }
-
-    private __createLogo(): ToolButton {
-        const logo = new ToolButton({ id: ToolButtonType.LOGO, isPrimary: true, classes: ['logo'] });
-        logo.render(document.createElement('div'));
-
-        const text = document.createElement('div');
-        text.innerText = 'N';
-        logo.element.appendChild(text);
-
-        return logo;
     }
 }

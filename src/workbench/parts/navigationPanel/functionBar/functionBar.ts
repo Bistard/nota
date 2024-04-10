@@ -1,7 +1,7 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
 import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { IToolBarButtonClickEvent, IToolBarService, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { IToolBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
