@@ -1,15 +1,23 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
 import { ILogService } from 'src/base/common/logger';
 import { ToolButton, IToolButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
-import { IToolBarService, IToolBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { IToolBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Emitter } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
+import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { createService } from 'src/platform/instantiation/common/decorator';
 
-export class ActionBar extends Component implements IToolBarService {
+export const IActionBarService = createService<IActionBarService>('action-bar-service');
+
+export interface IActionBarService extends IToolBarService {
+    
+}
+
+export class ActionBar extends Component implements IActionBarService {
 
     declare _serviceMarker: undefined;
 
@@ -26,7 +34,7 @@ export class ActionBar extends Component implements IToolBarService {
                 @IThemeService themeService: IThemeService,
                 @ILogService private readonly logService: ILogService) {
         super('action-bar', null, themeService, componentService);
-        this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
+        this._primary = new WidgetBar(undefined, { orientation: Orientation.Vertical }); // Make it horizontal
     }
 
     // [public method]
@@ -49,6 +57,8 @@ export class ActionBar extends Component implements IToolBarService {
     }
 
     // [protected override method]
+
+    // actionBar.create()
 
     protected override _createContent(): void {
         const actionBarContainer = document.createElement('div');

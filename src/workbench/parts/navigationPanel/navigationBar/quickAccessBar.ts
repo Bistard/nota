@@ -2,9 +2,14 @@ import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
 import { ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
-import { Component } from 'src/workbench/services/component/component';
+import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
+import { IService, createService } from 'src/platform/instantiation/common/decorator';
 
+export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
+export interface IQuickAccessBarService extends IComponent, IService {
+
+}
 export class QuickAccessBar extends Component {
 
     // [constructor]
@@ -19,6 +24,16 @@ export class QuickAccessBar extends Component {
     public render(container: HTMLElement): void {
         this._createContent();
         container.appendChild(this.element.element);
+    }
+    
+
+    public registerButtons(): void {
+        
+    }
+
+    public search(text: string): void {
+        // this._searchBar.search(text);
+        // TODO: ADDITIONALs
     }
 
     // [protected override method]
