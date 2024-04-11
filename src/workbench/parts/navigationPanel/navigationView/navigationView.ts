@@ -9,7 +9,7 @@ import { ILogService } from 'src/base/common/logger';
 import { NavigationViewTitlePart } from 'src/workbench/parts/navigationPanel/navigationView/navigationViewTitle';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 
-export const INavigationViewService = createService<INavigationViewService>('side-view-service');
+export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
 
 export interface INavigationViewChangeEvent {
 

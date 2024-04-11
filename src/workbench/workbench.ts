@@ -4,8 +4,8 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { WorkbenchLayout } from "src/workbench/layout";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
-import { ISideBarService } from "src/workbench/parts/sideBar/sideBar";
-import { ISideViewService } from "src/workbench/parts/sideView/sideView";
+// import { ISideBarService } from "src/workbench/parts/sideBar/sideBar";
+// import { ISideViewService } from "src/workbench/parts/sideView/sideView";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { Disposable } from 'src/base/common/dispose';
 import { IContextService } from 'src/platform/context/common/contextService';
@@ -28,6 +28,7 @@ import { INavigationPanelService } from 'src/workbench/parts/navigationPanel/nav
 import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
+import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -51,13 +52,14 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IThemeService themeService: IThemeService,
         @INavigationPanelService navigationPanelService : INavigationPanelService,
         @IToolBarService toolBarService: IToolBarService,
+        @IActionBarService actionBarService: IActionBarService,
         @INavigationViewService navigationViewService: INavigationViewService,
         @IFunctionBarService functionBarService: IFunctionBarService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(instantiationService, logService, layoutService, componentService, themeService, toolBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, toolBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
         logService.trace('Workbench', 'Workbench constructed.');
     }
 
@@ -183,7 +185,8 @@ export class WorkbenchContextHub extends Disposable {
     constructor(
         @ILogService private readonly logService: ILogService,
         @IContextService contextService: IContextService,
-        @ISideViewService private readonly sideViewService: ISideViewService,
+        // @ISideViewService private readonly sideViewService: ISideViewService,
+        @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @IEnvironmentService environmentService: IBrowserEnvironmentService,
     ) {
@@ -247,9 +250,9 @@ export class WorkbenchContextHub extends Disposable {
         this.__register(addDisposableListener(window, EventType.focus, e => this.__updateInputFocusedContext()));
 
         // side view
-        this.visibleSideView.set(!!this.sideViewService.currView());
-        this.__register(this.sideViewService.onDidViewChange(e => this.visibleSideView.set(!!e.view)));
-        this.__register(this.sideViewService.onDidFocusChange(isFocused => this.focusedSideView.set(isFocused)));
+        this.visibleSideView.set(!!this.navigationViewService.currView());
+        this.__register(this.navigationViewService.onDidViewChange(e => this.visibleSideView.set(!!e.view)));
+        this.__register(this.navigationViewService.onDidFocusChange(isFocused => this.focusedSideView.set(isFocused)));
 
         // file tree
         this.visibleFileTree.set(this.fileTreeService.isOpened);

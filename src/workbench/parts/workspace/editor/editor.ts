@@ -5,7 +5,8 @@ import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
-import { ISideViewService } from "src/workbench/parts/sideView/sideView";
+// import { ISideViewService } from "src/workbench/parts/sideView/sideView";
+import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
@@ -30,7 +31,8 @@ export class Editor extends Component implements IEditorService {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @IThemeService themeService: IThemeService,
-        @ISideViewService private readonly sideViewService: ISideViewService,
+        // @ISideViewService private readonly sideViewService: ISideViewService,
+        @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @ILogService private readonly logService: ILogService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
@@ -66,7 +68,7 @@ export class Editor extends Component implements IEditorService {
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
-        const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
+        const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView?.root) {
             options.baseURI = URI.toFsPath(explorerView.root);
         }
@@ -87,7 +89,7 @@ export class Editor extends Component implements IEditorService {
         await this.lifecycleService.when(LifecyclePhase.Ready);
 
         // building options
-        const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
+        const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView) {
             explorerView.onDidOpen((e) => {
                 this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
