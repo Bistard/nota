@@ -24,7 +24,8 @@ export interface ISplitViewItemOpts {
     readonly maximumSize: number;
 
     /**
-     * The initial size of the view.
+     * The initial size of the view. If not provided, set to the minimum size as
+     * default.
      */
     readonly initSize?: number;
     
@@ -162,9 +163,10 @@ export class SplitViewItem implements ISplitViewItem {
             panic('Provided maxSize is smaller than provided minSize');
         }
         
-        this._resizePriority = opt.priority!;
-        if (opt.initSize) {
-            if (opt.initSize < this._minimumSize && opt.initSize > this._maximumSize) {
+        this._resizePriority = opt.priority ?? Priority.Low;
+        if (opt.initSize !== undefined) {
+            
+            if (opt.initSize < this._minimumSize || opt.initSize > this._maximumSize) {
                 panic(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
             }
             this._size = opt.initSize;
