@@ -89,7 +89,7 @@ export class ToolBar extends Component implements IToolBarService {
     public static readonly WIDTH = 300;
 
     private _quickAccessBar: QuickAccessBar;
-    // private _actionBar: ActionBar;
+    private _actionBar: ActionBar;
     // private _filterBar: FilterBar;
 
     // This flag toggles between ActionBar and FilterBar
@@ -111,7 +111,7 @@ export class ToolBar extends Component implements IToolBarService {
     ) {
         super('tool-bar', null, themeService, componentService);
         this._quickAccessBar = new QuickAccessBar(componentService, themeService);
-        // this._actionBar = new ActionBar(componentService, themeService, logService);
+        this._actionBar = new ActionBar(componentService, themeService, logService);
         // this._filterBar = new FilterBar();
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
@@ -136,15 +136,14 @@ export class ToolBar extends Component implements IToolBarService {
 
         const quickAccessContainer = document.createElement('div');
         quickAccessContainer.className = 'quick-bar-container';
-
         this._quickAccessBar.render(quickAccessContainer);
 
-        // const actionBarContainer = document.createElement('div');
-        // actionBarContainer.className = 'general-button-container';
-        // this._actionBar.render(actionBarContainer);
+        const actionBarContainer = document.createElement('div');
+        actionBarContainer.className = 'action-bar-container';
+        this._actionBar.render(actionBarContainer);
 
         this.element.appendChild(quickAccessContainer);
-        // this.element.appendChild(actionBarContainer);
+        this.element.appendChild(actionBarContainer);
     }
 
     protected override _registerListeners(): void {
