@@ -158,8 +158,8 @@ export class ToolBar extends Component implements IToolBarService {
                 maximumSize: Number.MAX_VALUE,
                 initSize: 20,
                 priority: Priority.Normal,
-            }
-        ]
+            },
+        ];
         this.assembleComponents(Orientation.Vertical, partConfigurations); 
     }
 
