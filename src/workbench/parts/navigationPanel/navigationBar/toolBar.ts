@@ -5,11 +5,12 @@ import { IComponentService } from 'src/workbench/services/component/componentSer
 import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
-import { Emitter, Register } from 'src/base/common/event';
+import { Emitter, Priority, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
-import { ActionBar } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
+import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
+import { ActionBar, IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
+import { Icons } from 'src/base/browser/icon/icons';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -86,10 +87,10 @@ export class ToolBar extends Component implements IToolBarService {
 
     // [field]
 
-    public static readonly WIDTH = 300;
+    public static readonly HEIGHT = 80;
 
-    private _quickAccessBar: QuickAccessBar;
-    private _actionBar: ActionBar;
+    // private _quickAccessBar: QuickAccessBar;
+    // private _actionBar: ActionBar;
     // private _filterBar: FilterBar;
 
     // This flag toggles between ActionBar and FilterBar
@@ -105,13 +106,15 @@ export class ToolBar extends Component implements IToolBarService {
     // [constructor]
 
     constructor(
+        @IQuickAccessBarService private readonly quickAccessBarService: IQuickAccessBarService,
+        @IActionBarService private readonly actionBarService: IActionBarService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ILogService private readonly logService: ILogService,
     ) {
         super('tool-bar', null, themeService, componentService);
-        this._quickAccessBar = new QuickAccessBar(componentService, themeService);
-        this._actionBar = new ActionBar(componentService, themeService, logService);
+        // this._quickAccessBar = new QuickAccessBar(componentService, themeService);
+        // this._actionBar = new ActionBar(componentService, themeService, logService);
         // this._filterBar = new FilterBar();
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
@@ -134,16 +137,30 @@ export class ToolBar extends Component implements IToolBarService {
 
     protected override _createContent(): void {
 
-        const quickAccessContainer = document.createElement('div');
-        quickAccessContainer.className = 'quick-bar-container';
-        this._quickAccessBar.render(quickAccessContainer);
+        // Register more buttons along with future development
+        this.actionBarService.registerPrimaryButton({
+            id: ToolButtonType.EXPLORER,
+            icon: Icons.Folder,
+            isPrimary: true,
+        });
 
-        const actionBarContainer = document.createElement('div');
-        actionBarContainer.className = 'action-bar-container';
-        this._actionBar.render(actionBarContainer);
-
-        this.element.appendChild(quickAccessContainer);
-        this.element.appendChild(actionBarContainer);
+        const partConfigurations = [
+            { 
+                component: this.quickAccessBarService,
+                minimumSize: 20, // should const
+                maximumSize: Number.MAX_VALUE,
+                initSize: 20,
+                priority: Priority.Normal,
+            },
+            { 
+                component: this.actionBarService,
+                minimumSize: 20,
+                maximumSize: Number.MAX_VALUE,
+                initSize: 20,
+                priority: Priority.Normal,
+            }
+        ]
+        this.assembleComponents(Orientation.Vertical, partConfigurations); 
     }
 
     protected override _registerListeners(): void {
@@ -189,7 +206,7 @@ export class ToolBar extends Component implements IToolBarService {
         // }
 
         // Update the current button type
-        this._currButtonType = buttonType;
+        // this._currButtonType = buttonType;
 
         /** ONLY FOR TEST PRUPOSES */
 
@@ -197,7 +214,7 @@ export class ToolBar extends Component implements IToolBarService {
         const previousType = this._currButtonType;
 
         // has not been rendered yet.
-        if (button.element === undefined) {
+        if (!button || button.element === undefined) {
             return;
         }
 

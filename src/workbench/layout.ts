@@ -15,9 +15,11 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { ILogService } from "src/base/common/logger";
 import { panic } from "src/base/common/utilities/panic";
 import { IToolBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/actionBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
+
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -36,6 +38,7 @@ export abstract class WorkbenchLayout extends Component {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @IToolBarService protected readonly toolBarService: IToolBarService,
+        @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationPanelService protected readonly navigationPanelService: INavigationPanelService,
@@ -61,8 +64,8 @@ export abstract class WorkbenchLayout extends Component {
 
     protected __createLayout(): void {
 
-        // register side buttons
-        const toolBarBuilder = new SideBarBuilder(this.toolBarService, this.functionBarService, this.contextMenuService);
+        // register tool buttons
+        const toolBarBuilder = new SideBarBuilder(this.toolBarService, this.actionBarService, this.functionBarService, this.contextMenuService);
         toolBarBuilder.registerButtons();
 
         // assembly the workbench layout
@@ -115,6 +118,7 @@ class SideBarBuilder {
 
     constructor(
         private readonly toolBarService: IToolBarService,
+        private readonly actionBarService: IActionBarService,
         private readonly functionBarService: IFunctionBarService,
         private readonly contextMenuService: IContextMenuService,
     ) {
@@ -138,7 +142,7 @@ class SideBarBuilder {
             // { id: ToolButtonType.GIT, icon: Icons.CodeBranch },
         ]
             .forEach(({ id, icon}) => {
-                this.toolBarService.registerPrimaryButton({
+                this.actionBarService.registerPrimaryButton({
                     id: id,
                     icon: icon,
                     isPrimary: true,
@@ -263,9 +267,9 @@ class SideBarBuilder {
         let element: HTMLElement | undefined;
         return () => {
             if (!element) {
-                const button = this.toolBarService.getButton(buttonType);
+                const button = this.actionBarService.getButton(buttonType);
                 if (!button) {
-                    panic(`Cannot find side bar button with id: ${buttonType}`);
+                    panic(`Cannot find tool bar button with id: ${buttonType}`);
                 }
                 element = button.element;
             }

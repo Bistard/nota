@@ -46,7 +46,7 @@ export class FunctionBar extends Component implements IFunctionBarService {
     declare _serviceMarker: undefined;
 
     // [field]
-    public static readonly WIDTH = 40;
+    public static readonly HEIGHT = 40;
     private _currButtonType: string = ToolButtonType.NONE;
     private readonly _secondary: WidgetBar<ToolButton>;
     private readonly _onDidClick = this.__register(new Emitter<IToolBarButtonClickEvent>());

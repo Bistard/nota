@@ -46,27 +46,24 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     }
 
     private __assemblyParts(): void {
+
         const partConfigurations: IAssembleComponentOpts[] = [
             { 
                 component: this.toolBarService,
-                minimumSize: ToolBar.WIDTH,
-                maximumSize: ToolBar.WIDTH * 2,
-                initSize: 40,
-                priority: Priority.Normal,
+                minimumSize: ToolBar.HEIGHT,
+                maximumSize: ToolBar.HEIGHT,
             },
             { 
                 component: this.navigationViewService,
-                minimumSize: NavView.WIDTH,
-                maximumSize: NavView.WIDTH * 3 - 50,
-                initSize: NavView.WIDTH,
-                priority: Priority.High,
+                minimumSize: NavView.HEIGHT,
+                maximumSize: Number.POSITIVE_INFINITY,
+                initSize: NavView.HEIGHT,
             },
             { 
                 component: this.functionBarService,
-                minimumSize: FunctionBar.WIDTH,
-                maximumSize: FunctionBar.WIDTH,
-                initSize: FunctionBar.WIDTH,
-                priority: Priority.Low,
+                minimumSize: FunctionBar.HEIGHT,
+                maximumSize: FunctionBar.HEIGHT,
+                initSize: FunctionBar.HEIGHT,
             },
         ];
         this.assembleComponents(Orientation.Vertical, partConfigurations);

@@ -295,7 +295,7 @@ export abstract class NavView extends Component implements INavView {
 
     // [field]
 
-    public static readonly WIDTH = 300;
+    public static readonly HEIGHT = 300;
 
     // TODO: try to use a splitView. So that we can use a sash instead of manually set the border.
     protected readonly _titlePart!: NavigationViewTitlePart;
