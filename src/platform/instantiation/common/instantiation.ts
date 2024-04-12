@@ -247,8 +247,6 @@ export class InstantiationService implements IInstantiationService {
             servicesArgs.push(service);
         }
 
-        // ...
-
         return new constructor(...[...args, ...servicesArgs]);
     }
 
