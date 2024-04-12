@@ -6,7 +6,7 @@ import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
 import { Numbers } from "src/base/common/utilities/number";
 
 /**
@@ -21,6 +21,10 @@ export interface ISplitView extends Disposable {
 
     /**
      * The total visible width / height of the split view.
+     *      - When orientation is 'horizontal', this means the total 'width' in
+     *          pixel of the split view.
+     *      - When orientation is 'vertical', this means the total 'height' in
+     *          pixel of the split view.
      */
     readonly size: number;
 
@@ -35,7 +39,7 @@ export interface ISplitView extends Disposable {
     readonly onDidSashReset: Register<number>;
 
     /**
-     * Fires when the split view has relayout the size.
+     * Fires when the split view has re-layout.
      */
     readonly onDidLayout: Register<IDimension>;
     
@@ -74,11 +78,18 @@ export interface ISplitView extends Disposable {
      * @description Returns the corresponding sash at the given index. Undefined
      * if not exist.
      * @param index The index of the sash inside splitView.
+     * 
+     * @note When the split view has a number of (n) views, there will only be a
+     *       number of (n - 1) sashes.
      */
     getSashAt(index: number): ISash | undefined;
 
     /**
      * @description Layout the split view with the updated width and height.
+     *      - When orientation is 'horizontal', the 'width' is used as the new 
+     *          split view size.
+     *      - When orientation is 'vertical', the 'height' is used as the new 
+     *          split view size.
      */
     layout(width: number, height: number): void;
 }
@@ -91,11 +102,12 @@ export interface ISplitViewOpts {
     /**
      * Determines the layout direction of the {@link ISplitView}.
      */
-    orientation: Orientation;
+    readonly orientation: Orientation;
 
     /**
      * Options of constructing initial views during the construction of 
-     * {@link ISplitView}. Views can be added later on by calling {@link ISplitView.addView}.
+     * {@link ISplitView}. Views can also be added later on by calling 
+     * {@link ISplitView.addView}.
      */
     readonly viewOpts?: ISplitViewItemOpts[];
 }
@@ -103,13 +115,17 @@ export interface ISplitViewOpts {
 /**
  * @class An UI component that enable to layout a collection of highly 
  * customizable {@link ISplitViewItemOpts} instances in a one-dimensional 
- * direction.
+ * direction. These views are also resizable.
  * 
  * @note The view instances are essentially wrappers of {@link HTMLElement}s and 
- * with the size restrictions such as maximum size, minimum size and priority.
+ *       with the size restrictions such as maximum size, minimum size and 
+ *       priority.
  * 
  * @note A {@link ISash} will be created between each view instance to ensure
- * the size restrictions are followed.
+ *       the size restrictions are followed.
+ * 
+ * @note When resizing any views, the required additional or removing pixels 
+ *       will be evenly distributed by the priority of each view.
  * 
  * Functionalities:
  *  - Supports vertical and horizontal layout of views.
@@ -270,6 +286,8 @@ export class SplitView extends Disposable implements ISplitView {
         if (opt.index === undefined) {
             opt.index = this.viewItems.length;
         }
+        assert(opt.index >= 0);
+        assert(opt.index <= this.viewItems.length);
 
         if (opt.priority === undefined) {
             opt.priority = Priority.Low;
