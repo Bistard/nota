@@ -22,6 +22,7 @@ export class ActionBar extends Component implements IActionBarService {
     declare _serviceMarker: undefined;
 
     // [field]
+    public static readonly HEIGHT = 60;
 
     private readonly _primary: WidgetBar<ToolButton>;
     private _currButtonType: string = ToolButtonType.NONE;

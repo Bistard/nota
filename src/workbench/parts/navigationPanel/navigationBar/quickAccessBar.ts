@@ -12,6 +12,10 @@ export interface IQuickAccessBarService extends IComponent, IService {
 }
 export class QuickAccessBar extends Component {
 
+    // [fields]
+
+    public static readonly HEIGHT = 40;
+
     // [constructor]
 
     constructor(
@@ -20,12 +24,6 @@ export class QuickAccessBar extends Component {
     ) {
         super('quick-access-bar', null, themeService, componentService);
     }
-
-    public render(container: HTMLElement): void {
-        this._createContent();
-        container.appendChild(this.element.element);
-    }
-    
 
     public registerButtons(): void {
         

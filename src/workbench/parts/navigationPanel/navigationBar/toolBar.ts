@@ -87,11 +87,7 @@ export class ToolBar extends Component implements IToolBarService {
 
     // [field]
 
-    public static readonly HEIGHT = 80;
-
-    // private _quickAccessBar: QuickAccessBar;
-    // private _actionBar: ActionBar;
-    // private _filterBar: FilterBar;
+    public static readonly HEIGHT = 100;
 
     // This flag toggles between ActionBar and FilterBar
     private _toggleState: boolean = false;  /** ONLY FOR TEST PRUPOSES */
@@ -113,9 +109,6 @@ export class ToolBar extends Component implements IToolBarService {
         @ILogService private readonly logService: ILogService,
     ) {
         super('tool-bar', null, themeService, componentService);
-        // this._quickAccessBar = new QuickAccessBar(componentService, themeService);
-        // this._actionBar = new ActionBar(componentService, themeService, logService);
-        // this._filterBar = new FilterBar();
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
 
@@ -137,26 +130,22 @@ export class ToolBar extends Component implements IToolBarService {
 
     protected override _createContent(): void {
 
-        // Register more buttons along with future development
-        this.actionBarService.registerPrimaryButton({
-            id: ToolButtonType.EXPLORER,
-            icon: Icons.Folder,
-            isPrimary: true,
-        });
+        // Register buttons along with future development
+        // Now registered one in layout.ts - EXPLORE folder icon
 
         const partConfigurations = [
             { 
                 component: this.quickAccessBarService,
-                minimumSize: 20, // should const
-                maximumSize: Number.MAX_VALUE,
-                initSize: 20,
+                minimumSize: QuickAccessBar.HEIGHT,
+                maximumSize: QuickAccessBar.HEIGHT,
+                initSize: QuickAccessBar.HEIGHT,
                 priority: Priority.Normal,
             },
             { 
                 component: this.actionBarService,
-                minimumSize: 20,
-                maximumSize: Number.MAX_VALUE,
-                initSize: 20,
+                minimumSize: ActionBar.HEIGHT,
+                maximumSize: Number.MAX_VALUE, //
+                initSize: ActionBar.HEIGHT,
                 priority: Priority.Normal,
             },
         ];

@@ -134,10 +134,10 @@ class SideBarBuilder {
                 id: ToolButtonType.EXPLORER,
                 icon: Icons.Folder,
             },
-            {
-                id: ToolButtonType.OUTLINE,
-                icon: Icons.List,
-            },
+            // {
+            //     id: ToolButtonType.OUTLINE,
+            //     icon: Icons.List,
+            // },
             // { id: ToolButtonType.SEARCH, icon: Icons.Search },
             // { id: ToolButtonType.GIT, icon: Icons.CodeBranch },
         ]

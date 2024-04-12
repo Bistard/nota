@@ -1,4 +1,4 @@
-#tool-bar, #function-bar {
+#tool-bar, #function-bar, #action-bar {
 
     /* display in row */
     display: flex;
@@ -11,7 +11,7 @@
     max-width: 600px;
     min-width: 300px;
     height: 100%;
-    background-color: #E2E2E2;
+    background-color: #fcfcfc;
     
     -webkit-app-region: drag; /* draggable */
 
@@ -23,12 +23,12 @@
         position: relative;
         height: 50px;
         width: 100%;
-        background-color: #FFFFFF;
+        background-color: #fcfcfc;
 
         & > .quick-access-bar {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 10px;
+            left: 10px;
             height: 100%;
             width: 100%;
             background-color: transparent;
@@ -36,11 +36,11 @@
     }
 
     & > .logo {
-        top: 2px;
+        top: 10px;
         padding-left: 10px;
         justify-content: center;
         
-        font-size: 26px;
+        font-size: 24px;
         font-family: 'happy family';
 
         &:hover {
@@ -49,11 +49,11 @@
     }
 
     & > .general-button-container {
-        top: 40px;
+        top: 80px;
         height: 40px;
         width: 100%;
         justify-content: center;
-        background-color: rgb(242, 242, 242);
+        background-color: #fcfcfc;
     }
 
     & > .secondary-button-container {
@@ -64,14 +64,14 @@
         background-color: #fcfcfc;
     }
 
-    & .side-button {
-        width: 80px;
-        height: 80px;
+    & .tool-button {
+        width: 30px;
+        height: 30px;
         align-content: center;
         display: flex;
 
         & > .icon {
-            font-size: 24px;
+            font-size: 18px;
         }
 
         &:hover {
