@@ -52,11 +52,12 @@ export class NavigationPanel extends Component implements INavigationPanelServic
                 component: this.toolBarService,
                 minimumSize: ToolBar.HEIGHT,
                 maximumSize: ToolBar.HEIGHT,
+                initSize: ToolBar.HEIGHT,
             },
             { 
                 component: this.navigationViewService,
                 minimumSize: NavView.HEIGHT,
-                maximumSize: Number.POSITIVE_INFINITY,
+                maximumSize: null,
                 initSize: NavView.HEIGHT,
             },
             { 
