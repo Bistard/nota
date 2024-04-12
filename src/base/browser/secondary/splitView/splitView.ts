@@ -168,20 +168,15 @@ export class SplitView extends Disposable implements ISplitView {
         this.viewContainer = document.createElement('div');
         this.viewContainer.className = 'view-container';
 
-        if (this._orientation === Orientation.Horizontal) {
-            this._size = DomUtility.Attrs.getContentWidth(container);
-        } else {
-            this._size = DomUtility.Attrs.getContentHeight(container);
-        }
+        this._size = (this._orientation === Orientation.Horizontal)
+            ? DomUtility.Attrs.getContentWidth(container)
+            : DomUtility.Attrs.getContentHeight(container);
         
-
         this.viewItems = [];
         this.sashItems = [];
-        
-        if (opts.viewOpts) {
-            for (const viewOpt of opts.viewOpts) {
-                this.__doAddView(viewOpt);
-            }
+
+        for (const viewOpt of opts.viewOpts ?? []) {
+            this.__doAddView(viewOpt);
         }
         
         this.__render();
