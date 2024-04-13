@@ -1,7 +1,7 @@
 import 'src/workbench/services/component/media.scss';
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
-import { Emitter, Priority, Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Themable } from "src/workbench/services/theme/theme";
@@ -33,22 +33,34 @@ export interface IComponent extends ICreatable {
      */
     readonly id: string;
 
-    /** Fires when the component is focused or blurred (true represents focused). */
+    /** 
+     * Fires when the component is focused or blurred (true represents focused). 
+     */
     readonly onDidFocusChange: Register<boolean>;
 
-    /** Fires when the component visibility is changed. */
+    /** 
+     * Fires when the component visibility is changed. 
+     */
     readonly onDidVisibilityChange: Register<boolean>;
 
-    /** Fires when the component is layouting. */
+    /** 
+     * Fires when the component is layout-ing. 
+     */
     readonly onDidLayout: Register<IDimension>;
 
-    /** The parent {@link IComponent} of the current component. */
+    /** 
+     * The parent {@link IComponent} of the current component. 
+     */
     readonly parentComponent: IComponent | undefined;
 
-    /** The parent {@link HTMLElement} of the current component. */
+    /** 
+     * The parent {@link HTMLElement} of the current component. 
+     */
     readonly parent: HTMLElement | undefined;
 
-    /** The DOM element of the current component. */
+    /** 
+     * The DOM element of the current component. 
+     */
     readonly element: FastElement<HTMLElement>;
 
     /**
@@ -57,18 +69,43 @@ export interface IComponent extends ICreatable {
      *                        under this component. If no parentComponent is 
      *                        provided, the component will be rendered under 
      *                        this parent component.
-     * @param shouldRender If not shouldRender, `create` will not append the 
-     *                     `this.element` to any parent containers. The client 
-     *                     must handle the rendering process manually by 
-     *                     themselves. Default is `true`.
      * @note If both not provided, either renders under the constructor provided 
-     * element, or `document.body`.
+     *       HTMLElement, or `document.body`.
      */
-    create(parentComponent?: IComponent, shouldRender?: boolean): void;
+    create(parentComponent?: IComponent): void;
 
-    // TODO: documentation
-    manuallyRender(parentComponent?: IComponent): void;
-    manuallyRenderContent(): void;
+    /**
+     * @description Appends the component to the DOM. This method represents the 
+     * first step in the 'create()' process and solely handles the insertion of 
+     * the component into the DOM tree.
+     * @param parentComponent If provided, the component will be registered 
+     *                        under this component. If no parentComponent is 
+     *                        provided, the component will be rendered under 
+     *                        this parent component.
+     * @note If both not provided, either renders under the constructor provided 
+     *       HTMLElement, or `document.body`.
+     * @note `createInDom()` and `createContent()` are useful when you wish to
+     *       have extra operations between those two operations. Otherwise you
+     *       may invoke `create()` for simplicity.
+     */
+    createInDom(parentComponent?: IComponent): void;
+
+    /**
+     * @description Renders the content of the component. This method is the 
+     * second step in the 'create()' process, following the insertion of the 
+     * component into the DOM. 
+     * @note It triggers the internal '_createContent' method to render the 
+     *       component's actual contents.
+     * @note `createInDom()` and `createContent()` are useful when you wish to
+     *       have extra operations between those two operations. Otherwise you
+     *       may invoke `create()` for simplicity.
+     */
+    createContent(): void;
+    
+    /**
+     * @description Registers any listeners in the component.
+     */
+    registerListeners(): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -79,11 +116,6 @@ export interface IComponent extends ICreatable {
      * will layout the missing one either with the previous value or just zero.
      */
     layout(width?: number, height?: number): void;
-
-    /**
-     * @description Registers any listeners in the component.
-     */
-    registerListeners(): void;
 
     /**
      * @description Register a child {@link IComponent} into the current Component.
@@ -140,7 +172,7 @@ export interface IComponent extends ICreatable {
     /**
      * @description Checks if the component has created.
      */
-    created(): boolean;
+    isCreated(): boolean;
 
     /**
      * @description Disposes the current component and all its children 
@@ -178,9 +210,11 @@ export abstract class Component extends Themable implements IComponent {
 
     private readonly _focusTracker: FocusTracker;
 
-    private _created: boolean;
-    private _registered: boolean;
+    private _isInDom: boolean;    // is rendered in DOM tree
+    private _created: boolean;    // is `_createContent` invoked
+    private _registered: boolean; // is `_registerListeners` invoked
     
+    /** Relatives to {@link assembleComponents()} */
     private _splitView: ISplitView | undefined;
 
     // [event]
@@ -208,10 +242,11 @@ export abstract class Component extends Themable implements IComponent {
         componentService: IComponentService,
     ) {
         super(themeService);
-
+        this._isInDom = false;
         this._created = false;
         this._registered = false;
         this._children = new Map();
+        this._splitView = undefined;
 
         this._element = new FastElement(document.createElement('div'));
         this._element.addClassList('component-ui');
@@ -256,7 +291,7 @@ export abstract class Component extends Themable implements IComponent {
     // [protected override method]
 
     protected override __onThemeChange(newTheme: IColorTheme): void {
-        if (this._created) {
+        if (this.isCreated()) {
             super.__onThemeChange(newTheme);
         }
     }
@@ -269,16 +304,16 @@ export abstract class Component extends Themable implements IComponent {
         return this._element.getID();
     }
 
-    public create(parentComponent?: IComponent, shouldRender: boolean = true): void {
-        this.manuallyRender(parentComponent);
-        this.manuallyRenderContent();
+    public create(parentComponent?: IComponent): void {
+        this.createInDom(parentComponent);
+        this.createContent();
     }
 
-    public manuallyRender(parentComponent?: IComponent): void {
-        if (this._created || this.isDisposed()) {
+    public createInDom(parentComponent?: IComponent): void {
+        if (this._isInDom || this.isCreated() || this.isDisposed()) {
             return;
         }
-
+        
         if (parentComponent) {
             this._parentComponent = parentComponent;
             parentComponent.registerComponent(this);
@@ -287,9 +322,14 @@ export abstract class Component extends Themable implements IComponent {
         // actual rendering
         this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
         this._parentElement.appendChild(this._element.element);
+        this._isInDom = true;
     }
 
-    public manuallyRenderContent(): void {
+    public createContent(): void {
+        if (!this._isInDom) {
+            return;
+        }
+
         this._createContent();
         this._created = true;
     }
@@ -320,7 +360,7 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public registerListeners(): void {
-        if (this.isDisposed() || this._registered || !this._created) {
+        if (this.isDisposed() || this._registered || !this.isCreated()) {
             return;
         }
 
@@ -344,18 +384,16 @@ export abstract class Component extends Themable implements IComponent {
         this.__register(component);
     }
 
-    public created(): boolean {
-        return this._created;
+    public isCreated(): boolean {
+        return this._isInDom && this._created;
     }
 
     public setVisible(value: boolean): void {
-
         if (value === true) {
             this._element.setVisibility('visible');
         } else {
             this._element.setVisibility('hidden');
         }
-
         this._onDidVisibilityChange.fire(value);
     }
 
@@ -394,20 +432,19 @@ export abstract class Component extends Themable implements IComponent {
         }
     }
 
-    public assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void {
+    public assembleComponents(orientation: Orientation, assembleOptions: IAssembleComponentOpts[]): void {
         if (this._splitView) {
-            panic("Cannot apply the function `` twice. ");
+            panic('Cannot apply the function "assembleComponents" twice.');
         }
     
-        const splitViewOpt: Required<ISplitViewOpts> = {
+        const splitViewOption: Required<ISplitViewOpts> = {
             orientation,
             viewOpts: [],
         };
 
-        for (const config of options) {
-            const { component, minimumSize, maximumSize, initSize, priority } = config;
-            component.manuallyRender(this);
-            splitViewOpt.viewOpts.push({
+        for (const { component, minimumSize, maximumSize, initSize, priority } of assembleOptions) {
+            component.createInDom(this);
+            splitViewOption.viewOpts.push({
                 element: component.element.element,
                 minimumSize: minimumSize,
                 maximumSize: maximumSize,
@@ -417,16 +454,16 @@ export abstract class Component extends Themable implements IComponent {
         }
         
         // construct the split-view
-        this._splitView = this.__register(new SplitView(this.element.element, splitViewOpt));
+        this._splitView = this.__register(new SplitView(this.element.element, splitViewOption));
     
-        // construct children compoenents recursively
-        for (const { component } of options) {
-            component.manuallyRenderContent();
+        // construct children components recursively
+        for (const { component } of assembleOptions) {
+            component.createContent();
         }
 
         // apply sash configuration if any
         for (let i = 0; i < this._splitView.count - 1; i++) {
-            const option = options[i]!;
+            const option = assembleOptions[i]!;
 
             const sashOpts = option.sashConfiguration;
             if (!sashOpts) {
