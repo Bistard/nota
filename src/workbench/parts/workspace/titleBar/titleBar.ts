@@ -7,6 +7,7 @@ import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IProductService } from 'src/platform/product/common/productService';
+import { ILogService } from 'src/base/common/logger';
 
 /**
  * @class TitleBar stores and handles all the titleBar and functionBar 
@@ -21,8 +22,9 @@ export class TitleBar extends Component {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
         @IProductService private readonly productService: IProductService,
+        @ILogService logService: ILogService,
     ) {
-        super('title-bar', null, themeService, componentService);
+        super('title-bar', null, themeService, componentService, logService);
     }
 
     protected override _createContent(): void {

@@ -33,7 +33,7 @@ export abstract class WorkbenchLayout extends Component {
 
     constructor(
         protected readonly instantiationService: IInstantiationService,
-        @ILogService protected readonly logService: ILogService,
+        @ILogService logService: ILogService,
         @ILayoutService protected readonly layoutService: ILayoutService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
@@ -46,7 +46,7 @@ export abstract class WorkbenchLayout extends Component {
         @IConfigurationService protected readonly configurationService: IConfigurationService,
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
-        super('workbench', layoutService.parentContainer, themeService, componentService);
+        super('workbench', layoutService.parentContainer, themeService, componentService, logService);
         this.__registerSideViews();
     }
 

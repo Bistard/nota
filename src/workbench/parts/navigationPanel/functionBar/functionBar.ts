@@ -57,9 +57,9 @@ export class FunctionBar extends Component implements IFunctionBarService {
     constructor(
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
     ) {
-        super('function-bar', null, themeService, componentService);
+        super('function-bar', null, themeService, componentService, logService);
         this._secondary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
     

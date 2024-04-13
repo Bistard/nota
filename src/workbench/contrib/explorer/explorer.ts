@@ -21,7 +21,6 @@ import { SideView } from 'src/workbench/parts/sideView/sideView';
 import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
-import { RGBA } from 'src/base/common/color';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
@@ -69,14 +68,14 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IDialogService private readonly dialogService: IBrowserDialogService,
         @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
-        super(ExplorerViewID, parentElement, themeService, componentService);
+        super(ExplorerViewID, parentElement, themeService, componentService, logService);
 
         lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
     }

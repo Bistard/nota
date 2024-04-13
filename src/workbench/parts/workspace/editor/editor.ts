@@ -34,10 +34,10 @@ export class Editor extends Component implements IEditorService {
         // @ISideViewService private readonly sideViewService: ISideViewService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
-        super('editor', null, themeService, componentService);
+        super('editor', null, themeService, componentService, logService);
         this._editorWidget = null;
     }
 

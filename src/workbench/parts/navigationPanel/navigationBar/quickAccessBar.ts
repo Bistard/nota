@@ -5,6 +5,7 @@ import { ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBa
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
+import { ILogService } from 'src/base/common/logger';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 export interface IQuickAccessBarService extends IComponent, IService {
@@ -21,8 +22,9 @@ export class QuickAccessBar extends Component {
     constructor(
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
+        @ILogService logService: ILogService,
     ) {
-        super('quick-access-bar', null, themeService, componentService);
+        super('quick-access-bar', null, themeService, componentService, logService);
     }
 
     public registerButtons(): void {

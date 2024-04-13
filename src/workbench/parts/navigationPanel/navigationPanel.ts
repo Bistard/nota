@@ -9,6 +9,7 @@ import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavigationView, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
+import { ILogService } from "src/base/common/logger";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
@@ -31,8 +32,9 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         @IToolBarService protected readonly toolBarService: IToolBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @IThemeService themeService: IThemeService,
+        @ILogService logService: ILogService,
     ) {
-        super('navigation-panel', null, themeService, componentService);
+        super('navigation-panel', null, themeService, componentService, logService);
     }
 
     // [protected override methods]

@@ -102,9 +102,9 @@ export class SideViewService extends Component implements ISideViewService {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
     ) {
-        super('side-view', null, themeService, componentService);
+        super('side-view', null, themeService, componentService, logService);
         this._viewCtors = new Map();
     }
 

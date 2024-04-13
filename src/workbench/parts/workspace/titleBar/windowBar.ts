@@ -8,6 +8,7 @@ import { WindowButton } from "src/workbench/parts/workspace/titleBar/windowButto
 import { IHostService } from "src/platform/host/common/hostService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
+import { ILogService } from 'src/base/common/logger';
 
 export class WindowBar extends Component {
 
@@ -18,8 +19,9 @@ export class WindowBar extends Component {
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
         @ILifecycleService private readonly lifeCycleService: IBrowserLifecycleService,
+        @ILogService logService: ILogService,
     ) {
-        super('window-bar', null, themeService, componentService);
+        super('window-bar', null, themeService, componentService, logService);
 
     }
 

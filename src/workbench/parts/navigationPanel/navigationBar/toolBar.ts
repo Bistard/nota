@@ -106,9 +106,9 @@ export class ToolBar extends Component implements IToolBarService {
         @IActionBarService private readonly actionBarService: IActionBarService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
     ) {
-        super('tool-bar', null, themeService, componentService);
+        super('tool-bar', null, themeService, componentService, logService);
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
 

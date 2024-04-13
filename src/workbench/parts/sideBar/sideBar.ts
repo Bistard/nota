@@ -114,9 +114,9 @@ export class SideBar extends Component implements ISideBarService {
     constructor(
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
     ) {
-        super('side-bar', null, themeService, componentService);
+        super('side-bar', null, themeService, componentService, logService);
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Vertical });
         this._secondary = new WidgetBar(undefined, { orientation: Orientation.Vertical });
     }

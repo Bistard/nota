@@ -31,10 +31,12 @@ export class ActionBar extends Component implements IActionBarService {
 
     // [constructor]
 
-    constructor(@IComponentService componentService: IComponentService,
-                @IThemeService themeService: IThemeService,
-                @ILogService private readonly logService: ILogService) {
-        super('action-bar', null, themeService, componentService);
+    constructor(
+        @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
+        @ILogService logService: ILogService,
+    ) {
+        super('action-bar', null, themeService, componentService, logService);
         this._primary = new WidgetBar(undefined, { orientation: Orientation.Vertical }); // Make it horizontal
     }
 

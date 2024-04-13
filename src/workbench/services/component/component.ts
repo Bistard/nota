@@ -12,6 +12,7 @@ import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondar
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
+import { ILogService } from 'src/base/common/logger';
 
 export interface ICreatable {
     create(): void;
@@ -240,6 +241,7 @@ export abstract class Component extends Themable implements IComponent {
         parentElement: HTMLElement | null,
         themeService: IThemeService,
         componentService: IComponentService,
+        protected readonly logService: ILogService,
     ) {
         super(themeService);
         this._isInDom = false;

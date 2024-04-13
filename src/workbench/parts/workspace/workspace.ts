@@ -6,6 +6,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from "src/workbench/services/theme/themeService";
+import { ILogService } from "src/base/common/logger";
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -28,8 +29,9 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
+        @ILogService logService: ILogService,
     ) {
-        super('workspace', null, themeService, componentService);
+        super('workspace', null, themeService, componentService, logService);
     }
 
     // [protected override methods]
