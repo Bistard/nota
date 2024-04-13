@@ -7,12 +7,13 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { assert, panic } from "src/base/common/utilities/panic";
+import { assert, check, panic } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { ILogService } from 'src/base/common/logger';
+import { isNonNullable } from 'src/base/common/utilities/type';
 
 export interface ICreatable {
     create(): void;
@@ -72,6 +73,7 @@ export interface IComponent extends ICreatable {
      *                        this parent component.
      * @note If both not provided, either renders under the constructor provided 
      *       HTMLElement, or `document.body`.
+     * @panic
      */
     create(parentComponent?: IComponent): void;
 
@@ -88,6 +90,7 @@ export interface IComponent extends ICreatable {
      * @note `createInDom()` and `createContent()` are useful when you wish to
      *       have extra operations between those two operations. Otherwise you
      *       may invoke `create()` for simplicity.
+     * @panic
      */
     createInDom(parentComponent?: IComponent): void;
 
@@ -100,6 +103,7 @@ export interface IComponent extends ICreatable {
      * @note `createInDom()` and `createContent()` are useful when you wish to
      *       have extra operations between those two operations. Otherwise you
      *       may invoke `create()` for simplicity.
+     * @panic
      */
     createContent(): void;
     
@@ -157,6 +161,11 @@ export interface IComponent extends ICreatable {
      * children of the current component.
      */
     getDirectComponents(): [string, IComponent][];
+
+    /**
+     * // TODO
+     */
+    assembleComponents(orientation: Orientation, assembleOptions: IAssembleComponentOpts[]): void;
 
     /**
      * @description Sets the visibility of the current component.
@@ -240,15 +249,16 @@ export abstract class Component extends Themable implements IComponent {
         id: string,
         parentElement: HTMLElement | null,
         themeService: IThemeService,
-        componentService: IComponentService,
+        protected readonly componentService: IComponentService,
         protected readonly logService: ILogService,
     ) {
         super(themeService);
-        this._isInDom = false;
-        this._created = false;
+        
+        this._isInDom    = false;
+        this._created    = false;
         this._registered = false;
-        this._children = new Map();
-        this._splitView = undefined;
+        this._children   = new Map();
+        this._splitView  = undefined;
 
         this._element = new FastElement(document.createElement('div'));
         this._element.addClassList('component-ui');
@@ -257,13 +267,15 @@ export abstract class Component extends Themable implements IComponent {
         this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
-        if (parentElement) {
-            this._parentElement = parentElement;
-        }
+        this._parentElement = parentElement ?? undefined;
         componentService.register(this);
+
+        this.logService.trace(`${this.id}`, 'UI component constructed.');
     }
 
     // [getter]
+
+    get id() { return this._element.getID(); }
 
     get parentComponent() { return this._parentComponent; }
 
@@ -302,19 +314,15 @@ export abstract class Component extends Themable implements IComponent {
 
     // [public method]
 
-    get id(): string {
-        return this._element.getID();
-    }
-
     public create(parentComponent?: IComponent): void {
         this.createInDom(parentComponent);
         this.createContent();
     }
 
     public createInDom(parentComponent?: IComponent): void {
-        if (this._isInDom || this.isCreated() || this.isDisposed()) {
-            return;
-        }
+        check(this._isInDom     === false, 'Cannot "createInDom()" twice.');
+        check(this.isCreated()  === false, 'Must be called before "createContent()"');
+        check(this.isDisposed() === false, 'The component is already disposed.');
         
         if (parentComponent) {
             this._parentComponent = parentComponent;
@@ -325,19 +333,24 @@ export abstract class Component extends Themable implements IComponent {
         this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
         this._parentElement.appendChild(this._element.element);
         this._isInDom = true;
+        
+        this.logService.trace(`${this.id}`, 'Component is rendered under the DOM tree.');
     }
 
     public createContent(): void {
-        if (!this._isInDom) {
-            return;
-        }
+        check(this._isInDom     === true , 'Must be called after "createInDom()"');
+        check(this.isCreated()  === false, 'Cannot "createContent()" twice.');
+        check(this.isDisposed() === false, 'The component is already disposed.');
 
+        this.logService.trace(`${this.id}`, 'Component is about to create content...');
         this._createContent();
+        
+        this.logService.trace(`${this.id}`, 'Component content created successfully.');
         this._created = true;
     }
 
     public layout(width?: number, height?: number): void {
-        if (!this._parentElement) {
+        if (!this._parentElement || !DomUtility.Elements.ifInDomTree(this._parentElement)) {
             return;
         }
 
@@ -350,10 +363,9 @@ export abstract class Component extends Themable implements IComponent {
 
         // If any dimensions is provided, we force to follow it.
         else {
-            this._dimension = this._dimension
+            this._dimension = isNonNullable(this._dimension)
                 ? this._dimension.clone(width, height)
-                : new Dimension(width ?? 0, height ?? 0)
-            ;
+                : new Dimension(width ?? 0, height ?? 0);
             this._element.setWidth(this._dimension.width);
             this._element.setHeight(this._dimension.height);
         }
@@ -362,11 +374,14 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public registerListeners(): void {
-        if (this.isDisposed() || this._registered || !this.isCreated()) {
-            return;
-        }
+        check(this._registered  === false, 'Cannot "registerListeners()" twice.');
+        check(this.isCreated()  === true , 'Cannot "createContent()" twice.');
+        check(this.isDisposed() === false, 'The component is already disposed.');
 
+        this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
         this._registerListeners();
+        
+        this.logService.trace(`${this.id}`, 'Component register listeners succeeded.');
         this._registered = true;
     }
 
@@ -427,18 +442,10 @@ export abstract class Component extends Themable implements IComponent {
         return result;
     }
 
-    public override dispose(): void {
-        super.dispose();
-        for (const [id, child] of this._children) {
-            child.dispose();
-        }
-    }
-
     public assembleComponents(orientation: Orientation, assembleOptions: IAssembleComponentOpts[]): void {
-        if (this._splitView) {
-            panic('Cannot apply the function "assembleComponents" twice.');
-        }
-    
+        assert(this._splitView, 'Cannot invoke "assembleComponents()" twice.');
+        this.logService.trace(`${this.id}`, 'Component assembling components...');
+
         const splitViewOption: Required<ISplitViewOpts> = {
             orientation,
             viewOpts: [],
@@ -486,5 +493,15 @@ export abstract class Component extends Themable implements IComponent {
             const _dimension = assert(this.dimension);
             this._splitView?.layout(_dimension.width, _dimension.height);
         }));
+
+        this.logService.trace(`${this.id}`, 'Component assembling components succeeded.');
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        for (const [id, child] of this._children) {
+            child.dispose();
+        }
+        this._splitView?.dispose();
     }
 }
