@@ -1,3 +1,4 @@
+import 'src/workbench/services/component/media.scss';
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
@@ -53,13 +54,21 @@ export interface IComponent extends ICreatable {
     /**
      * @description Renders the component itself.
      * @param parentComponent If provided, the component will be registered 
-     *                        under this component. If no parentElement is 
+     *                        under this component. If no parentComponent is 
      *                        provided, the component will be rendered under 
      *                        this parent component.
+     * @param shouldRender If not shouldRender, `create` will not append the 
+     *                     `this.element` to any parent containers. The client 
+     *                     must handle the rendering process manually by 
+     *                     themselves. Default is `true`.
      * @note If both not provided, either renders under the constructor provided 
      * element, or `document.body`.
      */
-    create(parentComponent?: IComponent): void;
+    create(parentComponent?: IComponent, shouldRender?: boolean): void;
+
+    // TODO: documentation
+    manuallyRender(parentComponent?: IComponent): void;
+    manuallyRenderContent(): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -205,6 +214,7 @@ export abstract class Component extends Themable implements IComponent {
         this._children = new Map();
 
         this._element = new FastElement(document.createElement('div'));
+        this._element.addClassList('component-ui');
         this._element.setID(id);
 
         this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
@@ -259,7 +269,12 @@ export abstract class Component extends Themable implements IComponent {
         return this._element.getID();
     }
 
-    public create(parentComponent?: IComponent): void {
+    public create(parentComponent?: IComponent, shouldRender: boolean = true): void {
+        this.manuallyRender(parentComponent);
+        this.manuallyRenderContent();
+    }
+
+    public manuallyRender(parentComponent?: IComponent): void {
         if (this._created || this.isDisposed()) {
             return;
         }
@@ -272,8 +287,9 @@ export abstract class Component extends Themable implements IComponent {
         // actual rendering
         this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
         this._parentElement.appendChild(this._element.element);
+    }
 
-        // rendering the content
+    public manuallyRenderContent(): void {
         this._createContent();
         this._created = true;
     }
@@ -387,12 +403,10 @@ export abstract class Component extends Themable implements IComponent {
             orientation,
             viewOpts: [],
         };
-    
+
         for (const config of options) {
             const { component, minimumSize, maximumSize, initSize, priority } = config;
-            component.create(this);
-            component.registerListeners();
-    
+            component.manuallyRender(this);
             splitViewOpt.viewOpts.push({
                 element: component.element.element,
                 minimumSize: minimumSize,
@@ -401,10 +415,15 @@ export abstract class Component extends Themable implements IComponent {
                 priority,
             });
         }
-    
+        
         // construct the split-view
         this._splitView = this.__register(new SplitView(this.element.element, splitViewOpt));
     
+        // construct children compoenents recursively
+        for (const { component } of options) {
+            component.manuallyRenderContent();
+        }
+
         // apply sash configuration if any
         for (let i = 0; i < this._splitView.count - 1; i++) {
             const option = options[i]!;
@@ -423,6 +442,7 @@ export abstract class Component extends Themable implements IComponent {
     
         // register listeners
         this.__register(addDisposableListener(window, EventType.resize, () => {
+            // FIX: does not trigger (unknown)
             this.layout();
             const _dimension = assert(this.dimension);
             this._splitView?.layout(_dimension.width, _dimension.height);
