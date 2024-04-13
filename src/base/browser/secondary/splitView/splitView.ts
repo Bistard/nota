@@ -6,7 +6,7 @@ import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
-import { assert, panic } from "src/base/common/utilities/panic";
+import { check, panic } from "src/base/common/utilities/panic";
 import { Numbers } from "src/base/common/utilities/number";
 
 /**
@@ -107,7 +107,7 @@ export interface ISplitViewOpts {
     /**
      * Options of constructing initial views during the construction of 
      * {@link ISplitView}. Views can also be added later on by calling 
-     * {@link ISplitView.addView}.
+     * {@link ISplitView.addView()}.
      */
     readonly viewOpts?: ISplitViewItemOpts[];
 }
@@ -281,8 +281,8 @@ export class SplitView extends Disposable implements ISplitView {
         if (opt.index === undefined) {
             opt.index = this.viewItems.length;
         }
-        assert(opt.index >= 0);
-        assert(opt.index <= this.viewItems.length);
+        check(opt.index >= 0);
+        check(opt.index <= this.viewItems.length);
 
         if (opt.priority === undefined) {
             opt.priority = Priority.Low;

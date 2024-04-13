@@ -1,6 +1,6 @@
 import { Orientation } from "src/base/browser/basic/dom";
 import { Priority } from "src/base/common/event";
-import { assert, panic } from "src/base/common/utilities/panic";
+import { check, panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 
 /**
@@ -187,8 +187,8 @@ export class SplitViewItem implements ISplitViewItem {
             panic('[SplitViewItem] Provided maxSize is smaller than provided minSize');
         }
 
-        assert(this._maximumSize >= 0, '[SplitViewItem] maximumSize cannot < 0.');
-        assert(this._minimumSize >= 0, '[SplitViewItem] minimumSize cannot < 0.');
+        check(this._maximumSize >= 0, '[SplitViewItem] maximumSize cannot < 0.');
+        check(this._minimumSize >= 0, '[SplitViewItem] minimumSize cannot < 0.');
         
         this._resizePriority = opt.priority ?? Priority.Low;
         

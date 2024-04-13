@@ -47,6 +47,19 @@ export function assert<T>(obj: any, message?: string): T {
 }
 
 /**
+ * @description Evaluates a condition and triggers a panic if the condition is 
+ * false.
+ * @param condition If the condition is false, the function will trigger a panic.
+ * @param message Optional. The custom error message.
+ * @panic
+ */
+export function check(condition: boolean, message?: string): void {
+    if (!condition) {
+        panic(message ?? `unknown check condition error`);
+    }
+}
+
+/**
  * @description Asserts that an object is of a specific type. If the assertion 
  * fails, the function panic.
  * 
