@@ -1,5 +1,6 @@
 import { Orientation } from "src/base/browser/basic/dom";
 import { Priority } from "src/base/common/event";
+import { Numbers } from "src/base/common/utilities/number";
 import { check, panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 
@@ -74,6 +75,11 @@ export interface ISplitViewItemOpts {
 export interface ISplitViewItem {
     
     /**
+     * @description Returns the raw HTMLElement.
+     */
+    getElement(): HTMLElement;
+
+    /**
      * @description Updates the size of view and update the left / top of the 
      * view relatives to the whole window if the offset is given.
      * @param offset The given offset in numbers.
@@ -147,8 +153,6 @@ export interface ISplitViewItem {
      */
     setResizePriority(priority: Priority): void;
 
-    getElement(): HTMLElement;
-
     /**
      * @description Disposes the {@link HTMLElement} and all other internal data.
      */
@@ -163,15 +167,15 @@ export class SplitViewItem implements ISplitViewItem {
 
     // [field]
 
+    private _container: HTMLElement;
+    private _element: HTMLElement;
+
     private _maximumSize: number;
     private _minimumSize: number;
+    private _size: number;
+    private _resizePriority: Priority;
     
     private _disposed: boolean;
-    private _container: HTMLElement;
-    private _resizePriority: Priority;
-
-    private _element: HTMLElement;
-    private _size: number;
 
     // [constructor]
 
@@ -206,9 +210,7 @@ export class SplitViewItem implements ISplitViewItem {
     // [public methods]
 
     public render(orientation: Orientation, offset?: number): void {
-        if (this._disposed) {
-            return;
-        }
+        check(this._disposed === false, '[SplitViewItem] Cannot render after disposed.');
 
         // The splitView has a horizontal layout
         if (orientation === Orientation.Horizontal) {
@@ -224,7 +226,6 @@ export class SplitViewItem implements ISplitViewItem {
                 this._container.style.top = `${offset}px`;
             }
         }
-        
     }
 
     public isFlexible(): boolean {
@@ -232,11 +233,14 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public setSize(newSize: number): void {
+        check(Numbers.within(newSize, this._minimumSize, this._maximumSize, true, true));
         this._size = newSize;
     }
 
     public updateSize(offset: number): void {
-        this._size += offset;
+        const updated = this._size + offset;
+        check(Numbers.within(updated, this._minimumSize, this._maximumSize, true, true));
+        this._size = updated;
     }
 
     public getSize(): number {
@@ -248,6 +252,7 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public setMaxSize(newVal: number): void {
+        check(newVal >= this._size);
         this._maximumSize = newVal;
     }
 
@@ -256,6 +261,7 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public setMinSize(newVal: number): void {
+        check(newVal <= this._size);
         this._minimumSize = newVal;
     }
 

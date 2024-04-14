@@ -20,8 +20,20 @@ export interface ICreatable {
     registerListeners(): void;
 }
 
+/**
+ * The option to configure how to assemble each children component. See more in
+ * {@link Component.assembleComponents}.
+ */
 export interface IAssembleComponentOpts extends Pick<ISplitViewItemOpts, 'minimumSize' | 'maximumSize' | 'initSize' | 'priority'> {
+    
+    /**
+     * The child component to render.
+     */
     readonly component: IComponent;
+
+    /**
+     * Defines the sash behavior that after this component.
+     */
     readonly sashConfiguration?: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>;
 }
 
@@ -85,6 +97,9 @@ export interface IComponent extends ICreatable {
      *                        under this component. If no parentComponent is 
      *                        provided, the component will be rendered under 
      *                        this parent component.
+     * @param avoidRender If provided, this will force to avoid rendering the
+     *                    component into the DOM tree. The client must handle
+     *                    the rendering by themselves.
      * @note If both not provided, either renders under the constructor provided 
      *       HTMLElement, or `document.body`.
      * @note `createInDom()` and `createContent()` are useful when you wish to
@@ -92,7 +107,7 @@ export interface IComponent extends ICreatable {
      *       may invoke `create()` for simplicity.
      * @panic
      */
-    createInDom(parentComponent?: IComponent): void;
+    createInDom(parentComponent?: IComponent, avoidRender?: boolean): void;
 
     /**
      * @description Renders the content of the component. This method is the 
@@ -127,8 +142,8 @@ export interface IComponent extends ICreatable {
      * @param override If sets to true, it will override the existed one which 
      *                 has the same component id. Defaults to false.
      * 
-     * @warn Throws an error if the component has already been registered and
-     *       override sets to false.
+     * @panic Throws an error if the component has already been registered and
+     *        override sets to false.
      */
     registerComponent(component: IComponent, override?: boolean): void;
 
@@ -145,7 +160,7 @@ export interface IComponent extends ICreatable {
      * @description Returns the sub component by id.
      * @param id The string ID of the component.
      * @returns The required Component.
-     * @warn If no such component exists, an error throws.
+     * @panic If no such component exists, an error throws.
      */
     getComponent<T extends IComponent>(id: string): T | undefined;
 
@@ -163,9 +178,20 @@ export interface IComponent extends ICreatable {
     getDirectComponents(): [string, IComponent][];
 
     /**
-     * // TODO
+     * @description Constructs and arranges child components within this 
+     * component based on {@link SplitView}. Each child component configuration 
+     * is defined in {@link IAssembleComponentOpts} which includes details like 
+     * size constraints and sash behaviors.
+     * 
+     * @param orientation The orientation (horizontal or vertical) to arrange the 
+     *                    child components.
+     * @param options An array of options for configuring each child component.
+     * 
+     * @note This method initializes each child component in the DOM, configures 
+     *       their placement using {@link SplitView}.
+     * @panic If `assembleComponents` is invoked twice.
      */
-    assembleComponents(orientation: Orientation, assembleOptions: IAssembleComponentOpts[]): void;
+    assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void;
 
     /**
      * @description Sets the visibility of the current component.
@@ -319,7 +345,7 @@ export abstract class Component extends Themable implements IComponent {
         this.createContent();
     }
 
-    public createInDom(parentComponent?: IComponent): void {
+    public createInDom(parentComponent?: IComponent, avoidRender: boolean = false): void {
         check(this._isInDom     === false, 'Cannot "createInDom()" twice.');
         check(this.isCreated()  === false, 'Must be called before "createContent()"');
         check(this.isDisposed() === false, 'The component is already disposed.');
@@ -331,14 +357,15 @@ export abstract class Component extends Themable implements IComponent {
 
         // actual rendering
         this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
-        this._parentElement.appendChild(this._element.element);
-        this._isInDom = true;
+        if (avoidRender === false) {
+            this._parentElement.appendChild(this._element.element);
+            this._isInDom = true;
+        }
         
         this.logService.trace(`${this.id}`, 'Component is rendered under the DOM tree.');
     }
 
     public createContent(): void {
-        check(this._isInDom     === true , 'Must be called after "createInDom()"');
         check(this.isCreated()  === false, 'Cannot "createContent()" twice.');
         check(this.isDisposed() === false, 'The component is already disposed.');
 
@@ -442,37 +469,45 @@ export abstract class Component extends Themable implements IComponent {
         return result;
     }
 
-    public assembleComponents(orientation: Orientation, assembleOptions: IAssembleComponentOpts[]): void {
+    public assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void {
         check(!this._splitView, 'Cannot invoke "assembleComponents()" twice.');
-        this.logService.trace(`${this.id}`, 'Component assembling components...');
+        this.logService.trace(`${this.id}`, `Component assembling children components: ${options.map(each => each.component.id).join(', ')}`);
 
         const splitViewOption: Required<ISplitViewOpts> = {
             orientation,
             viewOpts: [],
         };
 
-        for (const { component, minimumSize, maximumSize, initSize, priority } of assembleOptions) {
-            component.createInDom(this);
+        /**
+         * Since {@link SplitView} manages its own rendering process, setting 
+         * `avoidRender` to true prevents redundant rendering.
+         */
+        const avoidRender = true;
+        for (const each of options) {
+            each.component.createInDom(this, avoidRender);
             splitViewOption.viewOpts.push({
-                element: component.element.element,
-                minimumSize: minimumSize,
-                maximumSize: maximumSize,
-                initSize,
-                priority,
+                element: each.component.element.element,
+                ...each,
             });
         }
         
-        // construct the split-view
+        /**
+         * Construct the {@link SplitView}. The child component will be rendered 
+         * into the DOM tree after the construction.
+         */
         this._splitView = this.__register(new SplitView(this.element.element, splitViewOption));
     
-        // construct children components recursively
-        for (const { component } of assembleOptions) {
+        /**
+         * Construct child components recursively. The children's 
+         * `this._createContent` will be invoked recursively.
+         */
+        for (const { component } of options) {
             component.createContent();
         }
 
         // apply sash configuration if any
         for (let i = 0; i < this._splitView.count - 1; i++) {
-            const option = assembleOptions[i]!;
+            const option = options[i]!;
 
             const sashOpts = option.sashConfiguration;
             if (!sashOpts) {
@@ -480,7 +515,7 @@ export abstract class Component extends Themable implements IComponent {
             }
             
             const sash = assert(this._splitView.getSashAt(i));
-            sash.enable  = sashOpts.enable ?? sash.enable;
+            sash.enable  ??= sashOpts.enable ?? sash.enable;
             sash.visible = sashOpts.visible ?? sash.visible;
             sash.size    = sashOpts.size ?? sash.size;
             sash.range   = sashOpts.range ?? sash.range;
