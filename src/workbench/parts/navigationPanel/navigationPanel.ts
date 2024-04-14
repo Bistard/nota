@@ -7,7 +7,7 @@ import { IThemeService } from "src/workbench/services/theme/themeService";
 import { Priority } from "src/base/common/event";
 import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavigationView, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
-import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";
 
@@ -29,7 +29,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
-        @IToolBarService protected readonly toolBarService: IToolBarService,
+        @INavigationBarService protected readonly navigationBarService: INavigationBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -51,10 +51,10 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
         const partConfigurations: IAssembleComponentOpts[] = [
             { 
-                component: this.toolBarService,
-                minimumSize: ToolBar.HEIGHT,
-                maximumSize: ToolBar.HEIGHT,
-                initSize: ToolBar.HEIGHT,
+                component: this.navigationBarService,
+                minimumSize: NavigationBar.HEIGHT,
+                maximumSize: NavigationBar.HEIGHT,
+                initSize: NavigationBar.HEIGHT,
             },
             { 
                 component: this.navigationViewService,

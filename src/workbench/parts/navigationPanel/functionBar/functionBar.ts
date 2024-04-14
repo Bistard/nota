@@ -1,7 +1,7 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
-import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
+import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
+import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { IToolBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { INavigationBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
@@ -19,7 +19,7 @@ export interface IFunctionBarService extends IComponent, IService {
     /**
      * Events fired when the button is clicked.
      */
-    readonly onDidClick: Register<IToolBarButtonClickEvent>;
+    readonly onDidClick: Register<INavigationBarButtonClickEvent>;
 
     /**
      * @description Returns a button by provided a button ID.
@@ -49,7 +49,7 @@ export class FunctionBar extends Component implements IFunctionBarService {
     public static readonly HEIGHT = 40;
     private _currButtonType: string = ToolButtonType.NONE;
     private readonly _secondary: WidgetBar<ToolButton>;
-    private readonly _onDidClick = this.__register(new Emitter<IToolBarButtonClickEvent>());
+    private readonly _onDidClick = this.__register(new Emitter<INavigationBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]

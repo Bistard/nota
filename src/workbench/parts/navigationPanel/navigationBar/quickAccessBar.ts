@@ -1,7 +1,7 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
-import { ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';

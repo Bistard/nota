@@ -25,7 +25,7 @@ import { Event } from 'src/base/common/event';
 import { FocusTracker } from 'src/base/browser/basic/focusTracker';
 import { WorkbenchContextKey } from 'src/workbench/services/workbench/workbenchContextKeys';
 import { INavigationPanelService } from 'src/workbench/parts/navigationPanel/navigationPanel';
-import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
 import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
@@ -51,7 +51,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationPanelService navigationPanelService : INavigationPanelService,
-        @IToolBarService toolBarService: IToolBarService,
+        @INavigationBarService navigationBarService: INavigationBarService,
         @IActionBarService actionBarService: IActionBarService,
         @INavigationViewService navigationViewService: INavigationViewService,
         @IFunctionBarService functionBarService: IFunctionBarService,
@@ -59,7 +59,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(instantiationService, logService, layoutService, componentService, themeService, toolBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, navigationBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
         logService.trace('Workbench', 'Workbench constructed.');
     }
 

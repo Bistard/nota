@@ -1,8 +1,8 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
-import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
+import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Priority, Register } from 'src/base/common/event';
@@ -10,9 +10,8 @@ import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
 import { ActionBar, IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
-import { Icons } from 'src/base/browser/icon/icons';
 
-export const IToolBarService = createService<IToolBarService>('tool-bar-service');
+export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
 export const enum ToolButtonType {
     NONE = 'none',
@@ -27,7 +26,7 @@ export const enum ToolButtonType {
     SETTINGS = 'setting',
 }
 
-export interface IToolBarButtonClickEvent {
+export interface INavigationBarButtonClickEvent {
 
     /**
      * The ID of button is clicked.
@@ -46,14 +45,14 @@ export interface IToolBarButtonClickEvent {
 }
 
 /**
- * An interface only for {@link ToolBar}.
+ * An interface only for {@link NavigationBar}.
  */
-export interface IToolBarService extends IComponent, IService {
+export interface INavigationBarService extends IComponent, IService {
 
     /**
      * Events fired when the button is clicked.
      */
-    readonly onDidClick: Register<IToolBarButtonClickEvent>;
+    readonly onDidClick: Register<INavigationBarButtonClickEvent>;
 
     /**
      * @description Returns a button by provided a button ID.
@@ -78,10 +77,10 @@ export interface IToolBarService extends IComponent, IService {
 }
 
 /**
- * @class ToolBar provides access to each view and handles the state 
+ * @class NavigationBar provides access to each view and handles the state 
  * transition between each button and display corresponding view.
  */
-export class ToolBar extends Component implements IToolBarService {
+export class NavigationBar extends Component implements INavigationBarService {
 
     declare _serviceMarker: undefined;
 
@@ -96,7 +95,7 @@ export class ToolBar extends Component implements IToolBarService {
 
     private _currButtonType: string = ToolButtonType.NONE;
 
-    private readonly _onDidClick = this.__register(new Emitter<IToolBarButtonClickEvent>());
+    private readonly _onDidClick = this.__register(new Emitter<INavigationBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
@@ -175,7 +174,7 @@ export class ToolBar extends Component implements IToolBarService {
 
         /** ONLY FOR `ACTION BAR` TEST PRUPOSES */
 
-        // const event: IToolBarButtonClickEvent = {
+        // const event: INavigationBarButtonClickEvent = {
         //     ID: buttonType,
         //     prevType: this._currButtonType,
         //     isPrimary: false
@@ -240,7 +239,7 @@ export class ToolBar extends Component implements IToolBarService {
         const button = new ToolButton(opts);
 
         if (widgetBar.hasItem(opts.id)) {
-            this.logService.warn('ToolBarService', `Cannot register the tool bar button with duplicate ID.`, { ID: opts.id });
+            this.logService.warn('NavigationBarService', `Cannot register the tool bar button with duplicate ID.`, { ID: opts.id });
             return false;
         }
 

@@ -53,7 +53,7 @@
     }
     
     & .opened-explorer-container {
-        & > .toolbar {
+        & > .navigationbar {
             position: relative;
             display: flex;
         
@@ -71,7 +71,7 @@
                 opacity: 1;
             }
             
-            & > .toolbar-container {
+            & > .navigationbar-container {
                 position: absolute;
                 right: 8px;
             
@@ -79,7 +79,7 @@
                 margin-bottom: 4px;
             
                 border-radius: 8px;
-                background-color: var(--toolbar-container-background);
+                background-color: var(--navigationbar-container-background);
             
                 pointer-events: initial;
             }

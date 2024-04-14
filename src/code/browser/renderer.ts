@@ -57,7 +57,7 @@ import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/servic
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
-import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { INavigationViewService, NavigationView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
@@ -279,7 +279,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
         // registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
         // registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
-        registerService(IToolBarService           , new ServiceDescriptor(ToolBar                  , []));
+        registerService(INavigationBarService           , new ServiceDescriptor(NavigationBar                  , []));
         registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
         registerService(IActionBarService         , new ServiceDescriptor(ActionBar                , []));
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));

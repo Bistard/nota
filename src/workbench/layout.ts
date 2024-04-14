@@ -14,7 +14,7 @@ import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
 import { panic } from "src/base/common/utilities/panic";
-import { IToolBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/toolBar";
+import { INavigationBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/actionBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
@@ -37,7 +37,7 @@ export abstract class WorkbenchLayout extends Component {
         @ILayoutService protected readonly layoutService: ILayoutService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @IToolBarService protected readonly toolBarService: IToolBarService,
+        @INavigationBarService protected readonly navigationBarService: INavigationBarService,
         @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
@@ -65,8 +65,8 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register tool buttons
-        const toolBarBuilder = new SideBarBuilder(this.toolBarService, this.actionBarService, this.functionBarService, this.contextMenuService);
-        toolBarBuilder.registerButtons();
+        const navigationBarBuilder = new SideBarBuilder(this.navigationBarService, this.actionBarService, this.functionBarService, this.contextMenuService);
+        navigationBarBuilder.registerButtons();
 
         // assembly the workbench layout
         this.__assemblyWorkbenchComponents();
@@ -78,7 +78,7 @@ export abstract class WorkbenchLayout extends Component {
          * Listens to each SideBar button click events and notifies the 
          * navigationView to switch the view.
          */
-        this.__register(this.toolBarService.onDidClick(e => {
+        this.__register(this.navigationBarService.onDidClick(e => {
             if (e.isPrimary) {
                 this.navigationViewService.switchView(e.ID);
             }
@@ -117,7 +117,7 @@ export abstract class WorkbenchLayout extends Component {
 class SideBarBuilder {
 
     constructor(
-        private readonly toolBarService: IToolBarService,
+        private readonly navigationBarService: INavigationBarService,
         private readonly actionBarService: IActionBarService,
         private readonly functionBarService: IFunctionBarService,
         private readonly contextMenuService: IContextMenuService,

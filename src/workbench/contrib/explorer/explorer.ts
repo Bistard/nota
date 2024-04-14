@@ -52,7 +52,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-    private readonly _toolbar = new Toolbar();
+    private readonly _navigationbar = new NavigationBar();
 
     // [event]
 
@@ -252,8 +252,8 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
 
-        // renders toolbar
-        this._toolbar.render(view);
+        // renders navigationbar
+        this._navigationbar.render(view);
 
         return view;
     }
@@ -300,12 +300,12 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         }));
 
         // Displays the utility buttons only when hovering the view.
-        disposables.register(addDisposableListener(view, EventType.mouseover, () => this._toolbar.show()));
-        disposables.register(addDisposableListener(view, EventType.mouseout, () => this._toolbar.hide()));
+        disposables.register(addDisposableListener(view, EventType.mouseover, () => this._navigationbar.show()));
+        disposables.register(addDisposableListener(view, EventType.mouseout, () => this._navigationbar.hide()));
     }
 }
 
-export class Toolbar {
+export class NavigationBar {
 
     // [field]
 
@@ -318,7 +318,7 @@ export class Toolbar {
     constructor() {
 
         this._element = document.createElement('div');
-        this._element.className = 'toolbar';
+        this._element.className = 'navigationbar';
 
         this._visibilityController.setDomNode(this._element);
 
@@ -352,12 +352,12 @@ export class Toolbar {
 
         this._visibilityController.setVisibility(false);
 
-        // toolbar container
-        const toolBarContainer = document.createElement('div');
-        toolBarContainer.className = 'toolbar-container';
-        this._buttons.render(toolBarContainer);
+        // navigationbar container
+        const navigationBarContainer = document.createElement('div');
+        navigationBarContainer.className = 'navigationbar-container';
+        this._buttons.render(navigationBarContainer);
 
-        this._element.appendChild(toolBarContainer);
+        this._element.appendChild(navigationBarContainer);
         parent.appendChild(this._element);
     }
 

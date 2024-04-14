@@ -1,19 +1,19 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/toolBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { ToolButton, IToolButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/toolBarButton';
-import { IToolBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { ToolButton, IToolButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { INavigationBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Emitter } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
-import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar';
+import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { createService } from 'src/platform/instantiation/common/decorator';
 
 export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
-export interface IActionBarService extends IToolBarService {
+export interface IActionBarService extends INavigationBarService {
     
 }
 
@@ -26,7 +26,7 @@ export class ActionBar extends Component implements IActionBarService {
 
     private readonly _primary: WidgetBar<ToolButton>;
     private _currButtonType: string = ToolButtonType.NONE;
-    private readonly _onDidClick = new Emitter<IToolBarButtonClickEvent>();
+    private readonly _onDidClick = new Emitter<INavigationBarButtonClickEvent>();
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
