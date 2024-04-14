@@ -50,22 +50,20 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
         const partConfigurations: IAssembleComponentOpts[] = [
             { 
+                fixed: true,
                 component: this.navigationBarService,
-                minimumSize: NavigationBar.HEIGHT,
-                maximumSize: NavigationBar.HEIGHT,
-                initSize: NavigationBar.HEIGHT,
+                fixedSize: NavigationBar.HEIGHT,
             },
             { 
                 component: this.navigationViewService,
                 minimumSize: NavView.HEIGHT,
-                maximumSize: null,
                 initSize: NavView.HEIGHT,
+                maximumSize: null,
             },
             { 
+                fixed: true,
                 component: this.functionBarService,
-                minimumSize: FunctionBar.HEIGHT,
-                maximumSize: FunctionBar.HEIGHT,
-                initSize: FunctionBar.HEIGHT,
+                fixedSize: FunctionBar.HEIGHT,
             },
         ];
         this.assembleComponents(Orientation.Vertical, partConfigurations);

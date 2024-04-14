@@ -1,4 +1,4 @@
-import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
+import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
@@ -97,15 +97,15 @@ export abstract class WorkbenchLayout extends Component {
             { 
                 component: this.navigationPanelService,
                 minimumSize: NavigationPanel.WIDTH,
-                maximumSize: NavigationPanel.WIDTH * 2,
                 initSize: NavigationPanel.WIDTH,
+                maximumSize: NavigationPanel.WIDTH * 2,
                 priority: Priority.Normal,
             },
             { 
                 component: this.workspaceService,
                 minimumSize: 0,
-                maximumSize: Number.POSITIVE_INFINITY,
                 initSize: NavigationPanel.WIDTH,
+                maximumSize: null,
                 priority: Priority.High,
             },
         ];
