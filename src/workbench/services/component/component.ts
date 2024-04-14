@@ -11,7 +11,7 @@ import { assert, check, panic } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
-import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
+import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { ILogService } from 'src/base/common/logger';
 import { isNonNullable } from 'src/base/common/utilities/type';
 
@@ -24,7 +24,7 @@ export interface ICreatable {
  * The option to configure how to assemble each children component. See more in
  * {@link Component.assembleComponents}.
  */
-export interface IAssembleComponentOpts extends Pick<ISplitViewItemOpts, 'minimumSize' | 'maximumSize' | 'initSize' | 'priority'> {
+export type IAssembleComponentOpts = {
     
     /**
      * The child component to render.
@@ -35,7 +35,10 @@ export interface IAssembleComponentOpts extends Pick<ISplitViewItemOpts, 'minimu
      * Defines the sash behavior that after this component.
      */
     readonly sashConfiguration?: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>;
-}
+} & Pick<ISplitViewItemOpts, 'priority'> 
+  & (IResizableSplitViewItemOpts | IFixedSplitViewItemOpts);
+
+
 
 /**
  * An interface only for {@link Component}.

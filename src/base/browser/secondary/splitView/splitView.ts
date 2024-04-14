@@ -328,7 +328,7 @@ export class SplitView extends Disposable implements ISplitView {
      * @description Remove the view from the split-view by the given index.
      * @note This
      */
-    private __doRemoveView(index: number) {
+    private __doRemoveView(index: number): ISplitViewItemOpts {
         index = Math.min(Math.max(index, 0), this.viewItems.length - 1);
 
         const toRemoveView = this.viewItems.splice(index, 1)[0]!;
@@ -337,7 +337,7 @@ export class SplitView extends Disposable implements ISplitView {
             minimumSize: toRemoveView.getMinSize(),
             maximumSize: toRemoveView.getMaxSize(),
             priority: toRemoveView.getResizePriority(),
-            index: index, initSize: toRemoveView.getSize()
+            index: index, initSize: toRemoveView.getSize(),
         };
         toRemoveView.dispose();
 
