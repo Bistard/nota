@@ -98,8 +98,8 @@ export class Flag {
      * @param errorToMessage Optional. Custom error message.
      */
     public assert(state: boolean, errorToMessage?: string): void {
-        if (this._triggered === state) {
-            panic(`Flag (${this._name}) ` + errorToMessage ?? 'is already turned on.');
+        if (this._triggered !== state) {
+            panic(`Flag (${this._name}) ` + (errorToMessage ?? 'is already turned on.'));
         }
     }
 }
