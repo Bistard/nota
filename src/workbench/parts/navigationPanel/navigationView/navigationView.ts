@@ -104,7 +104,7 @@ export class NavigationView extends Component implements INavigationViewService 
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
     ) {
-        super('side-view', null, themeService, componentService, logService);
+        super('navigation-view', null, themeService, componentService, logService);
         this._viewCtors = new Map();
     }
 
@@ -114,7 +114,7 @@ export class NavigationView extends Component implements INavigationViewService 
         this.logService.trace('NavigationView', `registers a view with ID`, { ID: id });
 
         if (this.hasComponent(id)) {
-            this.logService.warn('NavigationView', `The side view with ID is already registered`, { ID: id });
+            this.logService.warn('NavigationView', `The navigation view with ID is already registered`, { ID: id });
             return;
         }
 
@@ -203,7 +203,7 @@ export class NavigationView extends Component implements INavigationViewService 
 
         // empty side view at the beginning
         this._viewContainer = document.createElement('div');
-        this._viewContainer.className = 'side-view-container';
+        this._viewContainer.className = 'navigation-view-container';
         this.element.appendChild(this._viewContainer);
     }
 

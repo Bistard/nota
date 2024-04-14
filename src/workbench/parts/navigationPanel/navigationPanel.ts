@@ -4,9 +4,8 @@ import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/ser
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { Priority } from "src/base/common/event";
 import { Orientation } from "src/base/browser/basic/dom";
-import { INavigationViewService, NavigationView, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { INavigationViewService, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";

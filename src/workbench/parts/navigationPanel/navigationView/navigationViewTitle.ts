@@ -7,7 +7,7 @@ import { Widget } from "src/base/browser/basic/widget";
 export class NavigationViewTitlePart extends Widget {
 
     public override render(element: HTMLElement): void {
-        element.classList.add('side-view-title');
+        element.classList.add('navigation-view-title');
         super.render(element);
     }
 }

@@ -4,8 +4,6 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { WorkbenchLayout } from "src/workbench/layout";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
-// import { ISideBarService } from "src/workbench/parts/sideBar/sideBar";
-// import { ISideViewService } from "src/workbench/parts/sideView/sideView";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { Disposable } from 'src/base/common/dispose';
 import { IContextService } from 'src/platform/context/common/contextService';
@@ -109,7 +107,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.__createLayout();
 
         // open the side view with default one
-        const defaultView = this.configurationService.get<string>(WorkbenchConfiguration.DefaultSideView, 'explorer');
+        const defaultView = this.configurationService.get<string>(WorkbenchConfiguration.DefaultNavigationView, 'explorer');
         this.navigationViewService.switchView(defaultView);
     }
 
@@ -170,8 +168,8 @@ export class WorkbenchContextHub extends Disposable {
 
     // [context - side view]
 
-    private readonly visibleSideView: IContextKey<boolean>;
-    private readonly focusedSideView: IContextKey<boolean>;
+    private readonly visibleNavigationView: IContextKey<boolean>;
+    private readonly focusedNavigationView: IContextKey<boolean>;
 
     // [context - file tree]
 
@@ -185,7 +183,7 @@ export class WorkbenchContextHub extends Disposable {
     constructor(
         @ILogService private readonly logService: ILogService,
         @IContextService contextService: IContextService,
-        // @ISideViewService private readonly sideViewService: ISideViewService,
+        // @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @IEnvironmentService environmentService: IBrowserEnvironmentService,
@@ -207,8 +205,8 @@ export class WorkbenchContextHub extends Disposable {
         this.inputFocused = contextService.createContextKey('inputFocused', false, 'Whether keyboard focus is inside an input box');
 
         // side view
-        this.visibleSideView = contextService.createContextKey('visibleSideView', false, 'Whether a side view is visible');
-        this.focusedSideView = contextService.createContextKey('focusedSideView', false, 'Whether a side view is focused');
+        this.visibleNavigationView = contextService.createContextKey('visibleNavigationView', false, 'Whether a side view is visible');
+        this.focusedNavigationView = contextService.createContextKey('focusedNavigationView', false, 'Whether a side view is focused');
 
         // file tree
         this.visibleFileTree = contextService.createContextKey('visibleFileTree', false, 'Whether a file tree is visible.');
@@ -250,9 +248,9 @@ export class WorkbenchContextHub extends Disposable {
         this.__register(addDisposableListener(window, EventType.focus, e => this.__updateInputFocusedContext()));
 
         // side view
-        this.visibleSideView.set(!!this.navigationViewService.currView());
-        this.__register(this.navigationViewService.onDidViewChange(e => this.visibleSideView.set(!!e.view)));
-        this.__register(this.navigationViewService.onDidFocusChange(isFocused => this.focusedSideView.set(isFocused)));
+        this.visibleNavigationView.set(!!this.navigationViewService.currView());
+        this.__register(this.navigationViewService.onDidViewChange(e => this.visibleNavigationView.set(!!e.view)));
+        this.__register(this.navigationViewService.onDidFocusChange(isFocused => this.focusedNavigationView.set(isFocused)));
 
         // file tree
         this.visibleFileTree.set(this.fileTreeService.isOpened);

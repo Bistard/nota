@@ -2,7 +2,7 @@ import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.sc
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
-import { IToolButtonOptions, ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { INavigationButtonOptions, NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Priority, Register } from 'src/base/common/event';
@@ -13,7 +13,7 @@ import { ActionBar, IActionBarService } from 'src/workbench/parts/navigationPane
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
-export const enum ToolButtonType {
+export const enum NavigationButtonType {
     NONE = 'none',
     LOGO = 'logo',
 
@@ -59,21 +59,21 @@ export interface INavigationBarService extends IComponent, IService {
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getButton(ID: string): ToolButton | undefined;
+    getButton(ID: string): NavigationButton | undefined;
 
     /**
      * @description Returns a primary button by provided a button ID.
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getPrimaryButton(ID: string): ToolButton | undefined;
+    getPrimaryButton(ID: string): NavigationButton | undefined;
 
     /**
      * @description Register a new primary button.
      * @param opts The options to construct the button.
      * @returns A boolean indicates if the button has created.
      */
-    registerPrimaryButton(opts: IToolButtonOptions): boolean;
+    registerPrimaryButton(opts: INavigationButtonOptions): boolean;
 }
 
 /**
@@ -91,9 +91,9 @@ export class NavigationBar extends Component implements INavigationBarService {
     // This flag toggles between ActionBar and FilterBar
     private _toggleState: boolean = false;  /** ONLY FOR TEST PRUPOSES */
 
-    private readonly _primary: WidgetBar<ToolButton>;
+    private readonly _primary: WidgetBar<NavigationButton>;
 
-    private _currButtonType: string = ToolButtonType.NONE;
+    private _currButtonType: string = NavigationButtonType.NONE;
 
     private readonly _onDidClick = this.__register(new Emitter<INavigationBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
@@ -113,15 +113,15 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     // [public method]
 
-    public getButton(ID: string): ToolButton | undefined {
+    public getButton(ID: string): NavigationButton | undefined {
         return this.getPrimaryButton(ID);
     }
 
-    public getPrimaryButton(ID: string): ToolButton | undefined {
+    public getPrimaryButton(ID: string): NavigationButton | undefined {
         return this._primary.getItem(ID);
     }
 
-    public registerPrimaryButton(opts: IToolButtonOptions): boolean {
+    public registerPrimaryButton(opts: INavigationButtonOptions): boolean {
         return this.__registerButton(opts, this._primary);
     }
 
@@ -159,7 +159,7 @@ export class NavigationBar extends Component implements INavigationBarService {
         });
 
         // default with opening explorer view
-        this.__buttonClick(ToolButtonType.EXPLORER);
+        this.__buttonClick(NavigationButtonType.EXPLORER);
     }
 
     // [private helper method]
@@ -181,7 +181,7 @@ export class NavigationBar extends Component implements INavigationBarService {
         // };
         
         // // Determine which bar to delegate to based on the clicked button
-        // if (buttonType === ToolButtonType.LOGO) {
+        // if (buttonType === NavigationButtonType.LOGO) {
         //     // Toggle the state and call the appropriate handle function
         //     this._toggleState = !this._toggleState;
         //     if (this._toggleState) {
@@ -207,14 +207,14 @@ export class NavigationBar extends Component implements INavigationBarService {
         }
 
         // none of button is focused, focus the button.
-        if (this._currButtonType === ToolButtonType.NONE) {
+        if (this._currButtonType === NavigationButtonType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
         }
 
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
-            this._currButtonType = ToolButtonType.NONE;
+            this._currButtonType = NavigationButtonType.NONE;
             button.element.classList.remove('focus');
         }
 
@@ -235,8 +235,8 @@ export class NavigationBar extends Component implements INavigationBarService {
         });
     }
 
-    private __registerButton(opts: IToolButtonOptions, widgetBar: WidgetBar<ToolButton>): boolean {
-        const button = new ToolButton(opts);
+    private __registerButton(opts: INavigationButtonOptions, widgetBar: WidgetBar<NavigationButton>): boolean {
+        const button = new NavigationButton(opts);
 
         if (widgetBar.hasItem(opts.id)) {
             this.logService.warn('NavigationBarService', `Cannot register the tool bar button with duplicate ID.`, { ID: opts.id });

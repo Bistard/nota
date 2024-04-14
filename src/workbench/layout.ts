@@ -14,7 +14,7 @@ import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
 import { panic } from "src/base/common/utilities/panic";
-import { INavigationBarService, ToolButtonType } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
+import { INavigationBarService, NavigationButtonType } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/actionBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
@@ -47,7 +47,7 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
-        this.__registerSideViews();
+        this.__registerNavigationViews();
     }
 
     // [protected methods]
@@ -87,9 +87,9 @@ export abstract class WorkbenchLayout extends Component {
 
     // [private helper functions]
 
-    private __registerSideViews(): void {
-        this.navigationViewService.registerView(ToolButtonType.EXPLORER, ExplorerView);
-        // TODO: other side-views are also registered here.
+    private __registerNavigationViews(): void {
+        this.navigationViewService.registerView(NavigationButtonType.EXPLORER, ExplorerView);
+        // TODO: other navigation-views are also registered here.
     }
 
     private __assemblyWorkbenchComponents(): void {
@@ -131,15 +131,15 @@ class SideBarBuilder {
          */
         [
             {
-                id: ToolButtonType.EXPLORER,
+                id: NavigationButtonType.EXPLORER,
                 icon: Icons.Folder,
             },
             // {
-            //     id: ToolButtonType.OUTLINE,
+            //     id: NavigationButtonType.OUTLINE,
             //     icon: Icons.List,
             // },
-            // { id: ToolButtonType.SEARCH, icon: Icons.Search },
-            // { id: ToolButtonType.GIT, icon: Icons.CodeBranch },
+            // { id: NavigationButtonType.SEARCH, icon: Icons.Search },
+            // { id: NavigationButtonType.GIT, icon: Icons.CodeBranch },
         ]
             .forEach(({ id, icon}) => {
                 this.actionBarService.registerPrimaryButton({
@@ -155,15 +155,15 @@ class SideBarBuilder {
          */
         [
             {
-                id: ToolButtonType.HELPER,
+                id: NavigationButtonType.HELPER,
                 icon: Icons.CommentQuestion,
             },
             {
-                id: ToolButtonType.SETTINGS,
+                id: NavigationButtonType.SETTINGS,
                 icon: Icons.Settings,
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
-                        getAnchor: this.__getButtonElement(ToolButtonType.SETTINGS).bind(this),
+                        getAnchor: this.__getButtonElement(NavigationButtonType.SETTINGS).bind(this),
                         // TODO: this is only for test purpose
                         getActions: () => {
                             return [
@@ -263,7 +263,7 @@ class SideBarBuilder {
             });
     }
 
-    private __getButtonElement(buttonType: ToolButtonType): () => HTMLElement {
+    private __getButtonElement(buttonType: NavigationButtonType): () => HTMLElement {
         let element: HTMLElement | undefined;
         return () => {
             if (!element) {

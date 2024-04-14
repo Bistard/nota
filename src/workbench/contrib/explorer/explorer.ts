@@ -16,8 +16,8 @@ import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
 import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
-import { SideViewTitlePart } from 'src/workbench/parts/sideView/sideViewTitle';
-import { SideView } from 'src/workbench/parts/sideView/sideView';
+import { NavigationViewTitlePart } from 'src/workbench/parts/navigationPanel/navigationView/navigationViewTitle';
+import { NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
@@ -34,10 +34,10 @@ import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
  * displaying the current directory's contents, and integrating with other 
  * services like the editor and theme services to enhance the user experience.
  * 
- * This class extends `SideView`, allowing it to be used as a side panel
+ * This class extends `NavigationView`, allowing it to be used as a side panel
  * within the application's layout.
  */
-export class ExplorerView extends SideView implements IExplorerViewService {
+export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [field]
 
@@ -370,7 +370,7 @@ export class NavigationBar {
     }
 }
 
-export class ExplorerTitlePart extends SideViewTitlePart {
+export class ExplorerTitlePart extends NavigationViewTitlePart {
 
     constructor(
         private readonly i18nService: II18nService,

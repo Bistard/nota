@@ -1,4 +1,4 @@
-#side-view {
+#navigation-view {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -6,12 +6,12 @@
     height: 100%;
     background-color: #fcfcfc;
 
-    & > .side-view-container {
+    & > .navigation-view-container {
         position: relative;
         width: 100%;
         height: 100%;
 
-        & .side-view-title {
+        & .navigation-view-title {
             position: relative;
             
             width: 100%;

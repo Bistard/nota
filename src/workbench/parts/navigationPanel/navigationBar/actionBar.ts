@@ -1,7 +1,7 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { ToolButton, IToolButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { INavigationBarButtonClickEvent, ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
+import { NavigationButton, INavigationButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { INavigationBarButtonClickEvent, NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
@@ -24,8 +24,8 @@ export class ActionBar extends Component implements IActionBarService {
     // [field]
     public static readonly HEIGHT = 60;
 
-    private readonly _primary: WidgetBar<ToolButton>;
-    private _currButtonType: string = ToolButtonType.NONE;
+    private readonly _primary: WidgetBar<NavigationButton>;
+    private _currButtonType: string = NavigationButtonType.NONE;
     private readonly _onDidClick = new Emitter<INavigationBarButtonClickEvent>();
     public readonly onDidClick = this._onDidClick.registerListener;
 
@@ -42,15 +42,15 @@ export class ActionBar extends Component implements IActionBarService {
 
     // [public method]
 
-    public getButton(ID: string): ToolButton | undefined {
+    public getButton(ID: string): NavigationButton | undefined {
         return this.getPrimaryButton(ID);
     }
 
-    public getPrimaryButton(ID: string): ToolButton | undefined {
+    public getPrimaryButton(ID: string): NavigationButton | undefined {
         return this._primary.getItem(ID);
     }
 
-    public registerPrimaryButton(opts: IToolButtonOptions): boolean {
+    public registerPrimaryButton(opts: INavigationButtonOptions): boolean {
         return this.__registerButton(opts, this._primary);
     }
 
@@ -79,7 +79,7 @@ export class ActionBar extends Component implements IActionBarService {
         });
 
         // default with opening explorer view
-        this.__buttonClick(ToolButtonType.EXPLORER);
+        this.__buttonClick(NavigationButtonType.EXPLORER);
     }
 
     // [private helper method]
@@ -95,14 +95,14 @@ export class ActionBar extends Component implements IActionBarService {
         }
 
         // none of button is focused, focus the button.
-        if (this._currButtonType === ToolButtonType.NONE) {
+        if (this._currButtonType === NavigationButtonType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
         }
 
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
-            this._currButtonType = ToolButtonType.NONE;
+            this._currButtonType = NavigationButtonType.NONE;
             button.element.classList.remove('focus');
         }
 
@@ -123,8 +123,8 @@ export class ActionBar extends Component implements IActionBarService {
         });
     }
 
-    private __registerButton(opts: IToolButtonOptions, widgetBar: WidgetBar<ToolButton>): boolean {
-        const button = new ToolButton(opts);
+    private __registerButton(opts: INavigationButtonOptions, widgetBar: WidgetBar<NavigationButton>): boolean {
+        const button = new NavigationButton(opts);
 
         if (widgetBar.hasItem(opts.id)) {
             this.logService.warn('ActionBarService', `Cannot register the action bar button with duplicate ID.`, { ID: opts.id });

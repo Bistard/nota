@@ -1,6 +1,6 @@
 import { Button, IButton, IButtonOptions } from "src/base/browser/basic/button/button";
 
-export interface IToolButtonOptions extends IButtonOptions {
+export interface INavigationButtonOptions extends IButtonOptions {
     /**
      * The string ID of the button.
      */
@@ -17,7 +17,7 @@ export interface IToolButtonOptions extends IButtonOptions {
     readonly onDidClick?: () => void;
 }
 
-export interface IToolButton extends IButton {
+export interface INavigationButton extends IButton {
     
     /**
      * The ID of the button.
@@ -34,13 +34,13 @@ export interface IToolButton extends IButton {
  * @class A simple encapsulation built upon {@link Button}. Specific for tool
  * bar.
  */
-export class ToolButton extends Button implements IToolButton {
+export class NavigationButton extends Button implements INavigationButton {
 
     public readonly id: string;
     public readonly isPrimary: boolean;
-    declare protected readonly _opts: IToolButtonOptions;
+    declare protected readonly _opts: INavigationButtonOptions;
 
-    constructor(opts: IToolButtonOptions) {
+    constructor(opts: INavigationButtonOptions) {
         super({
             ...opts,
             classes: [...(opts?.classes ?? []), 'tool-button'],

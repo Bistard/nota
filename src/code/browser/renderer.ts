@@ -27,7 +27,7 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererSideViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
@@ -39,8 +39,6 @@ import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
-// import { ISideBarService, SideBar } from "src/workbench/parts/sideBar/sideBar";
-// import { ISideViewService, SideViewService } from "src/workbench/parts/sideView/sideView";
 import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
@@ -278,7 +276,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // User Interface
         registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
         // registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
-        // registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
+        // registerService(INavigationViewService          , new ServiceDescriptor(NavigationViewService          , []));
         registerService(INavigationBarService           , new ServiceDescriptor(NavigationBar                  , []));
         registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
         registerService(IActionBarService         , new ServiceDescriptor(ActionBar                , []));
@@ -325,7 +323,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 super.initRegistrations(provider);
                 [
                     rendererWorkbenchConfigurationRegister,
-                    rendererSideViewConfigurationRegister,
+                    rendererNavigationViewConfigurationRegister,
                 ]
                 .forEach(register => register(provider));
             }

@@ -1,7 +1,7 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { ToolButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { ToolButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
+import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
@@ -49,8 +49,8 @@ export class QuickAccessBar extends Component {
 
     // [private helper method]
     
-    private __createLogo(): ToolButton {
-        const logo = new ToolButton({ id: ToolButtonType.LOGO, isPrimary: true, classes: ['logo'] });
+    private __createLogo(): NavigationButton {
+        const logo = new NavigationButton({ id: NavigationButtonType.LOGO, isPrimary: true, classes: ['logo'] });
         logo.render(document.createElement('div'));
         const text = document.createElement('div');
         text.innerText = 'N';
