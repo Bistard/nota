@@ -13,8 +13,27 @@ import { createService } from 'src/platform/instantiation/common/decorator';
 
 export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
-export interface IActionBarService extends INavigationBarService {
-    
+export interface IActionBarService extends INavigationBarService {  
+    /**
+     * @description Returns a button by provided a button ID.
+     * @param ID The ID of the required button.
+     * @returns The required button. Returns undefined if it does not exists.
+     */
+    getButton(ID: string): NavigationButton | undefined;
+
+    /**
+     * @description Returns a primary button by provided a button ID.
+     * @param ID The ID of the required button.
+     * @returns The required button. Returns undefined if it does not exists.
+     */
+    getPrimaryButton(ID: string): NavigationButton | undefined;
+
+    /**
+     * @description Register a new primary button.
+     * @param opts The options to construct the button.
+     * @returns A boolean indicates if the button has created.
+     */
+    registerPrimaryButton(opts: INavigationButtonOptions): boolean;  
 }
 
 export class ActionBar extends Component implements IActionBarService {
@@ -23,6 +42,10 @@ export class ActionBar extends Component implements IActionBarService {
 
     // [field]
     public static readonly HEIGHT = 60;
+
+    /** ONLY FOR TEST PRUPOSES */
+    // This flag toggles between ActionBar and FilterBar
+    private _toggleState: boolean = false;
 
     private readonly _primary: WidgetBar<NavigationButton>;
     private _currButtonType: string = NavigationButtonType.NONE;
@@ -85,6 +108,32 @@ export class ActionBar extends Component implements IActionBarService {
     // [private helper method]
 
     private __buttonClick(buttonType: string): void {
+
+         /** ONLY FOR `ACTION BAR` TEST PRUPOSES */
+
+        // const event: INavigationBarButtonClickEvent = {
+        //     ID: buttonType,
+        //     prevType: this._currButtonType,
+        //     isPrimary: false
+        // };
+        
+        // // Determine which bar to delegate to based on the clicked button
+        // if (buttonType === NavigationButtonType.LOGO) {
+        //     // Toggle the state and call the appropriate handle function
+        //     this._toggleState = !this._toggleState;
+        //     if (this._toggleState) {
+        //         // If the toggle state is true, then it corresponds to the FilterBar
+        //         // this._filterBar.handleButtonClick(event);
+        //     } else {
+        //         // If the toggle state is false, then it corresponds to the ActionBar
+        //         this._actionBar.handleButtonClick(event);
+        //     }
+        // }
+
+        // Update the current button type
+        // this._currButtonType = buttonType;
+
+        /** ONLY FOR TEST PRUPOSES */
 
         const button = this.getButton(buttonType)!;
         const previousType = this._currButtonType;
