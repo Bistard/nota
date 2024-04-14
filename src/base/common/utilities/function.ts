@@ -87,7 +87,7 @@ export class Flag {
      * @description Sets the flag's state to true.
      */
     public turnOn(): void {
-        this.assert(true);
+        this.assert(false);
         this._triggered = true;
     }
 

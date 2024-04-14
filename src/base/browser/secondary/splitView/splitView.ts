@@ -315,7 +315,7 @@ export class SplitView extends Disposable implements ISplitView {
             this.sashItems.splice(opt.index, 0, sash);
         }
 
-        // rendering process
+        // rendering
 
         if (this.viewItems.length === 1 || this.viewItems.length === opt.index + 1) {
             this.viewContainer.appendChild(newView);
