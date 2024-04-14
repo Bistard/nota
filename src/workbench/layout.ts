@@ -20,7 +20,6 @@ import { INavigationViewService} from "src/workbench/parts/navigationPanel/navig
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 
-
 /**
  * @description A base class for Workbench to create and manage the behavior of
  * each sub-component.
@@ -53,9 +52,6 @@ export abstract class WorkbenchLayout extends Component {
     // [protected methods]
 
     public override layout(): void {
-        if (this.isDisposed() || !this.parent) {
-            return;
-        }
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
         super.layout(undefined, undefined);
     }

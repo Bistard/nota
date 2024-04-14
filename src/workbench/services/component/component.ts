@@ -71,11 +71,6 @@ export interface IComponent extends ICreatable {
     readonly parentComponent: IComponent | undefined;
 
     /** 
-     * The parent {@link HTMLElement} of the current component. 
-     */
-    readonly parent: HTMLElement | undefined;
-
-    /** 
      * The DOM element of the current component. 
      */
     readonly element: FastElement<HTMLElement>;
@@ -241,7 +236,11 @@ export abstract class Component extends Themable implements IComponent {
     // [field]
 
     private _parentComponent?: IComponent;
-    private _parentElement?: HTMLElement;
+    
+    /**
+     * Client-provided parent that the component should be rendered under.
+     */
+    private _customParent?: HTMLElement;
 
     private readonly _element: FastElement<HTMLElement>;
     private readonly _children: Map<string, IComponent>;
@@ -270,13 +269,13 @@ export abstract class Component extends Themable implements IComponent {
 
     /**
      * @param id The id for the Component.
-     * @param parentElement If provided, parentElement will replace the 
-     * HTMLElement from the provided parentComponent when creating. Otherwise 
-     * defaults to `document.body`.
+     * @param customParent If provided, customParent will replace the HTMLElement 
+     *      from the provided parentComponent when creating. Otherwise 
+     *      defaults to `document.body`.
      */
     constructor(
         id: string,
-        parentElement: HTMLElement | null,
+        customParent: HTMLElement | null,
         themeService: IThemeService,
         protected readonly componentService: IComponentService,
         protected readonly logService: ILogService,
@@ -296,7 +295,7 @@ export abstract class Component extends Themable implements IComponent {
         this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
-        this._parentElement = parentElement ?? undefined;
+        this._customParent = customParent ?? undefined;
         componentService.register(this);
 
         this.logService.trace(`${this.id}`, 'UI component constructed.');
@@ -307,8 +306,6 @@ export abstract class Component extends Themable implements IComponent {
     get id() { return this._element.getID(); }
 
     get parentComponent() { return this._parentComponent; }
-
-    get parent() { return this._parentElement; }
 
     get element() { return this._element; }
 
@@ -359,9 +356,9 @@ export abstract class Component extends Themable implements IComponent {
         }
 
         // actual rendering
-        this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
         if (avoidRender === false) {
-            this._parentElement.appendChild(this._element.element);
+            this._customParent = parentComponent?.element.element ?? this._customParent ?? document.body;
+            this._customParent.appendChild(this._element.element);
             this._isInDom = true;
         }
         
@@ -380,13 +377,14 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public layout(width?: number, height?: number): void {
-        if (!this._parentElement || !DomUtility.Elements.ifInDomTree(this._parentElement)) {
-            return;
-        }
-
+        
         // If no dimensions provided, we default to layout to fit to parent.
-        if (typeof width === 'undefined' && typeof height === 'undefined') {
-            this._dimension = DomUtility.Positions.getClientDimension(this._parentElement);
+        if (width === undefined && height === undefined) {
+            const actualParent = this._element.element.parentElement;
+            const parent = assert(actualParent, 'layout() expect to have a parent HTMLElement when there is no provided dimension.');
+            check(DomUtility.Elements.ifInDomTree(parent), 'layout() expect the parent HTMLElement is rendered in the DOM tree.');
+
+            this._dimension = DomUtility.Positions.getClientDimension(parent);
             this._element.setWidth(this._dimension.width);
             this._element.setHeight(this._dimension.height);
         }
@@ -526,10 +524,9 @@ export abstract class Component extends Themable implements IComponent {
     
         // register listeners
         this.__register(addDisposableListener(window, EventType.resize, () => {
-            // FIX: does not trigger (unknown)
             this.layout();
-            const _dimension = assert(this.dimension);
-            this._splitView?.layout(_dimension.width, _dimension.height);
+            const dimension = assert(this.dimension);
+            this._splitView?.layout(dimension.width, dimension.height);
         }));
 
         this.logService.trace(`${this.id}`, 'Component assembling components succeeded.');
