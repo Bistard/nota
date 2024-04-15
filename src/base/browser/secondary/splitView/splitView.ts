@@ -34,9 +34,19 @@ export interface ISplitView extends Disposable {
     readonly count: number;
 
     /**
+     * Fires when the sash dragging is moved (mouse-move).
+     */
+    readonly onDidSashMove: Register<ISplitViewSashEvent>;
+    
+    /**
+     * Fires when the sash dragging is stopped (mouse-up).
+     */
+    readonly onDidSashEnd: Register<ISplitViewSashEvent>;
+
+    /**
      * Fires when the sash is reset to the default position (double-click).
      */
-    readonly onDidSashReset: Register<number>;
+    readonly onDidSashReset: Register<ISplitViewSashEvent>;
 
     /**
      * Fires when the split view has re-layout.
@@ -92,6 +102,19 @@ export interface ISplitView extends Disposable {
      *          split view size.
      */
     layout(width: number, height: number): void;
+}
+
+export interface ISplitViewSashEvent {
+    
+    /**
+     * The corresponding sash instance.
+     */
+    readonly sash: ISash;
+    
+    /**
+     * The sash index in the {@link SplitView}.
+     */
+    readonly index: number;
 }
 
 /**
@@ -151,7 +174,13 @@ export class SplitView extends Disposable implements ISplitView {
     private readonly viewItems: ISplitViewItem[];
     private readonly sashItems: ISash[];
 
-    private readonly _onDidSashReset = this.__register(new Emitter<number>());
+    private readonly _onDidSashMove = this.__register(new Emitter<ISplitViewSashEvent>());
+    public readonly onDidSashMove = this._onDidSashMove.registerListener;
+    
+    private readonly _onDidSashEnd = this.__register(new Emitter<ISplitViewSashEvent>());
+    public readonly onDidSashEnd = this._onDidSashEnd.registerListener;
+
+    private readonly _onDidSashReset = this.__register(new Emitter<ISplitViewSashEvent>());
     public readonly onDidSashReset = this._onDidSashReset.registerListener;
 
     // [constructor]
@@ -305,11 +334,17 @@ export class SplitView extends Disposable implements ISplitView {
             });
             sash.registerListeners();
 
-            sash.onDidEnd(() => this.__onDidSashEnd(sash));
-            sash.onDidMove(e => this.__onDidSashMove(e, sash));
+            // TODO: lifecycle maintenance
+            sash.onDidEnd(() => {
+                this.__onDidSashEnd(sash);
+                this._onDidSashEnd.fire({ sash, index: this.sashItems.indexOf(sash) });
+            });
+            sash.onDidMove(e => {
+                this.__onDidSashMove(e, sash);
+                this._onDidSashMove.fire({ sash, index: this.sashItems.indexOf(sash) });
+            });
             sash.onDidReset(() => {
-                const index = this.sashItems.indexOf(sash);
-                this._onDidSashReset.fire(index);
+                this._onDidSashReset.fire({ sash, index: this.sashItems.indexOf(sash) });
             });
 
             this.sashItems.splice(opt.index, 0, sash);

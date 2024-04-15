@@ -76,6 +76,11 @@ export interface IComponent extends ICreatable {
     readonly element: FastElement<HTMLElement>;
 
     /**
+     * The current dimension of the component.
+     */
+    readonly dimension: Dimension | undefined;
+
+    /**
      * @description Renders the component itself.
      * @param parentComponent If provided, the component will be registered 
      *                        under this component. If no parentComponent is 
@@ -383,20 +388,17 @@ export abstract class Component extends Themable implements IComponent {
             const actualParent = this._element.element.parentElement;
             const parent = assert(actualParent, 'layout() expect to have a parent HTMLElement when there is no provided dimension.');
             check(DomUtility.Elements.ifInDomTree(parent), 'layout() expect the parent HTMLElement is rendered in the DOM tree.');
-
             this._dimension = DomUtility.Positions.getClientDimension(parent);
-            this._element.setWidth(this._dimension.width);
-            this._element.setHeight(this._dimension.height);
         }
-
         // If any dimensions is provided, we force to follow it.
         else {
             this._dimension = isNonNullable(this._dimension)
                 ? this._dimension.clone(width, height)
                 : new Dimension(width ?? 0, height ?? 0);
-            this._element.setWidth(this._dimension.width);
-            this._element.setHeight(this._dimension.height);
         }
+
+        this.element.setWidth(this._dimension.width);
+        this.element.setHeight(this._dimension.height);
 
         this._onDidLayout.fire(this._dimension);
     }
@@ -481,7 +483,8 @@ export abstract class Component extends Themable implements IComponent {
 
         /**
          * Since {@link SplitView} manages its own rendering process, setting 
-         * `avoidRender` to true prevents redundant rendering.
+         * `avoidRender` to true prevents component self-rendering. The component 
+         * will be automatically rendered under the {@link SplitViewItem}.
          */
         const avoidRender = true;
         for (const each of options) {
@@ -506,7 +509,7 @@ export abstract class Component extends Themable implements IComponent {
             component.createContent();
         }
 
-        // apply sash configuration if any
+        // apply sash configuration if any (ignore the last configuration)
         for (let i = 0; i < this._splitView.count - 1; i++) {
             const option = options[i]!;
 
@@ -516,10 +519,7 @@ export abstract class Component extends Themable implements IComponent {
             }
             
             const sash = assert(this._splitView.getSashAt(i));
-            sash.enable  ??= sashOpts.enable ?? sash.enable;
-            sash.visible = sashOpts.visible ?? sash.visible;
-            sash.size    = sashOpts.size ?? sash.size;
-            sash.range   = sashOpts.range ?? sash.range;
+            sash.setOptions(sashOpts);
         }
     
         // register listeners

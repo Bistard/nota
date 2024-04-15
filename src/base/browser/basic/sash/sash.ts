@@ -175,6 +175,11 @@ export interface ISash {
     registerListeners(): void;
 
     /**
+     * @description Provide simple way to update the sash configurations.
+     */
+    setOptions(opts: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>): void;
+
+    /**
      * @description Disposes the {@link Sash} UI component.
      */
     dispose(): void;
@@ -369,6 +374,13 @@ export class Sash extends Disposable implements ISash {
         this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
         this.__register(addDisposableListener(this._element, EventType.mouseenter, () => this.__initHover()));
         this.__register(addDisposableListener(this._element, EventType.doubleclick, () => this._onDidReset.fire()));
+    }
+
+    public setOptions(opts: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>): void {
+        this.enable  = opts.enable  ?? this.enable;
+        this.visible = opts.visible ?? this.visible;
+        this.size    = opts.size    ?? this.size;
+        this.range   = opts.range   ?? this.range;
     }
 
     // [private helper methods]
