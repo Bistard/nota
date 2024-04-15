@@ -216,8 +216,8 @@ export class SplitViewItem implements ISplitViewItem {
             panic('[SplitViewItem] Provided maxSize is smaller than provided minSize');
         }
 
-        check(this._maximumSize >= 0, '[SplitViewItem] maximumSize cannot < 0.');
-        check(this._minimumSize >= 0, '[SplitViewItem] minimumSize cannot < 0.');
+        check(this._maximumSize >= 0, `[SplitViewItem] maximumSize cannot be < 0: ${this._maximumSize}px`);
+        check(this._minimumSize >= 0, `[SplitViewItem] minimumSize cannot be < 0: ${this._minimumSize}px`);
         
         this._resizePriority = opt.priority ?? Priority.Low;
         
@@ -226,7 +226,7 @@ export class SplitViewItem implements ISplitViewItem {
         } 
         else {
             if (resolvedInitial < this._minimumSize || resolvedInitial > this._maximumSize) {
-                panic(`[SplitViewItem] init size ${resolvedInitial}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
+                panic(`[SplitViewItem] init size ${resolvedInitial}px exceeds the min or max restriction: [${this._minimumSize}px, ${this._maximumSize}px]`);
             }
             this._size = resolvedInitial;
         }

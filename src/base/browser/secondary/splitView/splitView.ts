@@ -6,7 +6,7 @@ import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
-import { check, panic } from "src/base/common/utilities/panic";
+import { assert, check, panic } from "src/base/common/utilities/panic";
 import { Numbers } from "src/base/common/utilities/number";
 
 /**
@@ -499,7 +499,10 @@ export class SplitView extends Disposable implements ISplitView {
             panic('cannot find the given sash');
         }
 
-        return [this.viewItems[beforeIdx]!, this.viewItems[beforeIdx + 1]!];
+        return [
+            assert(this.viewItems[beforeIdx]),
+            assert(this.viewItems[beforeIdx + 1]),
+        ];
     }
 
     /**

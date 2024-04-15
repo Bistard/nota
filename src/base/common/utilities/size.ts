@@ -23,6 +23,9 @@ export interface IDomBox extends IDimension, IPosition {}
 interface ISize2D {
 	clone(a: number, b: number): this;
 	equals(other: this): boolean;
+	scale(factor: number): this;
+	add(other: this): this;
+	subtract(other: this): this;
 }
 
 class Size2D {
@@ -56,7 +59,7 @@ class Size2D {
     }
 }
 
-export class Dimension extends Size2D implements IDimension, ISize2D {
+export class Dimension extends Size2D implements Readonly<IDimension>, ISize2D {
 
 	public static readonly None = new Dimension(0, 0);
 
@@ -73,7 +76,7 @@ export class Dimension extends Size2D implements IDimension, ISize2D {
 	}
 }
 
-export class Position extends Size2D implements IPosition, ISize2D {
+export class Position extends Size2D implements Readonly<IPosition>, ISize2D {
 
 	public static readonly None = new Position(0, 0);
 
@@ -90,7 +93,7 @@ export class Position extends Size2D implements IPosition, ISize2D {
 	}
 }
 
-export class Coordinate extends Size2D implements ICoordinate, ISize2D {
+export class Coordinate extends Size2D implements Readonly<ICoordinate>, ISize2D {
 
 	public static readonly None = new Coordinate(0, 0);
 
