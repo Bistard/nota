@@ -11,7 +11,6 @@ import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/vi
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { RGBA } from "src/base/common/color";
 import { panic } from "src/base/common/utilities/panic";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
