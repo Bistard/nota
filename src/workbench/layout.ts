@@ -19,6 +19,7 @@ import { IActionBarService } from "src/workbench/parts/navigationPanel/navigatio
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
+import { IDimension } from "src/base/common/utilities/size";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -51,9 +52,13 @@ export abstract class WorkbenchLayout extends Component {
 
     // [protected methods]
 
-    public override layout(): void {
+    public override layout(): IDimension {
+        /**
+         * This line of code make sure the workbench will fit the whole window 
+         * during window resizing.
+         */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
-        super.layout(undefined, undefined);
+        return super.layout(undefined, undefined);
     }
 
     // [protected helper methods]

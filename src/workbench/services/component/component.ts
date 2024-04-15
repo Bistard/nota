@@ -131,14 +131,20 @@ export interface IComponent extends ICreatable {
     registerListeners(): void;
 
     /**
-     * @description Layout the component to the given dimension.
+     * @description Layout the component to the given dimension. This function
+     * will modify {@link Component.dimension} attribute.
      * @param width The width of dimension.
      * @param height The height of dimension.
+     * @returns The new dimension of the component.
+     * 
      * @note If no dimensions is provided, the component will try to be filled
-     * with the parent HTMLElement. If any dimensions is provided, the component
-     * will layout the missing one either with the previous value or just zero.
+     *       with the parent HTMLElement. If any dimensions is provided, the 
+     *       component will layout the missing one either with the previous 
+     *       value or just zero.
+     * @note This function will only mutate the {@link Component.dimension} and
+     *       will not actually change anything in the DOM tree.
      */
-    layout(width?: number, height?: number): void;
+    layout(width?: number, height?: number): IDimension;
 
     /**
      * @description Register a child {@link IComponent} into the current Component.
@@ -381,7 +387,7 @@ export abstract class Component extends Themable implements IComponent {
         this._created = true;
     }
 
-    public layout(width?: number, height?: number): void {
+    public layout(width?: number, height?: number): IDimension {
         
         // If no dimensions provided, we default to layout to fit to parent.
         if (width === undefined && height === undefined) {
@@ -397,10 +403,8 @@ export abstract class Component extends Themable implements IComponent {
                 : new Dimension(width ?? 0, height ?? 0);
         }
 
-        this.element.setWidth(this._dimension.width);
-        this.element.setHeight(this._dimension.height);
-
         this._onDidLayout.fire(this._dimension);
+        return this._dimension;
     }
 
     public registerListeners(): void {
@@ -524,9 +528,8 @@ export abstract class Component extends Themable implements IComponent {
     
         // register listeners
         this.__register(addDisposableListener(window, EventType.resize, () => {
-            this.layout();
-            const dimension = assert(this.dimension);
-            this._splitView?.layout(dimension.width, dimension.height);
+            const newDimension = this.layout();
+            this._splitView?.layout(newDimension.width, newDimension.height);
         }));
 
         this.logService.trace(`${this.id}`, 'Component assembling components succeeded.');
