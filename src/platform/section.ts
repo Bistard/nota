@@ -7,7 +7,7 @@
  */
 export const enum Section {
 
-    SideBar = 'src/workbench/sideBar',
+    NavigationBar = 'src/workbench/navigationBar',
 
     NavigationView = 'src/workbench/navigationView',
     Explorer = 'src/workbench/navigationView/explorer',

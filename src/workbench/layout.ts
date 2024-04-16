@@ -66,7 +66,7 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register tool buttons
-        const navigationBarBuilder = new SideBarBuilder(this.navigationBarService, this.actionBarService, this.functionBarService, this.contextMenuService);
+        const navigationBarBuilder = new NavigationBarBuilder(this.navigationBarService, this.actionBarService, this.functionBarService, this.contextMenuService);
         navigationBarBuilder.registerButtons();
 
         // assembly the workbench layout
@@ -76,7 +76,7 @@ export abstract class WorkbenchLayout extends Component {
     protected __registerLayoutListeners(): void {
 
         /**
-         * Listens to each SideBar button click events and notifies the 
+         * Listens to each NavigationBar button click events and notifies the 
          * navigationView to switch the view.
          */
         this.__register(this.navigationBarService.onDidClick(e => {
@@ -115,7 +115,7 @@ export abstract class WorkbenchLayout extends Component {
     } 
 }
 
-class SideBarBuilder {
+class NavigationBarBuilder {
 
     constructor(
         private readonly navigationBarService: INavigationBarService,

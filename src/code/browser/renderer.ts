@@ -275,7 +275,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     
         // User Interface
         registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
-        // registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
+        // registerService(INavigationBarService           , new ServiceDescriptor(NavigationBar                  , []));
         // registerService(INavigationViewService          , new ServiceDescriptor(NavigationViewService          , []));
         registerService(INavigationBarService           , new ServiceDescriptor(NavigationBar                  , []));
         registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
