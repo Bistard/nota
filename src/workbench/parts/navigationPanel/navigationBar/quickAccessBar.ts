@@ -7,7 +7,9 @@ import { IComponentService } from 'src/workbench/services/component/componentSer
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { ILogService } from 'src/base/common/logger';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { NavSearchBar } from 'src/workbench/parts/navigationPanel/navigationBar/navSearch';
+import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
+import { Icons } from 'src/base/browser/icon/icons';
+import { IProductService } from 'src/platform/product/common/productService';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 export interface IQuickAccessBarService extends IComponent, IService {
@@ -18,7 +20,6 @@ export class QuickAccessBar extends Component {
     // [fields]
 
     public static readonly HEIGHT = 40;
-    private searchBarComponent!: NavSearchBar;
 
     // [constructor]
 
@@ -26,6 +27,7 @@ export class QuickAccessBar extends Component {
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
+        @IProductService private readonly productService: IProductService,
         @ILogService logService: ILogService,
     ) {
         super('quick-access-bar', null, themeService, componentService, logService);
@@ -44,7 +46,8 @@ export class QuickAccessBar extends Component {
     protected override _createContent(): void {
         const logo = this.__createLogo();
         this.element.appendChild(logo.element);
-        this.__createSearchBar();
+        const searchBar = this.__createSearchBar();
+        this.element.appendChild(searchBar);
     }
     
     protected override _registerListeners(): void {
@@ -62,8 +65,15 @@ export class QuickAccessBar extends Component {
         return logo;
     }
 
-    private __createSearchBar(): void {
-        this.searchBarComponent = this.instantiationService.createInstance(NavSearchBar);
-        this.searchBarComponent.create(this);
+    private __createSearchBar(): HTMLElement {
+        const utilityBar = document.createElement('div');
+        utilityBar.className = 'quick-access-search-bar';
+        const searchBar = new SearchBar({
+            icon: Icons.Search,
+            placeHolder: this.productService.profile.applicationName,
+        });
+        searchBar.render(document.createElement('div'));
+        utilityBar.appendChild(searchBar.element);
+        return utilityBar;
     }
 }
