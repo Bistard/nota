@@ -1,4 +1,4 @@
-#navigation-bar, #function-bar, #action-bar {
+#navigation-bar, #function-bar, #action-bar, #quick-access-bar {
 
     /* display in row */
     display: flex;
@@ -35,8 +35,14 @@
         }
     }
 
+    & > .utility-bar {
+        flex: auto;
+        float: right;
+    }
+
     & > .logo {
         top: 10px;
+        margin-right: 10px;
         padding-left: 10px;
         justify-content: center;
         
