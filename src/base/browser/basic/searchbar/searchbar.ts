@@ -55,9 +55,9 @@ export class SearchBar extends Widget implements ISearchBar {
     // [field]
 
     private _placeHolder: string;
-    private _innerText?: HTMLElement;
-
     private _opts?: ISearchBarOpts;
+    private _innerText?: HTMLInputElement;
+
 
     // [event]
 
@@ -83,40 +83,36 @@ export class SearchBar extends Widget implements ISearchBar {
     }
 
     get text(): string {
-        return this._innerText?.innerText ?? '';
+        return this._innerText?.value ?? '';
     }
 
     public setText(text: string): void {
-        if (!this._innerText) {
-            return;
+        if (this._innerText) {
+            this._innerText.value = text;
         }
-
-        this._innerText.innerText = text;
     }
 
     // [protected methods]
 
     protected override __render(): void {
-        
-        // inner icon
         let searchIcon: HTMLElement | undefined;
         if (this._opts?.icon) {
             searchIcon = createIcon(this._opts?.icon);
         }
-
-        // inner text
-        const innerText = document.createElement('div');
+    
+        // inner text as input element
+        const innerText = document.createElement('input');
         innerText.className = 'inner-text';
-        innerText.innerText = this._placeHolder;
-        
-        // render
+        innerText.placeholder = this._placeHolder;
+        innerText.type = 'text';
+    
         if (searchIcon) {
             this.element.append(searchIcon);
         }
         this.element.append(innerText);
-        
+        this._innerText = innerText as HTMLInputElement;
     }
-
+    
     protected override __applyStyle(): void {
         
         this.element.classList.add('search-bar');
@@ -124,8 +120,11 @@ export class SearchBar extends Widget implements ISearchBar {
     }
 
     protected override __registerListeners(): void {
-        
-    }
-
+        this._innerText?.addEventListener('input', (event: Event) => {
+            const target = event.target as HTMLInputElement;
+            this._onDidType.fire({text: target.value});
+        });
+    }    
+    
     // [private helper methods]
 }

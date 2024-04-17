@@ -109,32 +109,6 @@ export class ActionBar extends Component implements IActionBarService {
 
     private __buttonClick(buttonType: string): void {
 
-         /** ONLY FOR `ACTION BAR` TEST PRUPOSES */
-
-        // const event: INavigationBarButtonClickEvent = {
-        //     ID: buttonType,
-        //     prevType: this._currButtonType,
-        //     isPrimary: false
-        // };
-        
-        // // Determine which bar to delegate to based on the clicked button
-        // if (buttonType === NavigationButtonType.LOGO) {
-        //     // Toggle the state and call the appropriate handle function
-        //     this._toggleState = !this._toggleState;
-        //     if (this._toggleState) {
-        //         // If the toggle state is true, then it corresponds to the FilterBar
-        //         // this._filterBar.handleButtonClick(event);
-        //     } else {
-        //         // If the toggle state is false, then it corresponds to the ActionBar
-        //         this._actionBar.handleButtonClick(event);
-        //     }
-        // }
-
-        // Update the current button type
-        // this._currButtonType = buttonType;
-
-        /** ONLY FOR TEST PRUPOSES */
-
         const button = this.getButton(buttonType)!;
         const previousType = this._currButtonType;
 

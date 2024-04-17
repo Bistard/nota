@@ -100,7 +100,7 @@ export class NavigationBar extends Component implements INavigationBarService {
             { 
                 component: this.actionBarService,
                 minimumSize: ActionBar.HEIGHT,
-                maximumSize: Number.MAX_VALUE, //
+                maximumSize: Number.MAX_VALUE,
                 initSize: ActionBar.HEIGHT,
                 priority: Priority.Normal,
             },
