@@ -11,6 +11,7 @@ import { ILogService } from 'src/base/common/logger';
 import { Orientation } from 'src/base/browser/basic/dom';
 
 export const IFunctionBarService = createService<IFunctionBarService>('function-bar-service');
+
 /**
  * An interface only for {@link FunctionBar}.
  */
@@ -42,13 +43,19 @@ export interface IFunctionBarService extends IComponent, IService {
      */
     registerSecondaryButton(opts: INavigationButtonOptions): boolean;
 }
+
 export class FunctionBar extends Component implements IFunctionBarService {
+    
     declare _serviceMarker: undefined;
 
     // [field]
+    
     public static readonly HEIGHT = 40;
     private _currButtonType: string = NavigationButtonType.NONE;
     private readonly _secondary: WidgetBar<NavigationButton>;
+    
+    // [event]
+    
     private readonly _onDidClick = this.__register(new Emitter<INavigationBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 

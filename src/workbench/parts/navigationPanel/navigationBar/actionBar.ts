@@ -41,14 +41,18 @@ export class ActionBar extends Component implements IActionBarService {
     declare _serviceMarker: undefined;
 
     // [field]
+
     public static readonly HEIGHT = 60;
 
-    /** ONLY FOR TEST PRUPOSES */
+    /** ONLY FOR TEST PURPOSES */
     // This flag toggles between ActionBar and FilterBar
     private _toggleState: boolean = false;
 
     private readonly _primary: WidgetBar<NavigationButton>;
     private _currButtonType: string = NavigationButtonType.NONE;
+    
+    // [event]
+    
     private readonly _onDidClick = new Emitter<INavigationBarButtonClickEvent>();
     public readonly onDidClick = this._onDidClick.registerListener;
 

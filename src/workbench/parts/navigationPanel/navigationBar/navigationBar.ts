@@ -65,6 +65,8 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     public static readonly HEIGHT = 100;
 
+    // [event]
+
     private readonly _onDidClick = this.__register(new Emitter<INavigationBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
@@ -98,8 +100,8 @@ export class NavigationBar extends Component implements INavigationBarService {
             { 
                 component: this.actionBarService,
                 minimumSize: ActionBar.HEIGHT,
-                maximumSize: Number.MAX_VALUE,
                 initSize: ActionBar.HEIGHT,
+                maximumSize: null,
             },
         ];
         this.assembleComponents(Orientation.Vertical, partConfigurations); 

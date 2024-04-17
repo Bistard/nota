@@ -15,12 +15,16 @@ export const IQuickAccessBarService = createService<IQuickAccessBarService>('qui
 export interface IQuickAccessBarService extends IComponent, IService {
 
 }
-export class QuickAccessBar extends Component {
+export class QuickAccessBar extends Component implements IQuickAccessBarService {
+
+    declare _serviceMarker: undefined;
 
     // [fields]
 
     public static readonly HEIGHT = 40;
-    private searchBar!: SearchBar;
+    private _searchBar?: SearchBar;
+
+    // [event]
 
     // [constructor]
 
@@ -38,15 +42,12 @@ export class QuickAccessBar extends Component {
         
     }
 
-    public search(text: string): void {
-        this.searchBar.setText(text);
-    }
-
     // [protected override method]
     
     protected override _createContent(): void {
         const logo = this.__createLogo();
         this.element.appendChild(logo.element);
+
         const searchBar = this.__createSearchBar();
         this.element.appendChild(searchBar);
     }
@@ -60,22 +61,25 @@ export class QuickAccessBar extends Component {
     private __createLogo(): NavigationButton {
         const logo = new NavigationButton({ id: NavigationButtonType.LOGO, isPrimary: true, classes: ['logo'] });
         logo.render(document.createElement('div'));
+        
         const text = document.createElement('div');
         text.innerText = 'N';
         logo.element.appendChild(text);
+        
         return logo;
     }
 
     private __createSearchBar(): HTMLElement {
         const utilityBar = document.createElement('div');
         utilityBar.className = 'quick-access-search-bar';
-        this.searchBar = new SearchBar({
+        
+        this._searchBar = new SearchBar({
             icon: Icons.Search,
             placeHolder: "search for anything ...",
         });
-        this.searchBar.render(document.createElement('div'));
-        this.search("search for anything ...");
-        utilityBar.appendChild(this.searchBar.element);
+        this._searchBar.render(document.createElement('div'));
+        
+        utilityBar.appendChild(this._searchBar.element);
         return utilityBar;
     }
 }
