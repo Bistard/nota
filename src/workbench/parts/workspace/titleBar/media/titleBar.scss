@@ -7,28 +7,10 @@
 
     display: flex;
     flex-direction: row;
-    
+    justify-content: flex-end;
     overflow: hidden;
     box-sizing: border-box;
     
     -webkit-app-region: drag; /* draggable */
 
-    & > .utility-bar {
-        position: relative;
-    
-        display: flex;
-    
-        height: 100%;
-        width: 100%;
-    
-        overflow: hidden;
-        box-sizing: border-box;
-        user-select: none;
-    
-        flex-shrink: 1;
-        flex-grow: 1;
-    
-        align-items: center;
-        justify-content: center;
-    }
 }
