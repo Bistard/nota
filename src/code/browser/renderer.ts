@@ -61,6 +61,7 @@ import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigation
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/actionBar";
 import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar";
+import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/filterBar";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -275,11 +276,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
     
         // User Interface
         registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
-        // registerService(INavigationBarService           , new ServiceDescriptor(NavigationBar                  , []));
-        // registerService(INavigationViewService          , new ServiceDescriptor(NavigationViewService          , []));
         registerService(INavigationBarService           , new ServiceDescriptor(NavigationBar                  , []));
         registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
         registerService(IActionBarService         , new ServiceDescriptor(ActionBar                , []));
+        registerService(IFilterBarService         , new ServiceDescriptor(FilterBar                , []));
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
