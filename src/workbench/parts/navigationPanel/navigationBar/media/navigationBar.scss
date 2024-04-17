@@ -1,6 +1,7 @@
 #navigation-bar, #function-bar, #action-bar, #quick-access-bar {
 
     /* display in row */
+    z-index: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -12,8 +13,6 @@
     min-width: 300px;
     height: 100%;
     background-color: #fcfcfc;
-    
-    -webkit-app-region: drag; /* draggable */
 
     & > div {
         position: absolute;
@@ -55,7 +54,7 @@
         z-index: 1;
 
         .search-bar {
-            width: calc(100% - 40px) !important;
+            width: calc(100% - 35px) !important;
             left: 40px  !important;
             background-color: #f6f6f6;
 
@@ -103,5 +102,12 @@
         &.focus {
             filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
         }
+    }
+}
+
+#navigation-bar {
+    .split-view {
+        width: 98.5% !important;
+        -webkit-app-region: drag; /* draggable */
     }
 }
