@@ -327,13 +327,23 @@ export class SplitView extends Disposable implements ISplitView {
     
         // sash
 
-        if (this.viewItems.length > 1) {
+        if (this.viewItems.length >= 2) {
             const sash = new Sash(this.sashContainer, {
-                orientation: (this._orientation === Orientation.Vertical) ?
-                Orientation.Horizontal : Orientation.Vertical
+                orientation: (this._orientation === Orientation.Vertical) 
+                    ? Orientation.Horizontal 
+                    : Orientation.Vertical
             });
             sash.registerListeners();
 
+            /**
+             * If either the current view or the previous view is inflexible,
+             * the sash will be disabled.
+             */
+            const prevView = this.viewItems[opt.index - 1];
+            if (!view.isFlexible() || (prevView && !prevView.isFlexible())) {
+                sash.enable = false;
+            }
+            
             // TODO: lifecycle maintenance
             sash.onDidEnd(() => {
                 this.__onDidSashEnd(sash);
@@ -355,7 +365,7 @@ export class SplitView extends Disposable implements ISplitView {
         if (this.viewItems.length === 1 || this.viewItems.length === opt.index + 1) {
             this.viewContainer.appendChild(newView);
         } else {
-            this.viewContainer.insertBefore(newView, this.viewContainer.children.item(opt.index!));
+            this.viewContainer.insertBefore(newView, this.viewContainer.children.item(opt.index));
         }
     }
 
