@@ -10,7 +10,6 @@ import { IInstantiationService } from 'src/platform/instantiation/common/instant
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { IProductService } from 'src/platform/product/common/productService';
-import { SearchReply } from 'redis';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 export interface IQuickAccessBarService extends IComponent, IService {
