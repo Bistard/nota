@@ -33,13 +33,17 @@
     }
 
     & > .inner-text {
+        border: none;
+        outline: 0;
+        color: rgb(60, 60, 60); // color of texts
+        background-color: transparent;
         position: relative;
         margin: auto;
         
         font-size: 14px;
         width: 80%;
     
-        text-align: center;
+        text-align: start;
         text-overflow: ellipsis;
     }
 }
