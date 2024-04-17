@@ -10,6 +10,7 @@ import { IInstantiationService } from 'src/platform/instantiation/common/instant
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { IProductService } from 'src/platform/product/common/productService';
+import { SearchReply } from 'redis';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 export interface IQuickAccessBarService extends IComponent, IService {
@@ -20,6 +21,7 @@ export class QuickAccessBar extends Component {
     // [fields]
 
     public static readonly HEIGHT = 40;
+    private searchBar!: SearchBar;
 
     // [constructor]
 
@@ -38,7 +40,7 @@ export class QuickAccessBar extends Component {
     }
 
     public search(text: string): void {
-        // this.searchBarComponent.setText(text);
+        this.searchBar.setText(text);
     }
 
     // [protected override method]
@@ -68,12 +70,12 @@ export class QuickAccessBar extends Component {
     private __createSearchBar(): HTMLElement {
         const utilityBar = document.createElement('div');
         utilityBar.className = 'quick-access-search-bar';
-        const searchBar = new SearchBar({
+        this.searchBar = new SearchBar({
             icon: Icons.Search,
             placeHolder: this.productService.profile.applicationName,
         });
-        searchBar.render(document.createElement('div'));
-        utilityBar.appendChild(searchBar.element);
+        this.searchBar.render(document.createElement('div'));
+        utilityBar.appendChild(this.searchBar.element);
         return utilityBar;
     }
 }
