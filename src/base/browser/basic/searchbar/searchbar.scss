@@ -33,9 +33,10 @@
     }
 
     & > .inner-text {
+        flex-grow: 1;
         border: none;
         outline: 0;
-        color: rgb(60, 60, 60); // color of texts
+        color: #666;; // color of texts
         background-color: transparent;
         position: relative;
         margin: auto;

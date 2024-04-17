@@ -57,7 +57,7 @@ export class SearchBar extends Widget implements ISearchBar {
     private _placeHolder: string;
     private _opts?: ISearchBarOpts;
     private _innerText?: HTMLInputElement;
-
+    private _isPlaceholderText: boolean = true; 
 
     // [event]
 
@@ -89,6 +89,7 @@ export class SearchBar extends Widget implements ISearchBar {
     public setText(text: string): void {
         if (this._innerText) {
             this._innerText.value = text;
+            this._isPlaceholderText = true;
         }
     }
 
@@ -100,7 +101,6 @@ export class SearchBar extends Widget implements ISearchBar {
             searchIcon = createIcon(this._opts?.icon);
         }
     
-        // inner text as input element
         const innerText = document.createElement('input');
         innerText.className = 'inner-text';
         innerText.placeholder = this._placeHolder;
@@ -111,7 +111,7 @@ export class SearchBar extends Widget implements ISearchBar {
         }
         this.element.append(innerText);
         this._innerText = innerText as HTMLInputElement;
-    }
+    }    
     
     protected override __applyStyle(): void {
         
@@ -123,8 +123,24 @@ export class SearchBar extends Widget implements ISearchBar {
         this._innerText?.addEventListener('input', (event: Event) => {
             const target = event.target as HTMLInputElement;
             this._onDidType.fire({text: target.value});
+            this._isPlaceholderText = false;  // Any user input means text is no longer placeholder
         });
-    }    
+    
+        this._innerText?.addEventListener('focus', (event: Event) => {
+            const target = event.target as HTMLInputElement;
+            if (this._isPlaceholderText) {  // Only clear if the text is still considered placeholder
+                target.value = '';
+            }
+        });
+    
+        this._innerText?.addEventListener('blur', (event: Event) => {
+            const target = event.target as HTMLInputElement;
+            if (target.value.trim() === '') {
+                target.value = this._placeHolder;  // Restore placeholder if nothing entered
+                this._isPlaceholderText = true;  // Text is now a placeholder again
+            }
+        });
+    }
     
     // [private helper methods]
 }

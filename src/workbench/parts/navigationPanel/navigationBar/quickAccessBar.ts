@@ -74,6 +74,7 @@ export class QuickAccessBar extends Component {
             placeHolder: this.productService.profile.applicationName,
         });
         this.searchBar.render(document.createElement('div'));
+        this.search("Search for anything ...");
         utilityBar.appendChild(this.searchBar.element);
         return utilityBar;
     }
