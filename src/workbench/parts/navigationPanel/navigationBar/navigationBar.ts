@@ -1,9 +1,9 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
-import { Component, IComponent } from 'src/workbench/services/component/component';
+import { Component, IAssembleComponentOpts, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { Orientation } from 'src/base/browser/basic/dom';
-import { Emitter, Priority, Register } from 'src/base/common/event';
+import { Emitter, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
@@ -89,20 +89,17 @@ export class NavigationBar extends Component implements INavigationBarService {
         // Register buttons along with future development
         // Now registered one in layout.ts - EXPLORE folder icon
 
-        const partConfigurations = [
+        const partConfigurations: IAssembleComponentOpts[] = [
             { 
                 component: this.quickAccessBarService,
-                minimumSize: QuickAccessBar.HEIGHT,
-                maximumSize: QuickAccessBar.HEIGHT,
-                initSize: QuickAccessBar.HEIGHT,
-                priority: Priority.Normal,
+                fixed: true,
+                fixedSize: QuickAccessBar.HEIGHT,
             },
             { 
                 component: this.actionBarService,
                 minimumSize: ActionBar.HEIGHT,
                 maximumSize: Number.MAX_VALUE,
                 initSize: ActionBar.HEIGHT,
-                priority: Priority.Normal,
             },
         ];
         this.assembleComponents(Orientation.Vertical, partConfigurations); 

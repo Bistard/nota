@@ -50,8 +50,8 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
         const partConfigurations: IAssembleComponentOpts[] = [
             { 
-                fixed: true,
                 component: this.navigationBarService,
+                fixed: true,
                 fixedSize: NavigationBar.HEIGHT,
             },
             { 
@@ -61,8 +61,8 @@ export class NavigationPanel extends Component implements INavigationPanelServic
                 maximumSize: null,
             },
             { 
-                fixed: true,
                 component: this.functionBarService,
+                fixed: true,
                 fixedSize: FunctionBar.HEIGHT,
             },
         ];
