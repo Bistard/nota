@@ -71,10 +71,10 @@ export class QuickAccessBar extends Component {
         utilityBar.className = 'quick-access-search-bar';
         this.searchBar = new SearchBar({
             icon: Icons.Search,
-            placeHolder: this.productService.profile.applicationName,
+            placeHolder: "search for anything ...",
         });
         this.searchBar.render(document.createElement('div'));
-        this.search("Search for anything ...");
+        this.search("search for anything ...");
         utilityBar.appendChild(this.searchBar.element);
         return utilityBar;
     }
