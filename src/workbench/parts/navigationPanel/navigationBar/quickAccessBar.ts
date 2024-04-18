@@ -6,10 +6,9 @@ import { Component, IComponent } from 'src/workbench/services/component/componen
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { ILogService } from 'src/base/common/logger';
-import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
-import { IProductService } from 'src/platform/product/common/productService';
+import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 export interface IQuickAccessBarService extends IComponent, IService {
@@ -29,14 +28,15 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [constructor]
 
     constructor(
+        @IToolBarService toolBarService: IToolBarService,
         @IComponentService componentService: IComponentService,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
-        @IProductService private readonly productService: IProductService,
         @ILogService logService: ILogService,
     ) {
         super('quick-access-bar', null, themeService, componentService, logService);
     }
+
+    // [public method]
 
     public registerButtons(): void {
         
