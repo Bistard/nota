@@ -7,7 +7,7 @@ import { Emitter, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
-import { ActionBar, IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/actionBar';
+import { IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
@@ -74,7 +74,7 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     constructor(
         @IQuickAccessBarService private readonly quickAccessBarService: IQuickAccessBarService,
-        @IActionBarService private readonly actionBarService: IActionBarService,
+        @IToolBarService private readonly toolBarService: IToolBarService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -98,9 +98,9 @@ export class NavigationBar extends Component implements INavigationBarService {
                 fixedSize: QuickAccessBar.HEIGHT,
             },
             { 
-                component: this.actionBarService,
-                minimumSize: ActionBar.HEIGHT,
-                initSize: ActionBar.HEIGHT,
+                component: this.toolBarService,
+                minimumSize: ToolBar.HEIGHT,
+                initSize: ToolBar.HEIGHT,
                 maximumSize: null,
             },
         ];

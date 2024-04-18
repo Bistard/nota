@@ -2,11 +2,11 @@ import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.sc
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { IService, createService } from 'src/platform/instantiation/common/decorator';
+import { createService } from 'src/platform/instantiation/common/decorator';
 import { ILogService } from 'src/base/common/logger';
 import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { INavigationBarButtonClickEvent, INavigationBarService, NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
-import { Emitter, Register } from 'src/base/common/event';
+import { Emitter} from 'src/base/common/event';
 
 export const IFilterBarService = createService<IFilterBarService>('filter-bar-service');
 

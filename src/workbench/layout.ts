@@ -15,7 +15,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { ILogService } from "src/base/common/logger";
 import { panic } from "src/base/common/utilities/panic";
 import { INavigationBarService, NavigationButtonType } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
-import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/actionBar";
+import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";

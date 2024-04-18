@@ -44,10 +44,6 @@ export class ActionBar extends Component implements IActionBarService {
 
     public static readonly HEIGHT = 60;
 
-    /** ONLY FOR TEST PURPOSES */
-    // This flag toggles between ActionBar and FilterBar
-    private _toggleState: boolean = false;
-
     private readonly _primary: WidgetBar<NavigationButton>;
     private _currButtonType: string = NavigationButtonType.NONE;
     
@@ -64,7 +60,7 @@ export class ActionBar extends Component implements IActionBarService {
         @ILogService logService: ILogService,
     ) {
         super('action-bar', null, themeService, componentService, logService);
-        this._primary = new WidgetBar(undefined, { orientation: Orientation.Vertical }); // Make it horizontal
+        this._primary = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
     }
 
     // [public method]
@@ -81,14 +77,7 @@ export class ActionBar extends Component implements IActionBarService {
         return this.__registerButton(opts, this._primary);
     }
 
-    public render(container: HTMLElement): void {
-        this._createContent();
-        container.appendChild(this.element.element);
-    }
-
     // [protected override method]
-
-    // actionBar.create()
 
     protected override _createContent(): void {
         const actionBarContainer = document.createElement('div');
