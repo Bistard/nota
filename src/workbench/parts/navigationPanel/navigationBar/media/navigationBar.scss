@@ -1,15 +1,11 @@
 #navigation-bar, #quick-access-bar, #tool-bar, #action-bar, #filter-bar, #function-bar {
 
     z-index: 0;
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
     width: 100%;
-
-    position: relative;
-    max-width: 600px;
-    min-width: 300px;
     height: 100%;
     background-color: #fcfcfc;
 
