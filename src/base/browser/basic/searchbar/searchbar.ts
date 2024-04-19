@@ -51,7 +51,7 @@ export interface ISearchBar extends IWidget {
     readonly onDidFocus: Register<FocusEvent>;
 
     /**
-     * Fires when the search bar is being blured.
+     * Fires when the search bar is being blurred.
      */
     readonly onDidBlur: Register<FocusEvent>;
 
@@ -130,7 +130,7 @@ export class SearchBar extends Widget implements ISearchBar {
             this.element.append(searchIcon);
         }
         this.element.append(innerText);
-        this._innerText = innerText as HTMLInputElement;
+        this._innerText = innerText;
     }    
     
     protected override __applyStyle(): void {

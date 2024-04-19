@@ -10,9 +10,11 @@ import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
+
 export interface IQuickAccessBarService extends IComponent, IService {
     _searchBar?: SearchBar;
 }
+
 export class QuickAccessBar extends Component implements IQuickAccessBarService {
 
     declare _serviceMarker: undefined;
