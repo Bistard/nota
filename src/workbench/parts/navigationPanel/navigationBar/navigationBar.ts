@@ -7,7 +7,9 @@ import { Emitter, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
-import { IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
+import { BarType, IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
+import { assert } from 'src/base/common/utilities/panic';
+import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
@@ -108,6 +110,16 @@ export class NavigationBar extends Component implements INavigationBarService {
     }
 
     protected override _registerListeners(): void {
+        const searchBar = assert(this.quickAccessBarService._searchBar);
 
+        this.__register(searchBar.onDidFocus(() => {
+            console.log("switching to filterBar");
+            this.toolBarService.switchTo(BarType.Filter);
+        }));
+
+        this.__register(searchBar.onDidBlur(() => {
+            console.log("switching to actionBar");
+            this.toolBarService.switchTo(BarType.Action);
+        }));
     }
 }
