@@ -12,7 +12,12 @@ import { Icons } from 'src/base/browser/icon/icons';
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 
 export interface IQuickAccessBarService extends IComponent, IService {
-    _searchBar?: SearchBar;
+    /**
+     * Retrieves the search bar component.
+     * 
+     * @returns The search bar component, or undefined if it doesn't exist.
+     */
+    getSearchBar(): SearchBar | undefined;
 }
 
 export class QuickAccessBar extends Component implements IQuickAccessBarService {
@@ -22,7 +27,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [fields]
 
     public static readonly HEIGHT = 40;
-    public _searchBar?: SearchBar;
+    private _searchBar?: SearchBar;
 
     // [event]
 
@@ -40,6 +45,10 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
 
     public registerButtons(): void {
         
+    }
+
+    public getSearchBar(): SearchBar | undefined {
+        return this._searchBar;
     }
 
     // [protected override method]
