@@ -88,7 +88,7 @@ export class FunctionBar extends Component implements IFunctionBarService {
 
         // lower button group
         const secondaryContainer = document.createElement('div');
-        secondaryContainer.className = 'secondary-button-container';
+        secondaryContainer.className = 'function-bar-button-container';
         this._secondary.render(secondaryContainer);
 
         this.element.appendChild(secondaryContainer);

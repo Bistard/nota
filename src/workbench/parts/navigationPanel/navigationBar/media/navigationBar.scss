@@ -1,6 +1,5 @@
-#navigation-bar, #function-bar, #action-bar, #filter-bar, #tool-bar, #quick-access-bar {
+#navigation-bar, #quick-access-bar, #tool-bar, #action-bar, #filter-bar, #function-bar {
 
-    /* display in row */
     z-index: 0;
     display: flex;
     flex-direction: row;
@@ -18,16 +17,38 @@
         position: absolute;
     }
 
-    & > .quick-bar-container {
-        position: relative;
-        height: 50px;
-        width: 90%; /* 90% width for the quick-access-bar */
-        background-color: #fcfcfc;
+    & .tool-button {
+        width: 30px;
+        height: 30px;
+        align-content: center;
         display: flex;
-        align-items: center;
-        justify-content: flex-end; /* Align to the right */
-    }
 
+        & > .icon {
+            font-size: 18px;
+        }
+
+        &:hover {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+
+        &:active {
+            opacity: 70%;
+        }
+
+        &.focus {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+    }
+}
+
+#navigation-bar {
+    .split-view {
+        width: 98.5% !important;
+        -webkit-app-region: drag; /* draggable */
+    }
+}
+
+#quick-access-bar {
     & > .logo {
         z-index: 2;
         top: 10px;
@@ -64,50 +85,14 @@
             }
         }
     }
+}
 
-    & > .general-button-container {
-        top: 80px;
-        height: 40px;
-        width: 100%;
-        justify-content: center;
-        background-color: #fcfcfc;
-    }
-
-    & > .secondary-button-container {
+#function-bar {
+    & > .function-bar-button-container {
         bottom: 0px;
         height: 40px;
         width: 100%;
         justify-content: center;
         background-color: #fcfcfc;
-    }
-
-    & .tool-button {
-        width: 30px;
-        height: 30px;
-        align-content: center;
-        display: flex;
-
-        & > .icon {
-            font-size: 18px;
-        }
-
-        &:hover {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
-        }
-
-        &:active {
-            opacity: 70%;
-        }
-
-        &.focus {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
-        }
-    }
-}
-
-#navigation-bar {
-    .split-view {
-        width: 98.5% !important;
-        -webkit-app-region: drag; /* draggable */
     }
 }
