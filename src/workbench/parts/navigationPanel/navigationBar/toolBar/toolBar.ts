@@ -8,17 +8,18 @@ import { ILogService } from 'src/base/common/logger';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
+export const enum BarType {
+    Action,
+    Filter
+}
+
 export interface IToolBarService extends IComponent, IService {
     
     /**
-     * Switches the toolbar to display the action bar.
+     * Switches the toolbar to display the specified bar.
+     * @param barType The type of bar to switch to.
      */
-    switchToActionBar(): void;
-
-    /**
-     * Switches the toolbar to display the filter bar.
-     */
-    switchToFilterBar(): void;
+    switchTo(barType: BarType): void;
 }
 
 export class ToolBar extends Component implements IToolBarService {
@@ -43,15 +44,26 @@ export class ToolBar extends Component implements IToolBarService {
         super("tool-bar", null, themeService, componentService, logService);
     }
 
-    public switchToActionBar(): void {
-        this.actionBarService.setVisible(true);
-        this.filterBarService.setVisible(false);
+    // [public method]
+
+    public switchTo(barType: BarType): void {
+        switch (barType) {
+            case BarType.Action:
+                this.actionBarService.setVisible(true);
+                
+                // Set all other service to be invisible
+                this.filterBarService.setVisible(false);
+                break;
+            case BarType.Filter:
+                this.filterBarService.setVisible(true);
+
+                // Set all other service to be invisible
+                this.actionBarService.setVisible(false);
+                break;
+        }
     }
 
-    public switchToFilterBar(): void {
-        this.actionBarService.setVisible(false);
-        this.filterBarService.setVisible(true);
-    }
+    // [protected override method]
 
     protected override _createContent(): void {
         this.actionBarService.create(this);
