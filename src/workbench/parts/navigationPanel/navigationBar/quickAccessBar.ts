@@ -8,11 +8,10 @@ import { IService, createService } from 'src/platform/instantiation/common/decor
 import { ILogService } from 'src/base/common/logger';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
-import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 export interface IQuickAccessBarService extends IComponent, IService {
-
+    _searchBar?: SearchBar;
 }
 export class QuickAccessBar extends Component implements IQuickAccessBarService {
 
@@ -21,14 +20,13 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [fields]
 
     public static readonly HEIGHT = 40;
-    private _searchBar?: SearchBar;
+    public _searchBar?: SearchBar;
 
     // [event]
 
     // [constructor]
 
     constructor(
-        @IToolBarService toolBarService: IToolBarService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -54,7 +52,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     
     protected override _registerListeners(): void {
         
-    }
+    } 
 
     // [private helper method]
     
