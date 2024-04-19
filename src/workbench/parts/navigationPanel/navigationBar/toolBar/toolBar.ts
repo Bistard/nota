@@ -51,13 +51,13 @@ export class ToolBar extends Component implements IToolBarService {
             case BarType.Action:
                 this.actionBarService.setVisible(true);
                 
-                // Set all other service to be invisible
+                // Set all other services to be invisible
                 this.filterBarService.setVisible(false);
                 break;
             case BarType.Filter:
                 this.filterBarService.setVisible(true);
 
-                // Set all other service to be invisible
+                // Set all other services to be invisible
                 this.actionBarService.setVisible(false);
                 break;
         }

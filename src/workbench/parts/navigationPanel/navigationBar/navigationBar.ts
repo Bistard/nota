@@ -9,7 +9,6 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
 import { BarType, IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 import { assert } from 'src/base/common/utilities/panic';
-import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
