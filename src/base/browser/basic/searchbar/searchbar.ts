@@ -1,8 +1,10 @@
+import { EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import "src/base/browser/basic/searchbar/searchbar.scss";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Emitter, Register } from "src/base/common/event";
+import { assert } from "src/base/common/utilities/panic";
 import { IDimension } from "src/base/common/utilities/size";
 
 export interface ITypeEvent {
@@ -44,6 +46,16 @@ export interface ISearchBar extends IWidget {
     readonly onDidType: Register<ITypeEvent>;
 
     /**
+     * Fires when the search bar is being focused.
+     */
+    readonly onDidFocus: Register<FocusEvent>;
+
+    /**
+     * Fires when the search bar is being blured.
+     */
+    readonly onDidBlur: Register<FocusEvent>;
+
+    /**
      * @description Set the given text that displaying in the middle of the bar.
      * @param text The given text.
      */
@@ -57,12 +69,17 @@ export class SearchBar extends Widget implements ISearchBar {
     private _placeHolder: string;
     private _opts?: ISearchBarOpts;
     private _innerText?: HTMLInputElement;
-    private _isPlaceholderText: boolean = true; 
 
     // [event]
 
     private readonly _onDidType = this.__register(new Emitter<ITypeEvent>());
     public readonly onDidType = this._onDidType.registerListener;
+
+    private readonly _onDidFocus = this.__register(new Emitter<FocusEvent>());
+    public readonly onDidFocus = this._onDidFocus.registerListener;
+    
+    private readonly _onDidBlur = this.__register(new Emitter<FocusEvent>());
+    public readonly onDidBlur = this._onDidBlur.registerListener;
 
     // [constructor]
 
@@ -86,10 +103,13 @@ export class SearchBar extends Widget implements ISearchBar {
         return this._innerText?.value ?? '';
     }
 
+    get isEmpty(): boolean {
+        return this.text === '';
+    }
+
     public setText(text: string): void {
         if (this._innerText) {
             this._innerText.value = text;
-            this._isPlaceholderText = true;
         }
     }
 
@@ -120,26 +140,19 @@ export class SearchBar extends Widget implements ISearchBar {
     }
 
     protected override __registerListeners(): void {
-        this._innerText?.addEventListener('input', (event: Event) => {
-            const target = event.target as HTMLInputElement;
-            this._onDidType.fire({text: target.value});
-            this._isPlaceholderText = false;  // Any user input means text is no longer placeholder
-        });
-    
-        this._innerText?.addEventListener('focus', (event: Event) => {
-            const target = event.target as HTMLInputElement;
-            if (this._isPlaceholderText) {  // Only clear if the text is still considered placeholder
-                target.value = '';
-            }
-        });
-    
-        this._innerText?.addEventListener('blur', (event: Event) => {
-            const target = event.target as HTMLInputElement;
-            if (target.value.trim() === '') {
-                target.value = this._placeHolder;  // Restore placeholder if nothing entered
-                this._isPlaceholderText = true;  // Text is now a placeholder again
-            }
-        });
+        const innerText = assert(this._innerText);
+        
+        this.__register(addDisposableListener(innerText, EventType.input, () => {
+            this._onDidType.fire({ text: innerText.value });
+        }));
+        
+        this.__register(addDisposableListener(innerText, EventType.focus, event => {
+            this._onDidFocus.fire(event);
+        }));
+        
+        this.__register(addDisposableListener(innerText, EventType.blur, event => {
+            this._onDidBlur.fire(event);
+        }));
     }
     
     // [private helper methods]
