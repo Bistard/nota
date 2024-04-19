@@ -65,6 +65,8 @@ export const enum EventType {
 	dragenter = 'dragenter',
 	dragleave = 'dragleave',
 	drop = 'drop',
+
+	input = 'input',
 }
 
 export const enum Orientation {
