@@ -71,10 +71,10 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         const utilityBar = document.createElement('div');
         utilityBar.className = 'quick-access-search-bar';
         
-        this._searchBar = new SearchBar({
+        this._searchBar = this.__register(new SearchBar({
             icon: Icons.Search,
             placeHolder: "search for anything ...",
-        });
+        }));
         this._searchBar.render(document.createElement('div'));
         
         utilityBar.appendChild(this._searchBar.element);
