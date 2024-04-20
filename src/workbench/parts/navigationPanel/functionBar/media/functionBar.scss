@@ -1,0 +1,44 @@
+#function-bar {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: #fcfcfc;
+
+    & > div {
+        position: absolute;
+    }
+
+    & > .function-bar-button-container {
+        bottom: 0px;
+        height: 40px;
+        width: 100%;
+        justify-content: center;
+        background-color: #fcfcfc;
+    }
+
+    & .tool-button {
+        width: 30px;
+        height: 30px;
+        align-content: center;
+        display: flex;
+
+        & > .icon {
+            font-size: 18px;
+        }
+
+        &:hover {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+
+        &:active {
+            opacity: 70%;
+        }
+
+        &.focus {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+    }
+}

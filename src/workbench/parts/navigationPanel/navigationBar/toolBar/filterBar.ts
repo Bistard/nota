@@ -1,4 +1,4 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/filterBar.scss';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';

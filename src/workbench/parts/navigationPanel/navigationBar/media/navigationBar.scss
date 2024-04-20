@@ -1,6 +1,5 @@
-#navigation-bar, #quick-access-bar, #tool-bar, #action-bar, #filter-bar, #function-bar {
+#navigation-bar {
 
-    z-index: 0;
     position: relative;
     display: flex;
     flex-direction: row;
@@ -9,86 +8,8 @@
     height: 100%;
     background-color: #fcfcfc;
 
-    & > div {
-        position: absolute;
-    }
-
-    & .tool-button {
-        width: 30px;
-        height: 30px;
-        align-content: center;
-        display: flex;
-
-        & > .icon {
-            font-size: 18px;
-        }
-
-        &:hover {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
-        }
-
-        &:active {
-            opacity: 70%;
-        }
-
-        &.focus {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
-        }
-    }
-}
-
-#navigation-bar {
     .split-view {
         width: 98.5% !important;
         -webkit-app-region: drag; /* draggable */
-    }
-}
-
-#quick-access-bar {
-    & > .logo {
-        z-index: 2;
-        top: 10px;
-        margin-right: 10px;
-        padding-left: 10px;
-        justify-content: center;
-        
-        font-size: 24px;
-        font-family: 'happy family';
-
-        &:hover {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
-        }
-    }
-
-    & > .quick-access-search-bar {
-        top: 10px;
-        flex-grow: 1; 
-        display: flex;
-        align-items: center;
-        width: 94%;
-        height: 100%;
-        margin-left: auto;
-        z-index: 1;
-
-        .search-bar {
-            width: calc(100% - 35px) !important;
-            left: 40px  !important;
-            background-color: #f6f6f6;
-
-            .inner-text {
-                margin-left: 6px !important;
-                padding-right: 5%;
-            }
-        }
-    }
-}
-
-#function-bar {
-    & > .function-bar-button-container {
-        bottom: 0px;
-        height: 40px;
-        width: 100%;
-        justify-content: center;
-        background-color: #fcfcfc;
     }
 }

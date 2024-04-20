@@ -1,4 +1,4 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
 import { NavigationButton, INavigationButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { INavigationBarButtonClickEvent, NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';

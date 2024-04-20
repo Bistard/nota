@@ -1,4 +1,4 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
+import 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/media/quickAccessBar.scss';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';

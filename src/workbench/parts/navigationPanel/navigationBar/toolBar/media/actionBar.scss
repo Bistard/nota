@@ -1,0 +1,26 @@
+#action-bar {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+
+    & .tool-button {
+        width: 30px;
+        height: 30px;
+
+        & > .icon {
+            font-size: 18px;
+        }
+
+        &:hover {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+
+        &:active {
+            opacity: 70%;
+        }
+
+        &.focus {
+            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        }
+    }
+}

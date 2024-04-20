@@ -1,3 +1,4 @@
+import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/toolBar.scss';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IActionBarService } from './actionBar';
 import { IFilterBarService } from './filterBar';

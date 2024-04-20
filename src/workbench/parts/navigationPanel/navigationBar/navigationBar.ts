@@ -6,7 +6,7 @@ import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar';
+import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar';
 import { ToolBarType, IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 import { assert } from 'src/base/common/utilities/panic';
 

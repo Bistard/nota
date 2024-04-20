@@ -1,4 +1,4 @@
-import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
+import 'src/workbench/parts/navigationPanel/functionBar/media/functionBar.scss';
 import { INavigationButtonOptions, NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { INavigationBarButtonClickEvent, NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
