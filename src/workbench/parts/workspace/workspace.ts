@@ -42,7 +42,6 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     protected override _registerListeners(): void {
         this.titleBarComponent.registerListeners();
         this.editorComponent.registerListeners();
-        // this.markdownComponent.registerListeners();
     }
 
     // [public method]

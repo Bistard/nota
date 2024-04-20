@@ -1,6 +1,6 @@
+import * as fs from 'fs';
 import * as assert from 'assert';
 import { before, after } from 'mocha';
-import { errorToMessage } from 'src/base/common/error';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { ByteSize, FileType } from 'src/base/common/files/file';
 import { listenStream } from 'src/base/common/files/stream';
@@ -18,8 +18,9 @@ import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger, TestIPC, TestURI } from 'test/utils/testService';
-import * as fs from 'fs';
 import { directoryExists } from 'src/base/node/io';
+import { errorToMessage } from 'src/base/common/utilities/panic';
+import { InstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 suite('FileChannel-test (IPC)', () => {
 
@@ -43,7 +44,7 @@ suite('FileChannel-test (IPC)', () => {
         const logService = new NullLogger();
         const registrantService = new RegistrantService(logService);
         registrantService.registerRegistrant(new ReviverRegistrant());
-        registrantService.init();
+        registrantService.init(new InstantiationService());
 
         mainService = new FileService(logService);
         mainService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());

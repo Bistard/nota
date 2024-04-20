@@ -1,5 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector, Result, err, ok, tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { Result, err, ok } from "src/base/common/result";
 import { Emitter } from "src/base/common/event";
 import { mixin } from "src/base/common/utilities/object";
 import { Dictionary } from "src/base/common/utilities/type";

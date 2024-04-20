@@ -30,7 +30,7 @@ const { parseCLIArgv } = require('src/platform/environment/common/argument');
     app.enableSandbox();
 
     /**
-     * Disable default menu for performance issue (save arround 10ms).
+     * Disable default menu for performance issue (save around 10ms).
      * @see https://github.com/electron/electron/issues/35512
      */
     Menu.setApplicationMenu(null);

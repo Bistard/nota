@@ -5,7 +5,8 @@ import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileO
 import { IReadableStream, listenStream } from "src/base/common/files/stream";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
-import { CancellationToken } from "src/base/common/utilities/cacellation";
+import { CancellationToken } from "src/base/common/utilities/cancellation";
+import { panic } from "src/base/common/utilities/panic";
 import { Pair } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IRawResourceChangeEvents } from "src/platform/files/common/watcher";
@@ -21,7 +22,7 @@ export type ReadableStreamDataFlowType<TData> = TData | Error | 'end';
  * @internal
  * Should ONLY be use between file service channel communication.
  */
-export const enum FileCommand {
+export const enum FileChannelsInternalCommands {
     stat = 'stat',
     readFile = 'readFile',
     readDir = 'readDir',
@@ -60,33 +61,33 @@ export class MainFileChannel implements IServerChannel {
 
     // [public methods]
 
-    public async callCommand(_id: string, command: FileCommand, arg: any[]): Promise<any> {
+    public async callCommand(_id: string, command: FileChannelsInternalCommands, arg: any[]): Promise<any> {
         switch (command) {
-            case FileCommand.stat: return this.__stat(arg[0], arg[1]);
-            case FileCommand.readFile: return this.__readFile(arg[0], arg[1]);
-            case FileCommand.readDir: return this.__readDir(arg[0]);
-            case FileCommand.writeFile: return this.__writeFile(arg[0], arg[1], arg[2]);
-            case FileCommand.exist: return this.__exist(arg[0]);
-            case FileCommand.createFile: return this.__createFile(arg[0], arg[1], arg[2]);
-            case FileCommand.createDir: return this.__createDir(arg[0]);
-            case FileCommand.moveTo: return this.__moveTo(arg[0], arg[1], arg[2]);
-            case FileCommand.copyTo: return this.__copyTo(arg[0], arg[1], arg[2]);
-            case FileCommand.delete: return this.__delete(arg[0], arg[1]);
-            case FileCommand.watch: return this.__watch(arg[0], arg[1]);
-            case FileCommand.unwatch: return this.__unwatch(arg[0]);
+            case FileChannelsInternalCommands.stat: return this.__stat(arg[0], arg[1]);
+            case FileChannelsInternalCommands.readFile: return this.__readFile(arg[0], arg[1]);
+            case FileChannelsInternalCommands.readDir: return this.__readDir(arg[0]);
+            case FileChannelsInternalCommands.writeFile: return this.__writeFile(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.exist: return this.__exist(arg[0]);
+            case FileChannelsInternalCommands.createFile: return this.__createFile(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.createDir: return this.__createDir(arg[0]);
+            case FileChannelsInternalCommands.moveTo: return this.__moveTo(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.copyTo: return this.__copyTo(arg[0], arg[1], arg[2]);
+            case FileChannelsInternalCommands.delete: return this.__delete(arg[0], arg[1]);
+            case FileChannelsInternalCommands.watch: return this.__watch(arg[0], arg[1]);
+            case FileChannelsInternalCommands.unwatch: return this.__unwatch(arg[0]);
         }
-        throw new Error(`main file channel - unknown file command ${command}`);
+        panic(`main file channel - unknown file command ${command}`);
     }
 
-    public registerListener(_id: string, event: FileCommand, arg: any[]): Register<any> {
+    public registerListener(_id: string, event: FileChannelsInternalCommands, arg: any[]): Register<any> {
         switch (event) {
-            case FileCommand.readFileStream: return this.__onReadFileStream(arg[0], arg[1]);
-            case FileCommand.onDidResourceChange: return this.__onDidResourceChange();
-            case FileCommand.onDidResourceClose: return this.__onDidResourceClose();
-            case FileCommand.onDidAllResourceClosed: return this.__onDidAllResourceClosed();
+            case FileChannelsInternalCommands.readFileStream: return this.__onReadFileStream(arg[0], arg[1]);
+            case FileChannelsInternalCommands.onDidResourceChange: return this.__onDidResourceChange();
+            case FileChannelsInternalCommands.onDidResourceClose: return this.__onDidResourceClose();
+            case FileChannelsInternalCommands.onDidAllResourceClosed: return this.__onDidAllResourceClosed();
         }
 
-        throw new Error(`main file channel - Event not found: ${event}`);
+        panic(`main file channel - Event not found: ${event}`);
     }
 
     // [private helper methods]
@@ -104,7 +105,7 @@ export class MainFileChannel implements IServerChannel {
     }
 
     /**
-     * Reading file using stream needs to be handled specially when acrossing 
+     * Reading file using stream needs to be handled specially when across 
      * IPC. The channels between client and server is using `registerListener` 
      * API instead of using `callCommand` internally.
      */
@@ -118,11 +119,11 @@ export class MainFileChannel implements IServerChannel {
 
         const provider = this.fileService.getProvider(Schemas.FILE);
         if (!provider) {
-            throw new Error(`Cannot read file on stream since the corresponding provider with type ${Schemas.FILE} is not registered.`);
+            panic(`Cannot read file on stream since the corresponding provider with type ${Schemas.FILE} is not registered.`);
         }
 
         if (!hasReadFileStreamCapability(provider)) {
-            throw new Error('The registered provider does not has read file stream capability.');
+            panic('The registered provider does not has read file stream capability.');
         }
 
         const stream = provider.readFileStream(uri, opts).flow();
@@ -179,7 +180,7 @@ export class MainFileChannel implements IServerChannel {
         const raw = URI.toString(uri);
         const exist = this._activeWatchers.get(raw);
         if (exist) {
-            this.logService.warn('MainFileChannel', 'duplicate watching on the same resource', { URI: URI.toString(uri) });
+            this.logService.warn('MainFileChannel', `duplicate watching on the same resource: ${URI.toString(uri)}`);
             return;
         }
         const result = this.fileService.watch(uri, opts);

@@ -102,7 +102,8 @@ export namespace Keyboard {
 }
 
 /**
- * The standard keyboard event used acroess the application .
+ * The standard keyboard event used across the application. Can only be 
+ * constructed by {@link createStandardKeyboardEvent}.
  * (replace {@link KeyboardEvent}).
  */
 export interface IStandardKeyboardEvent {

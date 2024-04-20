@@ -1,4 +1,5 @@
 import { Character, CharCode } from "src/base/common/utilities/char";
+import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";
 import { EndOfLine, EndOfLineType, IPieceTableModel, ITextBufferBuilder } from "src/editor/common/model";
 import { PieceTableModel } from "src/editor/model/pieceTable/pieceTableModel";
@@ -39,7 +40,7 @@ import { TextBuffer } from "src/editor/model/textBuffer";
     public receive(chunk: string): void {
 
         if (this._built || this._created) {
-            throw new Error('TextBufferBuilder is already built or created');
+            panic('TextBufferBuilder is already built or created');
         }
        
         // REVIEW: the string concatenation might need some work around.
@@ -83,7 +84,7 @@ import { TextBuffer } from "src/editor/model/textBuffer";
 
     public build(): void {
         if (this._built) {
-            throw new Error('TextBufferBuilder cannot build twice');
+            panic('TextBufferBuilder cannot build twice');
         }
 
         // never received a chunk, we still need to push an empty StringBuffer.
@@ -117,7 +118,7 @@ import { TextBuffer } from "src/editor/model/textBuffer";
 
     public create(normalizationEOL: boolean = false, defaultEOL: EndOfLineType = EndOfLineType.LF, force?: boolean): IPieceTableModel {
         if (this._created) {
-            throw new Error('TextBufferBuilder cannot create twice');
+            panic('TextBufferBuilder cannot create twice');
         }
 
         const eol = this.__getEOF(defaultEOL, force);

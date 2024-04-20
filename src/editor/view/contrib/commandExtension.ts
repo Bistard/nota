@@ -40,7 +40,7 @@ export class EditorCommandExtension extends EditorExtension {
                 return;
             }
 
-            commandService.executeCommand(name, event.view.state, event.view.dispatch, event.view);
+            commandService.executeAnyCommand(name, event.view.state, event.view.dispatch, event.view);
         });
 
         this.__registerEditorCommands(registrantService);
@@ -81,7 +81,7 @@ export class EditorCommandExtension extends EditorExtension {
     }
 
     private __registerCommand(registrant: CommandRegistrant, command: Command): void {
-        registrant.registerCommand(command.schema, command.run.bind(command));
+        registrant.registerCommand(command);
     }
 }
 

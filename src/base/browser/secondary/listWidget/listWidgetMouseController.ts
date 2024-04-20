@@ -11,6 +11,7 @@ import { Arrays } from "src/base/common/utilities/array";
  *  - when to focus DOM
  *  - when to focus item
  *  - when to select item(s)
+ *  - when to hover item(s)
  * 
  * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
@@ -34,9 +35,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
             this._multiSelectionSupport = opts.multiSelectionSupport;
         }
 
+        this._disposables.register(view.onMouseout((e) => this.__onMouseout(e)));
+        this._disposables.register(view.onMouseover(e => this.__onMouseover(e)));
         this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
         this._disposables.register(view.onTouchstart(e => this.__onMouseDown(e)));
         this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
+        this._disposables.register(view.onDidChangeFocus(e => this.__onDidChangeFocus(e)));
     }
 
     // [public methods]
@@ -52,6 +56,17 @@ export class ListWidgetMouseController<T> implements IDisposable {
             return false;
         }
         return true;
+    }
+
+    protected __onMouseout(e: IListMouseEvent<T>): void {
+        this._view.setHover([]);
+    }
+
+    protected __onMouseover(e: IListMouseEvent<T>): void {
+        if (e.actualIndex === undefined) {
+            return;
+        }
+        this._view.setHover([e.actualIndex]);
     }
 
     /**
@@ -78,7 +93,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
             this.__multiSelectionInRange(e);
             return;
         } else if (this.__isSelectingInSingleEvent(e)) {
-            this._mutliSelectionInSingle(e);
+            this._multiSelectionInSingle(e);
             return;
         }
 
@@ -119,9 +134,15 @@ export class ListWidgetMouseController<T> implements IDisposable {
      */
     private __onMouseDown(e: IListMouseEvent<T> | IListTouchEvent<T>): void {
         // prevent double focus
-        if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
+        if (!DomUtility.Elements.isElementFocused(e.browserEvent.target)) {
 			this._view.setDomFocus();
 		}
+    }
+
+    private __onDidChangeFocus(isFocused: boolean): void {
+        if (!isFocused) {
+            this._view.setFocus(null);
+        }
     }
 
     /**
@@ -148,7 +169,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
             Math.max(toFocused, anchor) + 1
         );
         const currSelection = this._view.getSelections().sort((a, b) => a - b);
-        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insert(currSelection, anchor)), anchor);
+        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insertSorted(currSelection, anchor)), anchor);
         if (!contiguousRange.length) {
             return;
         }
@@ -168,7 +189,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
     /**
      * @description Applies multi-selection when selecting in single.
      */
-    private _mutliSelectionInSingle(e: IListMouseEvent<T>): void {
+    private _multiSelectionInSingle(e: IListMouseEvent<T>): void {
         const toFocused = e.actualIndex!;
 
         const currSelection = this._view.getSelections();

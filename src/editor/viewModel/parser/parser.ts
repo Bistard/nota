@@ -1,8 +1,8 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { panic } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
+import { panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";

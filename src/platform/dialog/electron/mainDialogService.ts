@@ -29,7 +29,7 @@ export class MainDialogService implements IMainDialogService {
 
     /** 
      * Each {@link BrowserWindow} has its own dialog box queue to ensure does 
-     * not exist two boxs at the same time.
+     * not exist two boxes at the same time.
      * @note -1 is the queue that contains all the dialogs with no bonded 
      *       BrowserWindow.
      */
@@ -62,10 +62,10 @@ export class MainDialogService implements IMainDialogService {
             let dialogResult: Electron.OpenDialogReturnValue;
 
             if (window) {
-                this.logService.trace('MainDialogService', `showing open dialog with window ID: ${window.id}...`);
+                this.logService.debug('MainDialogService', `showing open dialog with window ID: ${window.id}...`);
                 dialogResult = await dialog.showOpenDialog(window, opts);
             } else {
-                this.logService.trace('MainDialogService', `showing open dialog...`);
+                this.logService.debug('MainDialogService', `showing open dialog...`);
                 dialogResult = await dialog.showOpenDialog(opts);
             }
 
@@ -79,10 +79,10 @@ export class MainDialogService implements IMainDialogService {
         return this.__getDialogQueue<Electron.SaveDialogReturnValue>(window).queue(async () => {
             let dialogResult: Electron.SaveDialogReturnValue;
             if (window) {
-                this.logService.trace('MainDialogService', `showing save dialog with window ID: ${window.id}...`);
+                this.logService.debug('MainDialogService', `showing save dialog with window ID: ${window.id}...`);
                 dialogResult = await dialog.showSaveDialog(window, opts);
             } else {
-                this.logService.trace('MainDialogService', `showing save dialog...`);
+                this.logService.debug('MainDialogService', `showing save dialog...`);
                 dialogResult = await dialog.showSaveDialog(opts);
             }
 
@@ -93,10 +93,10 @@ export class MainDialogService implements IMainDialogService {
     public async showMessageBox(opts: Electron.MessageBoxOptions, window?: BrowserWindow): Promise<Electron.MessageBoxReturnValue> {
         return this.__getDialogQueue<Electron.MessageBoxReturnValue>(window).queue(async () => {
             if (window) {
-                this.logService.trace('MainDialogService', `showing message dialog with window ID: ${window.id}...`);
+                this.logService.debug('MainDialogService', `showing message dialog with window ID: ${window.id}...`);
                 return dialog.showMessageBox(window, opts);
             }
-            this.logService.trace('MainDialogService', `showing message dialog...`);
+            this.logService.debug('MainDialogService', `showing message dialog...`);
             return dialog.showMessageBox(opts);
         });
     }

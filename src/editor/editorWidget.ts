@@ -15,8 +15,8 @@ import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
-import { IProseEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 
 /**
@@ -279,7 +279,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             option[key] = value.value ?? null;
         }
 
-        this.configurationService.set('editor', option);
+        this.configurationService.set('editor', option, { type: ConfigurationModuleType.Memory });
     }
 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {
@@ -308,7 +308,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         disposables.register(view.onPaste(e => this._onPaste.fire(e)));
         disposables.register(view.onDrop(e => this._onDrop.fire(e)));
 
-        // TODO: configuration auto updation
+        // TODO: configuration auto update
 
         return disposables;
     }

@@ -1,4 +1,14 @@
 
+/**
+ * Represents all the falsy value in JavaScript.
+ */
+export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;
+
+/**
+ * Represent any times that is other than falsy time.
+ */
+export type NonFalsy<T> = T extends Falsy ? never : T;
+
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
@@ -15,7 +25,7 @@ export type Dictionary<K extends string | number | symbol, V> = Record<K, V>;
 export type StringDictionary<V> = Record<string, V>;
 
 /**
- * A string dictionary (alias for `Record<number, V>`).
+ * A number dictionary (alias for `Record<number, V>`).
  */
 export type NumberDictionary<V> = Record<number, V>;
 
@@ -51,7 +61,7 @@ export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...
 export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => TInstance;
 
 /**
- * `CompareFn` is a type representing a generic comparison function.
+ * `Comparator` is a type representing a generic comparison function.
  * This function takes two arguments of the same type and returns a number.
  * Typically, this function is used for sorting or comparing values in data 
  * structures.
@@ -64,20 +74,20 @@ export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = 
  * @template T The type of the arguments to compare.
  *
  * @example
- * // Here is an example of using `CompareFn` with numbers.
- * let compareNumbers: CompareFn<number>;
+ * // Here is an example of using `Comparator` with numbers.
+ * let compareNumbers: Comparator<number>;
  * compareNumbers = (a, b) => a - b;
  * let numbers = [3, 1, 4, 1, 5, 9];
  * numbers.sort(compareNumbers);
  */
-export type CompareFn<T> = (a: T, b: T) => CompareOrder;
+export type Comparator<T> = (a: T, b: T) => CompareOrder;
 
 /**
  * Given two parameters `a` and `b`, determine which one goes first. `First` 
  * indicates `a`, `second` indicates `b`.
  */
 export const enum CompareOrder {
-    
+
     /** The first parameter `a` goes first. */
     First = -1,
 
@@ -243,6 +253,11 @@ export type AreEqual<X, Y> =
     (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 /**
+ * Get the array type from a given Array. Given 'number[]' will return 'number'.
+ */
+export type ArrayType<T extends any[]> = T[number];
+
+/**
  * Returns a boolean that determines if the given array contains any truthy values.
  */
 export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ? IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
@@ -258,6 +273,11 @@ export type Push<Arr extends any[], V> = [...Arr, V];
 export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? Rest : never;
 
 /**
+ * Converts a two-dimensional array type to a one-dimensional array type.
+ */
+export type Flatten<Arr extends readonly any[][]> = { [Key in keyof Arr]: ArrayType<Arr[Key]> };
+
+/**
  * Concatenate two arrays.
  */
 export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
@@ -271,6 +291,41 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
  * Represent a non-empty array of type T.
  */
 export type NonEmptyArray<T> = [T, ...T[]];
+
+/**
+ * Represent an array of type T with up to length N.
+ * @note You do not need to provide type R.
+ */
+export type AtMostNArray<T, N extends number, R extends T[] = []> = 
+    R['length'] extends N 
+        ? R 
+        : R | AtMostNArray<T, N, [T, ...R]>;
+
+/**
+ * Represent an array of type T with at least length N.
+ * @note You do not need to provide type R.
+ */
+export type AtLeastNArray<T, N extends number, R extends T[] = []> =
+    R['length'] extends N 
+        ? ConcatArray<R, T[]>
+        : AtLeastNArray<T, N, [T, ...R]>;
+
+/**
+ * Represents a union type derived from the types of elements in an array `T`.
+ * 
+ * This utility type converts an array type into a union type consisting of the types of elements present in the array.
+ * It is particularly useful when you want to create a type that can be any one of the elements in a given array.
+ * 
+ * @example
+ * // Given an array type of specific strings
+ * const exampleArray = ['a', 'b', 'c'] as const;
+ * 
+ * // The resulting union type will be 'a' | 'b' | 'c'
+ * type ExampleUnion = ArrayToUnion<typeof exampleArray>;
+ * 
+ * @typeParam T - An array type or a tuple with readonly elements.
+ */
+export type ArrayToUnion<T extends readonly any[]> = T[number];
 
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
@@ -300,13 +355,13 @@ export type Mutable<Immutable> = {
  */
 export type DeepMutable<Immutable> = {
     -readonly [TKey in keyof Immutable]:
-    Immutable[TKey] extends (infer R)[]
-    ? DeepMutable<R>[]
-    : Immutable[TKey] extends ReadonlyArray<infer R>
-    ? DeepMutable<R>[]
-    : Immutable[TKey] extends object
-    ? DeepMutable<Immutable[TKey]>
-    : Immutable[TKey];
+        Immutable[TKey] extends (infer R)[]
+        ? DeepMutable<R>[]
+            : Immutable[TKey] extends ReadonlyArray<infer R>
+                ? DeepMutable<R>[]
+                : Immutable[TKey] extends object
+            ? DeepMutable<Immutable[TKey]>
+        : Immutable[TKey];
 };
 
 /**
@@ -316,14 +371,19 @@ export type DeepMutable<Immutable> = {
 export type MapTypes<T, R extends { from: any; to: any; }> = {
     [K in keyof T]: T[K] extends R['from']
     ? R extends { from: T[K]; }
-    ? R['to']
-    : never
+        ? R['to']
+        : never
     : T[K]
 };
 
 /**
- * built-in type: {@link Awaited} to unpack the return type from a Promise.
+ * @description Recursively unwraps the "awaited type" of a type. Non-promise 
+ * "thenable" should resolve to never. This emulates the behavior of await.
+ * 
+ * @deprecated
+ * An alias type for the built-in type {@link Awaited}.
  */
+export type UnpackPromise<T> = Awaited<T>;
 
 /**
  * `Promisify` type takes an object type `T` and returns a new type.
@@ -365,35 +425,11 @@ export type SplitString<S extends string, D extends string> =
     S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
 
 /**
- * Represents a generic reference object. This type is used to create an object 
- * that holds a reference to an entity of type `T`.
- * 
- * @example
- * // Example usage of Reference<T>
- * // Suppose we have an interface for a User
- * interface User {
- *   name: string;
- *   age: number;
- * }
- * 
- * // We can then create a reference to a User object
- * let user: User = { name: "Alice", age: 30 };
- * let userRef: Reference<User> = { ref: user };
- * 
- * // This allows us to pass userRef around and modify the original user object
- * // through this reference
- * function updateUserAge(userRef: Reference<User>, newAge: number) {
- *   userRef.ref.age = newAge;
- * }
- * 
- * // Updating user's age via the reference
- * updateUserAge(userRef, 35);
- * console.log(user.age); // Outputs: 35
- * 
- * // The user object is updated through the userRef reference
+ * Represent a tree-like structure in object.
  */
-export type Reference<T> = {
-    ref: T;
+export type TreeLike<T> = {
+    value: T;
+    children?: TreeLike<T>[];
 };
 
 /**
@@ -419,6 +455,22 @@ export function checkTrue<T extends true>(): void { }
  * checkFalse<true>();  // Error: Argument of type 'true' is not assignable to parameter of type 'false'.
  */
 export function checkFalse<T extends false>(): void { }
+
+/**
+ * @description Checks if the provided value is "truthy". A "truthy" value is 
+ * any value that is considered true when evaluated in a boolean context.
+ */
+export function isTruthy(value: any): boolean {
+    return !!value;
+}
+
+/**
+ * @description Checks if the provided value is "falsy". A "falsy" value is any 
+ * value that is considered false when evaluated in a boolean context.
+ */
+export function isFalsy(value: any): boolean {
+    return !value;
+}
 
 /**
  * @description Is the given variable is a primitive type: number , string , 

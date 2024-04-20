@@ -7,17 +7,28 @@
      */
     outline: 1px solid transparent;
     outline-offset: -1px; /* make the outline placed inside the row. */
-
-    &:hover {
-        background-color: #fcf3f3;
-    }
     
+    // make sure not overlapping the tree outline
+    margin-left: 1px;
+    margin-top: 1px;
+    height: calc(100% - 2px);
+    width: calc(100% - 2px);
+    
+    /** only for testing purpose */
+    // &.anchor {
+    //     background-color: #ff0000 !important;
+    // }
+
     &.focused {
-        outline: 1px solid #cf6060;
+        outline: 1px solid var(--nota-explorer-item-focused-background);
     }
     
     &.selected {
-        background-color: #f0e8e8;
+        background-color: var(--nota-explorer-item-selected-background);
+    }
+
+    &.hovered {
+        background-color: var(--nota-explorer-item-hovered-background);
     }
     
     & > .tree-list-row > .icon {
@@ -29,7 +40,6 @@
         position: relative;
         display: flex;
         height: 100%;
-    
         overflow: hidden;
         text-overflow: ellipsis;
     }

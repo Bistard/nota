@@ -7,7 +7,7 @@ import { IKeyboardService } from "src/workbench/services/keyboard/keyboardServic
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { Scheduler } from 'src/base/common/utilities/async';
-import { Time, TimeUnit } from 'src/base/common/date';
+import { Time } from 'src/base/common/date';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
@@ -37,7 +37,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     // [field]
 
-    private readonly _flushDelay = new Time(TimeUnit.Seconds, 1);
+    private readonly _flushDelay = Time.sec(1);
 
     private _active: boolean;
     private _container?: HTMLElement;
@@ -147,7 +147,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return true;
         }
 
-        // pressing modifier twice, but we only display modifer for once.
+        // pressing modifier twice, but we only display modifier for once.
         if (Keyboard.sameEvent(this._prevEvent, event) && Keyboard.isEventModifier(event)) {
             return false;
         }

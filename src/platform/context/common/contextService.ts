@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { panic } from "src/base/common/utilities/panic";
 import { NonUndefined } from "src/base/common/utilities/type";
 import { Context, IContext, IReadonlyContext } from "src/platform/context/common/context";
 import { ContextKey, IContextKey } from "src/platform/context/common/contextKey";
@@ -14,7 +15,7 @@ export const IContextService = createService<IContextService>('context-service')
 export interface IContextService extends IDisposable, IService {
 
     /**
-     * Fires when the binded context has changed.
+     * Fires when the bind context has changed.
      */
     readonly onDidContextChange: Register<IContextChangeEvent>;
 
@@ -137,7 +138,7 @@ export class ContextService extends Disposable implements IContextServiceFriends
 
     private __assertDisposed(): void {
         if (this.isDisposed()) {
-            throw new Error('ContextService is already disposed.');
+            panic('ContextService is already disposed.');
         }
     }
 }

@@ -3,9 +3,49 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, Reference } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
+
+    suite('isTruthy', () => {
+        test('should return true for truthy values', () => {
+            assert.strictEqual(isTruthy(true), true);
+            assert.strictEqual(isTruthy(1), true);
+            assert.strictEqual(isTruthy('non-empty'), true);
+            assert.strictEqual(isTruthy([]), true);
+            assert.strictEqual(isTruthy({}), true);
+            assert.strictEqual(isTruthy(() => {}), true);
+        });
+    
+        test('should return false for falsy values', () => {
+            assert.strictEqual(isTruthy(false), false);
+            assert.strictEqual(isTruthy(0), false);
+            assert.strictEqual(isTruthy(''), false);
+            assert.strictEqual(isTruthy(null), false);
+            assert.strictEqual(isTruthy(undefined), false);
+            assert.strictEqual(isTruthy(NaN), false);
+        });
+    });
+    
+    suite('isFalsy', () => {
+        test('should return false for truthy values', () => {
+            assert.strictEqual(isFalsy(true), false);
+            assert.strictEqual(isFalsy(1), false);
+            assert.strictEqual(isFalsy('non-empty'), false);
+            assert.strictEqual(isFalsy([]), false);
+            assert.strictEqual(isFalsy({}), false);
+            assert.strictEqual(isFalsy(() => {}), false);
+        });
+    
+        test('should return true for falsy values', () => {
+            assert.strictEqual(isFalsy(false), true);
+            assert.strictEqual(isFalsy(0), true);
+            assert.strictEqual(isFalsy(''), true);
+            assert.strictEqual(isFalsy(null), true);
+            assert.strictEqual(isFalsy(undefined), true);
+            assert.strictEqual(isFalsy(NaN), true);
+        });
+    });
 
     test('isPrimitive', () => {
         assert.strictEqual(isPrimitive(0), true);
@@ -116,6 +156,48 @@ suite('type-test', () => {
 
 suite('typescript-types-test', () => {
 
+    test('Falsy type', () => {
+        // Tests for Falsy - asserting that these should not error as they are Falsy types
+        const falsyFalse: Falsy = false;
+        const falsyNull: Falsy = null;
+        const falsyUndefined: Falsy = undefined;
+        const falsyZero: Falsy = 0;
+        const falsyNegativeZero: Falsy = -0;
+        const falsyBigIntZero: Falsy = 0n;
+        const falsyEmptyString: Falsy = '';
+
+        // @ts-expect-error
+        let expectErr: Falsy = 5;
+        // @ts-expect-error
+        expectErr = true;
+        // @ts-expect-error
+        expectErr = 'hi';
+        // @ts-expect-error
+        expectErr = {};
+        // @ts-expect-error
+        expectErr = [];
+    });
+
+    test('Non-Falsy type', () => {
+        // Should pass
+        const nonFalsyString: NonFalsy<string> = 'hello';
+        const nonFalsyNumber: NonFalsy<number> = 123;
+        const nonFalsyObject: NonFalsy<object> = {};
+        const nonFalsyArray: NonFalsy<number[]> = [];
+
+        // Should fail
+        // @ts-expect-error
+        const nonFalsyFalse: NonFalsy<false> = false;
+        // @ts-expect-error
+        const nonFalsyNull: NonFalsy<null> = null;
+        // @ts-expect-error
+        const nonFalsyUndefined: NonFalsy<undefined> = undefined;
+        // @ts-expect-error
+        const nonFalsyZero: NonFalsy<0> = 0;
+        // @ts-expect-error
+        const nonFalsyEmptyString: NonFalsy<''> = '';
+    });
+
     test('DightInString type', () => {
         const digit: DightInString = '5';
     });
@@ -184,6 +266,33 @@ suite('typescript-types-test', () => {
             Pop<[1, 2, 3, 4]>, 
             [1, 2, 3]
         >>();
+    });
+
+    test('ArrayType', () => {
+        checkTrue<AreEqual<ArrayType<number[]>, number>>();
+        checkTrue<AreEqual<ArrayType<string[]>, string>>();
+        checkTrue<AreEqual<ArrayType<(number | string)[]>, (number | string)>>();
+        checkTrue<AreEqual<ArrayType<(1 | 2)[]>, (1 | 2)>>();
+        checkTrue<AreEqual<ArrayType<{ num: 5 }[]>, { num: 5 }>>();
+        checkTrue<AreEqual<ArrayType<undefined[]>, undefined>>();
+        checkTrue<AreEqual<ArrayType<never[]>, never>>();
+    });
+
+    test('Flatten', () => {
+        checkTrue<AreEqual<Flatten<number[][]>, number[]>>();
+        checkTrue<AreEqual<Flatten<string[][]>, string[]>>();
+        checkTrue<AreEqual<Flatten<(number | string)[][]>, (number | string)[]>>();
+        checkTrue<AreEqual<Flatten<undefined[][]>, undefined[]>>();
+        checkTrue<AreEqual<Flatten<null[][]>, null[]>>();
+        checkTrue<AreEqual<Flatten<never[][]>, never[]>>();
+        checkTrue<AreEqual<Flatten<any[][]>, any[]>>();
+        
+        checkTrue<AreEqual<Flatten<number[][][]>, number[][]>>();
+        checkTrue<AreEqual<Flatten<number[][][][]>, number[][][]>>();
+        
+        checkTrue<AreEqual<Flatten<[number[], string[]]>, [number, string]>>();
+        checkTrue<AreEqual<Flatten<[number[][], string[][]]>, [number[], string[]]>>();
+        checkTrue<AreEqual<Flatten<[number[], string[][]]>, [number, string[]]>>();
     });
 
     test('DeepReadonly type', () => {
@@ -256,8 +365,8 @@ suite('typescript-types-test', () => {
         // no counter example as assigning another value would be a compile error
     });
 
-    test('CompareFn type', () => {
-        type NumberComparator = CompareFn<number>;
+    test('Comparator type', () => {
+        type NumberComparator = Comparator<number>;
         const compare: NumberComparator = (a, b) => a - b;
         // no counter example as assigning another value would be a compile error
     });
@@ -430,6 +539,35 @@ suite('typescript-types-test', () => {
         const test5: NonEmptyArray<boolean> = [true, 'notABoolean'];
     });
 
+    test('AtMostNArray type', () => {
+        let arr: AtMostNArray<number, 5> = [];
+        arr = [1];
+        arr = [1, 1];
+        arr = [1, 1, 3];
+        arr = [1, 1, 3, 4];
+        arr = [1, 1, 3, 4, 5];
+        // @ts-expect-error
+        arr = [1, 1, 3, 4, 5, 6];
+    });
+    
+    test('AtLeastNArray type', () => {
+        type AtLeast3 = AtLeastNArray<string, 3>;
+        ['a', 'b', 'c', 'd'] satisfies AtLeast3;
+        ['a', 'b', 'c'] satisfies AtLeast3;
+        // @ts-expect-error
+        ['a', 'b'] satisfies AtLeast3;
+
+        type AtLeast1 = AtLeastNArray<string, 1>;
+        ['a', 'b', 'c', 'd'] satisfies AtLeast1;
+        ['a'] satisfies AtLeast1;
+        // @ts-expect-error
+        [] satisfies AtLeast1;
+
+        type AtLeast0 = AtLeastNArray<string, 0>;
+        ['a'] satisfies AtLeast0;
+        [] satisfies AtLeast0;
+    });
+
     test('Mutable type', () => {
         type MutableString = Mutable<Readonly<string[]>>;
         const mutable: MutableString = ["a", "b"];
@@ -448,26 +586,5 @@ suite('typescript-types-test', () => {
         type Promisified = Promisify<{ a: () => number; }>;
         const promisified: Promisified = { a: () => Promise.resolve(1) };
         // no counter example as assigning another value would be a compile error
-    });
-
-    test('Reference type', () => {
-        interface IUser {
-            name: string;
-            age: number;
-        }
-        
-        const user: IUser = { name: "Alice", age: 30 };
-        const userRef: Reference<IUser> = { ref: user };
-        
-        /**
-         * This allows us to pass userRef around and modify the original user 
-         * object through this reference.
-         */
-        function updateUserAge(userRef: Reference<IUser>, newAge: number) {
-            userRef.ref.age = newAge;
-        }
-        
-        updateUserAge(userRef, 35);
-        assert.strictEqual(user.age, 35);
     });
 });

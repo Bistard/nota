@@ -1,7 +1,8 @@
 import { memoize } from "src/base/common/memoization";
 import { CharCode } from "src/base/common/utilities/char";
 import { Numbers } from "src/base/common/utilities/number";
-import { DightInString } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
+import { Dictionary, DightInString } from "src/base/common/utilities/type";
 
 /**
  * ANSI escape color codes for foreground color.
@@ -51,7 +52,6 @@ export const enum ASNIBackgroundColor {
 
 export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
 
-
 export namespace TextColors {
 	/**
 	 * @description Sets the ANSI foreground and background colors for a given 
@@ -73,7 +73,7 @@ export namespace TextColors {
 
 	/**
 	 * @description Sets the ANSI (RGB) foreground for a given string of text. 
-	 * The color is only supported with morden command line.
+	 * The color is only supported with modern command line.
 	 * @param text The text to be colored.
 	 * @returns The text string prefixed with ANSI color codes and suffixed with 
 	 * a reset color code.
@@ -102,6 +102,8 @@ export type HexColor<T extends string> =
             )
         )
         : never;
+
+export type ColorMap = Dictionary<string, RGBA>;
 
 export class RGBA {
 
@@ -140,6 +142,21 @@ export class RGBA {
 	@memoize
 	public toString(): string {
 		return `rgb(${this.r},${this.g},${this.b},${this.a})`;
+	}
+
+	public static is(obj: any): obj is RGBA {
+		if (obj instanceof RGBA) {
+			return true;
+		}
+
+		if (!obj) {
+			return false;
+		}
+
+		return typeof obj['r'] === 'number' 
+			&& typeof obj['g'] === 'number' 
+			&& typeof obj['b'] === 'number'
+			&& typeof obj['a'] === 'number';
 	}
 
     public static toString(color: RGBA): string {
@@ -218,7 +235,7 @@ function __getHexDight(char: number): number {
 		return char - CharCode.A + 10;
 	}
 
-	throw new Error(`invalid hex digit ${char}.`);
+	panic(`invalid hex digit ${char}.`);
 }
 
 function __roundFloat(number: number, decimalPoints: number): number {

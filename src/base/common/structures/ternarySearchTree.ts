@@ -2,6 +2,7 @@ import { compareSubstring, compareSubstringIgnoreCase } from "src/base/common/fi
 import { URI } from "src/base/common/files/uri";
 import { CharCode } from "src/base/common/utilities/char";
 import { IIterable } from "src/base/common/utilities/iterable";
+import { panic } from "src/base/common/utilities/panic";
 import { Random } from "src/base/common/utilities/random";
 import { isNonNullable } from "src/base/common/utilities/type";
 
@@ -31,7 +32,7 @@ export interface IKeyIterator<K> {
     /**
      * @description Compare the `input` with the item currently pointed by
      * the iterator.
-     * @returns negative if input is smaller, postive if current item is
+     * @returns negative if input is smaller, positive if current item is
      * smaller, 0 if equal.
      */
     cmp(input: string): number;
@@ -224,7 +225,7 @@ export class UriIterator implements IKeyIterator<URI> {
 			return compareSubstring(input, this._value.fragment);
 		}
         
-        throw new Error();
+        panic(`[TernarySearchTree] reaching unknown state: '${this._states[this._statesIdx]}'`);
     }
 
     public currItem(): string {
@@ -248,7 +249,7 @@ export class UriIterator implements IKeyIterator<URI> {
 			return this._value.fragment;
 		}
         
-        throw new Error();
+        panic(`[TernarySearchTree] reaching unknown state: '${this._states[this._statesIdx]}'`);
     }
 
     public hasNext(): boolean {
@@ -303,7 +304,7 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
     get(key: K): V | undefined;
 
     /**
-     * @description Return if the tree constains a value that corresponds to
+     * @description Return if the tree contains a value that corresponds to
      * `key`.
      * @param key A key to search its corresponding value.
      * @complexity O(logn + k), n: number of nodes
@@ -321,7 +322,7 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
 
     /**
      * @description Delete any values that contain the given key as the 
-     * superstring.
+     * super string.
      * @param key A key to search its corresponding value.
      * @complexity O(logn + k), n: number of nodes
      *                          k: length of key
@@ -352,7 +353,7 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
 
     /**
      * @description Find any values that contain the given key as the 
-     * superstring.
+     * super string.
      * @param key A key to search its corresponding value.
      * @return An iterator to loop over all the values.
      */

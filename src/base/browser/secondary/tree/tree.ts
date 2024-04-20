@@ -1,6 +1,15 @@
 import { Register } from "src/base/common/event";
 
 /**
+ * Fires when the tree is about to refresh.
+ */
+export interface ITreeRefreshEvent<T, TFilter> {
+    
+    /** The corresponding tree node. */
+    readonly node: ITreeNode<T, TFilter>;
+}
+
+/**
  * Type of event when the {@link IIndexTreeModelBase} splice did happen.
  */
 export interface ITreeSpliceEvent<T, TFilter> {
@@ -15,16 +24,7 @@ export interface ITreeSpliceEvent<T, TFilter> {
 export interface ITreeCollapseStateChangeEvent<T, TFilter> {
     
     /** The corresponding tree node. */
-    node: ITreeNode<T, TFilter>;
-}
-
-/**
- * Fires when a tree node expands/collapse
- */
-export interface ITreeExpandEvent<T, TFilter> {
-    
-    /** The corresponding tree node. */
-    node: ITreeNode<T, TFilter>;
+    readonly node: ITreeNode<T, TFilter>;
 }
 
 /**
@@ -42,7 +42,7 @@ export interface ITreeNode<T, TFilter = void> extends ITreeNodeItem<T> {
     /** The parent of the tree node. */
     parent: this | null;
 
-    /** The childrens of the tree node. */
+    /** The children of the tree node. */
     children: this[];
 
     /** counts how many nodes are actually visible / rendered (includes itself). */
@@ -110,22 +110,21 @@ export interface ITreeNodeItem<T> {
 export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
 
     /**
-     * If the current tree node is staled and should be refreshed.
+     * If the current tree node is staled and should be refreshed in the view
+     * perspective.
      */
     stale?: boolean;
 
     /**
-     * The old children of the current node.
-     * @note client should always remove ALL the old children (cannot delete 
-     * partially) and this will be deleted after refreshed.
+     * Before every refreshing, the old children data will be stored here. It is
+     * useful in the 'IndexTreeModel' stage and will be clean at that point.
      */
-    // FIX: this field only works in normal version, but not flex version.
-    oldChildren?: ITreeNode<T, TFilter>[];
+    toDeleted?: T[];
 }
 
 /**
  * The actual tree-like data structure representing the Model part in MVVM which
- * mainly handling the data behaviours.
+ * mainly handling the data behaviors.
  * 
  * T: represents the type of data is stored inside the node.
  * TFilter: represents the type of data for matching purpose.
@@ -208,7 +207,7 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
      * @param location The location representation of the node.
      * @returns If it is collapsed. 
      * 
-     * @throws If the location is not found, an error is thrown.
+     * @panic If the location is not found or the location is not collapsible.
      */
     isCollapsed(location: TRef): boolean;
 
@@ -312,4 +311,10 @@ export interface ITreeContextmenuEvent<T> {
 
     /** The browser target of the contextmenu if any. */
     target: HTMLElement | undefined;
+}
+
+export interface ITreeTraitChangeEvent<T> {
+
+    /** The items which the corresponding trait has changed */
+    data: T[];
 }

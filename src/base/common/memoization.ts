@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
+import { panic } from "src/base/common/utilities/panic";
+
 /**
  * @description A helper decorator to implement `Memoization`. Used to speed up 
  * some expensive functions by storing the result in memory.
@@ -11,7 +13,7 @@
  * @param propertyKey The name of the method.
  * @param descriptor The Property Descriptor for the method. More see https://www.logicbig.com/tutorials/misc/javascript/object-get-own-property-descriptor.html
  * 
- * @throws An exception will be thrown if applied on either fucntions or getters.
+ * @throws An exception will be thrown if applied on either functions or getters.
  */
 export function memoize(target: any, propertyKey: string, descriptor: PropertyDescriptor): void {
 
@@ -28,7 +30,7 @@ export function memoize(target: any, propertyKey: string, descriptor: PropertyDe
 		func = descriptor.get;
 	} else {
 		// does not support
-		throw new Error(`does not support memoization for ${propertyKey} of ${target}`);
+		panic(`does not support memoization for ${propertyKey} of ${target}`);
 	}
 
 	const propName = `$memoize$${propertyKey}`;

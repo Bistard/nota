@@ -1,10 +1,11 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Result } from "src/base/common/error";
+import { Result } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
 import { jsonSafeStringify } from "src/base/common/json";
 import { deepCopy } from "src/base/common/utilities/object";
 import { DeepReadonly, Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
+import { panic } from "src/base/common/utilities/panic";
 
 export interface IConfigurationStorageChangeEvent {
 
@@ -16,7 +17,7 @@ export interface IConfigurationStorageChangeEvent {
 
 export interface IReadonlyConfigurationStorage extends IDisposable {
     /** 
-     * Get all the sections of the storage. Section are seperated by (`.`). 
+     * Get all the sections of the storage. Section are separated by (`.`). 
      */
     readonly sections: Section[];
 
@@ -53,7 +54,7 @@ export interface IReadonlyConfigurationStorage extends IDisposable {
     clone(): ConfigurationStorage;
 
     /**
-     * @description Conver the model into the JSON format.
+     * @description Convert the model into the JSON format.
      */
     toJSON(): Result<string, SyntaxError>;
 }
@@ -68,14 +69,14 @@ export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
      * @param section see {@link ConfigurationStorage}. 
      * 
      * @throws An exception will be thrown if the section is invalid.
-     * @note If section is null, it overries the entire configuration.
+     * @note If section is null, it overrides the entire configuration.
      */
     set(section: Section | null, configuration: any): void;
 
     /**
      * @description Delete configuration at given section.
      * @param section see {@link ConfigurationStorage}.
-     * @returns A boolean indicates if the operation successed.
+     * @returns A boolean indicates if the operation succeeded.
      */
     delete(section: Section): boolean;
 
@@ -96,7 +97,7 @@ export interface IConfigurationStorage extends IReadonlyConfigurationStorage {
 
 /**
  * @class A base class for configuration in-memory storage purpose. You may set 
- * / get configuration using sections under `.` as seperator.
+ * / get configuration using sections under `.` as separator.
  * @example section example: 'workspace.notebook.ifAutoSave'.
  * 
  * @note When storing sections, say initially we have `path1` as the only 
@@ -240,11 +241,11 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
                 currModel = currModel[sec];
                 continue;
             }
-            throw new Error(`cannot get configuration section at '${section}'`);
+            panic(`cannot get configuration section at '${section}'`);
         }
 
         if (currModel === undefined) {
-            throw new Error(`cannot get configuration section at '${section}'`);
+            panic(`cannot get configuration section at '${section}'`);
         }
 
         return <T>currModel;
@@ -264,7 +265,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
     }
 
     private __deleteSections(deleteSection: Section): boolean {
-        let successed = false;
+        let succeeded = false;
         const truncated: Section[] = [];
 
         const newSections = this._sections.filter((currSection) => {
@@ -278,7 +279,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
                         // single section part, noop.
                     }
                 }
-                successed = true;
+                succeeded = true;
                 return false;
             } {
                 return true;
@@ -287,7 +288,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
         newSections.push(...truncated);
         this._sections = newSections;
-        return successed;
+        return succeeded;
     }
 
     private __deleteFromModel(section: Section): boolean {

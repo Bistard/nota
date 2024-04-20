@@ -1,7 +1,5 @@
 @use 'src/styles/components/interaction';
 
-$search-bar-background: var(--search-bar-background);
-
 .search-bar {
     @include interaction.undraggable;
 
@@ -12,7 +10,7 @@ $search-bar-background: var(--search-bar-background);
     width: 38vw;
     max-width: 600px;
     font-size: 12px;
-    background-color: $search-bar-background;
+    background-color: var(--nota-search-bar-background);
 
     display: flex;
     flex-direction: row;

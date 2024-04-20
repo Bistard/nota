@@ -2,7 +2,7 @@ const childProcess = require("child_process");
 const minimist = require("minimist");
 const path = require("path");
 const fs = require('fs');
-const utils = require("../utility");
+const { utils } = require("../utility");
 
 
 
@@ -103,7 +103,7 @@ async function removePrefix(srcRoot) {
     
             /**
              * Since the prefix of each svg file has a form of `xx-xx-name.svg`. 
-             * Instead of using `-` as a seperator, we replace it with the Hungarian
+             * Instead of using `-` as a separator, we replace it with the Hungarian
              * Notation.
              */
             if (parts.length >= 3) {

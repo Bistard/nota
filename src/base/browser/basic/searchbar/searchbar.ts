@@ -99,9 +99,6 @@ export class SearchBar extends Widget implements ISearchBar {
 
     protected override __render(): void {
         
-        // background color
-        this.element.style.setProperty('--search-bar-background', (new RGBA(0, 0, 0, 0.05)).toString());
-
         // inner icon
         let searchIcon: HTMLElement | undefined;
         if (this._opts?.icon) {

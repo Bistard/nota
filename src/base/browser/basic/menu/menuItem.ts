@@ -3,7 +3,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
-import { INSTANT_TIME, Time, TimeUnit } from "src/base/common/date";
+import { INSTANT_TIME, Time } from "src/base/common/date";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -11,11 +11,11 @@ import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 
-export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeperatorAction | CheckMenuAction;
+export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeparatorAction | CheckMenuAction;
 
 export const enum MenuItemType {
     General,
-    Seperator,
+    Separator,
     Submenu,
     Check,
 }
@@ -105,19 +105,19 @@ export class SimpleMenuAction extends __BaseMenuAction<MenuItemType.General> {
     }
 }
 
-export class MenuSeperatorAction extends __BaseMenuAction<MenuItemType.Seperator> {
+export class MenuSeparatorAction extends __BaseMenuAction<MenuItemType.Separator> {
     
     // [fields]
 
-    public static readonly instance = new MenuSeperatorAction();
+    public static readonly instance = new MenuSeparatorAction();
     
     // [constructor]
 
     private constructor() {
-        super(MenuItemType.Seperator, {
+        super(MenuItemType.Separator, {
             callback: noop,
             enabled: false,
-            id: 'seperator',
+            id: 'separator',
         });
     }
 }
@@ -191,7 +191,7 @@ export interface IMenuItem extends IActionListItem, IDisposable {
      * @description Renders the item into the parent.
      * @param parent The parent HTMLElement.
      * 
-     * @note For addtional rendering purpose, please override `__render()` 
+     * @note For additional rendering purpose, please override `__render()` 
      * instead.
      */
     render(parent: HTMLElement): void;
@@ -410,10 +410,10 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 }
 
 /**
- * @class The {@link MenuSeperatorItem} overrides the pre-defined event 
- * listeners since the seperator suppose to have no interactions from the user.
+ * @class The {@link MenuSeparatorItem} overrides the pre-defined event 
+ * listeners since the separator suppose to have no interactions from the user.
  */
-export class MenuSeperatorItem extends AbstractMenuItem {
+export class MenuSeparatorItem extends AbstractMenuItem {
     
     constructor(action: IMenuAction) {
         super(action);
@@ -425,7 +425,7 @@ export class MenuSeperatorItem extends AbstractMenuItem {
 
     protected override __render(): RenderObject {
         const container = super.__render();
-        this.element.addClassList('seperator');
+        this.element.addClassList('separator');
         return container;
     }
 
@@ -492,7 +492,7 @@ export class CheckMenuItem extends SimpleMenuItem {
             return container;
         }
 
-        const checkIcon = createIcon(Icons.Check, ['submenu-item-check']);
+        const checkIcon = createIcon(Icons.Help, ['submenu-item-check']);
         container.leftPart.appendChild(checkIcon);
 
         return container;
@@ -518,8 +518,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [constants]
 
-    public static readonly SHOW_DEPLAY = new Time(TimeUnit.Milliseconds, 250);
-    public static readonly HIDE_DEPLAY = new Time(TimeUnit.Milliseconds, 750);
+    public static readonly SHOW_DELAY = Time.ms(250);
+    public static readonly HIDE_DELAY = Time.ms(750);
 
     // [field]
 
@@ -537,12 +537,12 @@ export class SubmenuItem extends AbstractMenuItem {
         
         // scheduling initialization
         {
-            this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DEPLAY, () => {
+            this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DELAY, () => {
                 this._delegate.closeCurrSubmenu();
                 this._delegate.openNewSubmenu(this.element.element, this.action.actions);
             });
 
-            this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DEPLAY, () => {
+            this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DELAY, () => {
                 const active = DomUtility.Elements.getActiveElement();
                 if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.element, active)) {
                     this._delegate.closeCurrSubmenu();
@@ -586,7 +586,7 @@ export class SubmenuItem extends AbstractMenuItem {
         name.className = 'menu-item-name';
         name.textContent = this.action.id;
 
-        const arrow = createIcon(Icons.AngleRight, ['submenu-item-arrow']);
+        const arrow = createIcon(Icons.Help, ['submenu-item-arrow']);
         
         container.content.appendChild(name);
         container.rightPart.appendChild(arrow);
@@ -596,7 +596,7 @@ export class SubmenuItem extends AbstractMenuItem {
 
     protected override __registerListeners(): void {
         
-        // keep the default behaviours too
+        // keep the default behaviors too
         super.__registerListeners();
 
         this.onMouseover(() => {
@@ -624,7 +624,7 @@ export class SubmenuItem extends AbstractMenuItem {
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
-                // prevent double openning
+                // prevent double opening
                 if (!this._delegate.isSubmenuActive()) {
                     this._showScheduler.schedule(undefined, INSTANT_TIME);
                 }

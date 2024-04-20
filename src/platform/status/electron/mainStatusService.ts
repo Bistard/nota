@@ -10,7 +10,7 @@ import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifec
 import { StatusKey } from "src/platform/status/common/status";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { FileOperationError } from "src/base/common/files/file";
-import { AsyncResult, ok } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
@@ -70,7 +70,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), APP_DIR_NAME, MainStatusService.FILE_NAME));
         this._storage = new AsyncDiskStorage(path, this.fileService);
         this.__registerListeners();
-        this.logService.trace('MainStatusService', 'MainStatusService constructed.');
+        this.logService.debug('MainStatusService', 'MainStatusService constructed.');
     }
 
     // [public methods]
@@ -100,11 +100,11 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     }
 
     public init(): AsyncResult<void, FileOperationError> {
-        this.logService.trace('MainStatusService', `initializing...`);
+        this.logService.debug('MainStatusService', `initializing at '${URI.toString(this._storage.resource)}'...`);
 
         return this._storage.init()
         .andThen(() => { 
-            this.logService.trace('MainStatusService', `initialized.`, { at: URI.toString(this._storage.resource) });
+            this.logService.debug('MainStatusService', `initialized.`);
             return ok();
         });
     }

@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/error";
+import { AsyncResult } from "src/base/common/result";
 import { Event, NodeEventEmitter } from "src/base/common/event";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
@@ -58,7 +58,7 @@ export class MainHostService extends Disposable implements IMainHostService {
     private readonly _onDidFocusWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowFocused, (_e, window: BrowserWindow) => window.id));
     public readonly onDidFocusWindow = this._onDidFocusWindow.registerListener;
 
-    private readonly _onDidBlurWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowBlured, (_e, window: BrowserWindow) => window.id));
+    private readonly _onDidBlurWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowBlurred, (_e, window: BrowserWindow) => window.id));
     public readonly onDidBlurWindow = this._onDidBlurWindow.registerListener;
 
     @memoize
@@ -164,16 +164,16 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.webContents.reload();
     }
 
-    public setApplicationStatus(key: StatusKey, val: any): AsyncResult<void, FileOperationError> {
-        return this.statusService.set(key, val);
+    public setApplicationStatus(key: StatusKey, val: any): Promise<void> {
+        return this.statusService.set(key, val).unwrap();
     }
 
-    public setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): AsyncResult<void, FileOperationError> {
-        return this.statusService.setLot(items);
+    public setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void> {
+        return this.statusService.setLot(items).unwrap();
     }
 
-    public deleteApplicationStatus(key: StatusKey): AsyncResult<boolean, FileOperationError> {
-        return this.statusService.delete(key);
+    public deleteApplicationStatus(key: StatusKey): Promise<boolean> {
+        return this.statusService.delete(key).unwrap();
     }
 
     // [private helper methods]

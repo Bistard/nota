@@ -21,7 +21,7 @@ export class BrowserInstance implements IBrowser {
         @IShortcutService private readonly shortcutService: IShortcutService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
-        logService.trace('BrowserInstance', 'BrowserInstance constructed.');
+        logService.debug('BrowserInstance', 'BrowserInstance constructed.');
     }
 
     // [public methods]
@@ -39,7 +39,7 @@ export class BrowserInstance implements IBrowser {
         this.lifecycleService.when(LifecyclePhase.Ready)
         .then(() => {
             
-            // save user configurations on quite
+            // save user configurations on quit
             this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save()));
         });
     }

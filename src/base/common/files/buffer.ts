@@ -1,3 +1,5 @@
+import { panic } from "src/base/common/utilities/panic";
+
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -79,7 +81,7 @@ export class DataBuffer {
     }
 
     /**
-     * @description Copys a clone of the given buffer.
+     * @description Copy a clone of the given buffer.
      */
     public static copy(buffer: DataBuffer): DataBuffer {
         const newBuffer = DataBuffer.alloc(buffer.bufferLength);
@@ -104,7 +106,7 @@ export class DataBuffer {
     public slice(start?: number, end?: number): DataBuffer {
 		// IMPORTANT: use subarray instead of slice because TypedArray#slice
 		// creates shallow copy and NodeBuffer#slice doesn't. The use of subarray
-		// ensures the same, performance, behaviour.
+		// ensures the same, performance, behavior.
         return new DataBuffer(this.buffer.subarray(start, end));
 	}
 
@@ -139,7 +141,7 @@ export class DataBuffer {
 			this.buffer.set(new Uint8Array(arrayLike.buffer, arrayLike.byteOffset, arrayLike.byteLength), offset);
 		} 
         else {
-			throw new Error('DataBuffer: cannot identify the raw buffer.');
+			panic('DataBuffer: cannot identify the raw buffer.');
 		}
 	}
 

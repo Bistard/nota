@@ -1,9 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { toIPCTransferableError } from "src/base/common/error";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/files/buffer";
 import { ILogService } from "src/base/common/logger";
 import { ITask } from "src/base/common/utilities/async";
-import { mixin } from "src/base/common/utilities/object";
 import { If, Pair } from "src/base/common/utilities/type";
 import { ChannelType, IChannel, IServerChannel } from "src/platform/ipc/common/channel";
 import { IProtocol } from "src/platform/ipc/common/protocol";
@@ -13,7 +13,7 @@ import { IProtocol } from "src/platform/ipc/common/protocol";
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
 
 /**
- * Data types are allowed to be transfered between {@link ClientBase} and 
+ * Data types are allowed to be transferred between {@link ClientBase} and 
  * {@link ServerBase}.
  */
 export const enum DataType {
@@ -218,7 +218,7 @@ class BufferDeserializer {
 
 export interface IChannelClient {
     /**
-     * @desciption Get a {@link IChannel} given the channel name.
+     * @description Get a {@link IChannel} given the channel name.
      * @note Channel might not exist since the return object is not the actual
      * object which does the job, instead it works like a proxy and it will send
      * the command as a request to the other side and waiting for a response.
@@ -513,21 +513,10 @@ export class ChannelServer extends Disposable implements IChannelServer {
             });
         }
         catch (err: any) {
-            
-            // construct a plain object to represent `Error`
-            const newErr = {
-                message: err.message ?? 'unknown error message',
-                name: err.name ?? 'unknown error',
-                stack: err.stack ? (err.stack.split ? err.stack.split('\n') : err.stack) : undefined,
-            };
-
-            // making sure any extra attributes from the `err` is also included
-            mixin(newErr, err);
-
             this.__sendResponse(<IPromiseRejectResponse>{
                 type: ResponseType.PromiseReject,
                 requestID: requestID,
-                dataOrError: newErr,
+                dataOrError: toIPCTransferableError(err),
             });
         }
     }
@@ -612,7 +601,7 @@ export interface IClientConnectEvent {
  * @class Caller can register a {@link IServerChannel} with {@link ChannelType}. 
  * Every time a client try to connect, the server will follow the same protocol
  * with the client and listen to its request. Once a request is received, it
- * will try to find a corresonding {@link IServerChannel} to finish the job and
+ * will try to find a corresponding {@link IServerChannel} to finish the job and
  * send back a response.
  * 
  * Built upon of a {@link ChannelServer}.
@@ -629,12 +618,12 @@ export class ServerBase extends Disposable implements IChannelServer {
     constructor(onClientConnect: Register<IClientConnectEvent>, protected readonly logService?: ILogService) {
         super();
         /**
-         * When client connect to the server and recieve its first request, we 
+         * When client connect to the server and receive its first request, we 
          * register all the current channels to it and register its onDisconnect
          * event.
          */
         this.__register(onClientConnect((event: IClientConnectEvent) => {
-            this.logService?.debug('ServerBase', `client on connection`, { ID: event.clientID });
+            this.logService?.debug('ServerBase', `client on connection (ID: ${event.clientID})`);
             const protocol = event.protocol;
 
             /**
@@ -666,7 +655,7 @@ export class ServerBase extends Disposable implements IChannelServer {
                 onClientDisconnect(() => {
                     channelServer.dispose();
                     this._connections.delete(connection);
-                    this.logService?.debug('ServerBase', `client on disconnect.`, { ID: event.clientID });
+                    this.logService?.debug('ServerBase', `client on disconnect (ID: ${event.clientID})`);
                 });
             });
         }));

@@ -1,4 +1,5 @@
-import { AsyncResult, InitProtector, err, ok } from "src/base/common/error";
+import { InitProtector } from "src/base/common/error";
+import { AsyncResult, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { JsonSchemaValidator, jsonSafeParse } from "src/base/common/json";
@@ -6,6 +7,7 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IProductProfile, productProfileSchema } from "src/platform/product/common/product";
+import { panic } from "src/base/common/utilities/panic";
 
 export const IProductService = createService<IProductService>('product-service');
 
@@ -38,13 +40,13 @@ export class ProductService implements IProductService {
 
     get profile(): IProductProfile {
         if (!this._profile) {
-            throw new Error('cannot get profile because the product service is not initialized.');
+            panic('cannot get profile because the product service is not initialized.');
         }
         return this._profile;
     }
 
     public init(productURI: URI): AsyncResult<void, FileOperationError | SyntaxError | Error> {
-        this.logService.trace('ProductService', 'initializing...');
+        this.logService.debug('ProductService', `Initializing at '${URI.toString(productURI)}'...`);
 
         return this._protector.init('cannot initialize twice.')
         .toAsync()
@@ -58,7 +60,7 @@ export class ProductService implements IProductService {
     
             this._profile = parsed;
 
-            this.logService.trace('ProductService', `initialized.`, { at: URI.toString(productURI) });
+            this.logService.debug('ProductService', `initialized successfully.`);
             return ok();
         });
     }

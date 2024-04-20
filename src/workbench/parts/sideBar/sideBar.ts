@@ -53,21 +53,21 @@ export interface ISideBarService extends IComponent, IService {
     readonly onDidClick: Register<ISideBarButtonClickEvent>;
 
     /**
-     * @description Returns a button by provided a buttion ID.
+     * @description Returns a button by provided a button ID.
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
     getButton(ID: string): SideButton | undefined;
 
     /**
-     * @description Returns a primary button by provided a buttion ID.
+     * @description Returns a primary button by provided a button ID.
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
     getPrimaryButton(ID: string): SideButton | undefined;
 
     /**
-     * @description Returns a secondary button by provided a buttion ID.
+     * @description Returns a secondary button by provided a button ID.
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
@@ -90,7 +90,7 @@ export interface ISideBarService extends IComponent, IService {
 
 /**
  * @class SideBar provides access to each view and handles the state 
- * transition between each button and display coressponding view.
+ * transition between each button and display corresponding view.
  */
 export class SideBar extends Component implements ISideBarService {
 
@@ -186,7 +186,7 @@ export class SideBar extends Component implements ISideBarService {
 
     /**
      * @description Invoked when the button is clicked.
-     * @param clickedType The ID of buttion is clicked.
+     * @param clickedType The ID of button is clicked.
      * 
      * @note Method will fire `this._onDidClick`.
      */
@@ -233,7 +233,7 @@ export class SideBar extends Component implements ISideBarService {
         const button = new SideButton(opts);
 
         if (widgetBar.hasItem(opts.id)) {
-            this.logService.warn('SideBarService', `Cannot register the side bar button with duplicate ID.`, { ID: opts.id });
+            this.logService.warn('SideBarService', `Cannot register the side bar button with duplicate ID: ${opts.id}`);
             return false;
         }
 

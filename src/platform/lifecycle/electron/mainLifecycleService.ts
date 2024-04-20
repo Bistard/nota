@@ -1,5 +1,5 @@
 import { app, BrowserWindow } from "electron";
-import { Time, TimeUnit } from "src/base/common/date";
+import { Time } from "src/base/common/date";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor, JoinablePromise } from "src/base/common/utilities/async";
@@ -11,7 +11,7 @@ export const IMainLifecycleService = createService<IMainLifecycleService>('life-
 
 /**
  * Represents the different phases of the whole application. Notices that the
- * phse cannot go BACKWARDS.
+ * phase cannot go BACKWARDS.
  */
 export const enum LifecyclePhase {
     /**
@@ -102,24 +102,24 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             return this._pendingQuitBlocker.waiting();
         }
 
-        this.logService.trace('MainLifecycleService', 'quit()');
+        this.logService.debug('MainLifecycleService', 'quit()');
         this._pendingQuitBlocker = new Blocker<void>();
 
-        this.logService.trace('MainLifecycleService', 'app.quit()');
+        this.logService.debug('MainLifecycleService', 'app.quit()');
         app.quit();
 
         return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
-        this.logService.trace('MainLifecycleService', 'kill()');
+        this.logService.debug('MainLifecycleService', 'kill()');
 
         // Give the other services a chance to be notified and complete their job.
-        await this.__fireOnBeforeQuit(QuitReason.Kill);
+        await this.__fireOnBeforeQuit(QuitReason.Kill, exitcode);
 
         await Promise.race([
             // ensure wait no more than 1s.
-            delayFor(new Time(TimeUnit.Seconds, 1)),
+            delayFor(Time.sec(1)),
             
             // try to kill all the windows
             (async () => {
@@ -165,14 +165,14 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * which will not be prevented and will quit normally.
          */
         app.once('will-quit', (event: Electron.Event) => {
-            this.logService.trace('MainLifecycleService', 'app.once("will-quit")');
+            this.logService.debug('MainLifecycleService', 'app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
             event.preventDefault();
 
             this.__fireOnBeforeQuit(QuitReason.Quit)
                 .finally(async () => {
-                    this.logService.info('MainLifecycleService', 'application is quiting...');
+                    this.logService.info('MainLifecycleService', 'application is about to quit...');
 
                     if (this._pendingQuitBlocker) {
                         this._pendingQuitBlocker.resolve();
@@ -201,7 +201,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * 'window-all-closed' will not emit.
          */
         onWindowAllClosed = () => {
-            this.logService.trace('MainLifecycleService', 'app.addListener("window-all-closed")');
+            this.logService.debug('MainLifecycleService', 'app.addListener("window-all-closed")');
             // mac: only quit when requested
             if (IS_MAC && this._requestQuit) {
                 app.quit();
@@ -222,10 +222,10 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
                 return;
             }
 
-            this.logService.trace('MainLifecycleService', 'app.addListener("before-quit")');
+            this.logService.debug('MainLifecycleService', 'app.addListener("before-quit")');
             this._requestQuit = true;
 
-            this.logService.trace('MainLifecycleService', 'onBeforeQuit.fire()');
+            this.logService.debug('MainLifecycleService', 'onBeforeQuit.fire()');
             this._onBeforeQuit.fire();
 
             /**
@@ -244,10 +244,14 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      * @description We need to notify the other services and give them a chance 
      * to do things before we actual start to quit.
      * @param reason The reason of the quitting.
+     * @param exitcode The exit code.
      * @returns A promise to be wait until all the other listeners are completed.
      */
-    private __fireOnBeforeQuit(reason: QuitReason): Promise<void> {
-        this.logService.info('MainLifecycleService', 'Application is about to quit...', { reason: parseQuitReason(reason) });
+    private __fireOnBeforeQuit(reason: QuitReason, exitcode: number = 0): Promise<void> {
+        this.logService.info('MainLifecycleService', 'Application is about to quit...', { 
+            reason: parseQuitReason(reason), 
+            exitcode: exitcode,
+        });
 
         if (this._ongoingBeforeQuitParticipants) {
             return this._ongoingBeforeQuitParticipants;

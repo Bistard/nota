@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { afterEach, beforeEach } from 'mocha';
 import { deepCopy, mixin } from 'src/base/common/utilities/object';
-import { IObservable, Observable, ObserveType, createDefaultObserver, observable, observe } from 'src/base/common/utilities/observable';
+import { IObservable, IObservableOptions, Observable, ObserveType, createDefaultObserver, observable, observe } from 'src/base/common/utilities/observable';
 
 suite('Observable-test', function() {
     type TestObject = {
@@ -133,7 +133,7 @@ suite('observable-test', () => {
     }[] = [];
     
     const TEST_OBSERVER = createDefaultObserver(
-        function testObserver(message: string, ...param: any[]): void {
+        function testObserver(opts: IObservableOptions, message: string, ...param: any[]): void {
         
             const className: string = param[0]!;
             const property: string = param[1]!;
@@ -161,6 +161,10 @@ suite('observable-test', () => {
         }
     );
 
+    const basicOpt: IObservableOptions = {
+        observer: TEST_OBSERVER,
+    };
+
     beforeEach(() => {
         history = [];
     });
@@ -175,7 +179,7 @@ suite('observable-test', () => {
     }
 
     test('Observing simple property changes and access', () => {
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['set', 'get'])
             public name: string = 'Chris';
@@ -196,7 +200,7 @@ suite('observable-test', () => {
     });
     
     test('Duplicate observing doesn"t work', () => {
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['set', 'set'])
             public name: string = 'Chris';
@@ -212,7 +216,7 @@ suite('observable-test', () => {
     });
 
     test('Non-decorated properties should not trigger observations', () => {
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             public name: string = 'Chris';
         }
@@ -227,7 +231,7 @@ suite('observable-test', () => {
     });
 
     test('Observing direct function call under the class', () => {
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['call'])
             public hello(): string { return 'world'; }
@@ -247,7 +251,7 @@ suite('observable-test', () => {
     });
 
     test('Non-decorated methods should not be observed', () => {
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             public hello(): string { return 'world'; }
             public echo(input: string): string { return input; }
@@ -265,7 +269,7 @@ suite('observable-test', () => {
             age: 18,
         };
         
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['get'])
             public ages = innerAge;
@@ -291,7 +295,7 @@ suite('observable-test', () => {
             age: 18,
         };
         
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['set'])
             public ages = innerAge;
@@ -311,7 +315,7 @@ suite('observable-test', () => {
             age: 18,
         };
         
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['set', 'get'])
             public ages = innerAge;
@@ -332,7 +336,7 @@ suite('observable-test', () => {
             grow() {}
         };
         
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['get'])
             public ages = innerAge;
@@ -365,7 +369,7 @@ suite('observable-test', () => {
             grow() { return ++this.age; }
         };
         
-        @observable(TEST_OBSERVER)
+        @observable(basicOpt)
         class People {
             @observe(['set', 'get', 'call'])
             public ages = innerAge;
@@ -384,5 +388,51 @@ suite('observable-test', () => {
         assert.deepStrictEqual(history[1], { className: 'People', action: 'get', property: 'ages.age', value: 18 });
         assert.deepStrictEqual(history[2], { className: 'People', action: 'set', property: 'ages.age', from: 18, to: 19 });
         assert.deepStrictEqual(history[3], { className: 'People', action: 'call', property: 'ages.grow', ret:19, args: [] });
+    });
+
+    test('Observing "call" will ignore underscore function', () => {
+        const opt = deepCopy(basicOpt);
+        opt.ignoreUnderscores = true;
+
+        @observable(opt)
+        class People {
+            @observe(['call'])
+            public __grow() {}
+
+            @observe(['call'])
+            public inner = {
+                __grow() {}
+            };
+        }
+
+        const person = new People();
+        person.__grow();
+        person.inner.__grow();
+
+        assert.strictEqual(history.length, 0);
+    });
+    
+    test('Observing "call" will NOT ignore underscore function', () => {
+        const opt = deepCopy(basicOpt);
+        opt.ignoreUnderscores = false;
+
+        @observable(opt)
+        class People {
+            @observe(['call'])
+            public __grow() {}
+
+            @observe(['call'])
+            public inner = {
+                __grow() {}
+            };
+        }
+
+        const person = new People();
+        person.__grow();
+        person.inner.__grow();
+
+        assert.strictEqual(history.length, 2);
+        assert.deepStrictEqual(history[0], { className: 'People', action: 'call', property: '__grow', args: [] });
+        assert.deepStrictEqual(history[1], { className: 'People', action: 'call', property: 'inner.__grow', args: [] });
     });
 });

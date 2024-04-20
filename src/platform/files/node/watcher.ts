@@ -10,7 +10,9 @@ import { isParentOf } from 'src/base/common/files/glob';
 import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInstance, IWatchRequest, ResourceChangeType } from 'src/platform/files/common/watcher';
 import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';
-import { Time, TimeUnit } from 'src/base/common/date';
+import { Time } from 'src/base/common/date';
+import { noop } from 'src/base/common/performance';
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * @class A `Watcher` can watch on resources on the disk filesystem. Check more
@@ -53,7 +55,7 @@ export class Watcher extends Disposable implements IWatcher {
         this._instances.set(request.resource, instance);
         
         
-        const blocker = new EventBlocker<void>(instance.onReady, new Time(TimeUnit.Seconds, 1));
+        const blocker = new EventBlocker<void>(instance.onReady, Time.sec(1));
         const cancel = toDisposable(() => {
             instance.close().then((uri) => { if (uri) this._onDidClose.fire(uri); });
             this._instances.delete(request.resource);
@@ -103,7 +105,7 @@ export class WatchInstance implements IWatchInstance {
      * A throttle delaying time for collecting the file change events.
      * @note milliseconds
      */
-    public static readonly FILE_CHANGE_DELAY = new Time(TimeUnit.Milliseconds, 50);
+    public static readonly FILE_CHANGE_DELAY = Time.ms(50);
     private readonly _changeDebouncer = new ThrottleDebouncer<void>(WatchInstance.FILE_CHANGE_DELAY);
 
     private _eventBuffer: IRawResourceChangeEvent[] = [];
@@ -159,7 +161,7 @@ export class WatchInstance implements IWatchInstance {
         }
         catch (error: any) {
             this.logService?.error(`Error encounters on watching the resource '${resource}'`, error);
-            throw error;
+            panic(error);
         }
     }
 
@@ -203,11 +205,11 @@ export class WatchInstance implements IWatchInstance {
             this.__onEventFire({ type: ResourceChangeType.UPDATED, resource: path, isDirectory: stat?.isDirectory() });
         })
         .on('error', (error: Error) => {
-            throw error;
+            panic(error);
         })
         .on('ready', () => {
             this._onReady.fire();
-            this.logService?.trace('WatchInstance', `filesystem watcher is ready.`, { at: resource });
+            this.logService?.debug('WatchInstance', `filesystem watcher is ready at: ${resource}`);
         });
 
         return watcher;
@@ -252,7 +254,7 @@ export class WatchInstance implements IWatchInstance {
                 this.__clearMetadata();
             }
         })
-            .catch(); /** ignores error from the debouncer when closing */
+            .catch(noop); /** ignores error from the debouncer when closing */
     }
 
     private __clearMetadata(): void {

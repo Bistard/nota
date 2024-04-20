@@ -1,6 +1,6 @@
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
@@ -8,7 +8,7 @@ import { memoize } from "src/base/common/memoization";
 /**
  * @internal
  * @class An internal class that handles the keyboard support of {@link IListWidget}.
- * It presets the following keypress behaviours (you may extend this class and
+ * It presets the following keypress behaviors (you may extend this class and
  * override the corresponding function):
  *  - enter
  *  - up arrow
@@ -80,24 +80,28 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     }
 
     protected __onUpArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            const newFoused = this._view.focusPrev(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-            this._view.setDomFocus();
+        if (this._view.getFocus() === null) {
+            this._view.setFocus(0);
+            return;
+        }
+
+        const newFocused = this._view.focusPrev(1, false, undefined);
+        if (newFocused !== -1) {
+            this._view.setAnchor(newFocused);
+            this._view.reveal(newFocused, undefined);
         }
     }
 
     protected __onDownArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            const newFoused = this._view.focusNext(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-            this._view.setDomFocus();
+        if (this._view.getFocus() === null) {
+            this._view.setFocus(0);
+            return;
+        }
+        
+        const newFocused = this._view.focusNext(1, false, undefined);
+        if (newFocused !== -1) {
+            this._view.setAnchor(newFocused);
+            this._view.reveal(newFocused, undefined);
         }
     }
 
@@ -112,10 +116,15 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     }
 
     protected __onEscape(e: IStandardKeyboardEvent): void {
-        if (this._view.getSelections().length) {
+        if (this._view.getSelections().length > 0) {
             this._view.setSelections([]);
             this._view.setAnchor(null);
-			this._view.setDomFocus();
+			return;
+        }
+
+        if (this._view.getSelections().length === 0) {
+            this._view.setFocus(null);
+            this._view.setAnchor(null);
         }
     }
 }

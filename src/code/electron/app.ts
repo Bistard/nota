@@ -63,11 +63,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug('App', `application starting...`, { appRootPath: URI.toString(this.environmentService.appRootPath) });
+        this.logService.debug('App', `application starting at '${URI.toString(this.environmentService.appRootPath, true)}'...`);
 
         // machine ID
         const machineID = this.__getMachineID();
-        this.logService.debug('App', `Resolved machine ID.`, { ID: machineID });
+        this.logService.debug('App', `Resolved machine ID (${machineID}).`);
 
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);
@@ -90,13 +90,13 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private registerListeners(): void {
         Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
 
-        // interept unexpected errors so that the error will not go back to `main.ts`
+        // interrupt unexpected errors so that the error will not go back to `main.ts`
         process.on('uncaughtException', err => ErrorHandler.onUnexpectedError(err));
         process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
 
         electron.app.on('open-file', (event, path) => {
-            this.logService.trace('App', `open-file - ${path}`);
+            this.logService.debug('App', `open-file: ${path}`);
             // REVIEW
         });
 
@@ -107,26 +107,28 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
-        this.logService.trace('App', 'constructing application services...');
+        this.logService.debug('App', 'constructing application services...');
 
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
-        // main-window-serivce
+        // main-window-service
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
-        // dialog-sevice
+        // dialog-service
         appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
-        this.logService.trace('App', 'Application services constructed.');
+        // ai-service
+
+        this.logService.debug('App', 'Application services constructed.');
         return appInstantiationService;
     }
 
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
-        this.logService.trace('App', 'Registering IPC channels...');
+        this.logService.debug('App', 'Registering IPC channels...');
 
         // file-service-channel
         const diskFileChannel = new MainFileChannel(this.logService, this.fileService, this.registrantService);
@@ -147,11 +149,14 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const dialogChannel = ProxyChannel.wrapService(dialogService);
         server.registerChannel(IpcChannel.Dialog, dialogChannel);
 
-        this.logService.trace('App', 'IPC channels registered successfully.');
+        // ai-service-channel
+
+
+        this.logService.debug('App', 'IPC channels registered successfully.');
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
-        this.logService.trace('App', 'Openning the first window...');
+        this.logService.debug('App', 'Opening the first window...');
 
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
@@ -227,6 +232,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private __onUnexpectedError(error: any): void {
-        this.logService.error('App', `Uncought exception occured.`, error);
+        this.logService.error('App', `Uncaught exception occurred.`, error);
     }
 }

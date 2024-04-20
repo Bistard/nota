@@ -1,6 +1,7 @@
 import * as assert from 'assert';
-import { ResourceMap } from 'src/base/common/structures/map';
+import { ResourceMap, ResourceSet } from 'src/base/common/structures/map';
 import { URI } from 'src/base/common/files/uri';
+import { beforeEach } from 'mocha';
 
 suite('ResourceMap', () => {
 
@@ -114,4 +115,85 @@ suite('ResourceMap', () => {
 		assert.strictEqual(map.get(windowsFile), 'true');
 		assert.strictEqual(map.get(uncFile), 'true');
 	});
+});
+
+suite('ResourceSet', () => {
+    let resourceSet: ResourceSet;
+
+    beforeEach(() => {
+        resourceSet = new ResourceSet();
+    });
+
+    test('size should be 0 for a new ResourceSet', () => {
+        assert.strictEqual(resourceSet.size, 0);
+    });
+
+    test('add should increase the size of the ResourceSet', () => {
+        const uri = URI.parse('testScheme://testPath');
+        resourceSet.add(uri);
+        assert.strictEqual(resourceSet.size, 1);
+    });
+
+    test('delete should remove a resource and decrease the size', () => {
+        const uri = URI.parse('testScheme://testPath');
+        resourceSet.add(uri);
+        const result = resourceSet.delete(uri);
+        assert.strictEqual(result, true);
+        assert.strictEqual(resourceSet.size, 0);
+    });
+
+    test('has should return true for added URIs', () => {
+        const uri = URI.parse('testScheme://testPath');
+        resourceSet.add(uri);
+        assert.strictEqual(resourceSet.has(uri), true);
+    });
+
+    test('has should return false for non-existent URIs', () => {
+        const uri = URI.parse('testScheme://testPath');
+        assert.strictEqual(resourceSet.has(uri), false);
+    });
+
+    test('clear should remove all URIs and reset size to 0', () => {
+        const uri1 = URI.parse('testScheme://testPath1');
+        const uri2 = URI.parse('testScheme://testPath2');
+        resourceSet.add(uri1);
+        resourceSet.add(uri2);
+        resourceSet.clear();
+        assert.strictEqual(resourceSet.size, 0);
+    });
+
+    test('forEach should iterate over all URIs', () => {
+        const uri1 = URI.parse('testScheme://testPath1');
+        const uri2 = URI.parse('testScheme://testPath2');
+        resourceSet.add(uri1);
+        resourceSet.add(uri2);
+
+        let count = 0;
+        resourceSet.forEach(() => {
+            count++;
+        });
+
+        assert.strictEqual(count, 2);
+    });
+
+    test('entries, keys, and values should provide correct iterators', () => {
+        const uri = URI.parse('testScheme://testPath');
+        resourceSet.add(uri);
+
+        const entries = Array.from(resourceSet.entries());
+        const keys = Array.from(resourceSet.keys());
+        const values = Array.from(resourceSet.values());
+
+        assert.deepStrictEqual(entries, [[uri, uri]]);
+        assert.deepStrictEqual(keys, [uri]);
+        assert.deepStrictEqual(values, [uri]);
+    });
+
+    test('Symbol.iterator should provide an iterator over the keys', () => {
+        const uri = URI.parse('testScheme://testPath');
+        resourceSet.add(uri);
+
+        const keys = Array.from(resourceSet);
+        assert.deepStrictEqual(keys, [uri]);
+    });
 });

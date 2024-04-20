@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import { panic } from 'src/base/common/error';
 import { IS_WINDOWS } from 'src/base/common/platform';
+import { panic } from 'src/base/common/utilities/panic';
  
 export const FileMode = {
  
@@ -107,7 +107,7 @@ export async function statWithSymbolink(path: string): Promise<IStatsWithSymboli
         }
 
         /**
-         * Windows: workaround a node.js bug where reparse points are not 
+         * Windows: workaround a node.js bug where re-parse points are not 
          * supported (https://github.com/nodejs/node/issues/36790)
          */
         if (IS_WINDOWS && error.code === 'EACCES') {

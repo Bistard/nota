@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-throw */
 /*---------------------------------------------------------------------------------------------
 *  Copyright (c) Microsoft Corporation. All rights reserved.
 *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,7 +6,7 @@
 
 /*******************************************************************************
  * @note VSCode's copy of nodejs path lib to be usable in common (non-NodeJS) 
- * enviroment.
+ * environment.
  * {@link https://github.com/nodejs/node/blob/v14.16.0/lib/path.js}
  ******************************************************************************/
 

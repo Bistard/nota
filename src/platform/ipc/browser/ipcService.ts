@@ -26,9 +26,9 @@ export class IpcService implements IIpcService {
         windowID: number,
         @ILogService logService: ILogService,
     ) {
-        logService.trace('IpcClient', 'Constructing...');
+        logService.debug('IpcClient', 'Constructing...');
         this.connection = new IpcClient(`window:${windowID}`);
-        logService.trace('IpcClient', 'Constructed.', { ID: windowID });
+        logService.debug('IpcClient', `Constructed with window ID: ${windowID}`);
     }
 
     public getChannel(channel: ChannelType): IChannel {

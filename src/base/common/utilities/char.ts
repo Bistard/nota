@@ -1,10 +1,5 @@
 /* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
 /**
  * @namespace Character Contains a series of helper functions that relates to
  * characters, decoding and encoding.

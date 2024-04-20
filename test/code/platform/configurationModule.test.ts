@@ -133,7 +133,7 @@ suite('ConfigurationModule-test', () => {
             }
         });
     
-        test('on configuration change test - self updation configuraiton', () => {
+        test('on configuration change test - self update configuration', () => {
             let fired = 0;
             configuration.onDidConfigurationChange(e => {
                 fired++;

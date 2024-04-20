@@ -6,8 +6,10 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
+import { panic } from "src/base/common/utilities/panic";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 
-export interface ICreateable {
+export interface ICreatable {
     create(): void;
     registerListeners(): void;
 }
@@ -15,14 +17,14 @@ export interface ICreateable {
 /**
  * An interface only for {@link Component}.
  */
-export interface IComponent extends ICreateable {
+export interface IComponent extends ICreatable {
 
     /**
      * @description Returns the string id of the component.
      */
     readonly id: string;
 
-    /** Fires when the component is focused or blured (true represents focused). */
+    /** Fires when the component is focused or blurred (true represents focused). */
     readonly onDidFocusChange: Register<boolean>;
 
     /** Fires when the component visibility is changed. */
@@ -94,7 +96,7 @@ export interface IComponent extends ICreateable {
     getComponent<T extends IComponent>(id: string): T | undefined;
 
     /**
-     * @description Unregisters the component with the given id.
+     * @description Unregister the component with the given id.
      * @param id The id of the component.
      * @note The corresponding component will not be disposed automatically.
      */
@@ -131,26 +133,30 @@ export interface IComponent extends ICreateable {
 }
 
 /**
- * @class Abstract base class for every composed / complicated UI classes.
- * {@link Component} has ability to nest other {@link Component}s.
+ * @class An abstract base class for UI components, providing structure and 
+ * common functionality.
  * 
- * A component is disposable, once it get disposed, all its children will
- * also be disposed. The component cannot be disposed / create() / registerListener() twice.
+ * @note It encapsulates element creation, layout management, focus tracking, 
+ * and component registration. Subclasses should implement the abstract methods:
+ *      1. `_createContent()` for content creation and
+ *      2. `_registerListeners()` for event listener registration.
  * 
- * @readonly Usually only the UI classes will inherit {@link Component}. It is 
- * allowed to register the UI class into the DI system as long as the constructor 
- * does not need any extra arguments. It gives the potential for {@link Component} 
- * not just being a UI class, it could also be treated like a micro-service.
+ * @note The class also offers methods for component lifecycle management, 
+ * visibility control, and layout adjustments.
+ * 
+ * @note A component is disposable, once it get disposed, all its children will
+ * also be disposed. The component cannot be disposed / create() / 
+ * registerListener() twice.
  */
 export abstract class Component extends Themable implements IComponent {
 
     // [field]
 
     private _parentComponent?: IComponent;
-    private _parent?: HTMLElement;
+    private _parentElement?: HTMLElement;
 
     private readonly _element: FastElement<HTMLElement>;
-    private readonly _children: Map<string, IComponent> = new Map();
+    private readonly _children: Map<string, IComponent>;
     private _dimension?: Dimension;
 
     private readonly _focusTracker: FocusTracker;
@@ -186,6 +192,7 @@ export abstract class Component extends Themable implements IComponent {
 
         this._created = false;
         this._registered = false;
+        this._children = new Map();
 
         this._element = new FastElement(document.createElement('div'));
         this._element.setID(id);
@@ -194,7 +201,7 @@ export abstract class Component extends Themable implements IComponent {
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
         if (parentElement) {
-            this._parent = parentElement;
+            this._parentElement = parentElement;
         }
         componentService.register(this);
     }
@@ -203,7 +210,7 @@ export abstract class Component extends Themable implements IComponent {
 
     get parentComponent() { return this._parentComponent; }
 
-    get parent() { return this._parent; }
+    get parent() { return this._parentElement; }
 
     get element() { return this._element; }
 
@@ -228,6 +235,12 @@ export abstract class Component extends Themable implements IComponent {
 
     // [protected override method]
 
+    protected override __onThemeChange(newTheme: IColorTheme): void {
+        if (this._created) {
+            super.__onThemeChange(newTheme);
+        }
+    }
+
     protected override __updateStyles(): void { /** noop */ }
 
     // [public method]
@@ -236,7 +249,7 @@ export abstract class Component extends Themable implements IComponent {
         return this._element.getID();
     }
 
-    public create(parentComponent?: Component): void {
+    public create(parentComponent?: IComponent): void {
         if (this._created || this.isDisposed()) {
             return;
         }
@@ -246,31 +259,33 @@ export abstract class Component extends Themable implements IComponent {
             parentComponent.registerComponent(this);
         }
 
-        this._parent = ((parentComponent?.element.element ?? this._parent) ?? document.body);
-        this._parent.appendChild(this._element.element);
+        // actual rendering
+        this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
+        this._parentElement.appendChild(this._element.element);
 
+        // rendering the content
         this._createContent();
         this._created = true;
     }
 
     public layout(width?: number, height?: number): void {
-        if (!this._parent) {
+        if (!this._parentElement) {
             return;
         }
 
         // If no dimensions provided, we default to layout to fit to parent.
         if (typeof width === 'undefined' && typeof height === 'undefined') {
-            this._dimension = DomUtility.Positions.getClientDimension(this._parent);
+            this._dimension = DomUtility.Positions.getClientDimension(this._parentElement);
             this._element.setWidth(this._dimension.width);
             this._element.setHeight(this._dimension.height);
         }
 
         // If any dimensions is provided, we force to follow it.
         else {
-            this._dimension = (this._dimension
-                ? this._dimension.with(width, height)
+            this._dimension = this._dimension
+                ? this._dimension.clone(width, height)
                 : new Dimension(width ?? 0, height ?? 0)
-            );
+            ;
             this._element.setWidth(this._dimension.width);
             this._element.setHeight(this._dimension.height);
         }
@@ -291,11 +306,10 @@ export abstract class Component extends Themable implements IComponent {
         const id = component.id;
         const registered = this._children.has(id);
 
-        if (registered && !override) {
-            throw new Error('component has been already registered');
-        }
-
-        if (registered && override) {
+        if (registered) {
+            if (!override) {
+                panic('component has been already registered');
+            }
             const deprecated = this._children.get(id)!;
             deprecated.dispose();
         }
@@ -332,7 +346,7 @@ export abstract class Component extends Themable implements IComponent {
         if (!component) {
             return undefined;
         }
-        return component as T;
+        return <T>component;
     }
 
     public unregisterComponent(id: string): void {

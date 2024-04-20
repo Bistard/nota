@@ -4,8 +4,8 @@ import * as mocha from "mocha";
 import { TestPath } from "test/utils/testService";
 import { fileExists } from "src/base/node/io";
 import { ASNIForegroundColor, TextColors } from 'src/base/common/color';
-import { errorToMessage } from 'src/base/common/error';
 import { Pair } from 'src/base/common/utilities/type';
+import { errorToMessage } from 'src/base/common/utilities/panic';
 
 /**
  * This file will be attached before mocha runs the unit tests.

@@ -6,7 +6,7 @@ import { IWindowConfiguration } from "src/platform/window/common/window";
 
 /**
  * @class A {@link IEnvironmentService} that used inside renderer process with
- * additional environment informations that relatives to windows.
+ * additional environment information that relatives to windows.
  */
 export class BrowserEnvironmentService extends DiskEnvironmentService implements IBrowserEnvironmentService {
 
@@ -28,7 +28,7 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
             this.inspect();
         }
 
-        logService.trace('BrowserEnvironmentService', 'BrowserEnvironmentService constructed.');
+        logService.debug('BrowserEnvironmentService', 'BrowserEnvironmentService constructed.');
     }
 
     get machineID(): string { return this._configuration.machineID; }

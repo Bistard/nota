@@ -1,5 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
-import { AsyncResult, InitProtector, ok, tryOrDefault } from "src/base/common/error";
+import { InitProtector, tryOrDefault } from "src/base/common/error";
+import { AsyncResult, ok } from "src/base/common/result";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
@@ -42,7 +43,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
-        this.logService.trace('ConfigurationService', 'Constructing...');
+        this.logService.debug('ConfigurationService', 'Constructing...');
 
         // initialization
         {
@@ -50,10 +51,10 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
             this._initProtector = new InitProtector();
 
-            this.logService.trace('ConfigurationService', 'Constructing `DefaultConfiguration`...');
+            this.logService.debug('ConfigurationService', 'Constructing `DefaultConfiguration`...');
             this._defaultConfiguration = this.instantiationService.createInstance(DefaultConfiguration);
             
-            this.logService.trace('ConfigurationService', 'Constructing `UserConfiguration`...');
+            this.logService.debug('ConfigurationService', 'Constructing `UserConfiguration`...');
             this._userConfiguration = this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath);
 
             this._configurationHub = this.__reloadConfigurationHub();
@@ -90,7 +91,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         
         // configuration initialization
         .andThen(() => {
-            this.logService.trace('ConfigurationService', 'initializing...', { at: URI.toString(this.options.appConfiguration.path, true) });
+            this.logService.debug('ConfigurationService', `initializing at '${URI.toString(this.options.appConfiguration.path, true)}'...`);
 
             return this._defaultConfiguration.init()
                 .toAsync()
@@ -102,7 +103,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
          */
         .andThen(() => {
             (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
-            this.logService.trace('ConfigurationService', 'initialized successfully.');
+            this.logService.debug('ConfigurationService', 'initialized successfully.');
             return ok();
         });
     }
@@ -132,7 +133,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace('ConfigurationService', `Configuration changes.`, { type: ConfigurationModuleTypeToString(type), configurationKeys: change.properties });
+        this.logService.debug('ConfigurationService', `Configuration changes. Details:`, { type: ConfigurationModuleTypeToString(type), configurationKeys: change.properties });
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }
@@ -161,15 +162,15 @@ export interface IConfigurationChangeEvent {
     readonly properties: Set<Section>;
 
     /**
-     * @description Check if the given section finds an exact match in the 
-     * changing events.
+     * @description Check if the given section finds an exact match or find a 
+     * child of the section in the changing events.
      * @param section The given section.
      */
     affect(section: Section): boolean;
 
     /**
-     * @description Check if the given section finds an exact match or find a 
-     * child of the section in the changing events.
+     * @description Check if the given section finds an exact match in the 
+     * changing events.
      * @param section The given section.
      */
     match(section: Section): boolean;
