@@ -109,7 +109,7 @@ async function repair(outputRoot) {
         const filePath = path.resolve(outputRoot, fileName);
         const content = (await fs.promises.readFile(filePath)).toString();
         
-        const regexp = /(url\("\.\/icons\.woff2)\?[^"]+/;
+        const regexp = /(url\("\.\/icons\.(ttf|woff|woff2))\?[^"]+/;
         const newContent = content.replace(regexp, '$1');
         
         await fs.promises.writeFile(filePath, newContent);

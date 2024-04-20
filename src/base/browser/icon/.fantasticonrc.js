@@ -6,9 +6,11 @@
 module.exports = {
     inputDir: process.env.inputDir,     // (required) eg. 'assets/svg'
     outputDir: process.env.outputDir,   // (required) eg. 'src/base/browser/icon'
-    fontTypes: [/* 'ttf', 'woff', */ 'woff2'],
+    fontTypes: ['ttf'],
     assetTypes: ['ts', 'css', /* 'json', 'html' */],
     // fontsUrl: 'src/base/browser/icon',
+
+    normalize: true,
     
     formatOptions: {
         // Pass options directly to `svgicons2svgfont`
@@ -27,4 +29,4 @@ module.exports = {
             singleQuotes: true
         }
     },
-};
+}; 

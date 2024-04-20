@@ -111,7 +111,7 @@ export type IStyleDisposable = IDisposable & {
 
 /**
  * Generates a {@link HTMLStyleElement} and appends to the given {@link HTMLElement}.
- * @param element The given HTMLElement.
+ * @param element The given HTMLElement to have the CSS style.
  * @returns A disposable that will dispose the new created stylesheet from the 
  * given HTMLElement.
  * 

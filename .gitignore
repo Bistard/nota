@@ -9,6 +9,8 @@
 
 /assets/src-svg
 /assets/codicons/**/*
+/**/*.ttf
+/**/*.woff
 /**/*.woff2
 
 /.idea
