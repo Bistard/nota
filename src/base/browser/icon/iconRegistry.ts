@@ -32,7 +32,8 @@ export function createIcon(icon: Icons, classes: string[] = []): HTMLElement {
 /**
  * @test
  * @description Returns an container that contains all the icons in our 
- * project. Only for testing purpose. 
+ * project. Only for testing purpose. This is a quick way to look over all the 
+ * icons to see if any errors.
  */
 export function __createAllIconsGallery(): HTMLElement {
     const container = document.createElement('div');
