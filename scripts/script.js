@@ -6,35 +6,57 @@
  * The script acts like a central management that can access all the pre-defined
  * scripts. The script configurations can be found at {@link SCRIPT_CONFIG_PATH}.
  */
-
-const childProcess = require("child_process");
 const path = require("path");
-const utils = require('./utility');
+const { Colors, ScriptProcess, Loggers } = require('./utility');
 
 /**
- * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
+ * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfigurationType
  */
 
 const SCRIPT_CONFIG_PATH = './script.config.js';
-
 const USAGE = `
-usage: npm run script (<command> | list | help) [--] [<argument>...]
-    
-    Run 'npm run script list' to see all the valid srcipts.
+Usage: npm run script <command> [--] [options]
 
-    eg. npm run script help
-        npm run script list
-        npm run script start -- -a --arg1 --arg2=arg3
+    Execute a script command with optional arguments. Available commands include running specific scripts, listing all available scripts, and displaying this help message.
+
+Commands:
+    <command>    Execute the specified script with optional arguments.
+    list         Display a list of all available scripts.
+    help         Show this usage information.
+
+Examples:
+    npm run script help               Display this usage information.
+    npm run script list               List all available scripts.
+    npm run script start -- -a --arg1 Optional arguments can be passed after the '--'.
+
+Note:
+    Use '--' before specifying any arguments to ensure they are correctly passed to the script.
 `;
-const HELP_STRING = `To see a list of valid scripts, run:
+const HELP_STRING = `Help Guide:
+
+- To execute a specific script along with any optional arguments, use the following format:
+    npm run script <command> [--] [options]
+
+- To view all available scripts and understand their purpose, run:
+    npm run script list
+
+- For a summary of usage commands and examples, use:
     npm run script help
+
+Feel free to append '--' before any options to ensure they are passed correctly to the script.
 `;
-const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${USAGE}.`;
+const INVALID_SCRIPT_COMMAND = `Error: The script command you entered is not recognized or improperly formatted.
+
+Quick Tips:
+- Ensure the command follows the structure: npm run script <command> [--] [options]
+- For a list of available commands, run: npm run script list
+- For further assistance, refer to: npm run script help
+`;
 
 (async function () {
     
     // Read script configuration
-    const scriptconfiguration = require(SCRIPT_CONFIG_PATH);
+    const scriptConfig = require(SCRIPT_CONFIG_PATH);
 
     // try interpret CLI
     const cliArgs = process.argv.slice(2);
@@ -45,10 +67,10 @@ const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${
         executeHelp();
     } 
     else if (cmd === 'list') {
-        executeList(scriptconfiguration);
+        executeList(scriptConfig);
     }
     else {
-        executeScript(cmd, args, scriptconfiguration);
+        executeScript(cmd, args, scriptConfig);
     }
 })();
 
@@ -61,7 +83,7 @@ const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${
 function validateCLI(args) {
     const command = args[0];
     if (!command) {
-        process.stderr.write(`${utils.getTime(utils.c.FgRed)} ${INVALID_SCRIPT_COMMAND}`);
+        Loggers.printRed(`Invalid Script Command\n${INVALID_SCRIPT_COMMAND}`);
         process.exit(1);
     }
     return [command, args.slice(1)];
@@ -72,7 +94,7 @@ function executeHelp() {
 }
 
 /**
- * @param {ScriptConfiguration} configuration 
+ * @param {ScriptConfigurationType} configuration 
  */
 function executeList(configuration) {
     console.log(`${'[command]'.padStart(10, ' ')}`);
@@ -80,7 +102,7 @@ function executeList(configuration) {
     for (const [cmdName, config] of Object.entries(configuration)) {
         
         const { _command, description, options } = config;
-        const coloredName = utils.color(utils.c.FgGreen, config.commandDescription ?? cmdName);
+        const coloredName = Colors.green(config.commandDescription ?? cmdName);
         console.log(coloredName);
         console.log(description);
         
@@ -98,45 +120,36 @@ function executeList(configuration) {
 }
 
 /**
- * @param {string} command 
+ * @param {string} script 
  * @param {string[]} args 
- * @param {ScriptConfiguration} configuration
+ * @param {ScriptConfigurationType} configurations
  */
-function executeScript(command, args, configuration) {
+function executeScript(script, args, configurations) {
 
-    let scriptConfiguration = configuration[command];
-    if (!scriptConfiguration) {
-        console.log(`Invalid script command '${command}'. ${HELP_STRING}.`);
+    // validate the corresponding script configuration
+    const config = configurations[script];
+    if (!config) {
+        console.log(`Invalid script '${script}'. ${HELP_STRING}.`);
         process.exit(1);
     }
 
-    let actualCommand = scriptConfiguration.command;
-    const argsInString = args.join(' ');
-    actualCommand += ' ' + argsInString;
+    const proc = new ScriptProcess(script, config.command, args, [], {
+        env: process.env,
+        cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root directory
+        shell: true,
 
-    console.log(`${utils.getTime()} Executing script: ${utils.c.BgWhite}${utils.c.FgBlack}${command}\x1b[0m`);
-    console.log(`${utils.getTime()} Executing command: ${actualCommand}`);
-    const proc = childProcess.spawn(
-        actualCommand, 
-        [], 
-        {
-            env: process.env,
-            cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root directory
-            shell: true,
-
-            // inherits the stdin / stdout / stderr
-            stdio: "inherit",
-        },
-    );
-
-    proc.on('close', (code) => {
-        if (code) {
-            process.stderr.write(`${utils.getTime(utils.c.FgRed)} The script '${command}' exits with error code ${code}.\n`);
-            process.exit(code);
-        } else {
-            process.exit(0);
-        }
+        // inherits the stdin / stdout / stderr
+        stdio: "inherit",
     });
+
+    proc.waiting()
+    .then(code => {
+        process.exit(code);
+    })
+    .catch(error => {
+        Loggers.printRed(`Executing script "${script}" encounters error: ${JSON.stringify(error)}`);
+        process.exit(1);
+    })
 }
 
 // #endregion

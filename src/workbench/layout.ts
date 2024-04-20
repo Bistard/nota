@@ -157,11 +157,11 @@ class NavigationBarBuilder {
         [
             {
                 id: NavigationButtonType.HELPER,
-                icon: Icons.CommentQuestion,
+                icon: Icons.Help,
             },
             {
                 id: NavigationButtonType.SETTINGS,
-                icon: Icons.Settings,
+                icon: Icons.Setting,
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
                         getAnchor: this.__getButtonElement(NavigationButtonType.SETTINGS).bind(this),

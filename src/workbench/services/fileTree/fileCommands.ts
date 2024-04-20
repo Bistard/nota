@@ -9,16 +9,19 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
-import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
-import { parse } from "src/base/common/files/path";
+import { FileOperationError, FileOperationErrorType, FileType } from "src/base/common/files/file";
+import * as path from "src/base/common/files/path";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
 import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
 import { noop } from "src/base/common/performance";
-import { assert, assertArray, check, errorToMessage } from "src/base/common/utilities/panic";
+import { assert, assertArray, assertDefault, check, errorToMessage } from "src/base/common/utilities/panic";
 import { ResourceMap } from "src/base/common/structures/map";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
+import { isNonNullable } from "src/base/common/utilities/type";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 /**
  * @namespace FileCommands Contains a list of useful {@link Command}s that will
@@ -83,6 +86,7 @@ export namespace FileCommands {
         private fileService!: IFileService;
         private notificationService!: INotificationService;
         private commandService!: ICommandService;
+        private configurationService!: IConfigurationService;
 
         constructor() {
             super({
@@ -99,6 +103,7 @@ export namespace FileCommands {
             this.fileService             = provider.getOrCreateService(IFileService);
             this.commandService          = provider.getOrCreateService(ICommandService);
             this.fileTreeMetadataService = provider.getOrCreateService(IFileTreeMetadataService);
+            this.configurationService    = provider.getOrCreateService(IConfigurationService);
 
             const toPaste = await this.__getResourcesToPaste(resources);
             const isCut   = assert(contextService.getContextValue<boolean>(WorkbenchContextKey.fileTreeOnCutKey));
@@ -125,7 +130,8 @@ export namespace FileCommands {
              * array of `FileItem`.
              */
             const toPasteItems = assertArray<FileItem>(toPaste, arr => Arrays.isType(arr, element => !URI.isURI(element)));
-            await this.__pasteInsert(toPasteItems, destination, destinationIdx ?? 0, isCut);
+            await this.__pasteInsert(toPasteItems, destination, isCut, destinationIdx);
+            
             return true;
         }
 
@@ -156,10 +162,7 @@ export namespace FileCommands {
             if (destination.isFile()) {
                 return false;
             }
-            
-            // paste
             await this.__doPasteNormal(toPaste, destination, isCut);
-            
             this.__clearFileTreeTraits();
             return true;
         }
@@ -175,7 +178,7 @@ export namespace FileCommands {
             return batch;
         }
 
-        private async __pasteInsert(toInsert: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<void> {
+        private async __pasteInsert(toInsert: FileItem[], destination: FileItem, isCut: boolean, destinationIdx?: number): Promise<void> {
             check(destination.isDirectory());
             check(!this.fileTreeService.isCollapsed(destination));
             
@@ -196,7 +199,7 @@ export namespace FileCommands {
              */
             const groups = Arrays.group(dragItems, item => item.parent);
             for (const group of groups.values()) {
-                const pasted = await this.__doPasteInsert(group, destination, destinationIdx, isCut);
+                const pasted = await this.__doPasteInsert(group, destination, isCut, destinationIdx);
                 if (pasted) {
                     anyPasted = true;
                 }
@@ -218,12 +221,12 @@ export namespace FileCommands {
             }
         }
 
-        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, destinationIdx: number, isCut: boolean): Promise<boolean> {
+        private async __doPasteInsert(toPaste: FileItem[], destination: FileItem, isCut: boolean, destinationIdx?: number): Promise<boolean> {
             const toPasteParent = assert(toPaste[0]!.parent);
             const insertAtSameParent = URI.equals(toPasteParent.uri, destination.uri);
 
             // actual paste operation
-            const batch = insertAtSameParent
+            const batch = (insertAtSameParent && isCut)
                 ? createBatchResult({ passed: toPaste.map(item => ({ old: item.uri, new: item.uri })) })
                 : await this.__doPasteNormal(toPaste.map(item => item.uri), destination, isCut);
             
@@ -241,9 +244,9 @@ export namespace FileCommands {
 
             // update metadata to those who successes
             if (insertAtSameParent) {
-                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, destinationIdx);
+                await this.__updateMetadataAtSameParent(isCut, details.passedItems, details.oldParentItem, details.passedNewUri, destinationIdx);
             } else {
-                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, destinationIdx, destination, details.passedOldDirUri, details.passedNewDirUri);
+                await this.__updateMetadataAtDiffParent(isCut, details.passedItems, details.oldParentItem, destinationIdx ?? 0, destination, details.passedOldDirUri, details.passedNewDirUri);
             }
 
             // determine if any file/dir is actually pasted in the file system
@@ -301,7 +304,8 @@ export namespace FileCommands {
             isCut: boolean, 
             passedItems: FileItem[],
             oldParentItem: FileItem,
-            destinationIdx: number,
+            passedNewUri: URI[],
+            destinationIdx?: number,
         ): Promise<void> {
             /**
              * Handling insertion within the same parent directory. In scenarios 
@@ -312,12 +316,17 @@ export namespace FileCommands {
              * within the same directory.
              */
             if (isCut) {
+                const resolvedIdx = assertDefault(destinationIdx, 0, 'Expecting a defined destination index when inserting at the same parent.');
                 const toMoveIndice = passedItems.map(item => item.getSelfIndexInParent());
-                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParentItem.uri, null, toMoveIndice, destinationIdx).unwrap();
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Move, oldParentItem.uri, null, toMoveIndice, resolvedIdx).unwrap();
             } 
             else {
-                const addIndice = Arrays.fill(destinationIdx, passedItems.length);
-                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParentItem.uri, passedItems.map(item => item.name), addIndice).unwrap();
+                // if undefined, prefer to insert at the bottom of the last selected item.
+                const resolvedIdx = isNonNullable(destinationIdx) 
+                    ? destinationIdx
+                    : assert(passedItems[0]).getSelfIndexInParent() + 1;
+                const addIndice = Arrays.fill(resolvedIdx, passedItems.length);
+                await this.fileTreeMetadataService.updateCustomSortingMetadataLot(OrderChangeType.Add, oldParentItem.uri, passedNewUri.map(uri => URI.basename(uri)), addIndice).unwrap();
             }
         }
         
@@ -380,8 +389,6 @@ export namespace FileCommands {
                 failedError: [],
             };
 
-            // TODO: seems like if move fails, file or folders got deleted?
-
             /**
              * Iterate every pasting items and try to move to the destination. 
              * If any existing files or folders found at the destination, a 
@@ -392,37 +399,23 @@ export namespace FileCommands {
                 const newDestination = URI.join(destination.uri, resourceName);
                 const change = { old: resource, new: newDestination };
 
-                const success = await this.fileService.moveTo(resource, newDestination);
+                const valid = await this.__validateBeforeMove(newDestination);
+                if (!valid) {
+                    continue;
+                }
+
+                const success = await this.fileService.moveTo(resource, newDestination, false);
 
                 // complete
                 if (success.isOk()) {
                     result.passed.push(change);
                     continue;
                 }
-                const error = success.unwrapErr();
-
+                
                 // only expect `FILE_EXISTS` error
+                const error = success.unwrapErr();
                 if (error.code !== FileOperationErrorType.FILE_EXISTS) {
-                    await this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
-                    continue;
-                }
-
-                // duplicate item found, ask permission from the user.
-                const shouldOverwrite = await this.notificationService.confirm(
-                    'Overwrite Warning',
-                    `An item named ${resourceName} already exists in this location. Do you want to replace it with the one you're moving?`
-                );
-
-                if (!shouldOverwrite) {
-                    result.failed.push(change);
-                    continue;
-                }
-
-                // re-move to overwrite
-                const move = await this.fileService.moveTo(resource, newDestination, true);
-                if (move.isOk()) {
-                    result.passed.push(change);
-                    continue;
+                    this.commandService.executeCommand(AllCommands.alertError, 'FilePaste', error);
                 }
 
                 /**
@@ -430,10 +423,27 @@ export namespace FileCommands {
                  * handle.
                  */
                 result.failed.push(change);
-                result.failedError?.push(move.unwrapErr());
+                result.failedError?.push(error);
             }
 
             return result;
+        }
+
+        private async __validateBeforeMove(destination: URI): Promise<boolean> {
+            const exist = await this.fileService.exist(destination);
+            if (exist.isErr()) {
+                return false;
+            }
+
+            if (!exist.unwrap()) {
+                return true;
+            }
+
+            const confirmed = await this.notificationService.confirm(
+                'Overwrite Warning', 
+                `A file or folder with the name '${URI.basename(destination)}' already exists in the destination folder. Do you want to replace it?`,
+            );
+            return confirmed;
         }
 
         private async __doCopyLot(toPaste: URI[], destination: FileItem): Promise<IBatchResult<IChange<URI>, FileOperationError>> {
@@ -442,6 +452,7 @@ export namespace FileCommands {
                 failed: [],
                 failedError: [],
             };
+            const incrementType = this.configurationService.get(WorkbenchConfiguration.ExplorerIncrementFileNaming, IncrementFileType.Simple);
 
             /**
              * Iterate every selecting items and try to copy to the destination. 
@@ -449,16 +460,18 @@ export namespace FileCommands {
              * postfix to the name of the copied item.
              */
             for (const resource of toPaste) {
-                const resourceName = URI.basename(resource);
-                const { name: baseName, ext: extName } = parse(resourceName);
-
-                let newDestination = URI.join(destination.uri, resourceName);
-                if (URI.equals(resource, newDestination)) {
-                    newDestination = URI.join(destination.uri, `${baseName}_copy${extName}`);
-                }
-                const change = { old: resource, new: newDestination };
+                const baseName = URI.basename(resource);
+                let newDestination = URI.join(destination.uri, baseName);
                 
-                const copy = await this.fileService.copyTo(resource, newDestination);
+                // name conflict, increment the name.
+                if (URI.equals(resource, newDestination)) {
+                    const stat = await this.fileService.stat(resource).unwrap();
+                    const incrementedName = incrementFileName(baseName, stat.type === FileType.DIRECTORY, incrementType);
+                    newDestination = URI.join(destination.uri, incrementedName);
+                }
+
+                const change = { old: resource, new: newDestination };
+                const copy = await this.fileService.copyTo(resource, newDestination, false);
                 
                 // complete
                 if (copy.isOk()) {
@@ -499,4 +512,143 @@ export namespace FileCommands {
             this.fileTreeService.setFocus(null);
         }
     }
+}
+
+export const enum IncrementFileType {
+    Simple = 'simple',
+    Smart  = 'smart',
+}
+
+/**
+ * @description Increments the version number in a file or folder name according 
+ * to a specified incremental type.
+ * 
+ * @note This function intelligently handles different naming conventions, 
+ *       including names with numerical suffixes, 'copy' notations, and 
+ *       extension-preserving increments. 
+ *
+ * @param name The original name of the file or folder to be incremented.
+ * @param isFolder Indicates whether the name represents a folder (true) or a 
+ *                 file (false).
+ * @param type The type of incremental to apply.
+ * @returns The incremented name, preserving any file extension and adhering to 
+ *          the specified incremental type.
+ */
+export function incrementFileName(name: string, isFolder: boolean, type: IncrementFileType): string {
+    if (type === IncrementFileType.Simple) {
+		let namePrefix = name;
+		let extSuffix = '';
+		if (!isFolder) {
+			extSuffix = path.extname(name);
+			namePrefix = path.basename(name, extSuffix);
+		}
+
+		// name copy 5(.txt) => name copy 6(.txt)
+		// name copy(.txt) => name copy 2(.txt)
+		const suffixRegex = /^(.+ copy)( \d+)?$/;
+		if (suffixRegex.test(namePrefix)) {
+			return namePrefix.replace(suffixRegex, (match, g1?, g2?) => {
+				const number = (g2 ? parseInt(g2) : 1);
+				return number === 0
+					? `${g1}`
+					: (number < Number.MAX_SAFE_INTEGER
+						? `${g1} ${number + 1}`
+						: `${g1}${g2} copy`);
+			}) + extSuffix;
+		}
+
+		// name(.txt) => name copy(.txt)
+		return `${namePrefix} copy${extSuffix}`;
+	}
+
+	const separators = '[\\.\\-_]';
+	const maxNumber = Number.MAX_SAFE_INTEGER;
+
+	// file.1.txt=>file.2.txt
+	const suffixFileRegex = RegExp('(.*' + separators + ')(\\d+)(\\..*)$');
+	if (!isFolder && name.match(suffixFileRegex)) {
+		return name.replace(suffixFileRegex, (match, g1?, g2?, g3?) => {
+			const number = parseInt(g2);
+			return number < maxNumber
+				? g1 + String(number + 1).padStart(g2.length, '0') + g3
+				: `${g1}${g2}.1${g3}`;
+		});
+	}
+
+	// 1.file.txt=>2.file.txt
+	const prefixFileRegex = RegExp('(\\d+)(' + separators + '.*)(\\..*)$');
+	if (!isFolder && name.match(prefixFileRegex)) {
+		return name.replace(prefixFileRegex, (match, g1?, g2?, g3?) => {
+			const number = parseInt(g1);
+			return number < maxNumber
+				? String(number + 1).padStart(g1.length, '0') + g2 + g3
+				: `${g1}${g2}.1${g3}`;
+		});
+	}
+
+	// 1.txt=>2.txt
+	const prefixFileNoNameRegex = RegExp('(\\d+)(\\..*)$');
+	if (!isFolder && name.match(prefixFileNoNameRegex)) {
+		return name.replace(prefixFileNoNameRegex, (match, g1?, g2?) => {
+			const number = parseInt(g1);
+			return number < maxNumber
+				? String(number + 1).padStart(g1.length, '0') + g2
+				: `${g1}.1${g2}`;
+		});
+	}
+
+	// file.txt=>file.1.txt
+	const lastIndexOfDot = name.lastIndexOf('.');
+	if (!isFolder && lastIndexOfDot >= 0) {
+		return `${name.substr(0, lastIndexOfDot)}.1${name.substr(lastIndexOfDot)}`;
+	}
+
+	// 123 => 124
+	const noNameNoExtensionRegex = RegExp('(\\d+)$');
+	if (!isFolder && lastIndexOfDot === -1 && name.match(noNameNoExtensionRegex)) {
+		return name.replace(noNameNoExtensionRegex, (match, g1?) => {
+			const number = parseInt(g1);
+			return number < maxNumber
+				? String(number + 1).padStart(g1.length, '0')
+				: `${g1}.1`;
+		});
+	}
+
+	// file => file1
+	// file1 => file2
+	const noExtensionRegex = RegExp('(.*)(\\d*)$');
+	if (!isFolder && lastIndexOfDot === -1 && name.match(noExtensionRegex)) {
+		return name.replace(noExtensionRegex, (match, g1?, g2?) => {
+			let number = parseInt(g2);
+			if (isNaN(number)) {
+				number = 0;
+			}
+			return number < maxNumber
+				? g1 + String(number + 1).padStart(g2.length, '0')
+				: `${g1}${g2}.1`;
+		});
+	}
+
+	// folder.1=>folder.2
+	if (isFolder && name.match(/(\d+)$/)) {
+		return name.replace(/(\d+)$/, (match, ...groups) => {
+			const number = parseInt(groups[0]);
+			return number < maxNumber
+				? String(number + 1).padStart(groups[0].length, '0')
+				: `${groups[0]}.1`;
+		});
+	}
+
+	// 1.folder=>2.folder
+	if (isFolder && name.match(/^(\d+)/)) {
+		return name.replace(/^(\d+)(.*)$/, (match, ...groups) => {
+			const number = parseInt(groups[0]);
+			return number < maxNumber
+				? String(number + 1).padStart(groups[0].length, '0') + groups[1]
+				: `${groups[0]}${groups[1]}.1`;
+		});
+	}
+
+	// file/folder=>file.1/folder.1
+	return `${name}.1`;
 }

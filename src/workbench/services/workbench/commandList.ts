@@ -61,12 +61,11 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.reloadWindow]:     'Reload the browser entirely.',
     [AllCommands.closeApplication]: 'Close the current window.',
 
-
     [AllCommands.newFile]:          '',
     [AllCommands.newFolder]:        '',
     [AllCommands.fileCut]:          'Sets selected files in the file tree as ready to be cut.',
     [AllCommands.fileCopy]:         'Sets selected files in the file tree as ready to be copied.',
-    [AllCommands.filePaste]:        '',
+    [AllCommands.filePaste]:        'Paste the given targets to the file tree.',
     [AllCommands.fileMove]:         'Moves selected explorer files.',
 };
 
@@ -87,18 +86,17 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
  */
 export type AllCommandsArgumentsTypes = {
     
-    [AllCommands.alertError]: [reporter: string, error: Error];
-    [AllCommands.toggleDevTool]: [];
-    [AllCommands.reloadWindow]: [];
+    [AllCommands.alertError]      : [reporter: string, error: Error];
+    [AllCommands.toggleDevTool]   : [];
+    [AllCommands.reloadWindow]    : [];
     [AllCommands.closeApplication]: [];
     
-    
-    [AllCommands.newFile]: [];
+    [AllCommands.newFile]  : [];
     [AllCommands.newFolder]: [];
-    [AllCommands.fileCut]: [];
-    [AllCommands.fileCopy]: [];
+    [AllCommands.fileCut]  : [];
+    [AllCommands.fileCopy] : [];
     [AllCommands.filePaste]: [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
-    [AllCommands.fileMove]: [];
+    [AllCommands.fileMove] : [];
 };
 
 /**
@@ -115,16 +113,15 @@ export type AllCommandsArgumentsTypes = {
  */
 export type AllCommandsReturnTypes = {
     
-    [AllCommands.alertError]: void;
-    [AllCommands.toggleDevTool]: void;
-    [AllCommands.reloadWindow]: void;
+    [AllCommands.alertError]      : void;
+    [AllCommands.toggleDevTool]   : void;
+    [AllCommands.reloadWindow]    : void;
     [AllCommands.closeApplication]: void;
 
-
-    [AllCommands.newFile]: void;
+    [AllCommands.newFile]  : void;
     [AllCommands.newFolder]: void;
-    [AllCommands.fileCut]: void;
-    [AllCommands.fileCopy]: void;
+    [AllCommands.fileCut]  : void;
+    [AllCommands.fileCopy] : void;
     [AllCommands.filePaste]: void;
-    [AllCommands.fileMove]: void;
+    [AllCommands.fileMove] : void;
 };

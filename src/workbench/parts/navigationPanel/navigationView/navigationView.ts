@@ -111,10 +111,10 @@ export class NavigationView extends Component implements INavigationViewService 
     // [public method]
 
     public registerView(id: string, viewCtor: Constructor<INavView>): void {
-        this.logService.trace('NavigationView', `registers a view with ID`, { ID: id });
+        this.logService.debug('SideViewService', `registers a view with ID: ${id}`);
 
         if (this.hasComponent(id)) {
-            this.logService.warn('NavigationView', `The navigation view with ID is already registered`, { ID: id });
+            this.logService.warn('SideViewService', `The side view with ID is already registered: ${id}`);
             return;
         }
 
@@ -162,7 +162,7 @@ export class NavigationView extends Component implements INavigationViewService 
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn('NavigationView', `Cannot switch to view with ID.`, { ID: id });
+            this.logService.warn('SideViewService', `Cannot switch to view with ID: ${id}`);
             return;
         }
         this.__switchView(view);

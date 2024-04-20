@@ -16,7 +16,7 @@ export class MainConfigurationService extends AbstractConfigurationService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super(options, instantiationService, logService, registrantService);
-        this.logService.trace('MainConfigurationService', 'Constructed.');
+        this.logService.debug('MainConfigurationService', 'Constructed.');
     }
 
     // [public methods]

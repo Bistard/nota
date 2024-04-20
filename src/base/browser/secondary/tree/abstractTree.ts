@@ -14,6 +14,7 @@ import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTre
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { IIdentityProvider } from "src/base/browser/secondary/tree/asyncTree";
 import { Arrays } from "src/base/common/utilities/array";
+import { Lazy } from "src/base/common/lazy";
 
 /**
  * @internal
@@ -97,7 +98,7 @@ class TreeTrait<T> {
     // [field]
 
     private _nodes = new Set<ITreeNode<T, any>>();
-    private _nodesCache?: T[];
+    private readonly _nodesCache: Lazy<T[]>;
 
     // [event]
 
@@ -106,12 +107,14 @@ class TreeTrait<T> {
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+        this._nodesCache = new Lazy(() => Arrays.fromSet(this._nodes, node => node.data));
+    }
 
     // [public methods]
 
     public set(nodes: ITreeNode<T, any>[]): void {
-        this._nodesCache = undefined;
+        this._nodesCache.dispose();
         this._nodes = new Set();
         
         for (const node of nodes) {
@@ -123,10 +126,7 @@ class TreeTrait<T> {
     }
 
     public get(): T[] {
-        if (!this._nodesCache) {
-            this._nodesCache = Arrays.fromSet(this._nodes, node => node.data);
-        }
-        return this._nodesCache;
+        return this._nodesCache.value();
     }
 
     public has(nodes: ITreeNode<T, any>): boolean {

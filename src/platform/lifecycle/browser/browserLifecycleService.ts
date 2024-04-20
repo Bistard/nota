@@ -53,14 +53,14 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
-        this.logService.trace('BrowserLifecycleService', 'quit');
+        this.logService.debug('BrowserLifecycleService', 'quit');
 
-        this.logService.trace('BrowserLifecycleService', 'beforeQuit');
+        this.logService.debug('BrowserLifecycleService', 'beforeQuit');
         this._onBeforeQuit.fire();
 
         await this.__fireWillQuit();
 
-        this.logService.trace('BrowserLifecycleService', 'Broadcasting the application is about to quit...');
+        this.logService.debug('BrowserLifecycleService', 'Broadcasting the application is about to quit...');
 
         /**
          * Making sure all the logging message from the browser side is 
@@ -80,7 +80,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         }
 
         // notify all listeners
-        this.logService.trace('BrowserLifecycleService', 'willQuit');
+        this.logService.debug('BrowserLifecycleService', 'willQuit');
         const participants = new JoinablePromise();
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
@@ -88,7 +88,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         });
 
         this._ongoingQuitParticipants = (async () => {
-            this.logService.trace('BrowserLifecycleService', 'willQuit settling ongoing participants before quit...');
+            this.logService.debug('BrowserLifecycleService', 'willQuit settling ongoing participants before quit...');
         
             const results = await participants.allSettled();
             results.forEach(res => {
@@ -97,7 +97,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
                 }
             });
 
-            this.logService.trace('BrowserLifecycleService', 'willQuit participants all settled.');
+            this.logService.debug('BrowserLifecycleService', 'willQuit participants all settled.');
         })();
 
         await this._ongoingQuitParticipants;

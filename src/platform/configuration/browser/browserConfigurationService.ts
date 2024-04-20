@@ -26,7 +26,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         @IRegistrantService registrantService: IRegistrantService,
     ) {
         super(options, instantiationService, logService, registrantService);
-        this.logService.trace('BrowserConfigurationService', 'Constructed.');
+        this.logService.debug('BrowserConfigurationService', 'Constructed.');
     }
 
     // [public methods]
@@ -51,7 +51,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
             return err(error);
         })
         .andThen(() => {
-            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration`, { at: URI.toString(this.appConfigurationPath) }));
+            return ok(this.logService.info('BrowserConfigurationService', `Successfully save configuration at :${URI.toString(this.appConfigurationPath)}`));
         });
     }
 

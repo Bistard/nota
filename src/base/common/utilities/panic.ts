@@ -117,6 +117,25 @@ export function assertArray<T>(array: any[], assert: (firstElement: any) => bool
 }
 
 /**
+ * @description Ensures the provided object is not null or undefined. If it is, 
+ *  logs an error and returns a default value.
+ * 
+ * @param obj The object to assert.
+ * @param defaultValue The default value to return if `obj` is null or undefined.
+ * @param message Optional error message to log if `obj` is null or undefined.
+ * @returns The original `obj` if it's neither null nor undefined, otherwise `defaultValue`.
+ * 
+ * @note This function does not panic.
+ */
+export function assertDefault<T>(obj: T, defaultValue: NonNullable<T>, message?: string): NonNullable<T> {
+    if (obj === null || obj === undefined) {
+        console.error(`[assertDefault] ${message}`);
+        return defaultValue;
+    }
+    return obj;
+}
+
+/**
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.
  * @param verbose If output the stack trace.

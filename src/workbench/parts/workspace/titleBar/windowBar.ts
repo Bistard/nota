@@ -41,10 +41,10 @@ export class WindowBar extends Component {
 
         // creates all the window buttons
         [
-            { id: 'dropdown-btn', icon: Icons.AngleDown, classes: [], fn: () => { } },
-            { id: 'min-btn', icon: Icons.Minuss, classes: [], fn: () => this.hostService.minimizeWindow() },
-            { id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
-            { id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.lifeCycleService.quit() },
+            { id: 'dropdown-btn', icon: Icons.Help, classes: [], fn: () => { } },
+            { id: 'min-btn', icon: Icons.Minimize, classes: [], fn: () => this.hostService.minimizeWindow() },
+            { id: 'max-btn', icon: Icons.Maximize, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
+            { id: 'close-btn', icon: Icons.Close, classes: ['closeToggleBtn'], fn: () => this.lifeCycleService.quit() },
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new WindowButton({

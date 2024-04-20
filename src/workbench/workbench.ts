@@ -58,13 +58,13 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
         super(instantiationService, logService, layoutService, componentService, themeService, navigationBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
-        logService.trace('Workbench', 'Workbench constructed.');
+        logService.debug('Workbench', 'Workbench constructed.');
     }
 
     // [public methods]
 
     public init(): void {
-        this.logService.trace('Workbench', 'Initializing...');
+        this.logService.debug('Workbench', 'Initializing...');
 
         // initialization services
         this.initServices();
@@ -78,7 +78,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // once everything is done we layout the workbench
         this.layout();
 
-        this.logService.trace('Workbench', 'Initialized.');
+        this.logService.debug('Workbench', 'Initialized successfully.');
     }
 
     public getContextKey<T>(name: string): IContextKey<T> | undefined {

@@ -107,7 +107,7 @@ export class NotificationService extends Disposable implements INotificationServ
         closeButtonContainer.className = 'notification-close-container';
     
         const closeButtonOptions: IButtonOptions = {
-            icon: Icons.Cross,
+            icon: Icons.Close,
             classes: ['notification-close-button']
         };
     

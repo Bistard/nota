@@ -180,7 +180,7 @@ export class MainFileChannel implements IServerChannel {
         const raw = URI.toString(uri);
         const exist = this._activeWatchers.get(raw);
         if (exist) {
-            this.logService.warn('MainFileChannel', 'duplicate watching on the same resource', { URI: URI.toString(uri) });
+            this.logService.warn('MainFileChannel', `duplicate watching on the same resource: ${URI.toString(uri)}`);
             return;
         }
         const result = this.fileService.watch(uri, opts);

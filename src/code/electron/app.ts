@@ -63,11 +63,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug('App', `application starting...`, { appRootPath: URI.toString(this.environmentService.appRootPath) });
+        this.logService.debug('App', `application starting at '${URI.toString(this.environmentService.appRootPath, true)}'...`);
 
         // machine ID
         const machineID = this.__getMachineID();
-        this.logService.debug('App', `Resolved machine ID.`, { ID: machineID });
+        this.logService.debug('App', `Resolved machine ID (${machineID}).`);
 
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);
@@ -96,7 +96,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
 
         electron.app.on('open-file', (event, path) => {
-            this.logService.trace('App', `open-file - ${path}`);
+            this.logService.debug('App', `open-file: ${path}`);
             // REVIEW
         });
 
@@ -107,7 +107,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
-        this.logService.trace('App', 'constructing application services...');
+        this.logService.debug('App', 'constructing application services...');
 
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
@@ -123,12 +123,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // ai-service
 
-        this.logService.trace('App', 'Application services constructed.');
+        this.logService.debug('App', 'Application services constructed.');
         return appInstantiationService;
     }
 
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
-        this.logService.trace('App', 'Registering IPC channels...');
+        this.logService.debug('App', 'Registering IPC channels...');
 
         // file-service-channel
         const diskFileChannel = new MainFileChannel(this.logService, this.fileService, this.registrantService);
@@ -152,11 +152,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // ai-service-channel
 
 
-        this.logService.trace('App', 'IPC channels registered successfully.');
+        this.logService.debug('App', 'IPC channels registered successfully.');
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
-        this.logService.trace('App', 'Opening the first window...');
+        this.logService.debug('App', 'Opening the first window...');
 
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 

@@ -30,7 +30,8 @@ import { ConfigurationRegistrant } from 'src/platform/configuration/common/confi
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { panic } from "src/base/common/utilities/panic";
 import { IS_WINDOWS } from 'src/base/common/platform';
-import { unlinkSync } from 'fs';
+import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
+import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -56,6 +57,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     private readonly logService!: ILogService;
     private readonly lifecycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
+    private readonly diagnosticsService!: IDiagnosticsService;
     private readonly CLIArgv!: ICLIArguments;
 
     // [constructor]
@@ -134,19 +136,29 @@ const main = new class extends class MainProcess implements IMainProcess {
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
 
+        logService.debug('MainProcess', 'Start constructing core services...');
+
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
         instantiationService.register(IRegistrantService, registrantService);
         this.initRegistrant(instantiationService, registrantService);
 
-        // environment-service
-        const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService);
-        instantiationService.register(IEnvironmentService, environmentService);
-
         // file-service
         const fileService = new FileService(logService);
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
         instantiationService.register(IFileService, fileService);
+
+        // product-service
+        const productService = new ProductService(fileService, logService);
+        instantiationService.register(IProductService, productService);
+
+        // diagnostics-service
+        const diagnosticsService = new DiagnosticsService(productService);
+        instantiationService.register(IDiagnosticsService, diagnosticsService);
+
+        // environment-service
+        const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService, productService);
+        instantiationService.register(IEnvironmentService, environmentService);
 
         // logger-service
         const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
@@ -160,10 +172,6 @@ const main = new class extends class MainProcess implements IMainProcess {
             fileLoggerService.createLogger(environmentService.logPath, { description: 'main', name: `main-${getFormatCurrTimeStamp()}.txt` }),
         ]);
         logService.setLogger(pipelineLogger);
-
-        // product-service
-        const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
 
         // life-cycle-service
         const lifecycleService = new MainLifecycleService(logService);
@@ -192,8 +200,9 @@ const main = new class extends class MainProcess implements IMainProcess {
         (<any>this.logService) = logService;
         (<any>this.lifecycleService) = lifecycleService;
         (<any>this.statusService) = statusService;
-
-        this.logService.trace('MainProcess', 'All core services are constructed.');
+        (<any>this.diagnosticsService) = diagnosticsService;
+        
+        this.logService.debug('MainProcess', 'All core services are constructed.');
     }
 
     /**
@@ -201,7 +210,7 @@ const main = new class extends class MainProcess implements IMainProcess {
      * services are created.
      */
     private async initServices(): Promise<any> {
-        this.logService.trace('MainProcess', 'Start initializing core services...');
+        this.logService.debug('MainProcess', 'Start initializing core services...');
 
         /**
         * At the very beginning state of the program, we need to initialize
@@ -223,8 +232,8 @@ const main = new class extends class MainProcess implements IMainProcess {
             .andThen(() => this.configurationService.init())
             .unwrap();
 
-
-        this.logService.trace('MainProcess', 'All core services are initialized successfully.');
+        this.logService.debug('MainProcess', 'All core services are initialized successfully.');
+        this.logService.debug('MainProcess', `System Information:`, this.diagnosticsService.getDiagnostics());
     }
 
     private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
@@ -239,7 +248,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     }
 
     private async resolveSingleApplication(retry: boolean): Promise<void> {
-        this.logService.trace('MainProcess', 'Resolving application by listening to pipe...', { pipe: this.environmentService.mainIpcHandle });
+        this.logService.debug('MainProcess', `Resolving application by listening to pipe (${this.environmentService.mainIpcHandle})...`);
 
         try {
             /**
@@ -322,7 +331,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         if (isExpectedError(error)) {
             if (error.message) {
-                this.logService.trace('MainProcess', `${error.message}`);
+                this.logService.debug('MainProcess', `Expected error: ${error.message}`);
             }
         }
         else {
@@ -330,7 +339,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             if (error.stack) {
                 this.logService.error('MainProcess', error.message, error);
             } else {
-                this.logService.error('MainProcess', error.message, new Error(`Main process error: ${error.toString()}`));
+                this.logService.error('MainProcess', error.message, new Error(`MainProcess process error: ${error.toString()}`));
             }
         }
 

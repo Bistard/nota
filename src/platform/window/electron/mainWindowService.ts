@@ -83,7 +83,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     ) {
         super();
         this.registerListeners();
-        this.logService.trace('MainWindowService', 'MainWindowService constructed.');
+        this.logService.debug('MainWindowService', 'MainWindowService constructed.');
     }
 
     // [getter / setter]
@@ -108,11 +108,11 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
-        this.logService.trace('MainWindowService', 'trying to open a window...');
+        this.logService.debug('MainWindowService', 'trying to open a window...');
 
         const newWindow = this.doOpen(optionalConfiguration);
 
-        this.logService.trace('MainWindowService', 'window opened.');
+        this.logService.debug('MainWindowService', 'window opened.');
         return newWindow;
     }
 
@@ -184,8 +184,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         configuration.windowID = window.id;
 
         // load window
-        this.logService.trace('MainWindowService', 'Loading window...');
-        window.load(configuration).then(() => this.logService.trace('MainWindowService', 'Window loaded successfully.'));
+        this.logService.debug('MainWindowService', 'Loading window...');
+        window.load(configuration).then(() => this.logService.debug('MainWindowService', 'Window loaded successfully.'));
 
         return window;
     }

@@ -2,7 +2,7 @@ const childProcess = require("child_process");
 const minimist = require("minimist");
 const path = require("path");
 const fs = require('fs');
-const utils = require("../utility");
+const { utils } = require("../utility");
 
 
 

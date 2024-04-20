@@ -95,7 +95,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     public async open(root: URI): Promise<void> {
 
         if (this.fileTreeService.isOpened) {
-            this.logService.warn('ExplorerView', `view is already opened.`, { at: URI.toString(this.fileTreeService.root!, true) });
+            this.logService.warn('ExplorerView', `view is already opened at: ${URI.toString(this.fileTreeService.root!, true)}`);
             return;
         }
 
@@ -327,9 +327,9 @@ export class NavigationBar {
             render: false,
         });
         [
-            { id: 'new-file', icon: Icons.AddDocument, classes: [], fn: () => { } },
-            { id: 'new-directory', icon: Icons.AddFolder, classes: [], fn: () => { } },
-            { id: 'collapse-all', icon: Icons.FolderMinus, classes: [], fn: () => { } },
+            { id: 'new-file', icon: Icons.CreateNewFile, classes: [], fn: () => { } },
+            { id: 'new-directory', icon: Icons.CreateNewFolder, classes: [], fn: () => { } },
+            { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new Button({
@@ -381,29 +381,29 @@ export class ExplorerTitlePart extends NavigationViewTitlePart {
     public override render(element: HTMLElement): void {
         super.render(element);
 
-        // left part
-        const leftContainer = document.createElement('div');
-        leftContainer.className = 'left-part';
+        // // left part
+        // const leftContainer = document.createElement('div');
+        // leftContainer.className = 'left-part';
 
-        // title text
-        const topText = document.createElement('div');
-        topText.className = 'title-text';
-        topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
-        // dropdown icon
-        const dropdownIcon = createIcon(Icons.AngleDown);
+        // // title text
+        // const topText = document.createElement('div');
+        // topText.className = 'title-text';
+        // topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
+        // // dropdown icon
+        // const dropdownIcon = createIcon(Icons.AngleDown);
 
-        // right part
-        const rightContainer = document.createElement('div');
-        rightContainer.className = 'right-part';
-        // menu dots
-        const menuDots = createIcon(Icons.MenuDots);
+        // // right part
+        // const rightContainer = document.createElement('div');
+        // rightContainer.className = 'right-part';
+        // // menu dots
+        // const menuDots = createIcon(Icons.MenuDots);
 
-        leftContainer.append(topText);
-        leftContainer.append(dropdownIcon);
+        // leftContainer.append(topText);
+        // leftContainer.append(dropdownIcon);
 
-        rightContainer.append(menuDots);
+        // rightContainer.append(menuDots);
 
-        this.element.appendChild(leftContainer);
-        this.element.appendChild(rightContainer);
+        // this.element.appendChild(leftContainer);
+        // this.element.appendChild(rightContainer);
     }
 }

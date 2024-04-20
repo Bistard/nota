@@ -15,7 +15,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { FileSortType, IFileTreeSorter } from "src/workbench/services/fileTree/fileTreeSorter";
 import { Reactivator } from "src/base/common/utilities/function";
 import { IS_MAC } from "src/base/common/platform";
-import { assert, assertValue } from "src/base/common/utilities/panic";
+import { assert } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -246,7 +246,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          * 'general hovering' drop handling logic
          */
         if (!targetOver) {
-            targetOver = this.fileTreeService.rootItem!;
+            targetOver = assert(this.fileTreeService.rootItem);
         }
 
         if (targetOver.isFile()) {
@@ -417,10 +417,12 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         
         // If no specific target is given, insert at the end within the root item.
         if (!targetOver) {
-            targetOver = this.fileTreeService.rootItem!;
+            targetOver = assert(this.fileTreeService.rootItem);
             await this.__performDropMove(currentDragItems, targetOver);
             return;
         }
+
+        const nearBot = insertionResult.near === 'bottom';
 
         /**
          * Determine the appropriate insertion point for the currently dragging
@@ -431,15 +433,36 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *        simply 'targetOver'.
          */
         const targetAbove = (() => {
-            if (insertionResult.near === 'bottom') {
+            if (nearBot) {
                 return targetOver;
             } 
-            const aboveItemIdx = this._tree.getItemIndex(targetOver) - 1;
-            return (aboveItemIdx === -1) ? targetOver : this._tree.getItem(aboveItemIdx);
+            
+            const targetIdx = this._tree.getItemIndex(targetOver);
+            if (targetIdx === 0) {
+                return targetOver;
+            }
+
+            return this._tree.getItem(targetIdx - 1);
         })();
 
         /** 
-         * `resolvedDir` determines the target directory for pasting:
+         * `resolvedDir` determines the target directory for pasting.
+         * `resolvedIdx` determines thr target sorting order index for pasting.
+         */
+        let resolvedDir: FileItem;
+        let resolvedIdx: number;
+
+        /**
+         * [inserting at the top of the first item]
+         *   0. If `targetOver` is the first item and inserting at the top,
+         *      is set to the root.
+         */
+        if (!nearBot && targetAbove === targetOver) {
+            resolvedDir = assert(targetAbove.parent);
+            resolvedIdx = 0;
+        } 
+        /**
+         * [general case]
          *   1. If `targetAbove` is a directory and expanded, `resolvedDir` 
          *      is set to `targetAbove`, making it as the parent for pasted 
          *      items.
@@ -448,10 +471,12 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
          *      `targetAbove` is not a directory, `resolvedDir` is set to 
          *      the parent of `targetAbove`.
          */
-        const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
-        const resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
-        const resolvedIdx = isExpandedDir ? 0           : assertValue(targetAbove.getSelfIndexInParent(), idx =>idx !== -1) + 1;
-        
+        else {
+            const isExpandedDir = targetAbove.isDirectory() && !this.fileTreeService.isCollapsed(targetAbove);
+            resolvedDir = isExpandedDir ? targetAbove : assert(targetAbove.parent);
+            resolvedIdx = isExpandedDir ? 0           : targetAbove.getSelfIndexInParent() + 1;
+        }
+
         // tell the program we are doing insertion
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
         this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));

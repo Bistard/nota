@@ -241,17 +241,19 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(II18nService, i18nService);
 
         // singleton initializations
+        logService.debug('renderer', 'Registering singleton services descriptors...');
         for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
             logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
             instantiationService.register(serviceIdentifier, serviceDescriptor);
         }
+        logService.debug('renderer', 'Singleton services descriptors all registered.');
 
-        logService.trace('renderer', 'All core renderer services are constructed.');
+        logService.debug('renderer', 'All core renderer services are constructed.');
         return instantiationService;
     }
 
     private async initServices(instantiationService: IInstantiationService): Promise<any> {
-        this.logService.trace('renderer', 'Start initializing core renderer services...');
+        this.logService.debug('renderer', 'Start initializing core renderer services...');
 
         const configurationService = instantiationService.getService(IConfigurationService);
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
@@ -265,7 +267,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             .andThen(() => themeService.init())
             .unwrap();
         
-        this.logService.trace('renderer', 'All core renderer services are initialized successfully.');
+        this.logService.debug('renderer', 'All core renderer services are initialized successfully.');
     }
 
     private rendererServiceRegistrations(): void {
