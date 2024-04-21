@@ -98,7 +98,7 @@ export const rendererNavigationViewConfigurationRegister = createRegister(
                                         FileSortType.CreationTime,
                                         FileSortType.Custom,
                                     ],
-                                    default: FileSortType.Default,
+                                    default: FileSortType.Custom,
                                 },
                                 ['fileSortOrder']: {
                                     type: 'string',
