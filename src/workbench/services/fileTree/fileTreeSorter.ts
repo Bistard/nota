@@ -113,6 +113,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
             this._customSorter = undefined;
         });
         this.switchTo(sortType, sortOrder);
+        this._compare = sortOrder === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
     }
 
     // [getter]
