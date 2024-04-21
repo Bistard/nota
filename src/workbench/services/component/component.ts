@@ -441,9 +441,9 @@ export abstract class Component extends Themable implements IComponent {
 
     public setVisible(value: boolean): void {
         if (value === true) {
-            this._element.setVisibility('visible');
+            this._element.setOpacity(1);
         } else {
-            this._element.setVisibility('hidden');
+            this._element.setOpacity(0);
         }
         this._onDidVisibilityChange.fire(value);
     }

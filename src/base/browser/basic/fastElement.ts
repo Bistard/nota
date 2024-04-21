@@ -1,5 +1,6 @@
 import { addDisposableListener, DomStyle, EventType, IDomEvent } from "src/base/browser/basic/dom";
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { check } from "src/base/common/utilities/panic";
 import { isObject } from "src/base/common/utilities/type";
 
 /**
@@ -39,6 +40,7 @@ export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
 
     setLineHeight(value: number): void;
     setVisibility(value: DomStyle.Visibility): void;
+    setOpacity(value: number): void;
     setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void;
 
     setAttribute(name: string, value: string): void;
@@ -95,6 +97,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
 
     private _lineHeight: number = -1;
     private _visibility: DomStyle.Visibility | '' = '';
+    private _opacity: number = -1;
     private _backgroundColor: string = '';
 
     // [constructor]
@@ -276,6 +279,15 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }
         this._visibility = value;
         this.element.style.visibility = value;
+    }
+
+    public setOpacity(value: number): void {
+        check(0 <= value && value <= 1);
+        if (this._opacity === value) {
+            return;
+        }
+        this._opacity = value;
+        this.element.style.opacity = `${value}`;
     }
 
     public setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void {

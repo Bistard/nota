@@ -51,14 +51,10 @@ export class ToolBar extends Component implements IToolBarService {
         switch (barType) {
             case ToolBarType.Action:
                 this.actionBarService.setVisible(true);
-                
-                // Set all other services to be invisible
                 this.filterBarService.setVisible(false);
                 break;
             case ToolBarType.Filter:
                 this.filterBarService.setVisible(true);
-
-                // Set all other services to be invisible
                 this.actionBarService.setVisible(false);
                 break;
         }
@@ -68,9 +64,9 @@ export class ToolBar extends Component implements IToolBarService {
 
     protected override _createContent(): void {
         this.actionBarService.create(this);
-        this.actionBarService.setVisible(true);
-
         this.filterBarService.create(this);
+        
+        this.actionBarService.setVisible(true);
         this.filterBarService.setVisible(false);
     }
 
