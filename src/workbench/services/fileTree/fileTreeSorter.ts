@@ -174,7 +174,7 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
      * invoking this method.
      */
     private __switchTo(sortType?: FileSortType, sortOrder?: FileSortOrder): void {
-        this._sortType = sortType   ?? FileSortType.Default;
+        this._sortType = sortType   ?? FileSortType.Custom;
         this._sortOrder = sortOrder ?? FileSortOrder.Ascending;
 
         if (this._sortType !== FileSortType.Custom) {
