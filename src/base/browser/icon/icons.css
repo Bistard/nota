@@ -17,75 +17,87 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-add-new:before {
     content: "\f101";
 }
-.icon-close:before {
+.icon-arrow-right:before {
     content: "\f102";
 }
-.icon-cloud-upload:before {
+.icon-close:before {
     content: "\f103";
 }
-.icon-collapse-all:before {
+.icon-close2:before {
     content: "\f104";
 }
-.icon-command:before {
+.icon-cloud-upload:before {
     content: "\f105";
 }
-.icon-create-new-file:before {
+.icon-cloud-upload2:before {
     content: "\f106";
 }
-.icon-create-new-folder:before {
+.icon-collapse-all:before {
     content: "\f107";
 }
-.icon-extension:before {
+.icon-command:before {
     content: "\f108";
 }
-.icon-folder-open:before {
+.icon-create-new-folder:before {
     content: "\f109";
 }
-.icon-folder:before {
+.icon-create-new-note:before {
     content: "\f10a";
 }
-.icon-help:before {
+.icon-extension:before {
     content: "\f10b";
 }
-.icon-maximize:before {
+.icon-folder-default:before {
     content: "\f10c";
 }
-.icon-minimize:before {
+.icon-folder-open:before {
     content: "\f10d";
 }
-.icon-more-horizontal:before {
+.icon-help:before {
     content: "\f10e";
 }
-.icon-nota-ai-default:before {
+.icon-maxmize-window:before {
     content: "\f10f";
 }
-.icon-nota-ai-on:before {
+.icon-minimize-window:before {
     content: "\f110";
 }
-.icon-notifications-active:before {
+.icon-more-horiz:before {
     content: "\f111";
 }
-.icon-notifications-off:before {
+.icon-nota-ai-default:before {
     content: "\f112";
 }
-.icon-notifications-unread:before {
+.icon-nota-ai-on:before {
     content: "\f113";
 }
-.icon-outline:before {
+.icon-notification-active:before {
     content: "\f114";
 }
-.icon-restore-window:before {
+.icon-notification-unread:before {
     content: "\f115";
 }
-.icon-setting:before {
+.icon-notifications-off:before {
     content: "\f116";
 }
-.icon-sort-by-alpha:before {
+.icon-outline:before {
     content: "\f117";
 }
-.icon-source-control-default:before {
+.icon-restore-window:before {
     content: "\f118";
 }
-.icon-source-control-on:before {
+.icon-search:before {
     content: "\f119";
+}
+.icon-setting:before {
+    content: "\f11a";
+}
+.icon-sort-by-alpha:before {
+    content: "\f11b";
+}
+.icon-source-contorl-on:before {
+    content: "\f11c";
+}
+.icon-source-control-default:before {
+    content: "\f11d";
 }
