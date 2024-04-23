@@ -54,7 +54,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [protected override method]
     
     protected override _createContent(): void {
-        const logo = this.__createLogo();
+        const logo = this.__createOutlineButton();
         this.element.appendChild(logo.element);
 
         const searchBar = this.__createSearchBar();
@@ -67,15 +67,11 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
 
     // [private helper method]
     
-    private __createLogo(): NavigationButton {
-        const logo = new NavigationButton({ id: NavigationButtonType.LOGO, isPrimary: true, classes: ['logo'] });
-        logo.render(document.createElement('div'));
-        
-        const text = document.createElement('div');
-        text.innerText = 'N';
-        logo.element.appendChild(text);
-        
-        return logo;
+    private __createOutlineButton(): NavigationButton {
+        const outlineButton = new NavigationButton(
+            { id: 'outline', icon: Icons.Outline, classes: ['outline-button'], isPrimary: true });
+        outlineButton.render(document.createElement('div'));
+        return outlineButton;
     }
 
     private __createSearchBar(): HTMLElement {
@@ -83,7 +79,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         utilityBar.className = 'quick-access-search-bar';
         
         this._searchBar = this.__register(new SearchBar({
-            icon: Icons.Help,
+            icon: Icons.Search,
             placeHolder: "search for anything ...",
         }));
         this._searchBar.render(document.createElement('div'));
