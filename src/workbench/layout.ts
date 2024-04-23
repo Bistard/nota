@@ -133,7 +133,7 @@ class NavigationBarBuilder {
         [
             {
                 id: NavigationButtonType.EXPLORER,
-                icon: Icons.Folder,
+                icon: Icons.FolderDefault,
             },
             // {
             //     id: NavigationButtonType.OUTLINE,

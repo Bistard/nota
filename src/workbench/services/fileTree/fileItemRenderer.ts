@@ -46,9 +46,9 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
 
     public updateIndent(item: ITreeNode<FileItem, FuzzyScore>, indentElement: HTMLElement): void {
         if (item.collapsible) {
-            indentElement.classList.add(...getIconClass(Icons.Folder));
+            indentElement.classList.add(...getIconClass(Icons.FolderDefault));
         } else {
-            indentElement.classList.remove(...getIconClass(Icons.Folder));
+            indentElement.classList.remove(...getIconClass(Icons.FolderDefault));
         }
     }
 
