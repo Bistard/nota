@@ -6,7 +6,7 @@ import { IComponentService } from 'src/workbench/services/component/componentSer
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Constructor, Mutable } from 'src/base/common/utilities/type';
 import { ILogService } from 'src/base/common/logger';
-import { NavigationViewTitlePart } from 'src/workbench/parts/navigationPanel/navigationView/navigationViewTitle';
+// import { NavigationViewTitlePart } from 'src/workbench/parts/navigationPanel/navigationView/navigationViewTitle';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 
 export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
@@ -297,20 +297,5 @@ export abstract class NavView extends Component implements INavView {
 
     public static readonly HEIGHT = 300;
 
-    // TODO: try to use a splitView. So that we can use a sash instead of manually set the border.
-    protected readonly _titlePart!: NavigationViewTitlePart;
-
-    // [protected override methods]
-
-    protected __createTitlePart(): NavigationViewTitlePart {
-        return new NavigationViewTitlePart();
-    }
-
-    protected _createContent(): void {
-        (<Mutable<NavigationViewTitlePart>>this._titlePart) = this.__createTitlePart();
-    }
-
     protected _registerListeners(): void { }
-
-    // [private methods]
 }

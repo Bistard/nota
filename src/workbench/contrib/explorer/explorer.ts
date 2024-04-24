@@ -14,9 +14,7 @@ import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
-import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
-import { NavigationViewTitlePart } from 'src/workbench/parts/navigationPanel/navigationView/navigationViewTitle';
 import { NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
@@ -129,17 +127,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [protected override method]
 
-    protected override __createTitlePart(): ExplorerTitlePart {
-        return new ExplorerTitlePart(this.i18nService);
-    }
-
     protected override _createContent(): void {
-        super._createContent();
-
-        // render title part
-        this._titlePart.render(document.createElement('div'));
-        this.element.appendChild(this._titlePart.element);
-
         /**
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
@@ -367,43 +355,5 @@ export class NavigationBar {
 
     public hide(): void {
         this._visibilityController.setVisibility(false);
-    }
-}
-
-export class ExplorerTitlePart extends NavigationViewTitlePart {
-
-    constructor(
-        private readonly i18nService: II18nService,
-    ) {
-        super();
-    }
-
-    public override render(element: HTMLElement): void {
-        super.render(element);
-
-        // // left part
-        // const leftContainer = document.createElement('div');
-        // leftContainer.className = 'left-part';
-
-        // // title text
-        // const topText = document.createElement('div');
-        // topText.className = 'title-text';
-        // topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
-        // // dropdown icon
-        // const dropdownIcon = createIcon(Icons.AngleDown);
-
-        // // right part
-        // const rightContainer = document.createElement('div');
-        // rightContainer.className = 'right-part';
-        // // menu dots
-        // const menuDots = createIcon(Icons.MenuDots);
-
-        // leftContainer.append(topText);
-        // leftContainer.append(dropdownIcon);
-
-        // rightContainer.append(menuDots);
-
-        // this.element.appendChild(leftContainer);
-        // this.element.appendChild(rightContainer);
     }
 }
