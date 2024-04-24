@@ -23,81 +23,75 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-close:before {
     content: "\f103";
 }
-.icon-close2:before {
+.icon-cloud-upload:before {
     content: "\f104";
 }
-.icon-cloud-upload:before {
+.icon-collapse-all:before {
     content: "\f105";
 }
-.icon-cloud-upload2:before {
+.icon-command:before {
     content: "\f106";
 }
-.icon-collapse-all:before {
+.icon-create-new-folder:before {
     content: "\f107";
 }
-.icon-command:before {
+.icon-create-new-note:before {
     content: "\f108";
 }
-.icon-create-new-folder:before {
+.icon-extension:before {
     content: "\f109";
 }
-.icon-create-new-note:before {
+.icon-folder-default:before {
     content: "\f10a";
 }
-.icon-extension:before {
+.icon-folder-open:before {
     content: "\f10b";
 }
-.icon-folder-default:before {
+.icon-help:before {
     content: "\f10c";
 }
-.icon-folder-open:before {
+.icon-maxmize-window:before {
     content: "\f10d";
 }
-.icon-help:before {
+.icon-minimize-window:before {
     content: "\f10e";
 }
-.icon-maxmize-window:before {
+.icon-more-horiz:before {
     content: "\f10f";
 }
-.icon-minimize-window:before {
+.icon-nota-ai-default:before {
     content: "\f110";
 }
-.icon-more-horiz:before {
+.icon-nota-ai-on:before {
     content: "\f111";
 }
-.icon-nota-ai-default:before {
+.icon-notification-active:before {
     content: "\f112";
 }
-.icon-nota-ai-on:before {
+.icon-notification-unread:before {
     content: "\f113";
 }
-.icon-notification-active:before {
+.icon-notifications-off:before {
     content: "\f114";
 }
-.icon-notification-unread:before {
+.icon-outline:before {
     content: "\f115";
 }
-.icon-notifications-off:before {
+.icon-restore-window:before {
     content: "\f116";
 }
-.icon-outline:before {
+.icon-search:before {
     content: "\f117";
 }
-.icon-restore-window:before {
+.icon-setting:before {
     content: "\f118";
 }
-.icon-search:before {
+.icon-sort-by-alpha:before {
     content: "\f119";
 }
-.icon-setting:before {
+.icon-source-contorl-on:before {
     content: "\f11a";
 }
-.icon-sort-by-alpha:before {
-    content: "\f11b";
-}
-.icon-source-contorl-on:before {
-    content: "\f11c";
-}
 .icon-source-control-default:before {
-    content: "\f11d";
+    content: "\f11b";
 }
