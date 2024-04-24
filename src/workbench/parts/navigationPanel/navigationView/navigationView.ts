@@ -4,9 +4,8 @@ import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { Constructor, Mutable } from 'src/base/common/utilities/type';
+import { Constructor} from 'src/base/common/utilities/type';
 import { ILogService } from 'src/base/common/logger';
-// import { NavigationViewTitlePart } from 'src/workbench/parts/navigationPanel/navigationView/navigationViewTitle';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 
 export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
