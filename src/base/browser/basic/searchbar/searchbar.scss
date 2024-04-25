@@ -13,7 +13,7 @@
     background-color: var(--nota-search-bar-background);
 
     display: flex;
-    flex-direction: row;
+    flex-direction: row-reverse;
     
     justify-content: center;
     align-items: stretch;
@@ -28,9 +28,9 @@
     
     & > .icon {
         position: relative;
-        margin-left: 6px;
-        margin-top: 4px;
-        font-size: 16px;
+        margin-right: 6px;
+        margin-top: 2px;
+        font-size: 17px;
         color: #b5b5b5;
     }
 
@@ -41,7 +41,7 @@
         color: #211f27; // color of texts
         background-color: transparent;
         position: relative;
-        margin: auto;
+        margin-left: 14px;
         
         font-size: 14px;
         width: 80%;
