@@ -12,6 +12,7 @@ export const enum Icons {
   FolderOpen = 'folder-open',
   Help = 'help',
   MaxmizeWindow = 'maxmize-window',
+  Menu = 'menu',
   MinimizeWindow = 'minimize-window',
   MoreHoriz = 'more-horiz',
   NotaAiDefault = 'nota-ai-default',

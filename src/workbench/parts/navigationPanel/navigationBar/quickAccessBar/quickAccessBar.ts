@@ -69,7 +69,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     
     private __createOutlineButton(): NavigationButton {
         const outlineButton = new NavigationButton(
-            { id: 'outline', icon: Icons.Outline, classes: ['outline-button'], isPrimary: true });
+            { id: 'menu', icon: Icons.Menu, classes: ['menu-button'], isPrimary: true });
         outlineButton.render(document.createElement('div'));
         return outlineButton;
     }

@@ -53,45 +53,48 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-maxmize-window:before {
     content: "\f10d";
 }
-.icon-minimize-window:before {
+.icon-menu:before {
     content: "\f10e";
 }
-.icon-more-horiz:before {
+.icon-minimize-window:before {
     content: "\f10f";
 }
-.icon-nota-ai-default:before {
+.icon-more-horiz:before {
     content: "\f110";
 }
-.icon-nota-ai-on:before {
+.icon-nota-ai-default:before {
     content: "\f111";
 }
-.icon-notification-active:before {
+.icon-nota-ai-on:before {
     content: "\f112";
 }
-.icon-notification-unread:before {
+.icon-notification-active:before {
     content: "\f113";
 }
-.icon-notifications-off:before {
+.icon-notification-unread:before {
     content: "\f114";
 }
-.icon-outline:before {
+.icon-notifications-off:before {
     content: "\f115";
 }
-.icon-restore-window:before {
+.icon-outline:before {
     content: "\f116";
 }
-.icon-search:before {
+.icon-restore-window:before {
     content: "\f117";
 }
-.icon-setting:before {
+.icon-search:before {
     content: "\f118";
 }
-.icon-sort-by-alpha:before {
+.icon-setting:before {
     content: "\f119";
 }
-.icon-source-contorl-on:before {
+.icon-sort-by-alpha:before {
     content: "\f11a";
 }
-.icon-source-control-default:before {
+.icon-source-contorl-on:before {
     content: "\f11b";
+}
+.icon-source-control-default:before {
+    content: "\f11c";
 }
