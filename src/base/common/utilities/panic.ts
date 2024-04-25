@@ -89,7 +89,7 @@ export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow, equal?: 
             return raw;
         }
     }
-    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the [${JSON.stringify(narrow)}]`);
+    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${JSON.stringify(narrow)})`);
 }
 
 /**
