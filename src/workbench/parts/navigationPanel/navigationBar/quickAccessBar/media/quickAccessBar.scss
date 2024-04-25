@@ -5,31 +5,34 @@
         position: absolute;
     }
 
-    & > .outline-button {
+    & > .menu-button {
         z-index: 2;
-        top: 13px;
-        margin-right: 10px;
-        margin-left: 10px;
+        top: 11px;
+        margin-right: 12px;
+        margin-left: 12px;
         justify-content: center;
-        font-size: 24px;
+        font-size: 25px;
         font-family: 'happy family';
+        color: #2aa882;
         cursor: pointer;
 
         &:hover {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+            color: #a3d0c3;
         }
     }
 
     & > .quick-access-search-bar {
-        top: 10px;
+        top: 7px;
         display: flex;
         align-items: center;
-        width: 95%;
+        width: 100%;
         height: 100%;
-        margin-left: auto;
+        margin-left: 10px;
 
         .search-bar {
-            width: calc(100% - 34px) !important;
+            border: #a3d0c3 1px solid;
+            border-radius: 20px;
+            width: calc(90% - 34px) !important;
             left: 38px !important;
             background-color: #f6f6f6;
 

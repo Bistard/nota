@@ -6,7 +6,7 @@
     position: absolute;
     margin: auto;
 
-    line-height: 20px;
+    line-height: 18px;
     width: 38vw;
     max-width: 600px;
     font-size: 12px;
@@ -31,13 +31,14 @@
         margin-left: 6px;
         margin-top: 4px;
         font-size: 16px;
+        color: #b5b5b5;
     }
 
     & > .inner-text {
         flex-grow: 1;
         border: none;
         outline: 0;
-        color: #666; // color of texts
+        color: #211f27; // color of texts
         background-color: transparent;
         position: relative;
         margin: auto;
