@@ -30,6 +30,7 @@
         margin-left: 10px;
 
         .search-bar {
+            -webkit-app-region: no-drag !important;
             border: #a3d0c3 1px solid;
             border-radius: 20px;
             width: calc(90% - 34px) !important;
@@ -38,8 +39,12 @@
 
             .inner-text {
                 margin-left: 6px !important;
-                padding-right: 5%;
+                padding-right: 1%;
             }
+        }
+
+        ::placeholder {
+            color: #b5b5b5;
         }
     }
 }
