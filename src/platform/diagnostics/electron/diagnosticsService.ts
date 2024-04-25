@@ -97,6 +97,9 @@ export class DiagnosticsService implements IDiagnosticsService {
     private __expandGPUFeatures(gpuFeatures: any): string {
 		const longestFeatureName = Math.max(...Object.keys(gpuFeatures).map(feature => feature.length));
 		// Make columns aligned by adding spaces after feature name
-		return Object.keys(gpuFeatures).map(feature => `${feature}:  ${' '.repeat(longestFeatureName - feature.length)}  ${gpuFeatures[feature]}`).join('\n                  ');
+		return Object
+            .keys(gpuFeatures)
+            .map(feature => `${feature}:  ${' '.repeat(longestFeatureName - feature.length)}  ${gpuFeatures[feature]}`)
+            .join('\n                  ');
 	}
 }

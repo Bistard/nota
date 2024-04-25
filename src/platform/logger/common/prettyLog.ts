@@ -3,6 +3,7 @@ import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { Additional, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
+import { Iterable } from "src/base/common/utilities/iterable";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
 
@@ -139,15 +140,9 @@ function getErrorString(color: boolean, error: any): string {
             ? error.stack.split('\n') // array of string
             : error.stack             // already a string
         : [];                         // no stacks
-    let maxLength = 0;
-
-    // Find the maximum length of the lines
-    for (const line of stackLines) {
-        maxLength = Math.max(maxLength, line.trim().length);
-    }
-
-    // Adding space for formatting and borders
-    maxLength += 6; 
+    
+    // Find the maximum length of the lines (Adding space for formatting and borders)
+    const maxLength = (Iterable.maxBy(stackLines, line => line.trim().length)?.length ?? 0) + 6;
 
     // Create top and bottom borders based on the maxLength
     const borderLine = '-'.repeat(maxLength);
