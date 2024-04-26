@@ -12,6 +12,7 @@ import { IWindowInstance, WindowInstance } from "src/platform/window/electron/wi
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
 import { mixin } from "src/base/common/utilities/object";
+import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -80,6 +81,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IFileService private readonly fileService: IFileService,
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
+        @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
     ) {
         super();
         this.registerListeners();
@@ -132,7 +134,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
-
         let window: IWindowInstance | undefined = undefined;
 
         // get opening URIs configuration
@@ -165,7 +166,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
             loadFile: DEFAULT_HTML,
             CLIArgv: this.mainEnvironmentService.CLIArguments,
-            displayOptions: defaultDisplayState(),
+            displayOptions: defaultDisplayState(this.screenMonitorService),
             
             uriToOpen: [],
             forceNewWindow: false,
@@ -177,7 +178,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          * application (provided opts, app config, environment and so on). This
          * configuration will be passed when creating a `BrowserWindow`.
          */
-        const configuration: Mutable<IWindowCreationOptions> = mixin(defaultConfiguration, optionalConfiguration, true);
+        const configuration = mixin<Mutable<IWindowCreationOptions>>(defaultConfiguration, optionalConfiguration, true);
 
         // open a new window instance
         window = this.__openInNewWindow(configuration);
@@ -185,6 +186,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         // load window
         this.logService.debug('MainWindowService', 'Loading window...');
+        this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
+
         window.load(configuration).then(() => this.logService.debug('MainWindowService', 'Window loaded successfully.'));
 
         return window;

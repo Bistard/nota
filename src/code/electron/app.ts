@@ -27,6 +27,7 @@ import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
 import { IpcServer } from "src/platform/ipc/electron/ipcServer";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -120,6 +121,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
+
+        // screen-monitor-service
+        appInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
 
         // ai-service
 

@@ -5,6 +5,7 @@ import { Schemas, URI } from "src/base/common/files/uri";
 import { Additional, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { Iterable } from "src/base/common/utilities/iterable";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
+import { Coordinate, Dimension, Position } from "src/base/common/utilities/size";
 import { isObject } from "src/base/common/utilities/type";
 
 const RGB_colors = <const>{
@@ -151,13 +152,13 @@ function getErrorString(color: boolean, error: any): string {
     const bottomBorder = `+${borderLine}+`;
 
     const formattedLines = stackLines.map((line, index) => {
-        const trimed = line.trim();
+        const trimmed = line.trim();
         if (index === 0) {
             // Format the first line (Error message)
-            return `| ${trimed} `.padEnd(maxLength + 1, ' ') + '|';
+            return `| ${trimmed} `.padEnd(maxLength + 1, ' ') + '|';
         }
         // Format stack trace lines
-        return `| [${index}] ${trimed} `.padEnd(maxLength + 1, ' ') + '|';
+        return `| [${index}] ${trimmed} `.padEnd(maxLength + 1, ' ') + '|';
     });
 
     return [topBorder, ...formattedLines, bottomBorder].map(str => `    ${str}`).join('\n');
@@ -199,7 +200,7 @@ function getAdditionalString(depth: number, color: boolean, additional: Addition
     return result.slice(0, -1); // remove the last `\n`
 }
 
-function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additional): string | undefined {
+function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additional): string | null {
     
     // Special case: URI
     if (URI.isURI(additional)) {
@@ -211,8 +212,19 @@ function tryHandleSpecialAdditionalString(depth: number, color: boolean, additio
         return valueStr;
     }
 
+    // Special case: Size2D
+    if (additional instanceof Dimension) {
+        return `{ width: ${additional.width}, height: ${additional.height} }`;
+    }
+    else if (additional instanceof Position) {
+        return `{ top: ${additional.top}, left: ${additional.left} }`;
+    }
+    else if (additional instanceof Coordinate) {
+        return `{ x: ${additional.x}, y: ${additional.y} }`;
+    }
+
     // not handled
-    return undefined;
+    return null;
 }
 
 const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
@@ -283,7 +295,7 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
             // recursive paint object
             if (isObject(value) && !insideArray && !(value instanceof Error)) {
                 const handled = tryHandleSpecialAdditionalString(depth, true, <any>value);
-                if (handled) {
+                if (handled !== null) {
                     return handled;
                 }
 
