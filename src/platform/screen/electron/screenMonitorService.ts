@@ -53,20 +53,21 @@ export class ScreenMonitorService implements IScreenMonitorService {
 
     private __constructScreenInfoByRaw(raw: Electron.Display): IMonitorInfo {
         return {
-            id: raw.id,
-            fps: raw.displayFrequency,
-            rotation: narrow(raw.rotation, <const>[0, 90, 180, 270]),
-            scaleFactor: raw.scaleFactor,
+            id:           raw.id,
+            label:        raw.label,
+            fps:          raw.displayFrequency,
+            rotation:     narrow(raw.rotation, <const>[0, 90, 180, 270]),
+            scaleFactor:  raw.scaleFactor,
             touchSupport: raw.touchSupport === 'available' ? true : (raw.touchSupport === 'unavailable' ? false : undefined),
             
             monitorResolution: {
                 unscaledResolution: new Dimension(raw.size.width, raw.size.height),
-                scaledResolution: new Dimension(raw.size.width, raw.size.height).scale(raw.scaleFactor),
+                scaledResolution:   new Dimension(raw.size.width, raw.size.height).scale(raw.scaleFactor),
             },
 
             workAreaResolution: {
                 unscaledResolution: new Dimension(raw.workAreaSize.width, raw.workAreaSize.height),
-                scaledResolution: new Dimension(raw.workAreaSize.width, raw.workAreaSize.height).scale(raw.scaleFactor),
+                scaledResolution:   new Dimension(raw.workAreaSize.width, raw.workAreaSize.height).scale(raw.scaleFactor),
             }
         };
     }

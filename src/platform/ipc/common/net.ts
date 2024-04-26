@@ -66,12 +66,12 @@ class DataSerializer {
     private readonly _writer = new BufferWriter();
 
     private static readonly _8BitType = {
-        Undef: DataSerializer.__get8BitType(DataType.Undefined),
-        Str: DataSerializer.__get8BitType(DataType.String),
-        Buf: DataSerializer.__get8BitType(DataType.Buffer),
+        Undef:   DataSerializer.__get8BitType(DataType.Undefined),
+        Str:     DataSerializer.__get8BitType(DataType.String),
+        Buf:     DataSerializer.__get8BitType(DataType.Buffer),
         DataBuf: DataSerializer.__get8BitType(DataType.DataBuffer),
-        Arr: DataSerializer.__get8BitType(DataType.Array),
-        Obj: DataSerializer.__get8BitType(DataType.Object),
+        Arr:     DataSerializer.__get8BitType(DataType.Array),
+        Obj:     DataSerializer.__get8BitType(DataType.Object),
     };
 
     private static __get8BitType(value: number): DataBuffer {
