@@ -295,55 +295,77 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
 export class NavigationBar {
 
-    // [field]
-
     private readonly _element: HTMLElement;
     private readonly _visibilityController = new VisibilityController();
-    private readonly _buttons: WidgetBar<Button>;
-
-    // [constructor]
+    private readonly _leftButtons: WidgetBar<Button>;
+    private readonly _rightButtons: WidgetBar<Button>;
 
     constructor() {
-
         this._element = document.createElement('div');
         this._element.className = 'navigationbar';
 
         this._visibilityController.setDomNode(this._element);
 
-        this._buttons = new WidgetBar(undefined, {
+        // Create left-aligned buttons WidgetBar
+        this._leftButtons = new WidgetBar(undefined, {
             orientation: Orientation.Horizontal,
             render: false,
         });
-        [
-            { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: () => { } },
-            { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: () => { } },
-            { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
-        ]
-            .forEach(({ id, icon, classes, fn }) => {
-                const button = new Button({
-                    icon: icon,
-                    classes: classes,
-                });
 
-                button.onDidClick(fn);
-                this._buttons.addItem({
-                    id: id,
-                    item: button,
-                    dispose: button.dispose,
-                });
+        // Create right-aligned buttons WidgetBar
+        this._rightButtons = new WidgetBar(undefined, {
+            orientation: Orientation.Horizontal,
+            render: false,
+        });
+
+        // Add buttons to respective WidgetBars
+        [
+            { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: () => { } },
+            { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: () => { } },
+        ].forEach(({ id, icon, classes, fn }) => {
+            const button = new Button({
+                icon: icon,
+                classes: classes,
             });
+
+            button.onDidClick(fn);
+            this._leftButtons.addItem({
+                id: id,
+                item: button,
+                dispose: button.dispose,
+            });
+        });
+
+        [
+            { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: () => { } },
+            { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
+        ].forEach(({ id, icon, classes, fn }) => {
+            const button = new Button({
+                icon: icon,
+                classes: classes,
+            });
+
+            button.onDidClick(fn);
+            this._rightButtons.addItem({
+                id: id,
+                item: button,
+                dispose: button.dispose,
+            });
+        });
     }
 
-    // [public methods]
-
     public render(parent: HTMLElement): void {
-
         this._visibilityController.setVisibility(false);
 
-        // navigationbar container
+        // Create navigation bar container
         const navigationBarContainer = document.createElement('div');
         navigationBarContainer.className = 'navigationbar-container';
-        this._buttons.render(navigationBarContainer);
+
+        // Render left-aligned buttons WidgetBar
+        this._leftButtons.render(navigationBarContainer);
+
+        // Render right-aligned buttons WidgetBar
+        this._rightButtons.render(navigationBarContainer);
 
         this._element.appendChild(navigationBarContainer);
         parent.appendChild(this._element);

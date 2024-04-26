@@ -56,11 +56,10 @@
         & > .navigationbar {
             position: relative;
             display: flex;
-        
+            justify-content: space-between;
             z-index: 10;
             width: 100%;
-            height: 28px;
-        
+            height: 50px;
             pointer-events: none;
 
             &.invisible {
@@ -72,22 +71,37 @@
             }
             
             & > .navigationbar-container {
-                position: absolute;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
                 right: 8px;
-            
-                margin-top: 4px;
+                margin-top: 6px;
                 margin-bottom: 4px;
-            
+                margin-left: 8px;
+                margin-right: 8px;
                 border-radius: 8px;
                 background-color: var(--navigationbar-container-background);
-            
                 pointer-events: initial;
             }
             
             & .button {
-                line-height: 20px;
+                height: 28px;
+                width: 28px;
+                background-color: #e2e2e2;
+                line-height: 30px;
                 margin-left: 4px;
                 margin-right: 4px;
+                border-radius: 50%; /* Make it a circle */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                & .icon {
+                    color: #5a564d;
+                    margin-top: 5.5px; /* ensure icon is in center of button */
+                    font-size: 18px;
+                }
             }
         }
     }
