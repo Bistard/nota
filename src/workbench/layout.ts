@@ -132,8 +132,8 @@ class NavigationBarBuilder {
          */
         [
             {
-                id: NavigationButtonType.EXPLORER,
-                icon: Icons.FolderDefault,
+                id: 'folder-open',
+                icon: Icons.FolderOpen,
             },
             // {
             //     id: NavigationButtonType.OUTLINE,
