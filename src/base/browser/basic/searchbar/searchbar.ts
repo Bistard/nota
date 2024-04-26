@@ -126,10 +126,11 @@ export class SearchBar extends Widget implements ISearchBar {
         innerText.placeholder = this._placeHolder;
         innerText.type = 'text';
     
+        this.element.append(innerText);
         if (searchIcon) {
             this.element.append(searchIcon);
         }
-        this.element.append(innerText);
+
         this._innerText = innerText;
     }    
     
