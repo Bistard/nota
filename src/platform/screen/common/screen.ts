@@ -5,8 +5,15 @@ export interface IMonitorInfo {
     /**
      * The ID of the monitor. This identifier is unique per display and can be 
      * used to distinguish between multiple monitors.
+     * @example 2528732444
      */
     readonly id: number;
+
+    /**
+     * User-friendly label for the monitor, determined by the platform.
+     * @example 'BenQ PD2700U'
+     */
+    readonly label: string;
 
     /**
      * The refresh frequency of the monitor, measured in hertz (Hz).

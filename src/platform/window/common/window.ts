@@ -1,7 +1,9 @@
 import { URI } from "src/base/common/files/uri";
+import { Dimension } from "src/base/common/utilities/size";
 import { UUID } from "src/base/common/utilities/string";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
+import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 
 export const enum ArgumentKey {
     configuration = 'window-configuration'
@@ -17,6 +19,7 @@ export const enum WindowDisplayMode {
     Fullscreen = 'Fullscreen'
 }
 
+// TODO: dynamic adjust
 export const WINDOW_MINIMUM_STATE = {
     width: 400,
     height: 300
@@ -34,12 +37,14 @@ export interface IWindowDisplayOpts {
     readonly frameless?: boolean;
 }
 
-export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
+export function defaultDisplayState(screenMonitorService: IScreenMonitorService, mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
+    const info = screenMonitorService.getPrimaryMonitorInfo();
+    const dimension = Dimension.lift(info.monitorResolution.unscaledResolution);
+    
     return {
-        width: 1440,
-        height: 1024,
+        width: Math.floor(dimension.width * 0.5625),   // 1440 / 2560 = 0.5625
+        height: Math.floor(dimension.height * 0.7111), // 1024 / 1440 = 0.7111
         mode: mode,
-
         resizable: true,
         frameless: false,
     };
@@ -71,8 +76,9 @@ export interface IUriToOpenConfiguration {
 }
 
 /**
- * An interface for constructing a window (renderer process). On the base of
- * {@link IEnvironmentOpts} and {@link ICLIArguments}.
+ * A configuration interface for a renderer process window. Once the renderer 
+ * process is constructed. You may access to the window configuration through 
+ * the global constant `WIN_CONFIGURATION`.
  */
 export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
 
@@ -83,13 +89,14 @@ export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
 }
 
 /**
- * Extending {@link IWindowConfiguration} so that caller can have a chance to
+ * An options for constructing a window, often used in the main process. This 
+ * extends {@link IWindowConfiguration} so that caller can have a chance to
  * override the default settings which are defined by the current environment.
  */
 export interface IWindowCreationOptions extends IWindowConfiguration {
 
     /** 
-     * Specify the loading html file path. Default to {@link DEFAULT_HTML} 
+     * Specify the loading html file path. Default to {@link DEFAULT_HTML}.
      */
     readonly loadFile: string;
     readonly CLIArgv: ICLIArguments;
