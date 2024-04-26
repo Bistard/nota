@@ -42,7 +42,7 @@ export function defaultDisplayState(screenMonitorService: IScreenMonitorService,
     const dimension = Dimension.lift(info.monitorResolution.unscaledResolution);
     
     return {
-        width: Math.floor(dimension.width * 0.5625),   // 1440 / 2560 = 0.5625
+        width:  Math.floor(dimension.width  * 0.5625), // 1440 / 2560 = 0.5625
         height: Math.floor(dimension.height * 0.7111), // 1024 / 1440 = 0.7111
         mode: mode,
         resizable: true,
