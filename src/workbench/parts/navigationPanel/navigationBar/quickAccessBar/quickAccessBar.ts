@@ -1,7 +1,6 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/media/quickAccessBar.scss';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
