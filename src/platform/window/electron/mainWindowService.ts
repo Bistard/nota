@@ -166,7 +166,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
             loadFile: DEFAULT_HTML,
             CLIArgv: this.mainEnvironmentService.CLIArguments,
-            displayOptions: defaultDisplayState(this.screenMonitorService),
+            displayOptions: defaultDisplayState(),
             
             uriToOpen: [],
             forceNewWindow: false,

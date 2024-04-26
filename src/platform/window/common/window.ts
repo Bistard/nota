@@ -37,13 +37,10 @@ export interface IWindowDisplayOpts {
     readonly frameless?: boolean;
 }
 
-export function defaultDisplayState(screenMonitorService: IScreenMonitorService, mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
-    const info = screenMonitorService.getPrimaryMonitorInfo();
-    const dimension = Dimension.lift(info.monitorResolution.unscaledResolution);
-    
+export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
     return {
-        width:  Math.floor(dimension.width  * 0.5625), // 1440 / 2560 = 0.5625
-        height: Math.floor(dimension.height * 0.7111), // 1024 / 1440 = 0.7111
+        width:  1440,
+        height: 1024,
         mode: mode,
         resizable: true,
         frameless: false,
