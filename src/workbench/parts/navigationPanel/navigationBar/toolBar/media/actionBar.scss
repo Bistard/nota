@@ -10,9 +10,6 @@
     & .icon {
         position: relative;
         bottom: 8px;
-        &:hover {
-            color: aquamarine;
-        }
     }
 
     & .tool-button {
@@ -22,6 +19,10 @@
 
         & > .icon {
             font-size: 28px;
+
+            &.icon-add-new {
+                color: #d0ebe3 !important;
+            }
         }
 
         &:hover {
@@ -38,6 +39,7 @@
     }
 }
 
+// TODO: move this logic to icon hover effects
 #action-bar::before {
     content: '';
     position: absolute;
@@ -46,7 +48,7 @@
     width: 18%;
     height: 1.8px;
     background: #2aa882;
-    box-shadow: 0 0 8px #2aa882;  /* Separate shadows for each color */
+    box-shadow: 0 0 8px #2aa882;
 }
 
 #action-bar::after {
