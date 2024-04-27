@@ -286,25 +286,18 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         disposables.register(this.fileTreeService.onSelect(e => {
             this.editorService.openSource(e.item.uri);
         }));
-
-        // Displays the utility buttons only when hovering the view.
-        disposables.register(addDisposableListener(view, EventType.mouseover, () => this._navigationbar.show()));
-        disposables.register(addDisposableListener(view, EventType.mouseout, () => this._navigationbar.hide()));
     }
 }
 
 export class NavigationBar {
 
     private readonly _element: HTMLElement;
-    private readonly _visibilityController = new VisibilityController();
     private readonly _leftButtons: WidgetBar<Button>;
     private readonly _rightButtons: WidgetBar<Button>;
 
     constructor() {
         this._element = document.createElement('div');
         this._element.className = 'navigationbar';
-
-        this._visibilityController.setDomNode(this._element);
 
         // Create left-aligned buttons WidgetBar
         this._leftButtons = new WidgetBar(undefined, {
@@ -355,27 +348,17 @@ export class NavigationBar {
     }
 
     public render(parent: HTMLElement): void {
-        this._visibilityController.setVisibility(false);
-
         // Create navigation bar container
-        const navigationBarContainer = document.createElement('div');
-        navigationBarContainer.className = 'navigationbar-container';
+        const fileButtonBarContainer = document.createElement('div');
+        fileButtonBarContainer.className = 'filebuttonbar-container';
 
         // Render left-aligned buttons WidgetBar
-        this._leftButtons.render(navigationBarContainer);
+        this._leftButtons.render(fileButtonBarContainer);
 
         // Render right-aligned buttons WidgetBar
-        this._rightButtons.render(navigationBarContainer);
+        this._rightButtons.render(fileButtonBarContainer);
 
-        this._element.appendChild(navigationBarContainer);
+        this._element.appendChild(fileButtonBarContainer);
         parent.appendChild(this._element);
-    }
-
-    public show(): void {
-        this._visibilityController.setVisibility(true);
-    }
-
-    public hide(): void {
-        this._visibilityController.setVisibility(false);
     }
 }

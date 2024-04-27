@@ -35,7 +35,7 @@
                 opacity: 1;
             }
             
-            & > .navigationbar-container {
+            & > .filebuttonbar-container {
                 width: 100%;
                 display: flex;
                 align-items: center;
@@ -46,7 +46,7 @@
                 margin-left: 8px;
                 margin-right: 8px;
                 border-radius: 8px;
-                background-color: var(--navigationbar-container-background);
+                background-color: var(--navigationbar-container-background); // TODO
                 pointer-events: initial;
             }
             
