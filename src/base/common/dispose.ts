@@ -174,7 +174,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	// [fields]
 
 	private _object?: T;
-	private readonly _children: IDisposable[];
+	private _children: IDisposable[];
 	private _disposed: boolean;
 
 	// [constructor]
@@ -217,11 +217,11 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this._children.push(...children);
 	}
 
-	public detach(): [T, IDisposable[]] | undefined {
+	public detach(): { obj: T, children: IDisposable[] } | undefined {
 		const obj = this._object;
 		this._object = undefined;
-		this._children.length = 0;
-		return obj ? [obj, this._children] : undefined;
+		this._children = [];
+		return obj ? { obj, children: this._children } : undefined;
 	}
 
 	public dispose(): void {
