@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Disposable, DisposableManager, disposeAll, AutoDisposableWrapper, toDisposable } from 'src/base/common/dispose';
+import { Disposable, DisposableManager, disposeAll, AutoDisposable, toDisposable } from 'src/base/common/dispose';
 
 /**
  * Two suites:
@@ -142,12 +142,12 @@ suite('DisposableManager-test', () => {
 		assert.ok(thrownError instanceof Error);
 	});
 
-	test('AutoDisposableWrapper - baiscs', () => {
+	test('AutoDisposable - basics', () => {
 		const obj1 = new Disposable();
 		const obj2 = new Disposable();
 		const obj3 = new Disposable();
 
-		const wrapper = new AutoDisposableWrapper();
+		const wrapper = new AutoDisposable();
 		wrapper.set(obj1);
 		
 		assert.ok(!obj1.isDisposed());
@@ -178,14 +178,14 @@ suite('DisposableManager-test', () => {
 		assert.ok(obj3.isDisposed());
 	});
 
-	test('AutoDisposableWrapper - binding children to the current object', () => {
+	test('AutoDisposable - binding children to the current object', () => {
 
 		const obj1 = new Disposable();
 		const obj2 = new Disposable();
 		const child1 = new Disposable();
 		const child2 = new Disposable();
 
-		const wrapper = new AutoDisposableWrapper();
+		const wrapper = new AutoDisposable();
 		wrapper.set(obj1);
 		wrapper.register(child1);
 		wrapper.register(child2);
