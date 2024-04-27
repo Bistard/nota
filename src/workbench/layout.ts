@@ -132,15 +132,13 @@ class NavigationBarBuilder {
          */
         [
             {
-                id: NavigationButtonType.EXPLORER,
-                icon: Icons.FolderDefault,
+                id: 'folder-open',
+                icon: Icons.FolderOpen,
             },
-            // {
-            //     id: NavigationButtonType.OUTLINE,
-            //     icon: Icons.List,
-            // },
-            // { id: NavigationButtonType.SEARCH, icon: Icons.Search },
-            // { id: NavigationButtonType.GIT, icon: Icons.CodeBranch },
+            {
+                id: 'add-new',
+                icon: Icons.AddNew,
+            },
         ]
             .forEach(({ id, icon}) => {
                 this.actionBarService.registerPrimaryButton({

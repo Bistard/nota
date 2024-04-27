@@ -1,14 +1,16 @@
 #action-bar {
     position: absolute;
     display: flex;
+    justify-content: center;
+    align-items: flex-end;
     flex-direction: row;
     width: 100%;
     height: 100%;
 
-   #main-action-bar {
-    width: 100%;
-    height: 100%;
-   }
+    & .icon {
+        position: relative;
+        bottom: 8px;
+    }
 
     & .tool-button {
         width: 30px;
@@ -16,7 +18,11 @@
         align-self: center;
 
         & > .icon {
-            font-size: 24px;
+            font-size: 28px;
+
+            &.icon-add-new {
+                color: #d0ebe3 !important;
+            }
         }
 
         &:hover {
@@ -31,4 +37,26 @@
             filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
         }
     }
+}
+
+// TODO: move this logic to icon hover effects
+#action-bar::before {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 41%;
+    width: 18%;
+    height: 1.8px;
+    background: #2aa882;
+    box-shadow: 0 0 8px #2aa882;
+}
+
+#action-bar::after {
+    content: '';
+    position: absolute;
+    bottom: -0.01px;
+    left: 7%;
+    width: 86%;
+    height: 1.2px;
+    background:  #e2e2e2;
 }
