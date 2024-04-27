@@ -9,42 +9,6 @@
     height: 100%;
     overflow: hidden;
 
-    & .navigation-view-title  {
-        
-        & .icon {
-            margin-top: 2px;
-            font-size: 10px;
-        }
-        
-        & > .left-part, .right-part {
-            position: absolute;
-            display: flex;
-            flex-direction: row;
-        }
-        
-        & > .left-part {
-            left: 0px;
-
-            & > .icon {
-                margin-left: 8px;
-            }
-
-            & > .title-text {
-                margin-left: 12px;
-                user-select: none;
-            }
-        }
-        
-        & > .right-part {
-            right: 0px;
-
-            & > .icon {
-                margin-right: 8px;
-                font-size: 14px;
-            }
-        }
-    }
-
     & .opened-explorer-container, .empty-explorer-container {
         position: relative;
         width: 100%;
@@ -53,6 +17,7 @@
     }
     
     & .opened-explorer-container {
+        
         & > .navigationbar {
             position: relative;
             display: flex;

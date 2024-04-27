@@ -19,7 +19,6 @@ export const enum WindowDisplayMode {
     Fullscreen = 'Fullscreen'
 }
 
-// TODO: dynamic adjust
 export const WINDOW_MINIMUM_STATE = {
     width: 400,
     height: 300

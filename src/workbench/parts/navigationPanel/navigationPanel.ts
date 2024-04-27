@@ -1,4 +1,3 @@
-// import 'src/workbench/parts/workspace/media/workspace.scss';
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";

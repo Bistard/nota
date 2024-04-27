@@ -316,6 +316,9 @@ const main = new class extends class MainProcess implements IMainProcess {
                 return this.resolveSingleApplication(false);
             }
 
+            // cleanup
+            socket.end();
+
             // there is a running application, we stop the current application.
             panic(new ExpectedError('There is an application running, we are terminating...'));
         }
