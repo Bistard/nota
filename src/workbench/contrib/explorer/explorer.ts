@@ -50,7 +50,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-    private readonly _navigationbar = new NavigationBar();
+    private readonly _fileButtonBar = new NavigationBar();
 
     // [event]
 
@@ -240,8 +240,8 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
 
-        // renders navigationbar
-        this._navigationbar.render(view);
+        // renders filebuttonbar
+        this._fileButtonBar.render(view);
 
         return view;
     }
@@ -298,7 +298,7 @@ export class NavigationBar {
 
     constructor() {
         this._element = document.createElement('div');
-        this._element.className = 'navigationbar';
+        this._element.className = 'filebuttonbar';
 
         // Create left-aligned buttons WidgetBar
         this._leftButtons = new WidgetBar(undefined, {
