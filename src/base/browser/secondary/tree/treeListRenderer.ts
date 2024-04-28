@@ -100,9 +100,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
         Event.map(onDidChangeCollapseState, e => e.node)((node) => this.__doDidChangeCollapseState(node));
 
         // listen to the nested renderer.
-        if (nestedRenderer.onDidChangeCollapseState) {
-            nestedRenderer.onDidChangeCollapseState((e) => this.__didChangeCollapseStateByData(e));
-        }
+        nestedRenderer.onDidChangeCollapseState?.((e) => this.__didChangeCollapseStateByData(e));
     }
 
     // [public method]
@@ -159,7 +157,6 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     }
 
     public updateIndent(item: ITreeNode<T, TFilter>, indentElement: HTMLElement): void {
-
         if (item.collapsible && item.visibleNodeCount > 0) {
             indentElement.classList.add('collapsible');
             indentElement.classList.toggle('collapsed', item.collapsed);
