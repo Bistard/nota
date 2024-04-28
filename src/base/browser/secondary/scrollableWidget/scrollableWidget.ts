@@ -5,7 +5,7 @@ import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScro
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { assert } from "src/base/common/utilities/panic";
 
@@ -79,17 +79,9 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         return this._scrollable;
     }
 
-    protected override __render(): void {
-        const element = this.element;
+    protected override __render(element: HTMLElement): void {
         element.classList.add('scrollable-element');
         
-        // scrollbar visibility
-        this.onMouseover(element, () => this._onMouseover());
-        this.onMouseout(element, () => this._onMouseout());
-        this.onTouchmove(element, () => this._onMouseover());
-        this.onTouchend(element, () => this._onMouseout());
-        this.onTouchcancel(element, () => this._onMouseout());
-
         const scrollbarElement = document.createElement('div');
         this._scrollbar.render(scrollbarElement);
         this._scrollbar.hide();
@@ -102,16 +94,22 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     /**
      * @description Register mouse wheel listener to the scrollable DOM element.
      */
-    protected override __registerListeners(): void {
+    protected override __registerListeners(element: HTMLElement): void {
         
+        // scrollbar visibility
+        this.__register(this.onMouseover(element, () => this.__onMouseover()));
+        this.__register(this.onMouseout(element, () => this.__onMouseout()));
+        this.__register(this.onTouchmove(element, () => this.__onMouseover()));
+        this.__register(this.onTouchend(element, () => this.__onMouseout()));
+        this.__register(this.onTouchcancel(element, () => this.__onMouseout()));
+
         // mouse wheel scroll support
-        this.onWheel(this.element, event => this.__onDidWheel(event));
+        this.__register(this.onWheel(element, event => this.__onDidWheel(event)));
         
         // touch pad scroll support
         if (this._opts.touchSupport) {
-            const touchController = new TouchController(this, this._scrollbar);
-            touchController.onDidTouchmove(delta => this.__actualScroll(delta));
-            this.__register(touchController);
+            const touchController = this.__register(new TouchController(this, this._scrollbar));
+            this.__register(touchController.onDidTouchmove(delta => this.__actualScroll(delta)));
         }
     }
 
@@ -182,12 +180,12 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         }
     }
 
-    private _onMouseover(): void {
+    private __onMouseover(): void {
         this._isMouseOver = true;
         this._scrollbar.show();
     }
 
-    private _onMouseout(): void {
+    private __onMouseout(): void {
         this._isMouseOver = false;
         if (!this._isSliderDragging) {
             this._scrollbar.hide();

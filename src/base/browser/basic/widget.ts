@@ -71,14 +71,14 @@ export abstract class Widget extends BaseElement implements IWidget {
         
         this._rendered = true;
         
-        this.__render();
-        this.__applyStyle();
-        this.__registerListeners();
+        this.__render(element);
+        this.__applyStyle(element);
+        this.__registerListeners(element);
     }
 
-    protected __render(): void {}
-    protected __applyStyle(): void {}
-    protected __registerListeners(): void {}
+    protected __render(element: HTMLElement): void {}
+    protected __applyStyle(element: HTMLElement): void {}
+    protected __registerListeners(element: HTMLElement): void {}
 
     public override dispose(): void {
 		if (this._element) {

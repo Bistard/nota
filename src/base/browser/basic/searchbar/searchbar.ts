@@ -115,7 +115,7 @@ export class SearchBar extends Widget implements ISearchBar {
 
     // [protected methods]
 
-    protected override __render(): void {
+    protected override __render(element: HTMLElement): void {
         let searchIcon: HTMLElement | undefined;
         if (this._opts?.icon) {
             searchIcon = createIcon(this._opts?.icon);
@@ -126,21 +126,20 @@ export class SearchBar extends Widget implements ISearchBar {
         innerText.placeholder = this._placeHolder;
         innerText.type = 'text';
     
-        this.element.append(innerText);
+        element.append(innerText);
         if (searchIcon) {
-            this.element.append(searchIcon);
+            element.append(searchIcon);
         }
 
         this._innerText = innerText;
     }    
     
-    protected override __applyStyle(): void {
-        
-        this.element.classList.add('search-bar');
-        this.element.classList.add(...(this._opts?.classes ?? []));
+    protected override __applyStyle(element: HTMLElement): void {
+        element.classList.add('search-bar');
+        element.classList.add(...(this._opts?.classes ?? []));
     }
 
-    protected override __registerListeners(): void {
+    protected override __registerListeners(element: HTMLElement): void {
         const innerText = assert(this._innerText);
         
         this.__register(addDisposableListener(innerText, EventType.input, () => {

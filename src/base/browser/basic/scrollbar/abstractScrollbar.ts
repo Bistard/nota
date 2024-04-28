@@ -134,8 +134,8 @@ export abstract class AbstractScrollbar extends Widget {
 
     // [protected override methods]
 
-    protected override __render(): void {
-        this._visibilityController.setDomNode(this.element);
+    protected override __render(element: HTMLElement): void {
+        this._visibilityController.setDomNode(element);
 
         // render scrollbar
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
@@ -143,9 +143,9 @@ export abstract class AbstractScrollbar extends Widget {
         this.__renderSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
     }
 
-    protected override __registerListeners(): void {
+    protected override __registerListeners(element: HTMLElement): void {
         // mouse down on the scrollbar or slider
-        this.__register(this.onMousedown(this.element, (e) => {
+        this.__register(this.onMousedown(element, (e) => {
             e.stopPropagation();
 
             if (this._scrollable.required() === false) {
