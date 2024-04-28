@@ -7,6 +7,8 @@ import { Icons } from "src/base/browser/icon/icons";
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 
+export const FileItemRendererType = 'explorer';
+
 /**
  * The type of metadata returned by {@link FileItemRenderer.render()}.
  */
@@ -19,7 +21,7 @@ export interface IFileItemMetadata extends IListViewMetadata {
  */
 export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore, IFileItemMetadata> {
 
-    public readonly type = RendererType.Explorer;
+    public readonly type: RendererType = FileItemRendererType;
 
     constructor() {}
 
@@ -68,7 +70,7 @@ export class FileItemProvider implements IListItemProvider<FileItem> {
     }
 
     public getType(data: FileItem): RendererType {
-        return RendererType.Explorer;
+        return FileItemRendererType;
     }
 
 }

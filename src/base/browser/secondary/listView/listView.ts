@@ -43,19 +43,12 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
 }
 
 /**
- * The type of items are stored in {@link IListView}. The item will be rendered
- * by the renderers which has the same type.
- * @deprecated
- */
-export type ListItemType = RendererType;
-
-/**
  * The inner data structure wraps each item in {@link ListView}.
  */
 export interface IViewItem<T> {
     readonly id: number;
     readonly data: T;
-    readonly type: ListItemType;
+    readonly type: RendererType;
     size: number;
     row: IListViewRow | null; // null means this item is currently not rendered.
     dragStart?: IDisposable;
@@ -807,7 +800,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
          * When we do the insertion, we try to reuse these `row`s to improve 
          * efficiency.
          */
-        const deleteCache = new Map<ListItemType, IListViewRow[]>();
+        const deleteCache = new Map<RendererType, IListViewRow[]>();
         for (let i = deleteRange.start; i < deleteRange.end; i++) {
             const item = this.items[i]!;
 

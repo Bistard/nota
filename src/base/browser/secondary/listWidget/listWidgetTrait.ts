@@ -3,7 +3,6 @@ import { IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { Lazy } from "src/base/common/lazy";
 import { Arrays } from "src/base/common/utilities/array";
-import { hash } from "src/base/common/utilities/hash";
 
 /**
  * The index changed in {@link ListTrait}.
@@ -44,7 +43,7 @@ export class ListTrait<T> implements IDisposable {
      * Storing all the indice of the elements who has this trait.
      */
     private _indice: number[];
-    private readonly _queryCache: Lazy<Set<number>, [number[]]>;
+    private readonly _queryCache: Lazy<Set<number>>;
 
     // [constructor]
 
@@ -53,9 +52,9 @@ export class ListTrait<T> implements IDisposable {
         this.renderer = new ListTraitRenderer(this);
         this._indice = [];
 
-        this._queryCache = new Lazy(newIndice => {
+        this._queryCache = new Lazy(() => {
             const cache = new Set<number>();
-            newIndice.forEach(index => cache.add(index));
+            this._indice.forEach(index => cache.add(index));
             return cache;
         });
     }
@@ -114,7 +113,7 @@ export class ListTrait<T> implements IDisposable {
      * @param index The index of the item.
      */
     public has(index: number): boolean {
-        return this._queryCache.value(this._indice).has(index);
+        return this._queryCache.value().has(index);
     }
 
     /**
@@ -201,7 +200,7 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
     constructor(trait: ListTrait<T>) {
         this._trait = trait;
-        this.type = hash(trait.traitID);
+        this.type = trait.traitID;
     }
 
     // [public methods]

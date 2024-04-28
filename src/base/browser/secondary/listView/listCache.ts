@@ -1,22 +1,23 @@
-import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { ListItemType } from "src/base/browser/secondary/listView/listView";
+import { IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IDisposable } from "src/base/common/dispose";
 import { DomUtility } from "src/base/browser/basic/dom";
+import { assert, panic } from "src/base/common/utilities/panic";
 
 /**
  * @description An interface for storing the DOM related element as a cache in 
  * {@link ListViewCache}.
  */
 export interface IListViewRow {
-	/**
+	
+    /**
      * The HTMLElement as a cache.
      */
-    dom: HTMLElement;
+    readonly dom: HTMLElement;
     
     /**
      * The type of the item in {@link ListView}, for finding the correct renderer.
      */
-	type: ListItemType;
+	readonly type: RendererType;
 
     /**
      * The user-defined data which will be returned after the method 
@@ -32,11 +33,11 @@ export interface IListViewRow {
  */
 export class ListViewCache implements IDisposable {
 
-    private cache: Map<ListItemType, IListViewRow[]>;
-    private renderers: Map<ListItemType, IListViewRenderer<any, any>>;
+    private cache: Map<RendererType, IListViewRow[]>;
+    private renderers: Map<RendererType, IListViewRenderer<any, any>>;
 
     constructor(
-        renderers: Map<ListItemType, IListViewRenderer<any, any>>
+        renderers: Map<RendererType, IListViewRenderer<any, any>>
     ) {
         this.cache = new Map();
         this.renderers = renderers;
@@ -44,7 +45,7 @@ export class ListViewCache implements IDisposable {
 
     public dispose(): void {
         this.cache.forEach((cache, type) => {
-            const renderer = this.renderers.get(type)!;
+            const renderer = assert(this.renderers.get(type));
             cache.forEach(row => { 
                 renderer.dispose(row.dom);
                 row.metadata = undefined;
@@ -60,7 +61,7 @@ export class ListViewCache implements IDisposable {
      * @param type The type of the row.
      * @returns {IListViewRow}
      */
-    public get<T>(type: ListItemType): IListViewRow {
+    public get(type: RendererType): IListViewRow {
         let row = this.__getCache(type).pop();
 
         if (row === undefined) {
@@ -70,7 +71,7 @@ export class ListViewCache implements IDisposable {
             // since we are creating a new row, we need to create the DOM structure.
             const renderer = this.renderers.get(type);
             if (renderer === undefined) {
-                throw new Error(`no renderer provided for the given type: ${type}`);
+                panic(`[ListViewCache] no renderer provided for the given type: ${type}`);
             }
             const metadata = renderer.render(dom);
 
@@ -92,7 +93,7 @@ export class ListViewCache implements IDisposable {
         cache.push(row);
     }
 
-    private __getCache(type: ListItemType): IListViewRow[] {
+    private __getCache(type: RendererType): IListViewRow[] {
         let cache = this.cache.get(type);
 
         if (cache === undefined) {

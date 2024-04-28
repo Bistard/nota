@@ -1,22 +1,10 @@
-import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { DomUtility } from "src/base/browser/basic/dom";
 import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * The type of renderers used in {@link IListView}.
- * @deprecated
  */
-// TODO: Remove this feature, may just use a regular string
-export const enum RendererType {
-	Unknown,  /** testing purpose. */
-	
-	ListItem, /** {@link ListItemRenderer} */
-	Explorer, /** {@link FileItemRenderer} */
-	
-	MarkdownPlainText, // TODO
-	MarkdownHeading,  /** {@link HeadingRenderer} */
-	
-}
+export type RendererType = string;
 
 /**
  * A very basic type of metadata that may be used in the renderers relates to 
@@ -41,7 +29,7 @@ export interface IListViewMetadata {
 export interface IListViewRenderer<T, TMetadata> {
 	
 	/**
-	 * The type of item that the renderer is responsible for.
+	 * Indicates the type of item that this renderer is responsible for rendering.
 	 */
 	readonly type: RendererType;
 
@@ -107,7 +95,7 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 	public readonly type: RendererType;
 	private pipeline: IListViewRenderer<T, any>[];
 	
-	constructor(type: ListItemType, renderers: IListViewRenderer<T, any>[]) {
+	constructor(type: RendererType, renderers: IListViewRenderer<T, any>[]) {
 		this.type = type;
 		this.pipeline = renderers;
 	}
@@ -139,11 +127,9 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
  */
 export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
-	public readonly type: RendererType;
+	public readonly type: RendererType = 'list-item';
 
-	constructor() {
-		this.type = RendererType.ListItem;
-	}
+	constructor() {}
 
 	public render(element: HTMLElement): HTMLElement {
 		return element;
