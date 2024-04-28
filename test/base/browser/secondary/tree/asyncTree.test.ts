@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { RendererType } from 'src/base/browser/secondary/listView/listRenderer';
 import { AsyncTree } from 'src/base/browser/secondary/tree/asyncTree';
 import { generateTreeLike } from 'test/utils/helpers';
 

@@ -16,7 +16,6 @@ import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
 import { NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
-import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
@@ -32,7 +31,7 @@ import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
  * displaying the current directory's contents, and integrating with other 
  * services like the editor and theme services to enhance the user experience.
  * 
- * This class extends `NavigationView`, allowing it to be used as a side panel
+ * This class extends `NavView`, allowing it to be used as a side panel
  * within the application's layout.
  */
 export class ExplorerView extends NavView implements IExplorerViewService {
@@ -50,7 +49,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-    private readonly _fileButtonBar = new NavigationBar();
+    private readonly _fileButtonBar = new FileActionBar();
 
     // [event]
 
@@ -289,7 +288,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     }
 }
 
-export class NavigationBar {
+export class FileActionBar {
 
     private readonly _element: HTMLElement;
     private readonly _leftButtons: WidgetBar<Button>;
