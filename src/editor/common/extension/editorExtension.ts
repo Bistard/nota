@@ -3,6 +3,10 @@ import { Register } from "src/base/common/event";
 import { ProseExtension } from "src/editor/common/proseMirror";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 
+/**
+ * // TODO
+ * // REVIEW: maybe support optional construction to either enable or disable the internal view extension. Maybe not every editor extension require views.
+ */
 export abstract class EditorExtension extends Disposable {
     
     // [fields]

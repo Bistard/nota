@@ -88,7 +88,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     /**
      * Responsible for constructing a list of editor extensions
      */
-    private readonly _extensionManager: EditorExtensionManager;
+    private readonly _extensionManager: EditorExtensionController;
 
     // [events]
 
@@ -156,11 +156,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this._options = this.__initOptions(options);
         
-        const contextUpdater = new EditorContextUpdater(this, contextService);
-        this._extensionManager = new EditorExtensionManager(extensions, instantiationService, logService);
+        const editorContextHub = new EditorContextHub(this, contextService);
+        this._extensionManager = new EditorExtensionController(extensions, instantiationService, logService);
 
         this.__registerListeners();
-        this.__register(contextUpdater);
+        this.__register(editorContextHub);
         this.__register(this._extensionManager);
     }
 
@@ -185,7 +185,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // [public methods]
 
     public async open(source: URI): Promise<void> {
-        this.logService.debug('EditorWidget', `Editor openning source at: ${URI.toString(source)}`);
+        this.logService.debug('EditorWidget', `Editor opening source at: ${URI.toString(source)}`);
 
         this.__detachModel();
         const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
@@ -258,7 +258,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         const mixOptions = EditorOptions;
         this.__updateOptions(mixOptions, newOption);
 
-        this.logService.debug('EditorWidget', 'Editor intialized with configurations.', toJsonEditorOption(mixOptions));
+        this.logService.debug('EditorWidget', 'Editor initialized with configurations.', toJsonEditorOption(mixOptions));
         return mixOptions;
     }
 
@@ -335,7 +335,7 @@ class EditorData implements IDisposable {
  * @class Once the class is constructed, the {@link IContextKey} relates to 
  * editor will be self-updated.
  */
-class EditorContextUpdater extends Disposable {
+class EditorContextHub extends Disposable {
 
     // [context]
 
@@ -370,7 +370,7 @@ export type EditorExtensionInfo = {
     readonly extension: EditorExtension;
 };
 
-class EditorExtensionManager extends Disposable {
+class EditorExtensionController extends Disposable {
 
     // [fields]
 
@@ -388,9 +388,10 @@ class EditorExtensionManager extends Disposable {
 
         for (const { id, ctor} of extensions) {
             try {
+                logService.trace('EditorWidget', `Editor extension constructing: ${id}`);
                 const instance = instantiationService.createInstance(ctor);
                 this._extensions.set(id, instance);
-                logService.debug('EditorWidget', `Editor extension constructed: ${id}`);
+                logService.trace('EditorWidget', `Editor extension constructed: ${id}`);
             } catch (error: any) {
                 logService.error('EditorWidget', `Cannot create the editor extension: ${id}`, error);
             }
@@ -401,5 +402,9 @@ class EditorExtensionManager extends Disposable {
 
     public getExtensions(): EditorExtensionInfo[] {
         return [...Array.from(this._extensions.entries(), ([id, extension]) => { return { id, extension }; })];
+    }
+
+    public getExtensionBy(id: string): EditorExtension | undefined {
+        return this._extensions.get(id);
     }
 }

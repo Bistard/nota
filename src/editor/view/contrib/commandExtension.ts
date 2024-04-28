@@ -30,8 +30,9 @@ export class EditorCommandExtension extends EditorExtension {
     ) {
         super();
         this._commands = new Map();
+        this.__registerEditorCommands(registrantService);
         
-        this.onKeydown(event => {
+        this.__register(this.onKeydown(event => {
             const keyEvent = event.event;
 
             const shortcut = new Shortcut(keyEvent.ctrl, keyEvent.shift, keyEvent.alt, keyEvent.meta, keyEvent.key);
@@ -41,9 +42,7 @@ export class EditorCommandExtension extends EditorExtension {
             }
 
             commandService.executeAnyCommand(name, event.view.state, event.view.dispatch, event.view);
-        });
-
-        this.__registerEditorCommands(registrantService);
+        }));
     }
 
     // [private helper methods]
