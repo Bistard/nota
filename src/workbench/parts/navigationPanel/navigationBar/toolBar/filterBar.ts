@@ -5,8 +5,9 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { createService } from 'src/platform/instantiation/common/decorator';
 import { ILogService } from 'src/base/common/logger';
 import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { INavigationBarButtonClickEvent, INavigationBarService, NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
+import { INavigationBarButtonClickEvent, INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Emitter} from 'src/base/common/event';
+import { Icons } from 'src/base/browser/icon/icons';
 
 export const IFilterBarService = createService<IFilterBarService>('filter-bar-service');
 
@@ -51,7 +52,7 @@ export class FilterBar extends Component implements IFilterBarService {
 
     // TODO: test, delete later
     private __createLogo(): NavigationButton {
-        const logo = new NavigationButton({ id: NavigationButtonType.LOGO, isPrimary: true, classes: ['logo'] });
+        const logo = new NavigationButton({ id: Icons.FolderDefault, isPrimary: true, classes: ['logo'] });
         logo.render(document.createElement('div'));
         
         const text = document.createElement('div');

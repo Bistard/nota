@@ -5,7 +5,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
-import { INavigationBarService, NavigationBar, NavigationButtonType } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
+import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
@@ -114,15 +114,15 @@ export class NavigationBarBuilder {
          */
         [
             {
-                id: NavigationButtonType.HELPER,
+                id:'help',
                 icon: Icons.Help,
             },
             {
-                id: NavigationButtonType.SETTINGS,
+                id: 'setting',
                 icon: Icons.Setting,
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
-                        getAnchor: this.__getButtonElement(NavigationButtonType.SETTINGS).bind(this),
+                        getAnchor: this.__getButtonElement(Icons.Setting).bind(this),
                         // TODO: this is only for test purpose
                         getActions: () => {
                             return [
@@ -222,7 +222,7 @@ export class NavigationBarBuilder {
             });
     }
 
-    private __getButtonElement(buttonType: NavigationButtonType): () => HTMLElement {
+    private __getButtonElement(buttonType: Icons): () => HTMLElement {
         let element: HTMLElement | undefined;
         return () => {
             if (!element) {

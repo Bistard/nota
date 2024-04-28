@@ -1,7 +1,7 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
 import { NavigationButton, INavigationButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { INavigationBarButtonClickEvent, NavigationButtonType } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
+import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
@@ -10,6 +10,7 @@ import { Emitter } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { createService } from 'src/platform/instantiation/common/decorator';
+import { Icons } from 'src/base/browser/icon/icons';
 
 export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
@@ -45,7 +46,7 @@ export class ActionBar extends Component implements IActionBarService {
     public static readonly HEIGHT = 60;
 
     private readonly _primary: WidgetBar<NavigationButton>;
-    private _currButtonType: string = NavigationButtonType.NONE;
+    private _currButtonType: string = 'none';
     
     // [event]
     
@@ -95,7 +96,7 @@ export class ActionBar extends Component implements IActionBarService {
         });
 
         // default with opening explorer view
-        this.__buttonClick(NavigationButtonType.EXPLORER);
+        this.__buttonClick(Icons.Search);
     }
 
     // [private helper method]
@@ -111,14 +112,14 @@ export class ActionBar extends Component implements IActionBarService {
         }
 
         // none of button is focused, focus the button.
-        if (this._currButtonType === NavigationButtonType.NONE) {
+        if (this._currButtonType === 'none') {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
         }
 
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
-            this._currButtonType = NavigationButtonType.NONE;
+            this._currButtonType = 'none';
             button.element.classList.remove('focus');
         }
 

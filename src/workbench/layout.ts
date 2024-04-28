@@ -10,12 +10,13 @@ import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
-import { INavigationBarService, NavigationButtonType } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
+import { INavigationBarService } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel, NavigationBarBuilder} from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
+import { Icons } from "src/base/browser/icon/icons";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -85,7 +86,7 @@ export abstract class WorkbenchLayout extends Component {
     // [private helper functions]
 
     private __registerNavigationViews(): void {
-        this.navigationViewService.registerView(NavigationButtonType.EXPLORER, ExplorerView);
+        this.navigationViewService.registerView('explorer', ExplorerView);
         // TODO: other navigation-views are also registered here.
     }
 

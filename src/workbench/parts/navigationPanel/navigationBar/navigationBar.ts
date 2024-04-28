@@ -11,20 +11,6 @@ import { ToolBarType, IToolBarService, ToolBar } from 'src/workbench/parts/navig
 import { assert } from 'src/base/common/utilities/panic';
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
-
-export const enum NavigationButtonType {
-    NONE = 'none',
-    LOGO = 'logo',
-
-    EXPLORER = 'explorer',
-    OUTLINE = 'outline',
-    SEARCH = 'search',
-    GIT = 'git',
-
-    HELPER = 'helper',
-    SETTINGS = 'setting',
-}
-
 export interface INavigationBarButtonClickEvent {
 
     /**
