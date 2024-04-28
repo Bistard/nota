@@ -116,7 +116,7 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     get onClick(): Register<IListMouseEvent<T>>;
     
     /** Fires when the item in the {@link IListWidget} is double clicked. */
-    get onDoubleclick(): Register<IListMouseEvent<T>>;
+    get onDoubleClick(): Register<IListMouseEvent<T>>;
 
     /** Fires when the item in the {@link IListWidget} is mouseovered. */
     get onMouseover(): Register<IListMouseEvent<T>>;
@@ -395,7 +395,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     get onDidChangeFocus(): Register<boolean> { return Event.any([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)]); }
     
     get onClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onClick, e => this.__toListMouseEvent(e)); }
-    get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
+    get onDoubleClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleClick, e => this.__toListMouseEvent(e));  }
     get onMouseover(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseover, e => this.__toListMouseEvent(e)); }
     get onMouseout(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseout, e => this.__toListMouseEvent(e)); }
     get onMousedown(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMousedown, e => this.__toListMouseEvent(e)); }

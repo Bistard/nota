@@ -5,7 +5,7 @@ import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScro
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { assert } from "src/base/common/utilities/panic";
 
@@ -95,14 +95,13 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
      * @description Register mouse wheel listener to the scrollable DOM element.
      */
     protected override __registerListeners(element: HTMLElement): void {
-        
-        // scrollbar visibility
-        this.__register(this.onMouseover(element, () => this.__onMouseover()));
-        this.__register(this.onMouseout(element, () => this.__onMouseout()));
-        this.__register(this.onTouchmove(element, () => this.__onMouseover()));
-        this.__register(this.onTouchend(element, () => this.__onMouseout()));
-        this.__register(this.onTouchcancel(element, () => this.__onMouseout()));
 
+        // scrollbar visibility
+        [this.onMouseover, this.onTouchmove]
+        .forEach(event => this.__register(event.call(this, element, () => this.__onMouseover())));
+        [this.onMouseout, this.onTouchend, this.onTouchcancel]
+        .forEach(event => this.__register(event.call(this, element, () => this.__onMouseout())));
+        
         // mouse wheel scroll support
         this.__register(this.onWheel(element, event => this.__onDidWheel(event)));
         

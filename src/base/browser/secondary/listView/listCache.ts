@@ -33,8 +33,8 @@ export interface IListViewRow {
  */
 export class ListViewCache implements IDisposable {
 
-    private cache: Map<RendererType, IListViewRow[]>;
-    private renderers: Map<RendererType, IListViewRenderer<any, any>>;
+    private readonly cache: Map<RendererType, IListViewRow[]>;
+    private readonly renderers: Map<RendererType, IListViewRenderer<any, any>>;
 
     constructor(
         renderers: Map<RendererType, IListViewRenderer<any, any>>

@@ -83,9 +83,9 @@ export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TF
     readonly onSelect: Register<IFileTreeOpenEvent<T>>;
 
     /**
-     * @description
-     * @param item 
-     * 
+     * @description Programmatically select an item. 
+     *      - If the item is visible, the item will be focused and selected.
+     *      - If the item is invisible, the item will be revealed first.
      * @note Will reveal to the item if not visible (not rendered).
      */
     select(item: T): void;

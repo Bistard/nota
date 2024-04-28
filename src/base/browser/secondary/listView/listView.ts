@@ -101,7 +101,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
     get onClick(): Register<MouseEvent>;
 
     /** Fires when the item in the {@link IListView} is double clicked. */
-    get onDoubleclick(): Register<MouseEvent>;
+    get onDoubleClick(): Register<MouseEvent>;
 
     /** Fires when the item in the {@link IListView} is mouseovered. */
     get onMouseover(): Register<MouseEvent>;
@@ -313,7 +313,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     get onDidBlur(): Register<void> { return this.focusTracker.onDidBlur; }
     
     @memoize get onClick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
-    @memoize get onDoubleclick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
+    @memoize get onDoubleClick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.doubleClick)).registerListener; }
     @memoize get onMouseover(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mouseover)).registerListener; }
     @memoize get onMouseout(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mouseout)).registerListener; }
     @memoize get onMousedown(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }

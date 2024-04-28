@@ -373,7 +373,7 @@ export class Sash extends Disposable implements ISash {
 
         this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
         this.__register(addDisposableListener(this._element, EventType.mouseenter, () => this.__initHover()));
-        this.__register(addDisposableListener(this._element, EventType.doubleclick, () => this._onDidReset.fire()));
+        this.__register(addDisposableListener(this._element, EventType.doubleClick, () => this._onDidReset.fire()));
     }
 
     public setOptions(opts: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>): void {

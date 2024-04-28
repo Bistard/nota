@@ -328,8 +328,8 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }));
     }
 
-    public onDoubleclick(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.doubleclick, (e: MouseEvent) => {
+    public onDoubleClick(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.doubleClick, (e: MouseEvent) => {
             callback(e);
         }));
     }
