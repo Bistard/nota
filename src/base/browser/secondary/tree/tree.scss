@@ -20,8 +20,8 @@
 			border-radius: 20px;
 		}
 
-		&.collapsed::before {
-			// transform: rotate(-90deg);
+		&:not(.collapsed)::before {
+			transform: rotate(90deg);
 		}
 	}
 
