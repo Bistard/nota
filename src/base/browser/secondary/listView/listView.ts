@@ -46,20 +46,34 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
  * The inner data structure wraps each item in {@link ListView}.
  */
 export interface IViewItem<T> {
-    readonly id: number;
+    
+    /**
+     * The actual client data.
+     */
     readonly data: T;
+
+    /**
+     * The type of this item for rendering.
+     */    
     readonly type: RendererType;
-    size: number;
-    row: IListViewRow | null; // null means this item is currently not rendered.
+
+    /**
+     * The height (in pixels) of this item.
+     */
+    readonly size: number;
+
+    /**
+     * The rendering metadata. 
+     * `null` means this item is currently not rendered.
+     */
+    row: IListViewRow | null;
     dragStart?: IDisposable;
 }
 
 export interface IViewItemChangeEvent<T> {
-    item: IViewItem<T>; // REVIEW: 考虑这里要不要去掉IViewItem, 只return一些关键信息
-    index: number;
+    readonly item: IViewItem<T>;
+    readonly index: number;
 }
-
-let ListViewItemUUID: number = 0;
 
 /**
  * The interface for {@link ListView}.
@@ -344,7 +358,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         }
         
         this.scrollable = new Scrollable(opts.scrollbarSize ?? 10, 0, 0, 0);
-        
         this.scrollableWidget = new ScrollableWidget(
             this.scrollable, {
                 ...opts,
@@ -833,7 +846,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         // stores all the inserting items.
         const insert = items.map<IViewItem<T>>(item => ({
-            id: ListViewItemUUID++, // REVIEW: not used
             type: this.itemProvider.getType(item),
             data: item,
             size: this.itemProvider.getSize(item),
