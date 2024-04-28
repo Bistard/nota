@@ -294,6 +294,7 @@ export class NavigationBar {
     private readonly _element: HTMLElement;
     private readonly _leftButtons: WidgetBar<Button>;
     private readonly _rightButtons: WidgetBar<Button>;
+    private readonly _filterByTagButtons: WidgetBar<Button>;
 
     constructor() {
         this._element = document.createElement('div');
@@ -307,6 +308,12 @@ export class NavigationBar {
 
         // Create right-aligned buttons WidgetBar
         this._rightButtons = new WidgetBar(undefined, {
+            orientation: Orientation.Horizontal,
+            render: false,
+        });
+
+        // Create filter-by-tag buttons WidgetBar
+        this._filterByTagButtons = new WidgetBar(undefined, {
             orientation: Orientation.Horizontal,
             render: false,
         });
@@ -345,20 +352,45 @@ export class NavigationBar {
                 dispose: button.dispose,
             });
         });
+
+        [
+            { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: () => { } }, // TODO: update icon when tag icon is available
+        ].forEach(({ id, icon, classes, fn }) => {
+            const button = new Button({
+                icon: icon,
+                classes: classes,
+            });
+
+            button.onDidClick(fn);
+            this._filterByTagButtons.addItem({
+                id: id,
+                item: button,
+                dispose: button.dispose,
+            });
+        });
     }
 
     public render(parent: HTMLElement): void {
-        // Create navigation bar container
+        // file button bar container
         const fileButtonBarContainer = document.createElement('div');
         fileButtonBarContainer.className = 'filebuttonbar-container';
 
-        // Render left-aligned buttons WidgetBar
         this._leftButtons.render(fileButtonBarContainer);
-
-        // Render right-aligned buttons WidgetBar
         this._rightButtons.render(fileButtonBarContainer);
 
+        // filter by tag container
+        const filterByTagContainer = document.createElement('div');
+        filterByTagContainer.className = 'filterbytag-container';
+
+        const filterByTagText = document.createElement('div');
+        filterByTagText.textContent = 'Filter by Tag';
+        filterByTagText.className = 'filterbytag-text';
+        filterByTagContainer.appendChild(filterByTagText);
+
+        this._filterByTagButtons.render(filterByTagContainer);
+
         this._element.appendChild(fileButtonBarContainer);
+        this._element.appendChild(filterByTagContainer);
         parent.appendChild(this._element);
     }
 }
