@@ -24,7 +24,7 @@
             justify-content: space-between;
             flex-direction: column;
             z-index: 10;
-            width: 95%; // adjust this to change space on sides
+            width: 91%; // adjust this to change space on sides
             margin: 0 auto;
             height: 70px;
             pointer-events: none;
@@ -78,7 +78,7 @@
             & .button {
                 height: 28px;
                 width: 28px;
-                background-color: #e2e2e2;
+                background-color: #eaeaea;
                 line-height: 30px;
                 margin-left: 4px;
                 margin-right: 4px;
@@ -91,6 +91,17 @@
                     color: #5a564d;
                     margin-top: 5.5px; /* ensure icon is in center of button */
                     font-size: 18px;
+                }
+
+                &:hover {
+                    background-color: #d0ebe3;
+                    color: #5a564d;
+                }
+
+                &.clicked {
+                    background-color: #d0ebe3;
+                    color: #5a564d;
+                    box-shadow: 0 0 0 1.5px #a3d0c3 inset;
                 }
             }
         }

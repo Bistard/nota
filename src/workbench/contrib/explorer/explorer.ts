@@ -328,7 +328,7 @@ export class NavigationBar {
                 classes: classes,
             });
 
-            button.onDidClick(fn);
+            button.onDidClick(() => this.toggleBorder(button));
             this._leftButtons.addItem({
                 id: id,
                 item: button,
@@ -345,7 +345,7 @@ export class NavigationBar {
                 classes: classes,
             });
 
-            button.onDidClick(fn);
+            button.onDidClick(() => this.toggleBorder(button));
             this._rightButtons.addItem({
                 id: id,
                 item: button,
@@ -392,5 +392,11 @@ export class NavigationBar {
         this._element.appendChild(fileButtonBarContainer);
         this._element.appendChild(filterByTagContainer);
         parent.appendChild(this._element);
+    }
+
+    // [private method]
+
+    private toggleBorder(button: Button): void {
+        button.element.classList.toggle('clicked');
     }
 }

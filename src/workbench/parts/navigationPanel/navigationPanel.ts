@@ -8,6 +8,7 @@ import { INavigationViewService, NavView} from "src/workbench/parts/navigationPa
 import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";
+import { Priority } from "src/base/common/event";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
