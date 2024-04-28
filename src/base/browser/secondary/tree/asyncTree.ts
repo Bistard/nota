@@ -338,7 +338,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._tree.onDidChangeItemHover; }
     
     get onClick(): Register<ITreeMouseEvent<T>> { return this._tree.onClick; }
-    get onDoubleclick(): Register<ITreeMouseEvent<T>> { return this._tree.onDoubleclick; }
+    get onDoubleClick(): Register<ITreeMouseEvent<T>> { return this._tree.onDoubleClick; }
     
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return this._tree.onTouchstart; }
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }

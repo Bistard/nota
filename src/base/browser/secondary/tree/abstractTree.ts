@@ -516,7 +516,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * Fires when the tree node in the {@link IAbstractTree} is double clicked.
      */
-    get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+    get onDoubleClick(): Register<ITreeMouseEvent<T>>;
 
     /** 
      * An event sent when the state of contacts with a touch-sensitive surface 
@@ -918,7 +918,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeHoveredTreeTrait().onDidChange; }
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
-    get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
+    get onDoubleClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleClick, this.__toTreeMouseEvent); }
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._view.onTouchstart, this.__toTreeTouchEvent); }
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }

@@ -39,7 +39,7 @@ export const enum EventType {
 	mousedown = 'mousedown',
 	mouseup = 'mouseup',
 	mousemove = 'mousemove',
-	doubleclick = 'dblclick',
+	doubleClick = 'dblclick',
 	wheel = 'wheel',
 
 	touchstart = 'touchstart',
@@ -602,7 +602,7 @@ export interface IDomEvent<IfUseElement extends boolean> {
 	 * Fired when a pointing device button (e.g., a mouse's primary button) is 
 	 * clicked twice on a single element.
 	 */
-	onDoubleclick: IfUseElement extends true
+	onDoubleClick: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
@@ -811,8 +811,8 @@ export class BaseElement extends Disposable implements IBaseElement {
         }));
     }
 
-    public onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.doubleclick, (e: MouseEvent) => {
+    public onDoubleClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.doubleClick, (e: MouseEvent) => {
             callback(e);
         }));
     }
