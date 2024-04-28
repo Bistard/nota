@@ -1,16 +1,18 @@
 import { IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
+import { Lazy } from "src/base/common/lazy";
 import { Arrays } from "src/base/common/utilities/array";
-import { hash } from "src/base/common/utilities/hash";
 
 /**
  * The index changed in {@link ListTrait}.
  */
 export interface ITraitChangeEvent {
 
-    /** The new indices with the corresponding trait. */
-    indice: number[];
+    /** 
+     * The new indices with the corresponding trait. 
+     */
+    readonly indice: number[];
 }
 
 /**
@@ -27,7 +29,10 @@ export class ListTrait<T> implements IDisposable {
 
     // [field]
 
-    /** A trait is a string that represents an CSS class. */
+    /** 
+     * A trait ID is a string that represents an CSS class for every item that
+     * has this trait.
+     */
     public readonly traitID: string;
     public readonly renderer: ListTraitRenderer<T>;
 
@@ -38,7 +43,7 @@ export class ListTrait<T> implements IDisposable {
      * Storing all the indice of the elements who has this trait.
      */
     private _indice: number[];
-    private _queryCache?: Set<number>;
+    private readonly _queryCache: Lazy<Set<number>>;
 
     // [constructor]
 
@@ -46,6 +51,12 @@ export class ListTrait<T> implements IDisposable {
         this.traitID = trait;
         this.renderer = new ListTraitRenderer(this);
         this._indice = [];
+
+        this._queryCache = new Lazy(() => {
+            const cache = new Set<number>();
+            this._indice.forEach(index => cache.add(index));
+            return cache;
+        });
     }
 
     // [public method]
@@ -58,22 +69,24 @@ export class ListTrait<T> implements IDisposable {
     public set(indice: number[], fire: boolean = true): void {
         const oldIndice = this._indice;
         this._indice = indice;
-        this._queryCache = undefined;
-
-        const toUnrender = Arrays.relativeComplement(indice, oldIndice);
-        const toRender = Arrays.relativeComplement(oldIndice, indice);
+        this._queryCache.dispose();
 
         /**
-         * Since the trait is manually `set` by the client. We need to trigger
-         * the rendering update manually.
+         * Since the trait is programmatically `set` by the client. We need to 
+         * trigger the rendering update also programmatically.
          */
-        this.renderer.manuallyUpdateCurrElementsBy(toUnrender, element => {
-            element.classList.toggle(this.traitID, false);
-        });
-        
-        this.renderer.manuallyUpdateCurrElementsBy(toRender, element => {
-            element.classList.toggle(this.traitID, true);
-        });
+        {
+            const toUnrender = Arrays.relativeComplement(indice, oldIndice);
+            const toRender = Arrays.relativeComplement(oldIndice, indice);
+
+            this.renderer.manuallyUpdateCurrElementsBy(toUnrender, element => {
+                element.classList.toggle(this.traitID, false);
+            });
+            
+            this.renderer.manuallyUpdateCurrElementsBy(toRender, element => {
+                element.classList.toggle(this.traitID, true);
+            });
+        }
 
         if (fire) {
             this._onDidChange.fire({ indice });
@@ -100,11 +113,7 @@ export class ListTrait<T> implements IDisposable {
      * @param index The index of the item.
      */
     public has(index: number): boolean {
-        if (!this._queryCache) {
-            this._queryCache = new Set();
-            this._indice.forEach(index => this._queryCache!.add(index));
-        }
-        return this._queryCache.has(index);
+        return this._queryCache.value().has(index);
     }
 
     /**
@@ -191,7 +200,7 @@ export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
     constructor(trait: ListTrait<T>) {
         this._trait = trait;
-        this.type = hash(trait.traitID);
+        this.type = trait.traitID;
     }
 
     // [public methods]

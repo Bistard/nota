@@ -8,28 +8,42 @@
     outline: 1px solid transparent;
     outline-offset: -1px; /* make the outline placed inside the row. */
     
-    // make sure not overlapping the tree outline
-    margin-left: 1px;
-    margin-top: 1px;
-    height: calc(100% - 2px);
-    width: calc(100% - 2px);
-    
-    /** only for testing purpose */
-    // &.anchor {
-    //     background-color: #ff0000 !important;
-    // }
+    // pseudo element for display mouse interaction (focused, selected, hovered)
+    &::before {
+        content: '';
+        
+        outline: 1px solid transparent;
+        outline-offset: -1px; /* make the outline placed inside the row. */
 
-    &.focused {
-        outline: 1px solid var(--nota-explorer-item-focused-background);
-    }
-    
-    &.selected {
-        background-color: var(--nota-explorer-item-selected-background);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        
+        width: 95%;
+        height: 100%;
+        border-radius: 10px;
+        
+        background-color: transparent;
+        transition: background-color 0.3s;
     }
 
-    &.hovered {
+    &.hovered::before {
         background-color: var(--nota-explorer-item-hovered-background);
     }
+    
+    &.selected::before {
+        background-color: var(--nota-explorer-item-selected-background);
+    }
+    
+    &.focused::before {
+        outline: 1px solid var(--nota-explorer-item-focused-background);
+    }
+
+    /** explicitly display anchor (only for testing purpose) */
+    // &.anchor::before {
+    //     background-color: #ff0000 !important;
+    // }
     
     & > .tree-list-row > .icon {
         font-size: 12px;

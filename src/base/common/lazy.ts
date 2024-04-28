@@ -32,6 +32,7 @@ export interface ILazy<T, TArgs extends any[]> {
  *       reaches the time. The timeout will be refreshed by every access.
  * @note The class support object and array. It means when 'dispose' is invoked,
  *       the class loses the actual reference.
+ * @note The class may be re-valued or re-disposed.
  */
 export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
 
@@ -51,7 +52,9 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
     ) {
         this._lazyValue = null;
         this._obtainValue = obtainValue;
+        
         this._timeout = timeout;
+        this._delay = undefined;
     }
 
     // [public methods]
@@ -85,6 +88,7 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
     private __resetTimeout(timeout = this._timeout): any {
         if (this._delay) {
             clearTimeout(this._delay);
+            this._delay = undefined;
         }
 
         if (!timeout) {

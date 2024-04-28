@@ -43,30 +43,37 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
 }
 
 /**
- * The type of items are stored in {@link IListView}. The item will be rendered
- * by the renderers which has the same type.
- * @deprecated
- */
-export type ListItemType = RendererType;
-
-/**
  * The inner data structure wraps each item in {@link ListView}.
  */
 export interface IViewItem<T> {
-    readonly id: number;
+    
+    /**
+     * The actual client data.
+     */
     readonly data: T;
-    readonly type: ListItemType;
-    size: number;
-    row: IListViewRow | null; // null means this item is currently not rendered.
+
+    /**
+     * The type of this item for rendering.
+     */    
+    readonly type: RendererType;
+
+    /**
+     * The height (in pixels) of this item.
+     */
+    readonly size: number;
+
+    /**
+     * The rendering metadata. 
+     * `null` means this item is currently not rendered.
+     */
+    row: IListViewRow | null;
     dragStart?: IDisposable;
 }
 
 export interface IViewItemChangeEvent<T> {
-    item: IViewItem<T>; // REVIEW: 考虑这里要不要去掉IViewItem, 只return一些关键信息
-    index: number;
+    readonly item: IViewItem<T>;
+    readonly index: number;
 }
-
-let ListViewItemUUID: number = 0;
 
 /**
  * The interface for {@link ListView}.
@@ -350,8 +357,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             this.listContainer.style.transform = 'translate3d(0px, 0px, 0px)';
         }
         
-        this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
-        
+        this.scrollable = new Scrollable(opts.scrollbarSize ?? 10, 0, 0, 0);
         this.scrollableWidget = new ScrollableWidget(
             this.scrollable, {
                 ...opts,
@@ -359,9 +365,9 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             },
         );
         this.scrollableWidget.render(this.element);
-        this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
+        this.__register(this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
             this.__onDidScroll(e.scrollPosition, e.viewportSize);
-        });
+        }));
 
         // integrates all the renderers
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
@@ -807,7 +813,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
          * When we do the insertion, we try to reuse these `row`s to improve 
          * efficiency.
          */
-        const deleteCache = new Map<ListItemType, IListViewRow[]>();
+        const deleteCache = new Map<RendererType, IListViewRow[]>();
         for (let i = deleteRange.start; i < deleteRange.end; i++) {
             const item = this.items[i]!;
 
@@ -840,7 +846,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         // stores all the inserting items.
         const insert = items.map<IViewItem<T>>(item => ({
-            id: ListViewItemUUID++, // REVIEW: not used
             type: this.itemProvider.getType(item),
             data: item,
             size: this.itemProvider.getSize(item),
