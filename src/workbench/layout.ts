@@ -63,7 +63,7 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register tool buttons
-        const navigationBarBuilder = new NavigationBarBuilder(this.navigationBarService, this.actionBarService, this.functionBarService, this.contextMenuService);
+        const navigationBarBuilder = new NavigationBarBuilder(this.actionBarService);
         navigationBarBuilder.registerButtons();
 
         // assembly the workbench layout
