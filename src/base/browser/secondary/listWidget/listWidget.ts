@@ -316,7 +316,7 @@ export interface IListWidgetOpts<T> extends IListViewOpts {
  * 
  * Additional Functionalities:
  *  - mouse support (focus / selection, hover)
- *  - keyboard support (enter / up / down / pageup / pagedown / escape)
+ *  - keyboard support (enter / up / down / page-up / page-down / escape)
  *  - drag and drop support
  */
 export class ListWidget<T> extends Disposable implements IListWidget<T> {

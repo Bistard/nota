@@ -1,6 +1,5 @@
+import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
-import { ListItemType } from "./listView";
-
 
 /**
  * The provider provides the corresponding size and type of the given data with 
@@ -42,7 +41,6 @@ export class TreeListItemProvider<T, TFilter> implements IListItemProvider<ITree
     }
 
     // [public method]
-
     
     public getSize(node: ITreeNode<T, TFilter>): number {
         return this._provider.getSize(node.data);
@@ -51,5 +49,4 @@ export class TreeListItemProvider<T, TFilter> implements IListItemProvider<ITree
     public getType(node: ITreeNode<T, TFilter>): ListItemType {
         return this._provider.getType(node.data);
     }
-
 }

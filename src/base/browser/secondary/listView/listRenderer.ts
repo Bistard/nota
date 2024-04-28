@@ -1,5 +1,6 @@
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { DomUtility } from "src/base/browser/basic/dom";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * The type of renderers used in {@link IListView}.
@@ -26,8 +27,7 @@ export interface IListViewMetadata {
 	/**
 	 * The HTMLElement container of the related item in the {@link IListView}.
 	 */
-	container: HTMLElement;
-
+	readonly container: HTMLElement;
 }
 
 /**
@@ -38,8 +38,8 @@ export interface IListViewMetadata {
  * TMetadata: type of the user-defined value which returned value by the method 
  *            `render()` for later updating / disposing.
  */
-
 export interface IListViewRenderer<T, TMetadata> {
+	
 	/**
 	 * The type of item that the renderer is responsible for.
 	 */
@@ -117,17 +117,15 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 	}
 
 	public update(item: T, index: number, data: any[], size?: number): void {
-		for (let i = 0; i < this.pipeline.length; i++) {
-			const renderer = this.pipeline[i]!;
-			renderer.update(item, index, data[i]!, size);
-		}
+		Arrays.parallelEach([data, this.pipeline], (eachData, renderer) => {
+			renderer.update(item, index, eachData, size);
+		});
 	}
  
 	public dispose(data: any[]): void {
-		for (let i = 0; i < this.pipeline.length; i++) {
-			const renderer = this.pipeline[i]!;
-			renderer.dispose(data[i]!);
-		}
+		Arrays.parallelEach([data, this.pipeline], (eachData, renderer) => {
+			renderer.dispose(eachData);
+		});
 	}
 
 }

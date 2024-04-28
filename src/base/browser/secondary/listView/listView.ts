@@ -350,7 +350,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             this.listContainer.style.transform = 'translate3d(0px, 0px, 0px)';
         }
         
-        this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
+        this.scrollable = new Scrollable(opts.scrollbarSize ?? 10, 0, 0, 0);
         
         this.scrollableWidget = new ScrollableWidget(
             this.scrollable, {
@@ -359,9 +359,9 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             },
         );
         this.scrollableWidget.render(this.element);
-        this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
+        this.__register(this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
             this.__onDidScroll(e.scrollPosition, e.viewportSize);
-        });
+        }));
 
         // integrates all the renderers
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));

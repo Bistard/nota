@@ -21,9 +21,7 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
 
     public readonly type = RendererType.Explorer;
 
-    constructor() {
-
-    }
+    constructor() {}
 
     public render(element: HTMLElement): IFileItemMetadata {
         const text = document.createElement('span');
@@ -38,10 +36,8 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
     }
 
     public update(item: ITreeNode<FileItem, void>, index: number, data: IFileItemMetadata, size?: number): void {
-
         const text = data.container;
         text.textContent = item.data.name;
-
     }
 
     public updateIndent(item: ITreeNode<FileItem, FuzzyScore>, indentElement: HTMLElement): void {
@@ -55,7 +51,6 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
     public dispose(data: IFileItemMetadata): void {
         // TODO
     }
-
 }
 
 /**
@@ -63,6 +58,9 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
  */
 export class FileItemProvider implements IListItemProvider<FileItem> {
 
+    /**
+     * The height in pixels for every file item.
+     */
     public static readonly Size = 30;
 
     public getSize(data: FileItem): number {

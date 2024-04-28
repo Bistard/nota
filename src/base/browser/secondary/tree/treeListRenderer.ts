@@ -39,17 +39,17 @@ export interface ITreeListItemMetadata<T> extends IListViewMetadata {
     /**
      * The HTMLElement container of the indentation part.
      */
-    indentation: HTMLElement;
+    readonly indentation: HTMLElement;
 
     /**
      * The HTMLElement container of the content part.
      */
-    content: HTMLElement;
+    readonly content: HTMLElement;
 
     /**
      * Nested renderer's metadata.
      */
-    nestedMetadata: T;
+    readonly nestedMetadata: T;
 }
 
 /**
@@ -72,7 +72,6 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     // [field]
 
     public static readonly defaultIndentation = 16;
-
     public readonly type: RendererType;
 
     /** the nested renderer. */
@@ -168,10 +167,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
             indentElement.classList.remove('collapsible', 'collapsed');
         }
 
-        if (this._renderer.updateIndent) {
-            this._renderer.updateIndent(item, indentElement);
-        }
-
+        this._renderer.updateIndent?.(item, indentElement);
     }
 
     public disposeData(item: ITreeNode<T, TFilter>, index: number, data: ITreeListItemMetadata<TMetadata>, size?: number): void {
@@ -180,9 +176,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
             this._metadataMap.delete(item);
         }
 
-        if (this._renderer.disposeData) {
-            this._renderer.disposeData(item, index, data.nestedMetadata, size);
-        }
+        this._renderer.disposeData?.(item, index, data.nestedMetadata, size);
     }
 
     public dispose(data: ITreeListItemMetadata<TMetadata>): void {
@@ -210,5 +204,4 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
         this.updateIndent(node, metadata.indentation);
     }
-
 }

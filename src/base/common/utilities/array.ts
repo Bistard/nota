@@ -137,13 +137,13 @@ export namespace Arrays {
             return;
         }
 
-        if (!arrays.every(array => array.length === arrays[0]!.length)) {
+        const arrayLength = arrays[0]!.length;
+        if (!arrays.every(array => array.length === arrayLength)) {
             panic('[parallelEach] All arrays must have the same length');
         }
     
-        const arrayLength = arrays[0]!.length;
         for (let i = 0; i < arrayLength; i++) {
-            const args: any = arrays.map(array => array[i]!);
+            const args = arrays.map(array => array[i]!) as Flatten<TArrays>;
             forEach(...args);
         }
     }
@@ -163,7 +163,7 @@ export namespace Arrays {
     }
     
     /**
-     * @description Performs a breadth-first search (DFS) on an array.
+     * @description Performs a breadth-first search (BFS) on an array.
      * @param arr The array for the BFS.
      * @param visit A function to visit on each node. When a boolean is returned, 
      *              it indicates if the bfs should continue to visit.

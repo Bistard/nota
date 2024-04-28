@@ -9,8 +9,10 @@ import { hash } from "src/base/common/utilities/hash";
  */
 export interface ITraitChangeEvent {
 
-    /** The new indices with the corresponding trait. */
-    indice: number[];
+    /** 
+     * The new indices with the corresponding trait. 
+     */
+    readonly indice: number[];
 }
 
 /**
@@ -27,7 +29,10 @@ export class ListTrait<T> implements IDisposable {
 
     // [field]
 
-    /** A trait is a string that represents an CSS class. */
+    /** 
+     * A trait ID is a string that represents an CSS class for every item that
+     * has this trait.
+     */
     public readonly traitID: string;
     public readonly renderer: ListTraitRenderer<T>;
 
@@ -60,20 +65,22 @@ export class ListTrait<T> implements IDisposable {
         this._indice = indice;
         this._queryCache = undefined;
 
-        const toUnrender = Arrays.relativeComplement(indice, oldIndice);
-        const toRender = Arrays.relativeComplement(oldIndice, indice);
-
         /**
-         * Since the trait is manually `set` by the client. We need to trigger
-         * the rendering update manually.
+         * Since the trait is programmatically `set` by the client. We need to 
+         * trigger the rendering update also programmatically.
          */
-        this.renderer.manuallyUpdateCurrElementsBy(toUnrender, element => {
-            element.classList.toggle(this.traitID, false);
-        });
-        
-        this.renderer.manuallyUpdateCurrElementsBy(toRender, element => {
-            element.classList.toggle(this.traitID, true);
-        });
+        {
+            const toUnrender = Arrays.relativeComplement(indice, oldIndice);
+            const toRender = Arrays.relativeComplement(oldIndice, indice);
+
+            this.renderer.manuallyUpdateCurrElementsBy(toUnrender, element => {
+                element.classList.toggle(this.traitID, false);
+            });
+            
+            this.renderer.manuallyUpdateCurrElementsBy(toRender, element => {
+                element.classList.toggle(this.traitID, true);
+            });
+        }
 
         if (fire) {
             this._onDidChange.fire({ indice });
