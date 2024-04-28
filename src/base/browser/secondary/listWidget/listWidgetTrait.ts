@@ -1,6 +1,7 @@
 import { IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
+import { Lazy } from "src/base/common/lazy";
 import { Arrays } from "src/base/common/utilities/array";
 import { hash } from "src/base/common/utilities/hash";
 
@@ -43,7 +44,7 @@ export class ListTrait<T> implements IDisposable {
      * Storing all the indice of the elements who has this trait.
      */
     private _indice: number[];
-    private _queryCache?: Set<number>;
+    private readonly _queryCache: Lazy<Set<number>, [number[]]>;
 
     // [constructor]
 
@@ -51,6 +52,12 @@ export class ListTrait<T> implements IDisposable {
         this.traitID = trait;
         this.renderer = new ListTraitRenderer(this);
         this._indice = [];
+
+        this._queryCache = new Lazy(newIndice => {
+            const cache = new Set<number>();
+            newIndice.forEach(index => cache.add(index));
+            return cache;
+        });
     }
 
     // [public method]
@@ -63,7 +70,7 @@ export class ListTrait<T> implements IDisposable {
     public set(indice: number[], fire: boolean = true): void {
         const oldIndice = this._indice;
         this._indice = indice;
-        this._queryCache = undefined;
+        this._queryCache.dispose();
 
         /**
          * Since the trait is programmatically `set` by the client. We need to 
@@ -107,11 +114,7 @@ export class ListTrait<T> implements IDisposable {
      * @param index The index of the item.
      */
     public has(index: number): boolean {
-        if (!this._queryCache) {
-            this._queryCache = new Set();
-            this._indice.forEach(index => this._queryCache!.add(index));
-        }
-        return this._queryCache.has(index);
+        return this._queryCache.value(this._indice).has(index);
     }
 
     /**
