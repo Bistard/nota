@@ -1,7 +1,8 @@
 import { ITreeCollapseStateChangeEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { Event, Register } from "src/base/common/event";
+import { Register } from "src/base/common/event";
 import { check } from "src/base/common/utilities/panic";
+import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 
 /**
  * A basic type of renderer in {@link IListView} that manages to render tree 
@@ -76,7 +77,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     public readonly type: RendererType;
 
     /** the nested renderer. */
-    private _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
+    private readonly _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
 
     private _eachIndentSize: number;
 
@@ -84,8 +85,8 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
      * we need to stores the metadata so that once the collapse state changed, 
      * we still have a way to access the metadata. 
      */
-    private _nodeMap = new Map<T, ITreeNode<T, TFilter>>();
-    private _metadataMap = new Map<ITreeNode<T, TFilter>, ITreeListItemMetadata<TMetadata>>();
+    private readonly _nodeMap = new Map<T, ITreeNode<T, TFilter>>();
+    private readonly _metadataMap = new Map<ITreeNode<T, TFilter>, ITreeListItemMetadata<TMetadata>>();
 
     // [constructor]
 
@@ -97,10 +98,10 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
         this.type = this._renderer.type;
         this._eachIndentSize = TreeItemRenderer.defaultIndentation;
 
-        // listen to the outer event.
-        Event.map(onDidChangeCollapseState, e => e.node)((node) => this.__doDidChangeCollapseState(node));
+        // listen to the outer event
+        onDidChangeCollapseState(e => this.__doDidChangeCollapseState(e.node));
 
-        // listen to the nested renderer.
+        // listen to the nested renderer
         nestedRenderer.onDidChangeCollapseState?.((e) => this.__didChangeCollapseStateByData(e));
     }
 
@@ -163,7 +164,14 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
         
         if (item.collapsible) {
             indentElement.classList.add('collapsible');
-            indentElement.classList.toggle('collapsed', item.collapsed);
+            
+            /**
+             * // TODO: doc
+             */
+            indentElement.classList.add('collapsed');
+            if (item.collapsed === false) {
+                requestAtNextAnimationFrame(() => indentElement.classList.remove('collapsed'));
+            }
         } else {
             indentElement.classList.remove('collapsible', 'collapsed');
         }

@@ -538,9 +538,9 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
     
     public updateItemInDOM(index: number): void {
-        const item = this._items[index]!;
+        const item = assert(this._items[index]);
 
-        const dom = item.row!.dom;
+        const dom = assert(item.row).dom;
         dom.style.top = this.positionAt(index) + 'px';
         dom.setAttribute('index', `${index}`);
 
@@ -548,7 +548,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public insertItemInDOM(index: number, insertBefore: HTMLElement | null, row?: IListViewRow): void {
-        const item = this._items[index]!;
+        const item = assert(this._items[index]);
         
         if (!item.row) {
             item.row = row ?? this._cache.get(item.type);
@@ -573,15 +573,13 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public removeItemInDOM(index: number): void {
-        const item = this._items[index]!;
+        const item = assert(this._items[index]);
 
         if (item.row) {
             const renderer = this._renderers.get(item.type);
 
             // dispose internal data inside the renderer if needed
-            if (renderer && renderer.disposeData) {
-                renderer.disposeData(item.data, index, item.row.metadata, item.size);
-            }
+            renderer?.disposeData?.(item.data, index, item.row.metadata, item.size);
     
             this._cache.release(item.row);
             item.row = null;
