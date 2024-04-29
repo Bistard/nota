@@ -12,7 +12,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, check, panic } from "src/base/common/utilities/panic";
 
 /**
  * The constructor options for {@link ListView}.
@@ -32,6 +32,7 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
     /**
      * If turns on the transform optimization.
      * @see https://www.afasterweb.com/2017/07/27/optimizing-repaints/
+     * @default false
      */
     readonly transformOptimization?: boolean;
     
@@ -405,9 +406,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             if (item.row) {
                 const renderer = this.renderers.get(item.type);
                 if (renderer) {
-                    if (renderer.disposeData) {
-                        renderer.disposeData(item.data, -1, item.row.metadata, undefined);
-                    }
+                    renderer.disposeData?.(item.data, -1, item.row.metadata, undefined);
                     renderer.dispose(item.row.metadata);
                 }
             }
@@ -417,9 +416,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.items = [];
 
         // remove list view from the DOM tree.
-        if (this.element.parentNode) {
-            this.element.parentNode.removeChild(this.element);
-        }
+        this.element.parentNode?.removeChild(this.element);
 
         super.dispose();
     }
@@ -490,10 +487,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
-        
-        if (this._splicing) {
-            panic('[ListView] cannot splice recursively.');
-        }
+        check(this._splicing === false, '[ListView] cannot splice recursively.');
         this._splicing = true;
 
         try {
@@ -803,10 +797,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
      */
     private __splice(index: number, deleteCount: number, items: T[] = []): T[] {
         
-        const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
-        
         // find the range that about to be deleted
-        const deleteRange = Range.intersection(prevRenderRange, { start: index, end: index + deleteCount });
+        const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
+        const expectDeleteRange = { start: index, end: index + deleteCount };
+        const actualDeleteRange = Range.intersection(prevRenderRange, expectDeleteRange);
 
         /**
          * We use a cache to store all the `row`s that are about to be removed.
@@ -814,40 +808,41 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
          * efficiency.
          */
         const deleteCache = new Map<RendererType, IListViewRow[]>();
-        for (let i = deleteRange.start; i < deleteRange.end; i++) {
-            const item = this.items[i]!;
+        for (let i = actualDeleteRange.start; i < actualDeleteRange.end; i++) {
+            const item = assert(this.items[i]);
 
-            if (item.row) {
-                let rowCache = deleteCache.get(item.type);
-
-                if (rowCache === undefined) {
-                    rowCache = [];
-                    deleteCache.set(item.type, rowCache);
-                }
-
-                const renderer = this.renderers.get(item.type);
-                if (renderer) {
-                    renderer.dispose(item.row!.metadata);
-                }
-
-                rowCache.push(item.row);
-                item.row = null;
+            if (!item.row) {
+                continue;
             }
+
+            let rowCache = deleteCache.get(item.type);
+            if (rowCache === undefined) {
+                rowCache = [];
+                deleteCache.set(item.type, rowCache);
+            }
+
+            const renderer = this.renderers.get(item.type);
+            if (renderer) {
+                renderer.dispose(item.row.metadata);
+            }
+
+            rowCache.push(item.row);
+            item.row = null;
         }
 
         // the rest range right after the deleted range
         const prevRestRange = { start: index + deleteCount, end: this.items.length };
         // in the rest range, find the rendered part
         const prevRestRenderedRange = Range.intersection(prevRestRange, prevRenderRange);
-        // in the rest range, find the unrendered part
+        // in the rest range, find the un-rendered part
         const prevRestUnrenderedRange = Range.relativeComplement(prevRenderRange, prevRestRange);
 
         // [delete and insert the items]
 
         // stores all the inserting items.
-        const insert = items.map<IViewItem<T>>(item => ({
-            type: this.itemProvider.getType(item),
+        const toInsert = items.map<IViewItem<T>>(item => ({
             data: item,
+            type: this.itemProvider.getType(item),
             size: this.itemProvider.getSize(item),
             row: null,
         }));
@@ -858,13 +853,13 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         if (index === 0 && deleteCount >= this.items.length) {
             // special case: deletes all the items
             this.rangeTable = new RangeTable();
-            this.rangeTable.splice(0, 0, insert);
+            this.rangeTable.splice(0, 0, toInsert);
             waitToDelete = this.items;
-            this.items = insert;
+            this.items = toInsert;
         } else {
             // general case: deletes partial items
-            this.rangeTable.splice(index, deleteCount, insert);
-            waitToDelete = this.items.splice(index, deleteCount, ...insert);
+            this.rangeTable.splice(index, deleteCount, toInsert);
+            waitToDelete = this.items.splice(index, deleteCount, ...toInsert);
         }
         
         const offset = items.length - deleteCount;

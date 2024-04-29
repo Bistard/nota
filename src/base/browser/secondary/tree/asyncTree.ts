@@ -263,7 +263,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
     }
 
     public isChildrenResolved(node: T): boolean {
-        return this._childrenProvider.isChildrenResolved?.(node) ?? true;
+        return this._childrenProvider.isChildrenResolved?.(node) ?? false;
     }
 
     public setCollapsed(node: T, collapsed?: boolean, recursive?: boolean): boolean {

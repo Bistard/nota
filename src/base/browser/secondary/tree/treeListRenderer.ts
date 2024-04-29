@@ -1,6 +1,7 @@
 import { ITreeCollapseStateChangeEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { Event, Register } from "src/base/common/event";
+import { check } from "src/base/common/utilities/panic";
 
 /**
  * A basic type of renderer in {@link IListView} that manages to render tree 
@@ -157,7 +158,10 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     }
 
     public updateIndent(item: ITreeNode<T, TFilter>, indentElement: HTMLElement): void {
-        if (item.collapsible && item.visibleNodeCount > 0) {
+        check(item.visible);
+        check(item.visibleNodeCount >= 1);
+        
+        if (item.collapsible) {
             indentElement.classList.add('collapsible');
             indentElement.classList.toggle('collapsed', item.collapsed);
         } else {

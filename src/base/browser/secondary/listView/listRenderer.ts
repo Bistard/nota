@@ -63,8 +63,9 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @description Dispose (destruct) the item.
 	 * @param data The user-defined data for disposing.
 	 * 
-	 * @note This method only invoked when 1) {@link ListViewCache} inside the 
-	 * list view is disposed 2) {@link ListView} is disposed.
+	 * @note This method only invoked when 
+	 * 		1) The item is about to be deleted (unrendered).
+	 * 		2) {@link ListView} is disposed.
 	 */
 	dispose(data: TMetadata): void;
 
