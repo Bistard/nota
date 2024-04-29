@@ -478,7 +478,7 @@ export abstract class Component extends Themable implements IComponent {
 
     public assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void {
         check(!this._splitView, 'Cannot invoke "assembleComponents()" twice.');
-        this.logService.trace(`${this.id}`, `Component assembling children components: ${options.map(each => each.component.id).join(', ')}`);
+        this.logService.trace(`${this.id}`, `Component assembling children components: [${options.map(each => each.component.id).join(', ')}]`);
 
         const splitViewOption: Required<ISplitViewOpts> = {
             orientation,

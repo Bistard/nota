@@ -195,10 +195,17 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         let container = this.__createOpenedView();
 
         /**
-         * Open the root in the explorer tree service who will handle the 
-         * complicated stuff for us.
+         * Open the root in the explorer tree service.
+         * 
+         * @note The file tree must be appended as the single child of the 
+         * container due to the fact that the file tree will be filled out 
+         * entirely by its parent.
          */
-        const init = await this.fileTreeService.init(container, path);
+        const treeContainer = document.createElement('div');
+        treeContainer.className = 'file-tree-container';
+        container.appendChild(treeContainer);
+
+        const init = await this.fileTreeService.init(treeContainer, path);
         if (init.isOk()) {
             this._onDidOpen.fire({ path: path });
         } 

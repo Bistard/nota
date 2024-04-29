@@ -14,10 +14,21 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
+
+        // let 'file-tree-container' take the rest space
+        display: flex;
+        flex-direction: column;
     }
     
     & .opened-explorer-container {
         
+        // 'file-tree-container' should only contain one element
+        & > .file-tree-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
         & > .filebuttonbar {
             position: relative;
             display: flex;

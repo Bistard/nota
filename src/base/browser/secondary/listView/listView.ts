@@ -376,7 +376,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         );
         this._scrollableWidget.render(this._element);
         this.__register(this._scrollableWidget.onDidScroll((e: IScrollEvent) => {
-            this.__onDidScroll(e.scrollPosition, e.viewportSize);
+            const prevRenderRange = this.__getRenderRange(this._prevRenderTop, this._prevRenderHeight);
+            this.render(prevRenderRange, e.scrollPosition, e.viewportSize);
         }));
 
         // integrates all the renderers
@@ -436,16 +437,15 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public layout(height?: number): void {
-
         height = height ?? DomUtility.Attrs.getContentHeight(this._element);
         this._scrollable.setViewportSize(height);
-
     }
 
     public render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void {
-
         const renderRange = this.__getRenderRange(renderTop, renderHeight);
         this._visibleRange = renderRange;
+
+        this.log?.(LogLevel.TRACE, 'ListView', `rendering... (prevRenderRange: [${prevRenderRange.start}, ${prevRenderRange.end}], newRenderRange: [${renderRange.start}, ${renderRange.end}])`);
 
         const insert = Range.relativeComplement(prevRenderRange, renderRange);
         const remove = Range.relativeComplement(renderRange, prevRenderRange);
@@ -791,16 +791,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             start: this._rangeTable.indexAt(top),
             end: this._rangeTable.indexAfter(top + height - 1)
         };
-    }
-
-    /**
-     * @description Invokes when scrolling happens, rerenders the whole view.
-     * @param renderTop The top of scrolling area.
-     * @param renderHeight The height of viewport.
-     */
-    private __onDidScroll(renderTop: number, renderHeight: number): void {
-        const prevRenderRange = this.__getRenderRange(this._prevRenderTop, this._prevRenderHeight);
-        this.render(prevRenderRange, renderTop, renderHeight);
     }
 
     /**
