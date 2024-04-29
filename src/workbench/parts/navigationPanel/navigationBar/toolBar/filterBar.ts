@@ -4,23 +4,13 @@ import { IComponentService } from 'src/workbench/services/component/componentSer
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { INavigationBarButtonClickEvent, INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
-import { Emitter} from 'src/base/common/event';
 import { Icons } from 'src/base/browser/icon/icons';
 
-export interface IFilterBarService extends INavigationBarService {
-}
-
-export class FilterBar extends Component implements IFilterBarService {
+export class FilterBar extends Component {
 
     // [filed]
-
-    declare _serviceMarker: undefined;
     
     // [event]
-
-    private readonly _onDidClick = this.__register(new Emitter<INavigationBarButtonClickEvent>());
-    public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
 
