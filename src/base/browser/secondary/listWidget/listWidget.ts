@@ -353,11 +353,11 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         this.hovered  = this.__register(new ListTrait('hovered'));
         this.identityProvider = opts.identityProvider;
 
-        // integrates all the renderers (anchor is invisible, no renderer needed)
+        // integrates all the renderers (since `anchor` is invisible, no renderer needed)
         const baseRenderers = [this.selected.renderer, this.focused.renderer, this.hovered.renderer];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
-        // construct list view
+        // construct the list view
         this.view = this.__register(new ListView(container, renderers, itemProvider, opts));
 
         // mouse support integration (defaults on)

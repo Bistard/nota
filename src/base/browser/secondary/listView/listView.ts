@@ -13,6 +13,7 @@ import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
 import { assert, check, panic } from "src/base/common/utilities/panic";
+import { ILog, LogLevel } from "src/base/common/logger";
 
 /**
  * The constructor options for {@link ListView}.
@@ -41,6 +42,11 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
      * @default 10
      */
     readonly scrollbarSize?: number;
+
+    /**
+     * If provided, log messages will be reported.
+     */
+    readonly log?: ILog;
 }
 
 /**
@@ -104,7 +110,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
     /** Fires when the item in the {@link IListView} is double clicked. */
     get onDoubleClick(): Register<MouseEvent>;
 
-    /** Fires when the item in the {@link IListView} is mouseovered. */
+    /** Fires when the item in the {@link IListView} is mouseover. */
     get onMouseover(): Register<MouseEvent>;
     
     /** Fires when the item in the {@link IListView} is mouseout. */
@@ -121,7 +127,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
 
     /** 
      * An event sent when the state of contacts with a touch-sensitive surface 
-     * changes. This surface can be a touch screen or trackpad.
+     * changes. This surface can be a touch screen or track-pad.
      */
     get onTouchstart(): Register<TouchEvent>;
 
@@ -290,6 +296,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     /** If the list view is during the `splice()` operation. */
     private _splicing: boolean;
+    private readonly log?: ILog;
 
     // [events]
 
@@ -337,9 +344,11 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         container: HTMLElement, 
         renderers: IListViewRenderer<any, any>[], 
         itemProvider: IListItemProvider<T>,
-        opts: IListViewOpts
+        opts: IListViewOpts,
     ) {
         super();
+        this.log = opts.log;
+        this.log?.(LogLevel.DEBUG, 'ListView', 'ListView Constructing...');
 
         this._element = document.createElement('div');
         this._element.className = 'list-view';
@@ -376,6 +385,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this._renderers = new Map();
         for (const renderer of renderers) {
             this._renderers.set(renderer.type, renderer);
+            this.log?.(LogLevel.TRACE, 'ListView', `Renderer registered: ${renderer.type}`);
         }
 
         this._itemProvider = itemProvider;
@@ -387,13 +397,17 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         container.appendChild(this._element);
 
         // optional rendering
-        opts.layout && this.layout();
+        if (opts.layout) {
+            this.layout();
+        }
 
         // disposable registration
         this.__register(this._scrollable);
         this.__register(this._scrollableWidget);
         this.__register(this._cache);
         this.__register(this._focusTracker);
+
+        this.log?.(LogLevel.DEBUG, 'ListView', 'ListView Constructed.');
     }
 
     // [methods]
@@ -488,6 +502,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         check(this._splicing === false, '[ListView] cannot splice recursively.');
+        
+        this.log?.(LogLevel.DEBUG, 'ListView', `Splicing... (index: ${index}, deleteCount: ${deleteCount}, insertCount: ${items.length})`);
         this._splicing = true;
 
         try {
@@ -534,7 +550,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
                 this.setScrollPosition(itemBottomPosition - viewportHeight);
             }
         }
-
     }
     
     public updateItemInDOM(index: number): void {
@@ -713,7 +728,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
          * element of the actual row list, so we will trace back to the parent
          * until we find one.
          */
-
         let element = target as HTMLElement | null;
 
         while (element instanceof HTMLElement && // making sure when tracing up

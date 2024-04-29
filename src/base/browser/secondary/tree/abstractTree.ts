@@ -883,6 +883,8 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
+
+                log: opts.log,
             } as ITreeWidgetOpts<T, TFilter, any>,
         ];
         if (opts.createTreeWidgetExternal) {
