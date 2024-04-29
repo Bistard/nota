@@ -234,6 +234,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         this.logService.debug('MainProcess', 'All core services are initialized successfully.');
         this.logService.debug('MainProcess', `System Information:`, this.diagnosticsService.getDiagnostics());
+        this.logService.debug('DiskEnvironmentService', `Disk Environment loaded.`, this.environmentService.inspect());
     }
 
     private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {

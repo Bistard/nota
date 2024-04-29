@@ -4,7 +4,7 @@ import { iterProp } from "src/base/common/utilities/object";
 import { IService, createService, refineDecorator } from "src/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/platform/window/common/window";
-import { isObject } from "src/base/common/utilities/type";
+import { Dictionary, isObject } from "src/base/common/utilities/type";
 
 export const IEnvironmentService = createService<IEnvironmentService>('environment-service');
 export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, IBrowserEnvironmentService>(IEnvironmentService);
@@ -136,6 +136,12 @@ export interface IDiskEnvironmentService extends IEnvironmentService {
      * The product profile path for 'product.json'.
      */
     readonly productProfilePath: URI;
+
+    /**
+     * Construct a dictionary that represent the entire environment. 
+     * Useful for logging.
+     */
+    inspect(): Dictionary<string, string>;
 }
 
 /**
