@@ -11,12 +11,11 @@ import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
 import { INavigationBarService } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
-import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel, NavigationBarBuilder} from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
-import { Icons } from "src/base/browser/icon/icons";
+import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -35,7 +34,7 @@ export abstract class WorkbenchLayout extends Component {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
-        @IActionBarService protected readonly actionBarService: IActionBarService,
+        @IToolBarService protected readonly toolBarService: IToolBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationPanelService protected readonly navigationPanelService: INavigationPanelService,
@@ -63,7 +62,7 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register tool buttons
-        const navigationBarBuilder = new NavigationBarBuilder(this.actionBarService);
+        const navigationBarBuilder = new NavigationBarBuilder(this.toolBarService);
         navigationBarBuilder.registerButtons();
 
         // assembly the workbench layout

@@ -26,7 +26,7 @@ import { INavigationPanelService } from 'src/workbench/parts/navigationPanel/nav
 import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
-import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
+import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -50,14 +50,14 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IThemeService themeService: IThemeService,
         @INavigationPanelService navigationPanelService : INavigationPanelService,
         @INavigationBarService navigationBarService: INavigationBarService,
-        @IActionBarService actionBarService: IActionBarService,
         @INavigationViewService navigationViewService: INavigationViewService,
+        @IToolBarService toolBarService: IToolBarService,
         @IFunctionBarService functionBarService: IFunctionBarService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(instantiationService, logService, layoutService, componentService, themeService, navigationBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, navigationBarService, toolBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
         logService.debug('Workbench', 'Workbench constructed.');
     }
 

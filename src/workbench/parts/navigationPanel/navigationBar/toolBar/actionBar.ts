@@ -1,6 +1,6 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { NavigationButton, INavigationButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
@@ -8,36 +8,9 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Emitter } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
-import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
-import { createService } from 'src/platform/instantiation/common/decorator';
 import { Icons } from 'src/base/browser/icon/icons';
 
-export const IActionBarService = createService<IActionBarService>('action-bar-service');
-
-export interface IActionBarService extends INavigationBarService {  
-    /**
-     * @description Returns a button by provided a button ID.
-     * @param ID The ID of the required button.
-     * @returns The required button. Returns undefined if it does not exists.
-     */
-    getButton(ID: string): NavigationButton | undefined;
-
-    /**
-     * @description Returns a primary button by provided a button ID.
-     * @param ID The ID of the required button.
-     * @returns The required button. Returns undefined if it does not exists.
-     */
-    getPrimaryButton(ID: string): NavigationButton | undefined;
-
-    /**
-     * @description Register a new primary button.
-     * @param opts The options to construct the button.
-     * @returns A boolean indicates if the button has created.
-     */
-    registerPrimaryButton(opts: INavigationButtonOptions): boolean;  
-}
-
-export class ActionBar extends Component implements IActionBarService {
+export class ActionBar extends Component {
 
     declare _serviceMarker: undefined;
 
@@ -45,8 +18,7 @@ export class ActionBar extends Component implements IActionBarService {
 
     public static readonly HEIGHT = 60;
 
-    private readonly _primary: WidgetBar<NavigationButton>;
-    private _currButtonType: string = 'none';
+    public readonly _primary: WidgetBar<NavigationButton>;
     
     // [event]
     
@@ -66,18 +38,6 @@ export class ActionBar extends Component implements IActionBarService {
 
     // [public method]
 
-    public getButton(ID: string): NavigationButton | undefined {
-        return this.getPrimaryButton(ID);
-    }
-
-    public getPrimaryButton(ID: string): NavigationButton | undefined {
-        return this._primary.getItem(ID);
-    }
-
-    public registerPrimaryButton(opts: INavigationButtonOptions): boolean {
-        return this.__registerButton(opts, this._primary);
-    }
-
     // [protected override method]
 
     protected override _createContent(): void {
@@ -90,70 +50,5 @@ export class ActionBar extends Component implements IActionBarService {
 
     protected override _registerListeners(): void {
 
-        // Register all the buttons click event.
-        this._primary.items().forEach(item => {
-            item.onDidClick(() => this.__buttonClick(item.id));
-        });
-
-        // default with opening explorer view
-        this.__buttonClick(Icons.Search);
-    }
-
-    // [private helper method]
-
-    private __buttonClick(buttonType: string): void {
-
-        const button = this.getButton(buttonType)!;
-        const previousType = this._currButtonType;
-
-        // has not been rendered yet.
-        if (button.element === undefined) {
-            return;
-        }
-
-        // none of button is focused, focus the button.
-        if (this._currButtonType === 'none') {
-            this._currButtonType = buttonType;
-            button.element.classList.add('focus');
-        }
-
-        // if the current focused button is clicked again, remove focus.
-        else if (this._currButtonType === buttonType) {
-            this._currButtonType = 'none';
-            button.element.classList.remove('focus');
-        }
-
-        // other button is clicked, focus the new button.
-        else {
-            const prevButton = this.getButton(this._currButtonType)!;
-            prevButton.element!.classList.remove('focus');
-
-            this._currButtonType = buttonType;
-            button.element.classList.add('focus');
-        }
-
-        // fires event
-        this._onDidClick.fire({
-            ID: buttonType,
-            prevType: previousType,
-            isPrimary: button.isPrimary,
-        });
-    }
-
-    private __registerButton(opts: INavigationButtonOptions, widgetBar: WidgetBar<NavigationButton>): boolean {
-        const button = new NavigationButton(opts);
-
-        if (widgetBar.hasItem(opts.id)) {
-            this.logService.warn('ActionBarService', `Cannot register the action bar button with duplicate ID.`, { ID: opts.id });
-            return false;
-        }
-
-        widgetBar.addItem({
-            id: opts.id,
-            item: button,
-            dispose: button.dispose,
-        });
-
-        return true;
     }
 }

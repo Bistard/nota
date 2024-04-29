@@ -1,19 +1,14 @@
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
-import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";
-import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
-import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { Icons } from "src/base/browser/icon/icons";
-import { CheckMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
-import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { panic } from "src/base/common/utilities/panic";
+import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
@@ -31,9 +26,9 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
     constructor(
         @IComponentService componentService: IComponentService,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
+        @IToolBarService protected readonly toolBarService: IToolBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -78,7 +73,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 export class NavigationBarBuilder {
 
     constructor(
-        private readonly actionBarService: IActionBarService,
+        private readonly toolBarService: IToolBarService,
     ) {
     }
 
@@ -98,7 +93,7 @@ export class NavigationBarBuilder {
             },
         ]
             .forEach(({ id, icon}) => {
-                this.actionBarService.registerPrimaryButton({
+                this.toolBarService.registerPrimaryButton({
                     id: id,
                     icon: icon,
                     isPrimary: true,
