@@ -6,7 +6,9 @@ import { Additional, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "s
 import { Iterable } from "src/base/common/utilities/iterable";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { Coordinate, Dimension, Position } from "src/base/common/utilities/size";
-import { isObject } from "src/base/common/utilities/type";
+import { isFunction, isObject } from "src/base/common/utilities/type";
+
+const MAX_RECURSIVE_DEPTH = 10;
 
 const RGB_colors = <const>{
     LightGray:   [211, 211, 211],
@@ -175,6 +177,11 @@ function getErrorString(color: boolean, error: any): string {
  */
 function getAdditionalString(depth: number, color: boolean, additional: Additional): string {    
 
+    // safety
+    if (depth === MAX_RECURSIVE_DEPTH) {
+        return `${'    '.repeat(depth)}[REACHING MAXIMUM RECURSIVE DEPTH: ${MAX_RECURSIVE_DEPTH}]`;
+    }
+
     const keys: string[] = [];
     const values: string[] = [];
     
@@ -234,9 +241,14 @@ function tryPaintValue(depth: number, color: boolean, key: string, value: any): 
     // 1: no color case
     if (!color) {
         // recursive print object
-        if (isObject(value) && !(value instanceof Error)) {
+        if (isObject(value) && !isFunction(value) && !(value instanceof Error)) {
             return `\n${getAdditionalString(depth + 1, false, <any>value)}`;
         }
+
+        if (isFunction(value)) {
+            return '[function]';
+        }
+
         return tryOrDefault('[parse error]', () => JSON.stringify(value));
     }
 
@@ -269,7 +281,7 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
         case "undefined":
             return TextColors.setRGBColor(`${value}`, ...RGB_colors.LightBlue);
         case "function":
-            return tryOrDefault('[parse error]', () => JSON.stringify(value));
+            return '[function]';
         case "object": {
             if (value === null) {
                 return TextColors.setRGBColor('null', ...RGB_colors.LightBlue);

@@ -12,6 +12,11 @@ export interface ILogEvent<T> {
 }
 
 /**
+ * A function type that mock the logger.
+ */
+export type ILog = (level: LogLevel, reporter: string, message: string, error?: any, additional?: Additional) => void;
+
+/**
  * Representing the maximum logging level of a {@link ILoggerService} or
  * {@link ILogger}.
  */
