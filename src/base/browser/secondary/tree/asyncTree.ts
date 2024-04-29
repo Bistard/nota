@@ -11,6 +11,7 @@ import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { AsyncEmitter, AsyncRegister, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { ILog, LogLevel } from "src/base/common/logger";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { AsyncQueue } from "src/base/common/utilities/async";
 
@@ -214,6 +215,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
 
     declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
     private readonly _childrenProvider: IChildrenProvider<T>;
+    private readonly log?: ILog;
 
     // [constructor]
 
@@ -224,6 +226,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
     ) {
         super(container, rootData, opts.renderers, opts.itemProvider, opts);
         this._childrenProvider = opts.childrenProvider;
+        this.log = opts.log;
     }
 
     // [protected override method]
@@ -258,8 +261,12 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
 
     // [public methods]
 
-    public refreshNode(node: ITreeNode<T, TFilter>): Promise<void> {
-        return this._model.refreshNode(node);
+    public async refreshNode(node: ITreeNode<T, TFilter>): Promise<void> {
+        this.log?.(LogLevel.TRACE, 'AsyncTreeModel', `Tree model is refreshing...`);
+        
+        await this._model.refreshNode(node);
+        
+        this.log?.(LogLevel.TRACE, 'AsyncTreeModel', `Tree model refresh complete.`);
     }
 
     public isChildrenResolved(node: T): boolean {
@@ -321,6 +328,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
     private _onDidDeleteData?: (node: T) => void;
+    
+    private _getDataID: (data: T) => string;
+    private log?: ILog;
 
     // [event]
 
@@ -366,7 +376,11 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         opts: IAsyncTreeOptions<T, TFilter>,
     ) {
         super();
-        
+        this.log = opts.log;
+        this._getDataID = data => opts.identityProvider 
+            ? `node: ${opts.identityProvider.getID(data)}`
+            : 'N/A';
+
         this._tree = new AsyncMultiTree(container, rootData, {
             ...opts,
             /**
@@ -390,6 +404,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [public methods]
 
     public async refresh(data: T = this._tree.root): Promise<void> {
+        this.log?.(LogLevel.TRACE, 'AsyncTree', `Tree: refresh() invoked (${this._getDataID(data)})`);
+        
         const asyncNode = this.__getAsyncNode(data);
 
         // wait until nothing is refreshing
@@ -629,6 +645,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
      * @param node The given tree node.
      */
     private __render(node: ITreeNode<T, TFilter>): void {
+        this.log?.(LogLevel.TRACE, 'AsyncTree', `Tree view is refreshing...`);
+        
         this._tree.refresh(
             node,
             {
@@ -636,13 +654,17 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
                 onDidDeleteData: this._onDidDeleteData,
             },
         );
+
+        this.log?.(LogLevel.TRACE, 'AsyncTree', `Tree view refresh complete.`);
     }
 
     /**
      * @description Presets the behaviors when the collapsing state is changed.
      */
     private async __onDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
-        
+        const ID = this._getDataID(e.node.data);
+        this.log?.(LogLevel.TRACE, 'AsyncTree', `Collapse state changes (${ID})`);
+
         // ignores the root node
         const node: IAsyncNode<T, TFilter> = e.node;
         if (node === this._tree.rootNode) {
@@ -655,6 +677,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          */
         if (node.collapsed) {
             this._tree.triggerOnDidSplice({ inserted: [e.node] });
+            
+            this.log?.(LogLevel.TRACE, 'AsyncTree', `Skips refresh operation since the node is collapsed. (${ID})`);
             return;
         }
 
@@ -664,6 +688,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          */
         if (this._tree.isChildrenResolved(node.data)) {
             this._tree.triggerOnDidSplice({ inserted: [e.node] });
+            
+            this.log?.(LogLevel.TRACE, 'AsyncTree', `Skips refresh operation since the children of the node is already resolved (up-to-date). (${ID})`);
             return;
         }
 
@@ -676,7 +702,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
             // get the updated tree structure into the model
             await this._tree.refreshNode(node);
-            
+
             /**
              * Sets the updated tree structure from the model to the old one in
              * the {@link FlexMultiTree} and rerender it.

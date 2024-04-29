@@ -520,7 +520,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
 
     /** 
      * An event sent when the state of contacts with a touch-sensitive surface 
-     * changes. This surface can be a touch screen or trackpad.
+     * changes. This surface can be a touch screen or track-pad.
      */
     get onTouchstart(): Register<ITreeTouchEvent<T>>;
 

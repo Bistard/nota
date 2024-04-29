@@ -503,7 +503,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         check(this._splicing === false, '[ListView] cannot splice recursively.');
         
-        this.log?.(LogLevel.DEBUG, 'ListView', `Splicing... (index: ${index}, deleteCount: ${deleteCount}, insertCount: ${items.length})`);
+        this.log?.(LogLevel.TRACE, 'ListView', `Splicing... (index: ${index}, deleteCount: ${deleteCount}, insertCount: ${items.length})`);
         this._splicing = true;
 
         try {
