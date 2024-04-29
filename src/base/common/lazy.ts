@@ -9,6 +9,12 @@ import { isDisposable } from "src/base/common/dispose";
 export interface ILazy<T, TArgs extends any[]> {
     
     /**
+     * Determine if the object is already loaded. Access this property will not
+     * load the object.
+     */
+    readonly isLoaded: boolean;
+
+    /**
      * @description Returns the lazy-loaded object, initializing it if not 
      * already done.
      * @param args The arguments required for object initialization.
@@ -58,6 +64,10 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
     }
 
     // [public methods]
+
+    get isLoaded(): boolean {
+        return this._lazyValue !== null;
+    }
 
     public value(...args: TArgs): T {
         if (this._delay) {
