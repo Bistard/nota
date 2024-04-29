@@ -19,7 +19,6 @@
 		// collapsible identifier
 		&::before {
             font-size: 15px;
-            color: #b5b5b5;
             border-radius: 20px;
 
             // animation
@@ -27,6 +26,7 @@
         }
 
         &.collapsed::before {
+			color: #b5b5b5;
             transform: rotate(0deg);
         }
 

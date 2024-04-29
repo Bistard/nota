@@ -47,9 +47,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     constructor(scrollable: Scrollable, extensionOpts: IScrollableWidgetExtensionOpts) {
         super();
-
         this._scrollable = scrollable;
-
         this._opts = resolveScrollableWidgetExtensionOpts(extensionOpts);
         this._isSliderDragging = false;
         this._isMouseOver = false;
@@ -60,11 +58,9 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             onSliderDragStop: () => this._onSliderDragStop()
         };
 
-        if (this._opts.scrollbarType === ScrollbarType.vertical) {
-            this._scrollbar = new VerticalScrollbar(this._scrollable, host);
-        } else {
-            this._scrollbar = new HorizontalScrollbar(this._scrollable, host);
-        }
+        this._scrollbar = this._opts.scrollbarType === ScrollbarType.vertical
+            ? new VerticalScrollbar(this._scrollable, host)
+            : new HorizontalScrollbar(this._scrollable, host);
 
         this.onWillScroll = this._scrollbar.onWillScroll;
         this.onDidScroll = this._scrollbar.onDidScroll;
@@ -98,9 +94,9 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
         // scrollbar visibility
         [this.onMouseover, this.onTouchmove]
-        .forEach(event => this.__register(event.call(this, element, () => this.__onMouseover())));
+            .forEach(event => this.__register(event.call(this, element, () => this.__onMouseover())));
         [this.onMouseout, this.onTouchend, this.onTouchcancel]
-        .forEach(event => this.__register(event.call(this, element, () => this.__onMouseout())));
+            .forEach(event => this.__register(event.call(this, element, () => this.__onMouseout())));
         
         // mouse wheel scroll support
         this.__register(this.onWheel(element, event => this.__onDidWheel(event)));

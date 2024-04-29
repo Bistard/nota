@@ -11,6 +11,7 @@ import { tryOrDefault } from "src/base/common/error";
 import { parse, posix } from "src/base/common/files/path";
 import { Strings } from "src/base/common/utilities/string";
 import { assert } from "src/base/common/utilities/panic";
+import { Lazy } from "src/base/common/lazy";
 
 export interface IFileTarget {
     readonly name: string;
@@ -217,11 +218,11 @@ export class FileItem implements IFileItem<FileItem> {
 
     /**
      * Perf reason: for fast lookup, lazy loading mechanism. 
-     * Do not access this directly, use 'this.mapChildren' instead.
+     * @note Do not access this directly, use 'this.mapChildren' instead.
      * @note The keys (name of the child) is smartly adjusted by the case 
      *       sensitive.
      */
-    private _mapChildrenCache?: Map<string, FileItem>;
+    private readonly _mapChildren: Lazy<Map<string, FileItem>>;
 
     // [constructor]
 
@@ -239,6 +240,15 @@ export class FileItem implements IFileItem<FileItem> {
         if (stat.children) {
             this._isResolved = true;
         }
+
+        this._mapChildren = new Lazy(() => {
+            const cache = new Map();
+            for (const child of this._children) {
+                const resolvedName = Strings.Smart.adjust(child.name);
+                cache.set(resolvedName, child);
+            }
+            return cache;
+        });
     }
 
     // [get method]
@@ -266,19 +276,7 @@ export class FileItem implements IFileItem<FileItem> {
 
     get children(): FileItem[] { return this._children; }
 
-    get mapChildren(): Map<string, FileItem> {
-        if (this._mapChildrenCache) {
-            return this._mapChildrenCache;
-        }
-        
-        this._mapChildrenCache = new Map();
-        for (const child of this._children) {
-            const resolvedName = Strings.Smart.adjust(child.name);
-            this._mapChildrenCache.set(resolvedName, child);
-        }
-        
-        return this._mapChildrenCache;
-    }
+    get mapChildren(): Map<string, FileItem> { return this._mapChildren.value(); }
 
     // [public static method]
 
@@ -398,7 +396,7 @@ export class FileItem implements IFileItem<FileItem> {
 
     public forgetChildren(): void {
         this._children = [];
-        this._mapChildrenCache = undefined;
+        this._mapChildren.dispose();
         this._isResolved = false;
         (<any>this._stat.children) = undefined;
     }   

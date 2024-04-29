@@ -292,17 +292,17 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     // [events]
 
-    private readonly _onDidSplice: Emitter<void> = this.__register(new Emitter<void>());
-    public readonly onDidSplice: Register<void> = this._onDidSplice.registerListener;
+    private readonly _onDidSplice = this.__register(new Emitter<void>());
+    public readonly onDidSplice = this._onDidSplice.registerListener;
 
-    private readonly _onInsertItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.__register(new Emitter<IViewItemChangeEvent<T>>());
-    public readonly onInsertItemInDOM: Register<IViewItemChangeEvent<T>> = this._onInsertItemInDOM.registerListener;
+    private readonly _onInsertItemInDOM = this.__register(new Emitter<IViewItemChangeEvent<T>>());
+    public readonly onInsertItemInDOM = this._onInsertItemInDOM.registerListener;
 
-    private readonly _onUpdateItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.__register(new Emitter<IViewItemChangeEvent<T>>());
-    public readonly onUpdateItemInDOM: Register<IViewItemChangeEvent<T>> = this._onUpdateItemInDOM.registerListener;
+    private readonly _onUpdateItemInDOM = this.__register(new Emitter<IViewItemChangeEvent<T>>());
+    public readonly onUpdateItemInDOM = this._onUpdateItemInDOM.registerListener;
 
-    private readonly _onRemoveItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.__register(new Emitter<IViewItemChangeEvent<T>>());
-    public readonly onRemoveItemInDOM: Register<IViewItemChangeEvent<T>> = this._onRemoveItemInDOM.registerListener;
+    private readonly _onRemoveItemInDOM = this.__register(new Emitter<IViewItemChangeEvent<T>>());
+    public readonly onRemoveItemInDOM = this._onRemoveItemInDOM.registerListener;
 
     // [getter / setter]
 
