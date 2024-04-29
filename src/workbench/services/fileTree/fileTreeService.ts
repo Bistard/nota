@@ -414,7 +414,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     fastScrollSensibility: 5,
                     scrollbarSize: 10,
 
-                    // enable it only for testing purpose
+                    // may disable this
                     log: (level, reporter, message, error, additional) => defaultLog(this.logService, level, `${reporter} (FileTree)`, message, error, additional),
                 },
             );

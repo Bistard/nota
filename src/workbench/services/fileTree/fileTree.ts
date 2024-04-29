@@ -4,10 +4,11 @@ import { AsyncTree, AsyncTreeWidget, IAsyncTree, IAsyncTreeOptions, IAsyncTreeWi
 import { MultiTreeKeyboardController } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
-import { DomUtility } from "src/base/browser/basic/dom";
+import { LogLevel } from "src/base/common/logger";
+import { Dictionary, isTruthy } from "src/base/common/utilities/type";
 
 export interface IFileTreeOpenEvent<T extends FileItem> {
     readonly item: T;
@@ -107,6 +108,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         rootData: T,
         opts: IFileTreeOptions<T, TFilter>,
     ) {
+        opts.log?.(LogLevel.DEBUG, 'FileTree', 'FileTree constructing with options:', null, __logFileTreeOptions(opts));
         super(container, rootData, opts);
         this.DOMElement.classList.add('file-tree');
         this.__register(this.onClick(e => this.__onClick(e)));
@@ -149,4 +151,32 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
 
         this._onSelect.fire({ item: event.data });
     }
+}
+
+/**
+ * @description Only select partial options for logging purpose.
+ */
+function __logFileTreeOptions(opts: IFileTreeOptions<any, any>): Dictionary<string, any> {
+    return {
+        scrollSensibility: opts.scrollSensibility,
+        fastScrollSensibility: opts.fastScrollSensibility,
+        reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
+        touchSupport: opts.touchSupport,
+        
+        layout: opts.layout,
+        transformOptimization: opts.transformOptimization,
+        scrollbarSize: opts.scrollbarSize,
+        
+        mouseSupport: opts.mouseSupport,
+        multiSelectionSupport: opts.multiSelectionSupport,
+        keyboardSupport: opts.keyboardSupport,
+        scrollOnEdgeSupport: opts.scrollOnEdgeSupport,
+        dragAndDropSupport: isTruthy(opts.dnd),
+        identitySupport:isTruthy(opts.identityProvider),
+
+        collapsedByDefault: opts.collapsedByDefault,
+        createTreeWidgetExternal: isTruthy(opts.createTreeWidgetExternal),
+        forcePrimitiveType: opts.forcePrimitiveType,
+        renderers: `[${opts.renderers.map(renderer => renderer.type).join(', ')}]`,
+    };
 }
