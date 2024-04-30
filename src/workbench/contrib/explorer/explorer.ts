@@ -205,23 +205,20 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         treeContainer.className = 'file-tree-container';
         container.appendChild(treeContainer);
 
-        const init = await this.fileTreeService.init(treeContainer, path);
-        if (init.isOk()) {
-            this._onDidOpen.fire({ path: path });
-        } 
-        
-        /**
-         * If the initialization fails, we capture it and replace it with an
-         * empty view.
-         */
-        else {
-            const error = init.error;
-            success = false;
-            container = this.__createEmptyView();
-            this.logService.error('ExplorerView', `Cannot open the view`, error, { at: URI.toString(path, true) });
-        }
-
-        return [container, success];
+        return this.fileTreeService.init(treeContainer, path)
+            .match(
+                () => this._onDidOpen.fire({ path: path }),
+                (error) => {
+                    /**
+                     * If the initialization fails, we capture it and replace it with an
+                     * empty view.
+                     */
+                    success = false;
+                    container = this.__createEmptyView();
+                    this.logService.error('ExplorerView', `Cannot open the view`, error, { at: URI.toString(path, true) });
+                }
+            )
+            .then(() => [container, success]);
     }
 
     // [private UI helper methods]

@@ -155,7 +155,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
      * @param renderTop The top of scrolling area.
      * @param renderHeight The height of viewport.
      */
-    render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void;
+    render(prevRenderRange: IRange, renderTop: number, renderHeight: number, updateItemsInDOM: boolean): void;
 
     /**
      * @description Updates the position (top) and attributes of an item in the 
@@ -377,7 +377,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this._scrollableWidget.render(this._element);
         this.__register(this._scrollableWidget.onDidScroll((e: IScrollEvent) => {
             const prevRenderRange = this.__getRenderRange(this._prevRenderTop, this._prevRenderHeight);
-            this.render(prevRenderRange, e.scrollPosition, e.viewportSize);
+            this.render(prevRenderRange, e.scrollPosition, e.viewportSize, false);
         }));
 
         // integrates all the renderers
@@ -441,7 +441,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this._scrollable.setViewportSize(height);
     }
 
-    public render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void {
+    public render(prevRenderRange: IRange, renderTop: number, renderHeight: number, updateItemsInDOM: boolean): void {
         const renderRange = this.__getRenderRange(renderTop, renderHeight);
         this._visibleRange = renderRange;
 
@@ -449,17 +449,20 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         const insert = Range.relativeComplement(prevRenderRange, renderRange);
         const remove = Range.relativeComplement(renderRange, prevRenderRange);
-        const update = Range.intersection(prevRenderRange, renderRange);
-
+        
         // update items
-        for (let i = update.start; i < update.end; i++) {
-            this.updateItemInDOM(i);
+        if (updateItemsInDOM) {
+            const update = Range.intersection(prevRenderRange, renderRange);
+            for (let i = update.start; i < update.end; i++) {
+                this.updateItemInDOM(i);
+            }
         }
     
         /**
-         * try to get the next element in the given range, so we can insert our 
+         * Try to get the next element in the given range, so we can insert our 
          * new elements before it one by one.
          */
+        // FIX: someone modify the `prevRenderRange` (it is already updated)
         const insertBefore = this.__getNextElement(insert);
 
         // insert items
