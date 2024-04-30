@@ -29,7 +29,7 @@
             height: 100%;
         }
 
-        & > .filebuttonbar {
+        & > .file-button-bar {
             position: relative;
             display: flex;
             justify-content: space-between;
@@ -39,6 +39,7 @@
             margin: 0 auto;
             height: 70px;
             pointer-events: none;
+            background-color: #f9f9f9;
 
             &.invisible {
                 opacity: 0;
@@ -48,7 +49,7 @@
                 opacity: 1;
             }
             
-            & > .filebuttonbar-container {
+            & > .file-button-bar-container {
                 width: 100%;
                 display: flex;
                 align-items: center;

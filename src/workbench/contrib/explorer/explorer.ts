@@ -301,7 +301,7 @@ export class FileActionBar {
 
     constructor() {
         this._element = document.createElement('div');
-        this._element.className = 'filebuttonbar';
+        this._element.className = 'file-button-bar';
 
         // Create left-aligned buttons WidgetBar
         this._leftButtons = new WidgetBar(undefined, {
@@ -376,7 +376,7 @@ export class FileActionBar {
     public render(parent: HTMLElement): void {
         // file button bar container
         const fileButtonBarContainer = document.createElement('div');
-        fileButtonBarContainer.className = 'filebuttonbar-container';
+        fileButtonBarContainer.className = 'file-button-bar-container';
 
         this._leftButtons.render(fileButtonBarContainer);
         this._rightButtons.render(fileButtonBarContainer);
