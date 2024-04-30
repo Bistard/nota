@@ -6,10 +6,9 @@ import { Component, IComponent } from 'src/workbench/services/component/componen
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
-import { Emitter } from 'src/base/common/event';
+import { Register } from 'src/base/common/event';
 import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { NavigationButton, INavigationButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
-import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -60,8 +59,7 @@ export class ToolBar extends Component implements IToolBarService {
 
     // [event]
 
-    private readonly _onDidClick = new Emitter<INavigationBarButtonClickEvent>();
-    public readonly onDidClick = this._onDidClick.registerListener;
+    public readonly onDidClick: Register<INavigationBarButtonClickEvent>;
 
     // [constructor]
 
@@ -73,18 +71,20 @@ export class ToolBar extends Component implements IToolBarService {
         super("tool-bar", null, themeService, componentService, logService);
         this.actionBarService = new ActionBar(componentService, themeService, logService);
         this.filterBarService = new FilterBar(componentService, themeService, logService);
+
+        this.onDidClick = this.actionBarService.onDidClick;
     }
 
     public getButton(ID: string): NavigationButton | undefined {
-        return this.getPrimaryButton(ID);
+        return this.actionBarService.getButton(ID);
     }
 
     public getPrimaryButton(ID: string): NavigationButton | undefined {
-        return this.actionBarService._primary.getItem(ID);
+        return this.actionBarService.getPrimaryButton(ID);
     }
 
     public registerPrimaryButton(opts: INavigationButtonOptions): boolean {
-        return this.__registerButton(opts, this.actionBarService._primary);
+        return this.actionBarService.registerPrimaryButton(opts);
     }
 
     // [public method]
@@ -117,21 +117,4 @@ export class ToolBar extends Component implements IToolBarService {
     }
 
     // [private method]
-
-    private __registerButton(opts: INavigationButtonOptions, widgetBar: WidgetBar<NavigationButton>): boolean {
-        const button = new NavigationButton(opts);
-
-        if (widgetBar.hasItem(opts.id)) {
-            this.logService.warn('ToolBarService', `Cannot register the tool bar button with duplicate ID.`, { ID: opts.id });
-            return false;
-        }
-
-        widgetBar.addItem({
-            id: opts.id,
-            item: button,
-            dispose: button.dispose,
-        });
-
-        return true;
-    }
 }
