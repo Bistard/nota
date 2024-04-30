@@ -14,6 +14,7 @@ import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
 import { assert, check, panic } from "src/base/common/utilities/panic";
 import { ILog, LogLevel } from "src/base/common/logger";
+import { Iterable } from "src/base/common/utilities/iterable";
 
 /**
  * The constructor options for {@link ListView}.
@@ -375,7 +376,18 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             },
         );
         this._scrollableWidget.render(this._element);
+        
+        // scroll rendering
         this.__register(this._scrollableWidget.onDidScroll((e: IScrollEvent) => {
+
+            /**
+             * splice() will trigger scrollSize changes, thus it will also 
+             * trigger onDidScroll which cause excessive rendering.
+             */
+            if (this._splicing) {
+                return;
+            }
+
             const prevRenderRange = this.__getRenderRange(this._prevRenderTop, this._prevRenderHeight);
             this.render(prevRenderRange, e.scrollPosition, e.viewportSize, false);
         }));
@@ -462,7 +474,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
          * Try to get the next element in the given range, so we can insert our 
          * new elements before it one by one.
          */
-        // FIX: someone modify the `prevRenderRange` (it is already updated)
         const insertBefore = this.__getNextElement(insert);
 
         // insert items
@@ -511,6 +522,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         try {
             this.__splice(index, deleteCount, items);
+            this._onDidSplice.fire();
         } 
         catch (err) {
             panic(err);
@@ -764,13 +776,16 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
      * the given range is something like [x-100].
      */
     private __getNextElement(ranges: IRange[]): HTMLElement | null {
-        const lastRange = ranges[ranges.length - 1];
-
-        if (!lastRange) {
+        if (ranges.length === 0) {
             return null;
         }
 
-        const nextItem = this._items[lastRange.end];
+        const maxRange = Iterable.maxBy(ranges, range => range.end);
+        if (!maxRange) {
+            return null;
+        }
+
+        const nextItem = this._items[maxRange.end];
 
         if (!nextItem || !nextItem.row) {
             return null;
@@ -782,7 +797,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     /**
      * @description Returns a range for rendering.
      * 
-     * @note If render top and render height are not provided, returns a render 
+     * @note If render-top and render-height are not provided, returns a render 
      * range under the current scrollable status.
      * 
      * @returns A range for rendering.
@@ -867,7 +882,9 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             waitToDelete = this._items.splice(index, deleteCount, ...toInsert);
         }
         
+        // the index offset for the original items that after the newly inserted items
         const offset = items.length - deleteCount;
+
         // recalculate the render range (since we have modified the range table)
         const renderRange = this.__getRenderRange(this._prevRenderTop, this._prevRenderHeight);
         this._visibleRange = renderRange;
@@ -896,8 +913,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         const restUnrenderedRange = prevRestUnrenderedRange.map(range => Range.shift(range, offset));
         const elementsRange = { start: index, end: index + items.length };
 		const insertRanges = [elementsRange, ...restUnrenderedRange].map(range => Range.intersection(renderRange, range));
-		const beforeElement = this.__getNextElement(insertRanges);
-        
+        const beforeElement = this.__getNextElement(insertRanges);
+
         // insert the item into the DOM if needed.
         for (const range of insertRanges) {
 			for (let i = range.start; i < range.end; i++) {
@@ -916,9 +933,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 		}
 
         this._listContainer.style.height = `${this._rangeTable.size()}px`;
+        
+        // TODO: request at next animation frame
         this._scrollable.setScrollSize(this._rangeTable.size());
         
-        this._onDidSplice.fire();
         return waitToDelete.map(item => item.data);
     }
 }

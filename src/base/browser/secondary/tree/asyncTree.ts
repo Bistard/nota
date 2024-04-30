@@ -329,8 +329,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
     private _onDidDeleteData?: (node: T) => void;
     
-    private _getDataID: (data: T) => string;
     private log?: ILog;
+    private _getDataID: (data: T) => string; // only for log purpose
 
     // [event]
 
