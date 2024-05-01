@@ -1,4 +1,5 @@
 
+
 .file-tree-container > .list-view > .list-view-container > .list-view-row {
     /* 
     The reason using a `outline` instead of `border` is because border is 
@@ -22,22 +23,39 @@
         
         width: 95%;
         height: 100%;
-        border-radius: 10px;
         
         background-color: transparent;
         transition: background-color 0.3s;
     }
 
-    &.hovered::before {
-        background-color: var(--nota-explorer-item-hovered-background);
-    }
-    
     &.selected::before {
         background-color: var(--nota-explorer-item-selected-background);
     }
+
+    // make sure does not affect 'selected'
+    &.hovered:not(.selected)::before {
+        border-radius: 10px;
+        background-color: var(--nota-explorer-item-hovered-background);
+    }
     
-    &.focused::before {
+    // make sure does not affect 'selected'
+    &.focused:not(.selected)::before {
+        border-radius: 10px;
         outline: 1px solid var(--nota-explorer-item-focused-background);
+    }
+
+    // BUG
+    // select the first selection
+    &.selected:not(.selected ~ .selected)::before {
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    
+    // BUG
+    // select the last selection
+    &.selected:not(:has(~ .selected))::before {
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
     }
 
     /** explicitly display anchor (only for testing purpose) */
