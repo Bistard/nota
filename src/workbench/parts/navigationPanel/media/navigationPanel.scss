@@ -68,7 +68,9 @@ button {
 
 .button-text {
     position: absolute;
-    left: 100%; // Position outside the button
+    color: #e2e2e2;
+    left: 18px; // Position outside the button
+    top: 3.2px;
     white-space: nowrap;
     visibility: hidden;
     opacity: 0;
