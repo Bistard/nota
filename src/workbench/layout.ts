@@ -1,4 +1,4 @@
-import { DomUtility, Orientation } from "src/base/browser/basic/dom";
+import { CollapseState, DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
@@ -16,6 +16,7 @@ import { INavigationPanelService, NavigationPanel, NavigationBarBuilder} from "s
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
 import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
+import { assert } from "src/base/common/utilities/panic";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -79,6 +80,10 @@ export abstract class WorkbenchLayout extends Component {
             if (e.isPrimary) {
                 this.navigationViewService.switchView(e.ID);
             }
+        }));
+
+        this.__register(this.navigationPanelService.onDidCollapseStateChange(state => {
+            // TODO
         }));
     }
 

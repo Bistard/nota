@@ -9,3 +9,8 @@
     overflow: hidden;
     box-sizing: border-box;
 }
+
+#workbench > .split-view-item {
+    // switching animation
+    transition: 0.3s ease-out;
+}

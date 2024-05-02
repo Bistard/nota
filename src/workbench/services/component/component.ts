@@ -264,7 +264,7 @@ export abstract class Component extends Themable implements IComponent {
     private _registered: boolean; // is `_registerListeners` invoked
     
     /** Relatives to {@link assembleComponents()} */
-    private _splitView: ISplitView | undefined;
+    protected _splitView: ISplitView | undefined;
 
     // [event]
 

@@ -258,13 +258,11 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public setSize(newSize: number): void {
-        check(Numbers.within(newSize, this._minimumSize, this._maximumSize, true, true));
         this._size = newSize;
     }
 
     public updateSize(offset: number): void {
         const updated = this._size + offset;
-        check(Numbers.within(updated, this._minimumSize, this._maximumSize, true, true));
         this._size = updated;
     }
 

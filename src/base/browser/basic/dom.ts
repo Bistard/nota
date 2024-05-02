@@ -79,6 +79,11 @@ export const enum Direction {
 	Right,
 }
 
+export const enum CollapseState {
+	Collapse = 'collapse',
+	Expand = 'expand',
+}
+
 /**
  * @description Given a `EventTarget` (eg. HTMLElement), we add a `eventType` 
  * listener to the target with the provided callback. The function returns a 
