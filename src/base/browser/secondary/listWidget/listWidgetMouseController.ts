@@ -193,7 +193,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
         const toFocused = e.actualIndex!;
 
         const currSelection = this._view.getSelections();
-        const newSelection = Arrays.remove(currSelection, toFocused);
+        const newSelection = currSelection.filter(i => i !== toFocused);
 
         this._view.setFocus(toFocused);
         this._view.setAnchor(toFocused);
