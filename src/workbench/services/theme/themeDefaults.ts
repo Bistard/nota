@@ -9,6 +9,7 @@ export const THEME_COLORS = <const>{
     teal:       assert(RGBA.parse('#2AA882')), // review: 青色
     mediumTeal: assert(RGBA.parse('#A3D0C3')),
     lightTeal:  assert(RGBA.parse('#D0EBE3')),
+    lighterTeal: assert(RGBA.parse('#f0f8f5')),
     white:      assert(RGBA.parse('#FFFFFF')),
 
     // primary (text)

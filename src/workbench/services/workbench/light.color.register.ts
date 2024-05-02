@@ -25,9 +25,9 @@ export const rendererLightThemeColorRegister = createRegister(
 
         // Explorer (NavView)
 
-        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-focused-background', THEME_COLORS.mediumTeal);
-        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-selected-background', THEME_COLORS.mediumTeal);
-        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-hovered-background', THEME_COLORS.lightTeal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-focused-background', THEME_COLORS.lightTeal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-selected-background', THEME_COLORS.lightTeal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'explorer-item-hovered-background', THEME_COLORS.lighterTeal);
 
         // Workspace
     },
