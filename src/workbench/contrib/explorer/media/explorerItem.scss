@@ -1,13 +1,11 @@
 
+.explorer-item {
+    position: relative;
+    display: block;
 
-.list-view-container > .list-view-row {
-    
-    & .explorer-item {
-        margin-left: 7.2px;
-        position: relative;
-        display: flex;
-        height: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

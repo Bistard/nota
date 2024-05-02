@@ -5,6 +5,7 @@
 	height: 100%;
     align-items: center;
 		
+	// TREE: indentation style
 	& > .tree-list-indent {
 		text-align: right;
 		flex-shrink: 0;
@@ -36,9 +37,12 @@
         }
 	}
 
+	// TREE: content style
 	& > .tree-list-content {
-		flex: 1;
 		height: 100%;
 		overflow: hidden;
+
+		// give a little space away from the indentation
+		padding-left: 7.2px;
 	}
 }

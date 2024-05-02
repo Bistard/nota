@@ -30,7 +30,7 @@
 			outline-offset: -1px; /* make the outline placed inside the row. */
 			
 			// leave some spaces at two sides
-			width: 92%;
+			width: calc(100% - 20px);
 			height: 100%;
 			// centralize the row
 			left: 50%;
