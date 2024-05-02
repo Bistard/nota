@@ -1,9 +1,8 @@
 import { URI } from "src/base/common/files/uri";
-import { Dimension } from "src/base/common/utilities/size";
 import { UUID } from "src/base/common/utilities/string";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
-import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
+import { IMonitorInfo } from "src/platform/screen/common/screen";
 
 export const enum ArgumentKey {
     configuration = 'window-configuration'
@@ -36,10 +35,17 @@ export interface IWindowDisplayOpts {
     readonly frameless?: boolean;
 }
 
-export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
+/**
+ * @description Given a {@link IMonitorInfo}, returns a dynamic adjusted window
+ * resolution.
+ */
+export function defaultDisplayState(info: IMonitorInfo, mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
+    const width = info.monitorResolution.unscaledResolution.width * 0.55;
+    const height = info.monitorResolution.unscaledResolution.height * 0.66;
+
     return {
-        width:  1440,
-        height: 1024,
+        width: Math.floor(width),
+        height: Math.floor(height),
         mode: mode,
         resizable: true,
         frameless: false,
