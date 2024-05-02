@@ -44,16 +44,14 @@
         outline: 1px solid var(--nota-explorer-item-focused-background);
     }
 
-    // BUG
     // select the first selection
-    &.selected:not(.selected ~ .selected)::before {
+    &.selected:not(.selected + .selected)::before {
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
     }
     
-    // BUG
     // select the last selection
-    &.selected:not(:has(~ .selected))::before {
+    &.selected:not(:has(+ .selected))::before {
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
     }
