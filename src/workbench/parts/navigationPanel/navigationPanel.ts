@@ -1,3 +1,4 @@
+import "src/workbench/parts/navigationPanel/media/navigationPanel.scss";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -21,6 +22,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     // [fields]
     declare _serviceMarker: undefined;
     public static readonly WIDTH = 300;
+    private isPanelVisible: boolean = true;
 
     // [constructor]
 
@@ -40,6 +42,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
     protected override _createContent(): void {
         this.__assemblyParts();
+        this.toggleNavPanelButton();
     }
 
     protected override _registerListeners(): void {
@@ -67,7 +70,42 @@ export class NavigationPanel extends Component implements INavigationPanelServic
             },
         ];
         this.assembleComponents(Orientation.Vertical, partConfigurations);
-    } 
+    }
+
+    private toggleNavPanelButton(): void {
+        const buttonWrapper = document.createElement('div');
+        buttonWrapper.classList.add('button-wrapper');
+    
+        const button = document.createElement('button');
+        button.addEventListener('click', () => {
+            this.isPanelVisible = !this.isPanelVisible;
+            this.updatePanelVisibility();
+        });
+    
+        const topPart = document.createElement('div');
+        topPart.classList.add('button-part', 'button-top');
+    
+        const bottomPart = document.createElement('div');
+        bottomPart.classList.add('button-part', 'button-bottom');
+
+        const textLabel = document.createElement('span');
+        textLabel.classList.add('button-text');
+        textLabel.textContent = "Close sidebar";
+        button.appendChild(textLabel);
+
+        button.appendChild(topPart);
+        button.appendChild(bottomPart);
+        buttonWrapper.appendChild(button);
+    
+        this.element?.appendChild(buttonWrapper);
+    }       
+
+    private updatePanelVisibility(): void {
+        const panel = document.querySelector('.navigation-panel');
+        if (panel) {
+            panel.classList.toggle('hidden');
+        }
+    }
 }
 
 export class NavigationBarBuilder {
