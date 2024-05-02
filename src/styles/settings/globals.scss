@@ -3,7 +3,7 @@
 
 @font-face {
     font-family: harmonyOS sans;
-    src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);
+    src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Regular.ttf);
 }
 
 @font-face {
@@ -17,6 +17,7 @@ body {
     padding: 0px;
     background-color: white;
 
+    color: #5A564D;
     font-size: const.$font-size;
     font-family: 'harmonyOS sans', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
     overflow: hidden;

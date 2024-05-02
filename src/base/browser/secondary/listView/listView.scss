@@ -41,18 +41,19 @@
 
 			// selection
 			&.selected {
+				color: #211F27;
 				background-color: var(--nota-explorer-item-selected-background);
 			}
 		
 			// hovered (make sure does not affect 'selected')
 			&.hovered:not(.selected) {
-				border-radius: 10px;
+				border-radius: 6px;
 				background-color: var(--nota-explorer-item-hovered-background);
 			}
 			
 			// focused (make sure does not affect 'selected')
 			&.focused:not(.selected) {
-				border-radius: 10px;
+				border-radius: 6px;
 				outline: 1px solid var(--nota-explorer-item-focused-background);
 			}
 
@@ -64,14 +65,14 @@
 		
 			// select the first selection
 			&.selected:not(.selected + .selected) {
-				border-top-left-radius: 10px;
-				border-top-right-radius: 10px;
+				border-top-left-radius: 6px;
+				border-top-right-radius: 6px;
 			}
 			
 			// select the last selection
 			&.selected:not(:has(+ .selected)) {
-				border-bottom-left-radius: 10px;
-				border-bottom-right-radius: 10px;
+				border-bottom-left-radius: 6px;
+				border-bottom-right-radius: 6px;
 			}
 		}
 	}

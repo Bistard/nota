@@ -29,7 +29,8 @@ export interface ISashOpts {
     readonly initPosition?: number;
     
     /**
-     * The width or height of the {@link Sash} depends on the _orientation.
+     * The width or height of the {@link Sash} depends on the `orientation`.
+     * @default 2
      */
     readonly size?: number;
 
@@ -270,7 +271,7 @@ export class Sash extends Disposable implements ISash {
         this._parentElement = parentElement;
         this._orientation = opts.orientation;
         this._position = opts.initPosition ?? 0;
-        this._size = opts.size ?? 4;
+        this._size = opts.size ?? 2;
         this._range = opts.range ?? { start: -1, end: -1 };
         this._enabled = opts.enable ?? true;
         this._visible = opts.visible ?? false;
