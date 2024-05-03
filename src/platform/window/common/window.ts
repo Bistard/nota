@@ -1,4 +1,7 @@
+import { screen } from "electron";
 import { URI } from "src/base/common/files/uri";
+import { IS_MAC } from "src/base/common/platform";
+import { Dimension } from "src/base/common/utilities/size";
 import { UUID } from "src/base/common/utilities/string";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
@@ -40,17 +43,26 @@ export interface IWindowDisplayOpts {
  * resolution.
  */
 export function defaultDisplayState(info: IMonitorInfo, mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
-    const width = info.monitorResolution.unscaledResolution.width * 0.55;
-    const height = info.monitorResolution.unscaledResolution.height * 0.66;
+    const { width, height } = info.workAreaResolution.unscaledResolution;
+    let scaleFactor = 1;
+
+    if (IS_MAC) {
+        scaleFactor = info.scaleFactor;
+    }
+
+    const coefficient    = 2 / 3;
+    const adjustedWidth  = Math.round((width / scaleFactor) * coefficient);
+    const adjustedHeight = Math.round((height / scaleFactor) * coefficient);
 
     return {
-        width: Math.floor(width),
-        height: Math.floor(height),
+        width: adjustedWidth,
+        height: adjustedHeight,
         mode: mode,
         resizable: true,
         frameless: false,
     };
 }
+
 
 /**
  * Indicates different type of opening option.
