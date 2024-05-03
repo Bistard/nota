@@ -111,7 +111,8 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         opts.log?.(LogLevel.DEBUG, 'FileTree', 'FileTree constructing with options:', null, __logFileTreeOptions(opts));
         super(container, rootData, opts);
         this.DOMElement.classList.add('file-tree');
-        this.__register(this.onClick(e => this.__onClick(e)));
+        
+        this.__registerListeners();
     }
 
     // [public methods]
@@ -134,6 +135,17 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
     }
 
     // [private helper method]
+
+    private __registerListeners(): void {
+        
+        // trigger clicking
+        this.__register(this.onClick(e => this.__onClick(e)));
+
+        // blur effect for selections
+        this.__register(this.onDidChangeFocus(isFocused => {
+            this.DOMElement.classList.toggle('blurred', !isFocused);
+        }));
+    }
 
     private __onClick(event: ITreeMouseEvent<T>): void {
         // clicking no where

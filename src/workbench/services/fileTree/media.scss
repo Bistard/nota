@@ -1,7 +1,7 @@
 
-.file-tree.focused {
-    outline-offset: -1px;
-    outline: 1px solid #cf6060;
+// blurs the selections when the tree is blurred
+.file-tree.blurred .selected {
+    background-color: #E2E2E2 !important;
 }
 
 .file-tree.on-drop-target {
@@ -15,7 +15,7 @@
 
     width: 100%;
     height: var(--nota-overlay-height);
-    background-color: #cf6060;
+    background-color: #D0EBE3;
 
     /** the insertion should be inactive */
     pointer-events: none;
