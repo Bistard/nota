@@ -50,9 +50,8 @@ export function defaultDisplayState(info: IMonitorInfo, mode: WindowDisplayMode 
         scaleFactor = info.scaleFactor;
     }
 
-    const coefficient    = 2 / 3;
-    const adjustedWidth  = Math.round((width / scaleFactor) * coefficient);
-    const adjustedHeight = Math.round((height / scaleFactor) * coefficient);
+    const adjustedWidth  = Math.round((width / scaleFactor) * 0.55);
+    const adjustedHeight = Math.round((height / scaleFactor) * 0.66);
 
     return {
         width: adjustedWidth,
