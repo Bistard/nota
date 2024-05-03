@@ -27,12 +27,10 @@
         }
 
         &.collapsed::before {
-			color: #b5b5b5;
             transform: rotate(0deg);
         }
 
         &:not(.collapsed)::before {
-            color: #5a564d;
             transform: rotate(90deg);
         }
 	}
@@ -45,4 +43,15 @@
 		// give a little space away from the indentation
 		padding-left: 7.2px;
 	}
+}
+
+/**
+ * When the row is selected, the color of the arrow changes.
+ */
+.list-view-row.selected .tree-list-indent::before {
+	color: #5a564d;
+}
+
+.list-view-row:not(.selected) .tree-list-indent::before {
+	color: #b5b5b5;
 }
