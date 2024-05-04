@@ -153,6 +153,13 @@ export class SearchBar extends Widget implements ISearchBar {
         this.__register(addDisposableListener(innerText, EventType.blur, event => {
             this._onDidBlur.fire(event);
         }));
+
+        this.__register(addDisposableListener(innerText, EventType.select, () => {
+            if (innerText.value) {
+                innerText.select();
+                document.execCommand('copy');
+            }
+        }));
     }
     
     // [private helper methods]
