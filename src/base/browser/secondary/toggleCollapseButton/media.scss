@@ -1,18 +1,16 @@
-@use 'src/styles/settings/constants' as const;
 
+/**
+ * NOTE: Default CSS style for this button is facing left. The position and the 
+ * collapse state is configurable through JavaScript. See `toggleCollapseButton.ts`.
+ */
 .toggle-collapse-button {
     
     /**
      * Sometimes when the button is rendered outside of the parent div, the 
      * button will not be triggered due to it might has a low z-index.
      */
-    z-index: const.$z-index-low;
     position: absolute;
     display: flex;
-    
-    right: -10px; // render at the outside
-    top: 50%;
-    transform: translateY(-50%);
     
     width: 4px;
     height: 20px;

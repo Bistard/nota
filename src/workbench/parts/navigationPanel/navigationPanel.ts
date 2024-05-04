@@ -2,7 +2,7 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { CollapseState, Orientation } from "src/base/browser/basic/dom";
+import { CollapseState, DirectionX, Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
@@ -55,7 +55,11 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
     protected override _createContent(): void {
         this.__assemblyParts();
-        this._button = new ToggleCollapseButton();
+        this._button = new ToggleCollapseButton({
+            position: DirectionX.Right,
+            positionOffset: -10,
+            direction: DirectionX.Left,
+        });
         this._button.render(this.element.element);
     }
 

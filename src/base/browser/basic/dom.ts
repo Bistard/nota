@@ -74,9 +74,16 @@ export const enum Orientation {
     Vertical
 }
 
-export const enum Direction {
-	Left,
-	Right,
+export type Direction = DirectionX | DirectionY;
+
+export const enum DirectionX {
+	Left = 0,
+	Right = 1,
+}
+
+export const enum DirectionY {
+	Top = 2,
+	Bottom = 3,
 }
 
 export const enum CollapseState {
