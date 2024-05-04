@@ -1,7 +1,5 @@
-import { screen } from "electron";
 import { URI } from "src/base/common/files/uri";
 import { IS_MAC } from "src/base/common/platform";
-import { Dimension } from "src/base/common/utilities/size";
 import { UUID } from "src/base/common/utilities/string";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
@@ -46,8 +44,9 @@ export function defaultDisplayState(info: IMonitorInfo, mode: WindowDisplayMode 
     const { width, height } = info.workAreaResolution.unscaledResolution;
     let scaleFactor = 1;
 
+    // TODO: dynamically adjust scaleFactor levels according to current display size
     if (IS_MAC) {
-        scaleFactor = info.scaleFactor;
+        scaleFactor = 1.2;
     }
 
     const adjustedWidth  = Math.round((width * scaleFactor) * 0.55);
