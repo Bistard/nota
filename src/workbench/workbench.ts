@@ -1,4 +1,4 @@
-import 'src/workbench/media/workbench.scss';
+import 'src/workbench/workbench.scss';
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { WorkbenchLayout } from "src/workbench/layout";

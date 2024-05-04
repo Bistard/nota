@@ -1,4 +1,4 @@
-import "src/workbench/parts/navigationPanel/media/navigationPanel.scss";
+import "src/workbench/parts/navigationPanel/navigationPanel.scss";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -143,12 +143,12 @@ export class NavigationBarBuilder {
                 icon: Icons.AddNew,
             },
         ]
-            .forEach(({ id, icon}) => {
-                this.toolBarService.registerPrimaryButton({
-                    id: id,
-                    icon: icon,
-                    isPrimary: true,
-                });
+        .forEach(({ id, icon}) => {
+            this.toolBarService.registerPrimaryButton({
+                id: id,
+                icon: icon,
+                isPrimary: true,
             });
+        });
     }
 }
