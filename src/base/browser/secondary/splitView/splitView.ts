@@ -448,6 +448,7 @@ export class SplitView extends Disposable implements ISplitView {
             return;
         }
 
+        // no views can be fit into the split-view.
         if (low.length + normal.length + high.length === 0) {
             if (splitViewSize !== 0) {
                 panic(new SplitViewSpaceError(splitViewSize, currContentSize));
