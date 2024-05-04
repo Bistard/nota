@@ -22,11 +22,6 @@ export interface INavigationBarButtonClickEvent {
      * The previous ID of button was clicked.
      */
     readonly prevType: string;
-
-    /**
-     * If the button clicked is primary.
-     */
-    readonly isPrimary: boolean;
 }
 
 /**

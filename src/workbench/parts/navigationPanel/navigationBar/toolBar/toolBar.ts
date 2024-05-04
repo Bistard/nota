@@ -8,7 +8,7 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { Register } from 'src/base/common/event';
 import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
-import { NavigationButton, INavigationButtonOptions } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
+import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -23,21 +23,21 @@ export interface IToolBarService extends IComponent, IService {
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getButton(ID: string): NavigationButton | undefined;
+    getButton(ID: string): Button | undefined;
 
     /**
      * @description Returns a primary button by provided a button ID.
      * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getPrimaryButton(ID: string): NavigationButton | undefined;
+    getPrimaryButton(ID: string): Button | undefined;
 
     /**
      * @description Register a new primary button.
      * @param opts The options to construct the button.
      * @returns A boolean indicates if the button has created.
      */
-    registerPrimaryButton(opts: INavigationButtonOptions): boolean;  
+    registerPrimaryButton(opts: IButtonOptions): boolean;  
     
     /**
      * @description Switches the toolbar to display the specified bar.
@@ -75,15 +75,15 @@ export class ToolBar extends Component implements IToolBarService {
         this.onDidClick = this.actionBarService.onDidClick;
     }
 
-    public getButton(ID: string): NavigationButton | undefined {
+    public getButton(ID: string): Button | undefined {
         return this.actionBarService.getButton(ID);
     }
 
-    public getPrimaryButton(ID: string): NavigationButton | undefined {
+    public getPrimaryButton(ID: string): Button | undefined {
         return this.actionBarService.getPrimaryButton(ID);
     }
 
-    public registerPrimaryButton(opts: INavigationButtonOptions): boolean {
+    public registerPrimaryButton(opts: IButtonOptions): boolean {
         return this.actionBarService.registerPrimaryButton(opts);
     }
 

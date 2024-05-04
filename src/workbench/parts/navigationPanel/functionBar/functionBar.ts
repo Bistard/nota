@@ -1,11 +1,11 @@
 import 'src/workbench/parts/navigationPanel/functionBar/media/functionBar.scss';
-import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { Icons } from 'src/base/browser/icon/icons';
+import { Button } from 'src/base/browser/basic/button/button';
 
 export const IFunctionBarService = createService<IFunctionBarService>('function-bar-service');
 
@@ -58,9 +58,9 @@ export class FunctionBar extends Component implements IFunctionBarService {
     }
 
     // [private helper method]
-    private __createHelpButton(): NavigationButton {
-        const outlineButton = new NavigationButton(
-            { id: 'help', icon: Icons.Help, classes: ['help-button'], isPrimary: true });
+    private __createHelpButton(): Button {
+        const outlineButton = new Button (
+            { id: 'help', icon: Icons.Help, classes: ['help-button'] });
         outlineButton.render(document.createElement('div'));
         return outlineButton;
     }

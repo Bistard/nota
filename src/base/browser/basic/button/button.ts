@@ -10,6 +10,11 @@ import { Emitter, Register } from "src/base/common/event";
 export interface IButtonOptions {
 
     /**
+     * The ID of the button.
+     */
+    readonly id: string;
+
+    /**
      * Icon of the button.
      */
     readonly icon?: Icons;
@@ -40,7 +45,8 @@ export interface IButton extends IWidget {
     
     // [getter or setter]
 
-    /** The icon of the button if provided. */
+    readonly id?: string;
+    
     readonly icon?: Icons;
 
     readonly enabled: boolean;
