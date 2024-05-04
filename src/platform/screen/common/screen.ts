@@ -17,7 +17,6 @@ export interface IMonitorInfo {
 
     /**
      * The refresh frequency of the monitor, measured in hertz (Hz).
-
      */
     readonly fps: number;
 
@@ -49,7 +48,7 @@ export interface IMonitorInfo {
     
     /**
      * Provides the scaled and unscaled resolutions of the entire monitor. This 
-     * resolution TAKES into account space used by system taskbars and others.
+     * resolution TAKES into account space used by system taskbar and others.
      * 
      * For instance, the monitor resolution is 1920x1080 pixels.
      */
@@ -57,11 +56,11 @@ export interface IMonitorInfo {
 
     /**
      * Provides the scaled and unscaled resolutions of the monitor's work area.
-     * This resolution DOES NOT take into account space used by system taskbars 
+     * This resolution DOES NOT take into account space used by system taskbar 
      * and others.
      * 
      * For instance, the monitor resolution is 1920x1080 pixels. The work area
-     * resolution is 1920x1040 pixels (40 pixels is removed by the taskbars).
+     * resolution is 1920x1040 pixels (40 pixels is removed by the taskbar).
      */
     readonly workAreaResolution: IScaledResolution;
 }
