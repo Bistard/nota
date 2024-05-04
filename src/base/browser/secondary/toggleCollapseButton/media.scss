@@ -1,0 +1,72 @@
+@use 'src/styles/settings/constants' as const;
+
+.toggle-collapse-button {
+    
+    /**
+     * Sometimes when the button is rendered outside of the parent div, the 
+     * button will not be triggered due to it might has a low z-index.
+     */
+    z-index: const.$z-index-low;
+    position: absolute;
+    display: flex;
+    
+    right: -10px; // render at the outside
+    top: 50%;
+    transform: translateY(-50%);
+    
+    width: 4px;
+    height: 20px;
+    
+    align-items: center;
+    justify-content: center;
+    
+    & > .container {
+        position: relative; // Important for positioning children absolutely within the button
+        width: 100%;
+        height: 100%;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+
+        & > .button-part {
+            position: absolute;
+            width: 100%;
+            height: 53%; // 3% for overlap
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+    
+        & > .button-top {
+            top: 0;
+            width: 4px;
+            background-color: #e2e2e2;
+            border-top-left-radius: 2px;
+            border-top-right-radius: 2px;
+            border-bottom: none;
+        }
+    
+        & > .button-bottom {
+            bottom: 0;
+            width: 4px;
+            background-color: #e2e2e2;
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            border-top: none;
+        }
+    }
+
+    // [animation]
+
+    &:hover {
+        & .button-top, .button-bottom {
+            background-color: #b5b5b5;
+        }
+
+        & .button-top {
+            transform: rotate(20deg);
+        }
+        
+        & .button-bottom {
+            transform: rotate(-20deg);
+        }
+    }
+}
