@@ -327,6 +327,7 @@ export class FileActionBar {
             { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: () => { } },
         ].forEach(({ id, icon, classes, fn }) => {
             const button = new Button({
+                id: id,
                 icon: icon,
                 classes: classes,
             });
@@ -344,6 +345,7 @@ export class FileActionBar {
             { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
         ].forEach(({ id, icon, classes, fn }) => {
             const button = new Button({
+                id: id,
                 icon: icon,
                 classes: classes,
             });
@@ -360,6 +362,7 @@ export class FileActionBar {
             { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: () => { } }, // TODO: update icon when tag icon is available
         ].forEach(({ id, icon, classes, fn }) => {
             const button = new Button({
+                id: id,
                 icon: icon,
                 classes: classes,
             });
