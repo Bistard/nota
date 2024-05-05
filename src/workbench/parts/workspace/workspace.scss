@@ -1,0 +1,12 @@
+#workspace {
+    position: relative;
+    width: auto;
+    height: auto;
+    
+    display: flex;
+    flex-direction: column;
+    
+    // collapse/expand purpose
+
+    flex-grow: 1;
+}

@@ -4,11 +4,6 @@
  * collapse state is configurable through JavaScript. See `toggleCollapseButton.ts`.
  */
 .toggle-collapse-button {
-    
-    /**
-     * Sometimes when the button is rendered outside of the parent div, the 
-     * button will not be triggered due to it might has a low z-index.
-     */
     position: absolute;
     display: flex;
     

@@ -1,3 +1,4 @@
+import "src/workbench/parts/navigationPanel/navigationPanel.scss";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -15,6 +16,9 @@ import { assert } from "src/base/common/utilities/panic";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
+/**
+ * An interface only for {@link NavigationPanel}.
+ */
 export interface INavigationPanelService extends IComponent, IService {
 
     /**
@@ -55,6 +59,8 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
     protected override _createContent(): void {
         this.__assemblyParts();
+        
+        // collapse button
         this._button = new ToggleCollapseButton({
             position: DirectionX.Right,
             positionOffset: -10,

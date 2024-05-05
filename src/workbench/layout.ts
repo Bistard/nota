@@ -1,9 +1,8 @@
-import { DomUtility, Orientation } from "src/base/browser/basic/dom";
+import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
+import { Component } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
@@ -16,6 +15,10 @@ import { INavigationPanelService, NavigationPanel, NavigationBarBuilder} from "s
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
 import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
+import { Sash } from "src/base/browser/basic/sash/sash";
+import { assert } from "src/base/common/utilities/panic";
+import { SimpleSashController } from "src/base/browser/basic/sash/sashController";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -24,6 +27,8 @@ import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationB
 export abstract class WorkbenchLayout extends Component {
 
     // [fields]
+
+    private _sash?: Sash;
 
     // [constructor]
 
@@ -43,7 +48,7 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
-        this.__registerNavigationViews();
+        this._sash = undefined;
     }
 
     // [protected methods]
@@ -60,16 +65,58 @@ export abstract class WorkbenchLayout extends Component {
     // [protected helper methods]
 
     protected __createLayout(): void {
+        this.__registerNavigationViews();
 
         // register tool buttons
         const navigationBarBuilder = new NavigationBarBuilder(this.toolBarService);
         navigationBarBuilder.registerButtons();
 
         // assembly the workbench layout
-        this.__assemblyWorkbenchComponents();
+        
+        /**
+         * Utilize `this.assembleComponents()` is very hard to achieve collapse/
+         * expand animation for navigation panel since the internal rendering
+         * is entirely handled by {@link SplitView}.
+         * 
+         * We need to render by ourself in this case.
+         */
+        
+        this.navigationPanelService.create(this);
+        this.navigationPanelService.element.setWidth(NavigationPanel.WIDTH);
+        
+        this._sash = new Sash(this.element.element, { 
+            orientation: Orientation.Vertical,
+            range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
+            controller: SimpleSashController,
+        });
+
+        this.workspaceService.create(this);
     }
 
     protected __registerLayoutListeners(): void {
+        const sash = assert(this._sash);
+
+        this.navigationPanelService.registerListeners();
+        sash.registerListeners();
+        this.workspaceService.registerListeners();
+
+        /**
+         * Based on the sash movement, we recalculate the left/right width.
+         */
+        this.__register(sash.onDidMove(e => {
+            const left  = this.navigationPanelService.element.element;
+            const right = this.workspaceService.element.element;
+
+            const leftWidth   = Numbers.clamp(left.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
+            const rightWidth  = Numbers.clamp(right.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
+            left.style.width  = `${leftWidth}px`;
+            right.style.width = `${rightWidth}px`;
+        }));
+
+        // re-layout
+        this.__register(addDisposableListener(window, EventType.resize, () => {
+            this.layout();
+        }));
 
         /**
          * Listens to each NavigationBar button click events and notifies the 
@@ -92,25 +139,4 @@ export abstract class WorkbenchLayout extends Component {
         this.navigationViewService.registerView('explorer', ExplorerView);
         // TODO: other navigation-views are also registered here.
     }
-
-    private __assemblyWorkbenchComponents(): void {
-        const workbenchConfigurations: IAssembleComponentOpts[] = [
-            { 
-                component: this.navigationPanelService,
-                minimumSize: NavigationPanel.WIDTH,
-                initSize: NavigationPanel.WIDTH,
-                maximumSize: NavigationPanel.WIDTH * 2,
-                priority: Priority.Normal,
-            },
-            { 
-                component: this.workspaceService,
-                minimumSize: 0,
-                initSize: NavigationPanel.WIDTH,
-                maximumSize: null,
-                priority: Priority.High,
-            },
-        ];
-    
-        this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
-    } 
 }

@@ -66,6 +66,7 @@ export class ToggleCollapseButton extends Widget {
     protected override __render(element: HTMLElement): void {
         const button = document.createElement('div');
         button.classList.add('toggle-collapse-button');
+        button.style.position = 'absolute';
         this._button = button;
 
         // use 'button' to increase hover area

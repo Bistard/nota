@@ -1,4 +1,4 @@
-// import 'src/workbench/parts/workspace/media/workspace.scss';
+import 'src/workbench/parts/workspace/workspace.scss';
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IComponent } from "src/workbench/services/component/component";
 import { TitleBar } from "src/workbench/parts/workspace/titleBar/titleBar";
@@ -10,6 +10,9 @@ import { ILogService } from "src/base/common/logger";
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
+/**
+ * An interface only for {@link WorkspaceComponent}.
+ */
 export interface IWorkspaceService extends IComponent, IService {
 
 }
