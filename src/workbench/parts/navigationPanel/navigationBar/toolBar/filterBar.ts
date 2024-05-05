@@ -3,8 +3,8 @@ import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
-import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { Icons } from 'src/base/browser/icon/icons';
+import { Button } from 'src/base/browser/basic/button/button';
 
 export class FilterBar extends Component {
 
@@ -38,8 +38,8 @@ export class FilterBar extends Component {
     // [private method]
 
     // TODO: test, delete later
-    private __createLogo(): NavigationButton {
-        const logo = new NavigationButton({ id: Icons.FolderDefault, isPrimary: true, classes: ['logo'] });
+    private __createLogo(): Button {
+        const logo = new Button({ id: Icons.FolderDefault, classes: ['logo'] });
         logo.render(document.createElement('div'));
         
         const text = document.createElement('div');

@@ -122,7 +122,6 @@ export class NavigationBarBuilder {
             this.toolBarService.registerPrimaryButton({
                 id: id,
                 icon: icon,
-                isPrimary: true,
             });
         });
     }

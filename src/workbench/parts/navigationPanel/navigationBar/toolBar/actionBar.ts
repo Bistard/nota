@@ -1,6 +1,5 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { INavigationButtonOptions, NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
@@ -8,6 +7,7 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Emitter } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
+import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
 
 export class ActionBar extends Component {
 
@@ -17,7 +17,7 @@ export class ActionBar extends Component {
 
     public static readonly HEIGHT = 60;
 
-    private readonly _buttons: WidgetBar<NavigationButton>;
+    private readonly _buttons: WidgetBar<Button>;
     
     // [event]
     
@@ -36,15 +36,15 @@ export class ActionBar extends Component {
     }
 
     // [public method]
-    public getButton(ID: string): NavigationButton | undefined {
+    public getButton(ID: string): Button | undefined {
         return this.getPrimaryButton(ID);
     }
 
-    public getPrimaryButton(ID: string): NavigationButton | undefined {
+    public getPrimaryButton(ID: string): Button | undefined {
         return this._buttons.getItem(ID);
     }
 
-    public registerPrimaryButton(opts: INavigationButtonOptions): boolean {
+    public registerPrimaryButton(opts: IButtonOptions): boolean {
         return this.__registerButton(opts, this._buttons);
     }
 
@@ -64,11 +64,11 @@ export class ActionBar extends Component {
     }
 
     // [private method]
-    private __registerButton(opts: INavigationButtonOptions, widgetBar: WidgetBar<NavigationButton>): boolean {
-        const button = new NavigationButton(opts);
+    private __registerButton(opts: IButtonOptions, widgetBar: WidgetBar<Button>): boolean {
+        const button = new Button(opts);
 
         if (widgetBar.hasItem(opts.id)) {
-            this.logService.warn('ToolBarService', `Cannot register the tool bar button with duplicate ID.`, { ID: opts.id });
+            this.logService.warn('ActionBarService', `Cannot register the action bar button with duplicate ID.`, { ID: opts.id });
             return false;
         }
 

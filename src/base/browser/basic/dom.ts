@@ -67,6 +67,7 @@ export const enum EventType {
 	drop = 'drop',
 
 	input = 'input',
+    select = "select",
 }
 
 export const enum Orientation {

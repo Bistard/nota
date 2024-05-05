@@ -123,9 +123,7 @@ export abstract class WorkbenchLayout extends Component {
          * navigationView to switch the view.
          */
         this.__register(this.navigationBarService.onDidClick(e => {
-            if (e.isPrimary) {
-                this.navigationViewService.switchView(e.ID);
-            }
+            this.navigationViewService.switchView(e.ID);
         }));
 
         this.__register(this.navigationPanelService.onDidCollapseStateChange(state => {

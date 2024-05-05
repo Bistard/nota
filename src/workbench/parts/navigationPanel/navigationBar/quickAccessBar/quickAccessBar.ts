@@ -1,12 +1,12 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/media/quickAccessBar.scss';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { NavigationButton } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBarButton';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { ILogService } from 'src/base/common/logger';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
+import { Button } from 'src/base/browser/basic/button/button';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 
@@ -66,9 +66,9 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
 
     // [private helper method]
     
-    private __createOutlineButton(): NavigationButton {
-        const outlineButton = new NavigationButton(
-            { id: 'menu', icon: Icons.Menu, classes: ['menu-button'], isPrimary: true });
+    private __createOutlineButton(): Button {
+        const outlineButton = new Button(
+            { id: 'menu', icon: Icons.Menu, classes: ['menu-button'] });
         outlineButton.render(document.createElement('div'));
         return outlineButton;
     }

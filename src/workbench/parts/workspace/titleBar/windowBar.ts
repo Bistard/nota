@@ -48,6 +48,7 @@ export class WindowBar extends Component {
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new WindowButton({
+                    id: id,
                     icon: icon,
                     classes: classes,
                 });

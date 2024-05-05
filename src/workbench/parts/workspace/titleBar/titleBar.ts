@@ -4,7 +4,6 @@ import { WindowBar } from 'src/workbench/parts/workspace/titleBar/windowBar';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { IProductService } from 'src/platform/product/common/productService';
 import { ILogService } from 'src/base/common/logger';
 
 /**
@@ -19,7 +18,6 @@ export class TitleBar extends Component {
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
-        @IProductService private readonly productService: IProductService,
         @ILogService logService: ILogService,
     ) {
         super('title-bar', null, themeService, componentService, logService);
