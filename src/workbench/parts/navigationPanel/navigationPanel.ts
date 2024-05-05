@@ -21,10 +21,6 @@ export const INavigationPanelService = createService<INavigationPanelService>('n
  */
 export interface INavigationPanelService extends IComponent, IService {
 
-    /**
-     * Fires when the navigation panel wether collapsed.
-     */
-    readonly onDidCollapseStateChange: Register<CollapseState>;
 }
 
 export class NavigationPanel extends Component implements INavigationPanelService {
@@ -33,13 +29,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     
     declare _serviceMarker: undefined;
     public static readonly WIDTH = 300;
-    
-    private _button?: ToggleCollapseButton;
 
-    // [event]
-
-    get onDidCollapseStateChange() { return assert(this._button).onDidCollapseStateChange; }
-    
     // [constructor]
 
     constructor(
@@ -52,21 +42,12 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         @ILogService logService: ILogService,
     ) {
         super('navigation-panel', null, themeService, componentService, logService);
-        this._button = undefined;
     }
 
     // [protected override methods]
 
     protected override _createContent(): void {
         this.__assemblyParts();
-        
-        // collapse button
-        this._button = new ToggleCollapseButton({
-            position: DirectionX.Right,
-            positionOffset: -20,
-            direction: DirectionX.Left,
-        });
-        this._button.render(this.element.element);
     }
 
     protected override _registerListeners(): void {

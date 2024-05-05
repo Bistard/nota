@@ -1,10 +1,20 @@
 import { IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IContextKey } from "src/platform/context/common/contextKey";
+import { CollapseState } from "src/base/browser/basic/dom";
+import { Register } from "src/base/common/event";
 
 export const IWorkbenchService = createService<IWorkbenchService>('workbench-service');
 
+/**
+ * An interface only for {@link Workbench}.
+ */
 export interface IWorkbenchService extends IComponent, IService {
+
+    /**
+     * Fires when the navigation-panel is collapsed or expanded.
+     */
+    readonly onDidCollapseStateChange: Register<CollapseState>;
 
     /**
      * @description Expose the contextKey out so that the client is able to 

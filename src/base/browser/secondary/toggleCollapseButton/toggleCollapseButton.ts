@@ -127,14 +127,12 @@ export class ToggleCollapseButton extends Widget {
          * 
          * To prevent this issue, the button's z-index is increased by 1.
          */
-        if (positionOffset < 0) {
-            if (isNonNullable(this._opts.zIndex)) {
-                button.style.zIndex = `${this._opts.zIndex}`;
-            } else {
-                const zIndex = getComputedStyle(button).getPropertyValue('z-index');
-                const newZIndex = zIndex === 'auto' ? 1 : Number(zIndex) + 1;
-                button.style.zIndex = `${newZIndex}`;
-            }
+        if (isNonNullable(this._opts.zIndex)) {
+            button.style.zIndex = `${this._opts.zIndex}`;
+        } else {
+            const zIndex = getComputedStyle(button).getPropertyValue('z-index');
+            const newZIndex = zIndex === 'auto' ? 1 : Number(zIndex) + 1;
+            button.style.zIndex = `${newZIndex}`;
         }
 
         // centralize the button

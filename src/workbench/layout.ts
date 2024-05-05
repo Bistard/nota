@@ -1,4 +1,4 @@
-import { CollapseState, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
+import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
@@ -20,6 +20,7 @@ import { assert } from "src/base/common/utilities/panic";
 import { SimpleSashController } from "src/base/browser/basic/sash/sashController";
 import { Numbers } from "src/base/common/utilities/number";
 import { Disposable } from "src/base/common/dispose";
+import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -30,6 +31,10 @@ export abstract class WorkbenchLayout extends Component {
     // [fields]
 
     private readonly _collapseController: CollapseAnimationController;
+
+    // [event]
+
+    get onDidCollapseStateChange() { return this._collapseController.onDidCollapseStateChange; }
 
     // [constructor]
 
@@ -125,11 +130,16 @@ class CollapseAnimationController extends Disposable {
 
     // [fields]
 
+    private readonly navigationPanel: INavigationPanelService;
+    private readonly workspace: IWorkspaceService;
+
+    private readonly _button: ToggleCollapseButton;
     private _sash?: ISash;
     private _originalWidth?: number;
 
-    private readonly navigationPanel: INavigationPanelService;
-    private readonly workspace: IWorkspaceService;
+    // [event]
+
+    get onDidCollapseStateChange() { return assert(this._button).onDidCollapseStateChange; }
 
     // [constructor]
 
@@ -140,11 +150,19 @@ class CollapseAnimationController extends Disposable {
         super();
         this.navigationPanel = navigationPanel;
         this.workspace = workspace;
+
+        this._button = new ToggleCollapseButton({
+            position: DirectionX.Left,
+            positionOffset: 4,
+            direction: DirectionX.Left,
+        });
     }
 
     // [public methods]
 
     public render(container: HTMLElement): void {
+        this._button.render(this.workspace.element.element);
+        
         this._sash = this.__register(new Sash(container, { 
             orientation: Orientation.Vertical,
             size: 4,
@@ -168,7 +186,7 @@ class CollapseAnimationController extends Disposable {
         }));
 
         // manage navigation-panel collapse/expand
-        this.__register(this.navigationPanel.onDidCollapseStateChange(state => {
+        this.__register(this.onDidCollapseStateChange(state => {
             const left = this.navigationPanel.element.element;
             const right = this.workspace.element.element;
             const transitionTime = '0.2';
