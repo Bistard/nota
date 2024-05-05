@@ -49,9 +49,9 @@
  * When the row is selected, the color of the arrow changes.
  */
 .list-view-row.selected .tree-list-indent::before {
-	color: #5a564d;
+	color: var(--nota-file-tree-arrow-select);
 }
 
 .list-view-row:not(.selected) .tree-list-indent::before {
-	color: #b5b5b5;
+	color: var(--nota-file-tree-arrow-normal);
 }

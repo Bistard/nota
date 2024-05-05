@@ -41,7 +41,7 @@
 
 			// selection
 			&.selected {
-				color: #211F27;
+				color: var(--nota-explorer-item-selected-background);
 				background-color: var(--nota-explorer-item-selected-background);
 			}
 		
@@ -90,7 +90,7 @@
 .list-drag-image {
 	position: absolute;
 	display: inline-block;
-	background-color: rgb(235, 235, 235);
+	background-color: var(--nota-explorer-item-grag-image-background);
 	font-size: 12px;
 	padding: 1px 7px;
 	border-radius: 10px;

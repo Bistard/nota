@@ -31,7 +31,7 @@
         & > .button-top {
             top: 0;
             width: 4px;
-            background-color: #e2e2e2;
+            background-color: var(--nota-toggle-collapse-button);
             border-top-left-radius: 2px;
             border-top-right-radius: 2px;
             border-bottom: none;
@@ -40,7 +40,7 @@
         & > .button-bottom {
             bottom: 0;
             width: 4px;
-            background-color: #e2e2e2;
+            background-color: var(--nota-toggle-collapse-button);
             border-bottom-left-radius: 2px;
             border-bottom-right-radius: 2px;
             border-top: none;
@@ -51,7 +51,7 @@
 
     &:hover {
         & .button-top, .button-bottom {
-            background-color: #b5b5b5;
+            background-color: var(--nota-toggle-collapse-button-hover);
         }
 
         & .button-top {

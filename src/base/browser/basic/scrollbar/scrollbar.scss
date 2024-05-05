@@ -19,7 +19,7 @@
     
     & > .scroll-slider {
         position: absolute;
-        background-color: #b8b8b8;
+        background-color: var(--nota-scroll-slider-background);
         overflow: hidden;
 
         border-radius: 6px;
