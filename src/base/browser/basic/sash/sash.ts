@@ -4,10 +4,11 @@ import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/structures/range";
-import { Mutable } from "src/base/common/utilities/type";
+import { Constructor, Mutable } from "src/base/common/utilities/type";
 import { cancellableTimeout } from "src/base/common/utilities/async";
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { Time } from "src/base/common/date";
+import { Lazy } from "src/base/common/lazy";
 
 /**
  * An interface for {@link Sash} construction.
@@ -54,7 +55,7 @@ export interface ISashOpts {
      * work. Reading codes from {@link VerticalSashController} might help to 
      * understand how the controller works.
      */
-    readonly controller?: AbstractSashController;
+    readonly controller?: Constructor<AbstractSashController>;
 
     /**
      * Sets the visibility of the sash. If visible, the sash will has a class 
@@ -123,7 +124,7 @@ export interface ISash {
     /**
      * The current left / top of the sash relatives to the parent container. 
      * Modify this attribute will affect the next rerender position by calling
-     * {@link ISash.relayout()}.
+     * {@link ISash.reLayout()}.
      */
     position: number;
 
@@ -168,7 +169,7 @@ export interface ISash {
      * @description Rerenders the {@link Sash}. The position will be determined
      * by the attribute {@link ISash.position}.
      */
-    relayout(): void;
+    reLayout(): void;
 
     /**
      * @description Registers DOM-related listeners.
@@ -244,6 +245,9 @@ export class Sash extends Disposable implements ISash {
     /** visibility of the sash in general case. */
     private _visible: boolean;
     private readonly _visibilityController: VisibilityController;
+    
+    /** Controls the mouse behavior */
+    private readonly _controller: Lazy<AbstractSashController>;
 
     // [event]
 
@@ -277,6 +281,22 @@ export class Sash extends Disposable implements ISash {
         this._visible = opts.visible ?? false;
         this._hovering = false;
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade', false);
+        this._controller = new Lazy<AbstractSashController>(() => {
+            const ctorOptions = <const>[
+                (e: ISashEvent) => this._onDidStart.fire(e),
+                (e: ISashEvent) => this._onDidMove.fire(e),
+                () => this._onDidEnd.fire(),
+            ];
+            
+            if (opts.controller) {
+                return new opts.controller(this, ...ctorOptions);
+            } else if (this._orientation === Orientation.Vertical) {
+                return new VerticalSashController(this, ...ctorOptions);
+            } else {
+                return new HorizontalSashController(this, ...ctorOptions);
+            }
+        });
+        this.__register({dispose: () => this._controller.dispose()});
 
         this.__render();
 
@@ -355,7 +375,7 @@ export class Sash extends Disposable implements ISash {
         this._element.remove();
     }
 
-    public relayout(): void {
+    public reLayout(): void {
         if (this.isDisposed()) {
             return;
         }
@@ -408,22 +428,8 @@ export class Sash extends Disposable implements ISash {
 
     private __initDrag(initEvent: MouseEvent): void {
         initEvent.preventDefault();
-
-        let controller: IAbstractSashController;
-        const opts = [
-            (event: ISashEvent) => this._onDidStart.fire(event),
-            (event: ISashEvent) => this._onDidMove.fire(event),
-            () => this._onDidEnd.fire(),
-        ] as const;
-
-        if (this._orientation === Orientation.Vertical) {
-            controller = new VerticalSashController(this, ...opts);
-        } else {
-            controller = new HorizontalSashController(this, ...opts);
-        }
-        
+        const controller = this._controller.value();
         controller.onMouseStart();
-        this.__register(controller);
     }
     
     private readonly _hoverDelay = Time.ms(500);
