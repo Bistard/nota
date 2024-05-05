@@ -79,20 +79,21 @@ export abstract class WorkbenchLayout extends Component {
          * expand animation for navigation panel since the internal rendering
          * is entirely handled by {@link SplitView}.
          * 
-         * We need to render by ourself in this case.
+         * We choose to render by hand in this special case.
          */
-        
-        this.navigationPanelService.create(this);
-        this.navigationPanelService.element.setWidth(NavigationPanel.WIDTH);
-        
-        this._sash = new Sash(this.element.element, { 
-            orientation: Orientation.Vertical,
-            size: 4,
-            range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
-            controller: SimpleSashController,
-        });
+        {
+            this.navigationPanelService.create(this);
+            this.navigationPanelService.element.setWidth(NavigationPanel.WIDTH);
+            
+            this._sash = new Sash(this.element.element, { 
+                orientation: Orientation.Vertical,
+                size: 4,
+                range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
+                controller: SimpleSashController,
+            });
 
-        this.workspaceService.create(this);
+            this.workspaceService.create(this);
+        }
     }
 
     protected __registerLayoutListeners(): void {
@@ -137,8 +138,7 @@ export abstract class WorkbenchLayout extends Component {
                 left.style.width = `0px`;
             } 
             else {
-                const original = assert(this._originalWidth);
-                left.style.width = `${original}px`;
+                left.style.width = `${this._originalWidth ?? NavigationPanel.WIDTH}px`;
                 
                 // remove the transition animation after it finishes.
                 const disposable = addDisposableListener(left, EventType.transitionend, (e) => {
