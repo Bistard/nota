@@ -13,7 +13,9 @@ export const rendererThemeLocationRegister = createRegister(
 
         // utility
         registrant.registerTemplate('search-bar-background');
+        registrant.registerTemplate('search-bar-border');
         registrant.registerTemplate('search-bar-icon');
+        registrant.registerTemplate('search-bar-placeholder');
         registrant.registerTemplate('menu-border');
         registrant.registerTemplate('menu-item-disabled');
         registrant.registerTemplate('menu-separator-background');
@@ -25,6 +27,9 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('toggle-collapse-button-hover');
         
         // NavigationPanel
+        registrant.registerTemplate('quick-access-bar-menu-button-foreground');
+        registrant.registerTemplate('quick-access-bar-menu-button-foreground-hover');
+        registrant.registerTemplate('action-bar-add-new-button');
 
         // NavigationView
         registrant.registerTemplate('file-tree-arrow-select');
@@ -35,7 +40,7 @@ export const rendererThemeLocationRegister = createRegister(
 
         // Explorer (NavView)
 
-        registrant.registerTemplate('navigation-view-background');
+        registrant.registerTemplate('navigation-panel-background');
         registrant.registerTemplate('explorer-item-focused-background');
         registrant.registerTemplate('explorer-item-selected-foreground');
         registrant.registerTemplate('explorer-item-selected-background');

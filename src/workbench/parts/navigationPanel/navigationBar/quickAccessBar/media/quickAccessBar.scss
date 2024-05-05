@@ -12,11 +12,11 @@
         justify-content: center;
         font-size: 25px;
         font-family: 'happy family';
-        color: #a3d0c3;
+        color: var(--nota-quick-access-bar-menu-button-foreground);
         cursor: pointer;
 
         &:hover {
-            color: #2aa882;
+            color: var(--nota-quick-access-bar-menu-button-foreground-hover);
         }
     }
 
@@ -30,11 +30,11 @@
 
         .search-bar {
             -webkit-app-region: no-drag !important;
-            border: #a3d0c3 1px solid;
+            border: var(--nota-search-bar-border) 1px solid;
             border-radius: 20px;
             width: calc(90% - 34px) !important;
             left: 38px !important;
-            background-color: #f6f6f6;
+            background-color: var(--nota-search-bar-background);
 
             .inner-text {
                 margin-left: 6px !important;
@@ -43,7 +43,7 @@
         }
 
         ::placeholder {
-            color: #b5b5b5;
+            color: var(--nota-search-bar-placeholder);
         }
     }
 }

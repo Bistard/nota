@@ -16,10 +16,12 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'global-body-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.DarkModern, 'global-body-foreground', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'selection-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'primary-text', THEME_COLORS.primary); 
+        registrant.registerColor(PresetColorTheme.DarkModern, 'primary-text', THEME_COLORS.primary);
 
         // utility
-        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.stroke); 
+        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.sidebg);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-border', THEME_COLORS.mediumTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-icon', THEME_COLORS.subtext); 
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-border', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-disabled', THEME_COLORS.middle);
@@ -32,6 +34,9 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'toggle-collapse-button-hover', THEME_COLORS.subtext);
 
         // NavigationPanel
+        registrant.registerColor(PresetColorTheme.DarkModern, 'quick-access-bar-menu-button-foreground', THEME_COLORS.mediumTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'quick-access-bar-menu-button-foreground-hover', THEME_COLORS.teal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'action-bar-add-new-button', THEME_COLORS.lightTeal);
 
         // NavigationView
         registrant.registerColor(PresetColorTheme.DarkModern, 'file-tree-arrow-select', THEME_COLORS.secondary);
@@ -42,7 +47,7 @@ export const rendererDarkThemeColorRegister = createRegister(
 
         // Explorer (NavView)
 
-        registrant.registerColor(PresetColorTheme.DarkModern, 'navigation-view-background', THEME_COLORS.sidebg);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'navigation-panel-background', THEME_COLORS.sidebg);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-focused-background', THEME_COLORS.lightTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-selected-foreground', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-selected-background', THEME_COLORS.lightTeal);
