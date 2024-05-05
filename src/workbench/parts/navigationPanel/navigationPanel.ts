@@ -47,6 +47,9 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     // [protected override methods]
 
     protected override _createContent(): void {
+        const navigationBarBuilder = new NavigationBarBuilder(this.toolBarService);
+        navigationBarBuilder.registerButtons();
+        
         this.__assemblyParts();
     }
 
@@ -77,27 +80,14 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     }
 }
 
-export class NavigationBarBuilder {
+class NavigationBarBuilder {
 
-    constructor(
-        private readonly toolBarService: IToolBarService,
-    ) {
-    }
+    constructor(private readonly toolBarService: IToolBarService) {}
 
     public registerButtons(): void {
-
-        /**
-         * primary button configurations
-         */
         [
-            {
-                id: 'folder-open',
-                icon: Icons.FolderOpen,
-            },
-            {
-                id: 'add-new',
-                icon: Icons.AddNew,
-            },
+            { id: 'folder-open', icon: Icons.FolderOpen, },
+            { id: 'add-new', icon: Icons.AddNew, },
         ]
         .forEach(({ id, icon}) => {
             this.toolBarService.registerPrimaryButton({

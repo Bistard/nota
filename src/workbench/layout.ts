@@ -11,7 +11,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { ILogService } from "src/base/common/logger";
 import { INavigationBarService } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
-import { INavigationPanelService, NavigationPanel, NavigationBarBuilder} from "src/workbench/parts/navigationPanel/navigationPanel";
+import { INavigationPanelService, NavigationPanel} from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
 import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
@@ -73,12 +73,6 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
         this.__registerNavigationViews();
 
-        // register tool buttons
-        const navigationBarBuilder = new NavigationBarBuilder(this.toolBarService);
-        navigationBarBuilder.registerButtons();
-
-        // assembly the workbench layout
-        
         /**
          * Utilize `this.assembleComponents()` is very hard to achieve collapse/
          * expand animation for navigation panel since the internal rendering
