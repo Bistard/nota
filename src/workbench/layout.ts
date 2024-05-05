@@ -179,28 +179,29 @@ class CollapseAnimationController extends Disposable {
             right.style.width = `${rightWidth}px`;
         }));
 
-        // manage navigation-panel collapse/expand
         this.__register(this.onDidCollapseStateChange(state => {
             const left = this.navigationPanel.element.element;
             const right = this.workspace.element.element;
-            const transitionTime = '0.2';
+            const transitionTime = '0.5s';
 
+            // TODO: Need to refactor: remove unused code and testing css styles
+        
             if (state === CollapseState.Collapse) {
-                left.style.transition = `width ${transitionTime}s ease`;
-                this._originalWidth = right.offsetLeft;
-                left.style.width = `0px`;
+                // Make workspace cover the full app width
+                right.style.position = 'absolute'; // Positioning it absolutely within its relative container
+                right.style.transition = `left ${transitionTime} ease, width ${transitionTime} ease`;
+                right.style.left = '0px'; // Move left edge to 0
+                right.style.width = '100%'; // Extend width to 100% of the app width
+                right.style.height = '100%';
+                right.style.backgroundColor = 'white';
             } 
             else {
-                left.style.width = `${this._originalWidth ?? NavigationPanel.WIDTH}px`;
-                
-                // remove the transition animation after it finishes.
-                const disposable = addDisposableListener(left, EventType.transitionend, (e) => {
-                    if (e.target === left && e.propertyName === 'width') {
-                        left.style.transition = '';
-                        disposable.dispose();
-                    }
-                });
+                // Reset workspace to its original state
+                right.style.left = `${left.offsetWidth}px`; // Move it back to the original left position
+                right.style.width = `calc(100% - ${left.offsetWidth}px)`; // Reduce the width to original
             }
         }));
+        
+        
     }
 }

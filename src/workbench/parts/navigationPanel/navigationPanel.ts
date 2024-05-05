@@ -3,16 +3,13 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { CollapseState, DirectionX, Orientation } from "src/base/browser/basic/dom";
+import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";
 import { Icons } from "src/base/browser/icon/icons";
 import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
-import { Register } from "src/base/common/event";
-import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
-import { assert } from "src/base/common/utilities/panic";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
