@@ -3,6 +3,7 @@ import { CollapseState, Direction, DirectionX, DirectionY } from "src/base/brows
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { Emitter, Register } from "src/base/common/event";
 import { assert, panic } from "src/base/common/utilities/panic";
+import { isNonNullable } from "src/base/common/utilities/type";
 
 /**
  * An construction interface for constructing {@link ToggleCollapseButton}.
@@ -30,6 +31,12 @@ export interface IToggleCollapseButtonOptions {
      * The expansion direction will be the opposite of this.
      */
     readonly direction: Direction;
+
+    /**
+     * If provided, the button will be set with the z-index. Otherwise the 
+     * z-index will be calculated automatically.
+     */
+    readonly zIndex?: number;
 }
 
 export interface IToggleCollapseButton extends IWidget {
@@ -121,9 +128,13 @@ export class ToggleCollapseButton extends Widget {
          * To prevent this issue, the button's z-index is increased by 1.
          */
         if (positionOffset < 0) {
-            const zIndex = getComputedStyle(button).getPropertyValue('z-index');
-            const newZIndex = zIndex === 'auto' ? 1 : Number(zIndex) + 1;
-            button.style.zIndex = `${newZIndex}`;
+            if (isNonNullable(this._opts.zIndex)) {
+                button.style.zIndex = `${this._opts.zIndex}`;
+            } else {
+                const zIndex = getComputedStyle(button).getPropertyValue('z-index');
+                const newZIndex = zIndex === 'auto' ? 1 : Number(zIndex) + 1;
+                button.style.zIndex = `${newZIndex}`;
+            }
         }
 
         // centralize the button
