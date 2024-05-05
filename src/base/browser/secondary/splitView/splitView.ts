@@ -84,8 +84,6 @@ export interface ISplitView extends Disposable {
      */
     swapView(first: number, second: number): void;
 
-    getViewAt(index: number): ISplitViewItem;
-
     /**
      * @description Returns the corresponding sash at the given index. Undefined
      * if not exist.
@@ -286,11 +284,6 @@ export class SplitView extends Disposable implements ISplitView {
         this.__doAddView(firstViewOpts);
 
         this.__doRenderViewsAndSashes();
-    }
-
-    public getViewAt(index: number): ISplitViewItem  {
-        assert(Numbers.isValidIndex(index, this.viewItems.length));
-        return this.viewItems[index]!;
     }
 
     public layout(width: number, height: number): void {
