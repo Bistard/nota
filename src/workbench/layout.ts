@@ -15,10 +15,11 @@ import { INavigationPanelService, NavigationPanel, NavigationBarBuilder} from "s
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
 import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
-import { Sash } from "src/base/browser/basic/sash/sash";
+import { ISash, Sash } from "src/base/browser/basic/sash/sash";
 import { assert } from "src/base/common/utilities/panic";
 import { SimpleSashController } from "src/base/browser/basic/sash/sashController";
 import { Numbers } from "src/base/common/utilities/number";
+import { Disposable } from "src/base/common/dispose";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -28,8 +29,7 @@ export abstract class WorkbenchLayout extends Component {
 
     // [fields]
 
-    private _sash?: Sash;
-    private _originalWidth?: number;
+    private readonly _collapseController: CollapseAnimationController;
 
     // [constructor]
 
@@ -49,7 +49,7 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
-        this._sash = undefined;
+        this._collapseController = new CollapseAnimationController(navigationPanelService, workspaceService);
     }
 
     // [protected methods]
@@ -84,34 +84,14 @@ export abstract class WorkbenchLayout extends Component {
         {
             this.navigationPanelService.create(this);
             this.navigationPanelService.element.setWidth(NavigationPanel.WIDTH);
-            
-            this._sash = new Sash(this.element.element, { 
-                orientation: Orientation.Vertical,
-                size: 4,
-                range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
-                controller: SimpleSashController,
-            });
-
+            this._collapseController.render(this.element.element);
             this.workspaceService.create(this);
         }
     }
 
     protected __registerLayoutListeners(): void {
-        const sash = assert(this._sash);
-
         this.navigationPanelService.registerListeners();
-        sash.registerListeners();
         this.workspaceService.registerListeners();
-
-        // Based on the sash movement, we recalculate the left/right width.
-        this.__register(sash.onDidMove(e => {
-            const left  = this.navigationPanelService.element.element;
-            const right = this.workspaceService.element.element;
-            const leftWidth   = Numbers.clamp(left.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
-            const rightWidth  = Numbers.clamp(right.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
-            left.style.width  = `${leftWidth}px`;
-            right.style.width = `${rightWidth}px`;
-        }));
 
         // re-layout the entire workbench when the entire window is resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
@@ -126,10 +106,71 @@ export abstract class WorkbenchLayout extends Component {
             this.navigationViewService.switchView(e.ID);
         }));
 
+        // enable collapse/expand animation
+        this._collapseController.registerListeners();
+    }
+
+    // [private helper functions]
+
+    private __registerNavigationViews(): void {
+        this.navigationViewService.registerView('explorer', ExplorerView);
+        // TODO: other navigation-views are also registered here.
+    }
+}
+
+/**
+ * Decide how the layout should be collapsed and expanded with animation.
+ */
+class CollapseAnimationController extends Disposable {
+
+    // [fields]
+
+    private _sash?: ISash;
+    private _originalWidth?: number;
+
+    private readonly navigationPanel: INavigationPanelService;
+    private readonly workspace: IWorkspaceService;
+
+    // [constructor]
+
+    constructor(
+        navigationPanel: INavigationPanelService,
+        workspace: IWorkspaceService,
+    ) {
+        super();
+        this.navigationPanel = navigationPanel;
+        this.workspace = workspace;
+    }
+
+    // [public methods]
+
+    public render(container: HTMLElement): void {
+        this._sash = this.__register(new Sash(container, { 
+            orientation: Orientation.Vertical,
+            size: 4,
+            range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
+            controller: SimpleSashController,
+        }));
+    }
+
+    public registerListeners(): void {
+        const sash = assert(this._sash);
+        sash.registerListeners();
+
+        // Based on the sash movement, we recalculate the left/right width.
+        this.__register(sash.onDidMove(e => {
+            const left  = this.navigationPanel.element.element;
+            const right = this.workspace.element.element;
+            const leftWidth   = Numbers.clamp(left.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
+            const rightWidth  = Numbers.clamp(right.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
+            left.style.width  = `${leftWidth}px`;
+            right.style.width = `${rightWidth}px`;
+        }));
+
         // manage navigation-panel collapse/expand
-        this.__register(this.navigationPanelService.onDidCollapseStateChange(state => {
-            const left = this.navigationPanelService.element.element;
-            const right = this.workspaceService.element.element;
+        this.__register(this.navigationPanel.onDidCollapseStateChange(state => {
+            const left = this.navigationPanel.element.element;
+            const right = this.workspace.element.element;
             const transitionTime = '0.2';
 
             if (state === CollapseState.Collapse) {
@@ -149,12 +190,5 @@ export abstract class WorkbenchLayout extends Component {
                 });
             }
         }));
-    }
-
-    // [private helper functions]
-
-    private __registerNavigationViews(): void {
-        this.navigationViewService.registerView('explorer', ExplorerView);
-        // TODO: other navigation-views are also registered here.
     }
 }
