@@ -1,4 +1,4 @@
-import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
+import { CollapseState, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
@@ -29,6 +29,7 @@ export abstract class WorkbenchLayout extends Component {
     // [fields]
 
     private _sash?: Sash;
+    private _originalWidth?: number;
 
     // [constructor]
 
@@ -86,6 +87,7 @@ export abstract class WorkbenchLayout extends Component {
         
         this._sash = new Sash(this.element.element, { 
             orientation: Orientation.Vertical,
+            size: 4,
             range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
             controller: SimpleSashController,
         });
@@ -100,20 +102,17 @@ export abstract class WorkbenchLayout extends Component {
         sash.registerListeners();
         this.workspaceService.registerListeners();
 
-        /**
-         * Based on the sash movement, we recalculate the left/right width.
-         */
+        // Based on the sash movement, we recalculate the left/right width.
         this.__register(sash.onDidMove(e => {
             const left  = this.navigationPanelService.element.element;
             const right = this.workspaceService.element.element;
-
             const leftWidth   = Numbers.clamp(left.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
             const rightWidth  = Numbers.clamp(right.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
             left.style.width  = `${leftWidth}px`;
             right.style.width = `${rightWidth}px`;
         }));
 
-        // re-layout
+        // re-layout the entire workbench when the entire window is resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
         }));
@@ -126,8 +125,29 @@ export abstract class WorkbenchLayout extends Component {
             this.navigationViewService.switchView(e.ID);
         }));
 
+        // manage navigation-panel collapse/expand
         this.__register(this.navigationPanelService.onDidCollapseStateChange(state => {
-            // TODO
+            const left = this.navigationPanelService.element.element;
+            const right = this.workspaceService.element.element;
+            const transitionTime = '0.2';
+
+            if (state === CollapseState.Collapse) {
+                left.style.transition = `width ${transitionTime}s ease`;
+                this._originalWidth = right.offsetLeft;
+                left.style.width = `0px`;
+            } 
+            else {
+                const original = assert(this._originalWidth);
+                left.style.width = `${original}px`;
+                
+                // remove the transition animation after it finishes.
+                const disposable = addDisposableListener(left, EventType.transitionend, (e) => {
+                    if (e.target === left && e.propertyName === 'width') {
+                        left.style.transition = '';
+                        disposable.dispose();
+                    }
+                });
+            }
         }));
     }
 

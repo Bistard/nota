@@ -63,7 +63,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         // collapse button
         this._button = new ToggleCollapseButton({
             position: DirectionX.Right,
-            positionOffset: -10,
+            positionOffset: -20,
             direction: DirectionX.Left,
         });
         this._button.render(this.element.element);

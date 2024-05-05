@@ -68,6 +68,8 @@ export const enum EventType {
 
 	input = 'input',
     select = "select",
+
+	transitionend = 'transitionend',
 }
 
 export const enum Orientation {

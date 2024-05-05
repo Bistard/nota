@@ -7,11 +7,8 @@
     position: absolute;
     display: flex;
     
-    width: 4px;
+    width: auto;
     height: 20px;
-    
-    align-items: center;
-    justify-content: center;
     
     & > .container {
         position: relative; // Important for positioning children absolutely within the button
@@ -26,6 +23,9 @@
             width: 100%;
             height: 53%; // 3% for overlap
             transition: transform 0.3s ease, background-color 0.3s ease;
+
+            left: 50%;
+            transform: translateX(-50%);
         }
     
         & > .button-top {

@@ -46,7 +46,9 @@ export class ToggleCollapseButton extends Widget {
 
     private readonly _opts: IToggleCollapseButtonOptions;
     private _button?: HTMLElement;
-    private _collapseState: CollapseState;
+
+    private _rotationAngle: number; // An angle that decides the collapsing direction of the button (for rendering purpose)
+    private _collapseState: CollapseState; // the current state
 
     // [event]
 
@@ -58,6 +60,7 @@ export class ToggleCollapseButton extends Widget {
     constructor(opts: IToggleCollapseButtonOptions) {
         super();
         this._opts = opts;
+        this._rotationAngle = 0;
         this._collapseState = CollapseState.Expand;
     }
     
@@ -140,29 +143,38 @@ export class ToggleCollapseButton extends Widget {
         // set the collapse direction of the button (which the button should facing to)
         switch (direction) {
             case DirectionX.Left:
-                // noop
+                this._rotationAngle = 0;
                 break;
             case DirectionX.Right:
-                button.style.transform = `rotate(180deg)`;
+                this._rotationAngle = 180;
                 break;
             case DirectionY.Top:
-                button.style.transform = `rotate(90deg)`;
+                this._rotationAngle = 90;
                 break;
             case DirectionY.Bottom:
-                button.style.transform = `rotate(-90deg)`;
+                this._rotationAngle = -90;
                 break;
             default:
                 panic(`[ToggleCollapseButton] invalid direction: ${direction}`);
         }
+        button.style.transform = `rotate(${this._rotationAngle}deg)`;
     }
 
     protected override __registerListeners(element: HTMLElement): void {
         const button = assert(this._button);
 
+        // click trigger collapse/expand
         this.onClick(button, () => {
+
+            // toggle state
             this._collapseState = (this._collapseState === CollapseState.Collapse)
                 ? CollapseState.Expand
                 : CollapseState.Collapse;
+
+            // flip over
+            this._rotationAngle = (this._rotationAngle + 180) % 360;
+            button.style.transform = `rotate(${this._rotationAngle}deg)`;
+
             this._onDidCollapseStateChange.fire(this._collapseState);
         });
     }
