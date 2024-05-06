@@ -301,19 +301,19 @@ class FileActionBar {
         this._element = document.createElement('div');
         this._element.className = 'file-button-bar';
 
-        // Create left-aligned buttons WidgetBar
+        // left-aligned buttons
         this._leftButtons = new WidgetBar(undefined, {
             orientation: Orientation.Horizontal,
             render: false,
         });
 
-        // Create right-aligned buttons WidgetBar
+        // right-aligned buttons
         this._rightButtons = new WidgetBar(undefined, {
             orientation: Orientation.Horizontal,
             render: false,
         });
 
-        // Create filter-by-tag buttons WidgetBar
+        // filter-by-tag buttons
         this._filterByTagButtons = new WidgetBar(undefined, {
             orientation: Orientation.Horizontal,
             render: false,
@@ -323,7 +323,8 @@ class FileActionBar {
         [
             { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: () => { } },
             { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: () => { } },
-        ].forEach(({ id, icon, classes, fn }) => {
+        ]
+        .forEach(({ id, icon, classes, fn }) => {
             const button = new Button({
                 id: id,
                 icon: icon,
@@ -341,7 +342,8 @@ class FileActionBar {
         [
             { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: () => { } },
             { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
-        ].forEach(({ id, icon, classes, fn }) => {
+        ]
+        .forEach(({ id, icon, classes, fn }) => {
             const button = new Button({
                 id: id,
                 icon: icon,
@@ -358,7 +360,8 @@ class FileActionBar {
 
         [
             { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: () => { } }, // TODO: update icon when tag icon is available
-        ].forEach(({ id, icon, classes, fn }) => {
+        ]
+        .forEach(({ id, icon, classes, fn }) => {
             const button = new Button({
                 id: id,
                 icon: icon,
@@ -375,26 +378,30 @@ class FileActionBar {
     }
 
     public render(parent: HTMLElement): void {
-        // file button bar container
-        const fileButtonBarContainer = document.createElement('div');
-        fileButtonBarContainer.className = 'file-button-bar-container';
+        // file-button-bar
+        {
+            const fileButtonBarContainer = document.createElement('div');
+            fileButtonBarContainer.className = 'file-button-bar-container';
 
-        this._leftButtons.render(fileButtonBarContainer);
-        this._rightButtons.render(fileButtonBarContainer);
+            this._leftButtons.render(fileButtonBarContainer);
+            this._rightButtons.render(fileButtonBarContainer);
+            this._element.appendChild(fileButtonBarContainer);
+        }
 
-        // filter by tag container
-        const filterByTagContainer = document.createElement('div');
-        filterByTagContainer.className = 'filter-by-tag-container';
+        // filter-by-tag
+        {
+            const filterByTagContainer = document.createElement('div');
+            filterByTagContainer.className = 'filter-by-tag-container';
 
-        const filterByTagText = document.createElement('div');
-        filterByTagText.textContent = 'Filter by Tag';
-        filterByTagText.className = 'filter-by-tag-text';
-        filterByTagContainer.appendChild(filterByTagText);
-
-        this._filterByTagButtons.render(filterByTagContainer);
-
-        this._element.appendChild(fileButtonBarContainer);
-        this._element.appendChild(filterByTagContainer);
+            const filterByTagText = document.createElement('div');
+            filterByTagText.textContent = 'Filter by Tag';
+            filterByTagText.className = 'filter-by-tag-text';
+            
+            this._filterByTagButtons.render(filterByTagContainer);
+            filterByTagContainer.appendChild(filterByTagText);
+            this._element.appendChild(filterByTagContainer);
+        }
+        
         parent.appendChild(this._element);
     }
 

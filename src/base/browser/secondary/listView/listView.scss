@@ -57,15 +57,9 @@
 			// focused (make sure does not affect 'selected')
 			&.focused:not(.selected) {
 				border-radius: 3px;
-				outline: 1px solid var(--nota-explorer-item-focused-background);
+				outline: 2px solid var(--nota-explorer-item-focused-background);
 			}
 
-			/** explicitly display anchor (only for testing purpose) */
-			// anchor
-			// &.anchor::before {
-			//     background-color: #ff0000 !important;
-			// }
-		
 			// select the first selection
 			&.selected:not(.selected + .selected) {
 				border-top-left-radius: 4px;

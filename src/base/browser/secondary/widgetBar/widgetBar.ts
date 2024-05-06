@@ -100,6 +100,7 @@ export interface IWidgetBarOptions {
 
     /**
      * If render immediately after construction.
+     * @default false
      */
     readonly render?: boolean;
 }
