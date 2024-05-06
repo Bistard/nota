@@ -39,7 +39,7 @@ interface IMainProcess {
 
 /**
  * @class The first entry of the application (except `main.js`). Responsible for 
- * two things:
+ * three things:
  *      1. Initializations on core microservices of the application.
  *      2. Important disk directory preparation.
  *      3. Ensuring that this process is the only one running. If not, it 
@@ -67,7 +67,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     // [public methods]
 
     public async start(argv: ICLIArguments): Promise<void> {
-        (<any>this.CLIArgv) = argv;
+        (<any>this.CLIArgv) = this.__parseCLIArgv(argv);
         try {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             await this.run();
@@ -137,6 +137,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(ILogService, logService);
 
         logService.debug('MainProcess', 'Start constructing core services...');
+        logService.info('MainProcess', 'Command line arguments:', { CLI: this.CLIArgv });
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -353,7 +354,6 @@ const main = new class extends class MainProcess implements IMainProcess {
     // [private helper methods]
 
     private __showDirectoryErrorDialog(error: any): void {
-
         const dir = [
             URI.toFsPath(this.environmentService.appRootPath),
             URI.toFsPath(this.environmentService.logPath),
@@ -376,6 +376,30 @@ const main = new class extends class MainProcess implements IMainProcess {
             appRootPath: electron.app.getAppPath(),
             userDataPath: electron.app.getPath('userData'),
         };
+    }
+
+    /**
+     * @description Convert the CLI constructed by the third-library `minimist` 
+     * into our desired ones:
+     *      1. Make sure no multiple argument values (only take the last one)
+     */
+    private __parseCLIArgv(argv: ICLIArguments): ICLIArguments {
+        for (const key of Object.keys(argv)) {
+            if (key === '_') {
+                continue;
+            }
+            const value = argv[key];
+            
+            // if multiple arguments is provided, we only take the last one.
+            const resolvedValue = Array.isArray(value) 
+                ? value.at(-1) 
+                : value;
+            
+            // replace with the last one
+            argv[key] = resolvedValue;
+        }
+        
+        return argv;
     }
 } { }; /** @readonly ❤hello, world!❤ */
 
