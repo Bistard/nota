@@ -429,7 +429,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         
         // try to dispose all the internal data from each renderer.
         for (const item of this._items) {
-
             if (item.row) {
                 const renderer = this._renderers.get(item.type);
                 if (renderer) {
@@ -437,9 +436,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
                     renderer.dispose(item.row.metadata);
                 }
             }
-
         }
-
         this._items = [];
 
         // remove list view from the DOM tree.
@@ -457,6 +454,11 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         const renderRange = this.__getRenderRange(renderTop, renderHeight);
         this._visibleRange = renderRange;
 
+        // same range, do nothing.
+        if (Range.exact(prevRenderRange, renderRange)) {
+            return;
+        }
+        
         this.log?.(LogLevel.TRACE, 'ListView', `rendering... (prevRenderRange: [${prevRenderRange.start}, ${prevRenderRange.end}], newRenderRange: [${renderRange.start}, ${renderRange.end}])`);
 
         const insert = Range.relativeComplement(prevRenderRange, renderRange);

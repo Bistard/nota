@@ -7,7 +7,6 @@ import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { ILogService } from 'src/base/common/logger';
-import { IWorkbenchService } from 'src/workbench/services/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
@@ -15,7 +14,7 @@ import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
-import { NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
+import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
@@ -66,7 +65,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
         @ILogService logService: ILogService,
-        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
@@ -74,7 +73,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     ) {
         super(ExplorerViewID, parentElement, themeService, componentService, logService);
 
-        lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
+        this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
     }
 
     // [getter]
@@ -243,7 +242,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
 
-        // renders filebuttonbar
+        // renders file-button-bar
         this._fileButtonBar.render(view);
 
         return view;
@@ -262,13 +261,11 @@ export class ExplorerView extends NavView implements IExplorerViewService {
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(addDisposableListener(tag, EventType.click, () => {
-            this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-            .then(path => {
-                if (path.length > 0) {
-                    this.open(URI.fromFile(path.at(-1)!));
-                }
-            });
+        disposables.register(addDisposableListener(tag, EventType.click, async () => {
+            const path = await this.dialogService.openDirectoryDialog({ title: 'open a directory' });
+            if (path.length > 0) {
+                this.open(URI.fromFile(path.at(-1)!));
+            }
         }));
     }
 
@@ -276,14 +273,15 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         if (!this.isOpened || !this._currentView) {
             return;
         }
-
         const disposables = this._currentListeners;
 
         /**
          * The tree model of the tree-service requires the correct height thus 
          * we need to update it every time we are resizing.
          */
-        disposables.register(this.workbenchService.onDidLayout(() => this.fileTreeService.layout()));
+        disposables.register(this.navigationViewService.onDidLayout((e) => {
+            this.fileTreeService.layout();
+        }));
 
         // on opening file.
         disposables.register(this.fileTreeService.onSelect(e => {
@@ -292,7 +290,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     }
 }
 
-export class FileActionBar {
+class FileActionBar {
 
     private readonly _element: HTMLElement;
     private readonly _leftButtons: WidgetBar<Button>;
@@ -386,11 +384,11 @@ export class FileActionBar {
 
         // filter by tag container
         const filterByTagContainer = document.createElement('div');
-        filterByTagContainer.className = 'filterbytag-container';
+        filterByTagContainer.className = 'filter-by-tag-container';
 
         const filterByTagText = document.createElement('div');
         filterByTagText.textContent = 'Filter by Tag';
-        filterByTagText.className = 'filterbytag-text';
+        filterByTagText.className = 'filter-by-tag-text';
         filterByTagContainer.appendChild(filterByTagText);
 
         this._filterByTagButtons.render(filterByTagContainer);

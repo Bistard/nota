@@ -13,24 +13,22 @@
         position: relative;
         width: 100%;
         height: 100%;
-        overflow: hidden;
-
-        // let 'file-tree-container' take the rest space
-        display: flex;
-        flex-direction: column;
     }
     
     & .opened-explorer-container {
-        
+        display: flex;
+        flex-direction: column;
+
         // 'file-tree-container' should only contain one element
         & > .file-tree-container {
-            position: relative;
             width: 100%;
             height: 100%;
+
+            // make sure list-view cannot exceeds the sight of the container
+            overflow: hidden;
         }
 
         & > .file-button-bar {
-            position: relative;
             display: flex;
             justify-content: space-between;
             flex-direction: column;
@@ -59,7 +57,7 @@
                 pointer-events: initial;
             }
             
-            & > .filterbytag-container {
+            & > .filter-by-tag-container {
                 width: 100%;
                 display: flex;
                 align-items: flex-start;
@@ -81,7 +79,7 @@
                     }
                 }
 
-                & .filterbytag-text {
+                & .filter-by-tag-text {
                     color: var(--nota-filter-by-tag-text);
                 }
             }
