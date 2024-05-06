@@ -85,6 +85,14 @@ export interface ISplitView extends Disposable {
     swapView(first: number, second: number): void;
 
     /**
+     * @description Returns the corresponding {@link SplitViewItem} based on the
+     * ID.
+     * @note Only use this API when you wish to do some hacky stuff. It is not
+     *       recommended to expose the internal data structure to outside.
+     */
+    getViewBy(id: string): ISplitViewItem | undefined;
+
+    /**
      * @description Returns the corresponding sash at the given index. Undefined
      * if not exist.
      * @param index The index of the sash inside splitView.
@@ -299,6 +307,10 @@ export class SplitView extends Disposable implements ISplitView {
         });
     }
 
+    public getViewBy(id: string): ISplitViewItem | undefined {
+        return this.viewItems.find(item => item.ID === id);
+    }
+
     public getSashAt(index: number): ISash | undefined {
         return this.sashItems[index];
     }
@@ -378,6 +390,7 @@ export class SplitView extends Disposable implements ISplitView {
 
         const toRemoveView = this.viewItems.splice(index, 1)[0]!;
         const toRemoveViewOpts = {
+            ID: toRemoveView.ID,
             element: toRemoveView.getElement(),
             minimumSize: toRemoveView.getMinSize(),
             maximumSize: toRemoveView.getMaxSize(),

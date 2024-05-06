@@ -1,6 +1,5 @@
 import { Orientation } from "src/base/browser/basic/dom";
 import { Priority } from "src/base/common/event";
-import { Numbers } from "src/base/common/utilities/number";
 import { check, panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 
@@ -8,6 +7,11 @@ import { isNullable } from "src/base/common/utilities/type";
  * An interface for {@link ISplitViewItem} construction.
  */
 export type ISplitViewItemOpts = {
+
+    /**
+     * The unique identifier of the item.
+     */
+    readonly ID: string;
 
     /**
      * The HTMLElement of the view.
@@ -96,9 +100,21 @@ export type IFixedSplitViewItemOpts = {
 export interface ISplitViewItem {
     
     /**
+     * The unique identifier of the item.
+     */
+    readonly ID: string;
+
+    /**
      * @description Returns the raw HTMLElement.
      */
     getElement(): HTMLElement;
+
+    /**
+     * @description Returns the container named `split-view-item` that contains
+     * the raw HTMLElement.
+     * @note Only use this API if you want to do some hack.
+     */
+    getContainer(): HTMLElement;
 
     /**
      * @description Updates the size of view and update the left / top of the 
@@ -188,6 +204,7 @@ export class SplitViewItem implements ISplitViewItem {
 
     // [field]
 
+    private readonly _id: string;
     private _container: HTMLElement;
     private _element: HTMLElement;
 
@@ -201,6 +218,8 @@ export class SplitViewItem implements ISplitViewItem {
     // [constructor]
 
     constructor(container: HTMLElement, opt: ISplitViewItemOpts) {
+        this._id = opt.ID;
+
         this._disposed = false;
         container.appendChild(opt.element);
         
@@ -233,6 +252,10 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     // [public methods]
+
+    get ID(): string {
+        return this._id;
+    }
 
     public render(orientation: Orientation, offset?: number): void {
         check(this._disposed === false, '[SplitViewItem] Cannot render after disposed.');
@@ -312,6 +335,10 @@ export class SplitViewItem implements ISplitViewItem {
 
     public getElement(): HTMLElement {
         return this._element;
+    }
+
+    public getContainer(): HTMLElement {
+        return this._container;
     }
 
     public dispose(): void {

@@ -494,6 +494,7 @@ export abstract class Component extends Themable implements IComponent {
         for (const each of options) {
             each.component.createInDom(this, avoidRender);
             splitViewOption.viewOpts.push({
+                ID: each.component.id,
                 element: each.component.element.element,
                 ...each,
             });

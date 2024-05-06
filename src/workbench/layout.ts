@@ -1,6 +1,6 @@
 import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { Component } from "src/workbench/services/component/component";
+import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
@@ -15,12 +15,11 @@ import { INavigationPanelService, NavigationPanel} from "src/workbench/parts/nav
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
 import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
-import { ISash, Sash } from "src/base/browser/basic/sash/sash";
 import { assert } from "src/base/common/utilities/panic";
-import { SimpleSashController } from "src/base/browser/basic/sash/sashController";
-import { Numbers } from "src/base/common/utilities/number";
 import { Disposable } from "src/base/common/dispose";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
+import { Priority } from "src/base/common/event";
+import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -54,7 +53,7 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
-        this._collapseController = new CollapseAnimationController(navigationPanelService, workspaceService);
+        this._collapseController = new CollapseAnimationController(this, () => assert(this._splitView));
     }
 
     // [protected methods]
@@ -73,24 +72,27 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
         this.__registerNavigationViews();
 
-        /**
-         * Utilize `this.assembleComponents()` is very hard to achieve collapse/
-         * expand animation for navigation panel since the internal rendering
-         * is entirely handled by {@link SplitView}.
-         * 
-         * We choose to render by hand in this special case.
-         */
-        {
-            this.navigationPanelService.create(this);
-            this.navigationPanelService.element.setWidth(NavigationPanel.WIDTH);
-            this._collapseController.render(this.element.element);
-            this.workspaceService.create(this);
-        }
+        const workbenchConfigurations: IAssembleComponentOpts[] = [
+            { 
+                component: this.navigationPanelService,
+                minimumSize: NavigationPanel.WIDTH - 100,
+                initSize: NavigationPanel.WIDTH,
+                maximumSize: NavigationPanel.WIDTH * 2,
+            },
+            { 
+                component: this.workspaceService,
+                minimumSize: 0,
+                initSize: NavigationPanel.WIDTH,
+                maximumSize: null,
+                priority: Priority.Normal,
+            },
+        ];
+        this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
+        
+        this._collapseController.render(this.workspaceService.element.element);
     }
 
     protected __registerLayoutListeners(): void {
-        this.navigationPanelService.registerListeners();
-        this.workspaceService.registerListeners();
 
         // re-layout the entire workbench when the entire window is resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
@@ -124,26 +126,24 @@ class CollapseAnimationController extends Disposable {
 
     // [fields]
 
-    private readonly navigationPanel: INavigationPanelService;
-    private readonly workspace: IWorkspaceService;
+    private readonly layout: WorkbenchLayout;
+    private readonly _retrieveSplitView: () => ISplitView;
 
     private readonly _button: ToggleCollapseButton;
-    private _sash?: ISash;
-    private _originalWidth?: number;
 
     // [event]
 
-    get onDidCollapseStateChange() { return assert(this._button).onDidCollapseStateChange; }
+    get onDidCollapseStateChange() { return this._button.onDidCollapseStateChange; }
 
     // [constructor]
 
     constructor(
-        navigationPanel: INavigationPanelService,
-        workspace: IWorkspaceService,
+        layout: WorkbenchLayout,
+        retrieveSplitView: () => ISplitView,
     ) {
         super();
-        this.navigationPanel = navigationPanel;
-        this.workspace = workspace;
+        this.layout = layout;
+        this._retrieveSplitView = retrieveSplitView;
 
         this._button = new ToggleCollapseButton({
             position: DirectionX.Left,
@@ -155,53 +155,36 @@ class CollapseAnimationController extends Disposable {
     // [public methods]
 
     public render(container: HTMLElement): void {
-        this._button.render(this.workspace.element.element);
-        
-        this._sash = this.__register(new Sash(container, { 
-            orientation: Orientation.Vertical,
-            size: 4,
-            range: { start: 200, end: -1 }, // BUG (Chris): Even set the `end` to `-1`, due to the CSS rule `flex-grow: 1;` in the workspace, the maximum reach is half of screen.
-            controller: SimpleSashController,
-        }));
+        this._button.render(container);
     }
 
     public registerListeners(): void {
-        const sash = assert(this._sash);
-        sash.registerListeners();
 
-        // Based on the sash movement, we recalculate the left/right width.
-        this.__register(sash.onDidMove(e => {
-            const left  = this.navigationPanel.element.element;
-            const right = this.workspace.element.element;
-            const leftWidth   = Numbers.clamp(left.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
-            const rightWidth  = Numbers.clamp(right.offsetWidth + e.deltaX, sash.range.start, (sash.range.end === -1) ? Number.POSITIVE_INFINITY : sash.range.end);
-            left.style.width  = `${leftWidth}px`;
-            right.style.width = `${rightWidth}px`;
-        }));
-
+        // manage navigation-panel and workspace collapse/expand animation
         this.__register(this.onDidCollapseStateChange(state => {
-            const left = this.navigationPanel.element.element;
-            const right = this.workspace.element.element;
+            const splitView = this._retrieveSplitView();
+            const left  = assert(splitView.getViewBy('navigation-panel')).getContainer();
+            const right = assert(splitView.getViewBy('workspace')).getContainer();
             const transitionTime = '0.5s';
 
-            // TODO: Need to refactor: remove unused code and testing css styles
-        
+            const workbenchWidth = this.layout.element.element.offsetWidth;
+
             if (state === CollapseState.Collapse) {
-                // Make workspace cover the full app width
-                right.style.position = 'absolute'; // Positioning it absolutely within its relative container
                 right.style.transition = `left ${transitionTime} ease, width ${transitionTime} ease`;
-                right.style.left = '0px'; // Move left edge to 0
-                right.style.width = '100%'; // Extend width to 100% of the app width
-                right.style.height = '100%';
-                right.style.backgroundColor = 'white';
-            } 
-            else {
-                // Reset workspace to its original state
-                right.style.left = `${left.offsetWidth}px`; // Move it back to the original left position
-                right.style.width = `calc(100% - ${left.offsetWidth}px)`; // Reduce the width to original
+                right.style.left = '0px';
+                right.style.width = `${workbenchWidth}px`;
+            } else {
+                right.style.left = `${left.offsetWidth}px`;
+                right.style.width = `calc(100% - ${left.offsetWidth}px)`;
+
+                // remove the transition animation after it finishes
+                const listen = addDisposableListener(right, EventType.transitionend, (e) => {
+                    if (e.target === right && e.propertyName === 'width') {
+                        right.style.transition = '';
+                        listen.dispose();
+                    }
+                });
             }
         }));
-        
-        
     }
 }
