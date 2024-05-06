@@ -99,6 +99,11 @@ export interface IWidgetBarOptions {
     readonly orientation: Orientation;
 
     /**
+     * If provided, the {@link WidgetBar} will be rendered under this parent.
+     */
+    readonly parentContainer?: HTMLElement;
+
+    /**
      * If render immediately after construction.
      * @default false
      */
@@ -107,6 +112,7 @@ export interface IWidgetBarOptions {
 
 function getDefaultOpts(): IWidgetBarOptions {
     return {
+        parentContainer: undefined,
         orientation: Orientation.Horizontal,
         render: true,
     };
@@ -131,19 +137,16 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
     // [constructor]
 
-    constructor(
-        parentContainer?: HTMLElement,
-        opts?: IWidgetBarOptions,
-    ) {
+    constructor(id: string, opts: IWidgetBarOptions) {
         super();
 
         this._items = [];
         this.opts = opts ?? getDefaultOpts();
         this._rendered = false;
-        this._parentContainer = parentContainer;
+        this._parentContainer = opts.parentContainer;
 
         this._container = document.createElement('div');
-        this._container.className = 'widget-bar';
+        this._container.classList.add('widget-bar', id);
 
         this._itemContainer = document.createElement('ui');
         this._itemContainer.classList.add('widget-item-container');
@@ -153,9 +156,8 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         }
 
         this._container.appendChild(this._itemContainer);
-
-        if (opts?.render === true && parentContainer) {
-            parentContainer.appendChild(this._container);
+        if (opts?.render === true && this._parentContainer) {
+            this._parentContainer.appendChild(this._container);
             this._rendered = true;
         }
     }

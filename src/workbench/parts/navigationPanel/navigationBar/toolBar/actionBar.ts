@@ -32,7 +32,7 @@ export class ActionBar extends Component {
         @ILogService logService: ILogService,
     ) {
         super('action-bar', null, themeService, componentService, logService);
-        this._buttons = new WidgetBar(undefined, { orientation: Orientation.Horizontal });
+        this._buttons = new WidgetBar('action-bar-buttons', { orientation: Orientation.Horizontal });
     }
 
     // [public method]

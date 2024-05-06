@@ -34,7 +34,8 @@ export class WindowBar extends Component {
     protected __createWidgetBar(container: HTMLElement): WidgetBar<WindowButton> {
 
         // constructs a new widgetBar
-        const widgetBar = new WidgetBar<WindowButton>(container, {
+        const widgetBar = new WidgetBar<WindowButton>('window-bar-buttons', {
+            parentContainer: container,
             orientation: Orientation.Horizontal,
             render: true,
         });

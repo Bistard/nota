@@ -46,6 +46,12 @@
                 padding-bottom: 3px;
 
                 background-color: var(--nota-navigation-panel-background);
+
+                // left some spaces
+                & > .widget-bar {
+                    padding-left: 8px;
+                    padding-right: 8px;
+                }
             }
             
             & > .filter-by-tag-container {

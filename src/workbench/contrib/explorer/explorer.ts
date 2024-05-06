@@ -364,9 +364,9 @@ class FileActionBar extends Disposable {
     }
 
     private __constructButtons(buttonOpts: IWidgetBarOptions): FixedArray<WidgetBar<IButton>, 3> {
-        const leftButtons        = new WidgetBar<IButton>(undefined, buttonOpts);
-        const rightButtons       = new WidgetBar<IButton>(undefined, buttonOpts);
-        const filterByTagButtons = new WidgetBar<IButton>(undefined, buttonOpts);
+        const leftButtons        = new WidgetBar<IButton>('left-buttons', buttonOpts);
+        const rightButtons       = new WidgetBar<IButton>('right-buttons', buttonOpts);
+        const filterByTagButtons = new WidgetBar<IButton>('filter-by-tag', buttonOpts);
         
         const buttonOnClick = (button: IButton) => this.__buttonOnClick(button);
 
