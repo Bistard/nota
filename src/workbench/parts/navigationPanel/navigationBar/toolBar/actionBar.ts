@@ -75,7 +75,7 @@ export class ActionBar extends Component {
         widgetBar.addItem({
             id: opts.id,
             item: button,
-            dispose: button.dispose,
+            dispose: button.dispose.bind(button),
         });
 
         return true;

@@ -15,12 +15,13 @@ import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
 import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
-import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Button } from 'src/base/browser/basic/button/button';
+import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
+import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
+import { FixedArray } from 'src/base/common/utilities/type';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -293,88 +294,22 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 class FileActionBar {
 
     private readonly _element: HTMLElement;
-    private readonly _leftButtons: WidgetBar<Button>;
-    private readonly _rightButtons: WidgetBar<Button>;
-    private readonly _filterByTagButtons: WidgetBar<Button>;
+    private readonly _leftButtons: WidgetBar<IButton>;
+    private readonly _rightButtons: WidgetBar<IButton>;
+    private readonly _filterByTagButtons: WidgetBar<IButton>;
 
     constructor() {
         this._element = document.createElement('div');
         this._element.className = 'file-button-bar';
 
-        // left-aligned buttons
-        this._leftButtons = new WidgetBar(undefined, {
+        const [left, right, filters] = this.__constructButtons({
             orientation: Orientation.Horizontal,
             render: false,
         });
 
-        // right-aligned buttons
-        this._rightButtons = new WidgetBar(undefined, {
-            orientation: Orientation.Horizontal,
-            render: false,
-        });
-
-        // filter-by-tag buttons
-        this._filterByTagButtons = new WidgetBar(undefined, {
-            orientation: Orientation.Horizontal,
-            render: false,
-        });
-
-        // Add buttons to respective WidgetBars
-        [
-            { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: () => { } },
-            { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: () => { } },
-        ]
-        .forEach(({ id, icon, classes, fn }) => {
-            const button = new Button({
-                id: id,
-                icon: icon,
-                classes: classes,
-            });
-
-            button.onDidClick(() => this.toggleBorder(button));
-            this._leftButtons.addItem({
-                id: id,
-                item: button,
-                dispose: button.dispose,
-            });
-        });
-
-        [
-            { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: () => { } },
-            { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
-        ]
-        .forEach(({ id, icon, classes, fn }) => {
-            const button = new Button({
-                id: id,
-                icon: icon,
-                classes: classes,
-            });
-
-            button.onDidClick(() => this.toggleBorder(button));
-            this._rightButtons.addItem({
-                id: id,
-                item: button,
-                dispose: button.dispose,
-            });
-        });
-
-        [
-            { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: () => { } }, // TODO: update icon when tag icon is available
-        ]
-        .forEach(({ id, icon, classes, fn }) => {
-            const button = new Button({
-                id: id,
-                icon: icon,
-                classes: classes,
-            });
-
-            button.onDidClick(fn);
-            this._filterByTagButtons.addItem({
-                id: id,
-                item: button,
-                dispose: button.dispose,
-            });
-        });
+        this._leftButtons = left;
+        this._rightButtons = right;
+        this._filterByTagButtons = filters;
     }
 
     public render(parent: HTMLElement): void {
@@ -407,7 +342,47 @@ class FileActionBar {
 
     // [private method]
 
-    private toggleBorder(button: Button): void {
+    private __buttonOnClick(button: IButton): void {
         button.element.classList.toggle('clicked');
+    }
+
+    private __constructButtons(buttonOpts: IWidgetBarOptions): FixedArray<WidgetBar<IButton>, 3> {
+        const leftButtons        = new WidgetBar<IButton>(undefined, buttonOpts);
+        const rightButtons       = new WidgetBar<IButton>(undefined, buttonOpts);
+        const filterByTagButtons = new WidgetBar<IButton>(undefined, buttonOpts);
+        
+        const buttonOnClick = (button: IButton) => this.__buttonOnClick(button);
+
+        [
+            {
+                group: leftButtons,
+                buttons: [
+                    { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: buttonOnClick },
+                    { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: buttonOnClick },
+                ],
+            },
+            {
+                group: rightButtons,
+                buttons: [
+                    { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: buttonOnClick },
+                    { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: buttonOnClick },
+                ],
+            },
+            {
+                group: filterByTagButtons,
+                buttons: [
+                    { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: undefined },
+                ],
+            },
+        ]
+        .forEach(({ group, buttons }) => {
+            for (const { id, icon, classes, fn } of buttons) {
+                const button = new Button({ id, icon, classes });
+                button.onDidClick(() => fn?.(button));
+                group.addItem({ id, item: button, dispose: () => button.dispose()});
+            }
+        });
+
+        return [leftButtons, rightButtons, filterByTagButtons];
     }
 }
