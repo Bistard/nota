@@ -12,7 +12,7 @@ import { IBrowserEnvironmentService } from 'src/platform/environment/common/envi
 import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
-import { DisposableManager } from 'src/base/common/dispose';
+import { Disposable, DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
 import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
@@ -49,7 +49,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-    private readonly _fileButtonBar = new FileActionBar();
+    private readonly _actionBar: FileActionBar;
 
     // [event]
 
@@ -73,6 +73,9 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
         super(ExplorerViewID, parentElement, themeService, componentService, logService);
+
+        this._actionBar = new FileActionBar();
+        this.__register(this._actionBar);
 
         this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
     }
@@ -106,7 +109,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         this.__loadCurrentView(view, !success);
 
         /**
-         * Once the element is put into the DOM tree, we now can relayout to 
+         * Once the element is put into the DOM tree, we now can re-layout to 
          * calculate the correct size of the view.
          */
         this.fileTreeService.layout();
@@ -244,7 +247,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         view.className = 'opened-explorer-container';
 
         // renders file-button-bar
-        this._fileButtonBar.render(view);
+        this._actionBar.render(view);
 
         return view;
     }
@@ -291,14 +294,20 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     }
 }
 
-class FileActionBar {
+class FileActionBar extends Disposable {
+
+    // [fields]
 
     private readonly _element: HTMLElement;
     private readonly _leftButtons: WidgetBar<IButton>;
     private readonly _rightButtons: WidgetBar<IButton>;
     private readonly _filterByTagButtons: WidgetBar<IButton>;
 
+    // [constructor]
+
     constructor() {
+        super();
+
         this._element = document.createElement('div');
         this._element.className = 'file-button-bar';
 
@@ -307,12 +316,20 @@ class FileActionBar {
             render: false,
         });
 
-        this._leftButtons = left;
-        this._rightButtons = right;
-        this._filterByTagButtons = filters;
+        this._leftButtons = this.__register(left);
+        this._rightButtons = this.__register(right);
+        this._filterByTagButtons = this.__register(filters);
+    }
+
+    // [public methods]
+
+    public override dispose(): void {
+        super.dispose();
+        this._element.remove();
     }
 
     public render(parent: HTMLElement): void {
+        
         // file-button-bar
         {
             const fileButtonBarContainer = document.createElement('div');
