@@ -375,7 +375,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
                 scrollbarType: ScrollbarType.vertical,
             },
         );
-        this._scrollableWidget.render(this._element);
         
         // scroll rendering
         this.__register(this._scrollableWidget.onDidScroll((e: IScrollEvent) => {
@@ -407,6 +406,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         // DOM rendering
         this._element.appendChild(this._listContainer);
+        this._scrollableWidget.render(this._element);
         container.appendChild(this._element);
 
         // optional rendering
