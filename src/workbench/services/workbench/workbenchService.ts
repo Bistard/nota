@@ -22,7 +22,8 @@ export interface IWorkbenchService extends IComponent, IService {
     readonly isCollapseAnimating: boolean;
 
     /**
-     * Fires when the navigation-panel is collapsed or expanded.
+     * Fires when the navigation-panel is collapsed or expanded. The event will 
+     * be fired immediately which does not wait for the animation finish.
      */
     readonly onDidCollapseStateChange: Register<CollapseState>;
 

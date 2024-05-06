@@ -295,11 +295,10 @@ export class SplitView extends Disposable implements ISplitView {
     }
 
     public layout(width: number, height: number): void {
-        if (this._orientation === Orientation.Horizontal) {
-            this._size = width;
-        } else {
-            this._size = height;
-        }
+        this._size = (this._orientation === Orientation.Horizontal)
+            ? width
+            : height;
+        
         this.__render();
         this._onDidLayout.fire({
             width: width,

@@ -11,8 +11,3 @@
     overflow: hidden;
     box-sizing: border-box;
 }
-
-// Make the sash default position so that Its position is calculated by the browser.
-#workbench > .sash {
-    position: initial;
-}
