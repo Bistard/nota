@@ -1,4 +1,4 @@
-import { panic } from "src/base/common/utilities/panic";
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";
@@ -216,15 +216,14 @@ export class InstantiationService implements IInstantiationService {
     public createInstance<TCtor extends Constructor>(descriptor      : ServiceDescriptor<TCtor>                                                         ): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(constructor     : TCtor,                            ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor> {
-        let instance: InstanceType<TCtor>;
-
-        if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            instance = this.__createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args);
-        } else {
-            instance = this.__createInstance(ctorOrDescriptor, rest);
+        try {
+            return (ctorOrDescriptor instanceof ServiceDescriptor) 
+                ? this.__createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args)
+                : this.__createInstance(ctorOrDescriptor, rest);
+        } catch (error) {
+            const ctorName = (ctorOrDescriptor instanceof ServiceDescriptor) ? ctorOrDescriptor.ctor.name : ctorOrDescriptor.name;
+            panic(`[createInstance] Failed to construct (${ctorName}): ${errorToMessage(error)}`);
         }
-        
-        return instance;
     }
 
     public createChild(collection?: ServiceCollection): IInstantiationService {
@@ -242,7 +241,7 @@ export class InstantiationService implements IInstantiationService {
         for (const dependency of serviceDependencies) {
             const service = this.__getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
-                panic(`[createInstance] '${constructor.name}' depends on a UNKNOWN service '${dependency.id}'.`);
+                panic(`[DI] '${constructor.name}' depends on a UNKNOWN service '${dependency.id}'.`);
             }
             servicesArgs.push(service);
         }
