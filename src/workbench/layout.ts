@@ -197,10 +197,16 @@ class CollapseAnimationController extends Disposable {
             const transitionTime = '0.5s';
 
             if (state === CollapseState.Collapse) {
+                // opacity changes
+                left.style.transition = `opacity ${transitionTime} ease`;
+                left.style.opacity = `0`;
+
+                // position changes
                 right.style.transition = `left ${transitionTime} ease, width ${transitionTime} ease`;
                 right.style.left = '0px';
                 right.style.width = `100%`;
             } else {
+                left.style.opacity = `1`;
                 right.style.left = `${left.offsetWidth}px`;
                 right.style.width = `calc(100% - ${left.offsetWidth}px)`;
             }
@@ -210,8 +216,9 @@ class CollapseAnimationController extends Disposable {
             const listen = addDisposableListener(right, EventType.transitionend, e => {
                 if (e.target === right && e.propertyName === 'width') {
                     
-                    // remove the transition animation after it finishes
+                    // remove the animation after it finishes
                     if (state === CollapseState.Expand) {
+                        left.style.transition = '';
                         right.style.transition = '';
                     }
 

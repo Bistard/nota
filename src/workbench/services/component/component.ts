@@ -407,7 +407,7 @@ export abstract class Component extends Themable implements IComponent {
 
     public registerListeners(): void {
         check(this._registered  === false, 'Cannot invoke "registerListeners()" twice.');
-        check(this._created  === true , 'Must be invoked after "createContent()".');
+        check(this._created      === true, 'Must be invoked after "createContent()".');
         check(this.isDisposed() === false, 'The component is already disposed.');
 
         this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
