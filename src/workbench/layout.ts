@@ -76,10 +76,12 @@ export abstract class WorkbenchLayout extends Component {
          * during window resizing.
          */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
-        const newDimension = super.layout(undefined, undefined);
+
+        // skip re-layout if needed
         const hackDimension = this._collapseController.layout();
+        const dimension = super.layout(undefined, undefined, hackDimension !== null);
         
-        return hackDimension ?? newDimension;
+        return hackDimension ?? dimension;
     }
 
     // [protected helper methods]
@@ -166,7 +168,7 @@ class CollapseAnimationController extends Disposable {
         this._button = new ToggleCollapseButton({
             initState: initState,
             position: DirectionX.Left,
-            positionOffset: 4,
+            positionOffset: 12,
             direction: DirectionX.Left,
         });
     }
