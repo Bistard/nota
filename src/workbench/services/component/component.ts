@@ -38,8 +38,6 @@ export type IAssembleComponentOpts = {
 } & Pick<ISplitViewItemOpts, 'priority'> 
   & (IResizableSplitViewItemOpts | IFixedSplitViewItemOpts);
 
-
-
 /**
  * An interface only for {@link Component}.
  */
@@ -61,7 +59,7 @@ export interface IComponent extends ICreatable {
     readonly onDidVisibilityChange: Register<boolean>;
 
     /** 
-     * Fires when the component is layout-ing. 
+     * Fires the new dimension of the component when the component is re-layout(ing).
      */
     readonly onDidLayout: Register<IDimension>;
 
@@ -127,8 +125,11 @@ export interface IComponent extends ICreatable {
     
     /**
      * @description Registers any listeners in the component.
+     * @param opts When set `disableReLayout` to true, the {@link Component} 
+     *             will not automatically re-layout when the window is resizing.
+     *             Default sets `false`.
      */
-    registerListeners(): void;
+    registerListeners(opts?: { disableReLayout: boolean; }): void;
 
     /**
      * @description Layout the component to the given dimension. This function
@@ -263,7 +264,7 @@ export abstract class Component extends Themable implements IComponent {
     private _created: boolean;    // is `_createContent` invoked
     private _registered: boolean; // is `_registerListeners` invoked
     
-    /** Relatives to {@link assembleComponents()} */
+    /** Relate to {@link assembleComponents()} */
     protected _splitView: ISplitView | undefined;
 
     // [event]
@@ -407,14 +408,19 @@ export abstract class Component extends Themable implements IComponent {
         return this._dimension;
     }
 
-    public registerListeners(): void {
+    public registerListeners(opts?: { disableReLayout: boolean; }): void {
         check(this._registered  === false, 'Cannot invoke "registerListeners()" twice.');
         check(this._created  === true , 'Must be invoked after "createContent()".');
         check(this.isDisposed() === false, 'The component is already disposed.');
 
         this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
         this._registerListeners();
-        
+
+        // automatically resizing
+        this.__register(addDisposableListener(window, EventType.resize, () => {
+            this.layout();
+        }));
+
         this.logService.trace(`${this.id}`, 'Component register listeners succeeded.');
         this._registered = true;
     }
@@ -512,7 +518,7 @@ export abstract class Component extends Themable implements IComponent {
          */
         for (const { component } of options) {
             component.createContent();
-            component.registerListeners();
+            component.registerListeners({ disableReLayout: true }); // we will handle re-layout by ourself
         }
 
         // apply sash configuration if any (ignore the last configuration)
@@ -528,19 +534,15 @@ export abstract class Component extends Themable implements IComponent {
             sash.setOptions(sashOpts);
         }
     
-        // register listeners
-        this.__register(addDisposableListener(window, EventType.resize, () => {
-            const newDimension = this.layout();
-
+        // re-layout
+        this.__register(this.onDidLayout(newDimension => {
             /**
-             * hack: component may decide to not update the split-view by 
-             * providing -1 value.
+             * hack: Let the component may decide to not re-layout the 
+             * {@link SplitView} by providing -1 value.
              */
-            if (newDimension.width === -1 && newDimension.height === -1) {
-                return;
+            if (newDimension.width !== -1 && newDimension.height !== -1) {
+                this._splitView?.layout(newDimension.width, newDimension.height);
             }
-
-            this._splitView?.layout(newDimension.width, newDimension.height);
         }));
 
         this.logService.trace(`${this.id}`, 'Component assembling components succeeded.');
