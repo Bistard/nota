@@ -1,4 +1,4 @@
-import "src/base/browser/secondary/toggleCollapseButton/media.scss";
+import "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton.scss";
 import { CollapseState, Direction, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { Emitter, Register } from "src/base/common/event";
@@ -9,6 +9,11 @@ import { isNonNullable } from "src/base/common/utilities/type";
  * An construction interface for constructing {@link ToggleCollapseButton}.
  */
 export interface IToggleCollapseButtonOptions {
+
+    /**
+     * The initial state.
+     */
+    readonly initState: CollapseState;
 
     /**
      * Specifies the position of the button relative to its parent. The button 
@@ -39,15 +44,32 @@ export interface IToggleCollapseButtonOptions {
     readonly zIndex?: number;
 }
 
+/**
+ * An interface only for {@link ToggleCollapseButton}.
+ */
 export interface IToggleCollapseButton extends IWidget {
     
+    /**
+     * The current state.
+     */
+    readonly state: CollapseState;
+
     /**
      * Fires when the button wether collapsed.
      */
     readonly onDidCollapseStateChange: Register<CollapseState>;
 }
 
-export class ToggleCollapseButton extends Widget {
+/**
+ * @class ToggleCollapseButton is designed to control and display a button that 
+ * toggles between collapsed and expanded states, affecting associated content 
+ * accordingly.
+ * 
+ * It provides detailed configuration options, allowing for precise control over 
+ * the initial state, position, offset, direction, and optional z-index of the 
+ * button.
+ */
+export class ToggleCollapseButton extends Widget implements IToggleCollapseButton {
 
     // [fields]
 
@@ -68,7 +90,13 @@ export class ToggleCollapseButton extends Widget {
         super();
         this._opts = opts;
         this._rotationAngle = 0;
-        this._collapseState = CollapseState.Expand;
+        this._collapseState = opts.initState;
+    }
+
+    // [public methods]
+
+    get state(): CollapseState {
+        return this._collapseState;
     }
     
     // [protected override methods]
@@ -166,7 +194,14 @@ export class ToggleCollapseButton extends Widget {
             default:
                 panic(`[ToggleCollapseButton] invalid direction: ${direction}`);
         }
-        button.style.transform = `rotate(${this._rotationAngle}deg)`;
+        
+        if (this._collapseState === CollapseState.Collapse) {
+            // default state is collapse, we flip it over.
+            this.__flipOver(button);
+        } else {
+            // default is expand, no flip over.
+            button.style.transform = `rotate(${this._rotationAngle}deg)`;
+        }
     }
 
     protected override __registerListeners(element: HTMLElement): void {
@@ -180,15 +215,13 @@ export class ToggleCollapseButton extends Widget {
                 ? CollapseState.Expand
                 : CollapseState.Collapse;
 
-            // flip over
-            this._rotationAngle = (this._rotationAngle + 180) % 360;
-            button.style.transform = `rotate(${this._rotationAngle}deg)`;
-
+            this.__flipOver(button);
             this._onDidCollapseStateChange.fire(this._collapseState);
         });
     }
 
-    // [public methods]
-
-
+    private __flipOver(button: HTMLElement): void {
+        this._rotationAngle = (this._rotationAngle + 180) % 360;
+        button.style.transform = `rotate(${this._rotationAngle}deg)`;
+    }
 }

@@ -12,6 +12,16 @@ export const IWorkbenchService = createService<IWorkbenchService>('workbench-ser
 export interface IWorkbenchService extends IComponent, IService {
 
     /**
+     * If the current workbench collapsed (if the navigation-panel is collapsed).
+     */
+    readonly collapseState: CollapseState;
+
+    /**
+     * Determines if the collapse/expand animation is in process.
+     */
+    readonly isCollapseAnimating: boolean;
+
+    /**
      * Fires when the navigation-panel is collapsed or expanded.
      */
     readonly onDidCollapseStateChange: Register<CollapseState>;

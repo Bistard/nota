@@ -53,10 +53,18 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
-        this._collapseController = new CollapseAnimationController(this, () => assert(this._splitView));
+        this._collapseController = new CollapseAnimationController(CollapseState.Expand, () => assert(this._splitView));
     }
 
-    // [protected methods]
+    // [public methods]
+
+    get collapseState(): CollapseState {
+        return this._collapseController.state;
+    }
+
+    get isCollapseAnimating(): boolean {
+        return this._collapseController.isAnimating;
+    }
 
     public override layout(): IDimension {
         /**
@@ -64,6 +72,8 @@ export abstract class WorkbenchLayout extends Component {
          * during window resizing.
          */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
+
+        
         return super.layout(undefined, undefined);
     }
 
@@ -126,10 +136,10 @@ class CollapseAnimationController extends Disposable {
 
     // [fields]
 
-    private readonly layout: WorkbenchLayout;
     private readonly _retrieveSplitView: () => ISplitView;
-
     private readonly _button: ToggleCollapseButton;
+    
+    private _animating: boolean;
 
     // [event]
 
@@ -138,18 +148,29 @@ class CollapseAnimationController extends Disposable {
     // [constructor]
 
     constructor(
-        layout: WorkbenchLayout,
+        initState: CollapseState,
         retrieveSplitView: () => ISplitView,
     ) {
         super();
-        this.layout = layout;
         this._retrieveSplitView = retrieveSplitView;
+        this._animating = false;
 
         this._button = new ToggleCollapseButton({
+            initState: initState,
             position: DirectionX.Left,
             positionOffset: 4,
             direction: DirectionX.Left,
         });
+    }
+
+    // [getter]
+
+    get state(): CollapseState {
+        return this._button.state;
+    }
+
+    get isAnimating(): boolean {
+        return this._animating;
     }
 
     // [public methods]
@@ -167,24 +188,29 @@ class CollapseAnimationController extends Disposable {
             const right = assert(splitView.getViewBy('workspace')).getContainer();
             const transitionTime = '0.5s';
 
-            const workbenchWidth = this.layout.element.element.offsetWidth;
-
             if (state === CollapseState.Collapse) {
                 right.style.transition = `left ${transitionTime} ease, width ${transitionTime} ease`;
                 right.style.left = '0px';
-                right.style.width = `${workbenchWidth}px`;
+                right.style.width = `100%`;
             } else {
                 right.style.left = `${left.offsetWidth}px`;
                 right.style.width = `calc(100% - ${left.offsetWidth}px)`;
-
-                // remove the transition animation after it finishes
-                const listen = addDisposableListener(right, EventType.transitionend, (e) => {
-                    if (e.target === right && e.propertyName === 'width') {
-                        right.style.transition = '';
-                        listen.dispose();
-                    }
-                });
             }
+            
+            // maintain the animation period
+            this._animating = true;
+            const listen = addDisposableListener(right, EventType.transitionend, e => {
+                if (e.target === right && e.propertyName === 'width') {
+                    
+                    // remove the transition animation after it finishes
+                    if (state === CollapseState.Expand) {
+                        right.style.transition = '';
+                    }
+
+                    listen.dispose();
+                    this._animating = false;
+                }
+            });
         }));
     }
 }
