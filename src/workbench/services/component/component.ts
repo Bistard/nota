@@ -125,11 +125,8 @@ export interface IComponent extends ICreatable {
     
     /**
      * @description Registers any listeners in the component.
-     * @param opts When set `disableReLayout` to true, the {@link Component} 
-     *             will not automatically re-layout when the window is resizing.
-     *             Default sets `false`.
      */
-    registerListeners(opts?: { disableReLayout: boolean; }): void;
+    registerListeners(): void;
 
     /**
      * @description Layout the component to the given dimension. This function
@@ -408,7 +405,7 @@ export abstract class Component extends Themable implements IComponent {
         return this._dimension;
     }
 
-    public registerListeners(opts?: { disableReLayout: boolean; }): void {
+    public registerListeners(): void {
         check(this._registered  === false, 'Cannot invoke "registerListeners()" twice.');
         check(this._created  === true , 'Must be invoked after "createContent()".');
         check(this.isDisposed() === false, 'The component is already disposed.');
@@ -518,7 +515,7 @@ export abstract class Component extends Themable implements IComponent {
          */
         for (const { component } of options) {
             component.createContent();
-            component.registerListeners({ disableReLayout: true }); // we will handle re-layout by ourself
+            component.registerListeners();
         }
 
         // apply sash configuration if any (ignore the last configuration)
