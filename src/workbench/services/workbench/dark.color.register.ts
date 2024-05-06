@@ -53,6 +53,15 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-selected-background', THEME_COLORS.lightTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-hovered-background', THEME_COLORS.lighterTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-grag-image-background', THEME_COLORS.stroke);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'filter-by-tag-icon', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'filter-by-tag-text', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-background', THEME_COLORS.lightstroke);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-background-hover', THEME_COLORS.lightTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-background-active', THEME_COLORS.lightTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-foreground', THEME_COLORS.ternary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-foreground-hover', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-foreground-active', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-box-shadow-active', THEME_COLORS.mediumTeal);
 
         // Workspace
         registrant.registerColor(PresetColorTheme.DarkModern, 'window-bar-button-hover-background', THEME_COLORS.stroke);

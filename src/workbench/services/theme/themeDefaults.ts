@@ -16,10 +16,12 @@ export const THEME_COLORS = <const>{
 
     primary:     assert(RGBA.parse('#211f27')),
     secondary:   assert(RGBA.parse('#5a564d')),
+    ternary:     assert(RGBA.parse('#949393')),
     subtext:     assert(RGBA.parse('#b5b5b5')),
     middle:      assert(RGBA.parse('#bbbbbb')),
     subicon:     assert(RGBA.parse('#cccccc')),
     stroke:      assert(RGBA.parse('#e2e2e2')),
+    lightstroke: assert(RGBA.parse('#eaeaea')),
     light:       assert(RGBA.parse('#fcf3f3')),
     sidebg:      assert(RGBA.parse('#fcfcfc')),
     
