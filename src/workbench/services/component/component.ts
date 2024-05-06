@@ -531,6 +531,15 @@ export abstract class Component extends Themable implements IComponent {
         // register listeners
         this.__register(addDisposableListener(window, EventType.resize, () => {
             const newDimension = this.layout();
+
+            /**
+             * hack: component may decide to not update the split-view by 
+             * providing -1 value.
+             */
+            if (newDimension.width === -1 && newDimension.height === -1) {
+                return;
+            }
+
             this._splitView?.layout(newDimension.width, newDimension.height);
         }));
 

@@ -53,7 +53,11 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
-        this._collapseController = new CollapseAnimationController(CollapseState.Expand, () => assert(this._splitView));
+        this._collapseController = new CollapseAnimationController(
+            CollapseState.Expand, 
+            () => assert(this._splitView),
+            () => assert(this.dimension),
+        );
     }
 
     // [public methods]
@@ -72,9 +76,10 @@ export abstract class WorkbenchLayout extends Component {
          * during window resizing.
          */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
-
+        const newDimension = super.layout(undefined, undefined);
+        const hackDimension = this._collapseController.layout();
         
-        return super.layout(undefined, undefined);
+        return hackDimension ?? newDimension;
     }
 
     // [protected helper methods]
@@ -136,7 +141,8 @@ class CollapseAnimationController extends Disposable {
 
     // [fields]
 
-    private readonly _retrieveSplitView: () => ISplitView;
+    private readonly _getLayoutSplitView: () => ISplitView;
+    private readonly _getCurrentDimension: () => IDimension;
     private readonly _button: ToggleCollapseButton;
     
     private _animating: boolean;
@@ -150,9 +156,11 @@ class CollapseAnimationController extends Disposable {
     constructor(
         initState: CollapseState,
         retrieveSplitView: () => ISplitView,
+        getCurrentDimension: () => IDimension,
     ) {
         super();
-        this._retrieveSplitView = retrieveSplitView;
+        this._getLayoutSplitView = retrieveSplitView;
+        this._getCurrentDimension = getCurrentDimension;
         this._animating = false;
 
         this._button = new ToggleCollapseButton({
@@ -181,9 +189,9 @@ class CollapseAnimationController extends Disposable {
 
     public registerListeners(): void {
 
-        // manage navigation-panel and workspace collapse/expand animation
+        // manage collapse/expand animation
         this.__register(this.onDidCollapseStateChange(state => {
-            const splitView = this._retrieveSplitView();
+            const splitView = this._getLayoutSplitView();
             const left  = assert(splitView.getViewBy('navigation-panel')).getContainer();
             const right = assert(splitView.getViewBy('workspace')).getContainer();
             const transitionTime = '0.5s';
@@ -212,5 +220,30 @@ class CollapseAnimationController extends Disposable {
                 }
             });
         }));
+
+        /**
+         * When the window has been resized during the `left` is collapsed, the 
+         * {@link SplitView}'s internal dimension will be out-of-date, we need
+         * to update it when the `left` is expanded again.
+         */
+        this.__register(this.onDidCollapseStateChange(state => {
+            if (state === CollapseState.Expand) {
+                const splitView = this._getLayoutSplitView();
+                const dimension = this._getCurrentDimension();
+                splitView.layout(dimension.width, dimension.height);
+            }
+        }));
+    }
+
+    /**
+     * hack: When the `left` is collapsed, we return -1 value to prevent the 
+     * {@link SplitView} to re-layout. Otherwise the width of the `right` will 
+     * be re corrected to the original width.
+     */
+    public layout(): IDimension | null {
+        if (this.state === CollapseState.Collapse) {
+            return { width: -1, height: -1 };
+        }
+        return null;
     }
 }
