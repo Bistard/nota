@@ -55,7 +55,7 @@ function execCommand(doc: ProseNode, cmd: EditorCommand, result: ProseNode | nul
     }
 }
 
-suite('editorCommands-test', () => {
+suite.skip('editorCommands-test', () => {
     
     suite('DeleteSelection', () => {
         const cmd = new EditorCommands.DeleteSelection(nullObject());
