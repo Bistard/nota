@@ -17,6 +17,7 @@ import { EditorType } from 'src/editor/common/viewModel';
 import { getBuiltInExtension } from 'src/editor/common/extension/builtInExtension';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { panic } from 'src/base/common/utilities/panic';
+import { Emitter } from 'src/base/common/event';
 
 export class Editor extends Component implements IEditorService {
 
@@ -25,6 +26,11 @@ export class Editor extends Component implements IEditorService {
     // [field]
 
     private _editorWidget: IEditorWidget | null;
+
+    // [event]
+
+    private readonly _onDidOpen = this.__register(new Emitter<URI>());
+    public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]
 
@@ -51,14 +57,14 @@ export class Editor extends Component implements IEditorService {
 
     // [public methods]
 
-    public openSource(source: URI | string): void {
+    public async openSource(source: URI | string): Promise<void> {
         if (!this._editorWidget) {
             panic(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
         }
-
-        
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
-        this._editorWidget.open(uri);
+        
+        await this._editorWidget.open(uri);
+        this._onDidOpen.fire(uri);
     }
 
     // [override protected methods]

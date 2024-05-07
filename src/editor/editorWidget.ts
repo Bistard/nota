@@ -205,7 +205,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this.__detachModel();
         const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
-        this.__attachModel(textModel);
+        await this.__attachModel(textModel);
     }
 
     public override dispose(): void {
@@ -221,7 +221,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [private helper methods]
 
-    private __attachModel(model?: IEditorModel): void {
+    private async __attachModel(model?: IEditorModel): Promise<void> {
         if (!model) {
             this._model = null;
             return;
@@ -246,7 +246,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         );
 
         const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
-        this._model.build();
+        await this._model.build();
 
         this._editorData = new EditorData(this._model, this._viewModel, this._view, listeners);
     }
