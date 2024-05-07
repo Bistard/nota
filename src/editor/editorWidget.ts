@@ -18,6 +18,7 @@ import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
+import { assert } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -28,6 +29,21 @@ export interface IEditorWidget extends IProseEventBroadcaster {
      * The current rendering mode of the view.
      */
     readonly renderMode: EditorType | null;
+
+    /**
+     * Returns the model.
+     */
+    readonly model: IEditorModel;
+
+    /**
+     * Returns the view model.
+     */
+    readonly viewModel: IEditorViewModel;
+
+    /**
+     * Returns the view.
+     */
+    readonly view: IEditorView;
 
     /**
      * Fires when the editor render mode has changed.
@@ -166,16 +182,16 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [getter]
 
-    get model(): IEditorModel | null {
-        return this._model;
+    get model(): IEditorModel {
+        return assert(this._model);
     }
 
-    get viewModel(): IEditorViewModel | null {
-        return this._viewModel;
+    get viewModel(): IEditorViewModel {
+        return assert(this._viewModel);
     }
 
-    get view(): IEditorView | null {
-        return this._view;
+    get view(): IEditorView {
+        return assert(this._view);
     }
 
     get renderMode(): EditorType | null {
