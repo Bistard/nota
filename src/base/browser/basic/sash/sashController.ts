@@ -4,11 +4,9 @@ import { addDisposableListener, createStyleInCSS, EventType, Orientation } from 
 
 export interface IAbstractSashController extends IDisposable {
     
-    // readonly onDid
-    
     /** 
-     * @description Fires when the {@link EventType.mousedown} happens on 
-     * {@link Sash}. 
+     * @description Will be fires when the {@link EventType.mousedown} happens 
+     * on {@link Sash}. 
      */
     onMouseStart(): void;
 }
@@ -24,7 +22,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     // [field]
 
-    protected readonly disposables = new DisposableManager();
+    private _disposables = new DisposableManager();
     protected readonly sash: ISash;
 
     /** The offset to the expected position (middle of the adjacent views). */
@@ -57,7 +55,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
         const cursor = (this.sash.orientation === Orientation.Vertical) ? 'ew-resize' : 'ns-resize';
         cursorStyleDisposable.style.textContent = `* { cursor: ${cursor} !important; }`;
 
-        this.disposables.register(cursorStyleDisposable);
+        this._disposables.register(cursorStyleDisposable);
     }
 
     // [abstraction]
@@ -66,7 +64,8 @@ export abstract class AbstractSashController implements IAbstractSashController 
     protected abstract __onMouseStart(): void;
     
     protected __onMouseUp(): void {
-        this.disposables.dispose();
+        this._disposables.dispose();
+        this._disposables = new DisposableManager();
         this._onDidEnd();
     }
 
@@ -75,8 +74,8 @@ export abstract class AbstractSashController implements IAbstractSashController 
     public onMouseStart(): void {
         this.__onMouseStart();
 
-        this.disposables.register(addDisposableListener(window, EventType.mousemove, e => this.__onMouseMove(e)));
-        this.disposables.register(addDisposableListener(window, EventType.mouseup, () => this.__onMouseUp()));
+        this._disposables.register(addDisposableListener(window, EventType.mousemove, e => this.__onMouseMove(e)));
+        this._disposables.register(addDisposableListener(window, EventType.mouseup, () => this.__onMouseUp()));
 
         this._onDidStart(this.prevEvent);
     }
@@ -85,7 +84,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
         this.__onMouseUp();
     }
 
-    // [private helper methods]
+    // [protected helper methods]
 
     protected __fireMoveEvent(currX: number, currY: number, deltaX: number, deltaY: number): void {
         const event: ISashEvent = {
@@ -96,6 +95,15 @@ export abstract class AbstractSashController implements IAbstractSashController 
         };
         this.prevEvent = event;
         this._onDidMove(event);
+    }
+
+    protected __isReachRangeEdge(currPos: number, delta: number): boolean {
+        if ((currPos === this.sash.range.start && delta < 0) ||
+            (currPos === this.sash.range.end && delta > 0)
+        ) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -130,9 +138,7 @@ export class VerticalSashController extends AbstractSashController {
         const offsetPosition = e.pageX - this.prevEvent.currentX;
         
         // if the sash already touches the edge of its range, we do nothing.
-        if ((idealPosition === this.sash.range.start && offsetPosition < 0) || 
-            (idealPosition === this.sash.range.end && offsetPosition > 0)) 
-        {
+        if (this.__isReachRangeEdge(idealPosition, offsetPosition)) {
             return;
         }
         
@@ -190,9 +196,7 @@ export class HorizontalSashController extends AbstractSashController {
         const offsetPosition = e.pageY - this.prevEvent.currentY;
 
         // if the sash already touches the edge of its range, we do nothing.
-        if ((idealPosition === this.sash.range.start && offsetPosition < 0) || 
-            (idealPosition === this.sash.range.end && offsetPosition > 0)) 
-        {
+        if (this.__isReachRangeEdge(idealPosition, offsetPosition)) {
             return;
         }
         
@@ -218,3 +222,51 @@ export class HorizontalSashController extends AbstractSashController {
 
 }
 
+/**
+ * @class Since the default {@link Sash} is positioned in absolute, its default
+ * controller will handle its position by hard calculated the `left` or `top`
+ * position in pixels. 
+ * 
+ * However, sometimes the sash is positioned in relative, the position is 
+ * calculated by the browser, we only need to provide a simple controller.
+ */
+export class SimpleSashController extends AbstractSashController {
+    
+    protected override __onMouseStart(): void {
+        const base = { currentX: 0, currentY: 0, deltaX: 0, deltaY: 0 };
+        
+        if (this.sash.orientation === Orientation.Vertical) {
+            base.currentX = this.sash.element.offsetLeft;
+        } else {
+            base.currentY = this.sash.element.offsetTop;
+        }
+
+        this.prevEvent = base;
+    }
+
+    protected override __onMouseMove(event: MouseEvent): void {
+        if (this.sash.orientation === Orientation.Vertical) {
+            const currPos = this.sash.element.offsetLeft;
+            const newPos = event.clientX;
+            const delta = event.clientX - this.sash.element.offsetLeft;
+            
+            // reaching the edge || no changes
+            if (this.__isReachRangeEdge(currPos, delta) || delta === 0) {
+                return;
+            }
+
+            this.__fireMoveEvent(newPos, 0, delta, 0);
+        } else {
+            const currPos = this.sash.element.offsetLeft;
+            const newPos = event.clientY;
+            const delta = event.clientY - this.sash.element.offsetTop;
+
+            // reaching the edge || no changes
+            if (this.__isReachRangeEdge(currPos, delta) || delta === 0) {
+                return;
+            }
+
+            this.__fireMoveEvent(0, newPos, delta, 0);
+        }
+    }
+}

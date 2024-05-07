@@ -7,7 +7,7 @@ import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/servic
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
-import { ILogService } from "src/base/common/logger";
+import { ILogService, defaultLog } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
@@ -402,7 +402,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     collapsedByDefault: true,
                     filter: new FileItemFilter(),
                     dnd: dndProvider,
-
+                    
+                    transformOptimization: true,
                     touchSupport: true,
                     mouseSupport: true,
                     keyboardSupport: true,
@@ -411,7 +412,10 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
                     scrollSensibility: 0.4,
                     fastScrollSensibility: 5,
-                    scrollbarSize: 10,
+                    scrollbarSize: 6,
+
+                    // may disable this
+                    log: (level, reporter, message, error, additional) => defaultLog(this.logService, level, `${reporter} (FileTree)`, message, error, additional),
                 },
             );
 

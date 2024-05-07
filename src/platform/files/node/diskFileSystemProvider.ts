@@ -19,7 +19,9 @@ import { OS_CASE_SENSITIVE } from "src/base/common/platform";
 export class DiskFileSystemProvider extends Disposable implements
     IFileSystemProviderWithFileReadWrite,
     IFileSystemProviderWithOpenReadWriteClose,
-    IFileSystemProviderWithReadFileStream {
+    IFileSystemProviderWithReadFileStream 
+{
+    
     // [event]
 
     private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());

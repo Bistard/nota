@@ -23,6 +23,9 @@ export interface IDomBox extends IDimension, IPosition {}
 interface ISize2D {
 	clone(a: number, b: number): this;
 	equals(other: this): boolean;
+	scale(factor: number): this;
+	add(other: this): this;
+	subtract(other: this): this;
 }
 
 class Size2D {
@@ -56,7 +59,7 @@ class Size2D {
     }
 }
 
-export class Dimension extends Size2D implements IDimension, ISize2D {
+export class Dimension extends Size2D implements Readonly<IDimension>, ISize2D {
 
 	public static readonly None = new Dimension(0, 0);
 
@@ -71,9 +74,16 @@ export class Dimension extends Size2D implements IDimension, ISize2D {
 	get height(): number {
 		return this._b;
 	}
+
+	public static lift(obj: IDimension): Dimension {
+		if (obj instanceof Dimension) {
+			return obj;
+		}
+		return new (<any>this.constructor)(obj.width, obj.height);
+	}
 }
 
-export class Position extends Size2D implements IPosition, ISize2D {
+export class Position extends Size2D implements Readonly<IPosition>, ISize2D {
 
 	public static readonly None = new Position(0, 0);
 
@@ -88,9 +98,16 @@ export class Position extends Size2D implements IPosition, ISize2D {
 	get left(): number {
 		return this._b;
 	}
+
+	public static lift(obj: IPosition): Position {
+		if (obj instanceof Position) {
+			return obj;
+		}
+		return new (<any>this.constructor)(obj.top, obj.left);
+	}
 }
 
-export class Coordinate extends Size2D implements ICoordinate, ISize2D {
+export class Coordinate extends Size2D implements Readonly<ICoordinate>, ISize2D {
 
 	public static readonly None = new Coordinate(0, 0);
 
@@ -104,5 +121,12 @@ export class Coordinate extends Size2D implements ICoordinate, ISize2D {
 	
 	get y(): number {
 		return this._b;
+	}
+
+	public static lift(obj: ICoordinate): Coordinate {
+		if (obj instanceof Coordinate) {
+			return obj;
+		}
+		return new (<any>this.constructor)(obj.x, obj.y);
 	}
 }

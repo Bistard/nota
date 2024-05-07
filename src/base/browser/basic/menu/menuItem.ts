@@ -380,7 +380,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         });
 
         // prevent double click
-        this.element.onDoubleclick(e => {
+        this.element.onDoubleClick(e => {
             DomEventHandler.stop(e, true);
         });
 

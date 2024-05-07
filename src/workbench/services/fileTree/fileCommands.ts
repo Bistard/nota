@@ -15,7 +15,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { Arrays } from "src/base/common/utilities/array";
 import { IBatchResult, IChange, createBatchResult } from "src/base/common/undoRedo";
 import { noop } from "src/base/common/performance";
-import { assert, assertArray, assertDefault, errorToMessage } from "src/base/common/utilities/panic";
+import { assert, assertArray, assertDefault, check, errorToMessage } from "src/base/common/utilities/panic";
 import { ResourceMap } from "src/base/common/structures/map";
 import { OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
@@ -179,8 +179,8 @@ export namespace FileCommands {
         }
 
         private async __pasteInsert(toInsert: FileItem[], destination: FileItem, isCut: boolean, destinationIdx?: number): Promise<void> {
-            assert(destination.isDirectory());
-            assert(!this.fileTreeService.isCollapsed(destination));
+            check(destination.isDirectory());
+            check(!this.fileTreeService.isCollapsed(destination));
             
             // This also check parent-child relationship.
             const dragItems = URI.distinctParentsByUri(toInsert, item => item.uri);

@@ -84,7 +84,7 @@ export class RegistrantService implements IRegistrantService {
 
         this._registrants.set(registrant.type, registrant);
 
-        this.logService.info('RegistrantService', `Registrant registered: ${registrant.type}`);
+        this.logService.trace('RegistrantService', `Registrant registered: ${registrant.type}`);
     }
 
     public getRegistrant<T extends RegistrantType>(type: T): GetRegistrantByType<T> {
@@ -105,9 +105,9 @@ export class RegistrantService implements IRegistrantService {
 
         this._registrants.forEach((registrant, key) => {
             try {
-                this.logService.info('RegistrantService', `(${registrant.type}) Initializing registrant...`);
+                this.logService.trace('RegistrantService', `(${registrant.type}) Initializing registrant...`);
                 registrant.initRegistrations(provider);
-                this.logService.info('RegistrantService', `(${registrant.type}) Registrant initialized successfully.`);
+                this.logService.trace('RegistrantService', `(${registrant.type}) Registrant initialized successfully.`);
             } catch (error: any) {
                 this.logService.error('RegistrantService', `(${registrant.type}) Registrant initialization failed.`, error);
             }

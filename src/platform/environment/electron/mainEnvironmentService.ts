@@ -23,11 +23,6 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
         @IProductService private readonly productService: IProductService,
     ) {
         super(CLIArgv, opts, logService);
-
-        if (CLIArgv.log === 'debug') {
-            this.inspect();
-        }
-
         logService.debug('MainEnvironmentService', 'MainEnvironmentService constructed.');
     }
 

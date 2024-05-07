@@ -105,7 +105,7 @@ export namespace Range {
 		};
 
 		!Range.empty(before) ? complement.push(before) : complement.splice(0, 0, Range.EMPTY);
-		!Range.empty(after) ? complement.push(after) : complement.splice(0, 0, Range.EMPTY);
+		!Range.empty(after)  ? complement.push(after)  : complement.splice(0, 0, Range.EMPTY);
 		
 		return complement as [IRange, IRange];
 	}

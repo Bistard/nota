@@ -1,46 +1,11 @@
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row {
-    /* 
-    The reason using a `outline` instead of `border` is because border is 
-    counted as part of the element's dimension and that affects the drag and 
-    drop detection.
-     */
-    outline: 1px solid transparent;
-    outline-offset: -1px; /* make the outline placed inside the row. */
-    
-    // make sure not overlapping the tree outline
-    margin-left: 1px;
-    margin-top: 1px;
-    height: calc(100% - 2px);
-    width: calc(100% - 2px);
-    
-    /** only for testing purpose */
-    // &.anchor {
-    //     background-color: #ff0000 !important;
-    // }
+.explorer-item {
+    position: relative;
+    display: block;
 
-    &.focused {
-        outline: 1px solid var(--nota-explorer-item-focused-background);
-    }
-    
-    &.selected {
-        background-color: var(--nota-explorer-item-selected-background);
-    }
+    width: 100%;
+    height: 100%;
 
-    &.hovered {
-        background-color: var(--nota-explorer-item-hovered-background);
-    }
-    
-    & > .tree-list-row > .icon {
-        font-size: 12px;
-        margin-right: 4px;
-    }
-
-    & .explorer-item {
-        position: relative;
-        display: flex;
-        height: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

@@ -61,6 +61,50 @@ export class Reactivator {
 }
 
 /**
+ * Represents a flag with an identifiable state that can only be toggled once.
+ */
+export class Flag {
+    
+    // [field]
+    
+    private readonly _name: string;
+    private _triggered: boolean;
+
+    // [constructor]
+
+    constructor(name: string) {
+        this._name = name;
+        this._triggered = false;
+    }
+
+    // [public methods]
+
+    public triggered(): boolean {
+        return this._triggered;
+    }
+
+    /**
+     * @description Sets the flag's state to true.
+     */
+    public turnOn(): void {
+        this.assert(false);
+        this._triggered = true;
+    }
+
+    /**
+     * @description Ensures the flag's current state matches the expected state. 
+     * Panic if not.
+     * @param state The expected state of the flag.
+     * @param errorToMessage Optional. Custom error message.
+     */
+    public assert(state: boolean, errorToMessage?: string): void {
+        if (this._triggered !== state) {
+            panic(`Flag (${this._name}) ` + (errorToMessage ?? 'is already turned on.'));
+        }
+    }
+}
+
+/**
  * @description Function version of a ternary operator.
  */
 export function cond<T>(condition: boolean, onTrue: T, onFalse: T): T {

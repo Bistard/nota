@@ -1,6 +1,8 @@
 import { ITreeCollapseStateChangeEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { Event, Register } from "src/base/common/event";
+import { Register } from "src/base/common/event";
+import { check } from "src/base/common/utilities/panic";
+import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 
 /**
  * A basic type of renderer in {@link IListView} that manages to render tree 
@@ -39,17 +41,17 @@ export interface ITreeListItemMetadata<T> extends IListViewMetadata {
     /**
      * The HTMLElement container of the indentation part.
      */
-    indentation: HTMLElement;
+    readonly indentation: HTMLElement;
 
     /**
      * The HTMLElement container of the content part.
      */
-    content: HTMLElement;
+    readonly content: HTMLElement;
 
     /**
      * Nested renderer's metadata.
      */
-    nestedMetadata: T;
+    readonly nestedMetadata: T;
 }
 
 /**
@@ -72,11 +74,10 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     // [field]
 
     public static readonly defaultIndentation = 16;
-
     public readonly type: RendererType;
 
     /** the nested renderer. */
-    private _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
+    private readonly _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
 
     private _eachIndentSize: number;
 
@@ -84,8 +85,8 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
      * we need to stores the metadata so that once the collapse state changed, 
      * we still have a way to access the metadata. 
      */
-    private _nodeMap = new Map<T, ITreeNode<T, TFilter>>();
-    private _metadataMap = new Map<ITreeNode<T, TFilter>, ITreeListItemMetadata<TMetadata>>();
+    private readonly _nodeMap = new Map<T, ITreeNode<T, TFilter>>();
+    private readonly _metadataMap = new Map<ITreeNode<T, TFilter>, ITreeListItemMetadata<TMetadata>>();
 
     // [constructor]
 
@@ -97,13 +98,11 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
         this.type = this._renderer.type;
         this._eachIndentSize = TreeItemRenderer.defaultIndentation;
 
-        // listen to the outer event.
-        Event.map(onDidChangeCollapseState, e => e.node)((node) => this.__doDidChangeCollapseState(node));
+        // listen to the outer event
+        onDidChangeCollapseState(e => this.__doDidChangeCollapseState(e.node));
 
-        // listen to the nested renderer.
-        if (nestedRenderer.onDidChangeCollapseState) {
-            nestedRenderer.onDidChangeCollapseState((e) => this.__didChangeCollapseStateByData(e));
-        }
+        // listen to the nested renderer
+        nestedRenderer.onDidChangeCollapseState?.((e) => this.__didChangeCollapseStateByData(e));
     }
 
     // [public method]
@@ -160,18 +159,24 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     }
 
     public updateIndent(item: ITreeNode<T, TFilter>, indentElement: HTMLElement): void {
-
-        if (item.collapsible && item.visibleNodeCount > 0) {
+        check(item.visible);
+        check(item.visibleNodeCount >= 1);
+        
+        if (item.collapsible) {
             indentElement.classList.add('collapsible');
-            indentElement.classList.toggle('collapsed', item.collapsed);
+            
+            /**
+             * // TODO: doc
+             */
+            indentElement.classList.add('collapsed');
+            if (item.collapsed === false) {
+                requestAtNextAnimationFrame(() => indentElement.classList.remove('collapsed'));
+            }
         } else {
             indentElement.classList.remove('collapsible', 'collapsed');
         }
 
-        if (this._renderer.updateIndent) {
-            this._renderer.updateIndent(item, indentElement);
-        }
-
+        this._renderer.updateIndent?.(item, indentElement);
     }
 
     public disposeData(item: ITreeNode<T, TFilter>, index: number, data: ITreeListItemMetadata<TMetadata>, size?: number): void {
@@ -180,9 +185,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
             this._metadataMap.delete(item);
         }
 
-        if (this._renderer.disposeData) {
-            this._renderer.disposeData(item, index, data.nestedMetadata, size);
-        }
+        this._renderer.disposeData?.(item, index, data.nestedMetadata, size);
     }
 
     public dispose(data: ITreeListItemMetadata<TMetadata>): void {
@@ -210,5 +213,4 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
         this.updateIndent(node, metadata.indentation);
     }
-
 }

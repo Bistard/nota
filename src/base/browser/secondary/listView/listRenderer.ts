@@ -1,21 +1,10 @@
-import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { DomUtility } from "src/base/browser/basic/dom";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * The type of renderers used in {@link IListView}.
- * @deprecated
  */
-// TODO: Remove this feature, may just use a regular string
-export const enum RendererType {
-	Unknown,  /** testing purpose. */
-	
-	ListItem, /** {@link ListItemRenderer} */
-	Explorer, /** {@link FileItemRenderer} */
-	
-	MarkdownPlainText, // TODO
-	MarkdownHeading,  /** {@link HeadingRenderer} */
-	
-}
+export type RendererType = string;
 
 /**
  * A very basic type of metadata that may be used in the renderers relates to 
@@ -26,8 +15,7 @@ export interface IListViewMetadata {
 	/**
 	 * The HTMLElement container of the related item in the {@link IListView}.
 	 */
-	container: HTMLElement;
-
+	readonly container: HTMLElement;
 }
 
 /**
@@ -38,10 +26,10 @@ export interface IListViewMetadata {
  * TMetadata: type of the user-defined value which returned value by the method 
  *            `render()` for later updating / disposing.
  */
-
 export interface IListViewRenderer<T, TMetadata> {
+	
 	/**
-	 * The type of item that the renderer is responsible for.
+	 * Indicates the type of item that this renderer is responsible for rendering.
 	 */
 	readonly type: RendererType;
 
@@ -75,8 +63,9 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @description Dispose (destruct) the item.
 	 * @param data The user-defined data for disposing.
 	 * 
-	 * @note This method only invoked when 1) {@link ListViewCache} inside the 
-	 * list view is disposed 2) {@link ListView} is disposed.
+	 * @note This method only invoked when 
+	 * 		1) The item is about to be deleted (unrendered).
+	 * 		2) {@link ListView} is disposed.
 	 */
 	dispose(data: TMetadata): void;
 
@@ -107,7 +96,7 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 	public readonly type: RendererType;
 	private pipeline: IListViewRenderer<T, any>[];
 	
-	constructor(type: ListItemType, renderers: IListViewRenderer<T, any>[]) {
+	constructor(type: RendererType, renderers: IListViewRenderer<T, any>[]) {
 		this.type = type;
 		this.pipeline = renderers;
 	}
@@ -117,17 +106,15 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 	}
 
 	public update(item: T, index: number, data: any[], size?: number): void {
-		for (let i = 0; i < this.pipeline.length; i++) {
-			const renderer = this.pipeline[i]!;
-			renderer.update(item, index, data[i]!, size);
-		}
+		Arrays.parallelEach([data, this.pipeline], (eachData, renderer) => {
+			renderer.update(item, index, eachData, size);
+		});
 	}
  
 	public dispose(data: any[]): void {
-		for (let i = 0; i < this.pipeline.length; i++) {
-			const renderer = this.pipeline[i]!;
-			renderer.dispose(data[i]!);
-		}
+		Arrays.parallelEach([data, this.pipeline], (eachData, renderer) => {
+			renderer.dispose(eachData);
+		});
 	}
 
 }
@@ -141,11 +128,9 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
  */
 export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
-	public readonly type: RendererType;
+	public readonly type: RendererType = 'list-item';
 
-	constructor() {
-		this.type = RendererType.ListItem;
-	}
+	constructor() {}
 
 	public render(element: HTMLElement): HTMLElement {
 		return element;

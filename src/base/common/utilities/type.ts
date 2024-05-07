@@ -38,6 +38,11 @@ export type Pair<T, R> = Tuple<2, [T, R]>;
 export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
+ * Construct a tuple with size S of type T.
+ */
+export type TupleOf<T, S extends number, R extends T[] = []> = R['length'] extends S ? R : TupleOf<T, S, [T, ...R]>;
+
+/**
  * `Constructor` is a generic type that represents the constructor function of 
  * any class. This type allows specifying the types of arguments that the 
  * constructor function takes.
@@ -309,6 +314,11 @@ export type AtLeastNArray<T, N extends number, R extends T[] = []> =
     R['length'] extends N 
         ? ConcatArray<R, T[]>
         : AtLeastNArray<T, N, [T, ...R]>;
+
+/**
+ * An alias for {@link TupleOf}.
+ */
+export type FixedArray<T, S extends number> = TupleOf<T, S>;
 
 /**
  * Represents a union type derived from the types of elements in an array `T`.

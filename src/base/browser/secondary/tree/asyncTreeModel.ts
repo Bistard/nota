@@ -162,7 +162,6 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             for (const child of childrenToRefresh) {
                 await this.__refreshNodeAndChildren(child);
             }
-            // await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
 
         finally {

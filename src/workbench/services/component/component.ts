@@ -1,18 +1,42 @@
+import 'src/workbench/services/component/media.scss';
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { DomUtility } from "src/base/browser/basic/dom";
+import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, check, panic } from "src/base/common/utilities/panic";
+import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
+import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
+import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
+import { ILogService } from 'src/base/common/logger';
+import { isNonNullable } from 'src/base/common/utilities/type';
 
 export interface ICreatable {
     create(): void;
     registerListeners(): void;
 }
+
+/**
+ * The option to configure how to assemble each children component. See more in
+ * {@link Component.assembleComponents}.
+ */
+export type IAssembleComponentOpts = {
+    
+    /**
+     * The child component to render.
+     */
+    readonly component: IComponent;
+
+    /**
+     * Defines the sash behavior that after this component.
+     */
+    readonly sashConfiguration?: Pick<ISashOpts, 'enable' | 'range' | 'size' | 'visible'>;
+} & Pick<ISplitViewItemOpts, 'priority'> 
+  & (IResizableSplitViewItemOpts | IFixedSplitViewItemOpts);
 
 /**
  * An interface only for {@link Component}.
@@ -24,57 +48,112 @@ export interface IComponent extends ICreatable {
      */
     readonly id: string;
 
-    /** Fires when the component is focused or blurred (true represents focused). */
+    /** 
+     * Fires when the component is focused or blurred (true represents focused). 
+     */
     readonly onDidFocusChange: Register<boolean>;
 
-    /** Fires when the component visibility is changed. */
+    /** 
+     * Fires when the component visibility is changed. 
+     */
     readonly onDidVisibilityChange: Register<boolean>;
 
-    /** Fires when the component is layouting. */
+    /** 
+     * Fires the new dimension of the component when the component is re-layout(ing).
+     */
     readonly onDidLayout: Register<IDimension>;
 
-    /** The parent {@link IComponent} of the current component. */
+    /** 
+     * The parent {@link IComponent} of the current component. 
+     */
     readonly parentComponent: IComponent | undefined;
 
-    /** The parent {@link HTMLElement} of the current component. */
-    readonly parent: HTMLElement | undefined;
-
-    /** The DOM element of the current component. */
+    /** 
+     * The DOM element of the current component. 
+     */
     readonly element: FastElement<HTMLElement>;
+
+    /**
+     * The current dimension of the component.
+     */
+    readonly dimension: Dimension | undefined;
 
     /**
      * @description Renders the component itself.
      * @param parentComponent If provided, the component will be registered 
-     *                        under this component. If no parentElement is 
+     *                        under this component. If no parentComponent is 
      *                        provided, the component will be rendered under 
      *                        this parent component.
      * @note If both not provided, either renders under the constructor provided 
-     * element, or `document.body`.
+     *       HTMLElement, or `document.body`.
+     * @panic
      */
     create(parentComponent?: IComponent): void;
 
     /**
-     * @description Layout the component to the given dimension.
-     * @param width The width of dimension.
-     * @param height The height of dimension.
-     * @note If no dimensions is provided, the component will try to be filled
-     * with the parent HTMLElement. If any dimensions is provided, the component
-     * will layout the missing one either with the previous value or just zero.
+     * @description Appends the component to the DOM. This method represents the 
+     * first step in the 'create()' process and solely handles the insertion of 
+     * the component into the DOM tree.
+     * @param parentComponent If provided, the component will be registered 
+     *                        under this component. If no parentComponent is 
+     *                        provided, the component will be rendered under 
+     *                        this parent component.
+     * @param avoidRender If provided, this will force to avoid rendering the
+     *                    component into the DOM tree. The client must handle
+     *                    the rendering by themselves.
+     * @note If both not provided, either renders under the constructor provided 
+     *       HTMLElement, or `document.body`.
+     * @note `createInDom()` and `createContent()` are useful when you wish to
+     *       have extra operations between those two operations. Otherwise you
+     *       may invoke `create()` for simplicity.
+     * @panic
      */
-    layout(width?: number, height?: number): void;
+    createInDom(parentComponent?: IComponent, avoidRender?: boolean): void;
 
+    /**
+     * @description Renders the content of the component. This method is the 
+     * second step in the 'create()' process, following the insertion of the 
+     * component into the DOM. 
+     * @note It triggers the internal '_createContent' method to render the 
+     *       component's actual contents.
+     * @note `createInDom()` and `createContent()` are useful when you wish to
+     *       have extra operations between those two operations. Otherwise you
+     *       may invoke `create()` for simplicity.
+     * @panic
+     */
+    createContent(): void;
+    
     /**
      * @description Registers any listeners in the component.
      */
     registerListeners(): void;
 
     /**
+     * @description Layout the component to the given dimension. This function
+     * will modify {@link Component.dimension} attribute.
+     * @param width The width of dimension.
+     * @param height The height of dimension.
+     * @param preventDefault If sets to `true`, the {@link onDidLayout} event 
+     *                       will not be triggered. Default sets to `false`.
+     * @returns The new dimension of the component.
+     * 
+     * @note If no dimensions is provided, the component will try to be filled
+     *       with the parent HTMLElement. If any dimensions is provided, the 
+     *       component will layout the missing one either with the previous 
+     *       value or just zero.
+     * @note This function will only mutate the {@link Component.dimension} and
+     *       will not actually change anything in the DOM tree.
+     * @note Will trigger {@link onDidLayout} event.
+     */
+    layout(width?: number, height?: number, preventDefault?: boolean): IDimension;
+
+    /**
      * @description Register a child {@link IComponent} into the current Component.
      * @param override If sets to true, it will override the existed one which 
      *                 has the same component id. Defaults to false.
      * 
-     * @warn Throws an error if the component has already been registered and
-     *       override sets to false.
+     * @panic Throws an error if the component has already been registered and
+     *        override sets to false.
      */
     registerComponent(component: IComponent, override?: boolean): void;
 
@@ -91,7 +170,7 @@ export interface IComponent extends ICreatable {
      * @description Returns the sub component by id.
      * @param id The string ID of the component.
      * @returns The required Component.
-     * @warn If no such component exists, an error throws.
+     * @panic If no such component exists, an error throws.
      */
     getComponent<T extends IComponent>(id: string): T | undefined;
 
@@ -109,6 +188,22 @@ export interface IComponent extends ICreatable {
     getDirectComponents(): [string, IComponent][];
 
     /**
+     * @description Constructs and arranges child components within this 
+     * component based on {@link SplitView}. Each child component configuration 
+     * is defined in {@link IAssembleComponentOpts} which includes details like 
+     * size constraints and sash behaviors.
+     * 
+     * @param orientation The orientation (horizontal or vertical) to arrange the 
+     *                    child components.
+     * @param options An array of options for configuring each child component.
+     * 
+     * @note This method initializes each child component in the DOM, configures 
+     *       their placement using {@link SplitView}.
+     * @panic If `assembleComponents` is invoked twice.
+     */
+    assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void;
+
+    /**
      * @description Sets the visibility of the current component.
      * @param value to visible or invisible.
      */
@@ -123,7 +218,7 @@ export interface IComponent extends ICreatable {
     /**
      * @description Checks if the component has created.
      */
-    created(): boolean;
+    isCreated(): boolean;
 
     /**
      * @description Disposes the current component and all its children 
@@ -153,7 +248,11 @@ export abstract class Component extends Themable implements IComponent {
     // [field]
 
     private _parentComponent?: IComponent;
-    private _parentElement?: HTMLElement;
+    
+    /**
+     * Client-provided parent that the component should be rendered under.
+     */
+    private _customParent?: HTMLElement;
 
     private readonly _element: FastElement<HTMLElement>;
     private readonly _children: Map<string, IComponent>;
@@ -161,8 +260,12 @@ export abstract class Component extends Themable implements IComponent {
 
     private readonly _focusTracker: FocusTracker;
 
-    private _created: boolean;
-    private _registered: boolean;
+    private _isInDom: boolean;    // is rendered in DOM tree
+    private _created: boolean;    // is `_createContent` invoked
+    private _registered: boolean; // is `_registerListeners` invoked
+    
+    /** Relate to {@link assembleComponents()} */
+    protected _splitView: ISplitView | undefined;
 
     // [event]
 
@@ -178,39 +281,43 @@ export abstract class Component extends Themable implements IComponent {
 
     /**
      * @param id The id for the Component.
-     * @param parentElement If provided, parentElement will replace the 
-     * HTMLElement from the provided parentComponent when creating. Otherwise 
-     * defaults to `document.body`.
+     * @param customParent If provided, customParent will replace the HTMLElement 
+     *      from the provided parentComponent when creating. Otherwise 
+     *      defaults to `document.body`.
      */
     constructor(
         id: string,
-        parentElement: HTMLElement | null,
+        customParent: HTMLElement | null,
         themeService: IThemeService,
-        componentService: IComponentService,
+        protected readonly componentService: IComponentService,
+        protected readonly logService: ILogService,
     ) {
         super(themeService);
-
-        this._created = false;
+        
+        this._isInDom    = false;
+        this._created    = false;
         this._registered = false;
-        this._children = new Map();
+        this._children   = new Map();
+        this._splitView  = undefined;
 
         this._element = new FastElement(document.createElement('div'));
+        this._element.addClassList('component-ui');
         this._element.setID(id);
 
         this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
-        if (parentElement) {
-            this._parentElement = parentElement;
-        }
+        this._customParent = customParent ?? undefined;
         componentService.register(this);
+
+        this.logService.trace(`${this.id}`, 'UI component constructed.');
     }
 
     // [getter]
 
-    get parentComponent() { return this._parentComponent; }
+    get id() { return this._element.getID(); }
 
-    get parent() { return this._parentElement; }
+    get parentComponent() { return this._parentComponent; }
 
     get element() { return this._element; }
 
@@ -236,7 +343,7 @@ export abstract class Component extends Themable implements IComponent {
     // [protected override method]
 
     protected override __onThemeChange(newTheme: IColorTheme): void {
-        if (this._created) {
+        if (this.isCreated()) {
             super.__onThemeChange(newTheme);
         }
     }
@@ -245,60 +352,79 @@ export abstract class Component extends Themable implements IComponent {
 
     // [public method]
 
-    get id(): string {
-        return this._element.getID();
+    public create(parentComponent?: IComponent): void {
+        this.createInDom(parentComponent);
+        this.createContent();
     }
 
-    public create(parentComponent?: IComponent): void {
-        if (this._created || this.isDisposed()) {
-            return;
-        }
-
+    public createInDom(parentComponent?: IComponent, avoidRender: boolean = false): void {
+        check(this._isInDom     === false, 'Cannot "createInDom()" twice.');
+        check(this.isCreated()  === false, 'Must be called before "createContent()"');
+        check(this.isDisposed() === false, 'The component is already disposed.');
+        
         if (parentComponent) {
             this._parentComponent = parentComponent;
             parentComponent.registerComponent(this);
         }
 
         // actual rendering
-        this._parentElement = parentComponent?.element.element ?? this._parentElement ?? document.body;
-        this._parentElement.appendChild(this._element.element);
+        if (avoidRender === false) {
+            this._customParent = parentComponent?.element.element ?? this._customParent ?? document.body;
+            this._customParent.appendChild(this._element.element);
+            this._isInDom = true;
+        }
+        
+        this.logService.trace(`${this.id}`, 'Component is rendered under the DOM tree.');
+    }
 
-        // rendering the content
+    public createContent(): void {
+        check(this.isCreated()  === false, 'Cannot "createContent()" twice.');
+        check(this.isDisposed() === false, 'The component is already disposed.');
+
+        this.logService.trace(`${this.id}`, 'Component is about to create content...');
         this._createContent();
+        
+        this.logService.trace(`${this.id}`, 'Component content created successfully.');
         this._created = true;
     }
 
-    public layout(width?: number, height?: number): void {
-        if (!this._parentElement) {
-            return;
-        }
-
+    public layout(width?: number, height?: number, preventDefault?: boolean): IDimension {
+        
         // If no dimensions provided, we default to layout to fit to parent.
-        if (typeof width === 'undefined' && typeof height === 'undefined') {
-            this._dimension = DomUtility.Positions.getClientDimension(this._parentElement);
-            this._element.setWidth(this._dimension.width);
-            this._element.setHeight(this._dimension.height);
+        if (width === undefined && height === undefined) {
+            const actualParent = this._element.element.parentElement;
+            const parent = assert(actualParent, 'layout() expect to have a parent HTMLElement when there is no provided dimension.');
+            check(DomUtility.Elements.ifInDomTree(parent), 'layout() expect the parent HTMLElement is rendered in the DOM tree.');
+            this._dimension = DomUtility.Positions.getClientDimension(parent);
         }
-
         // If any dimensions is provided, we force to follow it.
         else {
-            this._dimension = this._dimension
+            this._dimension = isNonNullable(this._dimension)
                 ? this._dimension.clone(width, height)
-                : new Dimension(width ?? 0, height ?? 0)
-            ;
-            this._element.setWidth(this._dimension.width);
-            this._element.setHeight(this._dimension.height);
+                : new Dimension(width ?? 0, height ?? 0);
         }
 
-        this._onDidLayout.fire(this._dimension);
+        if (preventDefault !== true) {
+            this._onDidLayout.fire(this._dimension);
+        }
+        
+        return this._dimension;
     }
 
     public registerListeners(): void {
-        if (this.isDisposed() || this._registered || !this._created) {
-            return;
-        }
+        check(this._registered  === false, 'Cannot invoke "registerListeners()" twice.');
+        check(this._created      === true, 'Must be invoked after "createContent()".');
+        check(this.isDisposed() === false, 'The component is already disposed.');
 
+        this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
         this._registerListeners();
+
+        // automatically resizing
+        this.__register(addDisposableListener(window, EventType.resize, () => {
+            this.layout();
+        }));
+
+        this.logService.trace(`${this.id}`, 'Component register listeners succeeded.');
         this._registered = true;
     }
 
@@ -318,18 +444,16 @@ export abstract class Component extends Themable implements IComponent {
         this.__register(component);
     }
 
-    public created(): boolean {
-        return this._created;
+    public isCreated(): boolean {
+        return this._isInDom && this._created;
     }
 
     public setVisible(value: boolean): void {
-
         if (value === true) {
-            this._element.setVisibility('visible');
+            this._element.setOpacity(1);
         } else {
-            this._element.setVisibility('hidden');
+            this._element.setOpacity(0);
         }
-
         this._onDidVisibilityChange.fire(value);
     }
 
@@ -361,11 +485,77 @@ export abstract class Component extends Themable implements IComponent {
         return result;
     }
 
+    public assembleComponents(orientation: Orientation, options: IAssembleComponentOpts[]): void {
+        check(!this._splitView, 'Cannot invoke "assembleComponents()" twice.');
+        this.logService.trace(`${this.id}`, `Component assembling children components: [${options.map(each => each.component.id).join(', ')}]`);
+
+        const splitViewOption: Required<ISplitViewOpts> = {
+            orientation,
+            viewOpts: [],
+        };
+
+        /**
+         * Since {@link SplitView} manages its own rendering process, setting 
+         * `avoidRender` to true prevents component self-rendering. The component 
+         * will be automatically rendered under the {@link SplitViewItem}.
+         */
+        const avoidRender = true;
+        for (const each of options) {
+            each.component.createInDom(this, avoidRender);
+            splitViewOption.viewOpts.push({
+                ID: each.component.id,
+                element: each.component.element.element,
+                ...each,
+            });
+        }
+        
+        /**
+         * Construct the {@link SplitView}. The child component will be rendered 
+         * into the DOM tree after the construction.
+         */
+        this._splitView = this.__register(new SplitView(this.element.element, splitViewOption));
+    
+        /**
+         * Construct child components recursively. The children's 
+         * `this._createContent` will be invoked recursively.
+         */
+        for (const { component } of options) {
+            component.createContent();
+            component.registerListeners();
+        }
+
+        // apply sash configuration if any (ignore the last configuration)
+        for (let i = 0; i < this._splitView.count - 1; i++) {
+            const option = options[i]!;
+
+            const sashOpts = option.sashConfiguration;
+            if (!sashOpts) {
+                continue;
+            }
+            
+            const sash = assert(this._splitView.getSashAt(i));
+            sash.setOptions(sashOpts);
+        }
+    
+        // re-layout
+        this.__register(this.onDidLayout(newDimension => {
+            /**
+             * hack: Let the component may decide to not re-layout the 
+             * {@link SplitView} by providing -1 value.
+             */
+            if (newDimension.width !== -1 && newDimension.height !== -1) {
+                this._splitView?.layout(newDimension.width, newDimension.height);
+            }
+        }));
+
+        this.logService.trace(`${this.id}`, 'Component assembling components succeeded.');
+    }
+
     public override dispose(): void {
         super.dispose();
         for (const [id, child] of this._children) {
             child.dispose();
         }
+        this._splitView?.dispose();
     }
-
 }

@@ -72,7 +72,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     private readonly _contextMenu: IContextMenu;
 
     // The current container of the context menu.
-    private _currContainer?: HTMLElement;
+    private readonly _currContainer?: HTMLElement;
     private readonly _defaultContainer: HTMLElement;
 
     // [constructor]
@@ -91,7 +91,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     public showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void {
 
-        // since the delegate provies no actions, we render nothing.
+        // since the delegate provides no actions, we render nothing.
         if (delegate.getActions().length === 0) {
             return;
         }
@@ -144,8 +144,8 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
     private _menu?: IMenu;
     private readonly _delegate: IContextMenuServiceDelegate;
     private readonly _contextMenu: IContextMenu;
-    private _onBeforeActionRun: (event: IMenuActionRunEvent) => void;
-    private _onDidActionRun: (event: IMenuActionRunEvent) => void;
+    private readonly _onBeforeActionRun: (event: IMenuActionRunEvent) => void;
+    private readonly _onDidActionRun: (event: IMenuActionRunEvent) => void;
 
     // [constructor]
 
