@@ -107,7 +107,8 @@ export class NotificationService extends Disposable implements INotificationServ
         closeButtonContainer.className = 'notification-close-container';
     
         const closeButtonOptions: IButtonOptions = {
-            icon: Icons.Cross,
+            id: 'close',
+            icon: Icons.Close,
             classes: ['notification-close-button']
         };
     
@@ -128,6 +129,7 @@ export class NotificationService extends Disposable implements INotificationServ
             // Ensure no more than three buttons are created
             if (index < 3) {
                 const buttonOptions: IButtonOptions = {
+                    id: '',
                     label: action.label,
                     buttonBackground: action.notificationBackground,
                     buttonForeground: action.notificationForeground,

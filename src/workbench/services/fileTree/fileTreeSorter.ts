@@ -2,6 +2,7 @@ import { Time } from "src/base/common/date";
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { FileType } from "src/base/common/files/file";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
+import { assert } from "src/base/common/utilities/panic";
 import { Comparator, CompareOrder } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileItem, IFileTarget } from "src/workbench/services/fileTree/fileItem";
@@ -86,8 +87,8 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
 
     private _compare!: Comparator<TItem>;
     
-    private _sortType!: FileSortType;
-    private _sortOrder!: FileSortOrder;
+    private _sortType?: FileSortType;
+    private _sortOrder?: FileSortOrder;
     
     private _customSorter?: FileTreeCustomSorter<TItem>;
     private _customSorterOpts: IFileTreeCustomSorterOptions;
@@ -112,17 +113,21 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
             this._customSorter?.dispose();
             this._customSorter = undefined;
         });
+        
         this.switchTo(sortType, sortOrder);
+        assert(this._sortType);
+        assert(this._sortOrder);
+        assert(this._compare);
     }
 
     // [getter]
 
     get sortOrder(): FileSortOrder {
-        return this._sortOrder;
+        return assert(this._sortOrder);
     }
 
     get sortType(): FileSortType {
-        return this._sortType;
+        return assert(this._sortType);
     }
 
     public compare(a: TItem, b: TItem): CompareOrder {
@@ -168,26 +173,26 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
      * Ensure the new type and order are different than the current one when
      * invoking this method.
      */
-    private __switchTo(sortType: FileSortType, sortOrder: FileSortOrder): void {
-        this._sortType = sortType;
-        this._sortOrder = sortOrder;
+    private __switchTo(sortType?: FileSortType, sortOrder?: FileSortOrder): void {
+        this._sortType = sortType   ?? FileSortType.Custom;
+        this._sortOrder = sortOrder ?? FileSortOrder.Ascending;
 
-        if (sortType !== FileSortType.Custom) {
+        if (this._sortType !== FileSortType.Custom) {
             this._pendingCustomSorterDisposable.schedule();
         }
 
-        switch (sortType) {
+        switch (this._sortType) {
             case FileSortType.Default:
-                this._compare = sortOrder === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
+                this._compare = this._sortOrder === FileSortOrder.Ascending ? defaultFileItemCompareFnAsc : defaultFileItemCompareFnDesc;
                 break;
             case FileSortType.Alphabet:
-                this._compare = sortOrder === FileSortOrder.Ascending ? compareByNameAsc : compareByNameDesc;
+                this._compare = this._sortOrder === FileSortOrder.Ascending ? compareByNameAsc : compareByNameDesc;
                 break;
             case FileSortType.CreationTime:
-                this._compare = sortOrder === FileSortOrder.Ascending ? compareByCreationTimeAsc : compareByCreationTimeDesc;
+                this._compare = this._sortOrder === FileSortOrder.Ascending ? compareByCreationTimeAsc : compareByCreationTimeDesc;
                 break;
             case FileSortType.ModificationTime:
-                this._compare = sortOrder === FileSortOrder.Ascending ? compareByModificationTimeAsc : compareByModificationTimeDesc;
+                this._compare = this._sortOrder === FileSortOrder.Ascending ? compareByModificationTimeAsc : compareByModificationTimeDesc;
                 break;
             case FileSortType.Custom: {
                 this._pendingCustomSorterDisposable.cancel();

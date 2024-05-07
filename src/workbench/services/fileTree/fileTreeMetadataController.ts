@@ -305,7 +305,7 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         
         return this.__findOrCreateMetadataFile(folderUri, expectExist, resolvedChildren)
             .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
-            .andThen(buffer => jsonSafeParse<string[]>(buffer.toString()))
+            .andThen(buffer => jsonSafeParse<string[]>(buffer.toString() || '[]'))
             .andThen(order => {
                 const scheduler = this.__register(new UnbufferedScheduler<URI>(
                     this._cacheClearDelay, 

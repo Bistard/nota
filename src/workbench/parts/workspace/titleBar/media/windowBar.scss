@@ -10,12 +10,12 @@
     height: 100%;
 
     & .widget-item {
-        width: 40px;
+        width: 34px;
         height: 40px;
     }
 
     & .widget-item .icon {
-        font-size: 12px;
+        font-size: 16px;
     }
 
     & .toggleBtn {
@@ -25,21 +25,11 @@
         user-select: none;
 
         &:hover {
-            background-color: rgb(230, 230, 230);
+            background-color: var(--nota-window-bar-button-hover-background);
         }
     
         &:active {
-            background-color: rgb(245, 245, 245);
-        }
-    }
-
-    & .closeToggleBtn {
-        &:hover {
-            background-color: rgb(255, 27, 27);
-        }
-    
-        &:active {
-            background-color: rgb(255, 126, 126);
+            background-color: var(--nota-window-bar-button-active-background);
         }
     }
 }

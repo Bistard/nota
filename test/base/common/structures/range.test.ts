@@ -59,12 +59,68 @@ suite('Range-test', () => {
 		assert.deepStrictEqual(Range.intersection({ start: 5, end: 15 }, { start: 0, end: 10 }), { start: 5, end: 10 });
 	});
 
-	test('relativeComplement', () => {
-		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 200}), [{start: 0, end: 50}, {start: 150, end: 200}]);
-		assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 150}, {start: 0, end: 200}), [Range.EMPTY, {start: 150, end: 200}]);
-		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 150}), [Range.EMPTY, {start: 0, end: 50}]);
-		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 50, end: 150}), [Range.EMPTY, Range.EMPTY]);
-		assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 50}, {start: 50, end: 100}), [Range.EMPTY, {start: 50, end: 100}]);
+	suite('relativeComplement', function() {
+		test('basics', () => {
+			assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 200}), [{start: 0, end: 50}, {start: 150, end: 200}]);
+			assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 150}, {start: 0, end: 200}), [Range.EMPTY, {start: 150, end: 200}]);
+			assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 150}), [Range.EMPTY, {start: 0, end: 50}]);
+			assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 50, end: 150}), [Range.EMPTY, Range.EMPTY]);
+			assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 50}, {start: 50, end: 100}), [Range.EMPTY, {start: 50, end: 100}]);
+		});
+	
+		test('B fully within A', function() {
+			const A: IRange = { start: 1, end: 5 };
+			const B: IRange = { start: 2, end: 4 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, Range.EMPTY]);
+		});
+	
+		test('A and B non-overlapping with B after A', function() {
+			const A: IRange = { start: 1, end: 3 };
+			const B: IRange = { start: 4, end: 6 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, { start: 4, end: 6 }]);
+		});
+	
+		test('A and B non-overlapping with B before A', function() {
+			const A: IRange = { start: 5, end: 7 };
+			const B: IRange = { start: 1, end: 4 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, { start: 1, end: 4 }]);
+		});
+	
+		test('A overlaps B at start', function() {
+			const A: IRange = { start: 1, end: 5 };
+			const B: IRange = { start: 0, end: 3 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, { start: 0, end: 1 }]);
+		});
+	
+		test('A overlaps B at end', function() {
+			const A: IRange = { start: 2, end: 6 };
+			const B: IRange = { start: 5, end: 8 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, { start: 6, end: 8 }]);
+		});
+	
+		test('A equals B', function() {
+			const A: IRange = { start: 2, end: 5 };
+			const B: IRange = { start: 2, end: 5 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, Range.EMPTY]);
+		});
+	
+		test('B entirely before A', function() {
+			const A: IRange = { start: 10, end: 15 };
+			const B: IRange = { start: 1, end: 5 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, { start: 1, end: 5 }]);
+		});
+	
+		test('B entirely after A', function() {
+			const A: IRange = { start: 1, end: 5 };
+			const B: IRange = { start: 6, end: 10 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, { start: 6, end: 10 }]);
+		});
+	
+		test('A fully contains B', function() {
+			const A: IRange = { start: 1, end: 10 };
+			const B: IRange = { start: 2, end: 5 };
+			assert.deepStrictEqual(Range.relativeComplement(A, B), [Range.EMPTY, Range.EMPTY]);
+		});
 	});
 
 	test('listIntersection', () => {

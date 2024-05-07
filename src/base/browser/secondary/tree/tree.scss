@@ -5,6 +5,7 @@
 	height: 100%;
     align-items: center;
 		
+	// TREE: indentation style
 	& > .tree-list-indent {
 		text-align: right;
 		flex-shrink: 0;
@@ -15,21 +16,42 @@
 		transform: translateX(3px);
 
 		height: 100%;
+
+		// collapsible identifier
+		&::before {
+            font-size: 15px;
+            border-radius: 20px;
+
+            // animation
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        &.collapsed::before {
+            transform: rotate(0deg);
+        }
+
+        &:not(.collapsed)::before {
+            transform: rotate(90deg);
+        }
 	}
 
+	// TREE: content style
 	& > .tree-list-content {
-		flex: 1;
 		height: 100%;
 		overflow: hidden;
-	}
 
-	& > .tree-list-indent {
-		&::before {
-			border-radius: 20px;
-		}
-
-		&.collapsed::before {
-			transform: rotate(-90deg);
-		}
+		// give a little space away from the indentation
+		padding-left: 7.2px;
 	}
+}
+
+/**
+ * When the row is selected, the color of the arrow changes.
+ */
+.list-view-row.selected .tree-list-indent::before {
+	color: var(--nota-file-tree-arrow-select);
+}
+
+.list-view-row:not(.selected) .tree-list-indent::before {
+	color: var(--nota-file-tree-arrow-normal);
 }

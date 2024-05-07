@@ -39,10 +39,17 @@ const configuration = {
             {
                 flags: ['--circular', '-c'], 
                 descriptions: [
-                    'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies amoung all the used modules.',
+                    'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies among all the used modules.',
                     'default = true.',
                 ]
             },
+            {
+                flags: ['--mode'],
+                descriptions: [
+                    'Choose the building mode. The value can be either "development", "production" or "none".',
+                    'default = "development"',
+                ]
+            }
         ]
     },
 
@@ -111,42 +118,14 @@ const configuration = {
         ]
     },
 
+    "codicons": {
+        command: 'node ./scripts/icons/codicon.js',
+        description: 'Compiles the all project-related icons from svg format into a font file. All the icons are stored at "https://github.com/Bistard/nota-codicons.git". The command will fetch the latest version and compile them. The more detailed configuration is at "src/base/browser/icon/.fantasticonrc.js".'
+    },
+
     "benchmark": {
         command: "node benchmark/benchmark.js",
         description: 'Run the benchmark tests.'
-    },
-
-    "_gen-icons": {
-        command: "node ./scripts/icon.js",
-        commandDescription: "_gen-icons [path]",
-        description: 'The script will try to remove all the prefix of every svg files that are located at <path>, and generate the icon font from svg files using `fantasticon`.\n' +
-                     'The svg files are downloaded at: https://www.flaticon.com/uicons/interface-icons',
-        options: [
-            {
-                flags: ['[path]'],
-                descriptions: [
-                    'The path points to the original svg files. Example: "./assets/src-svg"'
-                ]
-            },
-            {
-                flags: ['--removePrefix'],
-                descriptions: [
-                    'Given a path to the directory that stores the original svg files and remove the prefix names.',
-                ]
-            },
-            {
-                flags: ['--force', '-f'],
-                descriptions: [
-                    'Force the script to regenerate icon files even there is no changes or missing target files.',
-                ]
-            },
-            {
-                flags: ['--extra=NewIconName1|NewIconName2'],
-                descriptions: [
-                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names separated by \'|\'. Each name should be in Hanguarian Notation except that the first character should also be capitalized.'
-                ]
-            }
-        ]
     },
 }
 

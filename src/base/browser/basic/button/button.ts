@@ -10,6 +10,11 @@ import { Emitter, Register } from "src/base/common/event";
 export interface IButtonOptions {
 
     /**
+     * The ID of the button.
+     */
+    readonly id: string;
+
+    /**
      * Icon of the button.
      */
     readonly icon?: Icons;
@@ -40,7 +45,8 @@ export interface IButton extends IWidget {
     
     // [getter or setter]
 
-    /** The icon of the button if provided. */
+    readonly id?: string;
+    
     readonly icon?: Icons;
 
     readonly enabled: boolean;
@@ -99,24 +105,24 @@ export class Button extends Widget implements IButton {
 
     // [protected override methods]
 
-    protected override __render(): void {
+    protected override __render(element: HTMLElement): void {
         // set icon if provided
         if (this._opts?.icon) {
             const iconElement = createIcon(this._opts.icon);
-            this.element.appendChild(iconElement);
+            element.appendChild(iconElement);
         }
         
         // set label if provided
         if (this._opts?.label) {
-            this.element.textContent = this._opts.label;
+            element.textContent = this._opts.label;
         }
 
         // set styles if provided
         if (this._opts?.buttonBackground) {
-            this.element.style.backgroundColor = this._opts.buttonBackground;
+            element.style.backgroundColor = this._opts.buttonBackground;
         }
         if (this._opts?.buttonForeground) {
-            this.element.style.color = this._opts.buttonForeground;
+            element.style.color = this._opts.buttonForeground;
         }
     }
 

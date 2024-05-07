@@ -2,8 +2,10 @@
 /**
  * @class A simple tool class that controls the visibility of a provided DOM 
  * element.
+ * @deprecated An alternative way is to wrap an {@link FastElement} on a 
+ * {@link HTMLElement} and utilize `setOpacity()` to change the visibility.
  */
- export class VisibilityController {
+export class VisibilityController {
 
     // [fields]
 

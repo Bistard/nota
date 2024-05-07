@@ -1,4 +1,4 @@
-import { panic } from "src/base/common/utilities/panic";
+import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
 import { Graph } from "src/platform/instantiation/common/dependencyGraph";
@@ -112,13 +112,11 @@ export interface IInstantiationService extends IServiceProvider, IService {
      *
      * @template TCtor The type of the class constructor.
      * @param descriptor The descriptor of the class.
-     * @param rest Additional parameters that will be concatenated after the 
-     *             descriptor's arguments.
      * @returns An instance of the class.
      * 
      * @panic
      */
-    createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
+    createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>): InstanceType<TCtor>;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -215,19 +213,17 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance<TCtor extends Constructor>(constructor: TCtor,                                 ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
-    public createInstance<TCtor extends Constructor>(descriptor: ServiceDescriptor<TCtor>,               ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(descriptor      : ServiceDescriptor<TCtor>                                                         ): InstanceType<TCtor>;
+    public createInstance<TCtor extends Constructor>(constructor     : TCtor,                            ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor> {
-        let instance: InstanceType<TCtor>;
-
-        if (ctorOrDescriptor instanceof ServiceDescriptor) {
-            const args = <InstantiationRequiredParameters<TCtor>>ctorOrDescriptor.args.concat(<any>rest);
-            instance = this.__createInstance(ctorOrDescriptor.ctor, args);
-        } else {
-            instance = this.__createInstance(ctorOrDescriptor, rest);
+        try {
+            return (ctorOrDescriptor instanceof ServiceDescriptor) 
+                ? this.__createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args)
+                : this.__createInstance(ctorOrDescriptor, rest);
+        } catch (error) {
+            const ctorName = (ctorOrDescriptor instanceof ServiceDescriptor) ? ctorOrDescriptor.ctor.name : ctorOrDescriptor.name;
+            panic(`[createInstance] Failed to construct (${ctorName}): ${errorToMessage(error)}`);
         }
-        
-        return instance;
     }
 
     public createChild(collection?: ServiceCollection): IInstantiationService {
@@ -245,12 +241,10 @@ export class InstantiationService implements IInstantiationService {
         for (const dependency of serviceDependencies) {
             const service = this.__getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
-                panic(`[createInstance] '${constructor.name}' depends on a UNKNOWN service '${dependency.id}'.`);
+                panic(`[DI] '${constructor.name}' depends on a UNKNOWN service '${dependency.id}'.`);
             }
             servicesArgs.push(service);
         }
-
-        // ...
 
         return new constructor(...[...args, ...servicesArgs]);
     }

@@ -94,4 +94,65 @@ export namespace Iterable {
 		return Iterable.filter<T, T | undefined | null>(iterable, val => !!val);
 	}
 
+	/**
+	 * @description Returns the maximum element of an iterable based on a 
+	 * provided predicate function.
+	 * @param iterable The given {@link Iterable}.
+	 * @param predicate A function that takes an element of the iterable and 
+	 * 					returns a numeric value.
+	 * @returns The element with the maximum numeric value as determined by the 
+	 * 			predicate, or `null` if the iterable is empty.
+	 */
+	export function maxBy<T>(iterable: Iterable<T>, predicate: (value: T) => number): T | null {
+		const iterator = iterable[Symbol.iterator]();
+		let current = iterator.next();
+		
+		if (current.done) {
+			return null;
+		}
+
+		let maxItem = current.value;
+		let maxValue = predicate(maxItem);
+
+		while (!(current = iterator.next()).done) {
+			const currentValue = predicate(current.value);
+			if (currentValue > maxValue) {
+			maxValue = currentValue;
+			maxItem = current.value;
+			}
+		}
+
+		return maxItem;
+	}
+
+	/**
+	 * @description Returns the minimum element of an iterable based on a 
+	 * provided predicate function.
+	 * @param iterable The given {@link Iterable}.
+	 * @param predicate A function that takes an element of the iterable and 
+	 *                  returns a numeric value.
+	 * @returns The element with the minimum numeric value as determined by the 
+	 *          predicate, or `null` if the iterable is empty.
+	 */
+	export function minBy<T>(iterable: Iterable<T>, predicate: (value: T) => number): T | null {
+		const iterator = iterable[Symbol.iterator]();
+		let current = iterator.next();
+		
+		if (current.done) {
+			return null;
+		}
+
+		let minItem = current.value;
+		let minValue = predicate(minItem);
+
+		while (!(current = iterator.next()).done) {
+			const currentValue = predicate(current.value);
+			if (currentValue < minValue) {
+				minValue = currentValue;
+				minItem = current.value;
+			}
+		}
+
+		return minItem;
+	}
 }

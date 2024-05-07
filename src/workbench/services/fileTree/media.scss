@@ -1,13 +1,13 @@
 
-.file-tree.focused {
-    outline-offset: -1px;
-    outline: 1px solid #cf6060;
+// blurs the selections when the tree is blurred
+.file-tree.blurred .selected {
+    background-color: var(--nota-file-tree-select-blur-background) !important;
 }
 
 .file-tree.on-drop-target {
 
     // simulate: hovered entirely
-    background-color: #fcf3f3;
+    background-color: var(--nota-file-tree-on-drop-background);
 }
 
 .row-insertion {
@@ -15,7 +15,7 @@
 
     width: 100%;
     height: var(--nota-overlay-height);
-    background-color: #cf6060;
+    background-color: var(--nota-file-tree-row-insert-background);
 
     /** the insertion should be inactive */
     pointer-events: none;

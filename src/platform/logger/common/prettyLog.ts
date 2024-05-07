@@ -3,8 +3,12 @@ import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { Additional, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
+import { Iterable } from "src/base/common/utilities/iterable";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
-import { isObject } from "src/base/common/utilities/type";
+import { Coordinate, Dimension, Position } from "src/base/common/utilities/size";
+import { isFunction, isObject } from "src/base/common/utilities/type";
+
+const MAX_RECURSIVE_DEPTH = 10;
 
 const RGB_colors = <const>{
     LightGray:   [211, 211, 211],
@@ -139,15 +143,9 @@ function getErrorString(color: boolean, error: any): string {
             ? error.stack.split('\n') // array of string
             : error.stack             // already a string
         : [];                         // no stacks
-    let maxLength = 0;
-
-    // Find the maximum length of the lines
-    for (const line of stackLines) {
-        maxLength = Math.max(maxLength, line.trim().length);
-    }
-
-    // Adding space for formatting and borders
-    maxLength += 6; 
+    
+    // Find the maximum length of the lines (Adding space for formatting and borders)
+    const maxLength = (Iterable.maxBy(stackLines, line => line.trim().length)?.length ?? 0) + 6;
 
     // Create top and bottom borders based on the maxLength
     const borderLine = '-'.repeat(maxLength);
@@ -156,13 +154,13 @@ function getErrorString(color: boolean, error: any): string {
     const bottomBorder = `+${borderLine}+`;
 
     const formattedLines = stackLines.map((line, index) => {
-        const trimed = line.trim();
+        const trimmed = line.trim();
         if (index === 0) {
             // Format the first line (Error message)
-            return `| ${trimed} `.padEnd(maxLength + 1, ' ') + '|';
+            return `| ${trimmed} `.padEnd(maxLength + 1, ' ') + '|';
         }
         // Format stack trace lines
-        return `| [${index}] ${trimed} `.padEnd(maxLength + 1, ' ') + '|';
+        return `| [${index}] ${trimmed} `.padEnd(maxLength + 1, ' ') + '|';
     });
 
     return [topBorder, ...formattedLines, bottomBorder].map(str => `    ${str}`).join('\n');
@@ -178,6 +176,11 @@ function getErrorString(color: boolean, error: any): string {
  * @return Returns a string of the printing result.
  */
 function getAdditionalString(depth: number, color: boolean, additional: Additional): string {    
+
+    // safety
+    if (depth === MAX_RECURSIVE_DEPTH) {
+        return `${'    '.repeat(depth)}[REACHING MAXIMUM RECURSIVE DEPTH: ${MAX_RECURSIVE_DEPTH}]`;
+    }
 
     const keys: string[] = [];
     const values: string[] = [];
@@ -204,7 +207,7 @@ function getAdditionalString(depth: number, color: boolean, additional: Addition
     return result.slice(0, -1); // remove the last `\n`
 }
 
-function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additional): string | undefined {
+function tryHandleSpecialAdditionalString(depth: number, color: boolean, additional: Additional): string | null {
     
     // Special case: URI
     if (URI.isURI(additional)) {
@@ -216,8 +219,19 @@ function tryHandleSpecialAdditionalString(depth: number, color: boolean, additio
         return valueStr;
     }
 
+    // Special case: Size2D
+    if (additional instanceof Dimension) {
+        return `{ width: ${additional.width}, height: ${additional.height} }`;
+    }
+    else if (additional instanceof Position) {
+        return `{ top: ${additional.top}, left: ${additional.left} }`;
+    }
+    else if (additional instanceof Coordinate) {
+        return `{ x: ${additional.x}, y: ${additional.y} }`;
+    }
+
     // not handled
-    return undefined;
+    return null;
 }
 
 const PREDEFINE_STRING_COLOR_KEY = ['URI', 'uri', 'path', 'at'];
@@ -227,9 +241,14 @@ function tryPaintValue(depth: number, color: boolean, key: string, value: any): 
     // 1: no color case
     if (!color) {
         // recursive print object
-        if (isObject(value) && !(value instanceof Error)) {
+        if (isObject(value) && !isFunction(value) && !(value instanceof Error)) {
             return `\n${getAdditionalString(depth + 1, false, <any>value)}`;
         }
+
+        if (isFunction(value)) {
+            return '[function]';
+        }
+
         return tryOrDefault('[parse error]', () => JSON.stringify(value));
     }
 
@@ -262,7 +281,7 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
         case "undefined":
             return TextColors.setRGBColor(`${value}`, ...RGB_colors.LightBlue);
         case "function":
-            return tryOrDefault('[parse error]', () => JSON.stringify(value));
+            return '[function]';
         case "object": {
             if (value === null) {
                 return TextColors.setRGBColor('null', ...RGB_colors.LightBlue);
@@ -288,7 +307,7 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
             // recursive paint object
             if (isObject(value) && !insideArray && !(value instanceof Error)) {
                 const handled = tryHandleSpecialAdditionalString(depth, true, <any>value);
-                if (handled) {
+                if (handled !== null) {
                     return handled;
                 }
 

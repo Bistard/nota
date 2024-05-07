@@ -1,3 +1,5 @@
+.DS_Store
+
 /node_modules
 /dist
 
@@ -5,8 +7,12 @@
 /.wisp
 /.vscode
 /.VSCodeCounter
+/.temp
 
 /assets/src-svg
+/assets/codicons/**/*
+/**/*.ttf
+/**/*.woff
 /**/*.woff2
 
 /.idea

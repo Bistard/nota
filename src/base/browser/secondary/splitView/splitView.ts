@@ -6,7 +6,8 @@ import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, check, panic } from "src/base/common/utilities/panic";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * An interface only for {@link SplitView}.
@@ -19,17 +20,36 @@ export interface ISplitView extends Disposable {
     readonly element: HTMLElement;
 
     /**
-     * The number of views in the split view.
+     * The total visible width / height of the split view.
+     *      - When orientation is 'horizontal', this means the total 'width' in
+     *          pixel of the split view.
+     *      - When orientation is 'vertical', this means the total 'height' in
+     *          pixel of the split view.
      */
     readonly size: number;
 
     /**
-     * Fires when the sash is reset to the default position (double-click).
+     * The number of views in the split view.
      */
-    readonly onDidSashReset: Register<number>;
+    readonly count: number;
 
     /**
-     * Fires when the split view has relayout the size.
+     * Fires when the sash dragging is moved (mouse-move).
+     */
+    readonly onDidSashMove: Register<ISplitViewSashEvent>;
+    
+    /**
+     * Fires when the sash dragging is stopped (mouse-up).
+     */
+    readonly onDidSashEnd: Register<ISplitViewSashEvent>;
+
+    /**
+     * Fires when the sash is reset to the default position (double-click).
+     */
+    readonly onDidSashReset: Register<ISplitViewSashEvent>;
+
+    /**
+     * Fires when the split view has re-layout.
      */
     readonly onDidLayout: Register<IDimension>;
     
@@ -65,16 +85,44 @@ export interface ISplitView extends Disposable {
     swapView(first: number, second: number): void;
 
     /**
+     * @description Returns the corresponding {@link SplitViewItem} based on the
+     * ID.
+     * @note Only use this API when you wish to do some hacky stuff. It is not
+     *       recommended to expose the internal data structure to outside.
+     */
+    getViewBy(id: string): ISplitViewItem | undefined;
+
+    /**
      * @description Returns the corresponding sash at the given index. Undefined
      * if not exist.
      * @param index The index of the sash inside splitView.
+     * 
+     * @note When the split view has a number of (n) views, there will only be a
+     *       number of (n - 1) sashes.
      */
     getSashAt(index: number): ISash | undefined;
 
     /**
      * @description Layout the split view with the updated width and height.
+     *      - When orientation is 'horizontal', the 'width' is used as the new 
+     *          split view size.
+     *      - When orientation is 'vertical', the 'height' is used as the new 
+     *          split view size.
      */
     layout(width: number, height: number): void;
+}
+
+export interface ISplitViewSashEvent {
+    
+    /**
+     * The corresponding sash instance.
+     */
+    readonly sash: ISash;
+    
+    /**
+     * The sash index in the {@link SplitView}.
+     */
+    readonly index: number;
 }
 
 /**
@@ -89,7 +137,8 @@ export interface ISplitViewOpts {
 
     /**
      * Options of constructing initial views during the construction of 
-     * {@link ISplitView}. Views can be added later on by calling {@link ISplitView.addView}.
+     * {@link ISplitView}. Views can also be added later on by calling 
+     * {@link ISplitView.addView()}.
      */
     readonly viewOpts?: ISplitViewItemOpts[];
 }
@@ -97,13 +146,17 @@ export interface ISplitViewOpts {
 /**
  * @class An UI component that enable to layout a collection of highly 
  * customizable {@link ISplitViewItemOpts} instances in a one-dimensional 
- * direction.
+ * direction. These views are also resizable.
  * 
  * @note The view instances are essentially wrappers of {@link HTMLElement}s and 
- * with the size restrictions such as maximum size, minimum size and priority.
+ *       with the size restrictions such as maximum size, minimum size and 
+ *       priority.
  * 
  * @note A {@link ISash} will be created between each view instance to ensure
- * the size restrictions are followed.
+ *       the size restrictions are followed.
+ * 
+ * @note When resizing any views, the required additional or removing pixels 
+ *       will be evenly distributed by the priority of each view.
  * 
  * Functionalities:
  *  - Supports vertical and horizontal layout of views.
@@ -129,7 +182,13 @@ export class SplitView extends Disposable implements ISplitView {
     private readonly viewItems: ISplitViewItem[];
     private readonly sashItems: ISash[];
 
-    private readonly _onDidSashReset = this.__register(new Emitter<number>());
+    private readonly _onDidSashMove = this.__register(new Emitter<ISplitViewSashEvent>());
+    public readonly onDidSashMove = this._onDidSashMove.registerListener;
+    
+    private readonly _onDidSashEnd = this.__register(new Emitter<ISplitViewSashEvent>());
+    public readonly onDidSashEnd = this._onDidSashEnd.registerListener;
+
+    private readonly _onDidSashReset = this.__register(new Emitter<ISplitViewSashEvent>());
     public readonly onDidSashReset = this._onDidSashReset.registerListener;
 
     // [constructor]
@@ -146,20 +205,15 @@ export class SplitView extends Disposable implements ISplitView {
         this.viewContainer = document.createElement('div');
         this.viewContainer.className = 'view-container';
 
-        if (this._orientation === Orientation.Horizontal) {
-            this._size = DomUtility.Attrs.getContentWidth(container);
-        } else {
-            this._size = DomUtility.Attrs.getContentHeight(container);
-        }
+        this._size = (this._orientation === Orientation.Horizontal)
+            ? DomUtility.Attrs.getContentWidth(container)
+            : DomUtility.Attrs.getContentHeight(container);
         
-
         this.viewItems = [];
         this.sashItems = [];
-        
-        if (opts.viewOpts) {
-            for (const viewOpt of opts.viewOpts) {
-                this.__doAddView(viewOpt);
-            }
+
+        for (const viewOpt of opts.viewOpts ?? []) {
+            this.__doAddView(viewOpt);
         }
         
         this.__render();
@@ -177,6 +231,10 @@ export class SplitView extends Disposable implements ISplitView {
 
     get size(): number {
         return this._size;
+    }
+
+    get count(): number {
+        return this.viewItems.length;
     }
     
     public override dispose(): void {
@@ -216,8 +274,8 @@ export class SplitView extends Disposable implements ISplitView {
     }
     
     public swapView(first: number, second: number): void {
-        first = Math.min(Math.max(first, 0), this.viewItems.length);
-        second = Math.min(Math.max(second, 0), this.viewItems.length);
+        first = Numbers.clamp(first, 0, this.viewItems.length);
+        second = Numbers.clamp(second, 0, this.viewItems.length);
 
         if (first === second) {
             return;
@@ -237,16 +295,19 @@ export class SplitView extends Disposable implements ISplitView {
     }
 
     public layout(width: number, height: number): void {
-        if (this._orientation === Orientation.Horizontal) {
-            this._size = width;
-        } else {
-            this._size = height;
-        }
+        this._size = (this._orientation === Orientation.Horizontal)
+            ? width
+            : height;
+        
         this.__render();
         this._onDidLayout.fire({
             width: width,
             height: height,
         });
+    }
+
+    public getViewBy(id: string): ISplitViewItem | undefined {
+        return this.viewItems.find(item => item.ID === id);
     }
 
     public getSashAt(index: number): ISash | undefined {
@@ -260,6 +321,8 @@ export class SplitView extends Disposable implements ISplitView {
         if (opt.index === undefined) {
             opt.index = this.viewItems.length;
         }
+        check(opt.index >= 0);
+        check(opt.index <= this.viewItems.length);
 
         if (opt.priority === undefined) {
             opt.priority = Priority.Low;
@@ -275,29 +338,45 @@ export class SplitView extends Disposable implements ISplitView {
     
         // sash
 
-        if (this.viewItems.length > 1) {
+        if (this.viewItems.length >= 2) {
             const sash = new Sash(this.sashContainer, {
-                orientation: (this._orientation === Orientation.Vertical) ?
-                Orientation.Horizontal : Orientation.Vertical
+                orientation: (this._orientation === Orientation.Vertical) 
+                    ? Orientation.Horizontal 
+                    : Orientation.Vertical
             });
             sash.registerListeners();
 
-            sash.onDidEnd(() => this.__onDidSashEnd(sash));
-            sash.onDidMove(e => this.__onDidSashMove(e, sash));
+            /**
+             * If either the current view or the previous view is inflexible,
+             * the sash will be disabled.
+             */
+            const prevView = this.viewItems[opt.index - 1];
+            if (!view.isFlexible() || (prevView && !prevView.isFlexible())) {
+                sash.enable = false;
+            }
+            
+            // TODO: lifecycle maintenance
+            sash.onDidEnd(() => {
+                this.__onDidSashEnd(sash);
+                this._onDidSashEnd.fire({ sash, index: this.sashItems.indexOf(sash) });
+            });
+            sash.onDidMove(e => {
+                this.__onDidSashMove(e, sash);
+                this._onDidSashMove.fire({ sash, index: this.sashItems.indexOf(sash) });
+            });
             sash.onDidReset(() => {
-                const index = this.sashItems.indexOf(sash);
-                this._onDidSashReset.fire(index);
+                this._onDidSashReset.fire({ sash, index: this.sashItems.indexOf(sash) });
             });
 
             this.sashItems.splice(opt.index, 0, sash);
         }
 
-        // rendering process
+        // rendering
 
         if (this.viewItems.length === 1 || this.viewItems.length === opt.index + 1) {
             this.viewContainer.appendChild(newView);
         } else {
-            this.viewContainer.insertBefore(newView, this.viewContainer.children.item(opt.index!));
+            this.viewContainer.insertBefore(newView, this.viewContainer.children.item(opt.index));
         }
     }
 
@@ -305,16 +384,17 @@ export class SplitView extends Disposable implements ISplitView {
      * @description Remove the view from the split-view by the given index.
      * @note This
      */
-    private __doRemoveView(index: number) {
+    private __doRemoveView(index: number): ISplitViewItemOpts {
         index = Math.min(Math.max(index, 0), this.viewItems.length - 1);
 
         const toRemoveView = this.viewItems.splice(index, 1)[0]!;
         const toRemoveViewOpts = {
+            ID: toRemoveView.ID,
             element: toRemoveView.getElement(),
             minimumSize: toRemoveView.getMinSize(),
             maximumSize: toRemoveView.getMaxSize(),
             priority: toRemoveView.getResizePriority(),
-            index: index, initSize: toRemoveView.getSize()
+            index: index, initSize: toRemoveView.getSize(),
         };
         toRemoveView.dispose();
 
@@ -373,6 +453,7 @@ export class SplitView extends Disposable implements ISplitView {
             return;
         }
 
+        // no views can be fit into the split-view.
         if (low.length + normal.length + high.length === 0) {
             if (splitViewSize !== 0) {
                 panic(new SplitViewSpaceError(splitViewSize, currContentSize));
@@ -452,7 +533,7 @@ export class SplitView extends Disposable implements ISplitView {
             
             const sash = this.sashItems[i - 1]!;
             sash.position = offset - sash.size / 2;
-            sash.relayout();
+            sash.reLayout();
             sash.range.start = offset - Math.min(prevView.getShrinkableSpace(), view.getWideableSpace());
             sash.range.end = offset + Math.min(prevView.getWideableSpace(), view.getShrinkableSpace());
             
@@ -476,7 +557,10 @@ export class SplitView extends Disposable implements ISplitView {
             panic('cannot find the given sash');
         }
 
-        return [this.viewItems[beforeIdx]!, this.viewItems[beforeIdx + 1]!];
+        return [
+            assert(this.viewItems[beforeIdx]),
+            assert(this.viewItems[beforeIdx + 1]),
+        ];
     }
 
     /**

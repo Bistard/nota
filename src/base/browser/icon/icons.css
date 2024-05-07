@@ -1,6 +1,6 @@
 @font-face {
     font-family: "icons";
-    src: url("./icons.woff2") format("woff2");
+    src: url("./icons.ttf") format("truetype");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -14,54 +14,87 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-addDocument:before {
+.icon-add-new:before {
     content: "\f101";
 }
-.icon-addFolder:before {
+.icon-arrow-right:before {
     content: "\f102";
 }
-.icon-angleDown:before {
+.icon-close:before {
     content: "\f103";
 }
-.icon-angleRight:before {
+.icon-cloud-upload:before {
     content: "\f104";
 }
-.icon-caretDown:before {
+.icon-collapse-all:before {
     content: "\f105";
 }
-.icon-check:before {
+.icon-command:before {
     content: "\f106";
 }
-.icon-codeBranch:before {
+.icon-create-new-folder:before {
     content: "\f107";
 }
-.icon-commentQuestion:before {
+.icon-create-new-note:before {
     content: "\f108";
 }
-.icon-cross:before {
+.icon-extension:before {
     content: "\f109";
 }
-.icon-folder:before {
+.icon-folder-default:before {
     content: "\f10a";
 }
-.icon-folderMinus:before {
+.icon-folder-open:before {
     content: "\f10b";
 }
-.icon-list:before {
+.icon-help:before {
     content: "\f10c";
 }
-.icon-menuDots:before {
+.icon-maxmize-window:before {
     content: "\f10d";
 }
-.icon-minuss:before {
+.icon-menu:before {
     content: "\f10e";
 }
-.icon-search:before {
+.icon-minimize-window:before {
     content: "\f10f";
 }
-.icon-settings:before {
+.icon-more-horiz:before {
     content: "\f110";
 }
-.icon-square:before {
+.icon-nota-ai-default:before {
     content: "\f111";
+}
+.icon-nota-ai-on:before {
+    content: "\f112";
+}
+.icon-notification-active:before {
+    content: "\f113";
+}
+.icon-notification-unread:before {
+    content: "\f114";
+}
+.icon-notifications-off:before {
+    content: "\f115";
+}
+.icon-outline:before {
+    content: "\f116";
+}
+.icon-restore-window:before {
+    content: "\f117";
+}
+.icon-search:before {
+    content: "\f118";
+}
+.icon-setting:before {
+    content: "\f119";
+}
+.icon-sort-by-alpha:before {
+    content: "\f11a";
+}
+.icon-source-contorl-on:before {
+    content: "\f11b";
+}
+.icon-source-control-default:before {
+    content: "\f11c";
 }

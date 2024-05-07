@@ -25,7 +25,7 @@ suite('FileItem-test', () => {
         await fileService.delete(rootURI, { recursive: true }).unwrap();
     });
 
-    // refreah the tree hierarchy every test
+    // refresh the tree hierarchy every test
     beforeEach(async () => {
         await buildFileTree(fileService, rootURI, { cleanRoot: true, overwrite: true }, SAMPLE_TREE_LIKE3);
         root = await buildFileItem(fileService, rootURI);
@@ -69,9 +69,9 @@ suite('FileItem-test', () => {
 
         test('property check: mapChildren (lazy loading)', async function () {
             // make sure it is lazy loading
-            assert.strictEqual(root['_mapChildrenCache'], undefined);
+            assert.ok(!root['_mapChildren'].isLoaded);
             assert.strictEqual(root.mapChildren.size, 5);
-            assert.notStrictEqual(root['_mapChildrenCache'], undefined);
+            assert.ok(root['_mapChildren'].isLoaded);
         });
         
         test('property check: mapChildren (CaseIgnore)', async function () {

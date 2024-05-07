@@ -3,7 +3,7 @@ import { join, resolve } from "src/base/common/files/path";
 import { URI } from "src/base/common/files/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { MapTypes, isString } from "src/base/common/utilities/type";
+import { Dictionary, MapTypes, isString } from "src/base/common/utilities/type";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts } from "src/platform/environment/common/environment";
@@ -67,9 +67,9 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     @memoize
     get productProfilePath(): URI { return URI.fromFile(resolve(this.opts.appRootPath, 'product.json')); }
 
-    // [private helper methods]
+    // [public methods]
 
-    protected inspect(): void {
-        this.logService.trace('DiskEnvironmentService', `Disk Environment loaded.`, getAllEnvironments(this));
+    public inspect(): Dictionary<string, string> {
+        return getAllEnvironments(this);
     }
 }

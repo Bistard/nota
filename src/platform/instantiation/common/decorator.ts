@@ -4,6 +4,9 @@ import { Constructor, ParameterDecorator } from "src/base/common/utilities/type"
 
 /**
  * Represents a decorator, as an identifier, for each unique microservice.
+ *      1. The decorator is only used for constructor parameter. 
+ *      2. The decorator can be used to define the dependency tree for a class.
+ *      3. To retrieve the dependency tree of a class by using {@link getDependencyTreeFor}.
  * 
  * @warn The usage of `& { _: T}` is necessary for type inferring. But should not
  * be used in runtime usage.
@@ -14,6 +17,8 @@ export type ServiceIdentifier<T> = ParameterDecorator<Function> & { _: T; };
  * @description The 'ONLY' valid way to create a {@link ServiceIdentifier<T>}.
  * @param serviceId unique name of the service.
  * @returns A corresponding {@link ServiceIdentifier<T>} to the given service.
+ * 
+ * @see ServiceIdentifier
  */
 export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
@@ -59,6 +64,13 @@ export type ServiceDependency<T extends IService> = {
     readonly optional: boolean;
 };
 
+/**
+ * @description The dependency tree of every 'constructor' is defined by its
+ * decorator (decorator created by {@link createService}).
+ * 
+ * @see createService
+ * @see ServiceIdentifier
+ */
 export function getDependencyTreeFor<T extends IService, TCtor extends Constructor>(ctor: TCtor): ServiceDependency<T>[] {
     return ctor[__ServiceUtil.DI_DEPENDENCIES] ?? [];
 }
@@ -73,6 +85,9 @@ export interface IService {
     _serviceMarker: undefined;
 }
 
+/**
+ * @internal
+ */
 namespace __ServiceUtil {
     
     export const serviceIdentifierMap = new Map<string, ServiceIdentifier<any>>();

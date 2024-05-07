@@ -5,6 +5,8 @@
  * that does not import any other files.
  */
 
+import { ArrayToUnion } from "src/base/common/utilities/type";
+
 /**
  * @description Panics the program by throwing an error with the provided message.
  *
@@ -44,6 +46,50 @@ export function assert<T>(obj: any, message?: string): T {
         panic(message ?? `assert error: ${obj}`);
     }
     return obj;
+}
+
+/**
+ * @description Evaluates a condition and triggers a panic if the condition is 
+ * false.
+ * @param condition If the condition is false, the function will trigger a panic.
+ * @param message Optional. The custom error message.
+ * @panic
+ */
+export function check(condition: boolean, message?: string): void {
+    if (!condition) {
+        panic(message ?? `unknown check condition error`);
+    }
+}
+
+/**
+ * @description Narrows the type of the `raw` value to one of the types 
+ * specified in the `narrow` array.
+ * 
+ * @note This function attempts to match the `raw` value with the types or values 
+ *       in the `narrow` array.
+ * 
+ * @param raw The value to be narrowed.
+ * @param narrow An array of possible narrowed types or values.
+ * @param equal An optional custom equality function to compare `raw` with each 
+ *              type/value in `narrow`.
+ * @returns The `raw` value if it successfully matches one of the `narrow` 
+ *          values.
+ * @panic If `raw` cannot be narrowed to any of the provided types/values in 
+ *        `narrow`.
+ */
+export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow): ArrayToUnion<TNarrow>;
+export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow, equal: (raw: T, required: ArrayToUnion<TNarrow>) => boolean): ArrayToUnion<TNarrow>;
+export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow, equal?: (raw: T, required: ArrayToUnion<TNarrow>) => boolean): ArrayToUnion<TNarrow> {
+    for (const required of narrow) {
+        if (equal && equal(raw, required)) {
+            return raw;
+        }
+        
+        if (raw === required) {
+            return raw;
+        }
+    }
+    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${JSON.stringify(narrow)})`);
 }
 
 /**
@@ -101,6 +147,25 @@ export function assertArray<T>(array: any[], assert: (firstElement: any) => bool
     }
 
     return array;
+}
+
+/**
+ * @description Ensures the provided object is not null or undefined. If it is, 
+ *  logs an error and returns a default value.
+ * 
+ * @param obj The object to assert.
+ * @param defaultValue The default value to return if `obj` is null or undefined.
+ * @param message Optional error message to log if `obj` is null or undefined.
+ * @returns The original `obj` if it's neither null nor undefined, otherwise `defaultValue`.
+ * 
+ * @note This function does not panic.
+ */
+export function assertDefault<T>(obj: T, defaultValue: NonNullable<T>, message?: string): NonNullable<T> {
+    if (obj === null || obj === undefined) {
+        console.error(`[assertDefault] ${message}`);
+        return defaultValue;
+    }
+    return obj;
 }
 
 /**

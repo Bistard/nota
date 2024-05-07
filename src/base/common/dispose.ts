@@ -1,4 +1,5 @@
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
+import { isFunction, isObject } from "src/base/common/utilities/type";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -142,6 +143,22 @@ export function toDisposable(fn: () => any): IDisposable {
 	return {
 		dispose: fn
 	};
+}
+
+export function isDisposable(obj: any): obj is IDisposable {
+	if (!isObject(obj)) {
+		return false;
+	}
+	return isFunction(obj['dispose']);
+}
+
+export function tryDispose(obj: any): void {
+	if (!isObject(obj)) {
+		return;
+	}
+	if (isDisposable(obj)) {
+		obj.dispose();
+	}
 }
 
 /**

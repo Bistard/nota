@@ -7,7 +7,7 @@ import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/servic
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
-import { ILogService } from "src/base/common/logger";
+import { ILogService, defaultLog } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
@@ -58,7 +58,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     ) {
         super();
         this._treeCleanup = new DisposableManager();
-        this.logService.trace('FileTreeService', 'FileTreeService constructed.');
+        this.logService.debug('FileTreeService', 'FileTreeService constructed.');
     }
 
     // [event]
@@ -96,7 +96,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         if (this._tree) {
             return AsyncResult.err(new Error('[FileTreeService] cannot initialize since it is already initialized. Close it before initialize.'));
         }
-        this.logService.trace('FileTreeService', 'initializing...');
+        this.logService.debug('FileTreeService', 'initializing...');
 
         return this.__initTree(container, root)
             .andThen(async tree => {
@@ -111,7 +111,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
                 this.__initListeners(tree);
 
-                this.logService.trace('FileTreeService', `initialized at: ${URI.toString(root)}.`);
+                this.logService.debug('FileTreeService', `initialized at: ${URI.toString(root)}.`);
                 this._onDidInitOrClose.fire(true);
             });
     }
@@ -187,7 +187,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             return;
         }
 
-        this.logService.trace('FileTreeService', `closed at: ${this.root && URI.toString(this.root)}.`);
+        this.logService.debug('FileTreeService', `closed at: ${this.root && URI.toString(this.root)}.`);
 
         this._treeCleanup.dispose();
         this._treeCleanup = new DisposableManager();
@@ -402,7 +402,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     collapsedByDefault: true,
                     filter: new FileItemFilter(),
                     dnd: dndProvider,
-
+                    
+                    transformOptimization: true,
                     touchSupport: true,
                     mouseSupport: true,
                     keyboardSupport: true,
@@ -411,7 +412,10 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
                     scrollSensibility: 0.4,
                     fastScrollSensibility: 5,
-                    scrollbarSize: 10,
+                    scrollbarSize: 6,
+
+                    // may disable this
+                    log: (level, reporter, message, error, additional) => defaultLog(this.logService, level, `${reporter} (FileTree)`, message, error, additional),
                 },
             );
 

@@ -39,7 +39,7 @@ export const enum EventType {
 	mousedown = 'mousedown',
 	mouseup = 'mouseup',
 	mousemove = 'mousemove',
-	doubleclick = 'dblclick',
+	doubleClick = 'dblclick',
 	wheel = 'wheel',
 
 	touchstart = 'touchstart',
@@ -65,6 +65,11 @@ export const enum EventType {
 	dragenter = 'dragenter',
 	dragleave = 'dragleave',
 	drop = 'drop',
+
+	input = 'input',
+    select = "select",
+
+	transitionend = 'transitionend',
 }
 
 export const enum Orientation {
@@ -72,9 +77,21 @@ export const enum Orientation {
     Vertical
 }
 
-export const enum Direction {
-	Left,
-	Right,
+export type Direction = DirectionX | DirectionY;
+
+export const enum DirectionX {
+	Left = 0,
+	Right = 1,
+}
+
+export const enum DirectionY {
+	Top = 2,
+	Bottom = 3,
+}
+
+export const enum CollapseState {
+	Collapse = 'collapse',
+	Expand = 'expand',
 }
 
 /**
@@ -111,7 +128,7 @@ export type IStyleDisposable = IDisposable & {
 
 /**
  * Generates a {@link HTMLStyleElement} and appends to the given {@link HTMLElement}.
- * @param element The given HTMLElement.
+ * @param element The given HTMLElement to have the CSS style.
  * @returns A disposable that will dispose the new created stylesheet from the 
  * given HTMLElement.
  * 
@@ -600,7 +617,7 @@ export interface IDomEvent<IfUseElement extends boolean> {
 	 * Fired when a pointing device button (e.g., a mouse's primary button) is 
 	 * clicked twice on a single element.
 	 */
-	onDoubleclick: IfUseElement extends true
+	onDoubleClick: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
@@ -809,8 +826,8 @@ export class BaseElement extends Disposable implements IBaseElement {
         }));
     }
 
-    public onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.doubleclick, (e: MouseEvent) => {
+    public onDoubleClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.doubleClick, (e: MouseEvent) => {
             callback(e);
         }));
     }

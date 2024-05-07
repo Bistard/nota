@@ -66,12 +66,12 @@ class DataSerializer {
     private readonly _writer = new BufferWriter();
 
     private static readonly _8BitType = {
-        Undef: DataSerializer.__get8BitType(DataType.Undefined),
-        Str: DataSerializer.__get8BitType(DataType.String),
-        Buf: DataSerializer.__get8BitType(DataType.Buffer),
+        Undef:   DataSerializer.__get8BitType(DataType.Undefined),
+        Str:     DataSerializer.__get8BitType(DataType.String),
+        Buf:     DataSerializer.__get8BitType(DataType.Buffer),
         DataBuf: DataSerializer.__get8BitType(DataType.DataBuffer),
-        Arr: DataSerializer.__get8BitType(DataType.Array),
-        Obj: DataSerializer.__get8BitType(DataType.Object),
+        Arr:     DataSerializer.__get8BitType(DataType.Array),
+        Obj:     DataSerializer.__get8BitType(DataType.Object),
     };
 
     private static __get8BitType(value: number): DataBuffer {
@@ -623,7 +623,7 @@ export class ServerBase extends Disposable implements IChannelServer {
          * event.
          */
         this.__register(onClientConnect((event: IClientConnectEvent) => {
-            this.logService?.debug('ServerBase', `client on connection`, { ID: event.clientID });
+            this.logService?.debug('ServerBase', `client on connection (ID: ${event.clientID})`);
             const protocol = event.protocol;
 
             /**
@@ -655,7 +655,7 @@ export class ServerBase extends Disposable implements IChannelServer {
                 onClientDisconnect(() => {
                     channelServer.dispose();
                     this._connections.delete(connection);
-                    this.logService?.debug('ServerBase', `client on disconnect.`, { ID: event.clientID });
+                    this.logService?.debug('ServerBase', `client on disconnect (ID: ${event.clientID})`);
                 });
             });
         }));

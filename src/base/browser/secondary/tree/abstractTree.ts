@@ -14,6 +14,7 @@ import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTre
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { IIdentityProvider } from "src/base/browser/secondary/tree/asyncTree";
 import { Arrays } from "src/base/common/utilities/array";
+import { Lazy } from "src/base/common/lazy";
 
 /**
  * @internal
@@ -92,12 +93,12 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
  * @template T: The type of data in {@link AbstractTree}.
  * @note `trait` does not care about TFilter type.
  */
-class TreeTrait<T> {
+class TreeTrait<T> implements IDisposable {
 
     // [field]
 
     private _nodes = new Set<ITreeNode<T, any>>();
-    private _nodesCache?: T[];
+    private readonly _nodesCache: Lazy<T[]>;
 
     // [event]
 
@@ -106,12 +107,14 @@ class TreeTrait<T> {
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+        this._nodesCache = new Lazy(() => Arrays.fromSet(this._nodes, node => node.data));
+    }
 
     // [public methods]
 
     public set(nodes: ITreeNode<T, any>[]): void {
-        this._nodesCache = undefined;
+        this._nodesCache.dispose();
         this._nodes = new Set();
         
         for (const node of nodes) {
@@ -123,10 +126,7 @@ class TreeTrait<T> {
     }
 
     public get(): T[] {
-        if (!this._nodesCache) {
-            this._nodesCache = Arrays.fromSet(this._nodes, node => node.data);
-        }
-        return this._nodesCache;
+        return this._nodesCache.value();
     }
 
     public has(nodes: ITreeNode<T, any>): boolean {
@@ -177,6 +177,11 @@ class TreeTrait<T> {
 
         // update the current traits
         this.set(currNodes);
+    }
+
+    public dispose(): void {
+        this._nodesCache.dispose();
+        this._onDidChange.dispose();
     }
 }
 
@@ -287,10 +292,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         opts: ITreeWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
-        this._focused = new TreeTrait();
-        this._anchor = new TreeTrait();
-        this._selected = new TreeTrait();
-        this._hovered = new TreeTrait();
+        this._focused = this.__register(new TreeTrait());
+        this._anchor = this.__register(new TreeTrait());
+        this._selected = this.__register(new TreeTrait());
+        this._hovered = this.__register(new TreeTrait());
     }
 
     // [public method]
@@ -516,11 +521,11 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     /**
      * Fires when the tree node in the {@link IAbstractTree} is double clicked.
      */
-    get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+    get onDoubleClick(): Register<ITreeMouseEvent<T>>;
 
     /** 
      * An event sent when the state of contacts with a touch-sensitive surface 
-     * changes. This surface can be a touch screen or trackpad.
+     * changes. This surface can be a touch screen or track-pad.
      */
     get onTouchstart(): Register<ITreeTouchEvent<T>>;
 
@@ -883,6 +888,8 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
+
+                log: opts.log,
             } as ITreeWidgetOpts<T, TFilter, any>,
         ];
         if (opts.createTreeWidgetExternal) {
@@ -918,7 +925,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     get onDidChangeItemHover(): Register<ITreeTraitChangeEvent<T>> { return this._view.exposeHoveredTreeTrait().onDidChange; }
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
-    get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
+    get onDoubleClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleClick, this.__toTreeMouseEvent); }
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._view.onTouchstart, this.__toTreeTouchEvent); }
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }

@@ -7,6 +7,8 @@ import { Icons } from "src/base/browser/icon/icons";
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 
+export const FileItemRendererType = 'explorer';
+
 /**
  * The type of metadata returned by {@link FileItemRenderer.render()}.
  */
@@ -19,11 +21,9 @@ export interface IFileItemMetadata extends IListViewMetadata {
  */
 export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore, IFileItemMetadata> {
 
-    public readonly type = RendererType.Explorer;
+    public readonly type: RendererType = FileItemRendererType;
 
-    constructor() {
-
-    }
+    constructor() {}
 
     public render(element: HTMLElement): IFileItemMetadata {
         const text = document.createElement('span');
@@ -38,24 +38,21 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
     }
 
     public update(item: ITreeNode<FileItem, void>, index: number, data: IFileItemMetadata, size?: number): void {
-
         const text = data.container;
         text.textContent = item.data.name;
-
     }
 
     public updateIndent(item: ITreeNode<FileItem, FuzzyScore>, indentElement: HTMLElement): void {
         if (item.collapsible) {
-            indentElement.classList.add(...getIconClass(Icons.CaretDown));
+            indentElement.classList.add(...getIconClass(Icons.ArrowRight));
         } else {
-            indentElement.classList.remove(...getIconClass(Icons.CaretDown));
+            indentElement.classList.remove(...getIconClass(Icons.ArrowRight));
         }
     }
 
     public dispose(data: IFileItemMetadata): void {
         // TODO
     }
-
 }
 
 /**
@@ -63,6 +60,9 @@ export class FileItemRenderer implements ITreeListRenderer<FileItem, FuzzyScore,
  */
 export class FileItemProvider implements IListItemProvider<FileItem> {
 
+    /**
+     * The height in pixels for every file item.
+     */
     public static readonly Size = 30;
 
     public getSize(data: FileItem): number {
@@ -70,7 +70,7 @@ export class FileItemProvider implements IListItemProvider<FileItem> {
     }
 
     public getType(data: FileItem): RendererType {
-        return RendererType.Explorer;
+        return FileItemRendererType;
     }
 
 }

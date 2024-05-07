@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { beforeEach } from 'mocha';
-import { bfs, cond, dfs, executeOnce, Reactivator, to01 } from 'src/base/common/utilities/function';
+import { bfs, cond, dfs, executeOnce, Flag, Reactivator, to01 } from 'src/base/common/utilities/function';
 
 suite('function-test', () => {
 
@@ -56,6 +56,29 @@ suite('function-test', () => {
             executor.reactivate();
             executor.execute(() => actionCounter += 2);
             assert.strictEqual(actionCounter, 2);
+        });
+    });
+
+    suite('Flag', function() {
+        test('turnOn one time', function() {
+            const f = new Flag('created');
+            assert.ok(!f.triggered());
+            f.turnOn();
+            assert.ok(f.triggered());
+        });
+        
+        test('turnOn twice', function() {
+            const f = new Flag('created');
+            f.turnOn();
+            assert.throws(() => f.turnOn());
+        });
+        
+        test('assert', function() {
+            const f = new Flag('created');
+            f.assert(false, 'should expect current state is false');
+            f.turnOn();
+            f.assert(true, 'should expect current state is true');
+            assert.throws(() => f.turnOn());
         });
     });
 

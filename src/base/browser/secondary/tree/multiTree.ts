@@ -232,7 +232,7 @@ export class MultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> implements 
  * @class An optimization that differences from {@link MultiTree}. Instead of 
  * letting client provide a new tree-like structure, client modify the existed 
  * one and the model will rebuild the tree structure automatically after calling 
- * the method {@link FlexMultiTree.refresh}.
+ * the method {@link FlexMultiTree.refresh()}.
  * 
  * @implements
  * If you wish the client side has the full control of tree structure, using

@@ -1,13 +1,13 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { ISideView } from "src/workbench/parts/sideView/sideView";
+import { INavView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 
 export const ExplorerViewID = 'explorer-view';
 
 /**
  * An interface only for {@link ExplorerView}.
  */
-export interface IExplorerViewService extends ISideView {
+export interface IExplorerViewService extends INavView {
 
     /**
      * Determine if the explorer view is opened right now.

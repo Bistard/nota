@@ -1,17 +1,16 @@
-import 'src/workbench/parts/sideView/media/sideView.scss';
+import 'src/workbench/parts/navigationPanel/navigationView/media/navigationView.scss';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { Constructor, Mutable } from 'src/base/common/utilities/type';
+import { Constructor} from 'src/base/common/utilities/type';
 import { ILogService } from 'src/base/common/logger';
-import { SideViewTitlePart } from 'src/workbench/parts/sideView/sideViewTitle';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 
-export const ISideViewService = createService<ISideViewService>('side-view-service');
+export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
 
-export interface ISideViewChangeEvent {
+export interface INavigationViewChangeEvent {
 
     /**
      * The current id of the view that is displaying.
@@ -21,18 +20,18 @@ export interface ISideViewChangeEvent {
     /**
      * The current displaying view.
      */
-    readonly view?: ISideView;
+    readonly view?: INavView;
 }
 
 /**
- * An interface only for {@link SideViewService}.
+ * An interface only for {@link navigationViewService}.
  */
-export interface ISideViewService extends IComponent, IService {
+export interface INavigationViewService extends IComponent, IService {
 
     /** 
      * Events fired when the current side view has changed. 
      */
-    readonly onDidViewChange: Register<ISideViewChangeEvent>;
+    readonly onDidViewChange: Register<INavigationViewChangeEvent>;
 
     /**
      * @description Register a view with the corresponding ID. The view will not
@@ -40,7 +39,7 @@ export interface ISideViewService extends IComponent, IService {
      * @param id The id of the view for future look up.
      * @param viewCtor The side view.
      */
-    registerView(id: string, viewCtor: Constructor<ISideView>): void;
+    registerView(id: string, viewCtor: Constructor<INavView>): void;
 
     /**
      * @description Unregister a view if ever registered.
@@ -64,20 +63,20 @@ export interface ISideViewService extends IComponent, IService {
      * @description Returns the registered view by the given ID.
      * @param id The id of the view.
      */
-    getView<T extends ISideView>(id: string): T | undefined;
+    getView<T extends INavView>(id: string): T | undefined;
 
     /**
      * @description Returns the current displaying side view. Undefined is
      * returned if no views are displaying.
      */
-    currView<T extends ISideView>(): T | undefined;
+    currView<T extends INavView>(): T | undefined;
 }
 
 /**
- * @class The service manages and displays different {@link ISideView}. It is
+ * @class The service manages and displays different {@link INavigationView}. It is
  * also a {@link Component}.
  */
-export class SideViewService extends Component implements ISideViewService {
+export class NavigationView extends Component implements INavigationViewService {
 
     declare _serviceMarker: undefined;
 
@@ -86,14 +85,14 @@ export class SideViewService extends Component implements ISideViewService {
     /** The id of the current displaying view. */
     private _currView?: string;
 
-    /** The container that only contains the {@link ISideView}. */
+    /** The container that only contains the {@link INavigationView}. */
     private _viewContainer?: HTMLElement;
 
-    private readonly _viewCtors: Map<string, Constructor<ISideView>>;
+    private readonly _viewCtors: Map<string, Constructor<INavView>>;
 
     // [event]
 
-    private readonly _onDidViewChange = this.__register(new Emitter<ISideViewChangeEvent>());
+    private readonly _onDidViewChange = this.__register(new Emitter<INavigationViewChangeEvent>());
     public readonly onDidViewChange = this._onDidViewChange.registerListener;
 
     // [constructor]
@@ -102,19 +101,19 @@ export class SideViewService extends Component implements ISideViewService {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService logService: ILogService,
     ) {
-        super('side-view', null, themeService, componentService);
+        super('navigation-view', null, themeService, componentService, logService);
         this._viewCtors = new Map();
     }
 
     // [public method]
 
-    public registerView(id: string, viewCtor: Constructor<ISideView>): void {
-        this.logService.trace('SideViewService', `registers a view with ID`, { ID: id });
+    public registerView(id: string, viewCtor: Constructor<INavView>): void {
+        this.logService.debug('SideViewService', `registers a view with ID: ${id}`);
 
         if (this.hasComponent(id)) {
-            this.logService.warn('SideViewService', `The side view with ID is already registered`, { ID: id });
+            this.logService.warn('SideViewService', `The side view with ID is already registered: ${id}`);
             return;
         }
 
@@ -137,7 +136,7 @@ export class SideViewService extends Component implements ISideViewService {
          * If the corresponding view does not exist, returns false indicates
          * the operation fails.
          */
-        const view = this.getComponent<ISideView>(id);
+        const view = this.getComponent<INavView>(id);
         if (!view) {
             return false;
         }
@@ -162,7 +161,7 @@ export class SideViewService extends Component implements ISideViewService {
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn('SideViewService', `Cannot switch to view with ID.`, { ID: id });
+            this.logService.warn('SideViewService', `Cannot switch to view with ID: ${id}`);
             return;
         }
         this.__switchView(view);
@@ -175,7 +174,7 @@ export class SideViewService extends Component implements ISideViewService {
         this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
 
-    public getView<T extends ISideView>(id: string): T | undefined {
+    public getView<T extends INavView>(id: string): T | undefined {
         const view = this.getComponent<T>(id);
         if (view) {
             return view;
@@ -190,7 +189,7 @@ export class SideViewService extends Component implements ISideViewService {
         return newView;
     }
 
-    public currView<T extends ISideView>(): T | undefined {
+    public currView<T extends INavView>(): T | undefined {
         if (this._currView) {
             return this.getComponent<T>(this._currView);
         }
@@ -203,7 +202,7 @@ export class SideViewService extends Component implements ISideViewService {
 
         // empty side view at the beginning
         this._viewContainer = document.createElement('div');
-        this._viewContainer.className = 'side-view-container';
+        this._viewContainer.className = 'navigation-view-container';
         this.element.appendChild(this._viewContainer);
     }
 
@@ -211,7 +210,7 @@ export class SideViewService extends Component implements ISideViewService {
 
     // [private helper methods]
 
-    private __getOrConstructView<T extends ISideView>(id: string): T | undefined {
+    private __getOrConstructView<T extends INavView>(id: string): T | undefined {
         const view = this.getComponent<T>(id);
         if (view) {
             return view;
@@ -232,7 +231,7 @@ export class SideViewService extends Component implements ISideViewService {
         return newView as T;
     }
 
-    private __switchView(view: ISideView): void {
+    private __switchView(view: INavView): void {
         if (!this._viewContainer) {
             return;
         }
@@ -254,13 +253,13 @@ export class SideViewService extends Component implements ISideViewService {
             return;
         }
 
-        const currView = this.getComponent<ISideView>(id)!;
+        const currView = this.getComponent<INavView>(id)!;
         this._viewContainer.removeChild(currView.element.element);
         this._currView = undefined;
     }
 
     private __destroyView(id: string): void {
-        const view = this.getComponent<ISideView>(id);
+        const view = this.getComponent<INavView>(id);
         if (view) {
             this.unregisterComponent(id);
             view.dispose();
@@ -277,9 +276,9 @@ export class SideViewService extends Component implements ISideViewService {
 }
 
 /**
- * An interface only for {@link SideView}.
+ * An interface only for {@link NavigationView}.
  */
-export interface ISideView extends IComponent {
+export interface INavView extends IComponent {
 
     /**
      * The ID of the view.
@@ -289,28 +288,13 @@ export interface ISideView extends IComponent {
 
 /**
  * @class The base class to be inherited from to be inserted into 
- * {@link SideViewService}.
+ * {@link NavigationView}.
  */
-export abstract class SideView extends Component implements ISideView {
+export abstract class NavView extends Component implements INavView {
 
     // [field]
 
-    public static readonly WIDTH = 300;
-
-    // TODO: try to use a splitView. So that we can use a sash instead of manually set the border.
-    protected readonly _titlePart!: SideViewTitlePart;
-
-    // [protected override methods]
-
-    protected __createTitlePart(): SideViewTitlePart {
-        return new SideViewTitlePart();
-    }
-
-    protected _createContent(): void {
-        (<Mutable<SideViewTitlePart>>this._titlePart) = this.__createTitlePart();
-    }
+    public static readonly HEIGHT = 300;
 
     protected _registerListeners(): void { }
-
-    // [private methods]
 }

@@ -1,5 +1,6 @@
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
 
@@ -11,20 +12,21 @@ export const enum WorkbenchConfiguration {
     ColorTheme = 'workbench.colorTheme',
     KeyboardScreenCast = 'workbench.keyboardScreenCast',
 
-    // [sideView]
+    // [navigationView]
     
-    DefaultSideView = 'sideView.defaultView',
-    ExplorerViewMode = 'sideView.explorer.mode',
-    ExplorerViewInclude = 'sideView.explorer.include',
-    ExplorerViewExclude = 'sideView.explorer.exclude',
-    ExplorerFileSortType = 'sideView.explorer.fileSortType',
-    ExplorerFileSortOrder = 'sideView.explorer.fileSortOrder',
-    ExplorerConfirmDragAndDrop = 'sideView.explorer.confirmDragAndDrop',
+    DefaultNavigationView       = 'navigationView.defaultView',
+    ExplorerViewMode            = 'navigationView.explorer.mode',
+    ExplorerViewInclude         = 'navigationView.explorer.include',
+    ExplorerViewExclude         = 'navigationView.explorer.exclude',
+    ExplorerFileSortType        = 'navigationView.explorer.fileSortType',
+    ExplorerFileSortOrder       = 'navigationView.explorer.fileSortOrder',
+    ExplorerConfirmDragAndDrop  = 'navigationView.explorer.confirmDragAndDrop',
+    ExplorerIncrementFileNaming = 'navigationView.explorer.incrementFileNaming',
 }
 
 /**
  * {@link rendererWorkbenchConfigurationRegister}
- * {@link rendererSideViewConfigurationRegister}
+ * {@link rendererNavigationViewConfigurationRegister}
  */
 
 export const rendererWorkbenchConfigurationRegister = createRegister(
@@ -60,16 +62,16 @@ export const rendererWorkbenchConfigurationRegister = createRegister(
     },
 );
 
-export const rendererSideViewConfigurationRegister = createRegister(
+export const rendererNavigationViewConfigurationRegister = createRegister(
     RegistrantType.Configuration,
     'rendererWorkbench',
     (registrant) => {
         registrant.registerConfigurations({
-            id: 'sideView',
+            id: 'navigationView',
             properties: {
 
-                // sideView configurations
-                ['sideView']: {
+                // navigationView configurations
+                ['navigationView']: {
                     type: 'object',
                     properties: {
                         ['defaultView']: {
@@ -96,7 +98,7 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                         FileSortType.CreationTime,
                                         FileSortType.Custom,
                                     ],
-                                    default: FileSortType.Default,
+                                    default: FileSortType.Custom,
                                 },
                                 ['fileSortOrder']: {
                                     type: 'string',
@@ -110,6 +112,11 @@ export const rendererSideViewConfigurationRegister = createRegister(
                                     type: 'boolean',
                                     default: true,
                                 },
+                                ['incrementFileNaming']: {
+                                    type: 'string',
+                                    default: IncrementFileType.Simple,
+                                    enum: [IncrementFileType.Simple, IncrementFileType.Smart],
+                                }
                             }
                         }
                     }

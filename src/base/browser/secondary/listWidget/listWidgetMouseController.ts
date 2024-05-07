@@ -193,17 +193,23 @@ export class ListWidgetMouseController<T> implements IDisposable {
         const toFocused = e.actualIndex!;
 
         const currSelection = this._view.getSelections();
-        const newSelection = Arrays.remove(currSelection, toFocused);
+        const selectionsWithoutFocused = currSelection.filter(i => i !== toFocused);
 
         this._view.setFocus(toFocused);
         this._view.setAnchor(toFocused);
 
-        if (newSelection.length === currSelection.length) {
-            // we are not removing any of the current selections
-            this._view.setSelections([...newSelection, toFocused]);
+        if (selectionsWithoutFocused.length !== currSelection.length) {
+            /**
+             * We are clicking one of the selections, we update the selections 
+             * except the double-clicked one.
+             */
+            this._view.setSelections(selectionsWithoutFocused);
         } else {
-            // we removed one of the selections
-            this._view.setSelections(newSelection);
+            /**
+             * We are not clicking any of the current selections, we append the
+             * new clicked as selection.
+             */
+            this._view.setSelections([...selectionsWithoutFocused, toFocused]);
         }
     }
 

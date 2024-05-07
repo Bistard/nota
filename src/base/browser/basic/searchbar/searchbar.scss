@@ -6,7 +6,7 @@
     position: absolute;
     margin: auto;
 
-    line-height: 20px;
+    line-height: 18px;
     width: 38vw;
     max-width: 600px;
     font-size: 12px;
@@ -28,16 +28,23 @@
     
     & > .icon {
         position: relative;
-        margin-left: 4px;
-        font-size: 10px;
+        margin-right: 6px;
+        margin-top: 2px;
+        font-size: 17px;
+        color: var(--nota-search-bar-icon);
     }
 
     & > .inner-text {
+        flex-grow: 1;
+        border: none;
+        outline: 0;
+        color: var(--nota-primary-text);
+        background-color: transparent;
         position: relative;
-        margin: auto;
+        margin-left: 14px;
         
         font-size: 14px;
-        width: 80%;
+        width: 100%;
     
         text-align: center;
         text-overflow: ellipsis;

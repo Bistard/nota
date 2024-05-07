@@ -1,6 +1,5 @@
 import { BaseElement, IBaseElement } from "src/base/browser/basic/dom";
 import { panic } from "src/base/common/utilities/panic";
-import { Mutable } from "src/base/common/utilities/type";
 
 export interface IWidget extends IBaseElement {
     
@@ -36,7 +35,7 @@ export abstract class Widget extends BaseElement implements IWidget {
     // [field]
     
     private _rendered: boolean;
-    private readonly _element!: HTMLElement;
+    private _element?: HTMLElement;
 
     // [constructor]
 
@@ -64,26 +63,26 @@ export abstract class Widget extends BaseElement implements IWidget {
             return;
         }
 
-        (<Mutable<HTMLElement>>this._element) = element;
+        this._element = element;
         if (!this._element) {
             panic('The widget is not rendered properly');
         }
         
         this._rendered = true;
         
-        this.__render();
-        this.__applyStyle();
-        this.__registerListeners();
+        this.__render(element);
+        this.__applyStyle(element);
+        this.__registerListeners(element);
     }
 
-    protected __render(): void {}
-    protected __applyStyle(): void {}
-    protected __registerListeners(): void {}
+    protected __render(element: HTMLElement): void {}
+    protected __applyStyle(element: HTMLElement): void {}
+    protected __registerListeners(element: HTMLElement): void {}
 
     public override dispose(): void {
 		if (this._element) {
 			this._element.remove();
-            (<Mutable<HTMLElement | undefined>>this._element) = undefined;
+            this._element = undefined;
 		}
         super.dispose();
 	}
