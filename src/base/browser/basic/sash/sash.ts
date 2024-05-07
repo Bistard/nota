@@ -296,7 +296,7 @@ export class Sash extends Disposable implements ISash {
                 return new HorizontalSashController(this, ...ctorOptions);
             }
         });
-        this.__register({dispose: () => this._controller.dispose()});
+        this.__register(this._controller);
 
         this.__render();
 

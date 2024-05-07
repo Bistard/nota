@@ -160,6 +160,7 @@ export class ListTrait<T> implements IDisposable {
     public dispose(): void {
         this._onDidChange.dispose();
         this._indice = [];
+        this._queryCache.dispose();
     }
 }
 

@@ -93,7 +93,7 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
  * @template T: The type of data in {@link AbstractTree}.
  * @note `trait` does not care about TFilter type.
  */
-class TreeTrait<T> {
+class TreeTrait<T> implements IDisposable {
 
     // [field]
 
@@ -177,6 +177,11 @@ class TreeTrait<T> {
 
         // update the current traits
         this.set(currNodes);
+    }
+
+    public dispose(): void {
+        this._nodesCache.dispose();
+        this._onDidChange.dispose();
     }
 }
 
@@ -287,10 +292,10 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         opts: ITreeWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
-        this._focused = new TreeTrait();
-        this._anchor = new TreeTrait();
-        this._selected = new TreeTrait();
-        this._hovered = new TreeTrait();
+        this._focused = this.__register(new TreeTrait());
+        this._anchor = this.__register(new TreeTrait());
+        this._selected = this.__register(new TreeTrait());
+        this._hovered = this.__register(new TreeTrait());
     }
 
     // [public method]
