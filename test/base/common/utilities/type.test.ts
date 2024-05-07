@@ -3,7 +3,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -334,6 +334,29 @@ suite('typescript-types-test', () => {
         const triple: NumberStringBooleanTriple = [1, "one", true];
         // @ts-expect-error
         const notTriple: NumberStringBooleanTriple = [1, "one", true, 4];
+    });
+
+    test('TupleOf type', () => {
+        type Zero = TupleOf<number, 0>;
+        type One = TupleOf<number, 1>;
+        type Two = TupleOf<number, 2>;
+        type Three = TupleOf<number, 3>;
+
+        const zero: Zero = [];
+        // @ts-expect-error
+        const notZero: Zero = [1];
+        
+        const one: One = [1];
+        // @ts-expect-error
+        const notOne: One = [1, 2];
+
+        const two: Two = [1, 2];
+        // @ts-expect-error
+        const notTwo: Two = [1, 2, 3];
+        
+        const three: Three = [1, 2, 3];
+        // @ts-expect-error
+        const notThree: Tree = [1, 2, 3, 4];
     });
 
     test('Dictionary type', () => {

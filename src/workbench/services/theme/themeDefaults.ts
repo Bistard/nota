@@ -6,26 +6,29 @@ export const THEME_COLORS = <const>{
 
     // primary (brand)
 
-    teal:       assert(RGBA.parse('#2AA882')), // review: 青色
-    mediumTeal: assert(RGBA.parse('#A3D0C3')),
-    lightTeal:  assert(RGBA.parse('#D0EBE3')),
-    white:      assert(RGBA.parse('#FFFFFF')),
+    teal:        assert(RGBA.parse('#2aa882')),
+    mediumTeal:  assert(RGBA.parse('#a3d0c3')),
+    lightTeal:   assert(RGBA.parse('#d0ebe3')),
+    lighterTeal: assert(RGBA.parse('#f0f8f5')),
+    white:       assert(RGBA.parse('#ffffff')),
 
     // primary (text)
+
+    primary:     assert(RGBA.parse('#211f27')),
+    secondary:   assert(RGBA.parse('#5a564d')),
+    ternary:     assert(RGBA.parse('#949393')),
+    subtext:     assert(RGBA.parse('#b5b5b5')),
+    middle:      assert(RGBA.parse('#bbbbbb')),
+    subicon:     assert(RGBA.parse('#cccccc')),
+    stroke:      assert(RGBA.parse('#e2e2e2')),
+    lightstroke: assert(RGBA.parse('#eaeaea')),
+    light:       assert(RGBA.parse('#fcf3f3')),
+    sidebg:      assert(RGBA.parse('#fcfcfc')),
     
     // light theme special
-    seaGreen: new RGBA(60, 179, 113),
-    ghostWhite: new RGBA(248, 248, 255),
-    lightSkyBlue: new RGBA(179, 212, 252),
-    lavenderBlush: new RGBA(255, 240, 245),
-    gainsboro: new RGBA(220, 220, 220),
     
     // dark theme special
-    onyx: new RGBA(13, 13, 13),
-    charcoal: new RGBA(54, 69, 79),
-    midnightBlue: new RGBA(25, 25, 112),
-    ebony: new RGBA(85, 93, 80),
-    outerSpace: new RGBA(41, 49, 51),
+
 } satisfies ColorMap;
 
 /**

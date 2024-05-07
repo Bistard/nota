@@ -320,7 +320,7 @@ export class PieceTable implements IPieceTable {
             return;
         }
 
-        // emtpy tree, insert as root
+        // empty tree, insert as root
         if (this._root === NULL_NODE) {
             const pieces = this.__createNewPieces(text);
             let node = NULL_NODE;
@@ -535,7 +535,7 @@ export class PieceTable implements IPieceTable {
             if (this._shouldBeNormalized) {
                 /**
                  * Since it's normalized, it guarantees the length of eol. Use
-                 * Math.max() to guarrantee the range is valid.
+                 * Math.max() to guarantee the range is valid.
                  */
                 currLineBuffer += buffer.substring(firstCharOffset, Math.max(firstCharOffset, linestart[pieceStartLine + 1]! - this._normalizedEOL.length));
             } else {
@@ -1826,7 +1826,7 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description A auxliary function for `getRawLine`.
+     * @description A auxiliary function for `getRawLine`.
      * @param lineNumber The line number (zero-based).
      * @param eolLength The length of the linefeed.
      * @complexity O(h)
@@ -1844,7 +1844,7 @@ export class PieceTable implements IPieceTable {
             /**
              * desired line is either: 
              *      - entirely before the current piece
-             *      - OR has partial content before the current peice (could be empty)
+             *      - OR has partial content before the current piece (could be empty)
              */
             if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
                 node = node.left;
@@ -1865,7 +1865,7 @@ export class PieceTable implements IPieceTable {
                     pieceStartOffset + desiredLineEndOffset - eolLength
                 );
             }
-            // desired line has parital content at the end of the current piece (could be empty)
+            // desired line has partial content at the end of the current piece (could be empty)
             else if (node.piece.lfCount === lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
                 const { buffer } = this._buffer[piece.bufferIndex]!;

@@ -8,6 +8,7 @@ import { WindowButton } from "src/workbench/parts/workspace/titleBar/windowButto
 import { IHostService } from "src/platform/host/common/hostService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
+import { ILogService } from 'src/base/common/logger';
 
 export class WindowBar extends Component {
 
@@ -18,8 +19,9 @@ export class WindowBar extends Component {
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
         @ILifecycleService private readonly lifeCycleService: IBrowserLifecycleService,
+        @ILogService logService: ILogService,
     ) {
-        super('window-bar', null, themeService, componentService);
+        super('window-bar', null, themeService, componentService, logService);
 
     }
 
@@ -32,20 +34,22 @@ export class WindowBar extends Component {
     protected __createWidgetBar(container: HTMLElement): WidgetBar<WindowButton> {
 
         // constructs a new widgetBar
-        const widgetBar = new WidgetBar<WindowButton>(container, {
+        const widgetBar = new WidgetBar<WindowButton>('window-bar-buttons', {
+            parentContainer: container,
             orientation: Orientation.Horizontal,
             render: true,
         });
 
         // creates all the window buttons
         [
-            { id: 'dropdown-btn', icon: Icons.Help, classes: [], fn: () => { } },
-            { id: 'min-btn', icon: Icons.Minimize, classes: [], fn: () => this.hostService.minimizeWindow() },
-            { id: 'max-btn', icon: Icons.Maximize, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
+            { id: 'more-btn', icon: Icons.MoreHoriz, classes: [], fn: () => { } },
+            { id: 'min-btn', icon: Icons.MinimizeWindow, classes: [], fn: () => this.hostService.minimizeWindow() },
+            { id: 'max-btn', icon: Icons.MaxmizeWindow, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
             { id: 'close-btn', icon: Icons.Close, classes: ['closeToggleBtn'], fn: () => this.lifeCycleService.quit() },
         ]
             .forEach(({ id, icon, classes, fn }) => {
                 const button = new WindowButton({
+                    id: id,
                     icon: icon,
                     classes: classes,
                 });
@@ -54,7 +58,7 @@ export class WindowBar extends Component {
                 widgetBar.addItem({
                     id: id,
                     item: button,
-                    dispose: button.dispose
+                    dispose: button.dispose.bind(button),
                 });
             });
 

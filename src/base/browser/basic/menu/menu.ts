@@ -2,7 +2,7 @@ import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeparatorItem as MenuSeparatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
 import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
-import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { addDisposableListener, DirectionX, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type";
@@ -11,7 +11,6 @@ import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/vi
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { RGBA } from "src/base/common/color";
 import { panic } from "src/base/common/utilities/panic";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
@@ -631,14 +630,14 @@ export class MenuWithSubmenu extends MenuDecorator {
         const { top, left } = this.__calculateSubmenuPosition(
             { width: submenuBox.width, height: submenuBox.height },
             anchorBox,
-            Direction.Right,
+            DirectionX.Right,
         );
 
         this._submenuContainer.setLeft(left - submenuBox.left);
         this._submenuContainer.setTop(top - submenuBox.top);
     }
 
-    private __calculateSubmenuPosition(submenu: IDimension, entry: IDomBox, expandDir: Direction): IPosition {
+    private __calculateSubmenuPosition(submenu: IDimension, entry: IDomBox, expandDir: DirectionX): IPosition {
         let top = 0;
         let left = 0;
 
@@ -648,7 +647,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         };
 
         left = calcViewPositionAlongAxis(win.width, submenu.width, {
-            direction: expandDir === Direction.Right ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After, 
+            direction: expandDir === DirectionX.Right ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After, 
             offset: entry.left, 
             size: entry.width,
             mode: AnchorMode.Avoid,

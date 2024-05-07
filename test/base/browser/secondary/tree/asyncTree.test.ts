@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { RendererType } from 'src/base/browser/secondary/listView/listRenderer';
 import { AsyncTree } from 'src/base/browser/secondary/tree/asyncTree';
 import { generateTreeLike } from 'test/utils/helpers';
 
@@ -26,7 +25,7 @@ suite('AsyncTree-test', () => {
             {
                 forcePrimitiveType: true,
                 renderers: [],
-                itemProvider: { getSize: (data) => 10, getType: (data) => RendererType.Unknown },
+                itemProvider: { getSize: (data) => 10, getType: (data) => 'unknown' },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE1.get(data)!,
@@ -64,7 +63,7 @@ suite('AsyncTree-test', () => {
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 10,
-                    getType: (data) => RendererType.Unknown
+                    getType: (data) => 'unknown'
                 },
                 collapsedByDefault: false,
                 childrenProvider: {
@@ -144,7 +143,7 @@ suite('AsyncTree-test', () => {
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 10,
-                    getType: (data) => RendererType.Unknown
+                    getType: (data) => 'unknown'
                 },
                 collapsedByDefault: false,
                 childrenProvider: {
@@ -279,7 +278,7 @@ suite('AsyncTree-test', () => {
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 10,
-                    getType: (data) => RendererType.Unknown
+                    getType: (data) => 'unknown'
                 },
                 collapsedByDefault: false,
                 childrenProvider: {
@@ -361,7 +360,7 @@ suite('AsyncTree-test', () => {
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 0,
-                    getType: (data) => 0
+                    getType: (data) => 'unknown',
                 },
                 collapsedByDefault: false,
                 childrenProvider: {
@@ -386,7 +385,7 @@ suite('AsyncTree-test', () => {
                     renderers: [],
                     itemProvider: {
                         getSize: (data) => 0,
-                        getType: (data) => 0
+                        getType: (data) => 'unknown',
                     },
                     collapsedByDefault: false,
                     childrenProvider: {
@@ -443,7 +442,7 @@ suite('AsyncTree-test', () => {
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 1,
-                    getType: (data) => 1
+                    getType: (data) => '1',
                 },
                 collapsedByDefault: true,
                 childrenProvider: {
@@ -499,7 +498,7 @@ suite('AsyncTree-test', () => {
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 1,
-                    getType: (data) => 1
+                    getType: (data) => '1',
                 },
                 collapsedByDefault: true,
                 childrenProvider: {
@@ -553,7 +552,7 @@ suite('AsyncTree-test', () => {
             new Child(0, TREE),
             {
                 renderers: [],
-                itemProvider: { getSize: (data) => 1, getType: (data) => 1 },
+                itemProvider: { getSize: (data) => 1, getType: (data) => '1', },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => data.getChildren(),

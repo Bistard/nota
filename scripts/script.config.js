@@ -127,39 +127,6 @@ const configuration = {
         command: "node benchmark/benchmark.js",
         description: 'Run the benchmark tests.'
     },
-
-    "_gen-icons": {
-        command: "node ./scripts/icon.js",
-        commandDescription: "_gen-icons [path]",
-        description: 'The script will try to remove all the prefix of every svg files that are located at <path>, and generate the icon font from svg files using `fantasticon`.\n' +
-                     'The svg files are downloaded at: https://www.flaticon.com/uicons/interface-icons',
-        options: [
-            {
-                flags: ['[path]'],
-                descriptions: [
-                    'The path points to the original svg files. Example: "./assets/src-svg"'
-                ]
-            },
-            {
-                flags: ['--removePrefix'],
-                descriptions: [
-                    'Given a path to the directory that stores the original svg files and remove the prefix names.',
-                ]
-            },
-            {
-                flags: ['--force', '-f'],
-                descriptions: [
-                    'Force the script to regenerate icon files even there is no changes or missing target files.',
-                ]
-            },
-            {
-                flags: ['--extra=NewIconName1|NewIconName2'],
-                descriptions: [
-                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names separated by \'|\'. Each name should be in Hungarian Notation except that the first character should also be capitalized.'
-                ]
-            }
-        ]
-    },
 }
 
 module.exports = configuration;

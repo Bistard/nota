@@ -27,7 +27,7 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererSideViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
@@ -39,8 +39,6 @@ import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
-import { ISideBarService, SideBar } from "src/workbench/parts/sideBar/sideBar";
-import { ISideViewService, SideViewService } from "src/workbench/parts/sideView/sideView";
 import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
@@ -57,6 +55,12 @@ import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/servic
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
+import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
+import { INavigationViewService, NavigationView } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
+import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
+import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar";
+import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -273,10 +277,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
     
         // User Interface
         registerService(ILayoutService            , new ServiceDescriptor(LayoutService            , []));
-        registerService(ISideBarService           , new ServiceDescriptor(SideBar                  , []));
+        registerService(INavigationBarService     , new ServiceDescriptor(NavigationBar            , []));
+        registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
+        registerService(IToolBarService           , new ServiceDescriptor(ToolBar                  , []));
+        registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
+        registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
+        registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
         registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceComponent       , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
-        registerService(ISideViewService          , new ServiceDescriptor(SideViewService          , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
@@ -315,7 +323,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 super.initRegistrations(provider);
                 [
                     rendererWorkbenchConfigurationRegister,
-                    rendererSideViewConfigurationRegister,
+                    rendererNavigationViewConfigurationRegister,
                 ]
                 .forEach(register => register(provider));
             }

@@ -1,9 +1,10 @@
+import { EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import "src/base/browser/basic/searchbar/searchbar.scss";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
-import { RGBA } from "src/base/common/color";
 import { Emitter, Register } from "src/base/common/event";
+import { assert } from "src/base/common/utilities/panic";
 import { IDimension } from "src/base/common/utilities/size";
 
 export interface ITypeEvent {
@@ -45,6 +46,16 @@ export interface ISearchBar extends IWidget {
     readonly onDidType: Register<ITypeEvent>;
 
     /**
+     * Fires when the search bar is being focused.
+     */
+    readonly onDidFocus: Register<FocusEvent>;
+
+    /**
+     * Fires when the search bar is being blurred.
+     */
+    readonly onDidBlur: Register<FocusEvent>;
+
+    /**
      * @description Set the given text that displaying in the middle of the bar.
      * @param text The given text.
      */
@@ -56,14 +67,19 @@ export class SearchBar extends Widget implements ISearchBar {
     // [field]
 
     private _placeHolder: string;
-    private _innerText?: HTMLElement;
-
     private _opts?: ISearchBarOpts;
+    private _innerText?: HTMLInputElement;
 
     // [event]
 
     private readonly _onDidType = this.__register(new Emitter<ITypeEvent>());
     public readonly onDidType = this._onDidType.registerListener;
+
+    private readonly _onDidFocus = this.__register(new Emitter<FocusEvent>());
+    public readonly onDidFocus = this._onDidFocus.registerListener;
+    
+    private readonly _onDidBlur = this.__register(new Emitter<FocusEvent>());
+    public readonly onDidBlur = this._onDidBlur.registerListener;
 
     // [constructor]
 
@@ -84,49 +100,67 @@ export class SearchBar extends Widget implements ISearchBar {
     }
 
     get text(): string {
-        return this._innerText?.innerText ?? '';
+        return this._innerText?.value ?? '';
+    }
+
+    get isEmpty(): boolean {
+        return this.text === '';
     }
 
     public setText(text: string): void {
-        if (!this._innerText) {
-            return;
+        if (this._innerText) {
+            this._innerText.value = text;
         }
-
-        this._innerText.innerText = text;
     }
 
     // [protected methods]
 
-    protected override __render(): void {
-        
-        // inner icon
+    protected override __render(element: HTMLElement): void {
         let searchIcon: HTMLElement | undefined;
         if (this._opts?.icon) {
             searchIcon = createIcon(this._opts?.icon);
         }
-
-        // inner text
-        const innerText = document.createElement('div');
+    
+        const innerText = document.createElement('input');
         innerText.className = 'inner-text';
-        innerText.innerText = this._placeHolder;
-        
-        // render
+        innerText.placeholder = this._placeHolder;
+        innerText.type = 'text';
+    
+        element.append(innerText);
         if (searchIcon) {
-            this.element.append(searchIcon);
+            element.append(searchIcon);
         }
-        this.element.append(innerText);
-        
+
+        this._innerText = innerText;
+    }    
+    
+    protected override __applyStyle(element: HTMLElement): void {
+        element.classList.add('search-bar');
+        element.classList.add(...(this._opts?.classes ?? []));
     }
 
-    protected override __applyStyle(): void {
+    protected override __registerListeners(element: HTMLElement): void {
+        const innerText = assert(this._innerText);
         
-        this.element.classList.add('search-bar');
-        this.element.classList.add(...(this._opts?.classes ?? []));
-    }
-
-    protected override __registerListeners(): void {
+        this.__register(addDisposableListener(innerText, EventType.input, () => {
+            this._onDidType.fire({ text: innerText.value });
+        }));
         
-    }
+        this.__register(addDisposableListener(innerText, EventType.focus, event => {
+            this._onDidFocus.fire(event);
+        }));
+        
+        this.__register(addDisposableListener(innerText, EventType.blur, event => {
+            this._onDidBlur.fire(event);
+        }));
 
+        this.__register(addDisposableListener(innerText, EventType.select, () => {
+            if (innerText.value) {
+                innerText.select();
+                document.execCommand('copy');
+            }
+        }));
+    }
+    
     // [private helper methods]
 }

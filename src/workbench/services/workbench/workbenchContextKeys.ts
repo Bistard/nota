@@ -17,11 +17,11 @@ export namespace WorkbenchContextKey {
     const inputFocusedKey = 'inputFocused';
     export const inputFocused = CreateContextKeyExpr.Equal(inputFocusedKey, true);
 
-    // [SideView]
+    // [NavigationView]
 
-    export const isVisibleSideView = CreateContextKeyExpr.Equal('visibleSideView', true);
-    export const isFocusedSideView = CreateContextKeyExpr.And(
-        CreateContextKeyExpr.Equal('focusedSideView', true), 
+    export const isVisibleNavigationView = CreateContextKeyExpr.Equal('visibleNavigationView', true);
+    export const isFocusedNavigationView = CreateContextKeyExpr.And(
+        CreateContextKeyExpr.Equal('focusedNavigationView', true), 
         CreateContextKeyExpr.Not(inputFocusedKey),
     );
 

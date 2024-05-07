@@ -15,7 +15,7 @@
     }
     
     &.hover {
-        background-color: gainsboro;
+        background-color: var(--nota-sash-hover);
     }
     
     &.disable {
@@ -23,7 +23,7 @@
     }
     
     &.visible {
-        background-color: black;
+        background-color: var(--nota-sash-visible-background);
         opacity: 0.05;
     }
 }

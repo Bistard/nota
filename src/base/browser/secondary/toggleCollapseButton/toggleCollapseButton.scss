@@ -1,0 +1,65 @@
+
+/**
+ * NOTE: Default CSS style for this button is facing left. The position and the 
+ * collapse state is configurable through JavaScript. See `toggleCollapseButton.ts`.
+ */
+.toggle-collapse-button {
+    position: absolute;
+    display: flex;
+    
+    width: auto;
+    height: 20px;
+    
+    & > .container {
+        position: relative; // Important for positioning children absolutely within the button
+        width: 100%;
+        height: 100%;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+
+        & > .button-part {
+            position: absolute;
+            width: 100%;
+            height: 53%; // 3% for overlap
+            transition: transform 0.3s ease, background-color 0.3s ease;
+
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    
+        & > .button-top {
+            top: 0;
+            width: 4px;
+            background-color: var(--nota-toggle-collapse-button);
+            border-top-left-radius: 2px;
+            border-top-right-radius: 2px;
+            border-bottom: none;
+        }
+    
+        & > .button-bottom {
+            bottom: 0;
+            width: 4px;
+            background-color: var(--nota-toggle-collapse-button);
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            border-top: none;
+        }
+    }
+
+    // [animation]
+
+    &:hover {
+        & .button-top, .button-bottom {
+            background-color: var(--nota-toggle-collapse-button-hover);
+        }
+
+        & .button-top {
+            transform: rotate(20deg);
+        }
+        
+        & .button-bottom {
+            transform: rotate(-20deg);
+        }
+    }
+}

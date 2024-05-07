@@ -1,6 +1,7 @@
 import { ErrorHandler } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { executeOnce } from "src/base/common/utilities/function";
+import { panic } from "src/base/common/utilities/panic";
 import { Constructor } from "src/base/common/utilities/type";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
@@ -202,7 +203,7 @@ export const REGISTRANTS = new class {
     public get<T>(id: IRegistrantIdentifier<T>): T {
         const registrant = _registarnts.get(id);
         if (!registrant) {
-            throw new Error(`Unknown registrant: ${id}`);
+            panic(`Unknown registrant: ${id}`);
         }
         return registrant;
     }

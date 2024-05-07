@@ -1,11 +1,17 @@
 import { Orientation } from "src/base/browser/basic/dom";
 import { Priority } from "src/base/common/event";
-import { panic } from "src/base/common/utilities/panic";
+import { check, panic } from "src/base/common/utilities/panic";
+import { isNullable } from "src/base/common/utilities/type";
 
 /**
  * An interface for {@link ISplitViewItem} construction.
  */
- export interface ISplitViewItemOpts {
+export type ISplitViewItemOpts = {
+
+    /**
+     * The unique identifier of the item.
+     */
+    readonly ID: string;
 
     /**
      * The HTMLElement of the view.
@@ -13,33 +19,79 @@ import { panic } from "src/base/common/utilities/panic";
     readonly element: HTMLElement;
 
     /**
-     * The minimum size of the view, when sets to 0, the view may reach invisible.
-     */
-    readonly minimumSize: number;
-
-    /**
-     * The maximum size of the view, when sets to {@link Number.POSITIVE_INFINITY}, 
-     * the size will have no restrictions.
-     */
-    readonly maximumSize: number;
-
-    /**
-     * The initial size of the view.
-     */
-    readonly initSize?: number;
-    
-    /**
      * When adding/removing view, the view with higher priority will be resized 
      * first.
-     * Default is {@link Priority.Low}.
+     * @default Priority.Low
      */
     priority?: Priority;
 
     /**
-     * The index of the view. Default inserts to the last.
+     * The display index of the view relative to the whole split view. Default 
+     * inserts to the last.
      */
     index?: number;
-}
+    
+} & (IResizableSplitViewItemOpts | IFixedSplitViewItemOpts);
+
+export type IResizableSplitViewItemOpts = {
+    
+    readonly fixed?: undefined;
+
+    /**
+     * The minimum size (in pixel) of the view.
+     *      - When orientation is 'horizontal', this means the minimum 'width'
+     *          of this view during resizing.
+     *      - When orientation is 'vertical', this means the minimum 'height'
+     *          of this view during resizing.
+     * 
+     * @note when sets to `0` or sets to `null`, the view may reach invisible 
+     *       during resizing.
+     * @panic `minimumSize` cannot exceeds `maximumSize`.
+     * @panic `minimumSize` cannot be negative number.
+     */
+    readonly minimumSize: number | null;
+
+    /**
+     * The maximum size (in pixel) of the view.
+     *      - When orientation is 'horizontal', this means the maximum 'width'
+     *          of this view during resizing.
+     *      - When orientation is 'vertical', this means the maximum 'height'
+     *          of this view during resizing.
+     * 
+     * @note when sets to `{@link Number.POSITIVE_INFINITY}` or `null`, the view
+     *       may reach unlimited size during resizing.
+     * @panic `maximumSize` cannot less than `minimumSize`.
+     * @panic `maximumSize` cannot be negative number.
+     */
+    readonly maximumSize: number | null;
+
+    /**
+     * The initial size (in pixels) of the view. 
+     *      - When orientation is 'horizontal', this means the initial 'width'
+     *          of this view when constructing.
+     *      - When orientation is 'vertical', this means the initial 'height'
+     *          of this view when constructing.
+     * 
+     * If not provided, this will set 
+     * to the `minimumSize` as default.
+     */
+    readonly initSize: number | null;
+};
+
+export type IFixedSplitViewItemOpts = {
+    
+    readonly fixed: true;
+
+    /**
+     * The fixed size (in pixel) of the view. It means the view will not able to
+     * be resized and always has the same size:
+     *      - When orientation is 'horizontal', this means the fixed 'width'
+     *          of this view when constructing.
+     *      - When orientation is 'vertical', this means the fixed 'height'
+     *          of this view when constructing.
+     */
+    readonly fixedSize: number;
+};
 
 
 /**
@@ -47,6 +99,23 @@ import { panic } from "src/base/common/utilities/panic";
  */
 export interface ISplitViewItem {
     
+    /**
+     * The unique identifier of the item.
+     */
+    readonly ID: string;
+
+    /**
+     * @description Returns the raw HTMLElement.
+     */
+    getElement(): HTMLElement;
+
+    /**
+     * @description Returns the container named `split-view-item` that contains
+     * the raw HTMLElement.
+     * @note Only use this API if you want to do some hack.
+     */
+    getContainer(): HTMLElement;
+
     /**
      * @description Updates the size of view and update the left / top of the 
      * view relatives to the whole window if the offset is given.
@@ -121,8 +190,6 @@ export interface ISplitViewItem {
      */
     setResizePriority(priority: Priority): void;
 
-    getElement(): HTMLElement;
-
     /**
      * @description Disposes the {@link HTMLElement} and all other internal data.
      */
@@ -137,48 +204,61 @@ export class SplitViewItem implements ISplitViewItem {
 
     // [field]
 
+    private readonly _id: string;
+    private _container: HTMLElement;
+    private _element: HTMLElement;
+
     private _maximumSize: number;
     private _minimumSize: number;
+    private _size: number;
+    private _resizePriority: Priority;
     
     private _disposed: boolean;
-    private _container: HTMLElement;
-    private _resizePriority: Priority;
-
-    private _element: HTMLElement;
-    private _size: number;
 
     // [constructor]
 
     constructor(container: HTMLElement, opt: ISplitViewItemOpts) {
+        this._id = opt.ID;
+
         this._disposed = false;
-        
         container.appendChild(opt.element);
         
+        const resolvedMinimum = opt.fixed ? opt.fixedSize : opt.minimumSize;
+        const resolvedMaximum = opt.fixed ? opt.fixedSize : opt.maximumSize;
+        const resolvedInitial = opt.fixed ? opt.fixedSize : opt.initSize;
+
         this._container = container;
         this._element = opt.element;
-        this._maximumSize = opt.maximumSize;
-        this._minimumSize = opt.minimumSize;
-        if (opt.maximumSize < opt.minimumSize) {
-            panic('Provided maxSize is smaller than provided minSize');
+        this._minimumSize = resolvedMinimum ?? 0;
+        this._maximumSize = resolvedMaximum ?? Number.POSITIVE_INFINITY;
+        if (this._maximumSize < this._minimumSize) {
+            panic('[SplitViewItem] Provided maxSize is smaller than provided minSize');
         }
+
+        check(this._maximumSize >= 0, `[SplitViewItem] maximumSize cannot be < 0: ${this._maximumSize}px`);
+        check(this._minimumSize >= 0, `[SplitViewItem] minimumSize cannot be < 0: ${this._minimumSize}px`);
         
-        this._resizePriority = opt.priority!;
-        if (opt.initSize) {
-            if (opt.initSize < this._minimumSize && opt.initSize > this._maximumSize) {
-                panic(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
-            }
-            this._size = opt.initSize;
-        } else {
+        this._resizePriority = opt.priority ?? Priority.Low;
+        
+        if (isNullable(resolvedInitial)) {
             this._size = this._minimumSize;
+        } 
+        else {
+            if (resolvedInitial < this._minimumSize || resolvedInitial > this._maximumSize) {
+                panic(`[SplitViewItem] init size ${resolvedInitial}px exceeds the min or max restriction: [${this._minimumSize}px, ${this._maximumSize}px]`);
+            }
+            this._size = resolvedInitial;
         }
     }
 
     // [public methods]
 
+    get ID(): string {
+        return this._id;
+    }
+
     public render(orientation: Orientation, offset?: number): void {
-        if (this._disposed) {
-            return;
-        }
+        check(this._disposed === false, '[SplitViewItem] Cannot render after disposed.');
 
         // The splitView has a horizontal layout
         if (orientation === Orientation.Horizontal) {
@@ -194,7 +274,6 @@ export class SplitViewItem implements ISplitViewItem {
                 this._container.style.top = `${offset}px`;
             }
         }
-        
     }
 
     public isFlexible(): boolean {
@@ -206,7 +285,8 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public updateSize(offset: number): void {
-        this._size += offset;
+        const updated = this._size + offset;
+        this._size = updated;
     }
 
     public getSize(): number {
@@ -218,6 +298,7 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public setMaxSize(newVal: number): void {
+        check(newVal >= this._size);
         this._maximumSize = newVal;
     }
 
@@ -226,6 +307,7 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public setMinSize(newVal: number): void {
+        check(newVal <= this._size);
         this._minimumSize = newVal;
     }
 
@@ -253,6 +335,10 @@ export class SplitViewItem implements ISplitViewItem {
 
     public getElement(): HTMLElement {
         return this._element;
+    }
+
+    public getContainer(): HTMLElement {
+        return this._container;
     }
 
     public dispose(): void {

@@ -1,22 +1,25 @@
-import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
+import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/workbench/services/component/componentService";
-import { SideBar, ISideBarService, SideButtonType } from "src/workbench/parts/sideBar/sideBar";
-import { ISideViewService, SideView } from "src/workbench/parts/sideView/sideView";
-import { Component } from "src/workbench/services/component/component";
+import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
-import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
-import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
-import { CheckMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
-import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ILogService } from "src/base/common/logger";
+import { INavigationBarService } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
+import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { INavigationPanelService, NavigationPanel} from "src/workbench/parts/navigationPanel/navigationPanel";
+import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
+import { IDimension } from "src/base/common/utilities/size";
+import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 import { assert } from "src/base/common/utilities/panic";
+import { Disposable } from "src/base/common/dispose";
+import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
+import { Priority } from "src/base/common/event";
+import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -26,270 +29,230 @@ export abstract class WorkbenchLayout extends Component {
 
     // [fields]
 
-    private _splitView: ISplitView | undefined;
+    private readonly _collapseController: CollapseAnimationController;
+
+    // [event]
+
+    get onDidCollapseStateChange() { return this._collapseController.onDidCollapseStateChange; }
 
     // [constructor]
 
     constructor(
         protected readonly instantiationService: IInstantiationService,
-        @ILogService protected readonly logService: ILogService,
+        @ILogService logService: ILogService,
         @ILayoutService protected readonly layoutService: ILayoutService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ISideBarService protected readonly sideBarService: ISideBarService,
-        @ISideViewService protected readonly sideViewService: ISideViewService,
+        @INavigationBarService protected readonly navigationBarService: INavigationBarService,
+        @IToolBarService protected readonly toolBarService: IToolBarService,
+        @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
+        @INavigationViewService protected readonly navigationViewService: INavigationViewService,
+        @INavigationPanelService protected readonly navigationPanelService: INavigationPanelService,
         @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
         @IConfigurationService protected readonly configurationService: IConfigurationService,
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
-        super('workbench', layoutService.parentContainer, themeService, componentService);
-        this.__registerSideViews();
+        super('workbench', layoutService.parentContainer, themeService, componentService, logService);
+        this._collapseController = new CollapseAnimationController(
+            CollapseState.Expand, 
+            () => assert(this._splitView),
+            () => assert(this.dimension),
+        );
     }
 
-    // [protected methods]
+    // [public methods]
 
-    public override layout(): void {
-        if (this.isDisposed() || !this.parent) {
-            return;
-        }
+    get collapseState(): CollapseState {
+        return this._collapseController.state;
+    }
+
+    get isCollapseAnimating(): boolean {
+        return this._collapseController.isAnimating;
+    }
+
+    public override layout(): IDimension {
+        /**
+         * This line of code make sure the workbench will fit the whole window 
+         * during window resizing.
+         */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
-        super.layout(undefined, undefined);
+
+        // skip re-layout if needed
+        const hackDimension = this._collapseController.layout();
+        const dimension = super.layout(undefined, undefined, hackDimension !== null);
+        
+        return hackDimension ?? dimension;
     }
 
     // [protected helper methods]
 
     protected __createLayout(): void {
+        this.__registerNavigationViews();
 
-        // register side buttons
-        const sideBarBuilder = new SideBarBuilder(this.sideBarService, this.contextMenuService);
-        sideBarBuilder.registerButtons();
-
-        // assembly the workbench layout
-        this.__assemblyWorkbenchParts();
+        const workbenchConfigurations: IAssembleComponentOpts[] = [
+            { 
+                component: this.navigationPanelService,
+                minimumSize: NavigationPanel.WIDTH - 100,
+                initSize: NavigationPanel.WIDTH,
+                maximumSize: NavigationPanel.WIDTH * 2,
+            },
+            { 
+                component: this.workspaceService,
+                minimumSize: 0,
+                initSize: NavigationPanel.WIDTH,
+                maximumSize: null,
+                priority: Priority.Normal,
+            },
+        ];
+        this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
+        
+        this._collapseController.render(this.workspaceService.element.element);
     }
 
     protected __registerLayoutListeners(): void {
 
-        // window resizing
+        // re-layout the entire workbench when the entire window is resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
-            const dimension = assert(this.dimension);
-            this._splitView?.layout(dimension.width, dimension.height);
         }));
 
         /**
-         * Listens to each SideBar button click events and notifies the 
-         * sideView to switch the view.
+         * Listens to each NavigationBar button click events and notifies the 
+         * navigationView to switch the view.
          */
-        this.__register(this.sideBarService.onDidClick(e => {
-            if (e.isPrimary) {
-                this.sideViewService.switchView(e.ID);
-            }
+        this.__register(this.navigationBarService.onDidClick(e => {
+            this.navigationViewService.switchView(e.ID);
         }));
+
+        // enable collapse/expand animation
+        this._collapseController.registerListeners();
     }
 
     // [private helper functions]
 
-    private __registerSideViews(): void {
-        this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
-        // TODO: other side-views are also registered here.
-    }
-
-    private __assemblyWorkbenchParts(): void {
-
-        const splitViewOpt: Required<ISplitViewOpts> = {
-            orientation: Orientation.Horizontal,
-            viewOpts: [],
-        };
-
-        const PartsConfiguration = [
-            [this.sideBarService  , SideBar.WIDTH, SideBar.WIDTH           , SideBar.WIDTH , Priority.Low   ],
-            [this.sideViewService , 100          , SideView.WIDTH * 2      , SideView.WIDTH, Priority.Normal],
-            [this.workspaceService, 0            , Number.POSITIVE_INFINITY, 0             , Priority.High  ],
-        ] as const;
-
-        for (const [component, minSize, maxSize, initSize, priority] of PartsConfiguration) {
-            component.create(this);
-            component.registerListeners();
-            
-            splitViewOpt.viewOpts.push({
-                element: component.element.element,
-                minimumSize: minSize,
-                maximumSize: maxSize,
-                initSize: initSize,
-                priority: priority,
-            });
-        }
-
-        // construct the split-view
-        this._splitView = new SplitView(this.element.element, splitViewOpt);
-
-        // set the sash next to sideBar is visible and disabled.
-        const sash = assert(this._splitView.getSashAt(0));
-        sash.enable = false;
-        sash.visible = true;
-        sash.size = 1;
+    private __registerNavigationViews(): void {
+        this.navigationViewService.registerView('explorer', ExplorerView);
+        // TODO: other navigation-views are also registered here.
     }
 }
 
-class SideBarBuilder {
+/**
+ * Decide how the layout should be collapsed and expanded with animation.
+ */
+class CollapseAnimationController extends Disposable {
+
+    // [fields]
+
+    private readonly _getLayoutSplitView: () => ISplitView;
+    private readonly _getCurrentDimension: () => IDimension;
+    private readonly _button: ToggleCollapseButton;
+    
+    private _animating: boolean;
+
+    // [event]
+
+    get onDidCollapseStateChange() { return this._button.onDidCollapseStateChange; }
+
+    // [constructor]
 
     constructor(
-        private readonly sideBarService: ISideBarService,
-        private readonly contextMenuService: IContextMenuService,
+        initState: CollapseState,
+        retrieveSplitView: () => ISplitView,
+        getCurrentDimension: () => IDimension,
     ) {
+        super();
+        this._getLayoutSplitView = retrieveSplitView;
+        this._getCurrentDimension = getCurrentDimension;
+        this._animating = false;
+
+        this._button = new ToggleCollapseButton({
+            initState: initState,
+            position: DirectionX.Left,
+            positionOffset: 12,
+            direction: DirectionX.Left,
+        });
     }
 
-    public registerButtons(): void {
+    // [getter]
 
-        /**
-         * primary button configurations
-         */
-        [
-            {
-                id: SideButtonType.EXPLORER,
-                icon: Icons.Folder,
-            },
-            {
-                id: SideButtonType.OUTLINE,
-                icon: Icons.Outline,
-            },
-            // { id: SideButtonType.SEARCH, icon: Icons.Search },
-            // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
-        ]
-            .forEach(({ id, icon }) => {
-                this.sideBarService.registerPrimaryButton({
-                    id: id,
-                    icon: icon,
-                    isPrimary: true,
-                });
-            });
-
-
-        /**
-         * secondary button configurations
-         */
-        [
-            {
-                id: SideButtonType.HELPER,
-                icon: Icons.Help,
-            },
-            {
-                id: SideButtonType.SETTINGS,
-                icon: Icons.Setting,
-                onDidClick: () => {
-                    this.contextMenuService.showContextMenu({
-                        getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),
-                        // TODO: this is only for test purpose
-                        getActions: () => {
-                            return [
-                                new SimpleMenuAction({
-                                    callback: () => { },
-                                    enabled: true,
-                                    id: 'simple action 1',
-                                    tip: 'simple action 1 tip',
-                                    extraClassName: 'action1',
-                                    shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
-                                }),
-                                MenuSeparatorAction.instance,
-                                new CheckMenuAction({
-                                    onChecked: (checked) => {
-                                        console.log('checked:', checked);
-                                    },
-                                    checked: true,
-                                    enabled: true,
-                                    id: 'simple action 2',
-                                    tip: 'simple action 2 tip',
-                                    extraClassName: 'action2',
-                                    shortcut: new Shortcut(true, false, false, true, KeyCode.KeyD),
-                                }),
-                                new SimpleMenuAction({
-                                    callback: () => console.log('action 3 executed'),
-                                    enabled: false,
-                                    id: 'simple action 3',
-                                    tip: 'simple action 3 tip',
-                                    extraClassName: 'action3',
-                                }),
-                                MenuSeparatorAction.instance,
-                                new SimpleMenuAction({
-                                    callback: () => console.log('action 4 executed'),
-                                    enabled: true,
-                                    id: 'simple action 4',
-                                    tip: 'simple action 4 tip',
-                                    extraClassName: 'action4',
-                                    shortcut: new Shortcut(false, false, false, false, KeyCode.F12),
-                                }),
-                                new SubmenuAction(
-                                    [
-                                        new SimpleMenuAction({
-                                            callback: () => console.log('action 6 executed'),
-                                            enabled: true,
-                                            id: 'simple action 6',
-                                            tip: 'simple action 6 tip',
-                                            extraClassName: 'action6',
-                                        }),
-                                        MenuSeparatorAction.instance,
-                                        new SimpleMenuAction({
-                                            callback: () => console.log('action 7 executed'),
-                                            enabled: true,
-                                            id: 'simple action 7',
-                                            tip: 'simple action 7 tip',
-                                            extraClassName: 'action7',
-                                        }),
-                                        new SimpleMenuAction({
-                                            callback: () => console.log('action 8 executed'),
-                                            enabled: true,
-                                            id: 'simple action 8',
-                                            tip: 'simple action 8 tip',
-                                            extraClassName: 'action8',
-                                        }),
-                                        MenuSeparatorAction.instance,
-                                        new SimpleMenuAction({
-                                            callback: () => console.log('action 9 executed'),
-                                            enabled: true,
-                                            id: 'simple action 9',
-                                            tip: 'simple action 9 tip',
-                                            extraClassName: 'action9',
-                                        }),
-                                    ], {
-                                    enabled: true,
-                                    id: 'submenu 5',
-                                    tip: 'submenu 5 tip',
-                                    extraClassName: 'action5',
-                                }),
-                            ];
-                        },
-                        getContext: () => {
-                            return undefined;
-                        },
-                        horizontalPosition: undefined,
-                        primaryAlignment: undefined,
-                        verticalPosition: undefined,
-                    });
-                },
-            },
-        ]
-            .forEach(({ id, icon, onDidClick }) => {
-                this.sideBarService.registerSecondaryButton({
-                    id: id,
-                    icon: icon,
-                    isPrimary: true,
-                    onDidClick: onDidClick,
-                });
-            });
+    get state(): CollapseState {
+        return this._button.state;
     }
 
-    private __getButtonElement(buttonType: SideButtonType): () => HTMLElement {
-        let element: HTMLElement | undefined;
-        return () => {
-            if (!element) {
-                const button = this.sideBarService.getButton(buttonType);
-                if (!button) {
-                    throw new Error(`Cannot find side bar button with id: ${buttonType}`);
-                }
-                element = button.element;
+    get isAnimating(): boolean {
+        return this._animating;
+    }
+
+    // [public methods]
+
+    public render(container: HTMLElement): void {
+        this._button.render(container);
+    }
+
+    public registerListeners(): void {
+
+        // manage collapse/expand animation
+        this.__register(this.onDidCollapseStateChange(state => {
+            const splitView = this._getLayoutSplitView();
+            const left  = assert(splitView.getViewBy('navigation-panel')).getContainer();
+            const right = assert(splitView.getViewBy('workspace')).getContainer();
+            const transitionTime = '0.5s';
+
+            if (state === CollapseState.Collapse) {
+                // opacity changes
+                left.style.transition = `opacity ${transitionTime} ease`;
+                left.style.opacity = `0`;
+
+                // position changes
+                right.style.transition = `left ${transitionTime} ease, width ${transitionTime} ease`;
+                right.style.left = '0px';
+                right.style.width = `100%`;
+            } else {
+                left.style.opacity = `1`;
+                right.style.left = `${left.offsetWidth}px`;
+                right.style.width = `calc(100% - ${left.offsetWidth}px)`;
             }
-            return element;
-        };
+            
+            // maintain the animation period
+            this._animating = true;
+            const listen = addDisposableListener(right, EventType.transitionend, e => {
+                if (e.target === right && e.propertyName === 'width') {
+                    
+                    // remove the animation after it finishes
+                    if (state === CollapseState.Expand) {
+                        left.style.transition = '';
+                        right.style.transition = '';
+                    }
+
+                    listen.dispose();
+                    this._animating = false;
+                }
+            });
+        }));
+
+        /**
+         * When the window has been resized during the `left` is collapsed, the 
+         * {@link SplitView}'s internal dimension will be out-of-date, we need
+         * to update it when the `left` is expanded again.
+         */
+        this.__register(this.onDidCollapseStateChange(state => {
+            if (state === CollapseState.Expand) {
+                const splitView = this._getLayoutSplitView();
+                const dimension = this._getCurrentDimension();
+                splitView.layout(dimension.width, dimension.height);
+            }
+        }));
+    }
+
+    /**
+     * hack: When the `left` is collapsed, we return -1 value to prevent the 
+     * {@link SplitView} to re-layout. Otherwise the width of the `right` will 
+     * be re corrected to the original width.
+     */
+    public layout(): IDimension | null {
+        if (this.state === CollapseState.Collapse) {
+            return { width: -1, height: -1 };
+        }
+        return null;
     }
 }

@@ -7,15 +7,70 @@
 	white-space: nowrap;
 	outline: 0;
 
+	display: flex;
+	flex-direction: row;
+
 	.list-view-container {
 		position: relative;
 		width: 100%;
 		height: 100%;
 
 		& > .list-view-row {
+
+			/**
+			 * must be absolute so that the `top` can be dynamically calculated 
+			 * in the ListView.
+			 */
 			position: absolute;
 			overflow: hidden;
-			width: 100%;
+
+			/* 
+			The reason using a `outline` instead of `border` is because border is 
+			counted as part of the element's dimension and that affects the drag and 
+			drop detection.
+			*/
+			outline: 1px solid transparent;
+			outline-offset: -1px; /* make the outline placed inside the row. */
+			
+			// leave some spaces at two sides
+			width: calc(100% - 20px);
+			height: 100%;
+			// centralize the row
+			left: 50%;
+			transform: translate(-50%);
+			
+			background-color: transparent;
+			transition: background-color 0.3s;
+
+			// selection
+			&.selected {
+				color: var(--nota-explorer-item-selected-foreground);
+				background-color: var(--nota-explorer-item-selected-background);
+			}
+		
+			// hovered (make sure does not affect 'selected')
+			&.hovered:not(.selected) {
+				border-radius: 3px;
+				background-color: var(--nota-explorer-item-hovered-background);
+			}
+			
+			// focused (make sure does not affect 'selected')
+			&.focused:not(.selected) {
+				border-radius: 3px;
+				outline: 2px solid var(--nota-explorer-item-focused-background);
+			}
+
+			// select the first selection
+			&.selected:not(.selected + .selected) {
+				border-top-left-radius: 4px;
+				border-top-right-radius: 4px;
+			}
+			
+			// select the last selection
+			&.selected:not(:has(+ .selected)) {
+				border-bottom-left-radius: 4px;
+				border-bottom-right-radius: 4px;
+			}
 		}
 	}
 
@@ -32,7 +87,7 @@
 .list-drag-image {
 	position: absolute;
 	display: inline-block;
-	background-color: rgb(235, 235, 235);
+	background-color: var(--nota-explorer-item-grag-image-background);
 	font-size: 12px;
 	padding: 1px 7px;
 	border-radius: 10px;

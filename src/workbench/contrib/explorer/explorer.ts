@@ -7,25 +7,21 @@ import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { ILogService } from 'src/base/common/logger';
-import { IWorkbenchService } from 'src/workbench/services/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
-import { DisposableManager } from 'src/base/common/dispose';
-import { createIcon } from 'src/base/browser/icon/iconRegistry';
+import { Disposable, DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
-import { SideViewTitlePart } from 'src/workbench/parts/sideView/sideViewTitle';
-import { SideView } from 'src/workbench/parts/sideView/sideView';
-import { VisibilityController } from 'src/base/browser/basic/visibilityController';
-import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Button } from 'src/base/browser/basic/button/button';
-import { RGBA } from 'src/base/common/color';
+import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
+import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
+import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
+import { FixedArray } from 'src/base/common/utilities/type';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -35,10 +31,10 @@ import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
  * displaying the current directory's contents, and integrating with other 
  * services like the editor and theme services to enhance the user experience.
  * 
- * This class extends `SideView`, allowing it to be used as a side panel
+ * This class extends `NavView`, allowing it to be used as a side panel
  * within the application's layout.
  */
-export class ExplorerView extends SideView implements IExplorerViewService {
+export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [field]
 
@@ -53,7 +49,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-    private readonly _toolbar = new Toolbar();
+    private readonly _actionBar: FileActionBar;
 
     // [event]
 
@@ -69,16 +65,19 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IDialogService private readonly dialogService: IBrowserDialogService,
         @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
-        @ILogService private readonly logService: ILogService,
-        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @ILogService logService: ILogService,
+        @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
-        super(ExplorerViewID, parentElement, themeService, componentService);
+        super(ExplorerViewID, parentElement, themeService, componentService, logService);
 
-        lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
+        this._actionBar = new FileActionBar();
+        this.__register(this._actionBar);
+
+        this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
     }
 
     // [getter]
@@ -110,7 +109,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         this.__loadCurrentView(view, !success);
 
         /**
-         * Once the element is put into the DOM tree, we now can relayout to 
+         * Once the element is put into the DOM tree, we now can re-layout to 
          * calculate the correct size of the view.
          */
         this.fileTreeService.layout();
@@ -130,17 +129,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
     // [protected override method]
 
-    protected override __createTitlePart(): ExplorerTitlePart {
-        return new ExplorerTitlePart(this.i18nService);
-    }
-
     protected override _createContent(): void {
-        super._createContent();
-
-        // render title part
-        this._titlePart.render(document.createElement('div'));
-        this.element.appendChild(this._titlePart.element);
-
         /**
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
@@ -209,26 +198,30 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         let container = this.__createOpenedView();
 
         /**
-         * Open the root in the explorer tree service who will handle the 
-         * complicated stuff for us.
+         * Open the root in the explorer tree service.
+         * 
+         * @note The file tree must be appended as the single child of the 
+         * container due to the fact that the file tree will be filled out 
+         * entirely by its parent.
          */
-        const init = await this.fileTreeService.init(container, path);
-        if (init.isOk()) {
-            this._onDidOpen.fire({ path: path });
-        } 
-        
-        /**
-         * If the initialization fails, we capture it and replace it with an
-         * empty view.
-         */
-        else {
-            const error = init.error;
-            success = false;
-            container = this.__createEmptyView();
-            this.logService.error('ExplorerView', `Cannot open the view`, error, { at: URI.toString(path, true) });
-        }
+        const treeContainer = document.createElement('div');
+        treeContainer.className = 'file-tree-container';
+        container.appendChild(treeContainer);
 
-        return [container, success];
+        return this.fileTreeService.init(treeContainer, path)
+            .match(
+                () => this._onDidOpen.fire({ path: path }),
+                (error) => {
+                    /**
+                     * If the initialization fails, we capture it and replace it with an
+                     * empty view.
+                     */
+                    success = false;
+                    container = this.__createEmptyView();
+                    this.logService.error('ExplorerView', `Cannot open the view`, error, { at: URI.toString(path, true) });
+                }
+            )
+            .then(() => [container, success]);
     }
 
     // [private UI helper methods]
@@ -253,8 +246,8 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
 
-        // renders toolbar
-        this._toolbar.render(view);
+        // renders file-button-bar
+        this._actionBar.render(view);
 
         return view;
     }
@@ -272,13 +265,11 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(addDisposableListener(tag, EventType.click, () => {
-            this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-            .then(path => {
-                if (path.length > 0) {
-                    this.open(URI.fromFile(path.at(-1)!));
-                }
-            });
+        disposables.register(addDisposableListener(tag, EventType.click, async () => {
+            const path = await this.dialogService.openDirectoryDialog({ title: 'open a directory' });
+            if (path.length > 0) {
+                this.open(URI.fromFile(path.at(-1)!));
+            }
         }));
     }
 
@@ -286,125 +277,129 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         if (!this.isOpened || !this._currentView) {
             return;
         }
-
         const disposables = this._currentListeners;
 
         /**
          * The tree model of the tree-service requires the correct height thus 
          * we need to update it every time we are resizing.
          */
-        disposables.register(this.workbenchService.onDidLayout(() => this.fileTreeService.layout()));
+        disposables.register(this.navigationViewService.onDidLayout((e) => {
+            this.fileTreeService.layout();
+        }));
 
         // on opening file.
         disposables.register(this.fileTreeService.onSelect(e => {
             this.editorService.openSource(e.item.uri);
         }));
-
-        // Displays the utility buttons only when hovering the view.
-        disposables.register(addDisposableListener(view, EventType.mouseover, () => this._toolbar.show()));
-        disposables.register(addDisposableListener(view, EventType.mouseout, () => this._toolbar.hide()));
     }
 }
 
-export class Toolbar {
+class FileActionBar extends Disposable {
 
-    // [field]
+    // [fields]
 
     private readonly _element: HTMLElement;
-    private readonly _visibilityController = new VisibilityController();
-    private readonly _buttons: WidgetBar<Button>;
+    private readonly _leftButtons: WidgetBar<IButton>;
+    private readonly _rightButtons: WidgetBar<IButton>;
+    private readonly _filterByTagButtons: WidgetBar<IButton>;
 
     // [constructor]
 
     constructor() {
+        super();
 
         this._element = document.createElement('div');
-        this._element.className = 'toolbar';
+        this._element.className = 'file-button-bar';
 
-        this._visibilityController.setDomNode(this._element);
-
-        this._buttons = new WidgetBar(undefined, {
+        const [left, right, filters] = this.__constructButtons({
             orientation: Orientation.Horizontal,
             render: false,
         });
-        [
-            { id: 'new-file', icon: Icons.CreateNewFile, classes: [], fn: () => { } },
-            { id: 'new-directory', icon: Icons.CreateNewFolder, classes: [], fn: () => { } },
-            { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: () => { } },
-        ]
-            .forEach(({ id, icon, classes, fn }) => {
-                const button = new Button({
-                    icon: icon,
-                    classes: classes,
-                });
 
-                button.onDidClick(fn);
-                this._buttons.addItem({
-                    id: id,
-                    item: button,
-                    dispose: button.dispose,
-                });
-            });
+        this._leftButtons = this.__register(left);
+        this._rightButtons = this.__register(right);
+        this._filterByTagButtons = this.__register(filters);
     }
 
     // [public methods]
 
+    public override dispose(): void {
+        super.dispose();
+        this._element.remove();
+    }
+
     public render(parent: HTMLElement): void {
+        
+        // file-button-bar
+        {
+            const fileButtonBarContainer = document.createElement('div');
+            fileButtonBarContainer.className = 'file-button-bar-container';
 
-        this._visibilityController.setVisibility(false);
+            this._leftButtons.render(fileButtonBarContainer);
+            this._rightButtons.render(fileButtonBarContainer);
+            this._element.appendChild(fileButtonBarContainer);
+        }
 
-        // toolbar container
-        const toolBarContainer = document.createElement('div');
-        toolBarContainer.className = 'toolbar-container';
-        this._buttons.render(toolBarContainer);
+        // filter-by-tag
+        {
+            const filterByTagContainer = document.createElement('div');
+            filterByTagContainer.className = 'filter-by-tag-container';
 
-        this._element.appendChild(toolBarContainer);
+            const filterByTagText = document.createElement('div');
+            filterByTagText.textContent = 'Filter by Tag';
+            filterByTagText.className = 'filter-by-tag-text';
+            
+            this._filterByTagButtons.render(filterByTagContainer);
+            filterByTagContainer.appendChild(filterByTagText);
+            this._element.appendChild(filterByTagContainer);
+        }
+        
         parent.appendChild(this._element);
     }
 
-    public show(): void {
-        this._visibilityController.setVisibility(true);
+    // [private method]
+
+    private __buttonOnClick(button: IButton): void {
+        button.element.classList.toggle('clicked');
     }
 
-    public hide(): void {
-        this._visibilityController.setVisibility(false);
-    }
-}
+    private __constructButtons(buttonOpts: IWidgetBarOptions): FixedArray<WidgetBar<IButton>, 3> {
+        const leftButtons        = new WidgetBar<IButton>('left-buttons', buttonOpts);
+        const rightButtons       = new WidgetBar<IButton>('right-buttons', buttonOpts);
+        const filterByTagButtons = new WidgetBar<IButton>('filter-by-tag', buttonOpts);
+        
+        const buttonOnClick = (button: IButton) => this.__buttonOnClick(button);
 
-export class ExplorerTitlePart extends SideViewTitlePart {
+        [
+            {
+                group: leftButtons,
+                buttons: [
+                    { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: buttonOnClick },
+                    { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: buttonOnClick },
+                ],
+            },
+            {
+                group: rightButtons,
+                buttons: [
+                    { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: buttonOnClick },
+                    { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: buttonOnClick },
+                ],
+            },
+            {
+                group: filterByTagButtons,
+                buttons: [
+                    { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: undefined },
+                ],
+            },
+        ]
+        .forEach(({ group, buttons }) => {
+            for (const { id, icon, classes, fn } of buttons) {
+                const button = new Button({ id, icon, classes });
+                button.onDidClick(() => fn?.(button));
+                group.addItem({ id, item: button, dispose: () => button.dispose()});
+            }
+        });
 
-    constructor(
-        private readonly i18nService: II18nService,
-    ) {
-        super();
-    }
-
-    public override render(element: HTMLElement): void {
-        super.render(element);
-
-        // // left part
-        // const leftContainer = document.createElement('div');
-        // leftContainer.className = 'left-part';
-
-        // // title text
-        // const topText = document.createElement('div');
-        // topText.className = 'title-text';
-        // topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
-        // // dropdown icon
-        // const dropdownIcon = createIcon(Icons.AngleDown);
-
-        // // right part
-        // const rightContainer = document.createElement('div');
-        // rightContainer.className = 'right-part';
-        // // menu dots
-        // const menuDots = createIcon(Icons.MenuDots);
-
-        // leftContainer.append(topText);
-        // leftContainer.append(dropdownIcon);
-
-        // rightContainer.append(menuDots);
-
-        // this.element.appendChild(leftContainer);
-        // this.element.appendChild(rightContainer);
+        return [leftButtons, rightButtons, filterByTagButtons];
     }
 }

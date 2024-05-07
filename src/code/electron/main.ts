@@ -1,6 +1,6 @@
 import * as electron from 'electron';
 import * as net from 'net';
-import { mkdir } from 'fs/promises';
+import { mkdir, unlink } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/files/uri';
@@ -21,7 +21,7 @@ import { IMainStatusService, MainStatusService } from 'src/platform/status/elect
 import { ICLIArguments } from 'src/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
-import { EventBlocker } from 'src/base/common/utilities/async';
+import { Blocker, EventBlocker } from 'src/base/common/utilities/async';
 import { APP_CONFIG_NAME, IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/platform/product/common/productService';
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
@@ -29,6 +29,7 @@ import { IRegistrantService, RegistrantService } from 'src/platform/registrant/c
 import { ConfigurationRegistrant } from 'src/platform/configuration/common/configurationRegistrant';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 import { panic } from "src/base/common/utilities/panic";
+import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 
@@ -38,7 +39,7 @@ interface IMainProcess {
 
 /**
  * @class The first entry of the application (except `main.js`). Responsible for 
- * two things:
+ * three things:
  *      1. Initializations on core microservices of the application.
  *      2. Important disk directory preparation.
  *      3. Ensuring that this process is the only one running. If not, it 
@@ -66,7 +67,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     // [public methods]
 
     public async start(argv: ICLIArguments): Promise<void> {
-        (<any>this.CLIArgv) = argv;
+        (<any>this.CLIArgv) = this.__parseCLIArgv(argv);
         try {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             await this.run();
@@ -110,7 +111,7 @@ const main = new class extends class MainProcess implements IMainProcess {
                     e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
 
-                await this.resolveSingleApplication();
+                await this.resolveSingleApplication(true);
 
                 const instance = this.instantiationService.createInstance(ApplicationInstance);
                 await instance.run();
@@ -136,6 +137,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(ILogService, logService);
 
         logService.debug('MainProcess', 'Start constructing core services...');
+        logService.info('MainProcess', 'Command line arguments:', { CLI: this.CLIArgv });
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -233,6 +235,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         this.logService.debug('MainProcess', 'All core services are initialized successfully.');
         this.logService.debug('MainProcess', `System Information:`, this.diagnosticsService.getDiagnostics());
+        this.logService.debug('DiskEnvironmentService', `Disk Environment loaded.`, this.environmentService.inspect());
     }
 
     private initRegistrant(service: IInstantiationService, registrant: IRegistrantService): void {
@@ -246,7 +249,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         registrant.init(service);
     }
 
-    private async resolveSingleApplication(): Promise<void> {
+    private async resolveSingleApplication(retry: boolean): Promise<void> {
         this.logService.debug('MainProcess', `Resolving application by listening to pipe (${this.environmentService.mainIpcHandle})...`);
 
         try {
@@ -264,7 +267,11 @@ const main = new class extends class MainProcess implements IMainProcess {
                     resolve(tcpServer);
                 });
             });
-            Event.once(this.lifecycleService.onWillQuit)(() => server.close());
+            Event.once(this.lifecycleService.onWillQuit)(async p => {
+                const blocker = new Blocker<void>();
+                server.close(() => blocker.resolve());
+                p.join(blocker.waiting());
+            });
         }
         catch (error: any) {
             // unexpected errors
@@ -272,6 +279,47 @@ const main = new class extends class MainProcess implements IMainProcess {
                 this.logService.error('MainProcess', 'unexpected error (expect EADDRINUSE)', error);
                 panic(error);
             }
+
+            let socket: net.Socket;
+            try {
+                socket = await new Promise<net.Socket>((resolve, reject) => {
+                    const socket = net.createConnection(this.environmentService.mainIpcHandle, () => {
+                        socket.removeListener('error', reject);
+                        resolve(socket);
+                    });
+                    socket.once('error', reject);
+                });
+            } catch (error: any) {
+
+                // Handle unexpected connection errors by showing a dialog to the user
+                if (!retry || IS_WINDOWS || error.code !== 'ECONNREFUSED') {
+                    electron.dialog.showMessageBoxSync({
+                        title: this.productService.profile.applicationName,
+                        message: `Another instance of '${this.productService.profile.applicationName}' is already running as administrator`,
+                        detail: 'Please close the other instance and try again.',
+                        type: 'warning',
+                        buttons: ['close'],
+                    });
+                    panic(error);
+                }
+
+                /**
+                 * It happens on Linux and OS X that the pipe is left behind.
+                 * Delete it and then retry the whole thing.
+                 */
+                try {
+					await unlink(this.environmentService.mainIpcHandle);
+				} catch (error) {
+					this.logService.error('Main', 'Could not delete obsolete instance handle.', error);
+					panic(error);
+				}
+
+                // retry one more time
+                return this.resolveSingleApplication(false);
+            }
+
+            // cleanup
+            socket.end();
 
             // there is a running application, we stop the current application.
             panic(new ExpectedError('There is an application running, we are terminating...'));
@@ -306,7 +354,6 @@ const main = new class extends class MainProcess implements IMainProcess {
     // [private helper methods]
 
     private __showDirectoryErrorDialog(error: any): void {
-
         const dir = [
             URI.toFsPath(this.environmentService.appRootPath),
             URI.toFsPath(this.environmentService.logPath),
@@ -329,6 +376,30 @@ const main = new class extends class MainProcess implements IMainProcess {
             appRootPath: electron.app.getAppPath(),
             userDataPath: electron.app.getPath('userData'),
         };
+    }
+
+    /**
+     * @description Convert the CLI constructed by the third-library `minimist` 
+     * into our desired ones:
+     *      1. Make sure no multiple argument values (only take the last one)
+     */
+    private __parseCLIArgv(argv: ICLIArguments): ICLIArguments {
+        for (const key of Object.keys(argv)) {
+            if (key === '_') {
+                continue;
+            }
+            const value = argv[key];
+            
+            // if multiple arguments is provided, we only take the last one.
+            const resolvedValue = Array.isArray(value) 
+                ? value.at(-1) 
+                : value;
+            
+            // replace with the last one
+            argv[key] = resolvedValue;
+        }
+        
+        return argv;
     }
 } { }; /** @readonly ❤hello, world!❤ */
 

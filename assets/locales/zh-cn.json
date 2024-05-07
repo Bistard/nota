@@ -1,8 +1,8 @@
 {
-    "src/workbench/sideView": {
+    "src/workbench/navigationView": {
         
     },
-    "src/workbench/sideView/explorer": {
+    "src/workbench/navigationView/explorer": {
         "file": "文件",
         "openDirectory": "打开文件夹"
     }

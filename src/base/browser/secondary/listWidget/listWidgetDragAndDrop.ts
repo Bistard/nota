@@ -4,6 +4,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 import { requestAnimate } from "src/base/browser/basic/animation";
 import { Arrays } from "src/base/common/utilities/array";
+import { assert } from "src/base/common/utilities/panic";
 
 export const enum DragOverEffect {
     Move,
@@ -251,13 +252,14 @@ export class ListWidgetDragAndDropController<T> extends Disposable {
 
         // get the drag data
         const userData = this._provider.getDragData(item.data);
-
+        
         // make the HTMLElement actually draggable
-        item.row!.dom.draggable = !!userData;
+        const row = assert(item.row);
+        row.dom.draggable = !!userData;
 
         // add event listener
         if (userData) {
-            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
+            item.dragStart = addDisposableListener(row.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
         }
     }
     
