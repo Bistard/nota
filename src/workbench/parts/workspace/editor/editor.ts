@@ -5,7 +5,7 @@ import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/utilities/object";
@@ -18,6 +18,7 @@ import { getBuiltInExtension } from 'src/editor/common/extension/builtInExtensio
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { panic } from 'src/base/common/utilities/panic';
 import { Emitter } from 'src/base/common/event';
+import { IOutlineService } from 'src/workbench/services/outline/outlineService';
 
 export class Editor extends Component implements IEditorService {
 
@@ -70,7 +71,6 @@ export class Editor extends Component implements IEditorService {
     // [override protected methods]
 
     protected override async _createContent(): Promise<void> {
-        await this.lifecycleService.when(LifecyclePhase.Ready);
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
@@ -97,13 +97,6 @@ export class Editor extends Component implements IEditorService {
 
     protected override async _registerListeners(): Promise<void> {
 
-        /**
-         * It should be a better idea to collect all the settings and options 
-         * and register the editor related listeners when the browser-side 
-         * lifecycle turns into ready state.
-         */
-        await this.lifecycleService.when(LifecyclePhase.Ready);
-
         // building options
         const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView) {
@@ -112,6 +105,12 @@ export class Editor extends Component implements IEditorService {
                 // this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
             });
         }
+
+        // listen to outline service click event
+        const outlineService = this.instantiationService.getOrCreateService(IOutlineService);
+        this.__register(outlineService.onDidClick(heading => {
+            console.log('[EditorService] heading clicked', heading); // TODO
+        }));
     }
 
     // [private helper methods]
