@@ -10,8 +10,8 @@ import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
 export const IMainLifecycleService = createService<IMainLifecycleService>('life-cycle-service');
 
 /**
- * Represents the different phases of the whole application. Notices that the
- * phase cannot go BACKWARDS.
+ * Represents the different phases of the whole application (main process). 
+ * @note Phase cannot go BACKWARD.
  */
 export const enum LifecyclePhase {
     /**
