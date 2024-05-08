@@ -55,6 +55,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
             return;
         }
 
+        this._phase = newPhase;
         const blocker = this._phaseBlocker.get(newPhase);
         if (blocker) {
             // someone is waiting for us! 

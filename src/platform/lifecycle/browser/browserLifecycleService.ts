@@ -10,14 +10,45 @@ export const ILifecycleService = createService<IBrowserLifecycleService>('browse
 
 export interface IBrowserLifecycleService extends ILifecycleServiceInterface<LifecyclePhase, QuitReason> { }
 
+/**
+ * Represents the different phases of the whole window (renderer process). 
+ * @note Phase cannot go BACKWARD.
+ */
 export const enum LifecyclePhase {
-    Starting,
     
     /**
-     * The browser has finished initializing core services and completing the 
-     * rendering of the UI. Ready to interact.
+	 * The first phase signals that we are about to startup getting ready.
+	 * @note Performing tasks during this phase can delay the display of an 
+     *       editor to the user. Make sure your work is necessary here.
+	 */
+    Starting,
+
+    /**
+     * The browser has finished initializing core services. Ready to create the 
+     * main user interface.
+     * @note Performing tasks during this phase can delay the display of an 
+     *       editor to the user. Make sure your work is necessary here.
      */
     Ready,
+
+    /**
+     * Indicates that all important visual elements are fully rendered and 
+     * displayed to the user.
+     */
+    Displayed,
+
+    /**
+     * Indicates the window has completed restoration back to the original stage.
+     * The window now is fully functional.
+     */
+    Restored,
+
+    /**
+     * Reaches after the view, editors are created and some time has passed 
+     * (min 2.5 seconds, max 5 seconds).
+     * @note Non-critical services or UIs can be created at this phase.
+     */
+    Idle,
 }
 
 export const enum QuitReason {
@@ -109,5 +140,8 @@ function parsePhaseToString(phase: LifecyclePhase): string {
     switch (phase) {
         case LifecyclePhase.Starting: return 'Starting';
         case LifecyclePhase.Ready: return 'Ready';
+        case LifecyclePhase.Displayed: return 'Displayed';
+        case LifecyclePhase.Restored: return 'Restored';
+        case LifecyclePhase.Idle: return 'Idle';
     }
 }
