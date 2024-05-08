@@ -5,6 +5,7 @@ import { Result, err, ok } from "src/base/common/result";
 import { assert, panic } from "src/base/common/utilities/panic";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 
@@ -57,26 +58,13 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     constructor(
         @ILogService private readonly logService: ILogService,
-        @IEditorService editorService: IEditorService,
-        @ICommandService commandService: ICommandService,
+        @IEditorService private readonly editorService: IEditorService,
+        @ICommandService private readonly commandService: ICommandService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
-
-        // init when needed
-        this.__register(editorService.onDidOpen(uri => {
-            
-            // close before init
-            this.close();
-            
-            // init
-            const editor = assert(editorService.editor);
-            this.init(editor.model.getContent())
-                .match(
-                    () => logService.debug('OutlineService', 'Initialized successfully.'),
-                    error => commandService.executeCommand(AllCommands.alertError, 'OutlineService', error),
-                );
-        }));
+        this.__registerListeners();
     }
 
     // [public methods]
@@ -93,5 +81,31 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     public override dispose(): void {
         this.close();
+    }
+
+    // [private helper methods]
+
+    private async __registerListeners(): Promise<void> {
+
+        /**
+         * Make sure the outline is only able to init after the crucial UIs are 
+         * created.
+         */
+        await this.lifecycleService.when(LifecyclePhase.Displayed);
+        
+        // init when needed
+        this.__register(this.editorService.onDidOpen(uri => {
+            
+            // close before init
+            this.close();
+            
+            // init
+            const editor = assert(this.editorService.editor);
+            this.init(editor.model.getContent())
+                .match(
+                    () => this.logService.debug('OutlineService', 'Initialized successfully.'),
+                    error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error),
+                );
+        }));
     }
 }
