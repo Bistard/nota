@@ -2,7 +2,6 @@ import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/viewPart/editor/adapter/editorViewProxy";
-import { exampleSetup } from "prosemirror-example-setup";
 
 export interface IEditorBase extends IEditorViewProxy {
     
@@ -27,7 +26,7 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
 
         // TEST: use our own extension once `exampleSetup` is unused  
         const viewExtensionInfo = <any>[] ?? extensions.map(ext => { return { id: ext.id, extension: ext.extension.getViewExtension() }; });
-        viewExtensionInfo.push(...exampleSetup({ schema: schema, menuBar: false }).map((ext, idx) => { return { id: `ext-${idx}`, extension: ext }; }));
+        
         const extensionArr = viewExtensionInfo.map(info => info.extension);
 
         super(
