@@ -1,4 +1,7 @@
+import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { Disposable } from "src/base/common/dispose";
+import { InitProtector } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Result, err, ok } from "src/base/common/result";
@@ -7,9 +10,74 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
+import { OutlineItemProvider, OutlineItemRenderer } from "src/workbench/services/outline/outlineItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
+
+/**
+ * An interface only for {@link Outlineltem}.
+ */
+export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
+
+    /** 
+     * The unique representation of the target. 
+     */
+    readonly id: string;
+
+    /** 
+     * The name of the target. 
+     * @example file.js
+     */
+    readonly name: string;
+
+    /** 
+     * The heading level of the target. 
+     */
+    readonly depth: number;
+}
+
+export class OutlineItem implements IOutlineItem<OutlineItem> {
+
+    // [field]
+
+    private readonly _id: string;
+    private readonly _name: string;
+    private readonly _depth: number;
+    private _children: OutlineItem[] = [];
+
+    // [constructor]
+
+    constructor(id: string, name: string, depth: number) {
+        this._id = id;
+        this._name = name;
+        this._depth = depth;
+    }
+
+    public get id(): string {
+        return this._id;
+    }
+
+    public get name(): string {
+        return this._name;
+    }
+
+    public get depth(): number {
+        return this._depth;
+    }
+
+    public get children(): OutlineItem[] {
+        return this._children;
+    }
+
+    public addChild(child: OutlineItem): void {
+        this._children.push(child);
+    }
+
+    public addChildren(children: OutlineItem[]): void {
+        this._children = this._children.concat(children);
+    }
+}
 
 /**
  * An interface only for {@link OutlineService}.
@@ -54,6 +122,10 @@ export class OutlineService extends Disposable implements IOutlineService {
     private readonly _onDidClick = this.__register(new Emitter<string>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
+    private readonly _initProtector: InitProtector;
+
+    private _tree?: MultiTree<OutlineItem, void>;
+
     // [constructor]
 
     constructor(
@@ -64,23 +136,60 @@ export class OutlineService extends Disposable implements IOutlineService {
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
+        this._initProtector = new InitProtector();
         this.__registerListeners();
     }
 
     // [public methods]
-
+    // 1. 遍历，把一个array of string变成一个array of outlineItem，处理#
+    // 2. 转化成tree structure
     public init(content: string[]): Result<void, Error> {
+
+        this._initProtector.init('Cannot init twice').unwrap();
+        
         this.logService.debug('OutlineService', 'Initializing...');
-        return err(new Error('not implemented'));
+        const container = document.getElementById('workspace');
+
+        const outlineContainer = document.createElement('div');
+        outlineContainer.className = 'outline';
+        if (!container) {
+            console.error("Failed to find the outline container element");
+            return err(new Error("Container element not found."));
+        }
+        container.appendChild(outlineContainer);
+        console.log('Outline container appended to workspace.');
+    
+        const renderer = new OutlineItemRenderer();
+        const itemProvider = new OutlineItemProvider();
+    
+        const rootData = new OutlineItem("0", "rootnode", 0);
+        this._tree = new MultiTree<OutlineItem, void>(
+            outlineContainer, rootData, [renderer], itemProvider, {forcePrimitiveType: true});
+
+        if (this._tree) {
+            outlineContainer.appendChild(this._tree.DOMElement);
+        }
+        const childNodes: ITreeNodeItem<OutlineItem>[] = [
+            { data: new OutlineItem("1", "heading1", 1) },
+            { data: new OutlineItem("1.1", "heading2", 2) },
+            { data: new OutlineItem("2", "heading1", 1) },
+            { data: new OutlineItem("2.1", "heading2", 2) },
+        ];
+        
+        this._tree.splice(rootData, childNodes);
+        this._tree.layout();
+        return ok();
     }
 
     public close(): void {
+        //释放所有资源
         this.logService.debug('OutlineService', 'Closing...');
         panic('not implemented');
     }
 
     public override dispose(): void {
         this.close();
+        super.dispose();
     }
 
     // [private helper methods]
@@ -97,7 +206,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         this.__register(this.editorService.onDidOpen(uri => {
             
             // close before init
-            this.close();
+            // this.close();
             
             // init
             const editor = assert(this.editorService.editor);
