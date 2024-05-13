@@ -389,6 +389,16 @@ export interface IAsyncRunner<T> extends Disposable {
 	readonly size: number;
 
 	/**
+	 * The total number of promises that are being executing.
+	 */
+	readonly runningSize: number;
+	
+	/**
+	 * The total number of promises that are being waiting.
+	 */
+	readonly pendingSize: number;
+
+	/**
 	 * Fires when any tasks is completed.
 	 */
 	readonly onDidComplete: Register<T>;
@@ -470,6 +480,14 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 
 	get size(): number {
 		return this._size;
+	}
+
+	get runningSize(): number {
+		return this._runningPromisesCount;
+	}
+
+	get pendingSize(): number {
+		return this.size - this.runningSize;
 	}
 
 	public queue(task: ITask<Promise<T>>): Promise<T> {

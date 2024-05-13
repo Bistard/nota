@@ -16,8 +16,9 @@ import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
 import { EditorType } from 'src/editor/common/viewModel';
 import { getBuiltInExtension } from 'src/editor/common/extension/builtInExtension';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
-import { panic } from 'src/base/common/utilities/panic';
+import { assert, panic } from 'src/base/common/utilities/panic';
 import { Emitter } from 'src/base/common/event';
+import { Throttler } from 'src/base/common/utilities/async';
 
 export class Editor extends Component implements IEditorService {
 
@@ -26,6 +27,12 @@ export class Editor extends Component implements IEditorService {
     // [field]
 
     private _editorWidget: IEditorWidget | null;
+    
+    /**
+     * Stores editor open request. A throttler is needed to avoid excessive file
+     * loading during a very short time.
+     */
+    private readonly _pendingRequest: Throttler;
 
     // [event]
 
@@ -46,6 +53,8 @@ export class Editor extends Component implements IEditorService {
     ) {
         super('editor', null, themeService, componentService, logService);
         this._editorWidget = null;
+        this._pendingRequest = new Throttler();
+
         this.logService.trace('EditorService', 'Constructed.');
     }
 
@@ -57,14 +66,29 @@ export class Editor extends Component implements IEditorService {
 
     // [public methods]
 
+    public override dispose(): void {
+        super.dispose();
+    }
+
     public async openSource(source: URI | string): Promise<void> {
-        if (!this._editorWidget) {
-            panic(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
-        }
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
-        
-        await this._editorWidget.open(uri);
-        this._onDidOpen.fire(uri);
+
+        if (!this._editorWidget) {
+            panic(`[Editor] Cannot open at "${URI.toString(uri)}". Reason: service currently is not created.`);
+        }
+
+        // queue a request
+        await this._pendingRequest.queue(async () => {
+            const editorWidget = assert(this._editorWidget);
+            
+            // do open
+            this.logService.debug('EditorService', `Openning at: ${URI.toString(uri)}`);
+            await editorWidget.open(uri);
+            this.logService.debug('EditorService', `Open successfully at: ${URI.toString(uri)}`);
+            
+            this._onDidOpen.fire(uri);
+            return uri;
+        });
     }
 
     // [override protected methods]
