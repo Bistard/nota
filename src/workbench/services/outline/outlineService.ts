@@ -1,8 +1,8 @@
 import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
+import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Result, err, ok } from "src/base/common/result";
 import { assert, panic } from "src/base/common/utilities/panic";
@@ -85,6 +85,12 @@ export class OutlineItem implements IOutlineItem<OutlineItem> {
 export interface IOutlineService extends IService, Disposable {
     
     /**
+     * Represents the root URI of the current openning outline file.
+     * @note Returns `null` if the service is not initialized.
+     */
+    readonly root: URI | null;
+
+    /**
      * Fires every time once the outline view finishes rendering.
      */
     readonly onDidRender: Register<void>;
@@ -98,8 +104,8 @@ export interface IOutlineService extends IService, Disposable {
      * @description Initialize the outline rendering next to the editor. Once
      * invoked, the service will start listening to any heading-related changes 
      * from the editor and update it on the outline view.
-     * @param content An array of content in string, every string represent a
-     *                row of a file.
+     * @param content An array of content in string from the file, every string 
+     *                represent a row of a file.
      */
     init(content: string[]): Result<void, Error>;
 
@@ -114,7 +120,7 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     declare _serviceMarker: undefined;
 
-    // [fields]
+    // [event]
 
     private readonly _onDidRender = this.__register(new Emitter<void>());
     public readonly onDidRender = this._onDidRender.registerListener;
@@ -122,9 +128,10 @@ export class OutlineService extends Disposable implements IOutlineService {
     private readonly _onDidClick = this.__register(new Emitter<string>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
-    private readonly _initProtector: InitProtector;
+    // [fields]
 
-    private _tree?: MultiTree<OutlineItem, void>;
+    private _currFile?: URI; // The URI of the current file being used to display the outline. 
+    private _tree?: MultiTree<OutlineItem, void>; // the actual tree view
 
     // [constructor]
 
@@ -136,17 +143,24 @@ export class OutlineService extends Disposable implements IOutlineService {
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
-        this._initProtector = new InitProtector();
+        
+        this._tree = undefined;
+        this._currFile = undefined;
+
         this.__registerListeners();
     }
 
+    // [getter]
+
+    get root(): URI | null {
+        return this._currFile ?? null;
+    }
+
     // [public methods]
+
     // 1. 遍历，把一个array of string变成一个array of outlineItem，处理#
     // 2. 转化成tree structure
     public init(content: string[]): Result<void, Error> {
-
-        this._initProtector.init('Cannot init twice').unwrap();
-        
         this.logService.debug('OutlineService', 'Initializing...');
         const container = document.getElementById('workspace');
 
@@ -205,14 +219,22 @@ export class OutlineService extends Disposable implements IOutlineService {
         // init when needed
         this.__register(this.editorService.onDidOpen(uri => {
             
-            // close before init
+            // make sure no excessive rendering for the same file
+            if (this._currFile && URI.equals(uri, this._currFile)) {
+                return;
+            }
+            
+            // TODO: close before init
             // this.close();
             
             // init
             const editor = assert(this.editorService.editor);
             this.init(editor.model.getContent())
                 .match(
-                    () => this.logService.debug('OutlineService', 'Initialized successfully.'),
+                    () => {
+                        this._currFile = editor.model.source;
+                        this.logService.debug('OutlineService', 'Initialized successfully.');
+                    },
                     error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error),
                 );
         }));
