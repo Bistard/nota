@@ -4,20 +4,22 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
+import { noop } from "src/base/common/performance";
 import { Result, err, ok } from "src/base/common/result";
 import { Stack } from "src/base/common/structures/stack";
-import { assert, panic } from "src/base/common/utilities/panic";
+import { assert } from "src/base/common/utilities/panic";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
+import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { OutlineItemProvider, OutlineItemRenderer } from "src/workbench/services/outline/outlineItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
 /**
- * An interface only for {@link Outlineltem}.
+ * An interface only for {@link OutlineItem}.
  */
 export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
 
@@ -33,7 +35,8 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
     readonly name: string;
 
     /** 
-     * The heading level of the target. 
+     * The heading level of the target. The largest heading has depth 1, the 
+     * smallest heading has depth 6.
      */
     readonly depth: number;
 
@@ -130,13 +133,14 @@ export interface IOutlineService extends IService, Disposable {
     readonly onDidClick: Register<string>;
 
     /**
-     * @description Initialize the outline rendering next to the editor. Once
-     * invoked, the service will start listening to any heading-related changes 
-     * from the editor and update it on the outline view.
-     * @param content An array of content in string from the file, every string 
-     *                represent a row of a file.
+     * @description Initialize the outline display for the current opening file
+     * in the editor. 
+     * 
+     * @note The content will be retrieved from the {@link EditorService}.
+     * @note If the {@link EditorService} is not initialized, no operations will 
+     *       be taken.
      */
-    init(content: string[]): Result<void, Error>;
+    init(): Result<void, Error>;
 
     /**
      * @description Destroy the entire outline view and releases related 
@@ -159,8 +163,10 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     // [fields]
 
+    private _container?: HTMLElement; // The container that contains the entire outline view
     private _currFile?: URI; // The URI of the current file being used to display the outline. 
     private _tree?: MultiTree<OutlineItem, void>; // the actual tree view
+
 
     // [constructor]
 
@@ -169,6 +175,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         @IEditorService private readonly editorService: IEditorService,
         @ICommandService private readonly commandService: ICommandService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
@@ -187,36 +194,36 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     // [public methods]
 
-    public init(content: string[]): Result<void, Error> {
+    public init(): Result<void, Error> {
         this.logService.debug('OutlineService', 'Initializing...');
     
-        const outlineContainerResult = this.__renderOutline().unwrap();
+        const editor = this.editorService.editor;
+        if (!editor) {
+            return err(new Error('OutlineService cannot initialized when the EditorService is not initialized.'));
+        }
 
-        const root = this.__convertContentToTree(content);
-    
-        this.__setupTree(outlineContainerResult, root);
-    
-        return ok();
+        const content = editor.model.getContent();
+        
+        const container = this.__renderOutline();
+        const root = buildOutlineTree(content);
+        
+        return this.__setupTree(container, root)
+            .map(() => {
+                this._currFile = editor.model.source;
+                this.logService.debug('OutlineService', 'Initialized successfully.');
+            });
     }
-    
     
     public close(): void {
         this.logService.debug('OutlineService', 'Closing...');
 
-        if (this._tree) {
-            this._tree.dispose();
-            this._tree = undefined;
-        }
+        this._currFile = undefined;
 
-        const container = document.getElementById('workspace');
-        const outlineContainer = container?.getElementsByClassName('outline')[0];
-        if (outlineContainer) {
-            container.removeChild(outlineContainer);
-        }
-    
-        this._onDidRender.dispose();
-        this._onDidClick.dispose();
-        super.dispose();
+        this._tree?.dispose();
+        this._tree = undefined;
+        
+        this._container?.remove();
+        this._container = undefined;
     }  
 
     public override dispose(): void {
@@ -246,59 +253,53 @@ export class OutlineService extends Disposable implements IOutlineService {
             this.close();
             
             // init
-            const editor = assert(this.editorService.editor);
-            this.init(editor.model.getContent())
-                .match(
-                    () => {
-                        this._currFile = editor.model.source;
-                        this.logService.debug('OutlineService', 'Initialized successfully.');
-                    },
-                    error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error),
-                );
+            this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
         }));
     }
 
-    private __renderOutline(): Result<HTMLDivElement, Error> {
-        this.logService.debug('OutlineService', 'Rendering outline...');
-    
-        const container = document.getElementById('workspace');
-        if (!container) {
-            console.error("Failed to find the workspace container element");
-            return err(new Error("Workspace container element not found."));
-        }
-    
-        const outlineContainer = document.createElement('div');
-        outlineContainer.className = 'outline';
-        container.appendChild(outlineContainer);
-    
-        return ok(outlineContainer);
-    }
-    
-    private __convertContentToTree(content: string[]): ITreeNodeItem<OutlineItem> {
-        return convertContentToTree(content);
+    private __renderOutline(): HTMLElement {
+        const workspace = this.workspaceService.element;
+        
+        const container = document.createElement('div');
+        container.className = 'outline';
+        
+        workspace.appendChild(container);
+        this._container = container;
+        return container;
     }
 
-    private __setupTree(outlineContainer: HTMLDivElement, root: ITreeNodeItem<OutlineItem>): void {
-        this.logService.debug('OutlineService', 'Setting up the tree...');
-        const tree = new MultiTree<OutlineItem, void>(
-            outlineContainer,
-            root.data,
-            [new OutlineItemRenderer()],
-            new OutlineItemProvider(),
-            { forcePrimitiveType: true }
-        );
-    
-        tree.splice(root.data, root.children);
-        tree.layout();
+    private __setupTree(container: HTMLElement, root: ITreeNodeItem<OutlineItem>): Result<void, Error> {
+        return Result.fromThrowable(() => {
+            const tree = new MultiTree<OutlineItem, void>(
+                container,
+                root.data,
+                [new OutlineItemRenderer()],
+                new OutlineItemProvider(),
+                { 
+                    transformOptimization: true,
+                    collapsedByDefault: false,
+                    identityProvider: {
+                        getID: heading => heading.id.toString(),
+                    },
+                }
+            );
+        
+            tree.splice(root.data, root.children);
+            tree.layout();
+            
+        }, error => error as Error);
     }   
 }
 
 /**
- * Converts an array of markdown content strings to a tree structure of OutlineItems.
+ * @description Converts an array of markdown content to a tree structure of 
+ * {@link OutlineItem}.
  * @param content Array of markdown lines to be converted.
- * @returns The root node of the tree structure.
+ * @returns The root node of the tree structure for later rendering purpose.
+ * 
+ * @note Export for unit test purpose.
  */
-export function convertContentToTree(content: string[]): ITreeNodeItem<OutlineItem> {
+export function buildOutlineTree(content: string[]): ITreeNodeItem<OutlineItem> {
     const root: ITreeNodeItem<OutlineItem> = {
         data: new OutlineItem(0, "Root", 0),
         children: []
@@ -314,19 +315,21 @@ export function convertContentToTree(content: string[]): ITreeNodeItem<OutlineIt
         }
 
         // Not a heading
-        if (level === 0) return;
+        if (level === 0 || level > 6) {
+            return;
+        }
     
-        const name = line.slice(level + 1).trim();
-        const newItem = new OutlineItem(lineNumber, name, level);
-        const newNode: ITreeNodeItem<OutlineItem> = { data: newItem, children: [] };
+        const name = line.slice(level + 1, undefined).trim();
+        const item = new OutlineItem(lineNumber, name, level);
+        const node = { data: item, children: [] } as ITreeNodeItem<OutlineItem>;
 
         // Backtrack to find the correct parent level
         while (stack.top().data.depth >= level) {
             stack.pop();
         }
 
-        stack.top().children!.push(newNode);
-        stack.push(newNode);
+        stack.top().children!.push(node);
+        stack.push(node);
     });
 
     return root;
