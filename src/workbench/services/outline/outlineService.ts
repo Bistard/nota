@@ -5,6 +5,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Result, err, ok } from "src/base/common/result";
+import { Stack } from "src/base/common/structures/stack";
 import { assert, panic } from "src/base/common/utilities/panic";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -23,7 +24,7 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
     /** 
      * The unique representation of the target. 
      */
-    readonly id: string;
+    readonly id: number;
 
     /** 
      * The name of the target. 
@@ -35,47 +36,75 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
      * The heading level of the target. 
      */
     readonly depth: number;
+
+    /**
+     * The direct parent of the current item, if the current item is the root, 
+     * return `null`.
+     */
+    readonly parent: OutlineItem | null;
+
+    /**
+     * Returns the root of the entire tree.
+     */
+    readonly root: OutlineItem;
 }
 
 export class OutlineItem implements IOutlineItem<OutlineItem> {
 
     // [field]
 
-    private readonly _id: string;
+    private readonly _id: number;
     private readonly _name: string;
     private readonly _depth: number;
-    private _children: OutlineItem[] = [];
+
+    private _parent: OutlineItem | null;
+    private _children: OutlineItem[];
 
     // [constructor]
 
-    constructor(id: string, name: string, depth: number) {
+    constructor(id: number, name: string, depth: number) {
         this._id = id;
         this._name = name;
         this._depth = depth;
+        this._parent = null;
+        this._children = [];
     }
 
-    public get id(): string {
+    get id(): number {
         return this._id;
     }
 
-    public get name(): string {
+    get name(): string {
         return this._name;
     }
 
-    public get depth(): number {
+    get depth(): number {
         return this._depth;
     }
 
-    public get children(): OutlineItem[] {
+    get children(): OutlineItem[] {
         return this._children;
+    }
+
+    get parent(): OutlineItem | null {
+        return this._parent;
+    }
+
+    get root(): OutlineItem {
+        if (this._parent === null) {
+            return this;
+        }
+        return this._parent.root;
     }
 
     public addChild(child: OutlineItem): void {
         this._children.push(child);
+        child._parent = this;
     }
 
     public addChildren(children: OutlineItem[]): void {
         this._children = this._children.concat(children);
+        children.forEach(child => child._parent = this);
     }
 }
 
@@ -85,7 +114,7 @@ export class OutlineItem implements IOutlineItem<OutlineItem> {
 export interface IOutlineService extends IService, Disposable {
     
     /**
-     * Represents the root URI of the current openning outline file.
+     * Represents the root URI of the current opening outline file.
      * @note Returns `null` if the service is not initialized.
      */
     readonly root: URI | null;
@@ -158,12 +187,13 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     // [public methods]
 
-    // 1. 遍历，把一个array of string变成一个array of outlineItem，处理#
+    // TODO: 两个helper methods
+    // 1. 遍历，把一个array of string变成一个array of outlineItem，处理markdown标题的 ‘#’
     // 2. 转化成tree structure
     public init(content: string[]): Result<void, Error> {
         this.logService.debug('OutlineService', 'Initializing...');
         const container = document.getElementById('workspace');
-
+    
         const outlineContainer = document.createElement('div');
         outlineContainer.className = 'outline';
         if (!container) {
@@ -171,32 +201,25 @@ export class OutlineService extends Disposable implements IOutlineService {
             return err(new Error("Container element not found."));
         }
         container.appendChild(outlineContainer);
-        console.log('Outline container appended to workspace.');
     
-        const renderer = new OutlineItemRenderer();
-        const itemProvider = new OutlineItemProvider();
-    
-        const rootData = new OutlineItem("0", "rootnode", 0);
-        this._tree = new MultiTree<OutlineItem, void>(
-            outlineContainer, rootData, [renderer], itemProvider, {forcePrimitiveType: true});
+        const root = this.__convertContentToTree(content);
 
-        if (this._tree) {
-            outlineContainer.appendChild(this._tree.DOMElement);
-        }
-        const childNodes: ITreeNodeItem<OutlineItem>[] = [
-            { data: new OutlineItem("1", "heading1", 1) },
-            { data: new OutlineItem("1.1", "heading2", 2) },
-            { data: new OutlineItem("2", "heading1", 1) },
-            { data: new OutlineItem("2.1", "heading2", 2) },
-        ];
+        const tree = new MultiTree<OutlineItem, void>(
+            outlineContainer,
+            root.data,
+            [new OutlineItemRenderer()],
+            new OutlineItemProvider(),
+            { forcePrimitiveType: true }
+        );
+
+        tree.splice(root.data, root.children);
+        tree.layout();
         
-        this._tree.splice(rootData, childNodes);
-        this._tree.layout();
         return ok();
     }
-
+    
     public close(): void {
-        //释放所有资源
+        // TODO: 释放所有资源
         this.logService.debug('OutlineService', 'Closing...');
         panic('not implemented');
     }
@@ -225,7 +248,7 @@ export class OutlineService extends Disposable implements IOutlineService {
             }
             
             // TODO: close before init
-            // this.close();
+            this.close();
             
             // init
             const editor = assert(this.editorService.editor);
@@ -238,5 +261,39 @@ export class OutlineService extends Disposable implements IOutlineService {
                     error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error),
                 );
         }));
+    }
+
+    private __convertContentToTree(content: string[]): ITreeNodeItem<OutlineItem> {
+        const root: ITreeNodeItem<OutlineItem> = {
+            data: new OutlineItem(0, "Root", 0),
+            children: []
+        };
+    
+        const stack = new Stack<ITreeNodeItem<OutlineItem>>();
+        stack.push(root);
+    
+        content.forEach((line, lineNumber) => {
+            let level = 0;
+            while (line.charAt(level) === '#') {
+                level++;
+            }
+    
+            // Not a heading
+            if (level === 0) return;
+    
+            const name = line.slice(level + 1).trim();
+            const newItem = new OutlineItem(lineNumber, name, level);
+            const newNode: ITreeNodeItem<OutlineItem> = { data: newItem, children: [] };
+    
+            // Backtrack to find the correct parent level
+            while (stack.top().data.depth >= level) {
+                stack.pop();
+            }
+    
+            stack.top().children!.push(newNode);
+            stack.push(newNode);
+        });
+    
+        return root;
     }
 }
