@@ -7,7 +7,6 @@ import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { Result, err, ok } from "src/base/common/result";
 import { Stack } from "src/base/common/structures/stack";
-import { assert } from "src/base/common/utilities/panic";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
@@ -25,18 +24,22 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
 
     /** 
      * The unique representation of the target. 
+     * @note The number is essentially the line number of the heading in the 
+     *       original file.
+     * @example `123`
      */
     readonly id: number;
 
     /** 
      * The name of the target. 
-     * @example file.js
+     * @example `This is a Heading name`
      */
     readonly name: string;
 
     /** 
      * The heading level of the target. The largest heading has depth 1, the 
      * smallest heading has depth 6.
+     * @range [1, 6]
      */
     readonly depth: number;
 
@@ -52,6 +55,9 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
     readonly root: OutlineItem;
 }
 
+/**
+ * @class Every item represents a heading in Markdown.
+ */
 export class OutlineItem implements IOutlineItem<OutlineItem> {
 
     // [field]
@@ -116,6 +122,11 @@ export class OutlineItem implements IOutlineItem<OutlineItem> {
  */
 export interface IOutlineService extends IService, Disposable {
     
+    /**
+     * Represents if the service is initialized.
+     */
+    readonly isInitialized: boolean;
+
     /**
      * Represents the root URI of the current opening outline file.
      * @note Returns `null` if the service is not initialized.
@@ -187,6 +198,10 @@ export class OutlineService extends Disposable implements IOutlineService {
     }
 
     // [getter]
+
+    get isInitialized(): boolean {
+        return !!this.root;
+    }
 
     get root(): URI | null {
         return this._currFile ?? null;
