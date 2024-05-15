@@ -275,37 +275,7 @@ export class OutlineService extends Disposable implements IOutlineService {
     }
     
     private __convertContentToTree(content: string[]): ITreeNodeItem<OutlineItem> {
-        const root: ITreeNodeItem<OutlineItem> = {
-            data: new OutlineItem(0, "Root", 0),
-            children: []
-        };
-    
-        const stack = new Stack<ITreeNodeItem<OutlineItem>>();
-        stack.push(root);
-    
-        content.forEach((line, lineNumber) => {
-            let level = 0;
-            while (line.charAt(level) === '#') {
-                level++;
-            }
-    
-            // Not a heading
-            if (level === 0) return;
-    
-            const name = line.slice(level + 1).trim();
-            const newItem = new OutlineItem(lineNumber, name, level);
-            const newNode: ITreeNodeItem<OutlineItem> = { data: newItem, children: [] };
-    
-            // Backtrack to find the correct parent level
-            while (stack.top().data.depth >= level) {
-                stack.pop();
-            }
-    
-            stack.top().children!.push(newNode);
-            stack.push(newNode);
-        });
-    
-        return root;
+        return convertContentToTree(content);
     }
 
     private __setupTree(outlineContainer: HTMLDivElement, root: ITreeNodeItem<OutlineItem>): void {
@@ -321,4 +291,43 @@ export class OutlineService extends Disposable implements IOutlineService {
         tree.splice(root.data, root.children);
         tree.layout();
     }   
+}
+
+/**
+ * Converts an array of markdown content strings to a tree structure of OutlineItems.
+ * @param content Array of markdown lines to be converted.
+ * @returns The root node of the tree structure.
+ */
+export function convertContentToTree(content: string[]): ITreeNodeItem<OutlineItem> {
+    const root: ITreeNodeItem<OutlineItem> = {
+        data: new OutlineItem(0, "Root", 0),
+        children: []
+    };
+
+    const stack = new Stack<ITreeNodeItem<OutlineItem>>();
+    stack.push(root);
+
+    content.forEach((line, lineNumber) => {
+        let level = 0;
+        while (line.charAt(level) === '#') {
+            level++;
+        }
+
+        // Not a heading
+        if (level === 0) return;
+    
+        const name = line.slice(level + 1).trim();
+        const newItem = new OutlineItem(lineNumber, name, level);
+        const newNode: ITreeNodeItem<OutlineItem> = { data: newItem, children: [] };
+
+        // Backtrack to find the correct parent level
+        while (stack.top().data.depth >= level) {
+            stack.pop();
+        }
+
+        stack.top().children!.push(newNode);
+        stack.push(newNode);
+    });
+
+    return root;
 }
