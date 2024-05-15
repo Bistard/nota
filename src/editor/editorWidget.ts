@@ -201,8 +201,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // [public methods]
 
     public async open(source: URI): Promise<void> {
-        this.logService.debug('EditorWidget', `Editor opening source at: ${URI.toString(source)}`);
-
         this.__detachModel();
         const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
         await this.__attachModel(textModel);

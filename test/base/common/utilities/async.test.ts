@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { afterEach, beforeEach, setup } from 'mocha';
 import { INSTANT_TIME, Time, TimeUnit } from 'src/base/common/date';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
-import { Emitter } from 'src/base/common/event';
+import { Emitter, Event } from 'src/base/common/event';
 import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, TimeoutPromise, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
@@ -542,9 +542,7 @@ suite('async-test', () => {
         test('pause / resume', () => FakeAsync.run(async () => {
             let count = 0;
             const executor = new AsyncRunner<void>(2);
-            const getNum = () => async () => {
-                return delayFor(INSTANT_TIME).then(() => { count++; });
-            };
+            const getNum = () => async () => { count++; };
     
             executor.pause();
             const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
@@ -560,7 +558,7 @@ suite('async-test', () => {
 			const blocker = new EventBlocker(executor.onDidFlush);
 			
 			executor.pause();
-			repeat(5, () => executor.queue(() => delayFor(INSTANT_TIME).then(() => { count++; })));
+			repeat(5, () => executor.queue(async () => { count++; }));
 			executor.resume();
 
 			await blocker.waiting();
@@ -571,9 +569,45 @@ suite('async-test', () => {
 			let count = 0;
 			const executor = new AsyncRunner<void>(2);
 			
-			executor.queue(() => delayFor(INSTANT_TIME).then(() => { count++; }));
+			executor.queue(async () => { count++; });
 			
 			await executor.waitNext();
+			assert.strictEqual(count, 1);
+		}));
+
+		test('onDidComplete', () => FakeAsync.run(async () => {
+			let count = 0;
+			const executor = new AsyncRunner<void>(2);
+			
+			let complete = 0;
+			executor.onDidComplete(() => complete++);
+			for (let i = 0; i < 10; i++) {
+				executor.queue(async () => { count++; });
+			}
+			
+			await Event.toPromise(executor.onDidFlush);
+			assert.strictEqual(count, 10);
+			assert.strictEqual(complete, 10);
+		}));
+
+		test('dequeue', () => FakeAsync.run(async () => {
+			let count = 0;
+			const executor = new AsyncRunner<void>(1);
+
+			// the first task will pop up all the remainning tasks.
+			const listen = executor.onDidComplete(() => {
+				listen.dispose();
+				for (let i = 0; i < executor.size; i++) {
+					executor.dequeue();
+				}
+			});
+
+			let curr = executor.queue(async () => { count++; });
+			for (let i = 0; i < 10; i++) {
+				curr = curr.then(() => executor.queue(async () => { count++; }));
+			}
+
+			await Event.toPromise(executor.onDidFlush);
 			assert.strictEqual(count, 1);
 		}));
     });

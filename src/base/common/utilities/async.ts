@@ -281,12 +281,6 @@ export class Blocker<T> {
 	}
 }
 
-export type IAsyncPromiseTask<T> = {
-	task: ITask<Promise<T>>;
-	resolve: (arg: T) => void;
-	reject: (reason?: any) => void;
-};
-
 /**
  * @class A {@link EventBlocker} registers the provided event register for one 
  * time only and convert it into a promise so that it can be listened in an 
@@ -395,6 +389,21 @@ export interface IAsyncRunner<T> extends Disposable {
 	readonly size: number;
 
 	/**
+	 * The total number of promises that are being executing.
+	 */
+	readonly runningSize: number;
+	
+	/**
+	 * The total number of promises that are being waiting.
+	 */
+	readonly pendingSize: number;
+
+	/**
+	 * Fires when any tasks is completed.
+	 */
+	readonly onDidComplete: Register<T>;
+	
+	/**
 	 * Fires once the all the executing promises are done and no waiting promises.
 	 */
 	readonly onDidFlush: Register<void>;
@@ -406,6 +415,15 @@ export interface IAsyncRunner<T> extends Disposable {
 	 * value of the {@link ITask}.
 	 */
 	queue(task: ITask<Promise<T>>): Promise<T>;
+
+	/**
+     * @description Dequeue the next pending promise, removing it from the queue.
+     * @returns The task that was pending execution, or undefined if no tasks 
+	 * 			are pending.
+	 * 
+	 * @note The API will not interrupt any executing tasks.
+     */
+	dequeue(): ITask<Promise<T>> | undefined;
 
 	/**
 	 * @description Pauses the executor (the running promises will not be paused).
@@ -440,6 +458,9 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 	private readonly _limitCount: number;
 	private readonly _waitingPromises: IAsyncPromiseTask<T>[];
 
+	private readonly _onDidComplete = this.__register(new Emitter<T>());
+	public readonly onDidComplete = this._onDidComplete.registerListener;
+
 	private readonly _onDidFlush = this.__register(new Emitter<void>());
 	public readonly onDidFlush = this._onDidFlush.registerListener;
 
@@ -461,12 +482,38 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 		return this._size;
 	}
 
+	get runningSize(): number {
+		return this._runningPromisesCount;
+	}
+
+	get pendingSize(): number {
+		return this.size - this.runningSize;
+	}
+
 	public queue(task: ITask<Promise<T>>): Promise<T> {
 		this._size++;
-		return new Promise((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			this._waitingPromises.push({ task, resolve, reject });
 			this.__consume();
+		})
+		.then(data => {
+			this._onDidComplete.fire(data);
+			return data;
 		});
+	}
+
+	public dequeue(): ITask<Promise<T>> | undefined {
+		if (this._waitingPromises.length > 0) {
+            const { task } = this._waitingPromises.shift()!;
+            this._size--; 
+
+			if (this._size === 0) {
+				this._onDidFlush.fire();
+			}
+
+            return task;
+        }
+        return undefined;
 	}
 
 	public pause(): void {
@@ -521,6 +568,12 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 		}
 	}
 }
+
+type IAsyncPromiseTask<T> = {
+	task: ITask<Promise<T>>;
+	resolve: (arg: T) => void;
+	reject: (reason?: any) => void;
+};
 
 /**
  * @class An async queue helper that guarantees only 1 promise are running at 
