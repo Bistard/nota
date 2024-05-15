@@ -312,10 +312,15 @@ export function buildOutlineTree(content: string[]): ITreeNodeItem<OutlineItem> 
         let level = 0;
         while (line.charAt(level) === '#') {
             level++;
+            
+            // not a heading (perf: avoid blocking when a line start with countless of `#`)
+            if (level > 6) {
+                return;
+            }
         }
 
-        // Not a heading
-        if (level === 0 || level > 6) {
+        // not a heading
+        if (level === 0) {
             return;
         }
     
