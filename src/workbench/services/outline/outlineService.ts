@@ -187,36 +187,18 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     // [public methods]
 
-    // TODO: 两个helper methods
-    // 1. 遍历，把一个array of string变成一个array of outlineItem，处理markdown标题的 ‘#’
-    // 2. 转化成tree structure
     public init(content: string[]): Result<void, Error> {
         this.logService.debug('OutlineService', 'Initializing...');
-        const container = document.getElementById('workspace');
     
-        const outlineContainer = document.createElement('div');
-        outlineContainer.className = 'outline';
-        if (!container) {
-            console.error("Failed to find the outline container element");
-            return err(new Error("Container element not found."));
-        }
-        container.appendChild(outlineContainer);
-    
+        const outlineContainerResult = this.__renderOutline().unwrap();
+
         const root = this.__convertContentToTree(content);
-
-        const tree = new MultiTree<OutlineItem, void>(
-            outlineContainer,
-            root.data,
-            [new OutlineItemRenderer()],
-            new OutlineItemProvider(),
-            { forcePrimitiveType: true }
-        );
-
-        tree.splice(root.data, root.children);
-        tree.layout();
-        
+    
+        this.__setupTree(outlineContainerResult, root);
+    
         return ok();
     }
+    
     
     public close(): void {
         this.logService.debug('OutlineService', 'Closing...');
@@ -276,6 +258,22 @@ export class OutlineService extends Disposable implements IOutlineService {
         }));
     }
 
+    private __renderOutline(): Result<HTMLDivElement, Error> {
+        this.logService.debug('OutlineService', 'Rendering outline...');
+    
+        const container = document.getElementById('workspace');
+        if (!container) {
+            console.error("Failed to find the workspace container element");
+            return err(new Error("Workspace container element not found."));
+        }
+    
+        const outlineContainer = document.createElement('div');
+        outlineContainer.className = 'outline';
+        container.appendChild(outlineContainer);
+    
+        return ok(outlineContainer);
+    }
+    
     private __convertContentToTree(content: string[]): ITreeNodeItem<OutlineItem> {
         const root: ITreeNodeItem<OutlineItem> = {
             data: new OutlineItem(0, "Root", 0),
@@ -309,4 +307,18 @@ export class OutlineService extends Disposable implements IOutlineService {
     
         return root;
     }
+
+    private __setupTree(outlineContainer: HTMLDivElement, root: ITreeNodeItem<OutlineItem>): void {
+        this.logService.debug('OutlineService', 'Setting up the tree...');
+        const tree = new MultiTree<OutlineItem, void>(
+            outlineContainer,
+            root.data,
+            [new OutlineItemRenderer()],
+            new OutlineItemProvider(),
+            { forcePrimitiveType: true }
+        );
+    
+        tree.splice(root.data, root.children);
+        tree.layout();
+    }   
 }
