@@ -219,10 +219,23 @@ export class OutlineService extends Disposable implements IOutlineService {
     }
     
     public close(): void {
-        // TODO: 释放所有资源
         this.logService.debug('OutlineService', 'Closing...');
-        panic('not implemented');
-    }
+
+        if (this._tree) {
+            this._tree.dispose();
+            this._tree = undefined;
+        }
+
+        const container = document.getElementById('workspace');
+        const outlineContainer = container?.getElementsByClassName('outline')[0];
+        if (outlineContainer) {
+            container.removeChild(outlineContainer);
+        }
+    
+        this._onDidRender.dispose();
+        this._onDidClick.dispose();
+        super.dispose();
+    }  
 
     public override dispose(): void {
         this.close();
@@ -247,7 +260,7 @@ export class OutlineService extends Disposable implements IOutlineService {
                 return;
             }
             
-            // TODO: close before init
+            // close before init
             this.close();
             
             // init
