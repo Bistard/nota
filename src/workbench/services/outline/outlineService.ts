@@ -60,6 +60,8 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
  */
 export class OutlineItem implements IOutlineItem<OutlineItem> {
 
+    public static readonly ROOT_ID = 'outline-root';
+
     // [field]
 
     private readonly _id: number;
@@ -316,7 +318,7 @@ export class OutlineService extends Disposable implements IOutlineService {
  */
 export function buildOutlineTree(content: string[]): ITreeNodeItem<OutlineItem> {
     const root: ITreeNodeItem<OutlineItem> = {
-        data: new OutlineItem(0, "Root", 0),
+        data: new OutlineItem(0, OutlineItem.ROOT_ID, 0),
         children: []
     };
 
