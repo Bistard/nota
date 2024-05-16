@@ -1,6 +1,6 @@
 import { suite, test } from 'mocha';
 import * as assert from 'assert';
-import { OutlineItem, buildOutlineTree } from 'src/workbench/services/outline/outlineService';
+import { HeadingItem, buildOutlineTree } from 'src/workbench/services/outline/outlineService';
 import { TreeLike } from 'src/base/common/utilities/type';
 import { isEqualTreeLike } from 'test/utils/helpers';
 
@@ -13,14 +13,14 @@ suite('buildOutlineTree', () => {
         expect: TreeLike<string>[],
     ): void {
         const resultTree = buildOutlineTree(content);
-        const expectTree = { value: OutlineItem.ROOT_ID, children: expect } as TreeLike<string>;
+        const expectTree = { value: HeadingItem.ROOT_ID, children: expect } as TreeLike<string>;
 
         const isEqual = isEqualTreeLike(
             resultTree,
             expectTree,
-            (outlineItem, expectNode) => outlineItem.data.name === expectNode.value, // same name
-            outlineItem => (outlineItem.children?.length ?? 0) > 0,
-            outlineItem => outlineItem.children ?? [],
+            (headingItem, expectNode) => headingItem.data.name === expectNode.value, // same name
+            headingItem => (headingItem.children?.length ?? 0) > 0,
+            headingItem => headingItem.children ?? [],
             expectNode => (expectNode.children?.length ?? 0) > 0,
             expectNode => expectNode.children ?? [],
         );

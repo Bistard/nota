@@ -12,15 +12,15 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
-import { OutlineItemProvider, OutlineItemRenderer } from "src/workbench/services/outline/outlineItemRenderer";
+import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services/outline/headingItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
 /**
- * An interface only for {@link OutlineItem}.
+ * An interface only for {@link HeadingItem}.
  */
-export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
+export interface IHeadingItem<TItem extends IHeadingItem<TItem>> {
 
     /** 
      * The unique representation of the target. 
@@ -47,18 +47,18 @@ export interface IOutlineItem<TItem extends IOutlineItem<TItem>> {
      * The direct parent of the current item, if the current item is the root, 
      * return `null`.
      */
-    readonly parent: OutlineItem | null;
+    readonly parent: HeadingItem | null;
 
     /**
      * Returns the root of the entire tree.
      */
-    readonly root: OutlineItem;
+    readonly root: HeadingItem;
 }
 
 /**
  * @class Every item represents a heading in Markdown.
  */
-export class OutlineItem implements IOutlineItem<OutlineItem> {
+export class HeadingItem implements IHeadingItem<HeadingItem> {
 
     public static readonly ROOT_ID = 'outline-root';
 
@@ -68,8 +68,8 @@ export class OutlineItem implements IOutlineItem<OutlineItem> {
     private readonly _name: string;
     private readonly _depth: number;
 
-    private _parent: OutlineItem | null;
-    private _children: OutlineItem[];
+    private _parent: HeadingItem | null;
+    private _children: HeadingItem[];
 
     // [constructor]
 
@@ -93,27 +93,27 @@ export class OutlineItem implements IOutlineItem<OutlineItem> {
         return this._depth;
     }
 
-    get children(): OutlineItem[] {
+    get children(): HeadingItem[] {
         return this._children;
     }
 
-    get parent(): OutlineItem | null {
+    get parent(): HeadingItem | null {
         return this._parent;
     }
 
-    get root(): OutlineItem {
+    get root(): HeadingItem {
         if (this._parent === null) {
             return this;
         }
         return this._parent.root;
     }
 
-    public addChild(child: OutlineItem): void {
+    public addChild(child: HeadingItem): void {
         this._children.push(child);
         child._parent = this;
     }
 
-    public addChildren(children: OutlineItem[]): void {
+    public addChildren(children: HeadingItem[]): void {
         this._children = this._children.concat(children);
         children.forEach(child => child._parent = this);
     }
@@ -178,7 +178,7 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     private _container?: HTMLElement; // The container that contains the entire outline view
     private _currFile?: URI; // The URI of the current file being used to display the outline. 
-    private _tree?: MultiTree<OutlineItem, void>; // the actual tree view
+    private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
 
 
     // [constructor]
@@ -285,13 +285,13 @@ export class OutlineService extends Disposable implements IOutlineService {
         return container;
     }
 
-    private __setupTree(container: HTMLElement, root: ITreeNodeItem<OutlineItem>): Result<void, Error> {
+    private __setupTree(container: HTMLElement, root: ITreeNodeItem<HeadingItem>): Result<void, Error> {
         return Result.fromThrowable(() => {
-            const tree = new MultiTree<OutlineItem, void>(
+            const tree = new MultiTree<HeadingItem, void>(
                 container,
                 root.data,
-                [new OutlineItemRenderer()],
-                new OutlineItemProvider(),
+                [new HeadingItemRenderer()],
+                new HeadingItemProvider(),
                 { 
                     transformOptimization: true,
                     collapsedByDefault: false,
@@ -310,19 +310,19 @@ export class OutlineService extends Disposable implements IOutlineService {
 
 /**
  * @description Converts an array of markdown content to a tree structure of 
- * {@link OutlineItem}.
+ * {@link HeadingItem}.
  * @param content Array of markdown lines to be converted.
  * @returns The root node of the tree structure for later rendering purpose.
  * 
  * @note Export for unit test purpose.
  */
-export function buildOutlineTree(content: string[]): ITreeNodeItem<OutlineItem> {
-    const root: ITreeNodeItem<OutlineItem> = {
-        data: new OutlineItem(0, OutlineItem.ROOT_ID, 0),
+export function buildOutlineTree(content: string[]): ITreeNodeItem<HeadingItem> {
+    const root: ITreeNodeItem<HeadingItem> = {
+        data: new HeadingItem(0, HeadingItem.ROOT_ID, 0),
         children: []
     };
 
-    const stack = new Stack<ITreeNodeItem<OutlineItem>>();
+    const stack = new Stack<ITreeNodeItem<HeadingItem>>();
     stack.push(root);
 
     content.forEach((line, lineNumber) => {
@@ -342,8 +342,8 @@ export function buildOutlineTree(content: string[]): ITreeNodeItem<OutlineItem> 
         }
     
         const name = line.slice(level + 1, undefined).trim();
-        const item = new OutlineItem(lineNumber, name, level);
-        const node = { data: item, children: [] } as ITreeNodeItem<OutlineItem>;
+        const item = new HeadingItem(lineNumber, name, level);
+        const node = { data: item, children: [] } as ITreeNodeItem<HeadingItem>;
 
         // Backtrack to find the correct parent level
         while (stack.top().data.depth >= level) {

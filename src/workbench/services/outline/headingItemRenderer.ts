@@ -5,30 +5,30 @@ import { FuzzyScore } from "src/base/common/fuzzy";
 import { Icons } from "src/base/browser/icon/icons";
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { OutlineItem } from "src/workbench/services/outline/outlineService";
+import { HeadingItem } from "src/workbench/services/outline/outlineService";
 
-export const OutlineItemRendererType = 'outline';
+const HeadingItemRendererType = 'heading-item';
 
 /**
- * The type of metadata returned by {@link OutlineItemRenderer.render()}.
+ * The type of metadata returned by {@link HeadingItemRenderer.render()}.
  */
-export interface IOutlineItemMetadata extends IListViewMetadata {
+interface IHeadingItemMetadata extends IListViewMetadata {
     // Additional metadata can be added here
 }
 
 /**
  * @class The type of renderer used for {@link OutlineService}.
  */
-export class OutlineItemRenderer implements ITreeListRenderer<OutlineItem, FuzzyScore, IOutlineItemMetadata> {
+export class HeadingItemRenderer implements ITreeListRenderer<HeadingItem, FuzzyScore, IHeadingItemMetadata> {
 
-    public readonly type: RendererType = OutlineItemRendererType;
+    public readonly type: RendererType = HeadingItemRendererType;
 
     constructor() {}
 
-    public render(element: HTMLElement): IOutlineItemMetadata {
+    public render(element: HTMLElement): IHeadingItemMetadata {
         const text = document.createElement('span');
         text.className = 'outline-item';
-        text.style.lineHeight = `${OutlineItemProvider.Size}px`;
+        text.style.lineHeight = `${HeadingItemProvider.Size}px`;
 
         element.appendChild(text);
 
@@ -37,12 +37,12 @@ export class OutlineItemRenderer implements ITreeListRenderer<OutlineItem, Fuzzy
         };
     }
 
-    public update(item: ITreeNode<OutlineItem, void>, index: number, data: IOutlineItemMetadata, size?: number): void {
+    public update(item: ITreeNode<HeadingItem, void>, index: number, data: IHeadingItemMetadata, size?: number): void {
         const text = data.container;
         text.textContent = item.data.name;
     }
 
-    public updateIndent(item: ITreeNode<OutlineItem, FuzzyScore>, indentElement: HTMLElement): void {
+    public updateIndent(item: ITreeNode<HeadingItem, FuzzyScore>, indentElement: HTMLElement): void {
         if (item.collapsible) {
             indentElement.classList.add(...getIconClass(Icons.ArrowRight));
         } else {
@@ -50,27 +50,27 @@ export class OutlineItemRenderer implements ITreeListRenderer<OutlineItem, Fuzzy
         }
     }
 
-    public dispose(data: IOutlineItemMetadata): void {
+    public dispose(data: IHeadingItemMetadata): void {
         // Dispose logic can be added here if necessary
     }
 }
 
 /**
- * @class A {@link IListItemProvider} used for {@link OutlineItem}.
+ * @class A {@link IListItemProvider} used for {@link HeadingItem}.
  */
-export class OutlineItemProvider implements IListItemProvider<OutlineItem> {
+export class HeadingItemProvider implements IListItemProvider<HeadingItem> {
 
     /**
      * The height in pixels for every outline item.
      */
     public static readonly Size = 22;
 
-    public getSize(data: OutlineItem): number {
-        return OutlineItemProvider.Size;
+    public getSize(data: HeadingItem): number {
+        return HeadingItemProvider.Size;
     }
 
-    public getType(data: OutlineItem): RendererType {
-        return OutlineItemRendererType;
+    public getType(data: HeadingItem): RendererType {
+        return HeadingItemRendererType;
     }
 
 }
