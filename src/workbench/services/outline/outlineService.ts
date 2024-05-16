@@ -5,16 +5,16 @@ import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
-import { Result, err, ok } from "src/base/common/result";
+import { Result, err } from "src/base/common/result";
 import { Stack } from "src/base/common/structures/stack";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
+import { HeadingItem } from "src/workbench/services/outline/headingItem";
 import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services/outline/headingItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
-import { HeadingItem } from "./headingItem";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -177,9 +177,22 @@ export class OutlineService extends Disposable implements IOutlineService {
         
         const container = document.createElement('div');
         container.className = 'outline';
+
+        const editor = this.editorService.editor;
+        let fileName = '';
+        if (editor && editor.model && editor.model.source) {
+            fileName = editor.model.source.path.split('/').pop() || fileName;
+        }
+        const heading = document.createElement('div');
+        heading.className = 'file-name-heading';
+        const fileNameSpan = document.createElement('span');
+        fileNameSpan.textContent = fileName;
+        heading.appendChild(fileNameSpan);
         
+        container.appendChild(heading);
         workspace.appendChild(container);
         this._container = container;
+
         return container;
     }
 

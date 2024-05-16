@@ -15,15 +15,23 @@
     }
   
     & > .outline {
-        position: relative;
-        margin: auto;
-        height: 100%;
-        width: 250px;
+        color: var(--nota-outline-primary-text);
+        position: fixed;
+        width: 230px;
+        height: calc(100% - 45px); /* Adjust height to take into account the title bar */
+        right: 0; /* Position on the right side of the screen */
         top: 45px;
+        overflow-y: auto;
+
+        & > .file-name-heading {
+            font-size: 12.5px;
+            font-weight: bold !important;
+            padding: 14px 14px;
+        }
 
         & > .list-view-container {
             width: 100% !important;
-            height: 600px !important;
+            padding-left: 0px !important;
         }
     }
 }

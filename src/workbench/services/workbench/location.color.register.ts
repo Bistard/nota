@@ -58,5 +58,6 @@ export const rendererThemeLocationRegister = createRegister(
         // Workspace
         registrant.registerTemplate('window-bar-button-hover-background');
         registrant.registerTemplate('window-bar-button-active-background');
+        registrant.registerTemplate('outline-primary-text');
     },
 );
