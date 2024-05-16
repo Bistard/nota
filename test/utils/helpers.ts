@@ -130,7 +130,7 @@ export function bfs<T>(node: T, childProp: string, visitor: (node: T) => void): 
  * leaf has a type TLeaf. A node represented by an array of TLeaf.
  * @param createLeaf A function to generate a leaf.
  * @param size A coefficient determines the size of the tree. Defaults to 50 and
- *             the corresponding tree size is arround 25k. 100 could results to
+ *             the corresponding tree size is around 25k. 100 could results to
  *             around 1500k.
  * @returns The generated random tree and the actual size of the tree (node count).
  * 
@@ -163,6 +163,57 @@ export function generateTreeLike<TLeaf>(
         dfs([], 1),
         nodeCount,
     ];
+}
+
+/**
+ * @description Compares two tree-like structures for equality.
+ *
+ * @param root1 The root node of the first tree.
+ * @param root2 The root node of the second tree.
+ * @param isNodeEqual Function to compare two nodes for equality.
+ * @param hasChildren1 Function to check if a node in the first tree has children.
+ * @param getChildren1 Function to get the children of a node in the first tree.
+ * @param hasChildren2 Function to check if a node in the second tree has children.
+ * @param getChildren2 Function to get the children of a node in the second tree.
+ * @returns Returns true if the two trees are structurally identical and all 
+ *          corresponding nodes are equal, otherwise returns false.
+ */
+export function isEqualTreeLike<TNode1, TNode2>(
+    root1: TNode1, 
+    root2: TNode2,
+    isNodeEqual: (node1: TNode1, node2: TNode2) => boolean,
+    hasChildren1: (node: TNode1) => boolean,
+    getChildren1: (node: TNode1) => TNode1[],
+    hasChildren2: (node: TNode2) => boolean,
+    getChildren2: (node: TNode2) => TNode2[],
+): boolean {
+
+    if (!isNodeEqual(root1, root2)) {
+        return false;
+    }
+
+    if (hasChildren1(root1) !== hasChildren2(root2)) {
+        return false;
+    }
+    
+    const children1 = getChildren1(root1);
+    const children2 = getChildren2(root2);
+
+    if (children1.length !== children2.length) {
+        return false;
+    }
+
+    const len = children1.length;
+    for (let i = 0; i < len; i++) {
+        const child1 = children1[i]!;
+        const child2 = children2[i]!;
+        const same = isEqualTreeLike(child1, child2, isNodeEqual, hasChildren1, getChildren1, hasChildren2, getChildren2);
+        if (same === false) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
