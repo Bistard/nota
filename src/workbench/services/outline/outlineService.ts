@@ -84,7 +84,7 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _currFile?: URI; // The URI of the current file being used to display the outline. 
     private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
 
-    private readonly _button: ToggleCollapseButton;
+    private _button?: ToggleCollapseButton;
     private _isVisible: boolean = true;
 
     // [constructor]
@@ -95,23 +95,14 @@ export class OutlineService extends Disposable implements IOutlineService {
         @ICommandService private readonly commandService: ICommandService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
-        @IConfigurationService configurationService: IConfigurationService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
         
         this._tree = undefined;
         this._currFile = undefined;
-        
-        const toggleState = configurationService.get(WorkbenchConfiguration.OutlineToggleState, CollapseState.Expand);
-        this._button = new ToggleCollapseButton({
-            initState: toggleState,
-            positionX: DirectionX.Left,
-            positionOffsetX: -3,
-            positionY: DirectionY.Top,
-            positionOffsetY: 15.2,
-            direction: DirectionX.Right,
-        });
+        this._button = undefined;
 
         this.__registerListeners();
     }
@@ -136,12 +127,10 @@ export class OutlineService extends Disposable implements IOutlineService {
             return err(new Error('OutlineService cannot initialized when the EditorService is not initialized.'));
         }
 
-        const content = editor.model.getContent();
-        
+        const content = editor.model.getContent();     
         const container = this.__renderOutline(); // 'outline'
-        this._button.render(container);
+    
         const root = buildOutlineTree(content);
-
         return this.__setupTree(container, root)
             .map(() => {
                 this._currFile = editor.model.source;
@@ -156,6 +145,8 @@ export class OutlineService extends Disposable implements IOutlineService {
 
         this._tree?.dispose();
         this._tree = undefined;
+        this._button?.dispose();
+        this._button = undefined;
         
         this._container?.remove();
         this._container = undefined;
@@ -190,10 +181,46 @@ export class OutlineService extends Disposable implements IOutlineService {
             // init
             this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
         }));
+    }
 
-        this._button.onDidCollapseStateChange((state: CollapseState) => {
-            this.toggleOutlineVisibility(state === CollapseState.Collapse);
+    private __renderOutline(): HTMLElement {
+        const workspace = this.workspaceService.element;
+        
+        const container = document.createElement('div');
+        container.className = 'outline';
+
+        const editor = this.editorService.editor;
+        const fileName = URI.basename(editor!.model.source!);
+
+        // create outline heading
+        const heading = document.createElement('div');
+        heading.className = 'file-name-heading';
+        const fileNameSpan = document.createElement('span');
+        fileNameSpan.textContent = fileName;
+        heading.appendChild(fileNameSpan);
+        
+        container.appendChild(heading);
+
+        // create outline toggle button
+        const toggleState = this.configurationService.get(WorkbenchConfiguration.OutlineToggleState, CollapseState.Expand);
+        this._button = new ToggleCollapseButton({
+            initState: toggleState,
+            positionX: DirectionX.Left,
+            positionOffsetX: -3,
+            positionY: DirectionY.Top,
+            positionOffsetY: 15.2,
+            direction: DirectionX.Right,
         });
+        this._button.render(container);
+
+        this.__register(this._button.onDidCollapseStateChange((state: CollapseState) => {
+            this.toggleOutlineVisibility(state === CollapseState.Collapse);
+        }));
+
+        workspace.appendChild(container);
+        this._container = container;
+
+        return container;
     }
 
     private toggleOutlineVisibility(isCollapsed: boolean): void {
@@ -207,30 +234,6 @@ export class OutlineService extends Disposable implements IOutlineService {
             this._container?.classList.remove('hidden');
             if (editorElement) editorElement.element.style.paddingRight = '230px';
         }
-    }
-
-    private __renderOutline(): HTMLElement {
-        const workspace = this.workspaceService.element;
-        
-        const container = document.createElement('div');
-        container.className = 'outline';
-
-        const editor = this.editorService.editor;
-        let fileName = '';
-        if (editor && editor.model && editor.model.source) {
-            fileName = editor.model.source.path.split('/').pop() || fileName;
-        }
-        const heading = document.createElement('div');
-        heading.className = 'file-name-heading';
-        const fileNameSpan = document.createElement('span');
-        fileNameSpan.textContent = fileName;
-        heading.appendChild(fileNameSpan);
-        
-        container.appendChild(heading);
-        workspace.appendChild(container);
-        this._container = container;
-
-        return container;
     }
 
     private __setupTree(container: HTMLElement, root: ITreeNodeItem<HeadingItem>): Result<void, Error> {
