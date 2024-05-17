@@ -85,6 +85,7 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
 
     private readonly _button: ToggleCollapseButton;
+    private _isVisible: boolean = true;
 
     // [constructor]
 
@@ -106,7 +107,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._button = new ToggleCollapseButton({
             initState: toggleState,
             positionX: DirectionX.Left,
-            positionOffsetX: -1,
+            positionOffsetX: -3,
             positionY: DirectionY.Top,
             positionOffsetY: 15.2,
             direction: DirectionX.Right,
@@ -189,6 +190,23 @@ export class OutlineService extends Disposable implements IOutlineService {
             // init
             this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
         }));
+
+        this._button.onDidCollapseStateChange((state: CollapseState) => {
+            this.toggleOutlineVisibility(state === CollapseState.Collapse);
+        });
+    }
+
+    private toggleOutlineVisibility(isCollapsed: boolean): void {
+        const editorElement = this.editorService.element;
+        if (isCollapsed) {
+            this._container?.classList.add('hidden');
+            this._container?.classList.remove('visible');
+            if (editorElement) editorElement.element.style.paddingRight = '0';
+        } else {
+            this._container?.classList.add('visible');
+            this._container?.classList.remove('hidden');
+            if (editorElement) editorElement.element.style.paddingRight = '230px';
+        }
     }
 
     private __renderOutline(): HTMLElement {

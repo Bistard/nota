@@ -10,7 +10,15 @@
     height: calc(100% - 45px); /* Adjust height to take into account the title bar */
     right: 0; /* Position on the right side of the screen */
     top: 45px;
-    overflow-y: auto;
+    transition: right 0.3s ease-in-out;
+
+    &.hidden {
+        right: -216px;  // Hide by sliding out
+    }
+
+    &.visible {
+        right: 0;  // Show by sliding in
+    }
 
     & > .file-name-heading {
         font-size: 12.5px;

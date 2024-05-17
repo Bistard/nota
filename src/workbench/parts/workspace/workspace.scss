@@ -10,9 +10,10 @@
 
     #editor {
         position: relative;
-        padding-left: 5%;
-        width: calc(95% - 230px);
+        padding-left: 40px;
+        padding-right: 230px;
+        width: 100%;
         top: 49px;
+        transition: padding-right 0.3s ease-in-out;
     }
 }
-  
