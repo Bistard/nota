@@ -20,6 +20,7 @@ import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { IEditorModel } from "src/editor/common/model";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -83,9 +84,7 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _container?: HTMLElement; // The container that contains the entire outline view
     private _currFile?: URI; // The URI of the current file being used to display the outline. 
     private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
-
     private _button?: ToggleCollapseButton;
-    private _isVisible: boolean = true;
 
     // [constructor]
 
@@ -121,19 +120,17 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     public init(): Result<void, Error> {
         this.logService.debug('OutlineService', 'Initializing...');
-    
+        
+        // validation
         const editor = this.editorService.editor;
         if (!editor) {
             return err(new Error('OutlineService cannot initialized when the EditorService is not initialized.'));
         }
 
-        const content = editor.model.getContent();     
-        const container = this.__renderOutline(); // 'outline'
-    
-        const root = buildOutlineTree(content);
-        return this.__setupTree(container, root)
+        // init container
+        const container = this.__renderOutline();
+        return this.__initTree(editor.model, container)
             .map(() => {
-                this._currFile = editor.model.source;
                 this.logService.debug('OutlineService', 'Initialized successfully.');
             });
     }
@@ -141,16 +138,13 @@ export class OutlineService extends Disposable implements IOutlineService {
     public close(): void {
         this.logService.debug('OutlineService', 'Closing...');
 
-        this._currFile = undefined;
-
-        this._tree?.dispose();
-        this._tree = undefined;
+        this.__removeTree();
         this._button?.dispose();
         this._button = undefined;
         
         this._container?.remove();
         this._container = undefined;
-    }  
+    }
 
     public override dispose(): void {
         this.close();
@@ -175,12 +169,41 @@ export class OutlineService extends Disposable implements IOutlineService {
                 return;
             }
             
-            // close before init
-            this.close();
-            
-            // init
-            this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
+            /**
+             * When a file is opened, `init()` only invoked when this is the first 
+             * time constructing the outline service, otherwise only re-initialize
+             * the tree itself.
+             */
+            const afterWork = (() => {
+                // init
+                if (!this._tree) {
+                    return this.init();
+                } 
+                // remove outline content if defined
+                else {
+                    this.__removeTree();
+                    return this.__initTree(this.editorService.editor!.model, this._container!);
+                }
+            })();
+
+            afterWork.match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
         }));
+    }
+
+    private __initTree(model: IEditorModel, container: HTMLElement): Result<void, Error> {
+        const content = model.getContent();
+        const root = buildOutlineTree(content);
+        return this.__setupTree(container, root)
+            .map(() => {
+                this._currFile = model.source;
+            });
+    }
+
+    private __removeTree(): void {
+        this._currFile = undefined;
+
+        this._tree?.dispose();
+        this._tree = undefined;
     }
 
     private __renderOutline(): HTMLElement {
@@ -251,10 +274,10 @@ export class OutlineService extends Disposable implements IOutlineService {
                     },
                 }
             );
+            this._tree = tree;
         
             tree.splice(root.data, root.children);
             tree.layout();
-            
         }, error => error as Error);
     }   
 }
