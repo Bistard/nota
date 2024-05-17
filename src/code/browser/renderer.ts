@@ -3,7 +3,7 @@ import "src/workbench/parts/workspace/editor/editor"; // TODO
 import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
-import { waitDomToBeLoad } from "src/base/browser/basic/dom";
+import { CollapseState, waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -27,7 +27,7 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister, rendererWorkspaceConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
@@ -326,6 +326,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 [
                     rendererWorkbenchConfigurationRegister,
                     rendererNavigationViewConfigurationRegister,
+                    rendererWorkspaceConfigurationRegister,
                 ]
                 .forEach(register => register(provider));
             }

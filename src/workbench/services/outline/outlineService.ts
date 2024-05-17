@@ -18,6 +18,8 @@ import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { HeadingItem } from "src/workbench/services/outline/headingItem";
 import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services/outline/headingItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -92,16 +94,17 @@ export class OutlineService extends Disposable implements IOutlineService {
         @ICommandService private readonly commandService: ICommandService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
-        initState: CollapseState,
+        @IConfigurationService configurationService: IConfigurationService,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
         
         this._tree = undefined;
         this._currFile = undefined;
-
+        
+        const toggleState = configurationService.get(WorkbenchConfiguration.OutlineToggleState, CollapseState.Expand);
         this._button = new ToggleCollapseButton({
-            initState: initState,
+            initState: toggleState,
             positionX: DirectionX.Left,
             positionOffsetX: -1,
             positionY: DirectionY.Top,
