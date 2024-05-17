@@ -1,5 +1,5 @@
 import "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton.scss";
-import { CollapseState, Direction, DirectionX, DirectionY } from "src/base/browser/basic/dom";
+import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { Emitter, Register } from "src/base/common/event";
 import { assert, panic } from "src/base/common/utilities/panic";
@@ -16,26 +16,34 @@ export interface IToggleCollapseButtonOptions {
     readonly initState: CollapseState;
 
     /**
-     * Specifies the position of the button relative to its parent. The button 
-     * is always centered at the specified position.
-     * @example If `position` is 'left', the button will be positioned on the 
-     *          left side of its parent.
+     * Specifies the horizontal position of the button relative to its parent.
+     * The button is always centered at the specified position.
      */
-    readonly position: Direction;
+    readonly positionX?: DirectionX;
 
     /**
-     * Defines the offset (in pixels) from the specified `position` where the 
+     * Defines the horizontal offset (in pixels) from the specified `positionX` where the 
      * button will be placed.
-     * @example If `positionOffset` is `10` and `position` is `left`, the button 
-     *          will be 10 pixels to the right of the left edge of its parent.
      */
-    readonly positionOffset: number;
-    
+    readonly positionOffsetX?: number;
+
+    /**
+     * Specifies the vertical position of the button relative to its parent.
+     * The button is always centered at the specified position.
+     */
+    readonly positionY?: DirectionY;
+
+    /**
+     * Defines the vertical offset (in pixels) from the specified `positionY` where the 
+     * button will be placed.
+     */
+    readonly positionOffsetY?: number;
+
     /**
      * Indicates the direction in which the button will face before it collapses. 
      * The expansion direction will be the opposite of this.
      */
-    readonly direction: Direction;
+    readonly direction: DirectionX | DirectionY;
 
     /**
      * If provided, the button will be set with the z-index. Otherwise the 
@@ -55,7 +63,7 @@ export interface IToggleCollapseButton extends IWidget {
     readonly state: CollapseState;
 
     /**
-     * Fires when the button wether collapsed.
+     * Fires when the button whether collapsed.
      */
     readonly onDidCollapseStateChange: Register<CollapseState>;
 }
@@ -125,24 +133,23 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
 
     protected override __applyStyle(element: HTMLElement): void {
         const button = assert(this._button);
-        const { position, positionOffset, direction } = this._opts;
+        const { positionX, positionOffsetX, positionY, positionOffsetY, direction } = this._opts;
 
         // set position of the button
-        switch (position) {
-            case DirectionX.Left:
-                button.style.left = `${positionOffset}px`;
-                break;
-            case DirectionX.Right:
-                button.style.right = `${positionOffset}px`;
-                break;
-            case DirectionY.Top:
-                button.style.top = `${positionOffset}px`;
-                break;
-            case DirectionY.Bottom:
-                button.style.bottom = `${positionOffset}px`;
-                break;
-            default:
-                panic(`[ToggleCollapseButton] invalid position: ${position}`);
+        if (positionX !== undefined && positionOffsetX !== undefined) {
+            if (positionX === DirectionX.Left) {
+                button.style.left = `${positionOffsetX}px`;
+            } else if (positionX === DirectionX.Right) {
+                button.style.right = `${positionOffsetX}px`;
+            }
+        }
+
+        if (positionY !== undefined && positionOffsetY !== undefined) {
+            if (positionY === DirectionY.Top) {
+                button.style.top = `${positionOffsetY}px`;
+            } else if (positionY === DirectionY.Bottom) {
+                button.style.bottom = `${positionOffsetY}px`;
+            }
         }
 
         /**
@@ -163,18 +170,13 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
             button.style.zIndex = `${newZIndex}`;
         }
 
-        // centralize the button
-        switch (position) {
-            case DirectionX.Left:
-            case DirectionX.Right:
-                button.style.top = `50%`;
-                button.style.transform = `translateY(-50%)`;
-                break;
-            case DirectionY.Bottom:
-            case DirectionY.Top:
-                button.style.left = `50%`;
-                button.style.transform = `translateX(-50%)`;
-                break;
+        // centralize the button if either positionX or positionY is not provided
+        if (positionX !== undefined && positionY === undefined) {
+            button.style.top = `50%`;
+            button.style.transform = `translateY(-50%)`;
+        } else if (positionY !== undefined && positionX === undefined) {
+            button.style.left = `50%`;
+            button.style.transform = `translateX(-50%)`;
         }
         
         // set the collapse direction of the button (which the button should facing to)
@@ -200,7 +202,7 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
             this.__flipOver(button);
         } else {
             // default is expand, no flip over.
-            button.style.transform = `rotate(${this._rotationAngle}deg)`;
+            button.style.transform += ` rotate(${this._rotationAngle}deg)`;
         }
     }
 

@@ -167,8 +167,8 @@ class CollapseAnimationController extends Disposable {
 
         this._button = new ToggleCollapseButton({
             initState: initState,
-            position: DirectionX.Left,
-            positionOffset: 12,
+            positionX: DirectionX.Left,
+            positionOffsetX: 12,
             direction: DirectionX.Left,
         });
     }

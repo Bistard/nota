@@ -1,3 +1,5 @@
+import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
+import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { Disposable } from "src/base/common/dispose";
@@ -79,6 +81,8 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _currFile?: URI; // The URI of the current file being used to display the outline. 
     private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
 
+    private readonly _button: ToggleCollapseButton;
+
     // [constructor]
 
     constructor(
@@ -87,12 +91,22 @@ export class OutlineService extends Disposable implements IOutlineService {
         @ICommandService private readonly commandService: ICommandService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
+        initState: CollapseState,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
         
         this._tree = undefined;
         this._currFile = undefined;
+
+        this._button = new ToggleCollapseButton({
+            initState: initState,
+            positionX: DirectionX.Left,
+            positionOffsetX: -1,
+            positionY: DirectionY.Top,
+            positionOffsetY: 15.2,
+            direction: DirectionX.Right,
+        });
 
         this.__registerListeners();
     }
@@ -119,9 +133,10 @@ export class OutlineService extends Disposable implements IOutlineService {
 
         const content = editor.model.getContent();
         
-        const container = this.__renderOutline();
+        const container = this.__renderOutline(); // 'outline'
+        this._button.render(container);
         const root = buildOutlineTree(content);
-        
+
         return this.__setupTree(container, root)
             .map(() => {
                 this._currFile = editor.model.source;
