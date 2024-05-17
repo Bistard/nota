@@ -35,17 +35,14 @@
             &.hovered:not(.selected) {
                 color: var(--nota-outline-select-text);
                 background-color: transparent;
+
+                ::before {
+                    opacity: 0.8;
+                }
             }
 
             &.focused:not(.selected) {
                 background-color: transparent;
-            }
-
-            // only display arrow when hovering
-            &:hover {
-                ::before {
-                    opacity: 0.8;
-                }
             }
         }
 
@@ -61,7 +58,7 @@
                 margin-right: 2px;
     
                 // animations
-                transition: transform 0.3s ease, opacity 0.5s ease;
+                transition: transform 0.3s ease, opacity 0.3s ease-in-out;
             }
     
             &.collapsed::before {
