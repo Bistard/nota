@@ -73,6 +73,15 @@
                 opacity: 0.85;
                 transform: rotate(0deg);
             }
+
+            // add "..." after a collapsed item
+            &.collapsed + .tree-list-content::after {
+                content: "...";
+                position: absolute;
+                margin-left: 4px;
+                top: 40%;
+                transform: translateY(-50%);
+            }
     
             &:not(.collapsed)::before {
                 opacity: 0;
