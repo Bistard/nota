@@ -1,3 +1,4 @@
+import "src/workbench/services/outline/outline.scss";
 import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
