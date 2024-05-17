@@ -40,6 +40,10 @@ export class HeadingItemRenderer implements ITreeListRenderer<HeadingItem, Fuzzy
     public update(item: ITreeNode<HeadingItem, void>, index: number, data: IHeadingItemMetadata, size?: number): void {
         const text = data.container;
         text.textContent = item.data.name;
+
+        // mark level
+        const heading = item.data;
+        text.setAttribute('level', heading.depth.toString());
     }
 
     public updateIndent(item: ITreeNode<HeadingItem, FuzzyScore>, indentElement: HTMLElement): void {
