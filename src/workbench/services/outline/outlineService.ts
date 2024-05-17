@@ -85,6 +85,7 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _currFile?: URI; // The URI of the current file being used to display the outline. 
     private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
     private _button?: ToggleCollapseButton;
+    private _heading?: HTMLElement; // The heading element displaying the file name
 
     // [constructor]
 
@@ -102,6 +103,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._tree = undefined;
         this._currFile = undefined;
         this._button = undefined;
+        this._heading = undefined;
 
         this.__registerListeners();
     }
@@ -196,6 +198,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         return this.__setupTree(container, root)
             .map(() => {
                 this._currFile = model.source;
+                this.__updateHeading(model.source);
             });
     }
 
@@ -204,6 +207,9 @@ export class OutlineService extends Disposable implements IOutlineService {
 
         this._tree?.dispose();
         this._tree = undefined;
+        
+        this._heading?.remove();
+        this._heading = undefined;
     }
 
     private __renderOutline(): HTMLElement {
@@ -211,18 +217,6 @@ export class OutlineService extends Disposable implements IOutlineService {
         
         const container = document.createElement('div');
         container.className = 'outline';
-
-        const editor = this.editorService.editor;
-        const fileName = URI.basename(editor!.model.source!);
-
-        // create outline heading
-        const heading = document.createElement('div');
-        heading.className = 'file-name-heading';
-        const fileNameSpan = document.createElement('span');
-        fileNameSpan.textContent = fileName;
-        heading.appendChild(fileNameSpan);
-        
-        container.appendChild(heading);
 
         // create outline toggle button
         const toggleState = this.configurationService.get(WorkbenchConfiguration.OutlineToggleState, CollapseState.Expand);
@@ -244,6 +238,23 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._container = container;
 
         return container;
+    }
+
+    private __updateHeading(uri: URI): void {
+        if (!this._container) return;
+
+        if (this._heading) {
+            this._heading.remove();
+        }
+
+        const fileName = URI.basename(uri);
+        this._heading = document.createElement('div');
+        this._heading.className = 'file-name-heading';
+        const fileNameSpan = document.createElement('span');
+        fileNameSpan.textContent = fileName;
+        this._heading.appendChild(fileNameSpan);
+        
+        this._container.insertBefore(this._heading, this._container.firstChild);
     }
 
     private toggleOutlineVisibility(isCollapsed: boolean): void {
