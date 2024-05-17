@@ -90,6 +90,10 @@
         }
 
         .tree-list-content {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        
             .outline-item[level='1'] {
                 font-family: harmonyOS sans-bold;
             }
