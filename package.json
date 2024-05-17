@@ -9,7 +9,7 @@
 		"eslint-plugin-local": "./scripts/linting/eslint-plugin-local"
 	},
 	"scripts": {
-		"postinstall": "link-module-alias",
+		"postinstall": "node ./scripts/postinstall.js",
 		"script": "node ./scripts/script.js"
 	},
 	"repository": {
