@@ -543,10 +543,12 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
+export const isNotDefined = isNullable;
 export function isNullable(value: any): value is undefined | null {
     return (typeof value === 'undefined' || value === null);
 }
 
+export const isDefined = isNonNullable;
 export function isNonNullable<T>(value: T): value is NonNullable<T> {
     return !isNullable(value);
 }

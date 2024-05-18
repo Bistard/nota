@@ -243,10 +243,14 @@ export class OutlineService extends Disposable implements IOutlineService {
         const toggleState = this.configurationService.get(WorkbenchConfiguration.OutlineToggleState, CollapseState.Expand);
         this._button = new ToggleCollapseButton({
             initState: toggleState,
-            positionX: DirectionX.Left,
-            positionOffsetX: -3,
-            positionY: DirectionY.Top,
-            positionOffsetY: 15.2,
+            positionX: {
+                position: DirectionX.Left,
+                offset: -3,
+            },
+            positionY: {
+                position: DirectionY.Top,
+                offset: 15.2,
+            },
             direction: DirectionX.Right,
         });
         this._button.render(container);
