@@ -445,28 +445,6 @@ suite('async-test', () => {
 			lastEvent = null;
 		});
 	
-		test('basics', () => FakeAsync.run(async () => {
-			let cnt = 0;
-			const scheduler = new UnbufferedScheduler<number>(INSTANT_TIME, e => {
-				cnt += e;
-			});
-			repeat(10, () => scheduler.schedule(1));
-			await delayFor(new Time(TimeUnit.Milliseconds, 10), () => {
-				assert.strictEqual(cnt, 1);
-			});
-	
-			// cancellation
-	
-			const scheduler2 = new UnbufferedScheduler<number>(INSTANT_TIME, e => {
-				cnt += e;
-			});
-			repeat(10, () => scheduler2.schedule(1));
-			scheduler2.cancel();
-			await delayFor(new Time(TimeUnit.Milliseconds, 10), () => {
-				assert.strictEqual(cnt, 1);
-			});
-		}));
-
 		test('should schedule and execute callback after delay', () => FakeAsync.run(async () => {
 			scheduler.schedule('event1');
 			const event = await blocker.waiting();
@@ -509,6 +487,14 @@ suite('async-test', () => {
 			const event = await blocker.waiting();
 			assert.equal(event, 'timeout');
 			assert.equal(lastEvent, null);
+		}));
+
+		test('should return current event', () => FakeAsync.run(async () => {
+			scheduler.schedule('event1');
+
+			assert.strictEqual('event1', scheduler.currentEvent);
+			await blocker.waiting();
+			assert.strictEqual(undefined, scheduler.currentEvent);
 		}));
 	});
 

@@ -688,6 +688,12 @@ export class Scheduler<T> implements IScheduler<T> {
 export interface IUnbufferedScheduler<T> extends IDisposable {
 	
 	/**
+	 * Represents the current scheduling event that is buffered and not ready 
+	 * to fire. Return `undefined` when there is no waiting scheduling.
+	 */
+	readonly currentEvent?: T;
+
+	/**
 	 * @description Schedules the callback with the given delay and fires an 
 	 * event to the callback, if a new scheduling happens before the previous
 	 * scheduling, the previous scheduled event will be forget.
@@ -722,6 +728,7 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 	private _callback: (event: T) => void;
 	private readonly _delay: Time;
 	private _token?: NodeJS.Timeout;
+	private _currEvent?: T;
 
 	// [constructor]
 
@@ -730,12 +737,21 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 		this._delay = delay;
 	}
 
+	// [getter]
+
+	get currentEvent(): T | undefined {
+		return this._currEvent;
+	}
+
 	// [public methods]
 
 	public schedule(event: T, delay: Time = this._delay): void {
 		this.cancel();
+		this._currEvent = event;
+
 		this._token = setTimeout(() => {
 			this._callback(event);
+			this.cancel();
 		}, delay.toMs().time);
 	}
 
@@ -747,6 +763,7 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 		if (!isNullable(this._token)) {
 			clearTimeout(this._token);
 			this._token = undefined;
+			this._currEvent = undefined;
 			return true;
 		}
 		return false;
