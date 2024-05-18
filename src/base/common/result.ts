@@ -39,14 +39,17 @@ export namespace Result {
      * );
      * // Logs: Caught error: Error: Failed!
      */
-    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError: (error: unknown) => E): Result<T, E> {
+    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError?: (error: unknown) => E): Result<T, E> {
         let res: T;
 
         try {
             res = mightThrow();
         }
         catch (error: unknown) {
-            return err(onError(error));
+            if (onError) {
+                return err(onError(error));
+            }
+            return err(<E>error);
         }
 
         return ok(res);

@@ -1,27 +1,23 @@
 import "src/workbench/services/outline/outline.scss";
 import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
-import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { Result, err } from "src/base/common/result";
-import { Stack } from "src/base/common/structures/stack";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
-import { HeadingItem } from "src/workbench/services/outline/headingItem";
 import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services/outline/headingItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
-import { IEditorModel } from "src/editor/common/model";
-import { assert } from "src/base/common/utilities/panic";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -87,7 +83,7 @@ export class OutlineService extends Disposable implements IOutlineService {
     
     private _heading?: HTMLElement; // The heading element displaying the file name
     private _currFile?: URI; // The URI of the current file being used to display the outline
-    private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
+    private _tree?: IOutlineTree; // the actual tree view
     private _treeDisposable?: DisposableManager; // stores all the disposable along with the tree
 
     // [constructor]
@@ -99,6 +95,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
@@ -135,7 +132,7 @@ export class OutlineService extends Disposable implements IOutlineService {
 
         // init container
         const container = this.__renderOutline();
-        return this.__initTree(editor.model, container)
+        return this.__initTree(container)
             .map(() => {
                 this.logService.debug('OutlineService', 'Initialized successfully.');
             });
@@ -188,7 +185,7 @@ export class OutlineService extends Disposable implements IOutlineService {
                 // remove outline content if defined
                 else {
                     this.__removeTree();
-                    return this.__initTree(this.editorService.editor!.model, this._container!);
+                    return this.__initTree(this._container!);
                 }
             })();
 
@@ -196,14 +193,47 @@ export class OutlineService extends Disposable implements IOutlineService {
         }));
     }
 
-    private __initTree(model: IEditorModel, container: HTMLElement): Result<void, Error> {
-        const content = model.getContent();
-        const root = buildOutlineTree(content);
-        return this.__setupTree(container, root)
-            .map(() => {
-                this._currFile = model.source;
-                this.__updateHeading(model.source);
-            });
+    private __initTree(container: HTMLElement): Result<void, Error> {
+        
+        // tree initialization
+        return Result.fromThrowable<OutlineTree, Error>(() => {
+            
+            /**
+             * When constructing a {@link OutlineTree}, the tree itself will 
+             * parse the current file content and filter out the headings into 
+             * a tree structure.
+             */
+            return this.instantiationService.createInstance(
+                OutlineTree,
+                container,
+                [new HeadingItemRenderer()],
+                new HeadingItemProvider(),
+                { 
+                    transformOptimization: true,
+                    collapsedByDefault: false,
+                    identityProvider: {
+                        getID: heading => heading.id.toString(),
+                    },
+                }
+            );
+        })
+        // after work
+        .map(tree => {
+            this._tree = tree;
+            this._currFile = tree.fileURI;
+            this.__updateHeading(tree.fileURI);
+
+            const cleanup = new DisposableManager();
+            this._treeDisposable = cleanup;
+
+            // listeners
+            cleanup.register(this._tree.onDidHover(e => {
+                console.log(e); // TEST only
+                if (e.isOverflow) {
+                    // TODO: render a hover box
+                }
+            }));
+        });
     }
 
     private __removeTree(): void {
@@ -276,101 +306,4 @@ export class OutlineService extends Disposable implements IOutlineService {
             if (editorElement) editorElement.element.style.paddingRight = '230px';
         }
     }
-
-    private __setupTree(container: HTMLElement, root: ITreeNodeItem<HeadingItem>): Result<void, Error> {
-        return Result.fromThrowable(() => {
-            const tree = new MultiTree<HeadingItem, void>(
-                container,
-                root.data,
-                [new HeadingItemRenderer()],
-                new HeadingItemProvider(),
-                { 
-                    transformOptimization: true,
-                    collapsedByDefault: false,
-                    identityProvider: {
-                        getID: heading => heading.id.toString(),
-                    },
-                }
-            );
-            this._tree = tree;
-        
-            tree.splice(root.data, root.children);
-            tree.layout();
-
-            const cleanup = new DisposableManager();
-            this._treeDisposable = cleanup;
-            cleanup.register(tree);
-
-            /**
-             * Render a hover box when hovering (only when overflow)
-             */
-            cleanup.register(tree.onDidChangeItemHover(item => {
-                if (item.data.length === 0) {
-                    return;
-                }
-                
-                const hovered = item.data[0]!;
-                const index = tree.getItemIndex(hovered);
-                const element = tree.getHTMLElement(index);
-                if (!element) {
-                    return;
-                }
-
-                const content = assert(element.getElementsByClassName('tree-list-content')[0]);
-                if (content.scrollWidth > content.clientWidth) {
-                    // TODO: Overflow happens, we need to render a hover box.
-                }
-            }));
-
-        }, error => error as Error);
-    }   
-}
-
-/**
- * @description Converts an array of markdown content to a tree structure of 
- * {@link HeadingItem}.
- * @param content Array of markdown lines to be converted.
- * @returns The root node of the tree structure for later rendering purpose.
- * 
- * @note Export for unit test purpose.
- */
-export function buildOutlineTree(content: string[]): ITreeNodeItem<HeadingItem> {
-    const root: ITreeNodeItem<HeadingItem> = {
-        data: new HeadingItem(0, HeadingItem.ROOT_ID, 0),
-        children: []
-    };
-
-    const stack = new Stack<ITreeNodeItem<HeadingItem>>();
-    stack.push(root);
-
-    content.forEach((line, lineNumber) => {
-        let level = 0;
-        while (line.charAt(level) === '#') {
-            level++;
-            
-            // not a heading (perf: avoid blocking when a line start with countless of `#`)
-            if (level > 6) {
-                return;
-            }
-        }
-
-        // not a heading
-        if (level === 0) {
-            return;
-        }
-    
-        const name = line.slice(level + 1, undefined).trim();
-        const item = new HeadingItem(lineNumber, name, level);
-        const node = { data: item, children: [] } as ITreeNodeItem<HeadingItem>;
-
-        // Backtrack to find the correct parent level
-        while (stack.top().data.depth >= level) {
-            stack.pop();
-        }
-
-        stack.top().children!.push(node);
-        stack.push(node);
-    });
-
-    return root;
 }
