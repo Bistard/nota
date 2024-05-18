@@ -444,6 +444,28 @@ suite('async-test', () => {
 			blocker = new Blocker<string>();
 			lastEvent = null;
 		});
+
+		test('basics', () => FakeAsync.run(async () => {
+			let cnt = 0;
+			const scheduler = new UnbufferedScheduler<number>(INSTANT_TIME, e => {
+				cnt += e;
+			});
+			repeat(10, () => scheduler.schedule(1));
+			await delayFor(INSTANT_TIME, () => {
+				assert.strictEqual(cnt, 1);
+			});
+
+			// cancellation
+
+			const scheduler2 = new UnbufferedScheduler<number>(INSTANT_TIME, e => {
+				cnt += e;
+			});
+			repeat(10, () => scheduler2.schedule(1));
+			scheduler2.cancel();
+			await delayFor(INSTANT_TIME, () => {
+				assert.strictEqual(cnt, 1);
+			});
+		}));
 	
 		test('should schedule and execute callback after delay', () => FakeAsync.run(async () => {
 			scheduler.schedule('event1');

@@ -751,7 +751,9 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 
 		this._token = setTimeout(() => {
 			this._callback(event);
-			this.cancel();
+			this._token = undefined;
+			this._currEvent = undefined;
+			
 		}, delay.toMs().time);
 	}
 
