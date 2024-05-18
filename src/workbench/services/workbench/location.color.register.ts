@@ -60,5 +60,6 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('window-bar-button-active-background');
         registrant.registerTemplate('outline-primary-text');
         registrant.registerTemplate('outline-select-text');
+        registrant.registerTemplate('outline-overflow-hover-box-background');
     },
 );

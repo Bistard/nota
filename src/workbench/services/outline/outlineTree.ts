@@ -1,3 +1,4 @@
+import { EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
@@ -33,6 +34,11 @@ export interface IOutlineHoverEvent {
     readonly heading: HeadingItem;
 
     /**
+     * The corresponding HTMLElement of the hovered heading.
+     */
+    readonly element: HTMLElement;
+
+    /**
      * The index of the heading relative to the tree view.
      */
     readonly index: number;
@@ -63,11 +69,12 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
     // [fields]
 
     private readonly _fileURI: URI;
+    private _hoverBox?: HTMLElement;
 
     // [constructor]
 
     constructor(
-        container: HTMLElement,
+        private readonly container: HTMLElement,
         renderers: ITreeListRenderer<HeadingItem, void, any>[], 
         itemProvider: IListItemProvider<HeadingItem>, 
         opts: IOutlineTreeOptions,
@@ -107,21 +114,65 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
             if (hovers.length === 0) {
                 return;
             }
-            
+
             const hovered = hovers[0]!;
             const index = this.getItemIndex(hovered);
-            const element = this.getHTMLElement(index); // list-view-row
+            const element = this.getHTMLElement(index); // .list-view-row
             if (!element) {
                 return;
             }
 
             const content = assert(element.getElementsByClassName('tree-list-content')[0]);
-            this._onDidHover.fire({
+            const isOverflow = content.scrollWidth > content.clientWidth;
+            const event: IOutlineHoverEvent = {
                 heading: hovered,
+                element: element,
                 index: index,
-                isOverflow: content.scrollWidth > content.clientWidth
-            });
+                isOverflow: isOverflow
+            };
+            
+            if (isOverflow) {
+                this.__renderHoverBox(event);
+            } else {
+                this.__removeHoverBox();
+            }
+
+            this._onDidHover.fire(event);
         }));
+    }
+
+    private __renderHoverBox(event: IOutlineHoverEvent) {
+        const { heading, element: row } = event;
+        if (this._hoverBox) {
+            this._hoverBox.remove();
+        }
+
+        // Create hover box element
+        const hoverBox = document.createElement('div');
+        hoverBox.className = 'hover-box';
+        hoverBox.textContent = heading.name;
+
+        // Position the hover box
+        const rowRect = row.getBoundingClientRect();
+        const containerRect = this.container.getBoundingClientRect();
+        const topPosition = rowRect.bottom - containerRect.top;
+        hoverBox.style.top = `${topPosition}px`;
+
+        this.container.appendChild(hoverBox);
+        this._hoverBox = hoverBox;
+
+        const listen = addDisposableListener(row, EventType.mouseleave, () => {
+            hoverBox.remove();
+            this._hoverBox = undefined;
+            listen.dispose();
+        });
+    }
+
+    private __removeHoverBox() {
+        if (this._hoverBox) {
+            this._hoverBox.remove();
+            this._hoverBox = undefined;
+        }
     }
 }
 

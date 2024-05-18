@@ -33,6 +33,7 @@
     .list-view .list-view-container {
 
         & > .list-view-row {
+
             // selection
             &.selected {
                 color: var(--nota-outline-select-text);
@@ -98,5 +99,14 @@
                 font-family: harmonyOS sans-bold;
             }
         }
+    }
+
+    .hover-box {
+        position: absolute;
+        right: 0;
+        font-size: 11px;
+        background-color: var(--nota-outline-overflow-hover-box-background);
+        border: 2px;
+        padding: 4px;
     }
 }

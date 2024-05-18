@@ -1,4 +1,3 @@
-
 /**
  * An interface only for {@link HeadingItem}.
  */

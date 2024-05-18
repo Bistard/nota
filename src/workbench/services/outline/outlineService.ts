@@ -17,7 +17,7 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
+import { IOutlineHoverEvent, IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -222,17 +222,6 @@ export class OutlineService extends Disposable implements IOutlineService {
             this._tree = tree;
             this._currFile = tree.fileURI;
             this.__updateHeading(tree.fileURI);
-
-            const cleanup = new DisposableManager();
-            this._treeDisposable = cleanup;
-
-            // listeners
-            cleanup.register(this._tree.onDidHover(e => {
-                console.log(e); // TEST only
-                if (e.isOverflow) {
-                    // TODO: render a hover box
-                }
-            }));
         });
     }
 
