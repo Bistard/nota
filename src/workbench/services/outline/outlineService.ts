@@ -3,7 +3,7 @@ import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/do
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
@@ -21,6 +21,7 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IEditorModel } from "src/editor/common/model";
+import { assert } from "src/base/common/utilities/panic";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -81,11 +82,13 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     // [fields]
 
-    private _container?: HTMLElement; // The container that contains the entire outline view
-    private _currFile?: URI; // The URI of the current file being used to display the outline. 
-    private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
+    private _container?: HTMLElement;
     private _button?: ToggleCollapseButton;
+    
     private _heading?: HTMLElement; // The heading element displaying the file name
+    private _currFile?: URI; // The URI of the current file being used to display the outline
+    private _tree?: MultiTree<HeadingItem, void>; // the actual tree view
+    private _treeDisposable?: DisposableManager; // stores all the disposable along with the tree
 
     // [constructor]
 
@@ -104,6 +107,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._currFile = undefined;
         this._button = undefined;
         this._heading = undefined;
+        this._treeDisposable = undefined;
 
         this.__registerListeners();
     }
@@ -207,6 +211,9 @@ export class OutlineService extends Disposable implements IOutlineService {
 
         this._tree?.dispose();
         this._tree = undefined;
+
+        this._treeDisposable?.dispose();
+        this._treeDisposable = undefined;
         
         this._heading?.remove();
         this._heading = undefined;
@@ -230,7 +237,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         });
         this._button.render(container);
 
-        this.__register(this._button.onDidCollapseStateChange((state: CollapseState) => {
+        this.__register(this._button.onDidCollapseStateChange(state => {
             this.toggleOutlineVisibility(state === CollapseState.Collapse);
         }));
 
@@ -289,6 +296,32 @@ export class OutlineService extends Disposable implements IOutlineService {
         
             tree.splice(root.data, root.children);
             tree.layout();
+
+            const cleanup = new DisposableManager();
+            this._treeDisposable = cleanup;
+            cleanup.register(tree);
+
+            /**
+             * Render a hover box when hovering (only when overflow)
+             */
+            cleanup.register(tree.onDidChangeItemHover(item => {
+                if (item.data.length === 0) {
+                    return;
+                }
+                
+                const hovered = item.data[0]!;
+                const index = tree.getItemIndex(hovered);
+                const element = tree.getHTMLElement(index);
+                if (!element) {
+                    return;
+                }
+
+                const content = assert(element.getElementsByClassName('tree-list-content')[0]);
+                if (content.scrollWidth > content.clientWidth) {
+                    // TODO: Overflow happens, we need to render a hover box.
+                }
+            }));
+
         }, error => error as Error);
     }   
 }
