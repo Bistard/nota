@@ -71,6 +71,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
     // [fields]
 
+    private readonly _container: HTMLElement;
     private readonly _fileURI: URI;
     private _hoverBox?: HTMLElement;
     private _hoverBoxScheduler!: UnbufferedScheduler<IOutlineHoverEvent>;
@@ -78,7 +79,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
     // [constructor]
 
     constructor(
-        private readonly container: HTMLElement,
+        container: HTMLElement,
         renderers: ITreeListRenderer<HeadingItem, void, any>[], 
         itemProvider: IListItemProvider<HeadingItem>, 
         opts: IOutlineTreeOptions,
@@ -93,6 +94,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
         // constructor
         super(container, root.data, renderers, itemProvider, opts);
+        this._container = container;
         this._fileURI = model.source;
 
         // rendering
@@ -165,9 +167,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
     private __renderHoverBox(event: IOutlineHoverEvent) {
         const { heading, element: row } = event;
-        if (this._hoverBox) {
-            this._hoverBox.remove();
-        }
+        this._hoverBox?.remove();
 
         // Create hover box element
         const hoverBox = document.createElement('div');
@@ -176,11 +176,11 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
         // Position the hover box
         const rowRect = row.getBoundingClientRect();
-        const containerRect = this.container.getBoundingClientRect();
+        const containerRect = this._container.getBoundingClientRect();
         const topPosition = rowRect.bottom - containerRect.top;
         hoverBox.style.top = `${topPosition}px`;
 
-        this.container.appendChild(hoverBox);
+        this._container.appendChild(hoverBox);
         this._hoverBox = hoverBox;
 
         const listen = addDisposableListener(row, EventType.mouseleave, () => {

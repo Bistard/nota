@@ -1,15 +1,13 @@
-@font-face {
-    font-family: harmonyOS sans-bold;
-    src: url(../../../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Bold.ttf);
-}
 
 .outline {
-    color: var(--nota-outline-primary-text);
     position: fixed;
+    
     width: 230px;
     height: calc(100% - 45px); /* Adjust height to take into account the title bar */
     right: 0; /* Position on the right side of the screen */
     top: 45px;
+    
+    color: var(--nota-outline-primary-text);
     transition: right 0.3s ease-in-out;
 
     &.hidden {
@@ -30,6 +28,7 @@
         }
     }
 
+    // tree style
     .list-view .list-view-container {
 
         & > .list-view-row {

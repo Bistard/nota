@@ -12,9 +12,7 @@ const HeadingItemRendererType = 'heading-item';
 /**
  * The type of metadata returned by {@link HeadingItemRenderer.render()}.
  */
-interface IHeadingItemMetadata extends IListViewMetadata {
-    // Additional metadata can be added here
-}
+interface IHeadingItemMetadata extends IListViewMetadata {}
 
 /**
  * @class The type of renderer used for {@link OutlineService}.

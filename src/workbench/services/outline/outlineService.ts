@@ -180,11 +180,10 @@ export class OutlineService extends Disposable implements IOutlineService {
                 if (!this._tree) {
                     return this.init();
                 } 
+                
                 // remove outline content if defined
-                else {
-                    this.__removeTree();
-                    return this.__initTree(this._container!);
-                }
+                this.__removeTree();
+                return this.__initTree(this._container!);
             })();
 
             afterWork.match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
@@ -243,15 +242,9 @@ export class OutlineService extends Disposable implements IOutlineService {
         const toggleState = this.configurationService.get(WorkbenchConfiguration.OutlineToggleState, CollapseState.Expand);
         this._button = new ToggleCollapseButton({
             initState: toggleState,
-            positionX: {
-                position: DirectionX.Left,
-                offset: -3,
-            },
-            positionY: {
-                position: DirectionY.Top,
-                offset: 15.2,
-            },
             direction: DirectionX.Right,
+            positionX: { position: DirectionX.Left, offset: -3 },
+            positionY: { position: DirectionY.Top, offset: 15.2 },
         });
         this._button.render(container);
 
@@ -266,11 +259,11 @@ export class OutlineService extends Disposable implements IOutlineService {
     }
 
     private __updateHeading(uri: URI): void {
-        if (!this._container) return;
-
-        if (this._heading) {
-            this._heading.remove();
+        if (!this._container) {
+            return;
         }
+
+        this._heading?.remove();
 
         const fileName = URI.basename(uri);
         this._heading = document.createElement('div');
