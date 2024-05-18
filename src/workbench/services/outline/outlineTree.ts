@@ -3,10 +3,13 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
+import { Time } from "src/base/common/date";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { Stack } from "src/base/common/structures/stack";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { assert } from "src/base/common/utilities/panic";
+import { isNonNullable } from "src/base/common/utilities/type";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { HeadingItem } from "src/workbench/services/outline/headingItem";
 
@@ -70,6 +73,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
     private readonly _fileURI: URI;
     private _hoverBox?: HTMLElement;
+    private _hoverBoxScheduler!: UnbufferedScheduler<IOutlineHoverEvent>;
 
     // [constructor]
 
@@ -112,6 +116,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
         this.__register(this.onDidChangeItemHover(e => {
             const hovers = e.data;
             if (hovers.length === 0) {
+                this._hoverBoxScheduler.cancel();
                 return;
             }
 
@@ -131,13 +136,29 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
                 isOverflow: isOverflow
             };
             
-            if (isOverflow) {
-                this.__renderHoverBox(event);
+            this._hoverBoxScheduler.schedule(event);
+            this._onDidHover.fire(event);
+        }));
+
+        // on click event
+        this.__register(this.onClick(e => {
+            
+            /**
+             * When user click a heading, we assume the user is not expecting a hover 
+             * box, we delay the hover box display.
+             */
+            const currEvent = this._hoverBoxScheduler.currentEvent;
+            if (isNonNullable(currEvent) && currEvent.heading.id === e.data?.id) {
+                this._hoverBoxScheduler.schedule(currEvent);
+            }
+        }));
+
+        this._hoverBoxScheduler = this.__register(new UnbufferedScheduler(Time.sec(0.8), e => {
+            if (e.isOverflow) {
+                this.__renderHoverBox(e);
             } else {
                 this.__removeHoverBox();
             }
-
-            this._onDidHover.fire(event);
         }));
     }
 
