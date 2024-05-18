@@ -1,7 +1,7 @@
 import "src/workbench/services/outline/outline.scss";
 import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
@@ -17,7 +17,7 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IOutlineHoverEvent, IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
+import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -84,7 +84,6 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _heading?: HTMLElement; // The heading element displaying the file name
     private _currFile?: URI; // The URI of the current file being used to display the outline
     private _tree?: IOutlineTree; // the actual tree view
-    private _treeDisposable?: DisposableManager; // stores all the disposable along with the tree
 
     // [constructor]
 
@@ -104,7 +103,6 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._currFile = undefined;
         this._button = undefined;
         this._heading = undefined;
-        this._treeDisposable = undefined;
 
         this.__registerListeners();
     }
@@ -230,9 +228,6 @@ export class OutlineService extends Disposable implements IOutlineService {
 
         this._tree?.dispose();
         this._tree = undefined;
-
-        this._treeDisposable?.dispose();
-        this._treeDisposable = undefined;
         
         this._heading?.remove();
         this._heading = undefined;

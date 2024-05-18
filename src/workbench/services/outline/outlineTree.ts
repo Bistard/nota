@@ -153,6 +153,7 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
             }
         }));
 
+        // hover box deferred rendering
         this._hoverBoxScheduler = this.__register(new UnbufferedScheduler(Time.sec(0.8), e => {
             if (e.isOverflow) {
                 this.__renderHoverBox(e);
@@ -183,9 +184,9 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
         this._hoverBox = hoverBox;
 
         const listen = addDisposableListener(row, EventType.mouseleave, () => {
+            listen.dispose();
             hoverBox.remove();
             this._hoverBox = undefined;
-            listen.dispose();
         });
     }
 
