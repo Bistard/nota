@@ -832,17 +832,15 @@ export class Throttler implements IThrottler {
 		 * If there is no waiting task, Create a waiting task that will run 
 		 * after the current task.
 		 */
-		if (!this._waitingPromise) {
-			this._waitingPromise = (async () => {
-				await this._runningPromise;
-				this._waitingPromise = undefined;
+		this._waitingPromise ??= (async () => {
+			await this._runningPromise;
+			this._waitingPromise = undefined;
 
-				const promise = this.queue(this._latestTask!);
-				this._latestTask = undefined;
-				
-				return promise;
-			})();
-		}
+			const promise = this.queue(this._latestTask!);
+			this._latestTask = undefined;
+			
+			return promise;
+		})();
 
 		return this._waitingPromise;
 	}

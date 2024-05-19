@@ -81,9 +81,9 @@ export class Editor extends Component implements IEditorService {
         // queue a request
         await this._pendingRequest.queue(async () => {
             const editorWidget = assert(this._editorWidget);
-            
+
             // do open
-            this.logService.debug('EditorService', `Openning at: ${URI.toString(uri)}`);
+            this.logService.debug('EditorService', `Opening at: ${URI.toString(uri)}`);
             await editorWidget.open(uri);
             this.logService.debug('EditorService', `Open successfully at: ${URI.toString(uri)}`);
             
