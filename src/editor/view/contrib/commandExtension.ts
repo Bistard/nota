@@ -1,18 +1,16 @@
 import { Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands } from "src/editor/view/contrib/editorCommands";
-import { Command, buildChainCommand } from "src/platform/command/common/command";
-import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
+import { EditorCommands, EditorCommandsComposite } from "src/editor/view/contrib/editorCommands";
+import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
-import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
-export const enum EditorCommandID {
-    Enter = 'editor-enter',
-    Backspace = 'editor-backspace',
-}
-
+/**
+ * @class Extension for handling editor commands with associated keyboard 
+ * shortcuts. This class binds commands to specific shortcuts and registers 
+ * these commands within the {@link CommandService}.
+ */
 export class EditorCommandExtension extends EditorExtension {
 
     // [fields]
@@ -20,91 +18,61 @@ export class EditorCommandExtension extends EditorExtension {
     /**
      * Mapping from {@link Shortcut}-hashed code to command ID.
      */
-    private readonly _commands: Map<number, EditorCommandID>;
+    private readonly _commands = new Map<number, EditorCommandsComposite.ID>();
 
     // [constructor]
 
     constructor(
-        @IRegistrantService registrantService: IRegistrantService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
         @ICommandService commandService: ICommandService,
     ) {
         super();
-        this._commands = new Map();
-        this.__registerEditorCommands(registrantService);
         
+        /**
+         * Binds predefined commands to their respective shortcuts.
+         */
+        this.__bindCommandsWithShortcut();
+        
+        /**
+         * Keydown: when key is pressing in the editor:
+         *  1. we look up for any registered command (from the map), 
+         *  2. if found any, we execute that command from the standard command 
+         *     system: {@link CommandService}.
+         */
         this.__register(this.onKeydown(event => {
             const keyEvent = event.event;
-
             const shortcut = new Shortcut(keyEvent.ctrl, keyEvent.shift, keyEvent.alt, keyEvent.meta, keyEvent.key);
-            const name = this._commands.get(shortcut.toHashcode());
-            if (!name) {
+            const commandID = this._commands.get(shortcut.toHashcode());
+            if (!commandID) {
                 return;
             }
-
-            commandService.executeAnyCommand(name, event.view.state, event.view.dispatch, event.view);
+            commandService.executeAnyCommand(commandID, event.view.state, event.view.dispatch, event.view);
         }));
     }
 
     // [private helper methods]
 
-    private __registerEditorCommands(registrantService: IRegistrantService): void {
-        const registrant = registrantService.getRegistrant(RegistrantType.Command);
-
-        // enter
-        {
-            [
-                Shortcut.fromString('Enter').toHashcode(),
-                Shortcut.fromString('Ctrl+Enter').toHashcode(),
-                Shortcut.fromString('Shift+Enter').toHashcode(),
-            ]
-            .forEach(hash => {
-                this._commands.set(hash, EditorCommandID.Enter);
-            });
-
-            this.__registerCommand(registrant, Enter);
-        }
-
-        // backspace
-        {
-            [
-                Shortcut.fromString('Backspace').toHashcode(),
-                Shortcut.fromString('Shift+Backspace').toHashcode(),
-                Shortcut.fromString('Meta+Backspace').toHashcode(),
-            ]
-            .forEach(hash => {
-                this._commands.set(hash, EditorCommandID.Backspace);
-            });
-
-            this.__registerCommand(registrant, Backspace);
-        }
+    private __bindCommandsWithShortcut(): void {
+        this.__bindCommand(EditorCommands.Composite.Enter, ['Enter', 'Ctrl+Enter', 'Shift+Enter']);
+        this.__bindCommand(EditorCommands.Composite.Backspace, ['Backspace', 'Shift+Backspace', 'Meta+Backspace']);
     }
 
-    private __registerCommand(registrant: CommandRegistrant, command: Command): void {
+    private __bindCommand(command: Command, shortcuts: string[]): void {
+
+        /**
+         * Register the command to the standard {@link CommandService}.
+         */
+        const registrant = this.registrantService.getRegistrant(RegistrantType.Command);
         registrant.registerCommand(command);
+        
+        /**
+         * Bind the shortcuts with the command.
+         */
+        shortcuts
+            .map(str => Shortcut.fromString(str).toHashcode())
+            .forEach(hash => {
+                this._commands.set(hash, <EditorCommandsComposite.ID>command.id);
+            });
+
     }
 }
-
-const Enter = buildChainCommand(
-    { 
-        id: EditorCommandID.Enter, 
-        when: CreateContextKeyExpr.Equal('isEditorFocused', true),
-    }, 
-    [
-        EditorCommands.insertNewLineInCodeBlock,
-        EditorCommands.InsertEmptyParagraphAdjacentToBlock,
-        EditorCommands.LiftEmptyTextBlock,
-        EditorCommands.SplitBlockAtSelection,
-    ],
-);
-
-const Backspace = buildChainCommand(
-    { 
-        id: EditorCommandID.Backspace, 
-        when: CreateContextKeyExpr.Equal('isEditorFocused', true),
-    }, 
-    [
-        EditorCommands.DeleteSelection,
-        EditorCommands.JoinBackward,
-        EditorCommands.SelectNodeBackward,
-    ],
-);

@@ -1,16 +1,52 @@
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
+import { Constructor } from "src/base/common/utilities/type";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
-import { Command } from "src/platform/command/common/command";
+import { ChainCommand, Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
+import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
-export abstract class EditorCommand extends Command {
 
+/**
+ * {@link EditorCommands}
+ * {@link EditorCommandBase}
+ * {@link EditorCommandsBasic}
+ * {@link EditorCommandsComposite}
+ */
+
+
+/**
+ * @description Contains a list of commands specific for editor. The commands 
+ * can be categorized into two groups:
+ *  1. Basic commands,
+ *  2. Composite commands.
+ */
+export namespace EditorCommands {
+
+    /**
+     * Every basic command is responsible for a very specific editor job. 
+     * Usually these commands are only used when you know what you are doing. 
+     * Otherwise consider the commands from {@link EditorCommands.Composite}.
+     */
+    export const Basic = EditorCommandsBasic;
+
+    /**
+     * Every composite command:
+     *  - is a chain command, consists of multiple basic commands. 
+     *  - represents a specific keyboard combination.
+     */
+    export const Composite = EditorCommandsComposite;
+}
+
+/**
+ * @class A base class for every command in the {@link EditorCommandsBasic}.
+ */
+export abstract class EditorCommandBase extends Command {
     public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
-export namespace EditorCommands {
+export namespace EditorCommandsBasic {
 
     /**
      * @description Inserts a newline character in a code block at the current 
@@ -21,7 +57,7 @@ export namespace EditorCommands {
      * If the selection meets this criteria, the function replaces the selection 
      * with a newline character.
      */
-    export class insertNewLineInCodeBlock extends EditorCommand {
+    export class insertNewLineInCodeBlock extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $head, $anchor } = state.selection;
@@ -42,7 +78,7 @@ export namespace EditorCommands {
      * function adds a paragraph before the block node if it is the first child 
      * of its parent, otherwise, it adds a paragraph after the block node.
      */
-    export class InsertEmptyParagraphAdjacentToBlock extends EditorCommand {
+    export class InsertEmptyParagraphAdjacentToBlock extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
@@ -83,7 +119,7 @@ export namespace EditorCommands {
      * can be "lifted" (meaning moved out of its current context, like out of a 
      * list or a quote), the function performs this action.
      */
-    export class LiftEmptyTextBlock extends EditorCommand {
+    export class LiftEmptyTextBlock extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (!(state.selection instanceof ProseTextSelection)) {
@@ -127,7 +163,7 @@ export namespace EditorCommands {
      * the selection is within a block, the function divides the block into two 
      * at that point.
      */
-    export class SplitBlockAtSelection extends EditorCommand {
+    export class SplitBlockAtSelection extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
@@ -196,7 +232,7 @@ export namespace EditorCommands {
     /**
      * @description Delete the current selection.
      */
-    export class DeleteSelection extends EditorCommand {
+    export class DeleteSelection extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (state.selection.empty) {
@@ -218,7 +254,7 @@ export namespace EditorCommands {
      * the previous block. Will use the view for accurate (bidi-aware) start-of
      * -textblock detection if given.
      */
-    export class JoinBackward extends EditorCommand {
+    export class JoinBackward extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $cursor = __atBlockStart(state, view);
@@ -285,7 +321,7 @@ export namespace EditorCommands {
         }
     }
 
-    export class SelectNodeBackward extends EditorCommand {
+    export class SelectNodeBackward extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $head = new EditorResolvedPosition(state.selection.$head);
@@ -317,6 +353,54 @@ export namespace EditorCommands {
         }
     }
 }
+
+export namespace EditorCommandsComposite {
+
+    /**
+     * The identifiers for all the composite commands.
+     */
+    export const enum ID {
+        Enter = 'editor-enter',
+        Backspace = 'editor-backspace',
+    }
+    
+    export const Enter = __buildCompositeCommand<ID.Enter>(
+        { 
+            id: ID.Enter, 
+            when: null,
+        }, 
+        [
+            EditorCommandsBasic.insertNewLineInCodeBlock,
+            EditorCommandsBasic.InsertEmptyParagraphAdjacentToBlock,
+            EditorCommandsBasic.LiftEmptyTextBlock,
+            EditorCommandsBasic.SplitBlockAtSelection,
+        ],
+    );
+    
+    export const Backspace = __buildCompositeCommand<ID.Backspace>(
+        { 
+            id: ID.Backspace, 
+            when: null,
+        }, 
+        [
+            EditorCommandsBasic.DeleteSelection,
+            EditorCommandsBasic.JoinBackward,
+            EditorCommandsBasic.SelectNodeBackward,
+        ],
+    );
+
+    const _whenEditorFocused = CreateContextKeyExpr.Equal('isEditorFocused', true);
+    function __buildCompositeCommand<TID extends ID>(schema: ICommandSchema, ctors: Constructor<Command>[]): ChainCommand<TID> {
+        return buildChainCommand(
+            { 
+                ...schema,
+                when: CreateContextKeyExpr.And(_whenEditorFocused, schema.when),
+            }, 
+            ctors,
+        );
+    }
+}
+
 
 function __atBlockStart(state: ProseEditorState, view?: ProseEditorView): IEditorResolvedPosition | null {
     const { $cursor } = <ProseTextSelection>state.selection;

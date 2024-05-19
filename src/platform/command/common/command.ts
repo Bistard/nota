@@ -164,7 +164,7 @@ export abstract class Command<ID extends string = string> implements ICommand {
  * commands are executed in the provided sequence. Any one of the command returns
  * a true will stop the execution.
  */
-export class ChainCommand extends Command {
+export class ChainCommand<ID extends string = string> extends Command<ID> {
 
     private readonly _commands: Command[];
 
@@ -193,7 +193,7 @@ export class ChainCommand extends Command {
 /**
  * @description A helpers to construct a {@link ChainCommand} easily.
  */
-export function buildChainCommand(schema: ICommandSchema, ctors: Constructor<Command>[]): Command {
+export function buildChainCommand<ID extends string = string>(schema: ICommandSchema, ctors: Constructor<Command>[]): ChainCommand<ID> {
     return new ChainCommand(
         schema,
         [

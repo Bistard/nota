@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { ProseUtilsTest } from 'test/editor/view/editorHelpers';
 import ist from 'ist';
 import { ProseEditorState, ProseNode, ProseNodeSelection, ProseSchema, ProseSelection, ProseTextSelection } from 'src/editor/common/proseMirror';
-import { EditorCommand, EditorCommands } from 'src/editor/view/contrib/editorCommands';
+import { EditorCommandBase, EditorCommands } from 'src/editor/view/contrib/editorCommands';
 import { nullObject } from 'test/utils/helpers';
 
 const { doc, p, blockquote, hr, ul, li } = ProseUtilsTest.defaultNodes;
@@ -44,7 +44,7 @@ function createStateBy(doc: ProseNode) {
     return ProseEditorState.create({ doc, selection: getSelection(doc) });
 }
 
-function execCommand(doc: ProseNode, cmd: EditorCommand, result: ProseNode | null) {
+function execCommand(doc: ProseNode, cmd: EditorCommandBase, result: ProseNode | null) {
     let state = createStateBy(doc);
     
     cmd.run(undefined!, state, tr => state = state.apply(tr));
@@ -58,7 +58,7 @@ function execCommand(doc: ProseNode, cmd: EditorCommand, result: ProseNode | nul
 suite.skip('editorCommands-test', () => {
     
     suite('DeleteSelection', () => {
-        const cmd = new EditorCommands.DeleteSelection(nullObject());
+        const cmd = new EditorCommands.Basic.DeleteSelection(nullObject());
 
         test('deletes part of a text node', () => {
             execCommand(
@@ -97,7 +97,7 @@ suite.skip('editorCommands-test', () => {
     });
 
     suite('JoinBackward', () => {
-        const cmd = new EditorCommands.JoinBackward(nullObject());
+        const cmd = new EditorCommands.Basic.JoinBackward(nullObject());
         
         test('can join paragraphs', () =>
             execCommand(
