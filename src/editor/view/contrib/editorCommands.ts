@@ -10,11 +10,17 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 
 /**
  * {@link EditorCommands}
- * {@link EditorCommandBase}
- * {@link EditorCommandsBasic}
- * {@link EditorCommandsComposite}
+ *  - {@link EditorCommands.Basic}
+ *  - {@link EditorCommands.Composite}
  */
 
+
+/**
+ * @class A base class for every command in the {@link EditorCommandsBasic}.
+ */
+export abstract class EditorCommandBase extends Command {
+    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
+}
 
 /**
  * @description Contains a list of commands specific for editor. The commands 
@@ -29,378 +35,366 @@ export namespace EditorCommands {
      * Usually these commands are only used when you know what you are doing. 
      * Otherwise consider the commands from {@link EditorCommands.Composite}.
      */
-    export const Basic = EditorCommandsBasic;
+    export namespace Basic {
+
+        /**
+         * @description Inserts a newline character in a code block at the current 
+         * selection in the editor, but only under specific selection conditions.
+         * 
+         * @note The command checks if the current selection (cursor position) is 
+         * within a node that is marked as a 'code' node (e.g. {@link CodeBlock}). 
+         * If the selection meets this criteria, the function replaces the selection 
+         * with a newline character.
+         */
+        export class insertNewLineInCodeBlock extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+                const { $head, $anchor } = state.selection;
+                if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
+                    return false;
+                }
+    
+                const tr = state.tr.insertText("\n").scrollIntoView();
+                dispatch?.(tr);
+    
+                return true;
+            }
+        }
+    
+        /**
+         * @description Inserts an empty paragraph either before or after a block 
+         * node in the editor, depending on the position of the block node. The 
+         * function adds a paragraph before the block node if it is the first child 
+         * of its parent, otherwise, it adds a paragraph after the block node.
+         */
+        export class InsertEmptyParagraphAdjacentToBlock extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+                const { $from, $to } = state.selection;
+    
+                // Check if the selection is not suitable for paragraph insertion.
+                if (state.selection instanceof ProseAllSelection || $from.parent.inlineContent || $to.parent.inlineContent) {
+                    return false;
+                }
+    
+                // Determine the default block type at the current position.
+                const defaultBlockType = ProseUtils.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
+    
+                // Check if the determined block type is valid and is a textblock.
+                if (!defaultBlockType || !defaultBlockType.isTextblock) {
+                    return false;
+                }
+    
+                if (!dispatch) {
+                    return true;
+                }
+    
+                // Calculate the position to insert the new paragraph.
+                const insertionPosition = (!$from.parentOffset && $to.index() < $to.parent.childCount) ? $from.pos : $to.pos;
+    
+                // Create and dispatch the transaction to insert the new paragraph.
+                const transaction = state.tr.insert(insertionPosition, defaultBlockType.createAndFill()!);
+                const newSelection = ProseTextSelection.create(transaction.doc, insertionPosition + 1);
+                transaction.setSelection(newSelection).scrollIntoView();
+                dispatch?.(transaction);
+    
+                return true;
+            }
+        }
+    
+        /**
+         * @description Lifts an empty text block in the editor. This function 
+         * checks if the cursor is positioned in an empty text block. If the block 
+         * can be "lifted" (meaning moved out of its current context, like out of a 
+         * list or a quote), the function performs this action.
+         */
+        export class LiftEmptyTextBlock extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+                if (!(state.selection instanceof ProseTextSelection)) {
+                    return false;
+                }
+    
+                const { $cursor: cursor } = state.selection;
+                if (!cursor || cursor.parent.content.size) {
+                    return false;
+                }
+    
+                /**
+                 * Attempt to lift the block if the cursor is deeper than one level 
+                 * and not at the end of its parent.
+                 */
+                if (cursor.depth > 1 && cursor.after() !== cursor.end(-1)) {
+                    const before = cursor.before();
+                    if (canSplit(state.doc, before)) {
+                        const newTr = state.tr.split(before).scrollIntoView();
+                        dispatch?.(newTr);
+                        return true;
+                    }
+                }
+    
+                // Calculate the range and target for lifting the block
+                const blockRange = cursor.blockRange();
+                const target = blockRange && liftTarget(blockRange);
+                if (target === null) {
+                    return false;
+                }
+    
+                const newTr = state.tr.lift(blockRange!, target).scrollIntoView();
+                dispatch?.(newTr);
+    
+                return true;
+            }
+        }
+    
+        /**
+         * @description Splits a block in the editor at the current selection. If 
+         * the selection is within a block, the function divides the block into two 
+         * at that point.
+         */
+        export class SplitBlockAtSelection extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+                const { $from, $to } = state.selection;
+    
+                if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
+                    if (!$from.parentOffset || !canSplit(state.doc, $from.pos)) {
+                        return false;
+                    }
+    
+                    const newTr = state.tr.split($from.pos).scrollIntoView();
+                    dispatch?.(newTr);
+                    return true;
+                }
+    
+                if (!$from.parent.isBlock) {
+                    return false;
+                }
+    
+                if (dispatch) {
+                    const isAtEnd = $to.parentOffset === $to.parent.content.size;
+                    const tr = state.tr;
+    
+                    // First, delete the selection.
+                    if (state.selection instanceof ProseTextSelection || state.selection instanceof ProseAllSelection) {
+                        tr.deleteSelection();
+                    }
+    
+                    /**
+                     * A match that represents the rules for what content is valid 
+                     * after the selection (from).
+                     */
+                    const match = $from.node(-1).contentMatchAt($from.indexAfter(-1));
+                    const defaultType = $from.depth === 0 ? null : ProseUtils.getNextValidDefaultNodeType(match);
+                    let types = isAtEnd && defaultType ? [{ type: defaultType }] : undefined;
+                    let ifCanSplitAtPosition = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
+    
+                    if (!types &&
+                        !ifCanSplitAtPosition &&
+                        canSplit(tr.doc, tr.mapping.map($from.pos), 1, defaultType ? [{ type: defaultType }] : undefined)
+                    ) {
+                        if (defaultType) {
+                            types = [{ type: defaultType }];
+                        }
+                        ifCanSplitAtPosition = true;
+                    }
+    
+                    if (ifCanSplitAtPosition) {
+                        tr.split(tr.mapping.map($from.pos), 1, types);
+    
+                        // Additional logic for handling specific cases
+                        if (!isAtEnd && !$from.parentOffset && $from.parent.type !== defaultType) {
+                            const first = tr.mapping.map($from.before()), $first = tr.doc.resolve(first);
+                            if (defaultType && $from.node(-1).canReplaceWith($first.index(), $first.index() + 1, defaultType)) {
+                                tr.setNodeMarkup(tr.mapping.map($from.before()), defaultType);
+                            }
+                        }
+                    }
+    
+                    dispatch?.(tr.scrollIntoView());
+                }
+    
+                return true;
+            }
+        }
+    
+        /**
+         * @description Delete the current selection.
+         */
+        export class DeleteSelection extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+                if (state.selection.empty) {
+                    return false;
+                }
+    
+                const newTr = state.tr.deleteSelection().scrollIntoView();
+                dispatch?.(newTr);
+                return true;
+            }
+        }
+    
+        /**
+         * @description If the selection is empty and at the start of a textblock, 
+         * try to reduce the distance between that block and the one before it—if
+         * there's a block directly before it that can be joined, join them. If not, 
+         * try to move the selected block closer to the next one in the document 
+         * structure by lifting it out of its parent or moving it into a parent of 
+         * the previous block. Will use the view for accurate (bidi-aware) start-of
+         * -textblock detection if given.
+         */
+        export class JoinBackward extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const $cursor = __atBlockStart(state, view);
+                if (!$cursor) {
+                    return false;
+                }
+    
+                const $cut = __findCutBefore($cursor);
+    
+                // If there is no node before this, try to lift.
+                if (!$cut) {
+                    const range = $cursor.blockRange();
+                    const target = range && liftTarget(range);
+                    if (target === null) {
+                        return false;
+                    }
+    
+                    const newTr = state.tr.lift(range!, target).scrollIntoView();
+                    dispatch?.(newTr);
+    
+                    return true;
+                }
+    
+                const before = $cut.nodeBefore!;
+    
+                // Apply the joining algorithm
+                if (__deleteBarrier(state, $cut, dispatch, -1)) {
+                    return true;
+                }
+    
+                /**
+                 * If the node below has no content and the node above is 
+                 * selectable, delete the node below and select the one above.
+                 */
+                if ($cursor.parent.content.size === 0 &&
+                    (__textblockAt(before, "end") || ProseNodeSelection.isSelectable(before))
+                ) {
+                    for (let depth = $cursor.depth; ; depth--) {
+                        const delStep = <ProseReplaceStep>replaceStep(state.doc, $cursor.before(depth), $cursor.after(depth), ProseSlice.empty);
+                        if (delStep && delStep.slice.size < delStep.to - delStep.from) {
+                            if (dispatch) {
+                                const tr = state.tr.step(delStep);
+                                tr.setSelection(__textblockAt(before, "end")
+                                    ? ProseSelection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos, -1)), -1)!
+                                    : ProseNodeSelection.create(tr.doc, $cut.pos - before.nodeSize));
+                                dispatch(tr.scrollIntoView());
+                            }
+                            return true;
+                        }
+                        if (depth === 1 || $cursor.getParentNodeAt(depth - 1)!.childCount > 1) {
+                            break;
+                        }
+                    }
+                }
+    
+                // If the node before is an atom, delete it.
+                if (before.isAtom && $cut.depth === $cursor.depth - 1) {
+                    const newTr = state.tr.delete($cut.pos - before.nodeSize, $cut.pos);
+                    dispatch?.(newTr.scrollIntoView());
+                    return true;
+                }
+    
+                return false;
+            }
+        }
+    
+        export class SelectNodeBackward extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const $head = new EditorResolvedPosition(state.selection.$head);
+                const ifEmpty = state.selection.empty;
+    
+                let $cut: IEditorResolvedPosition | null = new EditorResolvedPosition($head);
+                if (!ifEmpty) {
+                    return false;
+                }
+    
+                if ($head.parent.isTextblock) {
+                    if (view ? !view.endOfTextblock("backward", state) : $head.parentOffset > 0) {
+                        return false;
+                    }
+    
+                    $cut = __findCutBefore($head);
+                }
+    
+                const node = $cut && $cut.nodeBefore;
+                if (!node || !ProseNodeSelection.isSelectable(node)) {
+                    return false;
+                }
+    
+                const newSelection = ProseNodeSelection.create(state.doc, $cut!.pos - node.nodeSize);
+                const newTr = state.tr.setSelection(newSelection);
+                dispatch?.(newTr.scrollIntoView());
+    
+                return true;
+            }
+        }
+    }
 
     /**
      * Every composite command:
      *  - is a chain command, consists of multiple basic commands. 
      *  - represents a specific keyboard combination.
      */
-    export const Composite = EditorCommandsComposite;
-}
+    export namespace Composite {
 
-/**
- * @class A base class for every command in the {@link EditorCommandsBasic}.
- */
-export abstract class EditorCommandBase extends Command {
-    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
-}
-
-export namespace EditorCommandsBasic {
-
-    /**
-     * @description Inserts a newline character in a code block at the current 
-     * selection in the editor, but only under specific selection conditions.
-     * 
-     * @note The command checks if the current selection (cursor position) is 
-     * within a node that is marked as a 'code' node (e.g. {@link CodeBlock}). 
-     * If the selection meets this criteria, the function replaces the selection 
-     * with a newline character.
-     */
-    export class insertNewLineInCodeBlock extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            const { $head, $anchor } = state.selection;
-            if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
-                return false;
-            }
-
-            const tr = state.tr.insertText("\n").scrollIntoView();
-            dispatch?.(tr);
-
-            return true;
+        const _whenEditorFocused = CreateContextKeyExpr.Equal('isEditorFocused', true);
+        function __buildCompositeCommand<TID extends EditorCommands.Composite.ID>(schema: ICommandSchema, ctors: Constructor<Command>[]): ChainCommand<TID> {
+            return buildChainCommand(
+                { 
+                    ...schema,
+                    when: CreateContextKeyExpr.And(_whenEditorFocused, schema.when),
+                }, 
+                ctors,
+            );
         }
-    }
 
-    /**
-     * @description Inserts an empty paragraph either before or after a block 
-     * node in the editor, depending on the position of the block node. The 
-     * function adds a paragraph before the block node if it is the first child 
-     * of its parent, otherwise, it adds a paragraph after the block node.
-     */
-    export class InsertEmptyParagraphAdjacentToBlock extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            const { $from, $to } = state.selection;
-
-            // Check if the selection is not suitable for paragraph insertion.
-            if (state.selection instanceof ProseAllSelection || $from.parent.inlineContent || $to.parent.inlineContent) {
-                return false;
-            }
-
-            // Determine the default block type at the current position.
-            const defaultBlockType = ProseUtils.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
-
-            // Check if the determined block type is valid and is a textblock.
-            if (!defaultBlockType || !defaultBlockType.isTextblock) {
-                return false;
-            }
-
-            if (!dispatch) {
-                return true;
-            }
-
-            // Calculate the position to insert the new paragraph.
-            const insertionPosition = (!$from.parentOffset && $to.index() < $to.parent.childCount) ? $from.pos : $to.pos;
-
-            // Create and dispatch the transaction to insert the new paragraph.
-            const transaction = state.tr.insert(insertionPosition, defaultBlockType.createAndFill()!);
-            const newSelection = ProseTextSelection.create(transaction.doc, insertionPosition + 1);
-            transaction.setSelection(newSelection).scrollIntoView();
-            dispatch?.(transaction);
-
-            return true;
+        /**
+         * The identifiers for all the composite commands.
+         */
+        export const enum ID {
+            Enter = 'editor-enter',
+            Backspace = 'editor-backspace',
         }
-    }
-
-    /**
-     * @description Lifts an empty text block in the editor. This function 
-     * checks if the cursor is positioned in an empty text block. If the block 
-     * can be "lifted" (meaning moved out of its current context, like out of a 
-     * list or a quote), the function performs this action.
-     */
-    export class LiftEmptyTextBlock extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            if (!(state.selection instanceof ProseTextSelection)) {
-                return false;
-            }
-
-            const { $cursor: cursor } = state.selection;
-            if (!cursor || cursor.parent.content.size) {
-                return false;
-            }
-
-            /**
-             * Attempt to lift the block if the cursor is deeper than one level 
-             * and not at the end of its parent.
-             */
-            if (cursor.depth > 1 && cursor.after() !== cursor.end(-1)) {
-                const before = cursor.before();
-                if (canSplit(state.doc, before)) {
-                    const newTr = state.tr.split(before).scrollIntoView();
-                    dispatch?.(newTr);
-                    return true;
-                }
-            }
-
-            // Calculate the range and target for lifting the block
-            const blockRange = cursor.blockRange();
-            const target = blockRange && liftTarget(blockRange);
-            if (target === null) {
-                return false;
-            }
-
-            const newTr = state.tr.lift(blockRange!, target).scrollIntoView();
-            dispatch?.(newTr);
-
-            return true;
-        }
-    }
-
-    /**
-     * @description Splits a block in the editor at the current selection. If 
-     * the selection is within a block, the function divides the block into two 
-     * at that point.
-     */
-    export class SplitBlockAtSelection extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            const { $from, $to } = state.selection;
-
-            if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
-                if (!$from.parentOffset || !canSplit(state.doc, $from.pos)) {
-                    return false;
-                }
-
-                const newTr = state.tr.split($from.pos).scrollIntoView();
-                dispatch?.(newTr);
-                return true;
-            }
-
-            if (!$from.parent.isBlock) {
-                return false;
-            }
-
-            if (dispatch) {
-                const isAtEnd = $to.parentOffset === $to.parent.content.size;
-                const tr = state.tr;
-
-                // First, delete the selection.
-                if (state.selection instanceof ProseTextSelection || state.selection instanceof ProseAllSelection) {
-                    tr.deleteSelection();
-                }
-
-                /**
-                 * A match that represents the rules for what content is valid 
-                 * after the selection (from).
-                 */
-                const match = $from.node(-1).contentMatchAt($from.indexAfter(-1));
-                const defaultType = $from.depth === 0 ? null : ProseUtils.getNextValidDefaultNodeType(match);
-                let types = isAtEnd && defaultType ? [{ type: defaultType }] : undefined;
-                let ifCanSplitAtPosition = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
-
-                if (!types &&
-                    !ifCanSplitAtPosition &&
-                    canSplit(tr.doc, tr.mapping.map($from.pos), 1, defaultType ? [{ type: defaultType }] : undefined)
-                ) {
-                    if (defaultType) {
-                        types = [{ type: defaultType }];
-                    }
-                    ifCanSplitAtPosition = true;
-                }
-
-                if (ifCanSplitAtPosition) {
-                    tr.split(tr.mapping.map($from.pos), 1, types);
-
-                    // Additional logic for handling specific cases
-                    if (!isAtEnd && !$from.parentOffset && $from.parent.type !== defaultType) {
-                        const first = tr.mapping.map($from.before()), $first = tr.doc.resolve(first);
-                        if (defaultType && $from.node(-1).canReplaceWith($first.index(), $first.index() + 1, defaultType)) {
-                            tr.setNodeMarkup(tr.mapping.map($from.before()), defaultType);
-                        }
-                    }
-                }
-
-                dispatch?.(tr.scrollIntoView());
-            }
-
-            return true;
-        }
-    }
-
-    /**
-     * @description Delete the current selection.
-     */
-    export class DeleteSelection extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            if (state.selection.empty) {
-                return false;
-            }
-
-            const newTr = state.tr.deleteSelection().scrollIntoView();
-            dispatch?.(newTr);
-            return true;
-        }
-    }
-
-    /**
-     * @description If the selection is empty and at the start of a textblock, 
-     * try to reduce the distance between that block and the one before it—if
-     * there's a block directly before it that can be joined, join them. If not, 
-     * try to move the selected block closer to the next one in the document 
-     * structure by lifting it out of its parent or moving it into a parent of 
-     * the previous block. Will use the view for accurate (bidi-aware) start-of
-     * -textblock detection if given.
-     */
-    export class JoinBackward extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
-            const $cursor = __atBlockStart(state, view);
-            if (!$cursor) {
-                return false;
-            }
-
-            const $cut = __findCutBefore($cursor);
-
-            // If there is no node before this, try to lift.
-            if (!$cut) {
-                const range = $cursor.blockRange();
-                const target = range && liftTarget(range);
-                if (target === null) {
-                    return false;
-                }
-
-                const newTr = state.tr.lift(range!, target).scrollIntoView();
-                dispatch?.(newTr);
-
-                return true;
-            }
-
-            const before = $cut.nodeBefore!;
-
-            // Apply the joining algorithm
-            if (__deleteBarrier(state, $cut, dispatch, -1)) {
-                return true;
-            }
-
-            /**
-             * If the node below has no content and the node above is 
-             * selectable, delete the node below and select the one above.
-             */
-            if ($cursor.parent.content.size === 0 &&
-                (__textblockAt(before, "end") || ProseNodeSelection.isSelectable(before))
-            ) {
-                for (let depth = $cursor.depth; ; depth--) {
-                    const delStep = <ProseReplaceStep>replaceStep(state.doc, $cursor.before(depth), $cursor.after(depth), ProseSlice.empty);
-                    if (delStep && delStep.slice.size < delStep.to - delStep.from) {
-                        if (dispatch) {
-                            const tr = state.tr.step(delStep);
-                            tr.setSelection(__textblockAt(before, "end")
-                                ? ProseSelection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos, -1)), -1)!
-                                : ProseNodeSelection.create(tr.doc, $cut.pos - before.nodeSize));
-                            dispatch(tr.scrollIntoView());
-                        }
-                        return true;
-                    }
-                    if (depth === 1 || $cursor.getParentNodeAt(depth - 1)!.childCount > 1) {
-                        break;
-                    }
-                }
-            }
-
-            // If the node before is an atom, delete it.
-            if (before.isAtom && $cut.depth === $cursor.depth - 1) {
-                const newTr = state.tr.delete($cut.pos - before.nodeSize, $cut.pos);
-                dispatch?.(newTr.scrollIntoView());
-                return true;
-            }
-
-            return false;
-        }
-    }
-
-    export class SelectNodeBackward extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
-            const $head = new EditorResolvedPosition(state.selection.$head);
-            const ifEmpty = state.selection.empty;
-
-            let $cut: IEditorResolvedPosition | null = new EditorResolvedPosition($head);
-            if (!ifEmpty) {
-                return false;
-            }
-
-            if ($head.parent.isTextblock) {
-                if (view ? !view.endOfTextblock("backward", state) : $head.parentOffset > 0) {
-                    return false;
-                }
-
-                $cut = __findCutBefore($head);
-            }
-
-            const node = $cut && $cut.nodeBefore;
-            if (!node || !ProseNodeSelection.isSelectable(node)) {
-                return false;
-            }
-
-            const newSelection = ProseNodeSelection.create(state.doc, $cut!.pos - node.nodeSize);
-            const newTr = state.tr.setSelection(newSelection);
-            dispatch?.(newTr.scrollIntoView());
-
-            return true;
-        }
-    }
-}
-
-export namespace EditorCommandsComposite {
-
-    /**
-     * The identifiers for all the composite commands.
-     */
-    export const enum ID {
-        Enter = 'editor-enter',
-        Backspace = 'editor-backspace',
-    }
-    
-    export const Enter = __buildCompositeCommand<ID.Enter>(
-        { 
-            id: ID.Enter, 
-            when: null,
-        }, 
-        [
-            EditorCommandsBasic.insertNewLineInCodeBlock,
-            EditorCommandsBasic.InsertEmptyParagraphAdjacentToBlock,
-            EditorCommandsBasic.LiftEmptyTextBlock,
-            EditorCommandsBasic.SplitBlockAtSelection,
-        ],
-    );
-    
-    export const Backspace = __buildCompositeCommand<ID.Backspace>(
-        { 
-            id: ID.Backspace, 
-            when: null,
-        }, 
-        [
-            EditorCommandsBasic.DeleteSelection,
-            EditorCommandsBasic.JoinBackward,
-            EditorCommandsBasic.SelectNodeBackward,
-        ],
-    );
-
-    const _whenEditorFocused = CreateContextKeyExpr.Equal('isEditorFocused', true);
-    function __buildCompositeCommand<TID extends ID>(schema: ICommandSchema, ctors: Constructor<Command>[]): ChainCommand<TID> {
-        return buildChainCommand(
+        
+        export const Enter = __buildCompositeCommand<ID.Enter>(
             { 
-                ...schema,
-                when: CreateContextKeyExpr.And(_whenEditorFocused, schema.when),
+                id: ID.Enter, 
+                when: null,
             }, 
-            ctors,
+            [
+                Basic.insertNewLineInCodeBlock,
+                Basic.InsertEmptyParagraphAdjacentToBlock,
+                Basic.LiftEmptyTextBlock,
+                Basic.SplitBlockAtSelection,
+            ],
+        );
+        
+        export const Backspace = __buildCompositeCommand<ID.Backspace>(
+            { 
+                id: ID.Backspace, 
+                when: null,
+            }, 
+            [
+                Basic.DeleteSelection,
+                Basic.JoinBackward,
+                Basic.SelectNodeBackward,
+            ],
         );
     }
 }
-
 
 function __atBlockStart(state: ProseEditorState, view?: ProseEditorView): IEditorResolvedPosition | null {
     const { $cursor } = <ProseTextSelection>state.selection;

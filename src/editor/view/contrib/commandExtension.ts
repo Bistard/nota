@@ -1,6 +1,6 @@
 import { Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands, EditorCommandsComposite } from "src/editor/view/contrib/editorCommands";
+import { EditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
@@ -18,7 +18,7 @@ export class EditorCommandExtension extends EditorExtension {
     /**
      * Mapping from {@link Shortcut}-hashed code to command ID.
      */
-    private readonly _commands = new Map<number, EditorCommandsComposite.ID>();
+    private readonly _commands = new Map<number, EditorCommands.Composite.ID>();
 
     // [constructor]
 
@@ -71,7 +71,7 @@ export class EditorCommandExtension extends EditorExtension {
         shortcuts
             .map(str => Shortcut.fromString(str).toHashcode())
             .forEach(hash => {
-                this._commands.set(hash, <EditorCommandsComposite.ID>command.id);
+                this._commands.set(hash, <EditorCommands.Composite.ID>command.id);
             });
 
     }
