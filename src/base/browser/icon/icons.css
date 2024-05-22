@@ -71,30 +71,39 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-notification-active:before {
     content: "\f113";
 }
-.icon-notification-unread:before {
+.icon-notification-error:before {
     content: "\f114";
 }
-.icon-notifications-off:before {
+.icon-notification-info:before {
     content: "\f115";
 }
-.icon-outline:before {
+.icon-notification-unread:before {
     content: "\f116";
 }
-.icon-restore-window:before {
+.icon-notification-warn:before {
     content: "\f117";
 }
-.icon-search:before {
+.icon-notifications-off:before {
     content: "\f118";
 }
-.icon-setting:before {
+.icon-outline:before {
     content: "\f119";
 }
-.icon-sort-by-alpha:before {
+.icon-restore-window:before {
     content: "\f11a";
 }
-.icon-source-contorl-on:before {
+.icon-search:before {
     content: "\f11b";
 }
-.icon-source-control-default:before {
+.icon-setting:before {
     content: "\f11c";
+}
+.icon-sort-by-alpha:before {
+    content: "\f11d";
+}
+.icon-source-contorl-on:before {
+    content: "\f11e";
+}
+.icon-source-control-default:before {
+    content: "\f11f";
 }
