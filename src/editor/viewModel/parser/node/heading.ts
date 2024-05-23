@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNode, createDomOutputFromOptions } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
@@ -30,7 +30,14 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
                 { tag: 'h5', attrs: { level: 5 } },
                 { tag: 'h6', attrs: { level: 6 } },
             ],
-            toDOM(node) { return ['h' + node.attrs['level'], 0]; },
+            toDOM(node) { 
+                const level = node.attrs['level'];
+                return createDomOutputFromOptions({
+                    type: 'node',
+                    tagName: `h${level}`,
+                    children: [0],
+                });
+            },
         };
     }
 

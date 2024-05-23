@@ -26,14 +26,14 @@ export class List extends DocumentNode<EditorTokens.List> {
                 {
                     tag: 'ul', 
                     getAttrs: dom => ({ 
-                        ordred: false,
+                        ordered: false,
                         tight: (<HTMLElement>dom).hasAttribute('data-tight'),
                     }),
                 },
                 {
                     tag: 'ol', 
                     getAttrs: dom => ({ 
-                        ordred: true,
+                        ordered: true,
                         tight: (<HTMLElement>dom).hasAttribute('data-tight'),
                     }),
                 }

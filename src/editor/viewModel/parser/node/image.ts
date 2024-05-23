@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNode, createDomOutputFromOptions } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
@@ -38,7 +38,13 @@ export class Image extends DocumentNode<EditorTokens.Image> {
             ],
             toDOM: (node) => {
                 const { src, alt, title } = node.attrs;
-                return ['img', { src, alt, title }];
+                return createDomOutputFromOptions({
+                    type: 'node',
+                    tagName: 'img',
+                    attributes: {
+                        src, alt, title,
+                    }
+                });
             }
         };
     }

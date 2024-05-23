@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNode, createDomOutputFromOptions } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
@@ -20,7 +20,11 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
             content: 'inline*',
             parseDOM: [{ tag: 'p' }],
             toDOM: () => { 
-                return ['p', 0]; 
+                return createDomOutputFromOptions({
+                    type: 'node',
+                    tagName: 'p',
+                    children: [0],
+                });
             }
         };
     }

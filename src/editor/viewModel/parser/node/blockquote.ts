@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNode, createDomOutputFromOptions } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
@@ -19,7 +19,13 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
             content: 'block+',
             defining: true,
             parseDOM: [{ tag: 'blockquote' }],
-            toDOM: () => { return ['blockquote', 0]; }
+            toDOM: () => { 
+                return createDomOutputFromOptions({
+                    type: 'node',
+                    tagName: `blockquote`,
+                    children: [0],
+                });
+            }
         };
     }
 

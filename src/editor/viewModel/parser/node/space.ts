@@ -21,7 +21,7 @@ export class Space extends DocumentNode<EditorTokens.Space> {
             parseDOM: [{ tag: 'p' }],
             toDOM: () => { 
                 return createDomOutputFromOptions({
-                    type: 'nested',
+                    type: 'node',
                     tagName: 'p',
                     children: [0],
                 });

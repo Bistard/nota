@@ -74,7 +74,7 @@ export abstract class DocumentMark<TToken> extends DocumentNodeBase<ProseMarkTyp
 export type DomOutputOptions = 
     DomOutputTextNode | 
     DomOutputDomNode | 
-    DomOutputNestNode;
+    DomOutputNode;
 
 /**
  * Type representing a node which is interpreted as a text node.
@@ -96,8 +96,8 @@ export type DomOutputDomNode = {
 /**
  * Type representing a node which is interpreted as nested nodes.
  */
-export type DomOutputNestNode = {
-    readonly type: 'nested';
+export type DomOutputNode = {
+    readonly type: 'node';
     readonly tagName: string;
     readonly attributes?: Dictionary<string, string>;
     readonly children?: (DomOutputOptions | 0)[];
@@ -120,7 +120,7 @@ export function createDomOutputFromOptions(option: DomOutputOptions): ProseDOMOu
                 return option.dom;
             }
             return { dom: option.dom, contentDOM: option.contentDom };
-        case 'nested': {
+        case 'node': {
             const { tagName, attributes, children } = option;
             const output: [string, ...any[]] = [tagName];
             
