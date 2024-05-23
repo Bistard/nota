@@ -35,6 +35,7 @@ export {
     Fragment as ProseFragment,
     Schema as ProseSchema,
     ResolvedPos as ProseResolvedPos,
+    DOMOutputSpec as ProseDOMOutputSpec,
 } from "prosemirror-model";
 
 export interface IProseTextNode extends ProseNode {

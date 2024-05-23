@@ -1,6 +1,8 @@
+import { panic } from "src/base/common/utilities/panic";
+import { Dictionary } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
-import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
+import { ProseDOMOutputSpec, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
@@ -58,3 +60,89 @@ export abstract class DocumentNode<TToken> extends DocumentNodeBase<ProseNodeTyp
  * 'link' and so on.
  */
 export abstract class DocumentMark<TToken> extends DocumentNodeBase<ProseMarkType, ProseMarkSpec, TToken> {}
+
+// #region `createDomOutputFromOptions`
+
+/**
+ * Type representing different options for DOM output specification when 
+ * ProseMirror is parsing from a {@link ProseNode} to the real DOM.
+ * It can be either:
+ *  - a text node, 
+ *  - a DOM node, 
+ *  - or a nested node.
+ */
+export type DomOutputOptions = 
+    DomOutputTextNode | 
+    DomOutputDomNode | 
+    DomOutputNestNode;
+
+/**
+ * Type representing a node which is interpreted as a text node.
+ */
+export type DomOutputTextNode = {
+    readonly type: 'text';
+    readonly text: string;
+};
+
+/**
+ * Type representing a node which is interpreted as the DOM node itself. 
+ */
+export type DomOutputDomNode = {
+    readonly type: 'dom';
+    readonly dom: HTMLElement;
+    readonly contentDom?: HTMLElement;
+};
+
+/**
+ * Type representing a node which is interpreted as nested nodes.
+ */
+export type DomOutputNestNode = {
+    readonly type: 'nested';
+    readonly tagName: string;
+    readonly attributes?: Dictionary<string, string>;
+    readonly children?: (DomOutputOptions | 0)[];
+};
+
+/**
+ * @description A helper function that uses our own defined interface to create 
+ * a ProseMirror {@link ProseDOMOutputSpec}.
+ * @param option The DOM output option to be converted.
+ * @returns The ProseMirror DOM output specification.
+ * 
+ * @panic If the type of {@link DomOutputOptions} is unknown.
+ */
+export function createDomOutputFromOptions(option: DomOutputOptions): ProseDOMOutputSpec {
+    switch (option.type) {
+        case 'text':
+            return option.text;
+        case 'dom':
+            if (!option.contentDom) {
+                return option.dom;
+            }
+            return { dom: option.dom, contentDOM: option.contentDom };
+        case 'nested': {
+            const { tagName, attributes, children } = option;
+            const output: [string, ...any[]] = [tagName];
+            
+            if (attributes) {
+                output.push(attributes);
+            }
+            
+            if (children) {
+                for (const child of children) {
+                    if (child === 0) {
+                        output.push(0);
+                    } else {
+                        output.push(createDomOutputFromOptions(child));
+                    }
+                }
+            }
+
+            return output;
+        }
+        default:
+            panic(`[createDomOutputFromOptions] Unknown DomOutputOptions type: '${option['type']}'`);
+    }
+}
+
+// #endregion
