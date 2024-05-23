@@ -91,6 +91,7 @@
 	"dependencies": {
 		"chokidar": "^3.5.3",
 		"codemirror": "^6.0.1",
+		"marked": "^12.0.2",
 		"minimist": "^1.2.8",
 		"openai": "^4.28.0",
 		"prosemirror-model": "^1.18.1",
