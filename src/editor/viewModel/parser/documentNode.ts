@@ -8,7 +8,7 @@ export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
     
     /**
      * Represents a corresponding markdown token type (original tokens parsed by 
-     * Marked). It matchs to {@link TokenEnum}.
+     * Marked). It matches to {@link TokenEnum}.
      */
     readonly name: string;
 
