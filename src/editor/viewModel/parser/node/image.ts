@@ -43,7 +43,8 @@ export class Image extends DocumentNode<EditorTokens.Image> {
                     tagName: 'img',
                     attributes: {
                         src, alt, title,
-                    }
+                    },
+                    editable: false,
                 });
             }
         };

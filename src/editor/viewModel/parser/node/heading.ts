@@ -35,7 +35,7 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
                 return createDomOutputFromOptions({
                     type: 'node',
                     tagName: `h${level}`,
-                    children: [0],
+                    editable: true,
                 });
             },
         };

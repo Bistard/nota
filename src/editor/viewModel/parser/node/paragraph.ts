@@ -23,7 +23,7 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
                 return createDomOutputFromOptions({
                     type: 'node',
                     tagName: 'p',
-                    children: [0],
+                    editable: true,
                 });
             }
         };

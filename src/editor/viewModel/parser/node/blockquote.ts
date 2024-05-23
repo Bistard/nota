@@ -23,7 +23,7 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
                 return createDomOutputFromOptions({
                     type: 'node',
                     tagName: `blockquote`,
-                    children: [0],
+                    editable: true,
                 });
             }
         };

@@ -23,7 +23,7 @@ export class Space extends DocumentNode<EditorTokens.Space> {
                 return createDomOutputFromOptions({
                     type: 'node',
                     tagName: 'p',
-                    children: [0],
+                    editable: true,
                 });
             }
         };
