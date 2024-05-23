@@ -1,7 +1,8 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode, createDomOutputFromOptions } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**

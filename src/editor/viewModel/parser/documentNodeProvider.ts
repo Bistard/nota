@@ -1,4 +1,5 @@
 import { IO } from "src/base/common/utilities/functional";
+import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";
 import { TokenEnum, MarkEnum } from "src/editor/common/markdown";
 import { ProseNodeType, ProseMarkType } from "src/editor/common/proseMirror";
@@ -56,7 +57,6 @@ export class DocumentNodeProvider {
                 // nodes
                 provider.registerNode(new Space());
                 provider.registerNode(new Text());
-                
                 provider.registerNode(new Paragraph());
                 provider.registerNode(new Blockquote());
                 provider.registerNode(new HorizontalRule());
@@ -64,7 +64,6 @@ export class DocumentNodeProvider {
                 provider.registerNode(new CodeBlock());
                 provider.registerNode(new List());
                 provider.registerNode(new ListItem());
-                
                 provider.registerNode(new LineBreak());
                 provider.registerNode(new Image());
                 provider.registerNode(new HTML());
@@ -124,7 +123,7 @@ export class DocumentNodeProvider {
         for (const [name, node] of this._nodes) {
             const nodeCtor = schema.getNodeType(name);
             if (!nodeCtor) {
-                throw new Error(`Cannot find prosemirror node constructor for type ${name}`);
+                panic(`[DocumentNodeProvider] Cannot find prosemirror node constructor for type ${name}`);
             }
             initDocumentNode(node, nodeCtor);
         }
@@ -132,7 +131,7 @@ export class DocumentNodeProvider {
         for (const [name, mark] of this._marks) {
             const markCtor = schema.getMarkType(name);
             if (!markCtor) {
-                throw new Error(`Cannot find prosemirror mark constructor for type ${name}`);
+                panic(`[DocumentNodeProvider] Cannot find prosemirror mark constructor for type ${name}`);
             }
             initDocumentMark(mark, markCtor);
         }
