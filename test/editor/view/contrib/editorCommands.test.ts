@@ -133,6 +133,7 @@ suite.skip('editorCommands-test', () => {
             );
         });
 
+        // FIX
         test('moves a block into a list item', () => {
             execCommand(
                 doc(ul(li(p('hi'))), p('<a>there')), cmd,
@@ -140,6 +141,7 @@ suite.skip('editorCommands-test', () => {
             );
         });
 
+        // FIX
         test('joins lists', () => {
             execCommand(
                 doc(ul(li(p('hi'))), ul(li(p('<a>there')))), cmd,
@@ -147,6 +149,7 @@ suite.skip('editorCommands-test', () => {
             );
         });
 
+        // FIX
         test('joins list items', () => {
             execCommand(
                 doc(ul(li(p('hi')), li(p('<a>there')))), cmd,
@@ -161,6 +164,7 @@ suite.skip('editorCommands-test', () => {
             );
         });
 
+        // FIX
         test('joins lists before and after', () => {
             execCommand(
                 doc(ul(li(p('hi'))), p('<a>there'), ul(li(p('x')))), cmd,
