@@ -142,7 +142,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
 
         if (this._maximizeButton) {
             this._maximizeButton.addEventListener('click', () => {
-                this.hostService.toggleMaximizeWindow();
+                this.hostService.toggleFullScreenWindow();
             });
         }
 
