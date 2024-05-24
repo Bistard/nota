@@ -8,6 +8,7 @@ import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
+import { IHostService } from 'src/platform/host/common/hostService';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 
@@ -28,12 +29,16 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
 
     public static readonly HEIGHT = 40;
     private _searchBar?: SearchBar;
+    private _closeButton?: HTMLElement;
+    private _minimizeButton?: HTMLElement;
+    private _maximizeButton?: HTMLElement;
 
     // [event]
 
     // [constructor]
 
     constructor(
+        @IHostService private readonly hostService: IHostService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -69,7 +74,9 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     }
     
     protected override _registerListeners(): void {
-        
+        if (OPERATING_SYSTEM === Platform.Mac) {
+            this._registerMacButtonListeners();
+        }
     } 
 
     // [private helper method]
@@ -85,13 +92,13 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         const macButtons = document.createElement('div');
         macButtons.className = 'mac-buttons-container';
 
-        const closeButton = this.__createMacButton('close-btn');
-        const minimizeButton = this.__createMacButton('min-btn');
-        const maximizeButton = this.__createMacButton('max-btn');
+        this._closeButton = this.__createMacButton('close-btn');
+        this._minimizeButton = this.__createMacButton('min-btn');
+        this._maximizeButton = this.__createMacButton('max-btn');
 
-        macButtons.appendChild(closeButton);
-        macButtons.appendChild(minimizeButton);
-        macButtons.appendChild(maximizeButton);
+        macButtons.appendChild(this._closeButton);
+        macButtons.appendChild(this._minimizeButton);
+        macButtons.appendChild(this._maximizeButton);
 
         return macButtons;
     }
@@ -118,5 +125,45 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         
         utilityBar.appendChild(this._searchBar.element);
         return utilityBar;
+    }
+
+    private _registerMacButtonListeners(): void {
+        if (this._closeButton) {
+            this._closeButton.addEventListener('click', () => {
+                this.hostService.closeWindow();
+            });
+        }
+
+        if (this._minimizeButton) {
+            this._minimizeButton.addEventListener('click', () => {
+                this.hostService.minimizeWindow();
+            });
+        }
+
+        if (this._maximizeButton) {
+            this._maximizeButton.addEventListener('click', () => {
+                this.hostService.toggleMaximizeWindow();
+            });
+        }
+
+        this.hostService.onDidMaximizeWindow(() => {
+            this._changeMaxResBtn(true);
+        });
+
+        this.hostService.onDidUnmaximizeWindow(() => {
+            this._changeMaxResBtn(false);
+        });
+    }
+
+    private _changeMaxResBtn(isMaximized: boolean): void {
+        if (this._maximizeButton) {
+            if (isMaximized) {
+                this._maximizeButton.classList.add('restored');
+                this._maximizeButton.classList.remove('maximized');
+            } else {
+                this._maximizeButton.classList.add('maximized');
+                this._maximizeButton.classList.remove('restored');
+            }
+        }
     }
 }
