@@ -7,6 +7,7 @@ import { ILogService } from 'src/base/common/logger';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
+import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 
@@ -53,8 +54,15 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [protected override method]
     
     protected override _createContent(): void {
-        const logo = this.__createOutlineButton();
-        this.element.appendChild(logo.element);
+        let buttonContainer: HTMLElement;
+
+        if (OPERATING_SYSTEM === Platform.Mac) {
+            buttonContainer = this.__createMacButtons();
+        } else {
+            buttonContainer = this.__createOutlineButton().element;
+        }
+        
+        this.element.appendChild(buttonContainer);
 
         const searchBar = this.__createSearchBar();
         this.element.appendChild(searchBar);
@@ -73,9 +81,34 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         return outlineButton;
     }
 
+    private __createMacButtons(): HTMLElement {
+        const macButtons = document.createElement('div');
+        macButtons.className = 'mac-buttons-container';
+
+        const closeButton = this.__createMacButton('close-btn');
+        const minimizeButton = this.__createMacButton('min-btn');
+        const maximizeButton = this.__createMacButton('max-btn');
+
+        macButtons.appendChild(closeButton);
+        macButtons.appendChild(minimizeButton);
+        macButtons.appendChild(maximizeButton);
+
+        return macButtons;
+    }
+
+    private __createMacButton(className: string): HTMLElement {
+        const button = document.createElement('div');
+        button.className = `btn ${className}`;
+        return button;
+    }
+
     private __createSearchBar(): HTMLElement {
         const utilityBar = document.createElement('div');
         utilityBar.className = 'quick-access-search-bar';
+
+        if (OPERATING_SYSTEM === Platform.Mac) {
+            utilityBar.classList.add('macos');
+        }
         
         this._searchBar = this.__register(new SearchBar({
             icon: Icons.Search,
