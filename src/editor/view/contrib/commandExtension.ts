@@ -53,8 +53,9 @@ export class EditorCommandExtension extends EditorExtension {
     // [private helper methods]
 
     private __bindCommandsWithShortcut(): void {
-        this.__bindCommand(EditorCommands.Composite.Enter, ['Enter', 'Ctrl+Enter', 'Shift+Enter']);
-        this.__bindCommand(EditorCommands.Composite.Backspace, ['Backspace', 'Shift+Backspace', 'Meta+Backspace']);
+        this.__bindCommand(EditorCommands.Composite.Enter, ['Enter']);
+        this.__bindCommand(EditorCommands.Composite.Backspace, ['Backspace']);
+        this.__bindCommand(EditorCommands.Composite.Delete, ['Delete']);
     }
 
     private __bindCommand(command: Command, shortcuts: string[]): void {

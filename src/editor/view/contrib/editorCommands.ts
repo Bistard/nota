@@ -310,6 +310,72 @@ export namespace EditorCommands {
             }
         }
     
+        /**
+         * @description If the selection is empty and the cursor is at the end 
+         * of a textblock, try to reduce or remove the boundary between that 
+         * block and the one after it, either by joining them or by moving the 
+         * other block closer to this one in the tree structure. Will use the 
+         * view for accurate start-of-textblock detection if given.
+         */
+        export class joinForward extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const $cursor = __atBlockEnd(state, view);
+                if (!$cursor) {
+                    return false;
+                }
+
+                const $cut = __findCutAfter($cursor);
+                
+                // If there is no node after this, there's nothing to do
+                if (!$cut) {
+                    return false;
+                }
+
+                const after = $cut.nodeAfter!;
+                // Try the joining algorithm
+                if (__deleteBarrier(state, $cut, dispatch, 1)) {
+                    return true;
+                }
+
+                // If the node above has no content and the node below is
+                // selectable, delete the node above and select the one below.
+                if ($cursor.parent.content.size === 0 &&
+                    (__textblockAt(after, "start") || ProseNodeSelection.isSelectable(after))) {
+                    const delStep = replaceStep(state.doc, $cursor.before(), $cursor.after(), ProseSlice.empty) as ProseReplaceStep;
+                    if (delStep && delStep.slice.size < delStep.to - delStep.from) {
+                    
+                        if (dispatch) {
+                            const tr = state.tr.step(delStep);
+                            tr.setSelection(__textblockAt(after, "start") 
+                                            ? ProseSelection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos)), 1)!
+                                            : ProseNodeSelection.create(tr.doc, tr.mapping.map($cut.pos)));
+                            dispatch(tr.scrollIntoView());
+                        }
+                        
+                        return true;
+                    }
+                }
+
+                // If the next node is an atom, delete it
+                if (after.isAtom && $cut.depth === $cursor.depth - 1) {
+                    if (dispatch) {
+                        dispatch(state.tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView());
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        /**
+         * @description When the selection is empty and at the start of a 
+         * textblock, select the node before that textblock, if possible. This is 
+         * intended to be bound to keys like backspace, after[`joinBackward`](#commands.joinBackward) 
+         * or other deleting commands, as a fall-back behavior when the schema 
+         * doesn't allow deletion at the selected point.
+         */
         export class SelectNodeBackward extends EditorCommandBase {
     
             public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
@@ -325,7 +391,6 @@ export namespace EditorCommands {
                     if (view ? !view.endOfTextblock("backward", state) : $head.parentOffset > 0) {
                         return false;
                     }
-    
                     $cut = __findCutBefore($head);
                 }
     
@@ -338,6 +403,45 @@ export namespace EditorCommands {
                 const newTr = state.tr.setSelection(newSelection);
                 dispatch?.(newTr.scrollIntoView());
     
+                return true;
+            }
+        }
+
+        /**
+         * When the selection is empty and at the end of a textblock, select
+         * the node coming after that textblock, if possible. This is intended
+         * to be bound to keys like delete, after
+         * [`joinForward`](#commands.joinForward) and similar deleting
+         * commands, to provide a fall-back behavior when the schema doesn't
+         * allow deletion at the selected point.
+         */
+        export class SelectNodeForward extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const { empty } = state.selection;
+                if (!empty) {
+                    return false;
+                }
+
+                const $head = new EditorResolvedPosition(state.selection.$head);
+                let $cut: IEditorResolvedPosition | null = new EditorResolvedPosition($head);
+
+                if ($head.parent.isTextblock) {
+                    if (view ? !view.endOfTextblock("forward", state) : $head.parentOffset < $head.parent.content.size) {
+                        return false;
+                    }
+                    $cut = __findCutAfter($head);
+                }
+
+                const node = $cut && $cut.nodeAfter;
+                if (!node || !ProseNodeSelection.isSelectable(node)) {
+                    return false;
+                }
+                
+                const newSelection = ProseNodeSelection.create(state.doc, $cut!.pos);
+                const newTr = state.tr.setSelection(newSelection);
+                dispatch?.(newTr.scrollIntoView());
+                
                 return true;
             }
         }
@@ -367,6 +471,7 @@ export namespace EditorCommands {
         export const enum ID {
             Enter = 'editor-enter',
             Backspace = 'editor-backspace',
+            Delete = 'editor-delete',
         }
         
         export const Enter = __buildCompositeCommand<ID.Enter>(
@@ -393,6 +498,18 @@ export namespace EditorCommands {
                 Basic.SelectNodeBackward,
             ],
         );
+
+        export const Delete = __buildCompositeCommand<ID.Delete>(
+            {
+                id: ID.Delete,
+                when: null,
+            },
+            [
+                Basic.DeleteSelection,
+                Basic.joinForward,
+                Basic.SelectNodeForward,
+            ]
+        );
     }
 }
 
@@ -403,6 +520,14 @@ function __atBlockStart(state: ProseEditorState, view?: ProseEditorView): IEdito
     }
     return new EditorResolvedPosition($cursor);
 }
+
+function __atBlockEnd(state: ProseEditorState, view?: ProseEditorView): IEditorResolvedPosition | null {
+    const { $cursor } = state.selection as ProseTextSelection;
+    if (!$cursor || (view ? !view.endOfTextblock("forward", state) : $cursor.parentOffset < $cursor.parent.content.size)) {
+        return null;
+    }
+    return new EditorResolvedPosition($cursor);
+  }
 
 function __findCutBefore($pos: IEditorResolvedPosition): IEditorResolvedPosition | null {
     if ($pos.parent.type.spec.isolating) {
@@ -422,6 +547,25 @@ function __findCutBefore($pos: IEditorResolvedPosition): IEditorResolvedPosition
 
     return null;
 }
+
+function __findCutAfter($pos: IEditorResolvedPosition): IEditorResolvedPosition | null {
+    if ($pos.parent.type.spec.isolating) {
+        return null;
+    }
+
+    for (let i = $pos.depth - 1; i >= 0; i--) {
+        const parent = $pos.node(i);
+        if ($pos.index(i) + 1 < parent.childCount) {
+            const newPos = $pos.doc.resolve($pos.after(i + 1));
+            return new EditorResolvedPosition(newPos);
+        }
+        if (parent.type.spec.isolating) {
+            break;
+        }
+    }
+
+    return null;
+  }
 
 function __deleteBarrier(state: ProseEditorState, $cut: IEditorResolvedPosition, dispatch: ((tr: ProseTransaction) => void) | undefined, dir: number) {
     const before = $cut.nodeBefore!;
