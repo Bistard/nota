@@ -12,6 +12,7 @@ import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
 import { IProductService } from "src/platform/product/common/productService";
+import { isDefined } from "src/base/common/utilities/type";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -130,7 +131,16 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     }
 
     public toggleFullScreen(force?: boolean): void {
-        // TODO: complete
+        if (isDefined(force)) {
+            this._window.setFullScreen(force);
+            return;
+        }
+
+        if (this._window.isFullScreen()) {
+            this._window.setFullScreen(false);
+        } else {
+            this._window.setFullScreen(true);
+        }
     }
 
     public close(): void {
