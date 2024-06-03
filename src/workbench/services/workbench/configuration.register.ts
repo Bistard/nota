@@ -26,15 +26,17 @@ export const enum WorkbenchConfiguration {
 
     // [workspace]
 
+    RestorePrevious    = 'workspace.restorePrevious',
     OutlineToggleState = 'workspace.outline.toggleState',
 }
 
 /**
- * {@link rendererWorkbenchConfigurationRegister}
- * {@link rendererNavigationViewConfigurationRegister}
+ * {@link sharedWorkbenchConfigurationRegister}
+ * {@link sharedNavigationViewConfigurationRegister}
+ * {@link sharedWorkspaceConfigurationRegister}
  */
 
-export const rendererWorkbenchConfigurationRegister = createRegister(
+export const sharedWorkbenchConfigurationRegister = createRegister(
     RegistrantType.Configuration,
     'rendererWorkbench',
     (registrant) => {
@@ -67,7 +69,7 @@ export const rendererWorkbenchConfigurationRegister = createRegister(
     },
 );
 
-export const rendererNavigationViewConfigurationRegister = createRegister(
+export const sharedNavigationViewConfigurationRegister = createRegister(
     RegistrantType.Configuration,
     'rendererNavigationView',
     (registrant) => {
@@ -131,7 +133,7 @@ export const rendererNavigationViewConfigurationRegister = createRegister(
     },
 );
 
-export const rendererWorkspaceConfigurationRegister = createRegister(
+export const sharedWorkspaceConfigurationRegister = createRegister(
     RegistrantType.Configuration,
     'rendererWorkspace',
     (registrant) => {
@@ -143,6 +145,10 @@ export const rendererWorkspaceConfigurationRegister = createRegister(
                 ['workspace']: {
                     type: 'object',
                     properties: {
+                        ['restorePrevious']: {
+                            type: 'boolean',
+                            default: true,
+                        },
                         ['outline']: {
                             type: 'object',
                             properties: {

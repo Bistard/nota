@@ -28,6 +28,8 @@ import { UUID } from "src/base/common/utilities/string";
 import { IpcServer } from "src/platform/ipc/electron/ipcServer";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -56,6 +58,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         @IFileService private readonly fileService: IFileService,
         @IMainStatusService private readonly statusService: IMainStatusService,
         @IRegistrantService private readonly registrantService: IRegistrantService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super();
         this.registerListeners();
@@ -161,7 +164,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
         this.logService.debug('App', 'Opening the first window...');
-
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
         // life-cycle-service: READY
@@ -169,9 +171,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
-        const uri = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
-        if (uri) {
-            uriToOpen.push(URI.parse(uri));
+        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
+        if (shouldRestore) {
+            const lastOpened = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
+            if (lastOpened) {
+                uriToOpen.push(URI.parse(lastOpened));
+            }
         }
 
         // open the first window
