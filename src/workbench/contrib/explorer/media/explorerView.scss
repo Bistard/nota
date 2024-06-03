@@ -132,16 +132,16 @@
             }
         }
         
-        // &:hover > .explorer-open-tag {
-        //     color: #9f9f95;
-        // }
+        &:hover > .explorer-open-tag {
+            color: #9f9f95;
+        }
         
-        // &:hover > .explorer-open-tag:hover {
-        //     color: rgb(202, 202, 202);
-        // }
+        &:hover > .explorer-open-tag:hover {
+            color: rgb(202, 202, 202);
+        }
         
-        // &:hover > .explorer-open-tag:active {
-        //     color: #9f9f95;
-        // }
+        &:hover > .explorer-open-tag:active {
+            color: #9f9f95;
+        }
     }
 }
