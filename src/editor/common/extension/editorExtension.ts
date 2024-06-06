@@ -1,30 +1,18 @@
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { EditorEventBroadcaster, IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 import { ProseExtension } from "src/editor/common/proseMirror";
-import { IEditorWidget } from "src/editor/editorWidget";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 
 /**
- * An interface used to describe an extension for an editor that is created for
- * every time when an editor is created and disposed when the editor is disposed.
+ * // TODO
+ * // REVIEW: maybe support optional construction to either enable or disable the internal view extension. Maybe not every editor extension require views.
  */
-export interface IEditorExtension extends IEditorEventBroadcaster, ProseExtension {
+export abstract class EditorExtension extends Disposable {
     
-}
+    // [fields]
 
-export interface IEditorExtensionCtor {
-    new (editor: IEditorWidget, ...services: any[]): IEditorExtension;
-}
-
-/**
- * @class The base class for every editor-related extensions.
- */
-export abstract class EditorExtension extends ProseExtension implements IEditorExtension {
-
-    // [field]
-
-    private readonly _disposables: DisposableManager;
-    private readonly _eventBroadcaster: EditorEventBroadcaster;
+    private readonly _viewExtension: ProseExtension;
+    private readonly _eventBroadcaster: ProseEventBroadcaster;
 
     // [event]
 
@@ -45,11 +33,11 @@ export abstract class EditorExtension extends ProseExtension implements IEditorE
     // [constructor]
 
     constructor() {
-        super({ props: {} });
-        this._disposables = new DisposableManager();
-        this._eventBroadcaster = new EditorEventBroadcaster(this.props);
-        
-        // event bindings
+        super();
+        this._viewExtension = new ProseExtension({});
+        this._eventBroadcaster = this.__register(new ProseEventBroadcaster(this._viewExtension.props));
+
+        // event binding
         {
             this.onDidFocusChange = this._eventBroadcaster.onDidFocusChange;
             this.onBeforeRender = this._eventBroadcaster.onBeforeRender;
@@ -65,37 +53,11 @@ export abstract class EditorExtension extends ProseExtension implements IEditorE
             this.onPaste = this._eventBroadcaster.onPaste;
             this.onDrop = this._eventBroadcaster.onDrop;
         }
-
-        // memory management
-        this._disposables.register(this._eventBroadcaster);
     }
 
     // [public methods]
 
-    public dispose(): void {
-        this._disposables.dispose();
-    }
-
-    /** 
-	 * @description Determines if the current object is disposed already. 
-	 */
-	public isDisposed(): boolean {
-		return this._disposables.disposed;
-	}
-
-    // [protected methods]
-
-    /**
-	 * @description Try to register a disposable object. Once this.dispose() is 
-	 * invoked, all the registered disposables will be disposed.
-	 * 
-	 * If this object is already disposed, a console warning will be printed.
-	 * If self-registering is encountered, an error will be thrown.
-	 */
-    protected __register<T extends IDisposable>(obj: T): T {
-        if (obj && (obj as IDisposable) === this) {
-			throw new Error('cannot register the disposable object to itself');
-		}
-        return this._disposables.register(obj);
+    public getViewExtension(): ProseExtension {
+        return this._viewExtension;
     }
 }

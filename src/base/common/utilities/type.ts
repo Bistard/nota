@@ -443,14 +443,6 @@ export type TreeLike<T> = {
 };
 
 /**
- * @description Mocks the given value's type.
- * @deprecated Try not to use it since it causes unnecessary runtime impact.
- */
-export function mockType<T>(val: any): T {
-    return val as unknown as T;
-}
-
-/**
  * @description Ensures that the provided type `T` is strictly `true`.
  * @note The function itself doesn't perform any runtime checks. The type 
  * checking is done at compile time.
@@ -551,10 +543,12 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
+export const isNotDefined = isNullable;
 export function isNullable(value: any): value is undefined | null {
     return (typeof value === 'undefined' || value === null);
 }
 
+export const isDefined = isNonNullable;
 export function isNonNullable<T>(value: T): value is NonNullable<T> {
     return !isNullable(value);
 }

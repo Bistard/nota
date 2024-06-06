@@ -9,7 +9,7 @@
 		"eslint-plugin-local": "./scripts/linting/eslint-plugin-local"
 	},
 	"scripts": {
-		"postinstall": "link-module-alias",
+		"postinstall": "node ./scripts/postinstall.js",
 		"script": "node ./scripts/script.js"
 	},
 	"repository": {
@@ -32,7 +32,6 @@
 		"@types/prismjs": "^1.16.6",
 		"@types/requestidlecallback": "^0.3.4",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
-		"@typescript-eslint/parser": "^6.17.0",
 		"benchmark": "^2.1.4",
 		"circular-dependency-plugin": "^5.2.2",
 		"cross-env": "^7.0.3",
@@ -41,6 +40,7 @@
 		"eslint": "^8.56.0",
 		"estraverse": "^5.3.0",
 		"fantasticon": "^1.2.3",
+		"ist": "^1.1.7",
 		"jsdom": "^21.1.0",
 		"jsdom-global": "^3.0.2",
 		"link-module-alias": "^1.2.0",
@@ -48,6 +48,7 @@
 		"mocha": "^9.1.3",
 		"mochapack": "^2.1.4",
 		"node-loader": "^2.0.0",
+		"prosemirror-test-builder": "^1.1.1",
 		"sass": "^1.58.3",
 		"sass-loader": "^13.2.0",
 		"ts-loader": "^9.2.5",
@@ -72,9 +73,9 @@
 			"jsdom & jsdom-global": "JavaScript-based DOM simulation tools for Node.js.",
 			"link-module-alias": "Link and resolve aliases of modules in Node.js. Used to achieve local customized eslint rules.",
 			"mini-css-extract-plugin": "Extracts CSS from your bundles into separate files.",
-			"minimist": "Parse argument options. Good tiny lib to use.",
 			"mocha and mochapack": "Testing framework and its webpack integration.",
 			"node-loader": "Webpack loader for Node.js native modules.",
+			"prosemirror-test-builder": "Utility libraries for fast building proseMirror elements.",
 			"sass and sass-loader": "CSS pre-processor and its Webpack loader.",
 			"ts-loader": "TypeScript loader for Webpack.",
 			"ts-node": "TypeScript execution environment for node.",
@@ -83,12 +84,14 @@
 			"webpack and related packages": "Module bundler and its various plugins/loaders."
 		},
 		"dependencies": {
-			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform."
+			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform.",
+			"minimist": "Parse argument options. Good tiny lib to use."
 		}
 	},
 	"dependencies": {
 		"chokidar": "^3.5.3",
 		"codemirror": "^6.0.1",
+		"marked": "^12.0.2",
 		"minimist": "^1.2.8",
 		"openai": "^4.28.0",
 		"prosemirror-model": "^1.18.1",

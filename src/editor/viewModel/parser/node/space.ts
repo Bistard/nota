@@ -2,6 +2,7 @@ import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
@@ -15,21 +16,29 @@ export class Space extends DocumentNode<EditorTokens.Space> {
     }
 
     public getSchema(): ProseNodeSpec {
-        return <ProseNodeSpec>{
+        return {
             group: 'block',
-            content: 'block*',
-            selectable: true,
-            parseDOM: [{ tag: 'div' }],
-            toDOM: () => {
-                const dom = document.createElement('div');
-                dom.innerHTML = '&nbsp;';
-                return dom;
+            content: 'inline*',
+            parseDOM: [{ tag: 'p' }],
+            toDOM: () => { 
+                return createDomOutputFromOptions({
+                    type: 'node',
+                    tagName: 'p',
+                    editable: true,
+                });
             }
         };
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Space): void {
-        state.activateNode(this.ctor);
-        state.deactivateNode();
+        
+        /**
+         * Iterate every new line, create a {@link Space} for it. Every space
+         * will be rendered as an empty paragraph.
+         */
+        for (let i = 0; i < token.raw.length; i++) {
+            state.activateNode(this.ctor);
+            state.deactivateNode();
+        }
     }
 }

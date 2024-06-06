@@ -1,3 +1,4 @@
+import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { IEditorModelOptions } from "src/editor/common/model";
 import { IEditorViewOptions } from "src/editor/common/view";
 import { EditorType, IEditorViewModelOptions } from "src/editor/common/viewModel";
@@ -100,10 +101,10 @@ export const enum EditorOptionEnum {
  * The actual editor options that initially sets with all default values.
  */
 export const EditorOptions = {
-    baseURI: new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
-    mode: new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
+    baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
+    mode:               new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
     codeblockHighlight: new BooleanEditorOption(EditorOptionEnum.codeblockHighlight, 'codeblockHighlight', true, {}),
-    ignoreHTML: new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
+    ignoreHTML:         new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
 };
 
 export type EditorOptionsType = typeof EditorOptions;
@@ -115,3 +116,14 @@ type FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : neve
  * type in {@link IEditorOption}.
  */
 export type FindEditorOption<T extends EditorOptionEnum> = FindEditorOptionValue<EditorOptionsType[FindEditorOptionKey<T>]>;
+
+export function toJsonEditorOption(options: EditorOptionsType): Record<string, any> {
+    const opt = {};
+
+    iterPropEnumerable(options, (propName) => {
+        const optObj = options[propName];
+        opt[optObj.name] = optObj.value;
+    });
+
+    return opt;
+}

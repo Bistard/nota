@@ -281,12 +281,6 @@ export class Blocker<T> {
 	}
 }
 
-export type IAsyncPromiseTask<T> = {
-	task: ITask<Promise<T>>;
-	resolve: (arg: T) => void;
-	reject: (reason?: any) => void;
-};
-
 /**
  * @class A {@link EventBlocker} registers the provided event register for one 
  * time only and convert it into a promise so that it can be listened in an 
@@ -395,6 +389,21 @@ export interface IAsyncRunner<T> extends Disposable {
 	readonly size: number;
 
 	/**
+	 * The total number of promises that are being executing.
+	 */
+	readonly runningSize: number;
+	
+	/**
+	 * The total number of promises that are being waiting.
+	 */
+	readonly pendingSize: number;
+
+	/**
+	 * Fires when any tasks is completed.
+	 */
+	readonly onDidComplete: Register<T>;
+	
+	/**
 	 * Fires once the all the executing promises are done and no waiting promises.
 	 */
 	readonly onDidFlush: Register<void>;
@@ -406,6 +415,15 @@ export interface IAsyncRunner<T> extends Disposable {
 	 * value of the {@link ITask}.
 	 */
 	queue(task: ITask<Promise<T>>): Promise<T>;
+
+	/**
+     * @description Dequeue the next pending promise, removing it from the queue.
+     * @returns The task that was pending execution, or undefined if no tasks 
+	 * 			are pending.
+	 * 
+	 * @note The API will not interrupt any executing tasks.
+     */
+	dequeue(): ITask<Promise<T>> | undefined;
 
 	/**
 	 * @description Pauses the executor (the running promises will not be paused).
@@ -440,6 +458,9 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 	private readonly _limitCount: number;
 	private readonly _waitingPromises: IAsyncPromiseTask<T>[];
 
+	private readonly _onDidComplete = this.__register(new Emitter<T>());
+	public readonly onDidComplete = this._onDidComplete.registerListener;
+
 	private readonly _onDidFlush = this.__register(new Emitter<void>());
 	public readonly onDidFlush = this._onDidFlush.registerListener;
 
@@ -461,12 +482,38 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 		return this._size;
 	}
 
+	get runningSize(): number {
+		return this._runningPromisesCount;
+	}
+
+	get pendingSize(): number {
+		return this.size - this.runningSize;
+	}
+
 	public queue(task: ITask<Promise<T>>): Promise<T> {
 		this._size++;
-		return new Promise((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			this._waitingPromises.push({ task, resolve, reject });
 			this.__consume();
+		})
+		.then(data => {
+			this._onDidComplete.fire(data);
+			return data;
 		});
+	}
+
+	public dequeue(): ITask<Promise<T>> | undefined {
+		if (this._waitingPromises.length > 0) {
+            const { task } = this._waitingPromises.shift()!;
+            this._size--; 
+
+			if (this._size === 0) {
+				this._onDidFlush.fire();
+			}
+
+            return task;
+        }
+        return undefined;
 	}
 
 	public pause(): void {
@@ -521,6 +568,12 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 		}
 	}
 }
+
+type IAsyncPromiseTask<T> = {
+	task: ITask<Promise<T>>;
+	resolve: (arg: T) => void;
+	reject: (reason?: any) => void;
+};
 
 /**
  * @class An async queue helper that guarantees only 1 promise are running at 
@@ -635,6 +688,12 @@ export class Scheduler<T> implements IScheduler<T> {
 export interface IUnbufferedScheduler<T> extends IDisposable {
 	
 	/**
+	 * Represents the current scheduling event that is buffered and not ready 
+	 * to fire. Return `undefined` when there is no waiting scheduling.
+	 */
+	readonly currentEvent?: T;
+
+	/**
 	 * @description Schedules the callback with the given delay and fires an 
 	 * event to the callback, if a new scheduling happens before the previous
 	 * scheduling, the previous scheduled event will be forget.
@@ -669,6 +728,7 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 	private _callback: (event: T) => void;
 	private readonly _delay: Time;
 	private _token?: NodeJS.Timeout;
+	private _currEvent?: T;
 
 	// [constructor]
 
@@ -677,12 +737,23 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 		this._delay = delay;
 	}
 
+	// [getter]
+
+	get currentEvent(): T | undefined {
+		return this._currEvent;
+	}
+
 	// [public methods]
 
 	public schedule(event: T, delay: Time = this._delay): void {
 		this.cancel();
+		this._currEvent = event;
+
 		this._token = setTimeout(() => {
 			this._callback(event);
+			this._token = undefined;
+			this._currEvent = undefined;
+			
 		}, delay.toMs().time);
 	}
 
@@ -694,6 +765,7 @@ export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
 		if (!isNullable(this._token)) {
 			clearTimeout(this._token);
 			this._token = undefined;
+			this._currEvent = undefined;
 			return true;
 		}
 		return false;
@@ -760,17 +832,15 @@ export class Throttler implements IThrottler {
 		 * If there is no waiting task, Create a waiting task that will run 
 		 * after the current task.
 		 */
-		if (!this._waitingPromise) {
-			this._waitingPromise = (async () => {
-				await this._runningPromise;
-				this._waitingPromise = undefined;
+		this._waitingPromise ??= (async () => {
+			await this._runningPromise;
+			this._waitingPromise = undefined;
 
-				const promise = this.queue(this._latestTask!);
-				this._latestTask = undefined;
-				
-				return promise;
-			})();
-		}
+			const promise = this.queue(this._latestTask!);
+			this._latestTask = undefined;
+			
+			return promise;
+		})();
 
 		return this._waitingPromise;
 	}

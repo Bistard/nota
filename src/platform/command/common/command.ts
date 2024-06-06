@@ -3,7 +3,7 @@ import { ICommandRegistrant, ICommandBasicSchema } from "src/platform/command/co
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, Constructor } from "src/base/common/utilities/type";
 
 /**
  * A more concrete set of metadata to describe a command specifically used for
@@ -164,7 +164,7 @@ export abstract class Command<ID extends string = string> implements ICommand {
  * commands are executed in the provided sequence. Any one of the command returns
  * a true will stop the execution.
  */
-export class ChainCommand extends Command {
+export class ChainCommand<ID extends string = string> extends Command<ID> {
 
     private readonly _commands: Command[];
 
@@ -188,4 +188,16 @@ export class ChainCommand extends Command {
         }
         return false;
     }
+}
+
+/**
+ * @description A helpers to construct a {@link ChainCommand} easily.
+ */
+export function buildChainCommand<ID extends string = string>(schema: ICommandSchema, ctors: Constructor<Command>[]): ChainCommand<ID> {
+    return new ChainCommand(
+        schema,
+        [
+            ...ctors.map(ctor => new ctor(schema))
+        ],
+    );
 }

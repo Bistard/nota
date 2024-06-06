@@ -1,8 +1,8 @@
+import { marked } from "marked";
 import { EditorToken } from "src/editor/common/model";
-import { marked } from "src/editor/model/markdown/marked/marked";
 
 /**
- * The options for markdown pasring.
+ * The options for markdown parsing.
  */
 export interface IMarkdownLexerOptions {
     
@@ -60,11 +60,7 @@ export class MarkdownLexer implements IMarkdownLexer {
     // [public methods]
 
     public lex(text: string): EditorToken[] {
-        const lexOption = <marked.MarkedOptions>{
-            baseUrl: this._parseOpts.baseURI,
-        };
-
-        const tokens = marked.lexer(text, lexOption);
+        const tokens = marked.lexer(text, {});
         return tokens;
     }
 
