@@ -8,6 +8,7 @@ import { IEditorService } from "src/workbench/parts/workspace/editor/editorServi
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { ILogService } from "src/base/common/logger";
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
+import { assert, check } from 'src/base/common/utilities/panic';
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -24,8 +25,8 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     // [field]
 
-    private titleBar!: TitleBar;
-    private editor!: IEditorService;
+    private _titleBar?: TitleBar;
+    private _editor?: IEditorService;
 
     // [constructor]
 
@@ -48,10 +49,13 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     }
 
     protected override _registerListeners(): void {
+        const titleBar = assert(this._titleBar);
+        const editor = assert(this._editor);
+        
         if (OPERATING_SYSTEM === Platform.Windows) {
-            this.titleBar.registerListeners();
+            titleBar.registerListeners();
         }
-        this.editor.registerListeners();
+        editor.registerListeners();
     }
 
     // [public method]
@@ -59,12 +63,14 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [private helper methods]
 
     private _createTitleBar(): void {
-        this.titleBar = this.instantiationService.createInstance(TitleBar);
-        this.titleBar.create(this);
+        check(!this._titleBar);
+        this._titleBar = this.instantiationService.createInstance(TitleBar);
+        this._titleBar.create(this);
     }
 
     private _createEditor(): void {
-        this.editor = this.instantiationService.getOrCreateService(IEditorService);
-        this.editor.create(this);
+        check(!this._editor);
+        this._editor = this.instantiationService.getOrCreateService(IEditorService);
+        this._editor.create(this);
     }
 }

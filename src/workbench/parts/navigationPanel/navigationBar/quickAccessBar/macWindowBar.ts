@@ -11,6 +11,8 @@ import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecy
 
 export class MacWindowBar extends Component implements IComponent {
     
+    // [constructor]
+
     constructor(
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
@@ -25,9 +27,13 @@ export class MacWindowBar extends Component implements IComponent {
         this._createContent();
     }
 
+    // [public methods]
+
     public override dispose(): void {
         super.dispose();
     }
+
+    // [protected methods]
 
     protected override _createContent(): void {
         const container = document.createElement('div');
@@ -43,7 +49,11 @@ export class MacWindowBar extends Component implements IComponent {
         this.element.appendChild(container);
     }
 
-    protected override _registerListeners(): void {}
+    protected override _registerListeners(): void {
+        // noop
+    }
+
+    // [private methods]
 
     private __createButton(className: string, onClick: () => void): HTMLElement {
         const button = document.createElement('div');

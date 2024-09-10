@@ -24,12 +24,16 @@ export interface IQuickAccessBarService extends IComponent, IService {
 
 export class QuickAccessBar extends Component implements IQuickAccessBarService {
     
+    // [fields]
+
     declare _serviceMarker: undefined;
     public static readonly HEIGHT = 40;
 
     private _searchBar?: SearchBar;
     private _macWindowBar?: MacWindowBar;
     private _menuButton?: Button;
+
+    // [constructor]
 
     constructor(
         @IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -41,16 +45,19 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         this._createContent();
     }
 
+    // [public methods]
+
     public getSearchBar(): SearchBar | undefined {
         return this._searchBar;
     }
+
+    // [protected methods]
 
     protected override _createContent(): void {
         if (OPERATING_SYSTEM === Platform.Mac) {
             this._macWindowBar = this.__register(this.instantiationService.createInstance(MacWindowBar));
             this.element.appendChild(this._macWindowBar.element);
-        } 
-        else {
+        } else {
             this._menuButton = this.__register(this.__createMenuButton());
             this.element.appendChild(this._menuButton.element);
         }
@@ -60,6 +67,8 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     }
 
     protected override _registerListeners(): void {}
+
+    // [private methods]
 
     private __createMenuButton(): Button {
         const button = new Button({
