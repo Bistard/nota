@@ -56,7 +56,7 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     hasItem(id: string): boolean;
 
     /**
-     * @description Returns an array of the item.
+     * @description Returns an array of all the items.
      */
     items(): T[];
 
