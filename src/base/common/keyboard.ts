@@ -487,8 +487,11 @@ export class Shortcut {
         return result.join('+');
     }
 
+    /**
+     * @description Converts the string form of the shortcut to a {@link Shortcut}.
+     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
+     */
     public static fromString(string: string): Shortcut {
-        
         const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
 
         const parts = string.split('+');

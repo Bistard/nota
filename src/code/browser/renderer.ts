@@ -27,7 +27,7 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister, rendererWorkspaceConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
@@ -323,12 +323,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         class BrowserConfigurationRegistrant extends ConfigurationRegistrant {
             public override initRegistrations(provider: IServiceProvider): void {
                 super.initRegistrations(provider);
-                [
-                    rendererWorkbenchConfigurationRegister,
-                    rendererNavigationViewConfigurationRegister,
-                    rendererWorkspaceConfigurationRegister,
-                ]
-                .forEach(register => register(provider));
+                // no op for now
             }
         }
 

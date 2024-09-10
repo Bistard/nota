@@ -24,8 +24,8 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     // [field]
 
-    private titleBarComponent!: TitleBar;
-    private editorComponent!: IEditorService;
+    private titleBar!: TitleBar;
+    private editor!: IEditorService;
 
     // [constructor]
 
@@ -49,9 +49,9 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     protected override _registerListeners(): void {
         if (OPERATING_SYSTEM === Platform.Windows) {
-            this.titleBarComponent.registerListeners();
+            this.titleBar.registerListeners();
         }
-        this.editorComponent.registerListeners();
+        this.editor.registerListeners();
     }
 
     // [public method]
@@ -59,12 +59,12 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [private helper methods]
 
     private _createTitleBar(): void {
-        this.titleBarComponent = this.instantiationService.createInstance(TitleBar);
-        this.titleBarComponent.create(this);
+        this.titleBar = this.instantiationService.createInstance(TitleBar);
+        this.titleBar.create(this);
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService);
-        this.editorComponent.create(this);
+        this.editor = this.instantiationService.getOrCreateService(IEditorService);
+        this.editor.create(this);
     }
 }
