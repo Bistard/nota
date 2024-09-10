@@ -1,6 +1,6 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
+import { INavigationBarButtonClickEvent, INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
@@ -17,7 +17,7 @@ export class ActionBar extends Component {
 
     public static readonly HEIGHT = 60;
 
-    private readonly _buttons: WidgetBar<Button>;
+    private readonly _buttonBar: WidgetBar<Button>;
     
     // [event]
     
@@ -32,7 +32,7 @@ export class ActionBar extends Component {
         @ILogService logService: ILogService,
     ) {
         super('action-bar', null, themeService, componentService, logService);
-        this._buttons = new WidgetBar('action-bar-buttons', { orientation: Orientation.Horizontal });
+        this._buttonBar = new WidgetBar('action-bar-buttons', { orientation: Orientation.Horizontal });
     }
 
     // [public method]
@@ -41,22 +41,19 @@ export class ActionBar extends Component {
     }
 
     public getPrimaryButton(ID: string): Button | undefined {
-        return this._buttons.getItem(ID);
+        return this._buttonBar.getItem(ID);
     }
 
     public registerPrimaryButton(opts: IButtonOptions): boolean {
-        return this.__registerButton(opts, this._buttons);
+        return this.__registerButton(opts, this._buttonBar);
     }
 
 
     // [protected override method]
 
     protected override _createContent(): void {
-        const actionBarContainer = document.createElement('div');
-        actionBarContainer.className = 'main-action-bar';
-        this._buttons.render(actionBarContainer);
-        this.element.appendChild(actionBarContainer);
-        this.__register(this._buttons);
+        this._buttonBar.render(this.element.element);
+        this.__register(this._buttonBar);
     }
 
     protected override _registerListeners(): void {
