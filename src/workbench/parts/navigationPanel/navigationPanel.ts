@@ -84,7 +84,9 @@ class NavigationBarBuilder {
     public registerButtons(): void {
         [
             { id: 'folder-open', icon: Icons.FolderOpen, },
-            { id: 'add-new', icon: Icons.AddNew, },
+            { id: 'nota-ai-default', icon: Icons.NotaAiDefault, },
+            { id: 'source-control-default', icon: Icons.SourceControlDefault, },
+            { id: 'extension', icon: Icons.Extension, },
         ]
         .forEach(({ id, icon}) => {
             this.toolBarService.registerPrimaryButton({
