@@ -300,7 +300,7 @@ export abstract class Component extends Themable implements IComponent {
         this._children   = new Map();
         this._splitView  = undefined;
 
-        this._element = new FastElement(document.createElement('div'));
+        this._element = this.__register(new FastElement(document.createElement('div')));
         this._element.addClassList('component-ui');
         this._element.setID(id);
 
