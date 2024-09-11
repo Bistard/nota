@@ -35,6 +35,7 @@ export interface IToolBarService extends IComponent, IService {
 
     /**
      * Register action bar buttons.
+     * @param opts Button constructor options
      */
     registerActionButtons(opts: IButtonOptions);
 }
