@@ -29,7 +29,7 @@ export interface INavigationViewChangeEvent {
 export interface INavigationViewService extends IComponent, IService {
 
     /** 
-     * Events fired when the current side view has changed. 
+     * Events fired when the current navigation view has changed. 
      */
     readonly onDidViewChange: Register<INavigationViewChangeEvent>;
 
@@ -37,7 +37,7 @@ export interface INavigationViewService extends IComponent, IService {
      * @description Register a view with the corresponding ID. The view will not
      * be created immediately.
      * @param id The id of the view for future look up.
-     * @param viewCtor The side view.
+     * @param viewCtor The navigation view.
      */
     registerView(id: string, viewCtor: Constructor<INavView>): void;
 
@@ -66,7 +66,7 @@ export interface INavigationViewService extends IComponent, IService {
     getView<T extends INavView>(id: string): T | undefined;
 
     /**
-     * @description Returns the current displaying side view. Undefined is
+     * @description Returns the current displaying navigation view. Undefined is
      * returned if no views are displaying.
      */
     currView<T extends INavView>(): T | undefined;
@@ -110,10 +110,10 @@ export class NavigationView extends Component implements INavigationViewService 
     // [public method]
 
     public registerView(id: string, viewCtor: Constructor<INavView>): void {
-        this.logService.debug('SideViewService', `registers a view with ID: ${id}`);
+        this.logService.debug('NavigationViewService', `registers a view with ID: ${id}`);
 
         if (this.hasComponent(id)) {
-            this.logService.warn('SideViewService', `The side view with ID is already registered: ${id}`);
+            this.logService.warn('NavigationViewService', `The navigation view with ID is already registered: ${id}`);
             return;
         }
 
@@ -161,7 +161,7 @@ export class NavigationView extends Component implements INavigationViewService 
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn('SideViewService', `Cannot switch to view with ID: ${id}`);
+            this.logService.warn('NavigationViewService', `Cannot switch to view with ID: ${id}`);
             return;
         }
         this.__switchView(view);
@@ -200,7 +200,7 @@ export class NavigationView extends Component implements INavigationViewService 
 
     protected override _createContent(): void {
 
-        // empty side view at the beginning
+        // empty navigation view at the beginning
         this._viewContainer = document.createElement('div');
         this._viewContainer.className = 'navigation-view-container';
         this.element.appendChild(this._viewContainer);
