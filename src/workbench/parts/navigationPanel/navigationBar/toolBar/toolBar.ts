@@ -18,18 +18,30 @@ export const enum ToolBarType {
 }
 
 export interface IToolBarService extends IComponent, IService {
+    
+    /**
+     * An event fired when the toolbar state changes between action and
+     * filter modes.
+     */
     readonly onDidStateChange: Register<ToolBarType>;
 
+    /**
+     * Switches the toolbar state to the specified type.
+     * 
+     * @param type - The toolbar type to switch to (`ToolBarType.Action` 
+     * or `ToolBarType.Filter`).
+     */
     switchTo(type: ToolBarType): void;
 
     /**
-     * @description Register icon buttons for the toolbar (delegated to ActionBar).
-     * @param opts Button options
+     * Register action bar buttons.
      */
-    registerButton(opts: IButtonOptions): boolean;
+    registerActionButtons(opts: IButtonOptions);
 }
 
 export class ToolBar extends Component implements IToolBarService {
+
+    // [field]
 
     declare _serviceMarker: undefined;
 
@@ -38,6 +50,8 @@ export class ToolBar extends Component implements IToolBarService {
     private _currentState: ToolBarType;
     private readonly _actionBar: ActionBar;
     private readonly _filterBar: FilterBar;
+
+    // [event]
 
     private readonly _onDidStateChange = this.__register(new Emitter<ToolBarType>());
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
@@ -53,6 +67,8 @@ export class ToolBar extends Component implements IToolBarService {
         this._filterBar = instantiationService.createInstance(FilterBar);
         this._currentState = ToolBarType.Action;
     }
+
+    // [public]
 
     public switchTo(barType: ToolBarType): void {
         switch (barType) {
@@ -70,9 +86,11 @@ export class ToolBar extends Component implements IToolBarService {
         this._onDidStateChange.fire(this._currentState);
     }
 
-    public registerButton(opts: IButtonOptions): boolean {
+    public registerActionButtons(opts: IButtonOptions) {
         return this._actionBar.registerButton(opts);
     }
+
+    // [protected]
 
     protected override _createContent(): void {
         this._actionBar.create(this);
@@ -81,6 +99,6 @@ export class ToolBar extends Component implements IToolBarService {
     }
 
     protected override _registerListeners(): void {
-
+        // Can add more listeners if needed
     }
 }

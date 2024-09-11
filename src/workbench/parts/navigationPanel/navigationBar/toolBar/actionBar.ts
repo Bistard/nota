@@ -4,17 +4,24 @@ import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Emitter } from 'src/base/common/event';
+import { Emitter, Register } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
-import { IService } from 'src/platform/instantiation/common/decorator';
+import { createService, IService } from 'src/platform/instantiation/common/decorator';
+
+export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
 export interface IActionBarClickEvent {
-    readonly prevButtonID: string;
+    readonly prevButtonID: string | null;
     readonly currButtonID: string;
 }
 
 export interface IActionBarService extends IComponentService, IService {
+    /**
+     * Fires when any heading is clicked from the view.
+     */
+    readonly onDidClick: Register<IActionBarClickEvent>;
+
     /**
      * @description Register icon buttons for Action Bar.
      * @param opts Button options
@@ -81,7 +88,7 @@ export class ActionBar extends Component {
 
         // Fire the click event
         this._onDidClick.fire({
-            prevButtonID: this._currActiveButton || '',
+            prevButtonID: this._currActiveButton || null,
             currButtonID: buttonID,
         });
     }

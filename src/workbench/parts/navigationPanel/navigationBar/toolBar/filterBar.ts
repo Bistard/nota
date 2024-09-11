@@ -5,6 +5,13 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
+import { createService, IService } from 'src/platform/instantiation/common/decorator';
+
+export const IFilterBarService = createService<IFilterBarService>('tool-bar-service');
+
+export interface IFilterBarService extends IComponentService, IService {
+    
+}
 
 export class FilterBar extends Component {
 

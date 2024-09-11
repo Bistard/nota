@@ -34,6 +34,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
         @IToolBarService protected readonly toolBarService: IToolBarService,
+        // @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -80,6 +81,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 class NavigationBarBuilder {
 
     constructor(private readonly toolBarService: IToolBarService) {}
+    // constructor(private readonly actionBarService: IActionBarService) {}
 
     public registerButtons(): void {
         [
@@ -89,7 +91,7 @@ class NavigationBarBuilder {
             { id: 'extension', icon: Icons.Extension, },
         ]
         .forEach(({ id, icon}) => {
-            this.toolBarService.registerButton({
+            this.toolBarService.registerActionButtons({
                 id: id,
                 icon: icon,
             });
