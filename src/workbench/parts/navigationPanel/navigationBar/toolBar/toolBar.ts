@@ -32,12 +32,6 @@ export interface IToolBarService extends IComponent, IService {
      * or `ToolBarType.Filter`).
      */
     switchTo(type: ToolBarType): void;
-
-    /**
-     * Register action bar buttons.
-     * @param opts Button constructor options
-     */
-    registerActionButtons(opts: IButtonOptions);
 }
 
 export class ToolBar extends Component implements IToolBarService {
@@ -85,10 +79,6 @@ export class ToolBar extends Component implements IToolBarService {
 
         this._currentState = barType;
         this._onDidStateChange.fire(this._currentState);
-    }
-
-    public registerActionButtons(opts: IButtonOptions) {
-        return this._actionBar.registerButton(opts);
     }
 
     // [protected]

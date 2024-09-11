@@ -9,7 +9,7 @@ import { INavigationBarService, NavigationBar } from "src/workbench/parts/naviga
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { ILogService } from "src/base/common/logger";
 import { Icons } from "src/base/browser/icon/icons";
-import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
+import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
@@ -33,7 +33,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
         @IComponentService componentService: IComponentService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
-        @IToolBarService protected readonly toolBarService: IToolBarService,
+        @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
@@ -44,7 +44,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     // [protected override methods]
 
     protected override _createContent(): void {
-        const navigationBarBuilder = new NavigationBarBuilder(this.toolBarService);
+        const navigationBarBuilder = new NavigationBarBuilder(this.actionBarService);
         navigationBarBuilder.registerButtons();
         
         this.__assemblyParts();
@@ -79,7 +79,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
 class NavigationBarBuilder {
 
-    constructor(private readonly toolBarService: IToolBarService) {}
+    constructor(private readonly actionBarService: IActionBarService) {}
 
     public registerButtons(): void {
         [
@@ -89,7 +89,7 @@ class NavigationBarBuilder {
             { id: 'extension', icon: Icons.Extension, },
         ]
         .forEach(({ id, icon}) => {
-            this.toolBarService.registerActionButtons({
+            this.actionBarService.registerButton({
                 id: id,
                 icon: icon,
             });
