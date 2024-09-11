@@ -84,11 +84,12 @@ export class ActionBar extends Component {
 
         // Activate the clicked button
         clickedButton.element.classList.add('activated');
+        const prevButtonID = this._currActiveButton;
         this._currActiveButton = buttonID;
 
         // Fire the click event
         this._onDidClick.fire({
-            prevButtonID: this._currActiveButton || null,
+            prevButtonID: prevButtonID,
             currButtonID: buttonID,
         });
     }
