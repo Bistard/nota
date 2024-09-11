@@ -20,7 +20,6 @@ import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseB
 import { Priority } from "src/base/common/event";
 import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
-import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -45,7 +44,6 @@ export abstract class WorkbenchLayout extends Component {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
-        @IToolBarService protected readonly toolBarService: IToolBarService,
         @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,

@@ -53,15 +53,13 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @INavigationPanelService navigationPanelService : INavigationPanelService,
         @INavigationBarService navigationBarService: INavigationBarService,
         @INavigationViewService navigationViewService: INavigationViewService,
-        @IToolBarService toolBarService: IToolBarService,
         @IActionBarService actionBarService: IActionBarService,
-        // @IFilterBarService filterBarService: IFilterBarService,
         @IFunctionBarService functionBarService: IFunctionBarService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(instantiationService, logService, layoutService, componentService, themeService, navigationBarService, toolBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
+        super(instantiationService, logService, layoutService, componentService, themeService, navigationBarService, actionBarService, functionBarService, navigationViewService, navigationPanelService, workspaceService, configurationService, contextMenuService);
         logService.debug('Workbench', 'Workbench constructed.');
     }
 
