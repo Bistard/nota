@@ -1,14 +1,14 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/toolBar.scss';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
-import { ActionBar } from './actionBar';
-import { FilterBar } from './filterBar';
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
-import { Register } from 'src/base/common/event';
-import { INavigationBarButtonClickEvent } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
-import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
+import { Emitter, Register } from 'src/base/common/event';
+import { ActionBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
+import { FilterBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IButtonOptions } from 'src/base/browser/basic/button/button';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -18,103 +18,69 @@ export const enum ToolBarType {
 }
 
 export interface IToolBarService extends IComponent, IService {
-    /**
-     * @description Returns a button by provided a button ID.
-     * @param ID The ID of the required button.
-     * @returns The required button. Returns undefined if it does not exists.
-     */
-    getButton(ID: string): Button | undefined;
+    readonly onDidStateChange: Register<ToolBarType>;
 
-    /**
-     * @description Returns a primary button by provided a button ID.
-     * @param ID The ID of the required button.
-     * @returns The required button. Returns undefined if it does not exists.
-     */
-    getPrimaryButton(ID: string): Button | undefined;
-
-    /**
-     * @description Register a new primary button.
-     * @param opts The options to construct the button.
-     * @returns A boolean indicates if the button has created.
-     */
-    registerPrimaryButton(opts: IButtonOptions): boolean;  
-    
-    /**
-     * @description Switches the toolbar to display the specified bar.
-     * @param type The type of bar for switching.
-     */
     switchTo(type: ToolBarType): void;
+
+    /**
+     * @description Register icon buttons for the toolbar (delegated to ActionBar).
+     * @param opts Button options
+     */
+    registerButton(opts: IButtonOptions): boolean;
 }
 
 export class ToolBar extends Component implements IToolBarService {
 
     declare _serviceMarker: undefined;
 
-    // [field]
-
     public static readonly HEIGHT = 60;
 
-    private readonly actionBarService: ActionBar;
-    private readonly filterBarService: FilterBar;
+    private _currentState: ToolBarType;
+    private readonly _actionBar: ActionBar;
+    private readonly _filterBar: FilterBar;
 
-    // [event]
-
-    public readonly onDidClick: Register<INavigationBarButtonClickEvent>;
-
-    // [constructor]
+    private readonly _onDidStateChange = this.__register(new Emitter<ToolBarType>());
+    public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
     constructor(
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super("tool-bar", null, themeService, componentService, logService);
-        this.actionBarService = new ActionBar(componentService, themeService, logService);
-        this.filterBarService = new FilterBar(componentService, themeService, logService);
-
-        this.onDidClick = this.actionBarService.onDidClick;
+        this._actionBar = instantiationService.createInstance(ActionBar);
+        this._filterBar = instantiationService.createInstance(FilterBar);
+        this._currentState = ToolBarType.Action;
     }
-
-    public getButton(ID: string): Button | undefined {
-        return this.actionBarService.getButton(ID);
-    }
-
-    public getPrimaryButton(ID: string): Button | undefined {
-        return this.actionBarService.getPrimaryButton(ID);
-    }
-
-    public registerPrimaryButton(opts: IButtonOptions): boolean {
-        return this.actionBarService.registerPrimaryButton(opts);
-    }
-
-    // [public method]
 
     public switchTo(barType: ToolBarType): void {
         switch (barType) {
             case ToolBarType.Action:
-                this.actionBarService.setVisible(true);
-                this.filterBarService.setVisible(false);
+                this._filterBar.setVisible(false);
+                this._actionBar.setVisible(true);
                 break;
             case ToolBarType.Filter:
-                this.filterBarService.setVisible(true);
-                this.actionBarService.setVisible(false);
+                this._filterBar.setVisible(true);
+                this._actionBar.setVisible(false);
                 break;
         }
+
+        this._currentState = barType;
+        this._onDidStateChange.fire(this._currentState);
     }
 
-    // [protected override method]
+    public registerButton(opts: IButtonOptions): boolean {
+        return this._actionBar.registerButton(opts);
+    }
 
     protected override _createContent(): void {
-        this.actionBarService.create(this);
-        this.filterBarService.create(this);
-        
-        this.actionBarService.setVisible(true);
-        this.filterBarService.setVisible(false);
+        this._actionBar.create(this);
+        this._filterBar.create(this);
+        this.switchTo(ToolBarType.Action);
     }
 
     protected override _registerListeners(): void {
- 
-    }
 
-    // [private method]
+    }
 }
