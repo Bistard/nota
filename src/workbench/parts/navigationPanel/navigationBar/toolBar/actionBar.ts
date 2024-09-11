@@ -1,6 +1,5 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { INavigationBarButtonClickEvent, INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { Component } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
@@ -8,6 +7,20 @@ import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Emitter } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
+import { IService } from 'src/platform/instantiation/common/decorator';
+
+export interface IActionBarClickEvent {
+    readonly prevButtonID: string;
+    readonly currButtonID: string;
+}
+
+export interface IActionBarService extends IComponentService, IService {
+    /**
+     * @description Register icon buttons for Action Bar.
+     * @param opts Button options
+     */
+    registerButton(opts: IButtonOptions): boolean;
+}
 
 export class ActionBar extends Component {
 
@@ -17,11 +30,12 @@ export class ActionBar extends Component {
 
     public static readonly HEIGHT = 60;
 
+    private _currActiveButton: string | null;
     private readonly _buttonBar: WidgetBar<Button>;
     
     // [event]
     
-    private readonly _onDidClick = new Emitter<INavigationBarButtonClickEvent>();
+    private readonly _onDidClick = new Emitter<IActionBarClickEvent>();
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
@@ -33,12 +47,11 @@ export class ActionBar extends Component {
     ) {
         super('action-bar', null, themeService, componentService, logService);
         this._buttonBar = new WidgetBar('action-bar-buttons', { orientation: Orientation.Horizontal });
+
+        this._currActiveButton = null;
     }
 
     // [public method]
-    public getButton(ID: string): Button | undefined {
-        return this.getPrimaryButton(ID);
-    }
 
     public getButton(ID: string): Button | undefined {
         return this._buttonBar.getItem(ID);
@@ -48,7 +61,31 @@ export class ActionBar extends Component {
         return this.__registerButton(opts, this._buttonBar);
     }
 
+    public clickButton(buttonID: string): void {
+        const clickedButton = this.getButton(buttonID);
+        if (!clickedButton) {
+            return;
+        }
 
+        // Deactivate the previously active button
+        if (this._currActiveButton) {
+            const prevButton = this.getButton(this._currActiveButton);
+            if (prevButton) {
+                prevButton.element.classList.remove('activated');
+            }
+        }
+
+        // Activate the clicked button
+        clickedButton.element.classList.add('activated');
+        this._currActiveButton = buttonID;
+
+        // Fire the click event
+        this._onDidClick.fire({
+            prevButtonID: this._currActiveButton || '',
+            currButtonID: buttonID,
+        });
+    }
+    
     // [protected override method]
 
     protected override _createContent(): void {
@@ -62,18 +99,25 @@ export class ActionBar extends Component {
 
     // [private method]
     private __registerButton(opts: IButtonOptions, widgetBar: WidgetBar<Button>): boolean {
-        const button = new Button(opts);
-
+        
+        // validation
         if (widgetBar.hasItem(opts.id)) {
             this.logService.warn('ActionBarService', `Cannot register the action bar button with duplicate ID.`, { ID: opts.id });
             return false;
         }
 
+        // button creation
+        const button = new Button(opts);
         widgetBar.addItem({
             id: opts.id,
             item: button,
             dispose: button.dispose.bind(button),
         });
+        
+        // register listener
+        this.__register(button.onDidClick(() => {
+            this.clickButton(opts.id);
+        }));
 
         return true;
     }

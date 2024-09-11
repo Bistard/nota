@@ -37,11 +37,11 @@
                 width: 100%;
                 height: 1.5px;
                 background: #e2e2e2;
-                transition: background-color 0.3s ease-out;
+                transition: background-color 0.2s ease-out;
             }
 
             &:active {
-                opacity: 70%;
+                opacity: 80%;       
             }
 
             &:hover::after {
@@ -53,6 +53,12 @@
         // button hover transition
         & .button:hover > .icon {      
             color: rgb(155, 155, 155);
+        }
+
+        // Activated button styles
+        & .button.activated::after {
+            background: #2aa882;
+            box-shadow: 0px 0px 5px #2aa882;
         }
     }
 }
