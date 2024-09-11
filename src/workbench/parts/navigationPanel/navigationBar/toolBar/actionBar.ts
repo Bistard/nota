@@ -40,11 +40,11 @@ export class ActionBar extends Component {
         return this.getPrimaryButton(ID);
     }
 
-    public getPrimaryButton(ID: string): Button | undefined {
+    public getButton(ID: string): Button | undefined {
         return this._buttonBar.getItem(ID);
     }
 
-    public registerPrimaryButton(opts: IButtonOptions): boolean {
+    public registerButton(opts: IButtonOptions): boolean {
         return this.__registerButton(opts, this._buttonBar);
     }
 

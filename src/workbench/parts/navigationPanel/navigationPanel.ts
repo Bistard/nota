@@ -89,7 +89,7 @@ class NavigationBarBuilder {
             { id: 'extension', icon: Icons.Extension, },
         ]
         .forEach(({ id, icon}) => {
-            this.toolBarService.registerPrimaryButton({
+            this.toolBarService.registerButton({
                 id: id,
                 icon: icon,
             });
