@@ -118,7 +118,7 @@ export class ActionBar extends Component implements IActionBarService {
         const button = new Button(opts);
         widgetBar.addItem({
             id: opts.id,
-            item: button,
+            data: button,
             dispose: button.dispose.bind(button),
         });
         

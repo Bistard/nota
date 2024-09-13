@@ -85,7 +85,7 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
  */
 interface IWidgetBarItem<T> extends IDisposable {
     readonly id: string;
-    readonly item: T;
+    readonly data: T;
 }
 
 /** 
@@ -189,7 +189,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         newViewElement.classList.add('widget-item');
 
         // render the viewItem
-        item.item.render(newViewElement);
+        item.data.render(newViewElement);
 
         // prevent native context menu on the viewElement
         this.__register(addDisposableListener(newViewElement, EventType.contextmenu, (e) => {
@@ -223,7 +223,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     }
 
     public getItem(id: string): T | undefined {
-        return this._items.filter(item => item.id === id)[0]?.item;
+        return this._items.filter(item => item.id === id)[0]?.data;
     }
 
     public hasItem(id: string): boolean {
@@ -231,7 +231,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     }
 
     public items(): T[] {
-        return this._items.map(item => item.item);
+        return this._items.map(item => item.data);
     }
 
     public getItemIndex(id: string): number {
