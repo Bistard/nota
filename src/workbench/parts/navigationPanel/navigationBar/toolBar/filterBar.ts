@@ -1,5 +1,5 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/filterBar.scss';
-import { Component } from 'src/workbench/services/component/component';
+import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
@@ -9,13 +9,15 @@ import { createService, IService } from 'src/platform/instantiation/common/decor
 
 export const IFilterBarService = createService<IFilterBarService>('tool-bar-service');
 
-export interface IFilterBarService extends IComponentService, IService {
+export interface IFilterBarService extends IComponent, IService {
     
 }
 
-export class FilterBar extends Component {
+export class FilterBar extends Component implements IFilterBarService {
 
-    // [filed]
+    declare _serviceMarker: undefined;
+
+    // [field]
     
     // [event]
 

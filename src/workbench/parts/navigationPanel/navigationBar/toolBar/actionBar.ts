@@ -1,6 +1,6 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
 import { ILogService } from 'src/base/common/logger';
-import { Component } from 'src/workbench/services/component/component';
+import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
@@ -16,7 +16,7 @@ export interface IActionBarClickEvent {
     readonly currButtonID: string;
 }
 
-export interface IActionBarService extends IComponentService, IService {
+export interface IActionBarService extends IComponent, IService {
     /**
      * Fires when any heading is clicked from the view.
      */
@@ -29,7 +29,7 @@ export interface IActionBarService extends IComponentService, IService {
     registerButton(opts: IButtonOptions): boolean;
 }
 
-export class ActionBar extends Component {
+export class ActionBar extends Component implements IActionBarService {
 
     declare _serviceMarker: undefined;
 
