@@ -26,9 +26,7 @@ import { INavigationPanelService } from 'src/workbench/parts/navigationPanel/nav
 import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navigationBar/navigationBar';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
-import { IToolBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
-import { IFilterBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar';
 
 /**
  * @class Workbench represents all the Components in the web browser.
