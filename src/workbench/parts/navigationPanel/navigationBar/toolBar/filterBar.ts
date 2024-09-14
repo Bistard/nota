@@ -9,6 +9,9 @@ import { createService, IService } from 'src/platform/instantiation/common/decor
 
 export const IFilterBarService = createService<IFilterBarService>('tool-bar-service');
 
+/**
+ * An interface only for {@link FilterBar}.
+ */
 export interface IFilterBarService extends IComponent, IService {
     
 }

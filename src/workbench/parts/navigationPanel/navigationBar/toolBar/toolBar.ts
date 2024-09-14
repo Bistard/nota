@@ -8,7 +8,6 @@ import { Emitter, Register } from 'src/base/common/event';
 import { ActionBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
 import { FilterBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { IButtonOptions } from 'src/base/browser/basic/button/button';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -17,6 +16,9 @@ export const enum ToolBarType {
     Filter
 }
 
+/**
+ * An interface only for {@link ToolBar}.
+ */
 export interface IToolBarService extends IComponent, IService {
     
     /**
@@ -36,9 +38,9 @@ export interface IToolBarService extends IComponent, IService {
 
 export class ToolBar extends Component implements IToolBarService {
 
-    // [field]
-
     declare _serviceMarker: undefined;
+    
+    // [field]
 
     public static readonly HEIGHT = 60;
 
@@ -50,6 +52,8 @@ export class ToolBar extends Component implements IToolBarService {
 
     private readonly _onDidStateChange = this.__register(new Emitter<ToolBarType>());
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
+
+    // [constructor]
 
     constructor(
         @IComponentService componentService: IComponentService,

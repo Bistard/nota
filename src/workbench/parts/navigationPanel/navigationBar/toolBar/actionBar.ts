@@ -16,6 +16,9 @@ export interface IActionBarClickEvent {
     readonly currButtonID: string;
 }
 
+/**
+ * An interface only for {@link ActionBar}.
+ */
 export interface IActionBarService extends IComponent, IService {
     /**
      * Fires when any heading is clicked from the view.
