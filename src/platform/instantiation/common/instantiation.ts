@@ -277,24 +277,40 @@ export class InstantiationService implements IInstantiationService {
             desc: ServiceDescriptor<TCtor>,
         };
 
+        let stackSize = 0;
+        const maxStackSize = 10;
         const dependencyGraph = new Graph<dependencyNode>((data) => data.id.toString());
 
         // use DFS 
         const stack = [{ id, desc }];
         while (stack.length) {
+            
+            stackSize++;
+            if (stackSize > maxStackSize) {
+                panic(`[DI] Reaching maximum stacking size (100) when instantiating service: ${id}. Some circular dependency might happened.`);
+            }
+
             const currDependency = stack.pop()!;
             dependencyGraph.getOrInsertNode(currDependency);
 
             const dependencies = getDependencyTreeFor<T, TCtor>(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
-
                 const instanceOrDesc = this.__getServiceInstanceOrDescriptor<T, TCtor>(subDependency.id);
 
-                if (instanceOrDesc instanceof ServiceDescriptor) {
-                    const uninstantiatedDependency = { id: subDependency.id, desc: instanceOrDesc };
-                    dependencyGraph.insertEdge(currDependency, uninstantiatedDependency);
-                    stack.push(uninstantiatedDependency);
+                // stupid thing happened
+                if (subDependency.id.toString() === currDependency.id.toString()) {
+                    panic(`[DI] A service is depending on itself - ${subDependency.id}`);
                 }
+
+                // If the dependency is already an instance, no need to instantiate again.
+                if ((instanceOrDesc instanceof ServiceDescriptor) === false) {
+                    continue;
+                }
+
+                // mark for later instantiating
+                const uninstantiatedDependency = { id: subDependency.id, desc: instanceOrDesc };
+                dependencyGraph.insertEdge(currDependency, uninstantiatedDependency);
+                stack.push(uninstantiatedDependency);
             }
         }
 

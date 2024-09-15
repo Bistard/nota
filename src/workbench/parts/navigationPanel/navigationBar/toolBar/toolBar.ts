@@ -5,9 +5,8 @@ import { IComponentService } from 'src/workbench/services/component/componentSer
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { Emitter, Register } from 'src/base/common/event';
-import { ActionBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
-import { FilterBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar';
-import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
+import { IFilterBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -45,8 +44,6 @@ export class ToolBar extends Component implements IToolBarService {
     public static readonly HEIGHT = 60;
 
     private _currentState: ToolBarType;
-    private readonly _actionBar: ActionBar;
-    private readonly _filterBar: FilterBar;
 
     // [event]
 
@@ -59,11 +56,10 @@ export class ToolBar extends Component implements IToolBarService {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
-        @IInstantiationService instantiationService: IInstantiationService,
+        @IActionBarService private readonly actionBarService: IActionBarService,
+        @IFilterBarService private readonly filterBarService: IFilterBarService,
     ) {
         super("tool-bar", null, themeService, componentService, logService);
-        this._actionBar = instantiationService.createInstance(ActionBar);
-        this._filterBar = instantiationService.createInstance(FilterBar);
         this._currentState = ToolBarType.Action;
     }
 
@@ -72,12 +68,12 @@ export class ToolBar extends Component implements IToolBarService {
     public switchTo(barType: ToolBarType): void {
         switch (barType) {
             case ToolBarType.Action:
-                this._filterBar.setVisible(false);
-                this._actionBar.setVisible(true);
+                this.filterBarService.setVisible(false);
+                this.actionBarService.setVisible(true);
                 break;
             case ToolBarType.Filter:
-                this._filterBar.setVisible(true);
-                this._actionBar.setVisible(false);
+                this.filterBarService.setVisible(true);
+                this.actionBarService.setVisible(false);
                 break;
         }
 
@@ -88,8 +84,8 @@ export class ToolBar extends Component implements IToolBarService {
     // [protected]
 
     protected override _createContent(): void {
-        this._actionBar.create(this);
-        this._filterBar.create(this);
+        this.actionBarService.create(this);
+        this.filterBarService.create(this);
         this.switchTo(ToolBarType.Action);
     }
 

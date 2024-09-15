@@ -48,7 +48,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigurationService configurationService: IConfigurationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @INavigationPanelService navigationPanelService : INavigationPanelService,
+        @INavigationPanelService navigationPanelService: INavigationPanelService,
         @INavigationBarService navigationBarService: INavigationBarService,
         @INavigationViewService navigationViewService: INavigationViewService,
         @IActionBarService actionBarService: IActionBarService,

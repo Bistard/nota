@@ -7,7 +7,7 @@ import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
 import { createService, IService } from 'src/platform/instantiation/common/decorator';
 
-export const IFilterBarService = createService<IFilterBarService>('tool-bar-service');
+export const IFilterBarService = createService<IFilterBarService>('filter-bar-service');
 
 /**
  * An interface only for {@link FilterBar}.
