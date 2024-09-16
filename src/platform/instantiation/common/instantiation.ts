@@ -333,7 +333,7 @@ export class InstantiationService implements IInstantiationService {
         };
 
         let stackSize = 0;
-        const maxStackSize = 10;
+        const maxStackSize = 50;
         const dependencyGraph = new Graph<dependencyNode>((data) => data.id.toString());
 
         // use DFS 
