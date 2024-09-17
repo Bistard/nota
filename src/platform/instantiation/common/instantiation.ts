@@ -140,6 +140,21 @@ export interface IInstantiationService extends IServiceProvider, IService {
      * @panic
      */
     getOrCreateService1<T extends IService, TArgs extends any[]>(callback: (provider: IServiceProvider, ...args: TArgs) => T, ...args: TArgs): T;
+
+    /**
+     * @description Toggles the debugging mode for the instantiation service.
+     *  - When enabled, the service will start logging debug information, such 
+     *      as service creation and usage. The debug logs help in tracing the 
+     *      instantiation process of services within the DI system.
+     *  - When disabled, the service will stop logging debug information and 
+     *      return the accumulated debug log messages as a string.
+     * @param value A boolean flag indicating whether to enable or disable 
+     *              debugging mode.
+     * @returns If debugging mode is disabled, it returns a string containing 
+     *          the collected debug logs.
+     */
+    toggleDebugging(value: true): void;
+    toggleDebugging(value: false): string;
 }
 
 
@@ -153,6 +168,8 @@ export class InstantiationService implements IInstantiationService {
     public readonly parent?: InstantiationService;
 
     private readonly _activeInstantiations = new Set<ServiceIdentifier<any>>();
+    private _debug: boolean = false;
+    private _debugLines: string[] = [];
 
     // [constructor]
 
@@ -185,7 +202,7 @@ export class InstantiationService implements IInstantiationService {
     }
 
     public getOrCreateService<T extends IService>(serviceIdentifier: ServiceIdentifier<T>): T {
-        const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
+        const service = this.__getOrCreateDependencyInstance(0, serviceIdentifier);
         if (!service) {
             panic(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
         }
@@ -202,7 +219,7 @@ export class InstantiationService implements IInstantiationService {
                 return service;
             },
             getOrCreateService: <T extends IService>(serviceIdentifier: ServiceIdentifier<T>) => {
-                const service = this.__getOrCreateDependencyInstance(serviceIdentifier);
+                const service = this.__getOrCreateDependencyInstance(0, serviceIdentifier);
                 if (!service) {
                     panic(`[getOrCreateService] UNKNOWN service '${serviceIdentifier.toString()}'.`);
                 }
@@ -216,10 +233,12 @@ export class InstantiationService implements IInstantiationService {
     public createInstance<TCtor extends Constructor>(descriptor      : ServiceDescriptor<TCtor>                                                         ): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(constructor     : TCtor,                            ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor>;
     public createInstance<TCtor extends Constructor>(ctorOrDescriptor: TCtor | ServiceDescriptor<TCtor>, ...rest: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor> {
+        const ctor = (ctorOrDescriptor instanceof ServiceDescriptor) ? ctorOrDescriptor.ctor : ctorOrDescriptor;
+        const args = (ctorOrDescriptor instanceof ServiceDescriptor) ? ctorOrDescriptor.args : rest;
+        
         try {
-            return (ctorOrDescriptor instanceof ServiceDescriptor) 
-                ? this.__createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.args)
-                : this.__createInstance(ctorOrDescriptor, rest);
+            this.__traceDebugInfo(0, 'create', ctor.name);
+            return this.__createInstance(0, ctor, args);
         } catch (error) {
             const ctorName = (ctorOrDescriptor instanceof ServiceDescriptor) ? ctorOrDescriptor.ctor.name : ctorOrDescriptor.name;
             panic(`[createInstance] Failed to construct (${ctorName}): ${errorToMessage(error)}`);
@@ -230,16 +249,35 @@ export class InstantiationService implements IInstantiationService {
         return new InstantiationService(collection, this);
     }
 
+    public toggleDebugging(value: true): void;
+    public toggleDebugging(value: false): string;
+    public toggleDebugging(value: boolean): void | string {
+        this._debug = value;
+        if (value === true) {
+            return;
+        }
+
+        // turning off debugging mode, return the debugging instantiating tree message.
+        const result = this._debugLines.join('\n');
+        this._debugLines = [];
+        return result;
+    }
+
     // [private helper methods]
 
-    private __createInstance<TCtor extends Constructor>(ctor: TCtor, args: InstantiationRequiredParameters<TCtor>): InstanceType<TCtor> {
+    private __createInstance<TCtor extends Constructor>(
+        depth: number, 
+        ctor: TCtor, 
+        args: InstantiationRequiredParameters<TCtor>
+    ): InstanceType<TCtor> 
+    {
         const constructor = ctor;
         
         const serviceDependencies = getDependencyTreeFor(constructor).sort((a, b) => a.index - b.index);
         const servicesArgs: unknown[] = [];
         
         for (const dependency of serviceDependencies) {
-            const service = this.__getOrCreateDependencyInstance(dependency.id);
+            const service = this.__getOrCreateDependencyInstance(depth + 1, dependency.id);
             if (!service && !dependency.optional) {
                 panic(`[DI] '${constructor.name}' depends on a UNKNOWN service '${dependency.id}'.`);
             }
@@ -249,52 +287,86 @@ export class InstantiationService implements IInstantiationService {
         return new constructor(...[...args, ...servicesArgs]);
     }
 
-    private __getOrCreateDependencyInstance<T extends IService>(id: ServiceIdentifier<T>): T {
+    private __getOrCreateDependencyInstance<T extends IService>(
+        depth: number, 
+        id: ServiceIdentifier<T>
+    ): T 
+    {
         const instanceOrDesc = this.__getServiceInstanceOrDescriptor(id);
         if (instanceOrDesc instanceof ServiceDescriptor) {
-            return this.__safeCreateAndCacheServiceInstance(id, instanceOrDesc);
+            this.__traceDebugInfo(depth, 'create', id.toString());
+            return this.__safeCreateAndCacheServiceInstance(depth, id, instanceOrDesc);
         } else {
+            this.__traceDebugInfo(depth, 'use', id.toString());
             return instanceOrDesc;
         }
     }
 
-    private __safeCreateAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
+    private __safeCreateAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(
+        depth: number,
+        id: ServiceIdentifier<T>, 
+        desc: ServiceDescriptor<TCtor>
+    ): T 
+    {
         if (this._activeInstantiations.has(id)) {
             panic(`[DI] illegal operation: recursively instantiating service '${id}'`);
         }
         this._activeInstantiations.add(id);
 
         try {
-            return this.__createAndCacheServiceInstance(id, desc);
+            return this.__createAndCacheServiceInstance(depth, id, desc);
         } finally {
             this._activeInstantiations.delete(id);
         }
     }
 
-    private __createAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, desc: ServiceDescriptor<TCtor>): T {
+    private __createAndCacheServiceInstance<T extends IService, TCtor extends Constructor>(
+        depth: number,
+        id: ServiceIdentifier<T>, 
+        desc: ServiceDescriptor<TCtor>
+    ): T 
+    {
         type dependencyNode = {
             id: ServiceIdentifier<T>,
             desc: ServiceDescriptor<TCtor>,
+            depth: number,
         };
 
+        let stackSize = 0;
+        const maxStackSize = 50;
         const dependencyGraph = new Graph<dependencyNode>((data) => data.id.toString());
 
         // use DFS 
-        const stack = [{ id, desc }];
+        const stack = [{ id, desc, depth }];
         while (stack.length) {
+            
+            stackSize++;
+            if (stackSize > maxStackSize) {
+                panic(`[DI] Reaching maximum stacking size (100) when instantiating service: ${id}. Some circular dependency might happened.`);
+            }
+
             const currDependency = stack.pop()!;
-            dependencyGraph.getOrInsertNode(currDependency);
+            dependencyGraph.getOrInsertNode(currDependency); // insert
 
             const dependencies = getDependencyTreeFor<T, TCtor>(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
-
                 const instanceOrDesc = this.__getServiceInstanceOrDescriptor<T, TCtor>(subDependency.id);
 
-                if (instanceOrDesc instanceof ServiceDescriptor) {
-                    const uninstantiatedDependency = { id: subDependency.id, desc: instanceOrDesc };
-                    dependencyGraph.insertEdge(currDependency, uninstantiatedDependency);
-                    stack.push(uninstantiatedDependency);
+                // stupid thing happened
+                if (subDependency.id.toString() === currDependency.id.toString()) {
+                    panic(`[DI] A service is depending on itself - ${subDependency.id}`);
                 }
+
+                // If the dependency is already an instance, no need to instantiate again.
+                if ((instanceOrDesc instanceof ServiceDescriptor) === false) {
+                    continue;
+                }
+
+                // mark for later instantiating
+                const uninstantiatedDependency = { id: subDependency.id, desc: instanceOrDesc, depth: currDependency.depth + 1 };
+                this.__traceDebugInfo(uninstantiatedDependency.depth, 'create', uninstantiatedDependency.id.toString());
+                dependencyGraph.insertEdge(currDependency, uninstantiatedDependency);
+                stack.push(uninstantiatedDependency);
             }
         }
 
@@ -321,6 +393,7 @@ export class InstantiationService implements IInstantiationService {
                 if (instanceOrDesc instanceof ServiceDescriptor) {
                     // create instance and overwrite the service collections
                     const instance = this.__createServiceInstanceWithOwner(
+                        data.depth,
                         data.id,
                         data.desc.ctor,
                         data.desc.args,
@@ -363,17 +436,18 @@ export class InstantiationService implements IInstantiationService {
     }
 
     private __createServiceInstanceWithOwner<T extends IService, TCtor extends Constructor>(
+        depth: number,
         id: ServiceIdentifier<T>,
         ctor: TCtor,
         args: InstantiationRequiredParameters<TCtor>,
         supportsDelayedInstantiation: boolean,
     ): T {
         if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
-            return this.___createServiceInstance(ctor, args, supportsDelayedInstantiation);
+            return this.___createServiceInstance(depth, ctor, args, supportsDelayedInstantiation);
         }
 
         else if (this.parent) {
-            return this.parent.__createServiceInstanceWithOwner(id, ctor, args, supportsDelayedInstantiation);
+            return this.parent.__createServiceInstanceWithOwner(depth, id, ctor, args, supportsDelayedInstantiation);
         }
 
         else {
@@ -382,18 +456,19 @@ export class InstantiationService implements IInstantiationService {
     }
 
     private ___createServiceInstance<T extends IService, TCtor extends Constructor>(
+        depth: number,
         ctor: TCtor, 
         args: InstantiationRequiredParameters<TCtor>, 
         supportsDelayedInstantiation: boolean,
     ): T {
         if (!supportsDelayedInstantiation) {
-            return this.__createInstance(ctor, args);
+            return this.__createInstance(depth, ctor, args);
         } 
         else {
             // Return a proxy object that's backed by an idle value. That
             // strategy is to instantiate services in our idle time or when actually
             // needed but not when injected into a consumer
-            const idle = new IdleValue(() => this.__createInstance(ctor, args));
+            const idle = new IdleValue(() => this.__createInstance(depth, ctor, args));
             return new Proxy(Object.create(null), {
                 get(target: any, key: PropertyKey): any {
                     if (key in target) {
@@ -414,5 +489,14 @@ export class InstantiationService implements IInstantiationService {
                 }
             });
         }
+    }
+
+    private __traceDebugInfo(depth: number, state: 'use' | 'create', serviceID: string): void {
+        if (!this._debug) {
+            return;
+        }
+
+        const prefix = new Array(depth + 1).join('\t');
+        this._debugLines.push(`${prefix}${state === 'use' ? 'USES' : 'CREATES'} ${serviceID}`);
     }
 }

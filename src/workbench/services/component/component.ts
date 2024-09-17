@@ -451,8 +451,10 @@ export abstract class Component extends Themable implements IComponent {
     public setVisible(value: boolean): void {
         if (value === true) {
             this._element.setOpacity(1);
+            this._element.setPointerEvents('auto');
         } else {
             this._element.setOpacity(0);
+            this._element.setPointerEvents('none');
         }
         this._onDidVisibilityChange.fire(value);
     }

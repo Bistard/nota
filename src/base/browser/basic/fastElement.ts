@@ -41,6 +41,7 @@ export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
     setLineHeight(value: number): void;
     setVisibility(value: DomStyle.Visibility): void;
     setOpacity(value: number): void;
+    setPointerEvents(value: 'auto' | 'none'): void;
     setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void;
 
     setAttribute(name: string, value: string): void;
@@ -98,6 +99,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
     private _lineHeight: number = -1;
     private _visibility: DomStyle.Visibility | '' = '';
     private _opacity: number = -1;
+    private _pointerEvents: 'auto' | 'none' = 'auto';
     private _backgroundColor: string = '';
 
     // [constructor]
@@ -288,6 +290,14 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }
         this._opacity = value;
         this.element.style.opacity = `${value}`;
+    }
+
+    public setPointerEvents(value: 'auto' | 'none'): void {
+        if (this._pointerEvents === value) {
+            return;
+        }
+        this._pointerEvents = value;
+        this.element.style.pointerEvents = `${value}`;
     }
 
     public setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void {

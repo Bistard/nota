@@ -57,7 +57,7 @@ export class WindowBar extends Component {
 
                 widgetBar.addItem({
                     id: id,
-                    item: button,
+                    data: button,
                     dispose: button.dispose.bind(button),
                 });
             });

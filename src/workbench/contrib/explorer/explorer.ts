@@ -400,7 +400,11 @@ class FileActionBar extends Disposable {
             for (const { id, icon, classes, fn } of buttons) {
                 const button = new Button({ id, icon, classes });
                 button.onDidClick(() => fn?.(button));
-                group.addItem({ id, item: button, dispose: () => button.dispose()});
+                group.addItem({ 
+                    id: id, 
+                    data: button, 
+                    dispose: () => button.dispose()
+                });
             }
         });
 

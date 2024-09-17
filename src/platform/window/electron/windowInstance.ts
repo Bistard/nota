@@ -122,12 +122,24 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [public methods]
 
-    public load(configuration: IWindowConfiguration): Promise<void> {
+    public async load(configuration: IWindowConfiguration): Promise<void> {
         this.logService.debug('WindowInstance', `Loading window (ID: ${this._id})...`);
 
         this._configurationIpcAccessible.updateData(configuration);
 
-        return this._window.loadFile(this.configuration.loadFile);
+        // loading page
+        const htmlFile = this.configuration.loadFile;
+        this.logService.debug('WindowInstance', `Loading HTML file (${htmlFile})...`);
+
+        this._window.webContents.once('did-fail-load', (e, errCode, errMsg) => {
+            this.logService.error('WindowInstance', `Loading page failed.`, new Error(), { errCode, errMsg });
+        });
+        
+        this._window.webContents.once('did-finish-load', () => {
+            this.logService.debug('WindowInstance', `Page loaded successfully.`);
+        });
+
+        await this._window.loadFile(htmlFile);
     }
 
     public toggleFullScreen(force?: boolean): void {
