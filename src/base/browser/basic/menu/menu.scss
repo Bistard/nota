@@ -89,7 +89,9 @@ $menu-item-height: var(--menu-item-height);
 
         & > .left-part {
             & > .menu-item-check {
-                font-size: 14px;
+                font-size: 10px;
+                margin-left: 4px;
+                color: var(--nota-menu-item-check-color);
             }
         }
 
@@ -100,6 +102,7 @@ $menu-item-height: var(--menu-item-height);
             // the ones after the name
             & > .menu-item-name ~ * {
                 margin-left: 30px;
+                color: var(--nota-menu-item-disabled);
             }
         }
 

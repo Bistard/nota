@@ -19,6 +19,7 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('menu-background');
         registrant.registerTemplate('menu-border');
         registrant.registerTemplate('menu-item-disabled');
+        registrant.registerTemplate('menu-item-check-color');
         registrant.registerTemplate('menu-item-content-color');
         registrant.registerTemplate('menu-separator-background');
         registrant.registerTemplate('menu-item-focus-background');

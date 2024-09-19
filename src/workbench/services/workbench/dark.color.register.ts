@@ -26,6 +26,7 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-border', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-disabled', THEME_COLORS.middle);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-check-color', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-content-color', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-separator-background', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-focus-background', THEME_COLORS.subicon);

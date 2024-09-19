@@ -492,7 +492,7 @@ export class CheckMenuItem extends SimpleMenuItem {
             return container;
         }
 
-        const checkIcon = createIcon(Icons.Help, ['menu-item-check']);
+        const checkIcon = createIcon(Icons.Check, ['menu-item-check']);
         container.leftPart.appendChild(checkIcon);
 
         return container;
