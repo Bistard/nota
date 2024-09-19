@@ -27,11 +27,12 @@ import { noop } from "src/base/common/performance";
 import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { IMenuAction, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { IMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -607,31 +608,31 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                 IS_MAC      ? 'Reveal In Finder' : 
                 IS_WINDOWS  ? 'Reveal In File Explorer' 
                 /* Linux */ : 'Reveal In Files';
-            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, callback: () => console.log(`"${revealID}" clicked`) }));
+            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, shortcut: new Shortcut(false, true, true, false, KeyCode.KeyR), callback: () => console.log(`"${revealID}" clicked`) }));
         }
 
         // moveGroup
         {
-            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Cut', callback: () => console.log('"Cut" clicked') }));
-            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy', callback: () => console.log('"Copy" clicked') }));
+            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Cut', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyX), callback: () => console.log('"Cut" clicked') }));
+            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyC), callback: () => console.log('"Copy" clicked') }));
 
             // paste only works for folder
             if (isFile === false) {
                 const isEnable = this.clipboardService.read(ClipboardType.Resources).length > 0;
-                moveGroup.push(new SimpleMenuAction({ enabled: isEnable, id: 'Paste', callback: () => console.log('"Paste" clicked') }));
+                moveGroup.push(new SimpleMenuAction({ enabled: isEnable, id: 'Paste', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyV), callback: () => console.log('"Paste" clicked') }));
             }
         }
         
         // editGroup
         {
-            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Rename', callback: () => console.log('"Rename" clicked') }));
-            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Delete', callback: () => console.log('"Delete" clicked') }));
+            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Rename', shortcut: new Shortcut(false, false, false, false, KeyCode.F2), callback: () => console.log('"Rename" clicked') }));
+            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Delete', shortcut: new Shortcut(false, false, false, false, KeyCode.Delete), callback: () => console.log('"Delete" clicked') }));
         }
 
         // copyGroup
         {
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', callback: () => console.log('"Copy Path" clicked') }));
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', callback: () => console.log('"Copy Relative Path" clicked') }));
+            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', shortcut: new Shortcut(false, true, true, false, KeyCode.KeyC), callback: () => console.log('"Copy Path" clicked') }));
+            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', shortcut: new Shortcut(true, true, false, false, KeyCode.KeyC), callback: () => console.log('"Copy Relative Path" clicked') }));
         }
 
         // add separators

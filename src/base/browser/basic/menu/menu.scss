@@ -19,6 +19,8 @@ $menu-item-height: var(--menu-item-height);
         outline: none;
     }
 
+    & > .base-item:first-child { margin-top: 4px; }
+    & > .base-item:last-child { margin-bottom: 4px; }
     & > .base-item {
         @include visualization.text(none, 10pt, center);
 
@@ -52,10 +54,10 @@ $menu-item-height: var(--menu-item-height);
         margin-bottom: 4px;
         border-radius: 10px;
         background-color: var(--nota-menu-separator-background);
+        pointer-events: none;
     }
 
     & > .menu-item {
-        
         position: relative;
 
         // hover effect
@@ -81,7 +83,6 @@ $menu-item-height: var(--menu-item-height);
         }
 
         // content styles
-
         & > .left-part, .content, .right-part {
             position: relative;
         }
