@@ -27,7 +27,7 @@ import { noop } from "src/base/common/performance";
 import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { IMenuAction, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { IMenuAction, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";

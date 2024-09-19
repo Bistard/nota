@@ -88,8 +88,8 @@ $menu-item-height: var(--menu-item-height);
         }
 
         & > .left-part {
-            & > .submenu-item-check {
-                font-size: 10px;
+            & > .menu-item-check {
+                font-size: 14px;
             }
         }
 
@@ -105,7 +105,7 @@ $menu-item-height: var(--menu-item-height);
 
         & > .right-part {
             & > .submenu-item-arrow {
-                font-size: 10px;
+                font-size: 14px;
             }
         }
     }
