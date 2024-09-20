@@ -23,10 +23,13 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-border', THEME_COLORS.mediumTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-icon', THEME_COLORS.subtext); 
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-border', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-disabled', THEME_COLORS.middle);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-check-color', THEME_COLORS.middle);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-content-color', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-separator-background', THEME_COLORS.middle);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'menuItem-focus-background', THEME_COLORS.subicon);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-focus-background', THEME_COLORS.subicon);
         registrant.registerColor(PresetColorTheme.DarkModern, 'sash-hover', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.DarkModern, 'sash-visible-background', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'scroll-slider-background', THEME_COLORS.middle);

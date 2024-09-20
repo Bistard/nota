@@ -20,7 +20,7 @@ export interface IAnchor {
  * when calculating the view's position.
  * 
  * For an example, when sets to horizontal, the program will first to decide 
- * either place the view on the left or right relative to the anchor （based on 
+ * either place the view on the left or right relative to the anchor（based on 
  * {@link AnchorHorizontalPosition}. If the view intersects with the anchor, the 
  * secondary positioning strategy (vertical) is applied to the vertical axis to 
  * avoid overlapping (based on {@link AnchorVerticalPosition}).
@@ -50,7 +50,14 @@ export interface IContextMenuDelegateBase {
     /**
      * Determines the primary axis of positioning (either vertical or horizontal) 
      * when calculating the view's position.
+     * 
      * @default AnchorPrimaryAxisAlignment.Vertical
+     * 
+     * For an example, when sets to horizontal, the program will first to decide 
+     * either place the view on the left or right relative to the anchor（based 
+     * on {@link AnchorHorizontalPosition}. If the view intersects with the 
+     * anchor, the secondary positioning strategy (vertical) is applied to the 
+     * vertical axis to avoid overlapping (based on {@link AnchorVerticalPosition}).
      */
     readonly primaryAlignment?: AnchorPrimaryAxisAlignment;
 
@@ -269,7 +276,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
             return;
         }
         
-        const {top, left } = this.__calculateViewPosition(delegate);
+        const { top, left } = this.__calculateViewPosition(delegate);
 
         const containerPos = DomUtility.Positions.getNodePagePosition(this._currContainer);
         this._element.setTop(top - containerPos.top);
@@ -395,8 +402,8 @@ export class ContextMenuView extends Disposable implements IContextMenu {
             box = {
                 top: anchor.y,
                 left: anchor.x,
-                width: anchor.width || 1,
-                height: anchor.height || 1
+                width: anchor.width || 2,
+                height: anchor.height || 2
             };
         }
 

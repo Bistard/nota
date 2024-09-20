@@ -23,10 +23,13 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-border', THEME_COLORS.mediumTeal);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-icon', THEME_COLORS.subtext); 
+        registrant.registerColor(PresetColorTheme.LightModern, 'menu-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.LightModern, 'menu-border', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.LightModern, 'menu-item-disabled', THEME_COLORS.middle);
-        registrant.registerColor(PresetColorTheme.LightModern, 'menu-separator-background', THEME_COLORS.middle);
-        registrant.registerColor(PresetColorTheme.LightModern, 'menuItem-focus-background', THEME_COLORS.subicon);
+        registrant.registerColor(PresetColorTheme.LightModern, 'menu-item-check-color', THEME_COLORS.teal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'menu-item-content-color', THEME_COLORS.primary);
+        registrant.registerColor(PresetColorTheme.LightModern, 'menu-separator-background', THEME_COLORS.lightstroke);
+        registrant.registerColor(PresetColorTheme.LightModern, 'menu-item-focus-background', THEME_COLORS.lighterTeal);
         registrant.registerColor(PresetColorTheme.LightModern, 'sash-hover', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.LightModern, 'sash-visible-background', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.LightModern, 'scroll-slider-background', THEME_COLORS.middle);

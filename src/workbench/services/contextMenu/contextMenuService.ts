@@ -7,6 +7,7 @@ import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { isDefined } from "src/base/common/utilities/type";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
@@ -34,8 +35,10 @@ export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
 
     /**
      * @description Allow the client to customize the style of the context menu.
+     * If the function is not defined, the context menu will only have a class 
+     * named 'context-menu'.
      */
-    getContextMenuClassName?(): string;
+    getExtraContextMenuClassName?(): string;
 }
 
 /**
@@ -47,7 +50,8 @@ export interface IContextMenuService extends IService {
      * @description Shows up a context menu.
      * @param delegate The delegate to provide external functionalities.
      * @param container The container that contains the context menu. If not
-     *                  provided, it will be positioned under the workbench.
+     *                  provided, it will be positioned under the current active
+     *                  element.
      */
     showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void;
 
@@ -173,8 +177,8 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         const delegate = this._delegate;
         const contextMenu = this._contextMenu;
 
-        const menuClassName = delegate.getContextMenuClassName?.() ?? '';
-        if (menuClassName) {
+        const menuClassName = delegate.getExtraContextMenuClassName?.() ?? null;
+        if (isDefined(menuClassName)) {
             container.classList.add(menuClassName);
         }
 
@@ -205,11 +209,11 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
             menu.onDidClose,
             new DomEmitter(window, EventType.blur).registerListener,
         ]
-            .forEach(onEvent => {
-                menuDisposables.register(
-                    onEvent.call(menu, () => contextMenu.destroy())
-                );
-            });
+        .forEach(onEvent => {
+            menuDisposables.register(
+                onEvent.call(menu, () => contextMenu.destroy())
+            );
+        });
 
         // mousedown destroy event
         menuDisposables.register(addDisposableListener(window, EventType.mousedown, (e) => {

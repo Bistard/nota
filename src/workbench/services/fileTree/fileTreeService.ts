@@ -14,7 +14,7 @@ import { ConfigurationModuleType, IConfigurationService } from "src/platform/con
 import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter, defaultFileItemCompareFnAsc, defaultFileItemCompareFnDesc } from "src/workbench/services/fileTree/fileTreeSorter";
-import { FileOperationError } from "src/base/common/files/file";
+import { FileOperationError, FileType } from "src/base/common/files/file";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { Scheduler } from "src/base/common/utilities/async";
@@ -26,6 +26,13 @@ import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchC
 import { noop } from "src/base/common/performance";
 import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
+import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
+import { IMenuAction, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
+import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
+import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
+import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -55,6 +62,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @IContextMenuService private readonly contextMenuService: IContextMenuService,
+        @IClipboardService private readonly clipboardService: IClipboardService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
@@ -508,6 +517,18 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         cleanup.register(this.fileService.onDidResourceChange(e => {
             onDidResourceChange.schedule(e.wrap());
         }));
+
+        // context menu listener
+        cleanup.register(tree.onContextmenu(e => {
+            this.contextMenuService.showContextMenu({
+                primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
+                horizontalPosition: AnchorHorizontalPosition.Right,
+                verticalPosition: AnchorVerticalPosition.Below,
+                getAnchor: () => this.__getContextMenuAnchor(e),
+                getActions: () => this.__getContextMenuActions(e),
+                getContext: () => e
+            }, this.workbenchService.element.element);
+        }));
     }
 
     private __createMetadataControllerOptions(treeRoot: URI): IFileTreeMetadataControllerOptions {
@@ -534,5 +555,94 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         }
         const controller = this.__assertController();
         await controller.syncMetadataInCacheWithDisk(folder.uri, folder.children).unwrap();
+    }
+
+    private __getContextMenuAnchor(e: ITreeContextmenuEvent<FileItem>): HTMLElement | IAnchor {
+        /**
+         * Context-menu is created by the mouse, we simply return
+         * the position of the click as the anchor.
+         */
+        if (e.position) {
+            return e.position;
+        }
+
+        const tree = this.__assertTree();
+
+        /**
+         * If no position is provided, the context-menu might 
+         * triggered by the keyboard (context-menu key). We return
+         * the anchor next to the item if provided.
+         */
+        if (e.data) {
+            const index = tree.getItemIndex(e.data);
+            const element = tree.getHTMLElement(index);
+            if (element) {
+                return element;
+            }
+        }
+
+        /**
+         * If no item is provided, we render the context menu next
+         * to the entire file tree.
+         */
+        return tree.DOMElement;
+    }
+
+    private __getContextMenuActions(event: ITreeContextmenuEvent<FileItem>): IMenuAction[] {
+        const data = assert(event.data);
+        const isFile = data.type === FileType.FILE;
+
+        const openGroup: IMenuAction[] = [];
+        const moveGroup: IMenuAction[] = [];
+        const editGroup: IMenuAction[] = [];
+        const copyGroup: IMenuAction[] = [];
+
+        // openGroup
+        {
+            if (isFile) {
+                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open', callback: () => console.log('"Open" clicked') }));
+                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open In New Tab', callback: () => console.log('"Open In New Tab" clicked') }));
+            }
+
+            const revealID = 
+                IS_MAC      ? 'Reveal In Finder' : 
+                IS_WINDOWS  ? 'Reveal In File Explorer' 
+                /* Linux */ : 'Reveal In Files';
+            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, shortcut: new Shortcut(false, true, true, false, KeyCode.KeyR), callback: () => console.log(`"${revealID}" clicked`) }));
+        }
+
+        // moveGroup
+        {
+            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Cut', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyX), callback: () => console.log('"Cut" clicked') }));
+            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyC), callback: () => console.log('"Copy" clicked') }));
+
+            // paste only works for folder
+            if (isFile === false) {
+                const isEnable = this.clipboardService.read(ClipboardType.Resources).length > 0;
+                moveGroup.push(new SimpleMenuAction({ enabled: isEnable, id: 'Paste', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyV), callback: () => console.log('"Paste" clicked') }));
+            }
+        }
+        
+        // editGroup
+        {
+            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Rename', shortcut: new Shortcut(false, false, false, false, KeyCode.F2), callback: () => console.log('"Rename" clicked') }));
+            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Delete', shortcut: new Shortcut(false, false, false, false, KeyCode.Delete), callback: () => console.log('"Delete" clicked') }));
+        }
+
+        // copyGroup
+        {
+            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', shortcut: new Shortcut(false, true, true, false, KeyCode.KeyC), callback: () => console.log('"Copy Path" clicked') }));
+            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', shortcut: new Shortcut(true, true, false, false, KeyCode.KeyC), callback: () => console.log('"Copy Relative Path" clicked') }));
+        }
+
+        // add separators
+        const groups = [openGroup, moveGroup, editGroup, copyGroup];
+        const actions = groups.flatMap((arr, idx) => {
+            return idx < groups.length - 1
+                ? [...arr, MenuSeparatorAction.instance] 
+                : arr;
+        });
+
+        return actions;
     }
 }

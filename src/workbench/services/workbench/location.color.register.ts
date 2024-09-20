@@ -16,10 +16,13 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('search-bar-border');
         registrant.registerTemplate('search-bar-icon');
         registrant.registerTemplate('search-bar-placeholder');
+        registrant.registerTemplate('menu-background');
         registrant.registerTemplate('menu-border');
         registrant.registerTemplate('menu-item-disabled');
+        registrant.registerTemplate('menu-item-check-color');
+        registrant.registerTemplate('menu-item-content-color');
         registrant.registerTemplate('menu-separator-background');
-        registrant.registerTemplate('menuItem-focus-background');
+        registrant.registerTemplate('menu-item-focus-background');
         registrant.registerTemplate('sash-hover');
         registrant.registerTemplate('sash-visible-background');
         registrant.registerTemplate('scroll-slider-background');
