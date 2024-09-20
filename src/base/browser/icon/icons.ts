@@ -1,6 +1,7 @@
 export const enum Icons {
   AddNew = 'add-new',
   ArrowRight = 'arrow-right',
+  Check = 'check',
   Close = 'close',
   CloudUpload = 'cloud-upload',
   CollapseAll = 'collapse-all',
