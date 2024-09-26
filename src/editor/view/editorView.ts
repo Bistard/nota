@@ -1,3 +1,4 @@
+import 'src/editor/view/media/editorView.scss';
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
