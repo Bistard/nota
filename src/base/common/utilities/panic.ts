@@ -5,7 +5,7 @@
  * that does not import any other files.
  */
 
-import { ArrayToUnion } from "src/base/common/utilities/type";
+import type { ArrayToUnion } from "src/base/common/utilities/type";
 
 /**
  * @description Panics the program by throwing an error with the provided message.
