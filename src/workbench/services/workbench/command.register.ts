@@ -5,9 +5,11 @@ import { RegistrantType, createRegister } from "src/platform/registrant/common/r
 import { FileCommands } from "src/workbench/services/fileTree/fileCommands";
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { INotificationService, INotificationTypes } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
+import { Icons } from "src/base/browser/icon/icons";
+import { Action } from "src/base/common/action";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -42,6 +44,28 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 },
             },
         );
+
+        registrant.registerCommandBasic({
+            id: AllCommands.popNotification,
+            command: (provider) => {
+                const notificationService = provider.getOrCreateService(INotificationService);
+                notificationService.notify({
+                    title: 'Testing',
+                    message: 'This is another long sample notification message. Testing code~',
+                    icon: Icons.NotificationInfo,
+                    type: INotificationTypes.Info,
+                    actions: [
+                        {
+                            label: 'Close',
+                            run: () => {
+                                notificationService.dispose();
+                            },
+                        },
+                        // ... other actions ...
+                    ]
+                });
+            }
+        });
 
         registrant.registerCommand(new AlertError());
         registrant.registerCommand(new FileCommands.FilePaste());
