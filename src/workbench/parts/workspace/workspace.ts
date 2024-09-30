@@ -49,10 +49,10 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     }
 
     protected override _registerListeners(): void {
-        const titleBar = assert(this._titleBar);
-        const editor = assert(this._editor);
+        const editor = assert(this._editor, "editor error");
         
         if (OPERATING_SYSTEM === Platform.Windows) {
+            const titleBar = assert(this._titleBar, "title bar error");
             titleBar.registerListeners();
         }
         editor.registerListeners();
