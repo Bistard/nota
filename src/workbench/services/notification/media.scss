@@ -1,5 +1,6 @@
 @use 'src/styles/settings/constants' as const;
 
+// TODO: add colors in themeDefaults and register vars in light/dark.color.register.ts
 .notification-container {
     z-index: 1;
     position: fixed;
@@ -16,7 +17,7 @@
     position: relative;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.21);
-    border-radius: 4px;
+    border-radius: 0px;
     border-width: 0;
     padding: 16px;
     margin-bottom: 5px;
@@ -28,20 +29,37 @@
     will-change: opacity, transform; // Optimizes for animations
     overflow: hidden;
 
-    &:hover {
-        background-color: rgb(255, 250, 250);
-        box-shadow: 0 0 0 0.8px rgb(199, 58, 73), 0 2px 4px rgba(199, 58, 73, 0.21);
+    &.info:hover {
+        background-color: rgb(248, 255, 255);
+        box-shadow: 0 2px 4px rgba(42, 168, 130, 0.21);
+    }
+
+    &.warning:hover {
+        background-color: rgb(255, 254, 249);
+        box-shadow: 0 2px 4px rgba(241, 173, 0, 0.21);
+    }
+
+    &.error:hover {
+        background-color: rgb(255, 247, 247);
+        box-shadow: 0 2px 4px rgba(218, 58, 52, 0.21);
     }
 }
 
-.notification-title {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+.notification.info {
+    border-left: 1.5px solid #2aa882;
+}
+
+.notification.warning {
+    border-left: 1.5px solid #F1AD00;
+}
+
+.notification.error {
+    border-left: 1.5px solid #DA3A34;
 }
 
 .notification-message {
     font-weight: normal;
-    color: rgba(0, 0, 0, 0.95);
+    color: rgba(109, 109, 109, 0.95);
 }
 
 .notification-content {
@@ -65,12 +83,27 @@
     margin-left: 7px;
     margin-top: 0;
     padding: 4px;
-    color: black;
+    color: rgb(147, 147, 147);
     cursor: pointer;
     &:hover {
-        box-shadow: 0 0 0 0.5px rgb(199, 58, 73);
-        border-radius: 2px;
-        background-color: rgb(255, 245, 246);
+        box-shadow: 0 0 0 0.5px #2aa882; // Default shadow for error close button
+        border-radius: 1.5px;
+        background-color: rgb(248, 255, 255);
+    }
+
+    &.info:hover {
+        box-shadow: 0 0 0 0.5px #2aa882;
+        background-color: rgb(248, 255, 255);
+    }
+
+    &.warning:hover {
+        box-shadow: 0 0 0 0.5px #F1AD00;
+        background-color: rgb(255, 254, 244);
+    }
+
+    &.error:hover {
+        box-shadow: 0 0 0 0.5px #DA3A34;
+        background-color: rgb(255, 247, 247);
     }
 }
 
