@@ -63,6 +63,55 @@ export const rendererWorkbenchCommandRegister = createRegister(
                         // ... other actions ...
                     ]
                 });
+                notificationService.notify({
+                    message: 'This is a  sample notification message without specifying submessage.',
+                    icon: Icons.NotificationInfo,
+                    type: INotificationTypes.Info,
+                    actions: [
+                        {
+                            label: 'Close',
+                            run: () => {
+                                notificationService.dispose();
+                            },
+                        },
+                        // ... other actions ...
+                    ]
+                });
+                notificationService.notify({
+                    message: 'This is a warning message.',
+                    icon: Icons.NotificationWarn,
+                    type: INotificationTypes.Warning,
+                    actions: [
+                        {
+                            label: 'Close',
+                            run: () => {
+                                notificationService.dispose();
+                            },
+                        },
+                        // ... other actions ...
+                    ]
+                });
+                notificationService.notify({
+                    message: 'This is a very very very very very very very very very very very very very very very very very very very very long  ERROR message!',
+                    subMessage: 'Resource file: file:///Users/asteria_zhaimu/Desktop/砂浜/NOTA软件开发/',
+                    icon: Icons.NotificationError,
+                    type: INotificationTypes.Error,
+                    actions: [
+                        {
+                            label: 'Close',
+                            run: () => {
+                                notificationService.dispose();
+                            },
+                        },
+                        {
+                            label: 'Yes',
+                            run: () => {
+                                notificationService.dispose();
+                            },
+                        },
+                        // ... other actions ...
+                    ]
+                });
             }
         });
 
