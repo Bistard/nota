@@ -440,8 +440,8 @@ export namespace FileCommands {
             }
 
             const confirmed = await this.notificationService.confirm(
-                'Overwrite Warning', 
                 `A file or folder with the name '${URI.basename(destination)}' already exists in the destination folder. Do you want to replace it?`,
+                `This is just a submessage sample for the above notification sample :)`
             );
             return confirmed;
         }
@@ -497,7 +497,6 @@ export namespace FileCommands {
                 const destinName = URI.basename(destination);
 
                 this.notificationService.notify({ 
-                    title: 'FilePaste Fails',
                     message: `Cannot ${operation} ${targetName} to ${destinName}. Reason: ${errorToMessage(error)}`,
                     actions: [
                         { label: 'Ok', run: noop },

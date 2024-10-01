@@ -9,7 +9,6 @@ import { INotificationService, INotificationTypes } from "src/workbench/services
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
 import { Icons } from "src/base/browser/icon/icons";
-import { Action } from "src/base/common/action";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -50,8 +49,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
             command: (provider) => {
                 const notificationService = provider.getOrCreateService(INotificationService);
                 notificationService.notify({
-                    title: 'Testing',
                     message: 'This is another long sample notification message. Testing code~',
+                    subMessage: 'Source: file:///Users/asteria_zhaimu/Desktop/GitHub/nota/.wisp/app.config.json',
                     icon: Icons.NotificationInfo,
                     type: INotificationTypes.Info,
                     actions: [
