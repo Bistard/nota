@@ -8,18 +8,23 @@ import { panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 
 /**
- * {@link CancellablePromise}
- * {@link Blocker}
- * {@link EventBlocker}
- * {@link TimeoutPromise}
- * {@link AsyncRunner}
- * {@link AsyncQueue}
- * {@link Scheduler}
- * {@link UnbufferedScheduler}
- * {@link Throttler}
- * {@link Debouncer}
- * {@link ThrottleDebouncer}
- * {@link IntervalTimer}
+ * @function {@link repeat} 
+ * @function {@link delayFor} 
+ * @class    {@link JoinablePromise}
+ * @class 	 {@link CancellablePromise}
+ * @function {@link cancellableTimeout}
+ * @function {@link retry}
+ * @class	 {@link Blocker}
+ * @class	 {@link EventBlocker}
+ * @class	 {@link TimeoutPromise}
+ * @class	 {@link AsyncRunner}
+ * @class	 {@link AsyncQueue}
+ * @class	 {@link Scheduler}
+ * @class	 {@link UnbufferedScheduler}
+ * @class	 {@link Throttler}
+ * @class	 {@link Debouncer}
+ * @class	 {@link ThrottleDebouncer}
+ * @class	 {@link IntervalTimer}
  */
 
 export interface ITask<T> {
