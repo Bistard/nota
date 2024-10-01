@@ -4,6 +4,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { Button, IButtonOptions} from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
 import { panic } from "src/base/common/utilities/panic";
+import { CancellablePromise } from 'src/base/common/utilities/async';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -48,7 +49,12 @@ export class NotificationService extends Disposable implements INotificationServ
 
     private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
-    
+    // Track notifications
+    private _notifications: {
+        element: HTMLElement;
+        cancelPromise: CancellablePromise<void>;
+    }[] = [];
+
     // [constructor]
 
     constructor(parent: HTMLElement = document.body) {
@@ -92,10 +98,31 @@ export class NotificationService extends Disposable implements INotificationServ
         // Handle auto removal for info notifications
         // Remove the notification after 10s
         if (opts.type === NotificationTypes.Info) {
-            setTimeout(() => {
+            const cancellablePromise = new CancellablePromise<void>((token) => {
+                return new Promise<void>((resolve) => {
+                    const timeoutId = setTimeout(() => {
+                        resolve();
+                    }, 10000);
+                    token.onDidCancel(() => {
+                        clearTimeout(timeoutId);
+                    });
+                });
+            });
+
+            this._notifications.push({
+                element: notification,
+                cancelPromise: cancellablePromise,
+            });
+
+            cancellablePromise.then(() => {
                 this.__closeInfoNotification(notification);
                 notification.classList.add('fade-out');
-            }, 100000); // TODO: async.ts - CancellablePromise
+
+                // Remove from notifications array
+                this._notifications = this._notifications.filter(n => n.element !== notification);
+            }).catch((error) => {
+                // TODO: handle error
+            });
         }
     }
 
@@ -221,8 +248,8 @@ export class NotificationService extends Disposable implements INotificationServ
     private __closeNotification(notification: HTMLElement): void { 
         // Wait for the transitions to finish before removing the element
         notification.addEventListener('transitionend', () => {
-            if (notification.parentNode === this._parent) {
-                this._parent.removeChild(notification);
+            if (notification.parentNode === this._container) {
+                this._container.removeChild(notification);
             }
         });
     }
@@ -230,10 +257,6 @@ export class NotificationService extends Disposable implements INotificationServ
     private __closeInfoNotification(notification: HTMLElement): void {
         notification.style.opacity = '0';
         notification.style.transition = 'opacity 0.5s';
-        
-        // Wait for the transition to finish before calling closeNotification
-        notification.addEventListener('transitionend', () => {
-            this.__closeNotification(notification);
-        });
+        this.__closeNotification(notification);
     }
 }
