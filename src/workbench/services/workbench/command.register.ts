@@ -5,7 +5,7 @@ import { RegistrantType, createRegister } from "src/platform/registrant/common/r
 import { FileCommands } from "src/workbench/services/fileTree/fileCommands";
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { INotificationService, INotificationTypes } from "src/workbench/services/notification/notificationService";
+import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
 import { Icons } from "src/base/browser/icon/icons";
@@ -51,8 +51,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 notificationService.notify({
                     message: 'This is another long sample notification message. Testing code~',
                     subMessage: 'Source: file:///Users/asteria_zhaimu/Desktop/GitHub/nota/.wisp/app.config.json',
-                    icon: Icons.NotificationInfo,
-                    type: INotificationTypes.Info,
+                    type: NotificationTypes.Info,
                     actions: [
                         {
                             label: 'Close',
@@ -65,8 +64,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 });
                 notificationService.notify({
                     message: 'This is a  sample notification message without specifying submessage.',
-                    icon: Icons.NotificationInfo,
-                    type: INotificationTypes.Info,
+                    type: NotificationTypes.Info,
                     actions: [
                         {
                             label: 'Close',
@@ -79,8 +77,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 });
                 notificationService.notify({
                     message: 'This is a warning message.',
-                    icon: Icons.NotificationWarn,
-                    type: INotificationTypes.Warning,
+                    type: NotificationTypes.Warning,
                     actions: [
                         {
                             label: 'Close',
@@ -94,8 +91,7 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 notificationService.notify({
                     message: 'This is a very very very very very very very very very very very very very very very very very very very very long  ERROR message!',
                     subMessage: 'Resource file: file:///Users/asteria_zhaimu/Desktop/砂浜/NOTA软件开发/',
-                    icon: Icons.NotificationError,
-                    type: INotificationTypes.Error,
+                    type: NotificationTypes.Error,
                     actions: [
                         {
                             label: 'Close',

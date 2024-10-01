@@ -7,7 +7,7 @@ import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchC
 import { URI } from "src/base/common/files/uri";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
-import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileOperationError, FileOperationErrorType, FileType } from "src/base/common/files/file";
 import * as path from "src/base/common/files/path";
@@ -441,7 +441,7 @@ export namespace FileCommands {
 
             const confirmed = await this.notificationService.confirm(
                 `A file or folder with the name '${URI.basename(destination)}' already exists in the destination folder. Do you want to replace it?`,
-                `This is just a submessage sample for the above notification sample :)`
+                `Overwrite Warning.`
             );
             return confirmed;
         }
@@ -497,6 +497,7 @@ export namespace FileCommands {
                 const destinName = URI.basename(destination);
 
                 this.notificationService.notify({ 
+                    type: NotificationTypes.Info,
                     message: `Cannot ${operation} ${targetName} to ${destinName}. Reason: ${errorToMessage(error)}`,
                     actions: [
                         { label: 'Ok', run: noop },

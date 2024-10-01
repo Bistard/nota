@@ -7,7 +7,7 @@ import { panic } from "src/base/common/utilities/panic";
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
-export const enum INotificationTypes {
+export const enum NotificationTypes {
     Info = 'info',
     Warning = 'warning',
     Error = 'error'
@@ -21,11 +21,10 @@ export interface INotificationService extends IDisposable, IService {
     notify(options: INotificationOptions): void;
 }
 export interface INotificationOptions {
+    type: NotificationTypes;
     message: string;
     subMessage?: string;
     actions?: INotificationAction[];
-    type?: INotificationTypes;
-    icon?: Icons;
 }
 
 export interface INotificationAction {
@@ -49,7 +48,6 @@ export class NotificationService extends Disposable implements INotificationServ
 
     private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
-    commandService: any; // TODO: delete
     
     // [constructor]
 
@@ -93,7 +91,7 @@ export class NotificationService extends Disposable implements INotificationServ
 
         // Handle auto removal for info notifications
         // Remove the notification after 10s
-        if (opts.type === INotificationTypes.Info) {
+        if (opts.type === NotificationTypes.Info) {
             setTimeout(() => {
                 this.__closeInfoNotification(notification);
                 notification.classList.add('fade-out');
@@ -196,7 +194,7 @@ export class NotificationService extends Disposable implements INotificationServ
         container.appendChild(closeButtonContainer);
     }
 
-    private __createNotificationIcon(type?: INotificationTypes): HTMLElement {
+    private __createNotificationIcon(type?: NotificationTypes): HTMLElement {
         const iconElement = document.createElement('span');
         iconElement.className = 'notification-icon';
 
@@ -207,13 +205,13 @@ export class NotificationService extends Disposable implements INotificationServ
         return iconElement;
     }
 
-    private __getIconClassForType(type?: INotificationTypes): string {
+    private __getIconClassForType(type?: NotificationTypes): string {
         switch (type) {
-            case INotificationTypes.Info:
+            case NotificationTypes.Info:
                 return Icons.NotificationInfo;
-            case INotificationTypes.Warning:
+            case NotificationTypes.Warning:
                 return Icons.NotificationWarn;
-            case INotificationTypes.Error:
+            case NotificationTypes.Error:
                 return Icons.NotificationError;
             default:
                 return 'notification-info'; // default
