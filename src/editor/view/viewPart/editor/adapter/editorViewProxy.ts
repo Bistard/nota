@@ -9,7 +9,7 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
 
     /**
      * @description If the content of the window is directly editable.
-     * @note The content may still be modified programatically.
+     * @note The content may still be modified programmatically.
      */
     isEditable(): boolean;
 

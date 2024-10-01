@@ -129,7 +129,7 @@ export interface IProseEventBroadcaster extends IDisposable {
 
     /**
      * Fires whenever the user directly inputs some text, this event is called 
-     * before the input is applied. If the `preventDeault` is invoked, the 
+     * before the input is applied. If the `preventDefault` is invoked, the 
      * default behavior of inserting the text is prevented.
      */
     readonly onTextInput: Register<IOnTextInputEvent>;
@@ -154,7 +154,7 @@ function __isProseEditorView(obj: any): obj is ProseEditorView {
 
 /**
  * @class Given either a prosemirror view, or a property object from an 
- * extension, the boradcaster will bind all the pre-defined event emitter with 
+ * extension, the broadcaster will bind all the pre-defined event emitter with 
  * that target properly.
  */
 export class ProseEventBroadcaster extends Disposable implements IProseEventBroadcaster {
