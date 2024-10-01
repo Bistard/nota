@@ -19,7 +19,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { mixin } from "src/base/common/utilities/object";
 import { ColorMap, RGBA } from "src/base/common/color";
 import { noop } from "src/base/common/performance";
-import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
 
 export const IThemeService = createService<IThemeService>('theme-service');
@@ -164,6 +164,7 @@ export class ThemeService extends Disposable implements IThemeService {
                 error => {
                     this.logService.error('themeService', `Cannot switch to the theme '${id}'. The reason is:`, error);
                     this.notificationService.notify({
+                        type: NotificationTypes.Info,
                         message: `Failed to switch to theme '${id}'. Please check the theme settings and try again.`,
                         actions: [{
                             label: 'Dismiss',
