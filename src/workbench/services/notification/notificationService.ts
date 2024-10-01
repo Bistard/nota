@@ -17,11 +17,12 @@ export const enum INotificationTypes {
  */
 export interface INotificationService extends IDisposable, IService {
     error(error: string | Error): void;
-    confirm(title: string, message: string): Promise<boolean>;
+    confirm(message: string, subMessage: string): Promise<boolean>;
     notify(options: INotificationOptions): void;
 }
 export interface INotificationOptions {
     message: string;
+    subMessage?: string;
     actions?: INotificationAction[];
     type?: INotificationTypes;
     icon?: Icons;
@@ -48,7 +49,7 @@ export class NotificationService extends Disposable implements INotificationServ
 
     private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
-    commandService: any;
+    commandService: any; // TODO: delete
     
     // [constructor]
 
@@ -69,9 +70,9 @@ export class NotificationService extends Disposable implements INotificationServ
         panic('Error method not implemented.'); 
     }
     
-    public confirm(title: string, message: string): Promise<boolean> {
+    public confirm(message: string, subMessage: string): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
-            const result = window.confirm(`${title}\n\n${message}`);
+            const result = window.confirm(`${message}\n\n${subMessage}`);
             resolve(result);
         });
     }
@@ -87,22 +88,58 @@ export class NotificationService extends Disposable implements INotificationServ
         // Render the close button
         this.__renderCloseButton(notification);
     
-        // Render custom action buttons
-        const isShortMessage = opts.message.length < 50;
-        if (opts.actions && opts.actions.length) {
-            this.__renderCustomActionButtons(opts.actions, notification, isShortMessage);
-        }
-    
         // Actual rendering
         this._container.appendChild(notification);
+
+        // Handle auto removal for info notifications
+        // Remove the notification after 10s
+        if (opts.type === INotificationTypes.Info) {
+            setTimeout(() => {
+                this.__closeInfoNotification(notification);
+                notification.classList.add('fade-out');
+            }, 100000); // TODO: async.ts - CancellablePromise
+        }
     }
 
-    // [private methods]
-
+    // [private methods]  
+    
+    private __renderCustomActionButtons(actions: INotificationAction[], container: HTMLElement, hasSubMessage: boolean): void {
+        if (!actions || actions.length === 0) return;
+    
+        const actionsContainer = document.createElement('div');
+        actionsContainer.className = 'notification-custom-actions';
+        
+        if (hasSubMessage) {
+            actionsContainer.classList.add('submessage-actions');
+        } else {
+            actionsContainer.classList.add('no-submessage-actions');
+        }
+    
+        actions.forEach((action, index) => {
+            if (index < 3) { // Render up to 3 actions
+                const buttonOptions: IButtonOptions = {
+                    id: '',
+                    label: action.label,
+                    buttonBackground: action.notificationBackground,
+                    buttonForeground: action.notificationForeground,
+                    classes: ['custom-action-button'],
+                };
+                const actionButton = new Button(buttonOptions);
+                this.__register(actionButton.onDidClick(() => action.run()));
+    
+                const buttonWrapper = document.createElement('div');
+                buttonWrapper.className = 'action-button-wrapper';
+                actionButton.render(buttonWrapper);
+                actionsContainer.appendChild(buttonWrapper);
+            }
+        });
+        container.appendChild(actionsContainer);
+    }
+    
     private __renderContent(container: HTMLElement, opts: INotificationOptions): void {
         const content = document.createElement('div');
         content.className = 'notification-content';
-
+    
         const iconButton = this.__createNotificationIcon(opts.type);
         content.appendChild(iconButton);
     
@@ -110,10 +147,36 @@ export class NotificationService extends Disposable implements INotificationServ
         message.className = 'notification-message';
         message.textContent = opts.message;
         content.appendChild(message);
-
-        container.appendChild(content);
-    }
     
+        let hasSubMessage = false;
+        let buttonsRendered = false; // Track if buttons are rendered
+        
+        if (opts.subMessage) {
+            hasSubMessage = true;
+            const subMessageActionsContainer = document.createElement('div');
+            subMessageActionsContainer.className = 'submessage-actions-container';
+    
+            const subMessage = document.createElement('span');
+            subMessage.className = 'notification-submessage';
+            subMessage.textContent = opts.subMessage;
+            subMessageActionsContainer.appendChild(subMessage);
+    
+            // Only render buttons with submessage if not rendered yet
+            if (opts.actions && opts.actions.length && !buttonsRendered) {
+                this.__renderCustomActionButtons(opts.actions, subMessageActionsContainer, true);
+                buttonsRendered = true;
+            }
+            content.appendChild(subMessageActionsContainer);
+        }
+    
+        // Render buttons only if not rendered already (when no submessage)
+        if (opts.actions && opts.actions.length && !buttonsRendered) {
+            this.__renderCustomActionButtons(opts.actions, content, false);
+        }
+    
+        container.appendChild(content);
+    } 
+
     private __renderCloseButton(container: HTMLElement): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
@@ -126,49 +189,11 @@ export class NotificationService extends Disposable implements INotificationServ
     
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
-            this.closeNotification(container);
+            this.__closeNotification(container);
             container.remove();
         }));
         closeButton.render(closeButtonContainer);
         container.appendChild(closeButtonContainer);
-    }
-    
-    private __renderCustomActionButtons(actions: INotificationAction[], container: HTMLElement, isShortMessage: boolean = true): void {
-        const customActionsContainer = document.createElement('div');
-        customActionsContainer.className = 'notification-custom-actions';
-
-        // Arrange action buttons in the end of the first row for notifications 
-        // with short messages
-        if (isShortMessage) {
-            customActionsContainer.style.flexDirection = 'row';
-        } else {
-            customActionsContainer.style.flexDirection = 'column';
-        }
-    
-        actions.forEach((action, index) => {
-            // Ensure no more than three buttons are created
-            if (index < 3) {
-                const buttonOptions: IButtonOptions = {
-                    id: '',
-                    label: action.label,
-                    buttonBackground: action.notificationBackground,
-                    buttonForeground: action.notificationForeground,
-                    classes: ['custom-action-button'],
-                };
-                const actionButton = new Button(buttonOptions);
-                this.__register(actionButton.onDidClick(() => action.run()));
-
-                actionButton.render(document.createElement('div'));
-                customActionsContainer.appendChild(actionButton.element);
-            }
-        });
-    
-        // Append the custom actions container at the bottom of the notification
-        if (customActionsContainer.hasChildNodes()) {
-            customActionsContainer.style.alignSelf = 'flex-end';
-            customActionsContainer.style.paddingTop = '10px'; // spaces between msgs and btns
-            container.appendChild(customActionsContainer);
-        }
     }
 
     private __createNotificationIcon(type?: INotificationTypes): HTMLElement {
@@ -195,13 +220,22 @@ export class NotificationService extends Disposable implements INotificationServ
         }
     }
     
-    private closeNotification(notification: HTMLElement): void {
-    
+    private __closeNotification(notification: HTMLElement): void { 
         // Wait for the transitions to finish before removing the element
         notification.addEventListener('transitionend', () => {
             if (notification.parentNode === this._parent) {
                 this._parent.removeChild(notification);
             }
+        });
+    }
+
+    private __closeInfoNotification(notification: HTMLElement): void {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        
+        // Wait for the transition to finish before calling closeNotification
+        notification.addEventListener('transitionend', () => {
+            this.__closeNotification(notification);
         });
     }
 }
