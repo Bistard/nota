@@ -5,6 +5,7 @@ import { Button, IButtonOptions} from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
 import { panic } from "src/base/common/utilities/panic";
 import { CancellablePromise } from 'src/base/common/utilities/async';
+import { isDefined } from 'src/base/common/utilities/type';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -22,10 +23,10 @@ export interface INotificationService extends IDisposable, IService {
     notify(options: INotificationOptions): void;
 }
 export interface INotificationOptions {
-    type: NotificationTypes;
-    message: string;
-    subMessage?: string;
-    actions?: INotificationAction[];
+    readonly type: NotificationTypes;
+    readonly message: string;
+    readonly subMessage?: string;
+    readonly actions?: INotificationAction[];
 }
 
 export interface INotificationAction {
@@ -51,8 +52,8 @@ export class NotificationService extends Disposable implements INotificationServ
     private readonly _container: HTMLElement;
     // Track notifications
     private _notifications: {
-        element: HTMLElement;
-        cancelPromise: CancellablePromise<void>;
+        readonly element: HTMLElement;
+        readonly cancelPromise?: CancellablePromise<void>;
     }[] = [];
 
     // [constructor]
@@ -129,35 +130,34 @@ export class NotificationService extends Disposable implements INotificationServ
     // [private methods]  
     
     private __renderCustomActionButtons(actions: INotificationAction[], container: HTMLElement, hasSubMessage: boolean): void {
-        if (!actions || actions.length === 0) return;
+        if (!actions || actions.length === 0) {
+            return;
+        }
     
         const actionsContainer = document.createElement('div');
         actionsContainer.className = 'notification-custom-actions';
-        
-        if (hasSubMessage) {
-            actionsContainer.classList.add('submessage-actions');
-        } else {
-            actionsContainer.classList.add('no-submessage-actions');
+        actionsContainer.classList.add(
+            hasSubMessage ? 'submessage-actions' : 'no-submessage-actions'
+        );
+
+        // Render up to 3 actions
+        actions = actions.slice(0, 3);
+        for (const action of actions) {
+            const buttonOptions: IButtonOptions = {
+                id: '',
+                label: action.label,
+                buttonBackground: action.notificationBackground,
+                buttonForeground: action.notificationForeground,
+                classes: ['custom-action-button'],
+            };
+            const actionButton = new Button(buttonOptions);
+            this.__register(actionButton.onDidClick(() => action.run()));
+
+            const buttonWrapper = document.createElement('div');
+            buttonWrapper.className = 'action-button-wrapper';
+            actionButton.render(buttonWrapper);
+            actionsContainer.appendChild(buttonWrapper);
         }
-    
-        actions.forEach((action, index) => {
-            if (index < 3) { // Render up to 3 actions
-                const buttonOptions: IButtonOptions = {
-                    id: '',
-                    label: action.label,
-                    buttonBackground: action.notificationBackground,
-                    buttonForeground: action.notificationForeground,
-                    classes: ['custom-action-button'],
-                };
-                const actionButton = new Button(buttonOptions);
-                this.__register(actionButton.onDidClick(() => action.run()));
-    
-                const buttonWrapper = document.createElement('div');
-                buttonWrapper.className = 'action-button-wrapper';
-                actionButton.render(buttonWrapper);
-                actionsContainer.appendChild(buttonWrapper);
-            }
-        });
         container.appendChild(actionsContainer);
     }
     
@@ -176,7 +176,7 @@ export class NotificationService extends Disposable implements INotificationServ
         let hasSubMessage = false;
         let buttonsRendered = false; // Track if buttons are rendered
         
-        if (opts.subMessage) {
+        if (isDefined(opts.subMessage)) {
             hasSubMessage = true;
             const subMessageActionsContainer = document.createElement('div');
             subMessageActionsContainer.className = 'submessage-actions-container';
@@ -221,18 +221,17 @@ export class NotificationService extends Disposable implements INotificationServ
         container.appendChild(closeButtonContainer);
     }
 
-    private __createNotificationIcon(type?: NotificationTypes): HTMLElement {
+    private __createNotificationIcon(type: NotificationTypes): HTMLElement {
         const iconElement = document.createElement('span');
         iconElement.className = 'notification-icon';
 
-        const iconClass = this.__getIconClassForType(type);
-        if (iconClass) {
-            iconElement.classList.add(iconClass);
-        }
+        const iconClass = this.__getIconClassByType(type);
+        iconElement.classList.add(iconClass);
+
         return iconElement;
     }
 
-    private __getIconClassForType(type?: NotificationTypes): string {
+    private __getIconClassByType(type?: NotificationTypes): string {
         switch (type) {
             case NotificationTypes.Info:
                 return Icons.NotificationInfo;
@@ -241,7 +240,7 @@ export class NotificationService extends Disposable implements INotificationServ
             case NotificationTypes.Error:
                 return Icons.NotificationError;
             default:
-                return 'notification-info'; // default
+                return Icons.NotificationInfo;
         }
     }
     
