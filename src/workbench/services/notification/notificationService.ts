@@ -1,11 +1,13 @@
 import 'src/workbench/services/notification/media.scss';
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
-import { Button, IButtonOptions} from "src/base/browser/basic/button/button";
+import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
 import { panic } from "src/base/common/utilities/panic";
-import { CancellablePromise } from 'src/base/common/utilities/async';
+import { CancellablePromise, cancellableTimeout } from 'src/base/common/utilities/async';
 import { isDefined } from 'src/base/common/utilities/type';
+import { Arrays } from 'src/base/common/utilities/array';
+import { Time, TimeUnit } from 'src/base/common/date';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -14,6 +16,7 @@ export const enum NotificationTypes {
     Warning = 'warning',
     Error = 'error'
 }
+
 /**
  * An interface only for {@link NotificationService}.
  */
@@ -22,6 +25,7 @@ export interface INotificationService extends IDisposable, IService {
     confirm(message: string, subMessage: string): Promise<boolean>;
     notify(options: INotificationOptions): void;
 }
+
 export interface INotificationOptions {
     readonly type: NotificationTypes;
     readonly message: string;
@@ -32,14 +36,14 @@ export interface INotificationOptions {
 export interface INotificationAction {
     readonly label: string;
     run: () => void;
-    
+
     // styles
     readonly notificationBackground?: string;
     readonly notificationForeground?: string;
 }
 
 /**
- * @class Provides notification services, such as displaying error messages, 
+ * @class Provides notification services, such as displaying error messages,
  * notifications, and confirmation dialogs.
  */
 export class NotificationService extends Disposable implements INotificationService {
@@ -50,10 +54,13 @@ export class NotificationService extends Disposable implements INotificationServ
 
     private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
-    // Track notifications
+
+    // Track notification lifecycles
     private _notifications: {
         readonly element: HTMLElement;
-        readonly cancelPromise?: CancellablePromise<void>;
+        readonly type: NotificationTypes;
+        readonly createdAt: Date;
+        readonly cancellableTime?: CancellablePromise<void>;
     }[] = [];
 
     // [constructor]
@@ -61,7 +68,7 @@ export class NotificationService extends Disposable implements INotificationServ
     constructor(parent: HTMLElement = document.body) {
         super();
         this._parent = parent;
-        
+
         const element = document.createElement('div');
         this._container = element;
 
@@ -69,12 +76,12 @@ export class NotificationService extends Disposable implements INotificationServ
         this._parent.appendChild(element);
     }
 
-    // [public methods]
+     // [public methods]
 
     public error(error: string | Error): void {
-        panic('Error method not implemented.'); 
+        panic('Error method not implemented.');
     }
-    
+
     public confirm(message: string, subMessage: string): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             const result = window.confirm(`${message}\n\n${subMessage}`);
@@ -86,54 +93,45 @@ export class NotificationService extends Disposable implements INotificationServ
 
         const notification = document.createElement('div');
         notification.className = `notification ${opts.type}`;
-    
+
         // Render the content part
         this.__renderContent(notification, opts);
 
         // Render the close button
         this.__renderCloseButton(notification);
-    
+
         // Actual rendering
         this._container.appendChild(notification);
 
-        // Handle auto removal for info notifications
-        // Remove the notification after 10s
+        // Track the notification lifecycle
+        const createdAt = new Date();
+        let cancellableTime: CancellablePromise<void> | undefined = undefined;
+
+        // Handle auto-removal for info notifications only
         if (opts.type === NotificationTypes.Info) {
-            const cancellablePromise = new CancellablePromise<void>((token) => {
-                return new Promise<void>((resolve) => {
-                    const timeoutId = setTimeout(() => {
-                        resolve();
-                    }, 10000);
-                    token.onDidCancel(() => {
-                        clearTimeout(timeoutId);
-                    });
-                });
-            });
-
-            this._notifications.push({
-                element: notification,
-                cancelPromise: cancellablePromise,
-            });
-
-            cancellablePromise.then(() => {
-                this.__closeInfoNotification(notification);
-                notification.classList.add('fade-out');
-
-                // Remove from notifications array
-                this._notifications = this._notifications.filter(n => n.element !== notification);
-            }).catch((error) => {
-                // TODO: handle error
+            const time = new Time(TimeUnit.Seconds, 10);
+            cancellableTime = cancellableTimeout(time);
+            cancellableTime.then(() => {
+                this.__closeNotification(notification);
             });
         }
+
+        // Track notification
+        this._notifications.push({
+            element: notification,
+            type: opts.type,
+            createdAt: createdAt,
+            cancellableTime: cancellableTime,
+        });
     }
 
     // [private methods]  
-    
+
     private __renderCustomActionButtons(actions: INotificationAction[], container: HTMLElement, hasSubMessage: boolean): void {
         if (!actions || actions.length === 0) {
             return;
         }
-    
+
         const actionsContainer = document.createElement('div');
         actionsContainer.className = 'notification-custom-actions';
         actionsContainer.classList.add(
@@ -141,8 +139,7 @@ export class NotificationService extends Disposable implements INotificationServ
         );
 
         // Render up to 3 actions
-        actions = actions.slice(0, 3);
-        for (const action of actions) {
+        actions.slice(0, 3).forEach(action => {
             const buttonOptions: IButtonOptions = {
                 id: '',
                 label: action.label,
@@ -157,61 +154,54 @@ export class NotificationService extends Disposable implements INotificationServ
             buttonWrapper.className = 'action-button-wrapper';
             actionButton.render(buttonWrapper);
             actionsContainer.appendChild(buttonWrapper);
-        }
+        });
+
         container.appendChild(actionsContainer);
     }
-    
+
     private __renderContent(container: HTMLElement, opts: INotificationOptions): void {
         const content = document.createElement('div');
         content.className = 'notification-content';
-    
+
         const iconButton = this.__createNotificationIcon(opts.type);
         content.appendChild(iconButton);
-    
+
         const message = document.createElement('div');
         message.className = 'notification-message';
         message.textContent = opts.message;
         content.appendChild(message);
-    
-        let hasSubMessage = false;
-        let buttonsRendered = false; // Track if buttons are rendered
-        
+
         if (isDefined(opts.subMessage)) {
-            hasSubMessage = true;
             const subMessageActionsContainer = document.createElement('div');
             subMessageActionsContainer.className = 'submessage-actions-container';
-    
+
             const subMessage = document.createElement('span');
             subMessage.className = 'notification-submessage';
             subMessage.textContent = opts.subMessage;
             subMessageActionsContainer.appendChild(subMessage);
-    
-            // Only render buttons with submessage if not rendered yet
-            if (opts.actions && opts.actions.length && !buttonsRendered) {
+
+            if (opts.actions && opts.actions.length) {
                 this.__renderCustomActionButtons(opts.actions, subMessageActionsContainer, true);
-                buttonsRendered = true;
             }
+
             content.appendChild(subMessageActionsContainer);
-        }
-    
-        // Render buttons only if not rendered already (when no submessage)
-        if (opts.actions && opts.actions.length && !buttonsRendered) {
+        } else if (opts.actions && opts.actions.length) {
             this.__renderCustomActionButtons(opts.actions, content, false);
         }
-    
+
         container.appendChild(content);
-    } 
+    }
 
     private __renderCloseButton(container: HTMLElement): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
-    
+
         const closeButtonOptions: IButtonOptions = {
             id: 'close',
             icon: Icons.Close,
             classes: ['notification-close-button']
         };
-    
+
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
             this.__closeNotification(container);
@@ -231,7 +221,7 @@ export class NotificationService extends Disposable implements INotificationServ
         return iconElement;
     }
 
-    private __getIconClassByType(type?: NotificationTypes): string {
+    private __getIconClassByType(type: NotificationTypes): string {
         switch (type) {
             case NotificationTypes.Info:
                 return Icons.NotificationInfo;
@@ -243,19 +233,17 @@ export class NotificationService extends Disposable implements INotificationServ
                 return Icons.NotificationInfo;
         }
     }
-    
-    private __closeNotification(notification: HTMLElement): void { 
-        // Wait for the transitions to finish before removing the element
+
+    private __closeNotification(notification: HTMLElement): void {
+        notification.classList.add('fade-out');
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+
         notification.addEventListener('transitionend', () => {
             if (notification.parentNode === this._container) {
                 this._container.removeChild(notification);
             }
         });
-    }
-
-    private __closeInfoNotification(notification: HTMLElement): void {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.5s';
-        this.__closeNotification(notification);
+        this._notifications = this._notifications.filter(n => n.element !== notification);
     }
 }
