@@ -4,10 +4,10 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
 import { Icons } from 'src/base/browser/icon/icons';
 import { panic } from "src/base/common/utilities/panic";
-import { CancellablePromise, cancellableTimeout } from 'src/base/common/utilities/async';
+import { IUnbufferedScheduler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { isDefined } from 'src/base/common/utilities/type';
 import { Arrays } from 'src/base/common/utilities/array';
-import { Time, TimeUnit } from 'src/base/common/date';
+import { Time } from 'src/base/common/date';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -60,7 +60,7 @@ export class NotificationService extends Disposable implements INotificationServ
         readonly element: HTMLElement;
         readonly type: NotificationTypes;
         readonly createdAt: Date;
-        readonly cancellableTime?: CancellablePromise<void>;
+        readonly scheduler?: IUnbufferedScheduler<void>;
     }[] = [];
 
     // [constructor]
@@ -90,38 +90,45 @@ export class NotificationService extends Disposable implements INotificationServ
     }
 
     public notify(opts: INotificationOptions): void {
-
         const notification = document.createElement('div');
         notification.className = `notification ${opts.type}`;
 
-        // Render the content part
         this.__renderContent(notification, opts);
-
-        // Render the close button
         this.__renderCloseButton(notification);
-
         // Actual rendering
         this._container.appendChild(notification);
 
         // Track the notification lifecycle
         const createdAt = new Date();
-        let cancellableTime: CancellablePromise<void> | undefined = undefined;
+        let scheduler: IUnbufferedScheduler<void> | undefined;
 
         // Handle auto-removal for info notifications only
         if (opts.type === NotificationTypes.Info) {
-            const time = new Time(TimeUnit.Seconds, 10);
-            cancellableTime = cancellableTimeout(time);
-            cancellableTime.then(() => {
-                this.__closeNotification(notification);
-            });
+            scheduler = new UnbufferedScheduler<void>(
+                Time.sec(10),
+                async () => {
+                    return this.__closeNotification(notification);
+                }
+            );
+            scheduler?.schedule();
         }
+        notification.addEventListener('mouseenter', () => {
+            if (scheduler) {
+                scheduler.cancel();
+            }
+        });
+        notification.addEventListener('mouseleave', () => {
+            if (scheduler) {
+                scheduler.schedule();
+            }
+        });
 
         // Track notification
         this._notifications.push({
             element: notification,
             type: opts.type,
             createdAt: createdAt,
-            cancellableTime: cancellableTime,
+            scheduler: scheduler,
         });
     }
 
@@ -244,6 +251,10 @@ export class NotificationService extends Disposable implements INotificationServ
                 this._container.removeChild(notification);
             }
         });
-        this._notifications = this._notifications.filter(n => n.element !== notification);
+        this._notifications.forEach((n, i) => {
+            if (n.element === notification) {
+                Arrays.remove(this._notifications, n, i);
+            }
+        });
     }
 }
