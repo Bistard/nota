@@ -199,7 +199,7 @@ export class NotificationService extends Disposable implements INotificationServ
         container.appendChild(content);
     }
 
-    private __renderCloseButton(container: HTMLElement): void {
+    private __renderCloseButton(notification: HTMLElement): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
 
@@ -211,11 +211,11 @@ export class NotificationService extends Disposable implements INotificationServ
 
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
-            this.__closeNotification(container);
-            container.remove();
+            this.__closeNotification(notification);
+            notification.remove();
         }));
         closeButton.render(closeButtonContainer);
-        container.appendChild(closeButtonContainer);
+        notification.appendChild(closeButtonContainer);
     }
 
     private __createNotificationIcon(type: NotificationTypes): HTMLElement {
