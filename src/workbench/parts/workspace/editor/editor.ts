@@ -21,7 +21,7 @@ import { Emitter } from 'src/base/common/event';
 import { IOutlineService } from 'src/workbench/services/outline/outlineService';
 import { Throttler } from 'src/base/common/utilities/async';
 
-export class Editor extends Component implements IEditorService {
+export class EditorService extends Component implements IEditorService {
 
     declare _serviceMarker: undefined;
 
@@ -75,7 +75,7 @@ export class Editor extends Component implements IEditorService {
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
 
         if (!this._editorWidget) {
-            panic(`[Editor] Cannot open at "${URI.toString(uri)}". Reason: service currently is not created.`);
+            panic(`[EditorService] Cannot open at "${URI.toString(uri)}". Reason: service currently is not created.`);
         }
 
         // queue a request
