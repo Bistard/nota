@@ -1,5 +1,5 @@
-import { IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
-import { ICommandRegistrant, ICommandBasicSchema } from "src/platform/command/common/commandRegistrant";
+import type { IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
+import type { ICommandRegistrant, ICommandBasicSchema } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
