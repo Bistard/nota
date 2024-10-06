@@ -191,6 +191,14 @@ export interface IDocumentParseState {
      * be used for debugging.
      */
     getActiveMark(): readonly ProseMark[];
+
+    // utilities
+
+    /**
+     * @description Returns a boolean to indicate if any tokens is activating in
+     * the parser.
+     */
+    isAnyActiveToken(): boolean;
 }
 
 /**
@@ -360,6 +368,10 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             return [];
         }
         return this._actives.top().marks;
+    }
+
+    public isAnyActiveToken(): boolean {
+        return !this._actives.empty();
     }
 
     public dispose(): void {
