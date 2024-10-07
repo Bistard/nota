@@ -8,6 +8,8 @@ import { IUnbufferedScheduler, UnbufferedScheduler } from 'src/base/common/utili
 import { isDefined } from 'src/base/common/utilities/type';
 import { Arrays } from 'src/base/common/utilities/array';
 import { Time } from 'src/base/common/date';
+import { getIconClass } from 'src/base/browser/icon/iconRegistry';
+import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -94,7 +96,7 @@ export class NotificationService extends Disposable implements INotificationServ
         notification.className = `notification ${opts.type}`;
 
         this.__renderContent(notification, opts);
-        this.__renderCloseButton(notification);
+        this.__renderCloseButton(notification, opts.type);
         // Actual rendering
         this._container.appendChild(notification);
 
@@ -203,7 +205,7 @@ export class NotificationService extends Disposable implements INotificationServ
         container.appendChild(content);
     }
    
-    private __renderCloseButton(notification: HTMLElement): void {
+    private __renderCloseButton(notification: HTMLElement, type: NotificationTypes): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
 
@@ -212,6 +214,10 @@ export class NotificationService extends Disposable implements INotificationServ
             icon: Icons.Close,
             classes: ['notification-close-button']
         };
+
+        const close_type = this.__getIconClassByType(type);
+        closeButtonContainer.className = close_type;
+        console.log("closeButtonContainer class:", close_type);
 
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
@@ -235,13 +241,13 @@ export class NotificationService extends Disposable implements INotificationServ
     private __getIconClassByType(type: NotificationTypes): string {
         switch (type) {
             case NotificationTypes.Info:
-                return Icons.NotificationInfo;
+                return 'notification-info';
             case NotificationTypes.Warning:
-                return Icons.NotificationWarn;
+                return 'notification-warning';
             case NotificationTypes.Error:
-                return Icons.NotificationError;
+                return 'notification-error';
             default:
-                return Icons.NotificationInfo;
+                return 'notification-info';
         }
     }
 

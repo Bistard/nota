@@ -118,7 +118,7 @@
 }
 
 .notification-close-button {
-    z-index: 999;
+    z-index: 1000;
     position: absolute;
     top: 10px;
     right: 4px;
@@ -126,7 +126,7 @@
     line-height: 0.7;
     margin-left: 7px;
     margin-top: 0;
-    padding: 4px;
+    padding: 3px;
     color: rgb(147, 147, 147);
     cursor: pointer;
     &:hover {
@@ -136,22 +136,22 @@
         background-color: rgb(213, 255, 255);
     }
 
-    &.info:hover {
+    &.notification-info:hover {
         color: #2aa882;
         // box-shadow: 0 0 0 0.5px #2aa882;
         background-color: rgb(213, 255, 255);
     }
 
-    &.warning:hover {
+    &.notification-warning:hover {
         color: #F1AD00;
         // box-shadow: 0 0 0 0.5px #F1AD00;
-        background-color: rgb(255, 254, 244);
+        background-color: rgb(255, 251, 205);
     }
 
-    &.error:hover {
+    &.notification-error:hover {
         color: #DA3A34;
         // box-shadow: 0 0 0 0.5px #DA3A34;
-        background-color: rgb(255, 247, 247);
+        background-color: rgb(255, 216, 216);
     }
 }
 
