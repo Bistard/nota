@@ -8,8 +8,6 @@ import { IUnbufferedScheduler, UnbufferedScheduler } from 'src/base/common/utili
 import { isDefined } from 'src/base/common/utilities/type';
 import { Arrays } from 'src/base/common/utilities/array';
 import { Time } from 'src/base/common/date';
-import { getIconClass } from 'src/base/browser/icon/iconRegistry';
-import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -217,7 +215,6 @@ export class NotificationService extends Disposable implements INotificationServ
 
         const close_type = this.__getIconClassByType(type);
         closeButtonContainer.className = close_type;
-        console.log("closeButtonContainer class:", close_type);
 
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
@@ -232,12 +229,14 @@ export class NotificationService extends Disposable implements INotificationServ
         const iconElement = document.createElement('span');
         iconElement.className = 'notification-icon';
 
+        const icon_type = this.__getIconClassByType(type);
         const iconButtonOptions: IButtonOptions = {
-            id: 'notification-info',
-            icon: Icons.NotificationInfo,
-            classes: ['notification-icon']
+            id: type,
+            icon: icon_type, 
+            classes: [icon_type]
         };
         const iconButton = new Button(iconButtonOptions);
+        iconElement.className = icon_type;
         iconButton.render(iconElement);
 
         const iconClass = this.__getIconClassByType(type);
@@ -246,19 +245,19 @@ export class NotificationService extends Disposable implements INotificationServ
         return iconElement;
     }
 
-    private __getIconClassByType(type: NotificationTypes): string {
+    private __getIconClassByType(type: NotificationTypes): Icons {
         switch (type) {
             case NotificationTypes.Info:
-                return 'notification-info';
+                return Icons.NotificationInfo;
             case NotificationTypes.Warning:
-                return 'notification-warning';
+                return Icons.NotificationWarn;
             case NotificationTypes.Error:
-                return 'notification-error';
+                return Icons.NotificationError;
             default:
-                return 'notification-info';
+                return Icons.NotificationInfo;
         }
     }
-
+    
     private __closeNotification(notification: HTMLElement): void {
         notification.classList.add('fade-out');
         notification.style.opacity = '0';

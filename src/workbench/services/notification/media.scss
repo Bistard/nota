@@ -77,9 +77,20 @@
     size: 18px;
 }
 
+.notification-info {
+    color: #2aa882;
+}
+
+.notification-warn {
+    color: #F1AD00;
+}
+
+.notification-error {
+    color: #DA3A34;
+}
+
 .notification-message {
     flex: 1;
-    // font-weight: normal;
     font-size: 12.8px !important;
     margin-right: 8px;
     color: rgba(109, 109, 109, 0.95);
@@ -128,26 +139,22 @@
     cursor: pointer;
     &:hover {
         color: #2aa882;
-        // box-shadow: 0 0 0 0.5px #2aa882;  // Default shadow for error close button
         border-radius: 50%;
         background-color: rgb(213, 255, 255);
     }
 
     &.notification-info:hover {
         color: #2aa882;
-        // box-shadow: 0 0 0 0.5px #2aa882;
         background-color: rgb(213, 255, 255);
     }
 
     &.notification-warning:hover {
         color: #F1AD00;
-        // box-shadow: 0 0 0 0.5px #F1AD00;
         background-color: rgb(255, 251, 205);
     }
 
     &.notification-error:hover {
         color: #DA3A34;
-        // box-shadow: 0 0 0 0.5px #DA3A34;
         background-color: rgb(255, 216, 216);
     }
 }
