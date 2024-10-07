@@ -232,6 +232,14 @@ export class NotificationService extends Disposable implements INotificationServ
         const iconElement = document.createElement('span');
         iconElement.className = 'notification-icon';
 
+        const iconButtonOptions: IButtonOptions = {
+            id: 'notification-info',
+            icon: Icons.NotificationInfo,
+            classes: ['notification-icon']
+        };
+        const iconButton = new Button(iconButtonOptions);
+        iconButton.render(iconElement);
+
         const iconClass = this.__getIconClassByType(type);
         iconElement.classList.add(iconClass);
 

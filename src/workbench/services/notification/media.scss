@@ -65,16 +65,13 @@
 .notification-content {
     flex: 1;
     min-width: 0;
-    padding-left: 10px;  /* Adjust the padding to create spacing between icon and content */
     word-wrap: break-word;
 }
 
 .notification-icon-wrapper {
     width: 20px;
     height: 20px;
-    background-color: #DA3A34;
 }
-
 
 .notification-icon {
     size: 18px;
