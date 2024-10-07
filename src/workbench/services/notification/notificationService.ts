@@ -169,36 +169,40 @@ export class NotificationService extends Disposable implements INotificationServ
     private __renderContent(container: HTMLElement, opts: INotificationOptions): void {
         const content = document.createElement('div');
         content.className = 'notification-content';
-
+   
+        const iconWrapper = document.createElement('div');
+        iconWrapper.className = 'notification-icon-wrapper';
+        
         const iconButton = this.__createNotificationIcon(opts.type);
-        content.appendChild(iconButton);
-
+        iconWrapper.appendChild(iconButton);
+   
         const message = document.createElement('div');
         message.className = 'notification-message';
         message.textContent = opts.message;
+   
         content.appendChild(message);
-
+   
         if (isDefined(opts.subMessage)) {
             const subMessageActionsContainer = document.createElement('div');
             subMessageActionsContainer.className = 'submessage-actions-container';
-
+   
             const subMessage = document.createElement('span');
             subMessage.className = 'notification-submessage';
             subMessage.textContent = opts.subMessage;
             subMessageActionsContainer.appendChild(subMessage);
-
+   
             if (opts.actions && opts.actions.length) {
                 this.__renderCustomActionButtons(opts.actions, subMessageActionsContainer, true);
             }
-
+   
             content.appendChild(subMessageActionsContainer);
         } else if (opts.actions && opts.actions.length) {
             this.__renderCustomActionButtons(opts.actions, content, false);
         }
-
+        container.appendChild(iconWrapper);
         container.appendChild(content);
     }
-
+   
     private __renderCloseButton(notification: HTMLElement): void {
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = 'notification-close-container';
