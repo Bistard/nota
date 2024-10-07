@@ -1,6 +1,5 @@
 @use 'src/styles/settings/constants' as const;
 
-// TODO: add colors in themeDefaults and register vars in light/dark.color.register.ts
 .notification-container {
     z-index: 1;
     position: fixed;
@@ -23,19 +22,14 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    justify-content: flex-start;  /* Keep items aligned to the left */
-    max-width: 250px;  // Width for notifications
+    justify-content: flex-start;
+    max-width: 250px;
     transition: opacity 0.3s, transform 0.3s;
-    will-change: opacity, transform;  // Optimizes for animations
+    will-change: opacity, transform;
     overflow: hidden;
 
     &.info {
         border-left: 1.5px solid #2aa882;
-    }
-
-    &.fade-out {
-        opacity: 0;  // Fade out
-        transition: opacity 0.3s ease;
     }
 
     &.warning {
@@ -44,21 +38,6 @@
 
     &.error {
         border-left: 1.5px solid #DA3A34;
-    }
-
-    &.info:hover {
-        background-color: rgb(248, 255, 255);
-        box-shadow: 0 2px 4px rgba(42, 168, 130, 0.21);
-    }
-
-    &.warning:hover {
-        background-color: rgb(255, 254, 249);
-        box-shadow: 0 2px 4px rgba(241, 173, 0, 0.21);
-    }
-
-    &.error:hover {
-        background-color: rgb(255, 247, 247);
-        box-shadow: 0 2px 4px rgba(218, 58, 52, 0.21);
     }
 }
 
@@ -71,6 +50,7 @@
 .notification-icon-wrapper {
     width: 20px;
     height: 20px;
+    padding-top: 0.7px;
 }
 
 .notification-icon {
@@ -140,15 +120,15 @@
     &:hover {
         color: #2aa882;
         border-radius: 50%;
-        background-color: rgb(213, 255, 255);
+        background-color: #e9fff8;
     }
 
     &.notification-info:hover {
         color: #2aa882;
-        background-color: rgb(213, 255, 255);
+        background-color: #e9fff8;
     }
 
-    &.notification-warning:hover {
+    &.notification-warn:hover {
         color: #F1AD00;
         background-color: rgb(255, 251, 205);
     }
@@ -159,31 +139,54 @@
     }
 }
 
+/* Custom action buttons */
 .notification-custom-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
 }
 
+/* Styling for all action buttons */
 .custom-action-button {
     z-index: 999;
-    padding-bottom: 2px;
-    padding-top: 2px;
-    padding-right: 18.5px;
-    font-weight: 600;
-    line-height: 25px;
-    margin-top: 10px;
-    margin-left: 5px;
-    border-radius: 2px;
+    padding: 4px 7px 4px 7px;
+    font-weight: bold;
+    line-height: 16px;
+    margin-top: 8px;
+    margin-left: 2px;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, color 0.3s;
+
+    /* Apply hover style on all buttons including last-child */
     &:hover {
-        opacity: 0.8;
+        background-color: #e2e2e2;
+        color: white;
     }
+
+    /* Last child style */
     &:last-child {
-        margin-right: -6px !important;  // ensure it takes precedence
+        margin-right: 11px !important;
+        background-color: #e2e2e2;
+        // padding: 4px 7px;
     }
+}
+
+/* Hover styles based on notification type */
+.notification.info .custom-action-button:hover {
+    background-color: #2aa882;
+    color: white;
+}
+
+.notification.warning .custom-action-button:hover {
+    background-color: #F1AD00;
+    color: white;
+}
+
+.notification.error .custom-action-button:hover {
+    background-color: #DA3A34;
+    color: white;
 }
 
 @media only screen and (max-width: 670px) {
