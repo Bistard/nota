@@ -8,7 +8,7 @@
     right: 15px;
     display: flex;
     flex-direction: column;
-    gap: 10px; // Spacing between notifications
+    gap: 6px; // Spacing between notifications
     width: 300px;
 }
 
@@ -19,11 +19,10 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.21);
     border-radius: 0px;
     border-width: 0;
-    padding: 16px;
-    margin-bottom: 5px;
+    padding: 12px 12px 6px 12px;
     display: flex;
-    flex-direction: row;  /* Change flex-direction to row for horizontal alignment */
-    align-items: center;  /* Align items vertically centered */
+    flex-direction: row;
+    align-items: flex-start;
     justify-content: flex-start;  /* Keep items aligned to the left */
     max-width: 250px;  // Width for notifications
     transition: opacity 0.3s, transform 0.3s;
@@ -71,13 +70,11 @@
 }
 
 .notification-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     width: 20px;
     height: 20px;
     background-color: #DA3A34;
 }
+
 
 .notification-icon {
     size: 18px;
@@ -85,7 +82,8 @@
 
 .notification-message {
     flex: 1;
-    font-weight: normal;
+    // font-weight: normal;
+    font-size: 12.8px !important;
     margin-right: 8px;
     color: rgba(109, 109, 109, 0.95);
 }
@@ -94,7 +92,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 2px;
     padding-left: 0.5px;
     gap: 5px;
 }
@@ -123,8 +120,8 @@
 .notification-close-button {
     z-index: 999;
     position: absolute;
-    top: 14px;
-    right: 6px;
+    top: 10px;
+    right: 4px;
     font-size: 1.5em;
     line-height: 0.7;
     margin-left: 7px;
@@ -133,23 +130,27 @@
     color: rgb(147, 147, 147);
     cursor: pointer;
     &:hover {
-        box-shadow: 0 0 0 0.5px #2aa882;  // Default shadow for error close button
-        border-radius: 1.5px;
-        background-color: rgb(248, 255, 255);
+        color: #2aa882;
+        // box-shadow: 0 0 0 0.5px #2aa882;  // Default shadow for error close button
+        border-radius: 50%;
+        background-color: rgb(213, 255, 255);
     }
 
     &.info:hover {
-        box-shadow: 0 0 0 0.5px #2aa882;
-        background-color: rgb(248, 255, 255);
+        color: #2aa882;
+        // box-shadow: 0 0 0 0.5px #2aa882;
+        background-color: rgb(213, 255, 255);
     }
 
     &.warning:hover {
-        box-shadow: 0 0 0 0.5px #F1AD00;
+        color: #F1AD00;
+        // box-shadow: 0 0 0 0.5px #F1AD00;
         background-color: rgb(255, 254, 244);
     }
 
     &.error:hover {
-        box-shadow: 0 0 0 0.5px #DA3A34;
+        color: #DA3A34;
+        // box-shadow: 0 0 0 0.5px #DA3A34;
         background-color: rgb(255, 247, 247);
     }
 }
