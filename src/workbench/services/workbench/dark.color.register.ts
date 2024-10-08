@@ -72,5 +72,18 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-primary-text', THEME_COLORS.ternary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-select-text', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-overflow-hover-box-background', THEME_COLORS.white);
+
+        // Notification
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-background', THEME_COLORS.white);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-primary-text', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-secondery-text', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-on-dark-text', THEME_COLORS.white);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-info-primary', THEME_COLORS.teal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-warning-primary', THEME_COLORS.goldenrod);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-error-primary', THEME_COLORS.crimson);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-info-hover', THEME_COLORS.lighterTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-warning-hover', THEME_COLORS.lightgoldenrod);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-error-hover', THEME_COLORS.lightcrimson);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-custom-action-button-last', THEME_COLORS.lightstroke);
     },
 );

@@ -64,5 +64,18 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('outline-primary-text');
         registrant.registerTemplate('outline-select-text');
         registrant.registerTemplate('outline-overflow-hover-box-background');
+
+        // Notification
+        registrant.registerTemplate('notification-background');
+        registrant.registerTemplate('notification-primary-text');
+        registrant.registerTemplate('notification-secondery-text');
+        registrant.registerTemplate('notification-on-dark-text');
+        registrant.registerTemplate('notification-info-primary');
+        registrant.registerTemplate('notification-warning-primary');
+        registrant.registerTemplate('notification-error-primary');
+        registrant.registerTemplate('notification-info-hover');
+        registrant.registerTemplate('notification-warning-hover');
+        registrant.registerTemplate('notification-error-hover');
+        registrant.registerTemplate('notification-custom-action-button-last');
     },
 );

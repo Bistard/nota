@@ -14,8 +14,8 @@
 .notification {
     z-index: 2;
     position: relative;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.21);
+    background-color: var(--nota-notification-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     border-radius: 0px;
     border-width: 0;
     padding: 12px 12px 6px 12px;
@@ -28,15 +28,15 @@
     overflow: hidden;
 
     &.info {
-        border-left: 1.5px solid #2aa882;
+        border-left: 1.5px solid var(--nota-notification-info-primary);
     }
 
     &.warning {
-        border-left: 1.5px solid #F1AD00;
+        border-left: 1.5px solid var(--nota-notification-warning-primary);
     }
 
     &.error {
-        border-left: 1.5px solid #DA3A34;
+        border-left: 1.5px solid var(--nota-notification-error-primary);
     }
 }
 
@@ -57,22 +57,22 @@
 }
 
 .notification-info {
-    color: #2aa882;
+    color: var(--nota-notification-info-primary);
 }
 
 .notification-warn {
-    color: #F1AD00;
+    color: var(--nota-notification-warning-primary);
 }
 
 .notification-error {
-    color: #DA3A34;
+    color: var(--nota-notification-error-primary);
 }
 
 .notification-message {
     flex: 1;
     font-size: 12.8px !important;
     margin-right: 8px;
-    color: rgba(109, 109, 109, 0.95);
+    color: var(--nota-notification-primary-text);
 }
 
 .submessage-actions-container {
@@ -84,8 +84,8 @@
 }
 
 .notification-submessage {
-    font-size: 0.76em;
-    color: rgba(121, 121, 121, 0.9);
+    font-size: 0.78em;
+    color: var(--nota-notification-secondery-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -114,27 +114,22 @@
     margin-left: 7px;
     margin-top: 0;
     padding: 3px;
-    color: rgb(147, 147, 147);
+    color: var(--nota-notification-secondery-text);
     cursor: pointer;
-    &:hover {
-        color: #2aa882;
+    &:hover { // for default & `info`
         border-radius: 50%;
-        background-color: #e9fff8;
-    }
-
-    &.notification-info:hover {
-        color: #2aa882;
-        background-color: #e9fff8;
+        color: var(--nota-notification-info-primary); 
+        background-color: var(--nota-notification-info-hover);
     }
 
     &.notification-warn:hover {
-        color: #F1AD00;
-        background-color: rgb(255, 251, 205);
+        color: var(--nota-notification-warning-primary);
+        background-color: var(--nota-notification-warning-hover); 
     }
 
     &.notification-error:hover {
-        color: #DA3A34;
-        background-color: rgb(255, 216, 216);
+        color: var(--nota-notification-error-primary);
+        background-color: var(--nota-notification-error-hover); 
     }
 }
 
@@ -160,28 +155,28 @@
 
     /* Apply hover style on all buttons including last-child */
     &:hover {
-        background-color: #e2e2e2;
-        color: white;
+        background-color: var(--nota-notification-info-primary);
+        color: var(--nota-notification-on-dark-text);
     }
 
     /* Last child style */
     &:last-child {
         margin-right: 11px !important;
-        background-color: #f5f5f5;
+        background-color: var(--nota-notification-custom-action-button-last);
     }
 }
 
 /* Hover styles based on notification type */
 .notification.info .custom-action-button:hover {
-    background-color: #2aa882;
+    background-color: var(--nota-notification-info-primary);
 }
 
 .notification.warning .custom-action-button:hover {
-    background-color: #F1AD00;
+    background-color:  var(--nota-notification-warning-primary);
 }
 
 .notification.error .custom-action-button:hover {
-    background-color: #DA3A34;
+    background-color:  var(--nota-notification-error-primary);
 }
 
 @media only screen and (max-width: 670px) {
