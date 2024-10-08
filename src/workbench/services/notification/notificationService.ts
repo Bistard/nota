@@ -2,6 +2,7 @@ import 'src/workbench/services/notification/notification.scss';
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { NotificationInstance } from 'src/workbench/services/notification/notificationInstance';
+import { Arrays } from 'src/base/common/utilities/array';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -48,11 +49,14 @@ export class NotificationService extends Disposable implements INotificationServ
 
     private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
+    private readonly _notifications: NotificationInstance[];
 
     // [constructor]
+
     constructor(parent: HTMLElement = document.body) {
         super();
         this._parent = parent;
+        this._notifications = [];
 
         const element = document.createElement('div');
         this._container = element;
@@ -75,15 +79,15 @@ export class NotificationService extends Disposable implements INotificationServ
     }
 
     public notify(opts: INotificationOptions): void {
-        const notificationBox = new NotificationInstance(opts);
-        const notificationElement = notificationBox.render();
+        const instance = new NotificationInstance(opts);
+        this._notifications.push(instance);
 
-        this._container.appendChild(notificationElement);
+        const element = instance.render();
+        this._container.appendChild(element);
 
-        if (opts.type === NotificationTypes.Info) {
-            notificationBox.startAutoCloseScheduler();
-        }
+        const listener = instance.onClose(() => {
+            Arrays.remove(this._notifications, instance);
+            listener.dispose();
+        });
     }
-
-    // [private methods]]
 }

@@ -5,21 +5,35 @@ import { Icons } from 'src/base/browser/icon/icons';
 import { isDefined } from 'src/base/common/utilities/type';
 import { IUnbufferedScheduler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { Time } from 'src/base/common/date';
+import { EventType, addDisposableListener } from 'src/base/browser/basic/dom';
+import { Emitter } from 'src/base/common/event';
 
 /**
  * @class Handles rendering related operations for a notification element.
  */
 export class NotificationInstance extends Disposable implements IDisposable {
 
+    // [event]
+
+    private readonly _onClose = this.__register(new Emitter<void>());
+    public readonly onClose = this._onClose.registerListener;
+
     // [fields]
 
     public readonly element: HTMLElement;
-    private scheduler?: IUnbufferedScheduler<void>;
+    public readonly type: NotificationTypes;
+    public readonly message: string;
+    public readonly subMessage?: string;
+    
+    private _scheduler?: IUnbufferedScheduler<void>;
 
     // [constructor]
 
-    constructor(private opts: INotificationOptions, scheduler?: IUnbufferedScheduler<void>) {
+    constructor(private opts: INotificationOptions) {
         super();
+        this.type = opts.type;
+        this.message = opts.message;
+        this.subMessage = opts.subMessage;
         this.element = document.createElement('div');
         this.element.className = `notification ${opts.type}`;
     }
@@ -30,21 +44,29 @@ export class NotificationInstance extends Disposable implements IDisposable {
         this.__renderContent();
         this.__renderCloseButton();
         this.__setupHoverEvents();
+
+        if (this.type === NotificationTypes.Info) {
+            this.__startAutoCloseScheduler();
+        }
+
         return this.element;
     }
 
-    // Public method to start scheduler
-    public startAutoCloseScheduler(): void {
-        this.scheduler = new UnbufferedScheduler<void>(
-            Time.sec(10),
-            async () => {
-                this.__closeNotification();
-            }
-        );
-        this.scheduler?.schedule();
+    public override dispose(): void {
+        super.dispose();
+        this.element.remove();
+        this._scheduler?.dispose();
     }
 
     // [private methods]
+
+    private __startAutoCloseScheduler(): void {
+        this._scheduler = new UnbufferedScheduler<void>(
+            Time.sec(10),
+            () => this.__closeNotification(true)
+        );
+        this._scheduler.schedule();
+    }
 
     private __renderContent(): void {
         const content = document.createElement('div');
@@ -126,9 +148,9 @@ export class NotificationInstance extends Disposable implements IDisposable {
 
         const closeButton = new Button(closeButtonOptions);
         this.__register(closeButton.onDidClick(() => {
-            this.__closeNotification();
-            this.element.remove();
+            this.__closeNotification(false);
         }));
+
         const close_type = this.__getIconClassByType(this.opts.type);
         closeButtonContainer.className = close_type;
         closeButton.render(closeButtonContainer);
@@ -166,30 +188,29 @@ export class NotificationInstance extends Disposable implements IDisposable {
         }
     }
 
-    private __closeNotification(): void {
+    private __closeNotification(fadeOut: boolean): void {
+        if (!fadeOut) {
+            this.dispose();
+            return;
+        }
+        
         this.element.classList.add('fade-out');
         this.element.style.opacity = '0';
         this.element.style.transition = 'opacity 0.5s';
 
-        this.element.addEventListener('transitionend', () => {
-            if (this.element.parentNode) {
-                this.element.remove();
-            }
-        });
-        this.scheduler?.dispose();
+        this.__register(addDisposableListener(this.element, EventType.transitionend, () => {
+            this._onClose.fire();
+            this.dispose();
+        }));
     }
 
     private __setupHoverEvents(): void {
-        this.element.addEventListener('mouseenter', () => {
-            if (this.scheduler) {
-                this.scheduler.cancel();
-            }
-        });
+        this.__register(addDisposableListener(this.element, EventType.mouseenter, () => {
+            this._scheduler?.cancel();
+        }));
 
-        this.element.addEventListener('mouseleave', () => {
-            if (this.scheduler) {
-                this.scheduler.schedule();
-            }
-        });
+        this.__register(addDisposableListener(this.element, EventType.mouseleave, () => {
+            this._scheduler?.schedule();
+        }));
     }
 }
