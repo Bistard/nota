@@ -1,4 +1,4 @@
-import 'src/workbench/services/notification/media.scss';
+import 'src/workbench/services/notification/notification.scss';
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
