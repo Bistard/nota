@@ -1,3 +1,4 @@
+import 'src/editor/view/media/editor/editorBase.scss';
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
@@ -21,6 +22,8 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
         context: ViewContext,
         extensions: EditorExtensionInfo[],
     ) {
+        container.classList.add('editor-base');
+
         // binding the view part of the extension to the proseMirror
         const schema = context.viewModel.getSchema();
 

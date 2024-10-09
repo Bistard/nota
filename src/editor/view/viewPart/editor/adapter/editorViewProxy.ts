@@ -5,6 +5,16 @@ import { fillMapFromArray } from "src/base/common/structures/map";
 
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
+    /**
+     * Returns a reference to the prosemirror view.
+     */
+    readonly internalView: ProseEditorView;
+
+    /**
+     * @description Renders the editor based on the given prosemirror document 
+     * node.
+     * @param document The prosemirror root document node.
+     */
     render(document: ProseNode): void;
 
     /**
@@ -33,23 +43,25 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
      * @description If the window is destroyed. 
      */
     isDestroyed(): boolean;
+
+    getDomNodeAt(position: number): Node | null;
 }
 
 export class EditorViewProxy extends ProseEventBroadcaster implements IEditorViewProxy {
 
     // [fields]
 
-    private readonly _ctx: ViewContext;
+    protected readonly _ctx: ViewContext;
     
     /**
      * The ProseMirror view reference.
      */
-    private readonly _view: ProseEditorView;
+    protected readonly _view: ProseEditorView;
 
     /**
      * Mapping from ID to view extensions.
      */
-    private readonly _extensionMap: Map<string, ProseExtension>;
+    protected readonly _extensionMap: Map<string, ProseExtension>;
 
     // [constructor]
 
@@ -67,6 +79,12 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             const { id, extension } = extensionInfo;
             return [id, extension];
         });
+    }
+
+    // [getter]
+
+    get internalView(): ProseEditorView {
+        return this._view;
     }
 
     // [public DOM related methods]
