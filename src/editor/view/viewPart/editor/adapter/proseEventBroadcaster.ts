@@ -38,6 +38,15 @@ export interface IOnDidTripleClickEvent extends IOnDidClickEventBase {}
 export interface IOnKeydownEvent {
     readonly view: ProseEditorView;
     readonly event: IStandardKeyboardEvent;
+
+    /**
+     * Whenever a command is executed by any listeners, we need to invoke 
+     * `markAsExecuted` to tell prosemirror to prevent default behavior of the 
+     * browser.
+     * 
+     * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
+     */
+    markAsExecuted: () => void;
 }
 
 export interface IOnKeypressEvent {
@@ -308,10 +317,15 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         
         // on key down
         property.handleKeyDown = (view, event) => {
+            let anyExecuted = false;
+            
             this._onKeydown.fire({
                 view: view,
                 event: createStandardKeyboardEvent(event),
+                markAsExecuted: () => { anyExecuted = true; },
             });
+
+            return anyExecuted;
         };
         
         // on key press

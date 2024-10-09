@@ -1,4 +1,5 @@
-import { KeyCode, Shortcut } from "src/base/common/keyboard";
+import { trySafe } from "src/base/common/error";
+import { Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 import { EditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command } from "src/platform/command/common/command";
@@ -48,17 +49,22 @@ export class EditorCommandExtension extends EditorExtension {
             }
 
             /**
-             * It seems like browser default behaviors will cause some bugs in
-             * our codebase. By the moment I write this comment, the following 
-             * bug is fixed by `keyEvent.preventDefault()`:
-             *      1. Ctrl+A does not select the entire document, while a "HTML"
-             *         type of node is located at the last of the document.
+             * Whenever a command is executed, we need to invoke `markAsExecuted`
+             * to tell prosemirror to prevent default behavior of the browser.
+             * 
+             * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
              */
-            if (commandID === EditorCommands.Composite.ID.SelectAll) {
-                keyEvent.preventDefault();
-            }
-
-            commandService.executeAnyCommand(commandID, event.view.state, event.view.dispatch, event.view);
+            trySafe(
+                () => commandService.executeCommand<boolean | Promise<boolean>>(commandID, event.view.state, event.view.dispatch, event.view),
+                {
+                    onError: () => false,
+                    onThen: (anyExecuted) => {
+                        if (anyExecuted) {
+                            event.markAsExecuted();
+                        }
+                    }
+                }
+            );
         }));
     }
 
