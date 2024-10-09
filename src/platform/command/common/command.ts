@@ -163,6 +163,9 @@ export abstract class Command<ID extends string = string> implements ICommand {
  * @class Combine a list of {@link Command} into one single {@link Command}. The
  * commands are executed in the provided sequence. Any one of the command returns
  * a true will stop the execution.
+ * 
+ * @note This only works with all synchronous commands. Including any 
+ *       asynchronous commands might cause weird behaviors.
  */
 export class ChainCommand<ID extends string = string> extends Command<ID> {
 
@@ -173,7 +176,7 @@ export class ChainCommand<ID extends string = string> extends Command<ID> {
         this._commands = commands;
     }
 
-    public async run(provider: IServiceProvider, ...args: any[]): Promise<boolean> {
+    public run(provider: IServiceProvider, ...args: any[]): boolean {
         const contextService = provider.getOrCreateService(IContextService);
 
         for (const cmd of this._commands) {
@@ -181,7 +184,7 @@ export class ChainCommand<ID extends string = string> extends Command<ID> {
                 continue;
             }
 
-            const success = await cmd.run(provider, ...args);
+            const success = cmd.run(provider, ...args);
             if (success) {
                 return true;
             }
