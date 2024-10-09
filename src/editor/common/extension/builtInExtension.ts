@@ -7,6 +7,6 @@ import { EditorCommandExtension } from "src/editor/view/contrib/commandExtension
  */
 export function getBuiltInExtension(): { id: string, ctor: Constructor<EditorExtension> }[] {
     return [
-        { id: 'command-extension', ctor: EditorCommandExtension },
+        { id: 'editor-command-extension', ctor: EditorCommandExtension },
     ];
 }

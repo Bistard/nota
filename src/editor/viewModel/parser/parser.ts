@@ -35,7 +35,7 @@ export interface IDocumentParser {
      * @param ignore When the value is given, the parser will force to either 
      *               ignore or NOT ignore the token by the given boolean. If not 
      *               given, the parser to toggle the value of the current 
-     *               ignoreness.
+     *               ignobleness.
      */
     ignoreToken(type: TokenEnum | MarkEnum | string, ignore?: boolean): void;
 
@@ -125,7 +125,7 @@ interface IParsingNodeState {
 /**
  * Interface only for {@link DocumentParseState}.
  * 
- * The {@link IDocumentNode} has full accessbility to control the parsing flow.
+ * The {@link IDocumentNode} has full accessability to control the parsing flow.
  * The state provides a series of methods for different tokens so that they can 
  * decide how to parse themselves correctly.
  * 
@@ -174,7 +174,7 @@ export interface IDocumentParseState {
     activateMark(mark: ProseMark): void;
 
     /**
-     * @description Deactives the given mark. Stop automatically adding this
+     * @description Deactivates the given mark. Stop automatically adding this
      * mark to the newly activated document nodes.
      * @param mark 
      */
@@ -252,7 +252,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
                 continue;
             }
 
-            // Finds the corresponding Node which defines the parsing behaviour.
+            // Finds the corresponding Node which defines the parsing behavior.
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
                 this._onLog.fire({
