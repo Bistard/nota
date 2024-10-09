@@ -2,6 +2,7 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Result, err, ok } from "src/base/common/result";
 import { mixin } from "src/base/common/utilities/object";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
+import { isPromise } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -198,6 +199,57 @@ export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: an
     } finally {
         onFinally?.();
     }
+}
+
+/**
+ * @description Safely executes a function that may either be synchronous or 
+ * asynchronous. 
+ * @param fn The function to be executed. It can be a synchronous or 
+ *           asynchronous function.
+ * @param onThen The follow-up function to call after fn invokes.
+ * @param onError The error handler function to call when an error occurs.
+ * @param onFinally Optional. The function to call after everything happens.
+ */
+export function trySafe<T>(
+    fn: () => T | Promise<T>, 
+    opts: {
+        onThen?: () => void,
+        onError: (err: any) => T, 
+        onFinally?: () => void
+    }
+): T | Promise<T> {
+    const { onThen, onError, onFinally } = opts;
+
+    try {
+        const result = fn();
+
+        // 'fn' is sync, just return
+        if (isPromise(result) === false) {
+            try {
+                onThen?.();
+            } finally {
+                onFinally?.();
+            }
+            return result;
+        }
+
+        // 'fn' is async, return a Promise
+        return result
+            .then(ret => {
+                onThen?.();
+                return ret;
+            })
+            .catch(err => onError(err))
+            .finally(() => onFinally?.());
+    } 
+    // sync error happens
+    catch (err) {
+        try {
+            return onError(err);
+        } finally {
+            onFinally?.();
+        }
+    } 
 }
 
 /**
