@@ -206,14 +206,14 @@ export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: an
  * asynchronous. 
  * @param fn The function to be executed. It can be a synchronous or 
  *           asynchronous function.
- * @param onThen The follow-up function to call after fn invokes.
+ * @param onThen Optional. The follow-up function to call after fn invokes.
  * @param onError The error handler function to call when an error occurs.
  * @param onFinally Optional. The function to call after everything happens.
  */
 export function trySafe<T>(
     fn: () => T | Promise<T>, 
     opts: {
-        onThen?: () => void,
+        onThen?: (value: T) => void,
         onError: (err: any) => T, 
         onFinally?: () => void
     }
@@ -226,7 +226,7 @@ export function trySafe<T>(
         // 'fn' is sync, just return
         if (isPromise(result) === false) {
             try {
-                onThen?.();
+                onThen?.(result);
             } finally {
                 onFinally?.();
             }
@@ -236,7 +236,7 @@ export function trySafe<T>(
         // 'fn' is async, return a Promise
         return result
             .then(ret => {
-                onThen?.();
+                onThen?.(ret);
                 return ret;
             })
             .catch(err => onError(err))
