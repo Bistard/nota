@@ -1,4 +1,4 @@
-import { Shortcut } from "src/base/common/keyboard";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 import { EditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command } from "src/platform/command/common/command";
@@ -46,6 +46,18 @@ export class EditorCommandExtension extends EditorExtension {
             if (!commandID) {
                 return;
             }
+
+            /**
+             * It seems like browser default behaviors will cause some bugs in
+             * our codebase. By the moment I write this comment, the following 
+             * bug is fixed by `keyEvent.preventDefault()`:
+             *      1. Ctrl+A does not select the entire document, while a "HTML"
+             *         type of node is located at the last of the document.
+             */
+            if (commandID === EditorCommands.Composite.ID.SelectAll) {
+                keyEvent.preventDefault();
+            }
+
             commandService.executeAnyCommand(commandID, event.view.state, event.view.dispatch, event.view);
         }));
     }
@@ -56,6 +68,7 @@ export class EditorCommandExtension extends EditorExtension {
         this.__bindCommand(EditorCommands.Composite.Enter, ['Enter']);
         this.__bindCommand(EditorCommands.Composite.Backspace, ['Backspace']);
         this.__bindCommand(EditorCommands.Composite.Delete, ['Delete']);
+        this.__bindCommand(EditorCommands.Composite.SelectAll, ['Meta+A', 'Ctrl+A']);
     }
 
     private __bindCommand(command: Command, shortcuts: string[]): void {
