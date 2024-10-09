@@ -37,6 +37,16 @@ export namespace EditorCommands {
      */
     export namespace Basic {
 
+        export class SelectAll extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+                const allSelect = new ProseAllSelection(state.doc);
+                const tr = state.tr.setSelection(allSelect);
+                dispatch?.(tr);
+                return true;
+            }
+        }
+
         /**
          * @description Inserts a newline character in a code block at the current 
          * selection in the editor, but only under specific selection conditions.
@@ -46,7 +56,7 @@ export namespace EditorCommands {
          * If the selection meets this criteria, the function replaces the selection 
          * with a newline character.
          */
-        export class insertNewLineInCodeBlock extends EditorCommandBase {
+        export class InsertNewLineInCodeBlock extends EditorCommandBase {
     
             public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
                 const { $head, $anchor } = state.selection;
@@ -472,6 +482,7 @@ export namespace EditorCommands {
             Enter = 'editor-enter',
             Backspace = 'editor-backspace',
             Delete = 'editor-delete',
+            SelectAll = 'editor-select-all',
         }
         
         export const Enter = __buildCompositeCommand<ID.Enter>(
@@ -480,7 +491,7 @@ export namespace EditorCommands {
                 when: null,
             }, 
             [
-                Basic.insertNewLineInCodeBlock,
+                Basic.InsertNewLineInCodeBlock,
                 Basic.InsertEmptyParagraphAdjacentToBlock,
                 Basic.LiftEmptyTextBlock,
                 Basic.SplitBlockAtSelection,
@@ -508,6 +519,16 @@ export namespace EditorCommands {
                 Basic.DeleteSelection,
                 Basic.joinForward,
                 Basic.SelectNodeForward,
+            ]
+        );
+
+        export const SelectAll = __buildCompositeCommand<ID.SelectAll>(
+            {
+                id: ID.SelectAll,
+                when: null,
+            },
+            [
+                Basic.SelectAll,
             ]
         );
     }
