@@ -13,10 +13,11 @@ export const rendererLightThemeColorRegister = createRegister(
         });
 
         // general
+        registrant.registerColor(PresetColorTheme.LightModern, 'primary-text', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.LightModern, 'global-body-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.LightModern, 'global-body-foreground', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.LightModern, 'selection-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.LightModern, 'primary-text', THEME_COLORS.primary);
+        registrant.registerColor(PresetColorTheme.LightModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-background', THEME_COLORS.sidebg);
@@ -84,6 +85,5 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-info-hover', THEME_COLORS.lighterTeal);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-warning-hover', THEME_COLORS.lightgoldenrod);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-error-hover', THEME_COLORS.lightcrimson);
-        registrant.registerColor(PresetColorTheme.LightModern, 'notification-action-button-last', THEME_COLORS.lightstroke);
     },
 );

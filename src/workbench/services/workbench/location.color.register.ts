@@ -6,10 +6,11 @@ export const rendererThemeLocationRegister = createRegister(
     (registrant) => {
         
         // general
+        registrant.registerTemplate('primary-text');
         registrant.registerTemplate('global-body-background');
         registrant.registerTemplate('global-body-foreground');
         registrant.registerTemplate('selection-background');
-        registrant.registerTemplate('primary-text');
+        registrant.registerTemplate('button-background');
 
         // utility
         registrant.registerTemplate('search-bar-background');
@@ -76,6 +77,5 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('notification-info-hover');
         registrant.registerTemplate('notification-warning-hover');
         registrant.registerTemplate('notification-error-hover');
-        registrant.registerTemplate('notification-action-button-last');
     },
 );
