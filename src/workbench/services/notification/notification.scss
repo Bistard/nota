@@ -64,6 +64,13 @@
         flex: 1;
         min-width: 0;
         word-wrap: break-word;
+
+        & > .notification-message {
+            flex: 1;
+            font-size: 12px !important;
+            margin-right: 8px;
+            color: var(--nota-notification-primary-text);
+        }
     }
 
     // close button (x)
@@ -96,10 +103,6 @@
     }
 }
 
-.notification-icon {
-    size: 18px;
-}
-
 .notification-info {
     color: var(--nota-notification-info-primary);
 }
@@ -110,13 +113,6 @@
 
 .notification-error {
     color: var(--nota-notification-error-primary);
-}
-
-.notification-message {
-    flex: 1;
-    font-size: 12.8px !important;
-    margin-right: 8px;
-    color: var(--nota-notification-primary-text);
 }
 
 .submessage-actions-container {
@@ -152,15 +148,17 @@
 }
 
 /* Styling for all action buttons */
-.custom-action-button {
-    z-index: 999;
+.action-button {
     padding: 4px 7px 4px 7px;
+    
     font-weight: bold;
+    cursor: pointer;
+
     line-height: 16px;
     margin-top: 8px;
     margin-left: 2px;
     border-radius: 5px;
-    cursor: pointer;
+    
     transition: background-color 0.3s, color 0.3s;
 
     /* Apply hover style on all buttons including last-child */
@@ -172,20 +170,20 @@
     /* Last child style */
     &:last-child {
         margin-right: 11px !important;
-        background-color: var(--nota-notification-custom-action-button-last);
+        background-color: var(--nota-notification-action-button-last);
     }
 }
 
 /* Hover styles based on notification type */
-.notification.info .custom-action-button:hover {
+.notification.info .action-button:hover {
     background-color: var(--nota-notification-info-primary);
 }
 
-.notification.warning .custom-action-button:hover {
+.notification.warning .action-button:hover {
     background-color:  var(--nota-notification-warning-primary);
 }
 
-.notification.error .custom-action-button:hover {
+.notification.error .action-button:hover {
     background-color:  var(--nota-notification-error-primary);
 }
 

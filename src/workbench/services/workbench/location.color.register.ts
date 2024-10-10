@@ -76,6 +76,6 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('notification-info-hover');
         registrant.registerTemplate('notification-warning-hover');
         registrant.registerTemplate('notification-error-hover');
-        registrant.registerTemplate('notification-custom-action-button-last');
+        registrant.registerTemplate('notification-action-button-last');
     },
 );

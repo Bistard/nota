@@ -84,6 +84,6 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-info-hover', THEME_COLORS.lighterTeal);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-warning-hover', THEME_COLORS.lightgoldenrod);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-error-hover', THEME_COLORS.lightcrimson);
-        registrant.registerColor(PresetColorTheme.LightModern, 'notification-custom-action-button-last', THEME_COLORS.lightstroke);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-action-button-last', THEME_COLORS.lightstroke);
     },
 );

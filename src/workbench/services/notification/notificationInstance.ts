@@ -105,17 +105,19 @@ export class NotificationInstance extends Disposable implements INotificationIns
             subMessageActionsContainer.appendChild(subMessage);
 
             if (this.opts.actions && this.opts.actions.length) {
-                this.__renderCustomActionButtons(this.opts.actions, subMessageActionsContainer, true);
+                this.__renderActionButtons(this.opts.actions, subMessageActionsContainer, true);
             }
             content.appendChild(subMessageActionsContainer);
-        } else if (this.opts.actions && this.opts.actions.length) {
-            this.__renderCustomActionButtons(this.opts.actions, content, false);
+        } 
+        else if (this.opts.actions && this.opts.actions.length) {
+            this.__renderActionButtons(this.opts.actions, content, false);
         }
+        
         this.element.appendChild(iconWrapper);
         this.element.appendChild(content);
     }
 
-    private __renderCustomActionButtons(actions: INotificationAction[], container: HTMLElement, hasSubMessage: boolean): void {
+    private __renderActionButtons(actions: INotificationAction[], container: HTMLElement, hasSubMessage: boolean): void {
         if (!actions || actions.length === 0) {
             return;
         }
@@ -133,7 +135,7 @@ export class NotificationInstance extends Disposable implements INotificationIns
                 label: action.label,
                 buttonBackground: action.notificationBackground,
                 buttonForeground: action.notificationForeground,
-                classes: ['custom-action-button'],
+                classes: ['action-button'],
             };
             const actionButton = new Button(buttonOptions);
             this.__register(actionButton.onDidClick(() => action.run()));
