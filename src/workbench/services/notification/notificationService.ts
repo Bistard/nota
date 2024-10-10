@@ -3,6 +3,8 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { NotificationInstance } from 'src/workbench/services/notification/notificationInstance';
 import { Arrays } from 'src/base/common/utilities/array';
+import { errorToMessage } from 'src/base/common/utilities/panic';
+import { Event } from 'src/base/common/event';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -16,9 +18,9 @@ export const enum NotificationTypes {
  * An interface only for {@link NotificationService}.
  */
 export interface INotificationService extends IDisposable, IService {
-    error(error: string | Error): void;
-    confirm(message: string, subMessage: string): Promise<boolean>;
     notify(options: INotificationOptions): void;
+    confirm(message: string, subMessage: string): Promise<boolean>;
+    error(error: string | Error): void;
 }
 
 export interface INotificationOptions {
@@ -58,17 +60,20 @@ export class NotificationService extends Disposable implements INotificationServ
         this._parent = parent;
         this._notifications = [];
 
-        const element = document.createElement('div');
-        this._container = element;
-        element.className = 'notification-container';
-        this._parent.appendChild(element);
+        this._container = document.createElement('div');
+        this._container.className = 'notification-container';
+        this._parent.appendChild(this._container);
     }
 
     // [public methods]
 
     public error(error: string | Error): void {
-        // Implement error logic here
-        console.error(error);
+        this.notify({
+            type: NotificationTypes.Error,
+            message: errorToMessage(error),
+            subMessage: undefined, // REVIEW
+            actions: undefined, // review
+        });
     }
 
     public confirm(message: string, subMessage: string): Promise<boolean> {
@@ -85,9 +90,8 @@ export class NotificationService extends Disposable implements INotificationServ
         const element = instance.render();
         this._container.appendChild(element);
 
-        const listener = instance.onClose(() => {
+        Event.once(instance.onClose)(() => {
             Arrays.remove(this._notifications, instance);
-            listener.dispose();
         });
     }
 }

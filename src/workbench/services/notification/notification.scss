@@ -1,55 +1,99 @@
 @use 'src/styles/settings/constants' as const;
 
+@media only screen and (max-width: 670px) {
+    .notification-container {
+        display: none;
+    }
+}
+
+// The container of all the notifications, always stay as fixed.
 .notification-container {
-    z-index: 1;
+    
+    // notification is overlay, it should have high z-index.
+    z-index: const.$z-index-medium;
+
     position: fixed;
     bottom: 20px;
     right: 15px;
+
     display: flex;
     flex-direction: column;
-    gap: 6px; // Spacing between notifications
+
     width: 330px;
-}
+    gap: 6px; // Spacing between notifications
 
-.notification {
-    z-index: 2;
-    position: relative;
-    background-color: var(--nota-notification-background);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-radius: 0px;
-    border-width: 0;
-    padding: 12px 12px 6px 12px;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-start;
-    transition: opacity 0.3s, transform 0.3s;
-    will-change: opacity, transform;
-    overflow: hidden;
+    // notification instance
+    & > .notification {
+        position: relative;
+        background-color: var(--nota-notification-background);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border-radius: 0px;
+        border-width: 0;
+        padding: 12px 12px 6px 12px;
+        
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: flex-start;
+        
+        transition: opacity 0.3s, transform 0.3s;
+        overflow: hidden;
+    
+        &.info {
+            border-left: 1.5px solid var(--nota-notification-info-primary);
+        }
+    
+        &.warning {
+            border-left: 1.5px solid var(--nota-notification-warning-primary);
+        }
+    
+        &.error {
+            border-left: 1.5px solid var(--nota-notification-error-primary);
+        }
 
-    &.info {
-        border-left: 1.5px solid var(--nota-notification-info-primary);
+        // notification icon (info, warning or error)
+        & > .notification-icon-wrapper {
+            width: 20px;
+            height: 20px;
+            padding-top: 0.7px;
+        }
+
+        // content (message, subMessage and action buttons)
+        & > .notification-content {
+            flex: 1;
+            min-width: 0;
+            word-wrap: break-word;
+        }
+
+        // close button (x)
+        & > .close-button {
+            position: absolute;
+            cursor: pointer;
+            
+            top: 10px;
+            right: 4px;
+            
+            line-height: 0.7;
+            padding: 3px;
+            color: var(--nota-notification-secondery-text);
+
+            &:hover { // for default & `info`
+                border-radius: 50%;
+                color: var(--nota-notification-info-primary); 
+                background-color: var(--nota-notification-info-hover);
+            }
+        
+            &.notification-warn:hover {
+                color: var(--nota-notification-warning-primary);
+                background-color: var(--nota-notification-warning-hover); 
+            }
+        
+            &.notification-error:hover {
+                color: var(--nota-notification-error-primary);
+                background-color: var(--nota-notification-error-hover); 
+            }
+        }
     }
-
-    &.warning {
-        border-left: 1.5px solid var(--nota-notification-warning-primary);
-    }
-
-    &.error {
-        border-left: 1.5px solid var(--nota-notification-error-primary);
-    }
-}
-
-.notification-content {
-    flex: 1;
-    min-width: 0;
-    word-wrap: break-word;
-}
-
-.notification-icon-wrapper {
-    width: 20px;
-    height: 20px;
-    padding-top: 0.7px;
 }
 
 .notification-icon {
@@ -99,40 +143,6 @@
     gap: 3px;
 }
 
-.notification-close-container {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.notification-close-button {
-    z-index: 1000;
-    position: absolute;
-    top: 10px;
-    right: 4px;
-    font-size: 1.5em;
-    line-height: 0.7;
-    margin-left: 7px;
-    margin-top: 0;
-    padding: 3px;
-    color: var(--nota-notification-secondery-text);
-    cursor: pointer;
-    &:hover { // for default & `info`
-        border-radius: 50%;
-        color: var(--nota-notification-info-primary); 
-        background-color: var(--nota-notification-info-hover);
-    }
-
-    &.notification-warn:hover {
-        color: var(--nota-notification-warning-primary);
-        background-color: var(--nota-notification-warning-hover); 
-    }
-
-    &.notification-error:hover {
-        color: var(--nota-notification-error-primary);
-        background-color: var(--nota-notification-error-hover); 
-    }
-}
-
 /* Custom action buttons */
 .notification-custom-actions {
     display: flex;
@@ -179,8 +189,3 @@
     background-color:  var(--nota-notification-error-primary);
 }
 
-@media only screen and (max-width: 670px) {
-    .notification-container {
-        display: none;
-    }
-}

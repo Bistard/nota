@@ -6,12 +6,23 @@ import { isDefined } from 'src/base/common/utilities/type';
 import { IUnbufferedScheduler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { Time } from 'src/base/common/date';
 import { EventType, addDisposableListener } from 'src/base/browser/basic/dom';
-import { Emitter } from 'src/base/common/event';
+import { Emitter, Register } from 'src/base/common/event';
+
+/**
+ * An interface only for {@link NotificationInstance}.
+ */
+export interface INotificationInstance extends IDisposable {
+    readonly element: HTMLElement;
+    readonly type: NotificationTypes;
+    readonly message: string;
+    readonly subMessage?: string;
+    readonly onClose: Register<void>;
+}
 
 /**
  * @class Handles rendering related operations for a notification element.
  */
-export class NotificationInstance extends Disposable implements IDisposable {
+export class NotificationInstance extends Disposable implements INotificationInstance {
 
     // [event]
 
@@ -138,23 +149,18 @@ export class NotificationInstance extends Disposable implements IDisposable {
 
     private __renderCloseButton(): void {
         const closeButtonContainer = document.createElement('div');
-        closeButtonContainer.className = 'notification-close-container';
+        closeButtonContainer.className = __getIconClassByType(this.opts.type);
 
-        const closeButtonOptions: IButtonOptions = {
+        const closeButton = new Button({
             id: 'close',
             icon: Icons.Close,
-            classes: ['notification-close-button']
-        };
-
-        const closeButton = new Button(closeButtonOptions);
+            classes: ['close-button']
+        });
         this.__register(closeButton.onDidClick(() => {
             this.__closeNotification(false);
         }));
-
-        const close_type = this.__getIconClassByType(this.opts.type);
-        closeButtonContainer.className = close_type;
         closeButton.render(closeButtonContainer);
-
+        
         this.element.appendChild(closeButtonContainer);
     }
 
@@ -162,30 +168,15 @@ export class NotificationInstance extends Disposable implements IDisposable {
         const iconElement = document.createElement('span');
         iconElement.className = 'notification-icon';
 
-        const iconClass = this.__getIconClassByType(this.opts.type);
-        const iconButtonOptions: IButtonOptions = {
+        const iconClass = __getIconClassByType(this.opts.type);
+        const iconButton = new Button({
             id: this.opts.type,
             icon: iconClass,
             classes: [iconClass]
-        };
-
-        const iconButton = new Button(iconButtonOptions);
+        });
         iconButton.render(iconElement);
 
         return iconElement;
-    }
-
-    private __getIconClassByType(type: NotificationTypes): Icons {
-        switch (type) {
-            case NotificationTypes.Info:
-                return Icons.NotificationInfo;
-            case NotificationTypes.Warning:
-                return Icons.NotificationWarn;
-            case NotificationTypes.Error:
-                return Icons.NotificationError;
-            default:
-                return Icons.NotificationInfo;
-        }
     }
 
     private __closeNotification(fadeOut: boolean): void {
@@ -212,5 +203,18 @@ export class NotificationInstance extends Disposable implements IDisposable {
         this.__register(addDisposableListener(this.element, EventType.mouseleave, () => {
             this._scheduler?.schedule();
         }));
+    }
+}
+
+function __getIconClassByType(type: NotificationTypes): Icons {
+    switch (type) {
+        case NotificationTypes.Info:
+            return Icons.NotificationInfo;
+        case NotificationTypes.Warning:
+            return Icons.NotificationWarn;
+        case NotificationTypes.Error:
+            return Icons.NotificationError;
+        default:
+            return Icons.NotificationInfo;
     }
 }
