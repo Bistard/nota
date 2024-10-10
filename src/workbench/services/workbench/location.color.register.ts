@@ -69,7 +69,7 @@ export const rendererThemeLocationRegister = createRegister(
         // Notification
         registrant.registerTemplate('notification-background');
         registrant.registerTemplate('notification-primary-text');
-        registrant.registerTemplate('notification-secondery-text');
+        registrant.registerTemplate('notification-secondary-text');
         registrant.registerTemplate('notification-on-dark-text');
         registrant.registerTemplate('notification-info-primary');
         registrant.registerTemplate('notification-warning-primary');

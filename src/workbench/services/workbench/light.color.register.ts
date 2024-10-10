@@ -77,7 +77,7 @@ export const rendererLightThemeColorRegister = createRegister(
         // Notification
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-primary-text', THEME_COLORS.secondary);
-        registrant.registerColor(PresetColorTheme.LightModern, 'notification-secondery-text', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-secondary-text', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-on-dark-text', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-info-primary', THEME_COLORS.teal);
         registrant.registerColor(PresetColorTheme.LightModern, 'notification-warning-primary', THEME_COLORS.goldenrod);

@@ -83,7 +83,7 @@
         
         line-height: 0.7;
         padding: 3px;
-        color: var(--nota-notification-secondery-text);
+        color: var(--nota-notification-secondary-text);
 
         &:hover { // for default & `info`
             border-radius: 50%;
@@ -125,7 +125,7 @@
 
 .notification-submessage {
     font-size: 0.78em;
-    color: var(--nota-notification-secondery-text);
+    color: var(--nota-notification-secondary-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
