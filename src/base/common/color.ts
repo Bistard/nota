@@ -5,6 +5,13 @@ import { panic } from "src/base/common/utilities/panic";
 import { Dictionary, DightInString } from "src/base/common/utilities/type";
 
 /**
+ * # outline
+ * {@link Color}
+ * {@link RGBA}
+ * {@link HSLA}
+ */
+
+/**
  * ANSI escape color codes for foreground color.
  */
 export const enum ASNIForegroundColor {
@@ -105,6 +112,181 @@ export type HexColor<T extends string> =
 
 export type ColorMap = Dictionary<string, RGBA>;
 
+/**
+ * An interface only for {@link Color}.
+ */
+export interface IColor {
+	/**
+	 * The RGBA representation of the color.
+	 */
+	readonly RGBA: RGBA;
+  
+	/**
+	 * The HSLA representation of the color.
+	 */
+	readonly HSLA: HSLA;
+  
+	/**
+	 * @description Returns the string format of the color. The format will use 
+	 * the hexadecimal format if opaque and RGBA format otherwise.
+	 */
+	toString(): string;
+
+	/**
+	 * @description Checks if the current color is equal to another color.
+	 * @param other - The color to compare with.
+	 * @returns True if the colors are equal, otherwise false.
+	 */
+	equals(other?: IColor): boolean;
+  
+	/**
+	 * @description Determines if the color is darker based on luminance.
+	 * @returns True if the color is darker, otherwise false.
+	 */
+	isDarker(): boolean;
+  
+	/**
+	 * @description Determines if the color is lighter based on luminance.
+	 * @returns True if the color is lighter, otherwise false.
+	 */
+	isLighter(): boolean;
+  
+	/**
+	 * @description Lightens the color by a given factor.
+	 * @param factor - The factor by which to lighten the color.
+	 * @returns A new color instance that is lightened.
+	 */
+	lighten(factor: number): IColor;
+  
+	/**
+	 * @description Darkens the color by a given factor.
+	 * @param factor - The factor by which to darken the color.
+	 * @returns A new color instance that is darkened.
+	 */
+	darken(factor: number): IColor;
+  
+	/**
+	 * @description Adjusts the transparency of the color by a given factor.
+	 * @param factor - The factor by which to adjust the transparency.
+	 * @returns A new color instance with adjusted transparency.
+	 */
+	transparent(factor: number): IColor;
+  
+	/**
+	 * @description Checks if the color is fully transparent.
+	 * @returns True if the color is fully transparent, otherwise false.
+	 */
+	isTransparent(): boolean;
+  
+	/**
+	 * @description Checks if the color is fully opaque.
+	 * @returns True if the color is fully opaque, otherwise false.
+	 */
+	isOpaque(): boolean;
+  
+	/**
+	 * @description Returns the opposite (inverted) color.
+	 * @returns A new color instance that is the opposite of the current color.
+	 */
+	opposite(): IColor;
+}
+
+/**
+ * @description The {@link Color} class represents a color in both {@link RGBA} 
+ * and {@link HSLA} color spaces.
+ */
+export class Color implements IColor {
+
+	// [fields]
+
+	private _rgba: RGBA;
+	private _hsla?: HSLA;
+	
+	// [getter]
+
+	get RGBA(): RGBA {
+		return this._rgba;
+	}
+
+	get HSLA(): HSLA {
+		if (this._hsla) {
+			return this._hsla;
+		}
+		this._hsla = HSLA.fromRGBA(this._rgba);
+		return this._hsla;
+	}
+
+	// [constructor]
+
+	constructor(value: RGBA | HSLA) {
+		if (value instanceof RGBA) {
+			this._rgba = value;
+		} else if (value instanceof HSLA) {
+			this._hsla = value;
+			this._rgba = HSLA.toRGBA(this._hsla);
+		} else {
+			panic(`color argument is invalid: ${value}`);
+		}
+	}
+
+	// [public methods]
+
+	@memoize
+	public toString(): string {
+		if (this.isOpaque()) {
+			return this.RGBA.toStringHex();
+		}
+		return this.RGBA.toString();
+	}
+
+	public equals(other?: Color): boolean {
+		return !!other && RGBA.equals(this.RGBA, other.RGBA) && HSLA.equals(this.HSLA, other.HSLA);
+	}
+
+	/**
+	 *	http://24ways.org/2010/calculating-color-contrast
+	 *  Return 'true' if darker color otherwise 'false'
+	 */
+	public isDarker(): boolean {
+		const yiq = (this.RGBA.r * 299 + this.RGBA.g * 587 + this.RGBA.b * 114) / 1000;
+		return yiq < 128;
+	}
+
+	/**
+	 *	http://24ways.org/2010/calculating-color-contrast
+	 *  Return 'true' if lighter color otherwise 'false'
+	 */
+	public isLighter(): boolean {
+		const yiq = (this.RGBA.r * 299 + this.RGBA.g * 587 + this.RGBA.b * 114) / 1000;
+		return yiq >= 128;
+	}
+
+	public lighten(factor: number): Color {
+		return new Color(new HSLA(this.HSLA.h, this.HSLA.s, this.HSLA.l + this.HSLA.l * factor, this.HSLA.a));
+	}
+
+	public darken(factor: number): Color {
+		return new Color(new HSLA(this.HSLA.h, this.HSLA.s, this.HSLA.l - this.HSLA.l * factor, this.HSLA.a));
+	}
+
+	public transparent(factor: number): Color {
+		const { r, g, b, a } = this.RGBA;
+		return new Color(new RGBA(r, g, b, a * factor));
+	}
+
+	public isTransparent(): boolean {
+		return this.RGBA.a === 0;
+	}
+
+	public isOpaque(): boolean {
+		return this.RGBA.a === 1;
+	}
+
+	public opposite(): Color {
+		return new Color(new RGBA(255 - this.RGBA.r, 255 - this.RGBA.g, 255 - this.RGBA.b, this.RGBA.a));
+	}
+}
+
 export class RGBA {
 
 	// [field]
@@ -144,6 +326,20 @@ export class RGBA {
 		return `rgb(${this.r},${this.g},${this.b},${this.a})`;
 	}
 
+	@memoize
+	public toStringHex(): string {
+		function __toTwoDigitHex(n: number): string {
+			const r = n.toString(16);
+			return r.length !== 2 ? '0' + r : r;
+		}
+		return `#${__toTwoDigitHex(this.r)}${__toTwoDigitHex(this.g)}${__toTwoDigitHex(this.b)}`;
+	}
+
+
+	public static toString(color: RGBA): string {
+        return color.toString();
+    }
+
 	public static is(obj: any): obj is RGBA {
 		if (obj instanceof RGBA) {
 			return true;
@@ -158,10 +354,6 @@ export class RGBA {
 			&& typeof obj['b'] === 'number'
 			&& typeof obj['a'] === 'number';
 	}
-
-    public static toString(color: RGBA): string {
-        return `rgb(${color.r},${color.g},${color.b},${color.a})`;
-    }
 
 	public static equals(a: RGBA, b: RGBA): boolean {
 		return a.r === b.r && a.g === b.g && a.b === b.b && a.a === b.a;
@@ -219,6 +411,150 @@ export class RGBA {
 		} catch {}
 
 		return null;
+	}
+}
+
+export class HSLA {
+	
+	// [field]
+
+	/**
+	 * Hue: integer in [0, 360]
+	 */
+	public readonly h: number;
+
+	/**
+	 * Saturation: float in [0, 1]
+	 */
+	public readonly s: number;
+
+	/**
+	 * Luminosity: float in [0, 1]
+	 */
+	public readonly l: number;
+
+	/**
+	 * Alpha: float in [0, 1]
+	 */
+	public readonly a: number;
+
+	// [constructor]
+
+	constructor(h: number, s: number, l: number, a: number) {
+		this.h = Math.max(Math.min(360, h), 0) | 0;
+		this.s = __roundFloat(Math.max(Math.min(1, s), 0), 3);
+		this.l = __roundFloat(Math.max(Math.min(1, l), 0), 3);
+		this.a = __roundFloat(Math.max(Math.min(1, a), 0), 3);
+	}
+
+	// [public methods]
+
+	@memoize
+	public toString(): string {
+		if (this.a === 1) {
+			return `hsl(${this.h}, ${(this.s * 100).toFixed(2)}%, ${(this.l * 100).toFixed(2)}%)`;
+		}
+		return `hsla(${this.h}, ${(this.s * 100).toFixed(2)}%, ${(this.l * 100).toFixed(2)}%, ${this.a.toFixed(2)})`;
+	}
+
+	public static toString(color: HSLA): string {
+		return color.toString();
+	}
+
+	public static is(obj: any): obj is HSLA {
+		if (obj instanceof HSLA) {
+			return true;
+		}
+
+		if (!obj) {
+			return false;
+		}
+
+		return typeof obj['h'] === 'number' 
+			&& typeof obj['s'] === 'number' 
+			&& typeof obj['l'] === 'number'
+			&& typeof obj['a'] === 'number';
+	}
+
+	public static equals(a: HSLA, b: HSLA): boolean {
+		return a.h === b.h && a.s === b.s && a.l === b.l && a.a === b.a;
+	}
+	
+	/**
+	 * @description Converts an RGB color value to HSL. Conversion formula
+	 * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+	 * Assumes r, g, and b are contained in the set [0, 255] and
+	 * returns h in the set [0, 360], s, and l in the set [0, 1].
+	 */
+	public static fromRGBA(rgba: RGBA): HSLA {
+		const r = rgba.r / 255;
+		const g = rgba.g / 255;
+		const b = rgba.b / 255;
+		const a = rgba.a;
+
+		const max = Math.max(r, g, b);
+		const min = Math.min(r, g, b);
+		let h = 0;
+		let s = 0;
+		const l = (min + max) / 2;
+		const chroma = max - min;
+
+		if (chroma > 0) {
+			s = Math.min((l <= 0.5 ? chroma / (2 * l) : chroma / (2 - (2 * l))), 1);
+
+			switch (max) {
+				case r: h = (g - b) / chroma + (g < b ? 6 : 0); break;
+				case g: h = (b - r) / chroma + 2; break;
+				case b: h = (r - g) / chroma + 4; break;
+			}
+
+			h *= 60;
+			h = Math.round(h);
+		}
+		return new HSLA(h, s, l, a);
+	}
+
+	/**
+	 * @description Converts an HSL color value to RGB. Conversion formula
+	 * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+	 * Assumes h in the set [0, 360] s, and l are contained in the set [0, 1] and
+	 * returns r, g, and b in the set [0, 255].
+	 */
+	public static toRGBA(hsla: HSLA): RGBA {
+		const h = hsla.h / 360;
+		const { s, l, a } = hsla;
+		let r: number, g: number, b: number;
+
+		if (s === 0) {
+			r = g = b = l; // achromatic
+		} else {
+			const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+			const p = 2 * l - q;
+			r = HSLA._hue2rgb(p, q, h + 1 / 3);
+			g = HSLA._hue2rgb(p, q, h);
+			b = HSLA._hue2rgb(p, q, h - 1 / 3);
+		}
+
+		return new RGBA(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), a);
+	}
+
+	private static _hue2rgb(p: number, q: number, t: number): number {
+		if (t < 0) {
+			t += 1;
+		}
+		if (t > 1) {
+			t -= 1;
+		}
+		if (t < 1 / 6) {
+			return p + (q - p) * 6 * t;
+		}
+		if (t < 1 / 2) {
+			return q;
+		}
+		if (t < 2 / 3) {
+			return p + (q - p) * (2 / 3 - t) * 6;
+		}
+		return p;
 	}
 }
 
