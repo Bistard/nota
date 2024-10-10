@@ -6,7 +6,7 @@ import { Dictionary, DightInString } from "src/base/common/utilities/type";
 
 /**
  * # outline
- * {@link Color}
+ * {@link IColor} {@link Color}
  * {@link RGBA}
  * {@link HSLA}
  */
@@ -236,7 +236,7 @@ export class Color implements IColor {
 		if (this.isOpaque()) {
 			return this.RGBA.toStringHex();
 		}
-		return this.RGBA.toString();
+		return this.RGBA.toStringHexA();
 	}
 
 	public equals(other?: Color): boolean {
@@ -326,15 +326,25 @@ export class RGBA {
 		return `rgb(${this.r},${this.g},${this.b},${this.a})`;
 	}
 
+	/**
+	 * @description Formats the color as #RRGGBB (no alpha)
+	 */
 	@memoize
 	public toStringHex(): string {
-		function __toTwoDigitHex(n: number): string {
-			const r = n.toString(16);
-			return r.length !== 2 ? '0' + r : r;
-		}
 		return `#${__toTwoDigitHex(this.r)}${__toTwoDigitHex(this.g)}${__toTwoDigitHex(this.b)}`;
 	}
 
+	/**
+	 * @description Formats the color as #RRGGBBAA (with alpha)
+	 * If 'compact' is set, colors without transparency will be printed as #RRGGBB
+	 */
+	@memoize
+	public toStringHexA(compact = false): string {
+		if (compact && this.a === 1) {
+			return this.toStringHex();
+		}
+		return `#${__toTwoDigitHex(this.r)}${__toTwoDigitHex(this.g)}${__toTwoDigitHex(this.b)}${__toTwoDigitHex(Math.round(this.a * 255))}`;
+	}
 
 	public static toString(color: RGBA): string {
         return color.toString();
@@ -412,6 +422,11 @@ export class RGBA {
 
 		return null;
 	}
+}
+
+function __toTwoDigitHex(n: number): string {
+	const r = n.toString(16);
+	return r.length !== 2 ? '0' + r : r;
 }
 
 export class HSLA {
