@@ -110,7 +110,7 @@ export type HexColor<T extends string> =
         )
         : never;
 
-export type ColorMap = Dictionary<string, RGBA>;
+export type ColorMap = Dictionary<string, Color>;
 
 /**
  * An interface only for {@link Color}.
@@ -230,6 +230,14 @@ export class Color implements IColor {
 	}
 
 	// [public methods]
+
+	public static parseHex(str: string): Color {
+		return new Color(RGBA.parse(str) ?? RGBA.RED);
+	}
+
+	public static is(obj: any): obj is Color {
+		return obj instanceof Color;
+	}
 
 	@memoize
 	public toString(): string {
