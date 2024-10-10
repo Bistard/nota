@@ -123,7 +123,7 @@ class AlertError extends Command {
         }
 
         logService.error(reporter, message, error);
-        notificationService.error(message);
+        notificationService.error(message, { actions: [{ label: 'Close', run: 'noop' }] });
 
         return true;
     }

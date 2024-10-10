@@ -136,7 +136,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     private __onDidActionRun(event: IMenuActionRunEvent): void {
         if (event.error && !isCancellationError(event.error)) {
-            this.notificationService.error(event.error);
+            this.notificationService.error(event.error, { actions: [{ label: 'Close', run: 'noop' }] });
         }
     }
 }
