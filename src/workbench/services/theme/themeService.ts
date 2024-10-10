@@ -17,9 +17,9 @@ import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { assert, panic } from "src/base/common/utilities/panic";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { mixin } from "src/base/common/utilities/object";
-import { ColorMap, RGBA } from "src/base/common/color";
+import { Color, ColorMap } from "src/base/common/color";
 import { noop } from "src/base/common/performance";
-import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
 
 export const IThemeService = createService<IThemeService>('theme-service');
@@ -77,7 +77,7 @@ export interface IRawThemeJsonReadingData {
     readonly type: ColorThemeType;
     readonly name: string;
     readonly description: string;
-    readonly colors: Dictionary<string, string | RGBA>;
+    readonly colors: Dictionary<string, string | Color>;
 }
 
 /**
@@ -164,6 +164,7 @@ export class ThemeService extends Disposable implements IThemeService {
                 error => {
                     this.logService.error('themeService', `Cannot switch to the theme '${id}'. The reason is:`, error);
                     this.notificationService.notify({
+                        type: NotificationTypes.Info,
                         message: `Failed to switch to theme '${id}'. Please check the theme settings and try again.`,
                         actions: [{
                             label: 'Dismiss',
@@ -236,7 +237,7 @@ export class ThemeService extends Disposable implements IThemeService {
         if (isPreset) {
             const template = this._registrant.getTemplate();
             for (const location of template) {
-                const isPresent = RGBA.is(rawData['colors'][location]);
+                const isPresent = Color.is(rawData['colors'][location]);
                 if (!isPresent) {
                     return { valid: false, reason: `The theme is missing the color: '${location}'` };
                 }

@@ -6,10 +6,11 @@ export const rendererThemeLocationRegister = createRegister(
     (registrant) => {
         
         // general
+        registrant.registerTemplate('primary-text');
         registrant.registerTemplate('global-body-background');
         registrant.registerTemplate('global-body-foreground');
         registrant.registerTemplate('selection-background');
-        registrant.registerTemplate('primary-text');
+        registrant.registerTemplate('button-background');
 
         // utility
         registrant.registerTemplate('search-bar-background');
@@ -64,5 +65,17 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('outline-primary-text');
         registrant.registerTemplate('outline-select-text');
         registrant.registerTemplate('outline-overflow-hover-box-background');
+
+        // Notification
+        registrant.registerTemplate('notification-background');
+        registrant.registerTemplate('notification-primary-text');
+        registrant.registerTemplate('notification-secondary-text');
+        registrant.registerTemplate('notification-on-dark-text');
+        registrant.registerTemplate('notification-info-primary');
+        registrant.registerTemplate('notification-warning-primary');
+        registrant.registerTemplate('notification-error-primary');
+        registrant.registerTemplate('notification-info-hover');
+        registrant.registerTemplate('notification-warning-hover');
+        registrant.registerTemplate('notification-error-hover');
     },
 );

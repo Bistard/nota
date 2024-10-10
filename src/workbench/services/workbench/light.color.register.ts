@@ -13,10 +13,11 @@ export const rendererLightThemeColorRegister = createRegister(
         });
 
         // general
+        registrant.registerColor(PresetColorTheme.LightModern, 'primary-text', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.LightModern, 'global-body-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.LightModern, 'global-body-foreground', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.LightModern, 'selection-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.LightModern, 'primary-text', THEME_COLORS.primary);
+        registrant.registerColor(PresetColorTheme.LightModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-background', THEME_COLORS.sidebg);
@@ -72,5 +73,17 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-primary-text', THEME_COLORS.ternary);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-select-text', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-overflow-hover-box-background', THEME_COLORS.white);
+
+        // Notification
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-background', THEME_COLORS.white);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-primary-text', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-secondary-text', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-on-dark-text', THEME_COLORS.white);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-info-primary', THEME_COLORS.teal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-warning-primary', THEME_COLORS.goldenrod);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-error-primary', THEME_COLORS.crimson);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-info-hover', THEME_COLORS.lighterTeal);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-warning-hover', THEME_COLORS.lightgoldenrod);
+        registrant.registerColor(PresetColorTheme.LightModern, 'notification-error-hover', THEME_COLORS.lightcrimson);
     },
 );
