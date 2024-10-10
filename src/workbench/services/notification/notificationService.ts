@@ -30,13 +30,23 @@ export interface INotificationOptions {
     readonly actions?: INotificationAction[];
 }
 
+/**
+ * An interface that describe every action button in a {@link NotificationInstance}.
+ */
 export interface INotificationAction {
+    
+    /**
+     * The name of the action button.
+     */
     readonly label: string;
-    run: () => void;
 
-    // styles
-    readonly notificationBackground?: string;
-    readonly notificationForeground?: string;
+    /**
+     * Either:
+     *      1. A callback to execute or
+     *      2. provide an 'noop' marker to tell the button do nothing and close
+     *         the {@link NotificationInstance}.
+     */
+    run: Callable<[], void> | 'noop';
 }
 
 /**
@@ -93,5 +103,10 @@ export class NotificationService extends Disposable implements INotificationServ
         Event.once(instance.onClose)(() => {
             Arrays.remove(this._notifications, instance);
         });
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        disposeAll(this._notifications);
     }
 }

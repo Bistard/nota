@@ -32,7 +32,6 @@ export const rendererWorkbenchShortcutRegister = createRegister(
             commandArgs: [],
         });
 
-        // delete after dev-notification is merged
         registrant.register(
             AllCommands.popNotification, {
             shortcut: new Shortcut(true, false, false, false, KeyCode.KeyN),

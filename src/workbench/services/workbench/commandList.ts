@@ -48,6 +48,8 @@ export const enum AllCommands {
     filePaste = 'filePaste',
     fileMove  = 'fileMove', // TODO
 
+    // [Test Commands]
+
     popNotification = 'popNotification',
 }
 

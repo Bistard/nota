@@ -55,11 +55,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     actions: [
                         {
                             label: 'Close',
-                            run: () => {
-                                notificationService.dispose();
-                            },
+                            run: 'noop',
                         },
-                        // ... other actions ...
                     ]
                 });
                 notificationService.notify({
@@ -68,11 +65,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     actions: [
                         {
                             label: 'Close',
-                            run: () => {
-                                notificationService.dispose();
-                            },
+                            run: 'noop',
                         },
-                        // ... other actions ...
                     ]
                 });
                 notificationService.notify({
@@ -81,11 +75,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     actions: [
                         {
                             label: 'Close',
-                            run: () => {
-                                notificationService.dispose();
-                            },
+                            run: 'noop',
                         },
-                        // ... other actions ...
                     ]
                 });
                 notificationService.notify({
@@ -95,17 +86,12 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     actions: [
                         {
                             label: 'Close',
-                            run: () => {
-                                notificationService.dispose();
-                            },
+                            run: 'noop',
                         },
                         {
                             label: 'Yes',
-                            run: () => {
-                                notificationService.dispose();
-                            },
+                            run: 'noop',
                         },
-                        // ... other actions ...
                     ]
                 });
             }

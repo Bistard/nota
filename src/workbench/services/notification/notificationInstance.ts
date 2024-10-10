@@ -1,8 +1,8 @@
 import { INotificationOptions, INotificationAction, NotificationTypes } from './notificationService';
 import { IDisposable, Disposable } from 'src/base/common/dispose';
-import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
+import { Button } from 'src/base/browser/basic/button/button';
 import { Icons } from 'src/base/browser/icon/icons';
-import { isDefined } from 'src/base/common/utilities/type';
+import { isDefined, isFunction } from 'src/base/common/utilities/type';
 import { IUnbufferedScheduler, UnbufferedScheduler } from 'src/base/common/utilities/async';
 import { Time } from 'src/base/common/date';
 import { EventType, addDisposableListener } from 'src/base/browser/basic/dom';
@@ -129,19 +129,22 @@ export class NotificationInstance extends Disposable implements INotificationIns
         );
 
         // Render up to 3 actions
-        actions.slice(0, 3).forEach(action => {
-            const buttonOptions: IButtonOptions = {
-                id: '',
-                label: action.label,
-                buttonBackground: action.notificationBackground,
-                buttonForeground: action.notificationForeground,
+        actions.slice(0, 3).forEach(actionOpts => {
+            const actionButton = this.__register(new Button({
+                id: actionOpts.label,
+                label: actionOpts.label,
                 classes: ['action-button'],
-            };
-            const actionButton = new Button(buttonOptions);
-            this.__register(actionButton.onDidClick(() => action.run()));
+            }));
+
+            // click callback
+            const fn = isFunction(actionOpts.run) 
+                ? actionOpts.run
+                : () => this.dispose();
+            this.__register(actionButton.onDidClick(() => fn()));
 
             const buttonWrapper = document.createElement('div');
             buttonWrapper.className = 'action-button-wrapper';
+
             actionButton.render(buttonWrapper);
             actionsContainer.appendChild(buttonWrapper);
         });
@@ -153,16 +156,16 @@ export class NotificationInstance extends Disposable implements INotificationIns
         const closeButtonContainer = document.createElement('div');
         closeButtonContainer.className = __getIconClassByType(this.opts.type);
 
-        const closeButton = new Button({
+        const closeButton = this.__register(new Button({
             id: 'close',
             icon: Icons.Close,
             classes: ['close-button']
-        });
+        }));
         this.__register(closeButton.onDidClick(() => {
             this.__closeNotification(false);
         }));
+
         closeButton.render(closeButtonContainer);
-        
         this.element.appendChild(closeButtonContainer);
     }
 
@@ -171,11 +174,11 @@ export class NotificationInstance extends Disposable implements INotificationIns
         iconElement.className = 'notification-icon';
 
         const iconClass = __getIconClassByType(this.opts.type);
-        const iconButton = new Button({
+        const iconButton = this.__register(new Button({
             id: this.opts.type,
             icon: iconClass,
             classes: [iconClass]
-        });
+        }));
         iconButton.render(iconElement);
 
         return iconElement;
