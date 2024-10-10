@@ -1,10 +1,11 @@
 import 'src/workbench/services/notification/notification.scss';
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { NotificationInstance } from 'src/workbench/services/notification/notificationInstance';
 import { Arrays } from 'src/base/common/utilities/array';
 import { errorToMessage } from 'src/base/common/utilities/panic';
 import { Event } from 'src/base/common/event';
+import { Callable } from 'src/base/common/utilities/type';
 
 export const INotificationService = createService<INotificationService>('notification-service');
 
@@ -18,15 +19,52 @@ export const enum NotificationTypes {
  * An interface only for {@link NotificationService}.
  */
 export interface INotificationService extends IDisposable, IService {
+    
+    /**
+     * @description Displays a notification with the provided options.
+     */
     notify(options: INotificationOptions): void;
+    
+    /**
+     * @description Displays a operating system based confirmation dialog and 
+     * let the user to confirm or deny.
+     * @param message The main message to display.
+     * @param subMessage The optional sub-message for more details.
+     * @returns A promise that resolves to `true` if the user confirms, 
+     *          otherwise `false`.
+     */
     confirm(message: string, subMessage: string): Promise<boolean>;
-    error(error: string | Error): void;
+
+    /**
+     * @description A convenient way of invoking `this.notify({ type: 'error', ... })`.
+     * @param error The error to display.
+     */
+    error(error: string | Error, options: Omit<INotificationOptions, 'type' | 'message'>): void;
 }
 
+/**
+ * An option to construct a {@link NotificationInstance}.
+ */
 export interface INotificationOptions {
+
+    /**
+     * Describe the type of the notification.
+     */
     readonly type: NotificationTypes;
+
+    /**
+     * The main message.
+     */
     readonly message: string;
+
+    /**
+     * Optional. The sub message if needed.
+     */
     readonly subMessage?: string;
+
+    /**
+     * Optional. Describe a list of action buttons for the notification.
+     */
     readonly actions?: INotificationAction[];
 }
 
@@ -46,7 +84,7 @@ export interface INotificationAction {
      *      2. provide an 'noop' marker to tell the button do nothing and close
      *         the {@link NotificationInstance}.
      */
-    run: Callable<[], void> | 'noop';
+    readonly run: Callable<[], void> | 'noop';
 }
 
 /**
@@ -59,7 +97,6 @@ export class NotificationService extends Disposable implements INotificationServ
 
     // [fields]
 
-    private readonly _parent: HTMLElement;
     private readonly _container: HTMLElement;
     private readonly _notifications: NotificationInstance[];
 
@@ -67,22 +104,19 @@ export class NotificationService extends Disposable implements INotificationServ
 
     constructor(parent: HTMLElement = document.body) {
         super();
-        this._parent = parent;
         this._notifications = [];
-
         this._container = document.createElement('div');
         this._container.className = 'notification-container';
-        this._parent.appendChild(this._container);
+        parent.appendChild(this._container);
     }
 
     // [public methods]
 
-    public error(error: string | Error): void {
+    public error(error: string | Error, options: Omit<INotificationOptions, 'type' | 'message'>): void {
         this.notify({
             type: NotificationTypes.Error,
             message: errorToMessage(error),
-            subMessage: undefined, // REVIEW
-            actions: undefined, // review
+            ...options
         });
     }
 
