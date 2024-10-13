@@ -242,7 +242,7 @@ export class NavigationView extends Component implements INavigationViewService 
         }
 
         // load the new view
-        this._viewContainer.appendChild(view.element.element);
+        this._viewContainer.appendChild(view.element.raw);
         this._currView = view.id;
 
         this._onDidViewChange.fire({ id: view.id, view: view });
@@ -254,7 +254,7 @@ export class NavigationView extends Component implements INavigationViewService 
         }
 
         const currView = this.getComponent<INavView>(id)!;
-        this._viewContainer.removeChild(currView.element.element);
+        this._viewContainer.removeChild(currView.element.raw);
         this._currView = undefined;
     }
 

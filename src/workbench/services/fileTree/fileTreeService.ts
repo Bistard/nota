@@ -527,7 +527,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                 getAnchor: () => this.__getContextMenuAnchor(e),
                 getActions: () => this.__getContextMenuActions(e),
                 getContext: () => e
-            }, this.workbenchService.element.element);
+            }, this.workbenchService.element.raw);
         }));
     }
 

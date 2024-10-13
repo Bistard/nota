@@ -106,7 +106,7 @@ export abstract class WorkbenchLayout extends Component {
         ];
         this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
         
-        this._collapseController.render(this.workspaceService.element.element);
+        this._collapseController.render(this.workspaceService.element.raw);
     }
 
     protected __registerLayoutListeners(): void {

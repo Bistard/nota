@@ -173,7 +173,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setPosition('absolute');
 
-        DomUtility.Modifiers.hide(this._element.element);
+        DomUtility.Modifiers.hide(this._element.raw);
         this.setContainer(container);
     }
 
@@ -184,21 +184,21 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         // remove the context menu from the old container
         if (this._currContainer) {
             this._currContainerDisposables.dispose();
-            this._currContainer.removeChild(this._element.element);
+            this._currContainer.removeChild(this._element.raw);
             this._currContainer = undefined;
         }
 
         // set the new container
         this._currContainer = newContainer;
-        this._currContainer.appendChild(this._element.element);
+        this._currContainer.appendChild(this._element.raw);
         
         // register the context menu events
         {
             const disposables = new DisposableManager();
         
             disposables.register(
-                addDisposableListener(this._element.element, EventType.click, (e) => {
-                    if (!DomUtility.Elements.isAncestor(this._element.element, <Node>e.target)) {
+                addDisposableListener(this._element.raw, EventType.click, (e) => {
+                    if (!DomUtility.Elements.isAncestor(this._element.raw, <Node>e.target)) {
                         this.destroy();
                     }
                 })
@@ -224,11 +224,11 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this.__resetViewAttrs();
 
         // enable show-up 
-        DomUtility.Modifiers.show(this._element.element);
+        DomUtility.Modifiers.show(this._element.raw);
 
         // render the content of the context menu
         this._currDelegate = delegate;
-        this._currRenderContentDisposables = this._currDelegate.render(this._element.element) || Disposable.NONE;
+        this._currRenderContentDisposables = this._currDelegate.render(this._element.raw) || Disposable.NONE;
 
         // layout the context menu
         this.__layout(this._currDelegate);
@@ -250,7 +250,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this._currRenderContentDisposables.dispose();
 
         // hide the context menu
-        DomUtility.Modifiers.hide(this._element.element);
+        DomUtility.Modifiers.hide(this._element.raw);
     }
 
     public visible(): boolean {
@@ -260,7 +260,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     // [private methods]
 
     private __resetViewAttrs(): void {
-        DomUtility.Modifiers.clearChildrenNodes(this._element.element);
+        DomUtility.Modifiers.clearChildrenNodes(this._element.raw);
         this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setTop(0);
 		this._element.setLeft(0);
@@ -288,8 +288,8 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         let left: number;
 
         const anchorBox = this.__getAnchorBox(delegate);
-        const elementHeight = DomUtility.Attrs.getTotalHeight(this._element.element);
-        const elementWidth = DomUtility.Attrs.getTotalWidth(this._element.element);
+        const elementHeight = DomUtility.Attrs.getTotalHeight(this._element.raw);
+        const elementWidth = DomUtility.Attrs.getTotalWidth(this._element.raw);
 
         const primaryAxisAlignment = delegate.primaryAlignment ?? AnchorPrimaryAxisAlignment.Vertical;
         const horizontalPos = delegate?.horizontalPosition ?? AnchorHorizontalPosition.Right;

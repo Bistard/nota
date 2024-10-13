@@ -27,7 +27,7 @@ export class WindowBar extends Component {
 
     protected override _createContent(): void {
 
-        this._widgetBar = this.__register(this.__createWidgetBar(this.element.element));
+        this._widgetBar = this.__register(this.__createWidgetBar(this.element.raw));
 
     }
 

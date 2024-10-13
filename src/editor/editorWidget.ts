@@ -242,7 +242,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         );
         this._view = this.instantiationService.createInstance(
             EditorView,
-            this._container.element,
+            this._container.raw,
             this._viewModel,
             this._extensionManager.getExtensions(),
             this._options,

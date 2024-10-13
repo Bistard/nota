@@ -280,11 +280,11 @@ export class OutlineService extends Disposable implements IOutlineService {
         if (isCollapsed) {
             this._container?.classList.add('hidden');
             this._container?.classList.remove('visible');
-            if (editorElement) editorElement.element.style.paddingRight = '0';
+            if (editorElement) editorElement.raw.style.paddingRight = '0';
         } else {
             this._container?.classList.add('visible');
             this._container?.classList.remove('hidden');
-            if (editorElement) editorElement.element.style.paddingRight = '230px';
+            if (editorElement) editorElement.raw.style.paddingRight = '230px';
         }
     }
 }

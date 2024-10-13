@@ -108,7 +108,7 @@ export class Editor extends Component implements IEditorService {
         // editor construction
         const editor = this.instantiationService.createInstance(
             EditorWidget, 
-            this.element.element,
+            this.element.raw,
             getBuiltInExtension(),
             {
                 mode: EditorType.Rich,

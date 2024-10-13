@@ -276,7 +276,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         if (this.action.enabled) {
             this.__registerListeners();
         }
-        parent.appendChild(this.element.element);
+        parent.appendChild(this.element.raw);
     }
 
     public onClick(event: MouseEvent): void {
@@ -539,12 +539,12 @@ export class SubmenuItem extends AbstractMenuItem {
         {
             this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DELAY, () => {
                 this._delegate.closeCurrSubmenu();
-                this._delegate.openNewSubmenu(this.element.element, this.action.actions);
+                this._delegate.openNewSubmenu(this.element.raw, this.action.actions);
             });
 
             this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DELAY, () => {
                 const active = DomUtility.Elements.getActiveElement();
-                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.element, active)) {
+                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.raw, active)) {
                     this._delegate.closeCurrSubmenu();
                     this._delegate.focusParentMenu();
                     this._mouseover = false;
