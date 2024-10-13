@@ -15,10 +15,13 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
  *  - {@link EditorCommands.Composite}
  */
 
+/**
+ * @description A set of default editor command configurations.
+ */
 export function registerBasicEditorCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(EditorCommands.Composite.Enter, ['Enter']);
     extension.registerCommand(EditorCommands.Composite.Backspace, ['Backspace']);
-    extension.registerCommand(EditorCommands.Composite.Delete, ['Delete']);
+    extension.registerCommand(EditorCommands.Composite.Delete, ['Delete', 'Meta+Delete', 'Ctrl+Delete']);
     extension.registerCommand(EditorCommands.Composite.SelectAll, ['Meta+A', 'Ctrl+A']);
     extension.registerCommand(EditorCommands.Composite.ExitCodeBlock, ['Meta+Enter', 'Ctrl+Enter']);
 }
