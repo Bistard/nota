@@ -1,13 +1,14 @@
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
+import { ILogService } from "src/base/common/logger";
 import { Constructor } from "src/base/common/utilities/type";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch } from "src/editor/common/proseMirror";
+import { MarkEnum } from "src/editor/common/markdown";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
 import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
 import { ChainCommand, Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-
 
 /**
  * {@link EditorCommands}
@@ -18,7 +19,34 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 /**
  * @description A set of default editor command configurations.
  */
-export function registerBasicEditorCommands(extension: IEditorCommandExtension): void {
+export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService): void {
+    const schema = extension.getEditorSchema().unwrap();
+
+    // register toggle mark commands
+    {
+        const toggleMarkConfigs: [string, string[]][] = [
+            [MarkEnum.Strong, ['Ctrl+b', 'Ctrl+B', 'Meta+b', 'Meta+B']],
+            [MarkEnum.Em, ['Ctrl+i', 'Ctrl+I', 'Meta+i', 'Meta+I']],
+            [MarkEnum.Codespan, ['Ctrl+`', 'Meta+`']],
+        ];
+        toggleMarkConfigs.forEach(([markID, shortcuts]) => {
+            const toggleCmdID = `editor-toggle-mark-${markID}`;
+            const markType = schema.getMarkType(markID);
+            
+            if (!markType) {
+                logService.warn(extension.id, `Cannot register the editor command (${toggleCmdID}) because the mark type does not exists in the editor schema.`);
+                return;
+            }
+    
+            extension.registerCommand(EditorCommands.Basic.createToggleMarkCommand(
+                { id: toggleCmdID, when: CreateContextKeyExpr.Equal('isEditorFocused', true) },
+                markType, 
+                undefined, 
+                undefined,
+            ), shortcuts);
+        });
+    }
+
     extension.registerCommand(EditorCommands.Composite.Enter, ['Enter']);
     extension.registerCommand(EditorCommands.Composite.Backspace, ['Backspace']);
     extension.registerCommand(EditorCommands.Composite.Delete, ['Delete', 'Meta+Delete', 'Ctrl+Delete']);
@@ -520,6 +548,106 @@ export namespace EditorCommands {
                 return true;
             }
         }
+
+        /**
+         * @description A command that toggles the specified mark on the current 
+         * selection or the stored marks. If the mark exists in the current 
+         * selection, it is removed; otherwise, it is added. The behavior can be 
+         * customized with additional options.
+         * 
+         * The command performs the following steps:
+         * 1. It checks if the selection is empty or if the mark can be applied to the 
+         *    current selection range.
+         * 2. If the selection is valid and the mark can be applied, it either adds or 
+         *    removes the mark based on the current state and options.
+         * 3. If the selection is empty, the command will apply or remove the mark 
+         *    from the stored marks instead of modifying a range of the document.
+         */
+        export function createToggleMarkCommand<TType extends ProseMarkType>(
+            schema: ICommandSchema, 
+            markType: TType, 
+            attrs: ProseAttrs | null = null, 
+            options?: {
+                /**
+                 * Controls whether, when part of the selected range has the 
+                 * mark already and part doesn't, the mark is removed (`true`, 
+                 * the default) or added (`false`).
+                 */
+                removeWhenPresent?: boolean;
+                /**
+                 * When set to false, this will prevent the command from acting 
+                 * on the content of inline nodes marked as [atoms](#model.NodeSpec.atom) 
+                 * that are completely covered by a selection range.
+                 */
+                enterInlineAtoms?: boolean;
+            }
+        ): Command {
+            const removeWhenPresent = options?.removeWhenPresent !== false;
+            const enterAtoms = options?.enterInlineAtoms !== false;
+
+            return new class extends EditorCommandBase {
+
+                public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                    const { empty, $cursor } = state.selection as ProseTextSelection;
+                    let ranges = state.selection.ranges;
+
+                    // Check if selection is valid and if mark can be applied
+                    if ((empty && !$cursor) || !__markApplies(state.doc, ranges, markType, enterAtoms)) {
+                        return false;
+                    }
+
+                    if (dispatch) {
+                        // Handle the case where there is a cursor but no selection range
+                        if ($cursor) {
+                            if (markType.isInSet(state.storedMarks || $cursor.marks())) {
+                                dispatch(state.tr.removeStoredMark(markType));
+                            } else {
+                                dispatch(state.tr.addStoredMark(markType.create(attrs)));
+                            }
+                        } else {
+                            let shouldAddMark = !removeWhenPresent;
+                            const tr = state.tr;
+
+                            if (!enterAtoms) {
+                                ranges = __removeInlineAtoms(ranges);
+                            }
+
+                            // Determine if the mark should be added or removed
+                            if (removeWhenPresent) {
+                                shouldAddMark = !ranges.some(range => 
+                                    state.doc.rangeHasMark(range.$from.pos, range.$to.pos, markType)
+                                );
+                            }
+
+                            // Apply or remove the mark from the selected ranges
+                            ranges.forEach(({ $from, $to }) => {
+                                if (!shouldAddMark) {
+                                    tr.removeMark($from.pos, $to.pos, markType);
+                                } else {
+                                    let from = $from.pos, to = $to.pos;
+                                    const startText = $from.nodeAfter, endText = $to.nodeBefore;
+
+                                    // Adjust for whitespace at the start and end of the range
+                                    const spaceStart = startText && startText.isText ? /^\s*/.exec(startText.text!)![0].length : 0;
+                                    const spaceEnd = endText && endText.isText ? /\s*$/.exec(endText.text!)![0].length : 0;
+                                    
+                                    if (from + spaceStart < to) {
+                                        from += spaceStart;
+                                        to -= spaceEnd;
+                                    }
+
+                                    tr.addMark(from, to, markType.create(attrs));
+                                }
+                            });
+
+                            dispatch(tr.scrollIntoView());
+                        }
+                    }
+
+                    return true;
+                }
+            }(schema);
+        }
     }
 
     /**
@@ -538,7 +666,7 @@ export namespace EditorCommands {
                 }, 
                 ctors,
             );
-        }
+        } 
 
         /**
          * The identifiers for all the composite commands.
@@ -800,4 +928,45 @@ function __defaultBlockAt(match: ProseContentMatch) {
         }
     }
     return null;
+}
+
+function __markApplies(doc: ProseNode, ranges: readonly ProseSelectionRange[], type: ProseMarkType, enterAtoms: boolean) {
+    for (let i = 0; i < ranges.length; i++) {
+        const { $from, $to } = ranges[i]!;
+        let can = $from.depth === 0 ? doc.inlineContent && doc.type.allowsMarkType(type) : false;
+        doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+            if (can || !enterAtoms && node.isAtom && node.isInline && pos >= $from.pos && pos + node.nodeSize <= $to.pos) {
+                return false;
+            }
+            can = node.inlineContent && node.type.allowsMarkType(type);
+        });
+        if (can) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function __removeInlineAtoms(ranges: readonly ProseSelectionRange[]): readonly ProseSelectionRange[] {
+    const result: ProseSelectionRange[] = [];
+    
+    for (let i = 0; i < ranges.length; i++) {
+        let $from = ranges[i]!.$from;
+        const $to = ranges[i]!.$to;
+
+        $from.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+            if (node.isAtom && node.content.size && node.isInline && pos >= $from.pos && pos + node.nodeSize <= $to.pos) {
+                if (pos + 1 > $from.pos) {
+                    result.push(new ProseSelectionRange($from, $from.doc.resolve(pos + 1)));
+                }
+                $from = $from.doc.resolve(pos + 1 + node.content.size);
+                return false;
+            }
+        });
+        if ($from.pos < $to.pos) {
+            result.push(new ProseSelectionRange($from, $to));
+        }
+    }
+
+    return result;
 }
