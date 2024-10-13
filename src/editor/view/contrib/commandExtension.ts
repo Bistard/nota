@@ -1,18 +1,33 @@
 import { trySafe } from "src/base/common/error";
 import { Shortcut } from "src/base/common/keyboard";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands } from "src/editor/view/contrib/editorCommands";
+import { EditorCommands, registerBasicEditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 /**
+ * An interface only for {@link EditorCommandExtension}.
+ */
+export interface IEditorCommandExtension extends EditorExtension {
+
+    /**
+     * @description Register a {@link Command} as editor command that can be 
+     * triggered by any of the given shortcuts.
+     * 
+     * @note The {@link Command} will also be registered into the global 
+     * {@link CommandService}.
+     */
+    registerCommand(command: Command, shortcuts: string[]): void;
+}
+
+/**
  * @class Extension for handling editor commands with associated keyboard 
  * shortcuts. This class binds commands to specific shortcuts and registers 
  * these commands within the {@link CommandService}.
  */
-export class EditorCommandExtension extends EditorExtension {
+export class EditorCommandExtension extends EditorExtension implements IEditorCommandExtension {
 
     // [fields]
 
@@ -32,7 +47,7 @@ export class EditorCommandExtension extends EditorExtension {
         /**
          * Binds predefined commands to their respective shortcuts.
          */
-        this.__bindCommandsWithShortcut();
+        registerBasicEditorCommands(this);
         
         /**
          * Keydown: when key is pressing in the editor:
@@ -68,17 +83,9 @@ export class EditorCommandExtension extends EditorExtension {
         }));
     }
 
-    // [private helper methods]
+    // [public methods]
 
-    private __bindCommandsWithShortcut(): void {
-        this.__bindCommand(EditorCommands.Composite.Enter, ['Enter']);
-        this.__bindCommand(EditorCommands.Composite.Backspace, ['Backspace']);
-        this.__bindCommand(EditorCommands.Composite.Delete, ['Delete']);
-        this.__bindCommand(EditorCommands.Composite.SelectAll, ['Meta+A', 'Ctrl+A']);
-    }
-
-    private __bindCommand(command: Command, shortcuts: string[]): void {
-
+    public registerCommand(command: Command, shortcuts: string[]): void {
         /**
          * Register the command to the standard {@link CommandService}.
          */
@@ -93,6 +100,5 @@ export class EditorCommandExtension extends EditorExtension {
             .forEach(hash => {
                 this._commands.set(hash, <EditorCommands.Composite.ID>command.id);
             });
-
     }
 }

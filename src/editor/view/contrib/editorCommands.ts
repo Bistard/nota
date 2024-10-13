@@ -2,6 +2,7 @@ import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "p
 import { Constructor } from "src/base/common/utilities/type";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
+import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
 import { ChainCommand, Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
@@ -14,6 +15,12 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
  *  - {@link EditorCommands.Composite}
  */
 
+export function registerBasicEditorCommands(extension: IEditorCommandExtension): void {
+    extension.registerCommand(EditorCommands.Composite.Enter, ['Enter']);
+    extension.registerCommand(EditorCommands.Composite.Backspace, ['Backspace']);
+    extension.registerCommand(EditorCommands.Composite.Delete, ['Delete']);
+    extension.registerCommand(EditorCommands.Composite.SelectAll, ['Meta+A', 'Ctrl+A']);
+}
 
 /**
  * @class A base class for every command in the {@link EditorCommandsBasic}.
