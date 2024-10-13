@@ -13,6 +13,7 @@ export {
     Selection as ProseSelection,
     AllSelection as ProseAllSelection,
     TextSelection as ProseTextSelection,
+    SelectionRange as ProseSelectionRange,
 } from "prosemirror-state";
 
 export { 

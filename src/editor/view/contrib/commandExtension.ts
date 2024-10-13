@@ -1,6 +1,7 @@
 import { trySafe } from "src/base/common/error";
 import { Shortcut } from "src/base/common/keyboard";
-import { EditorExtension } from "src/editor/common/extension/editorExtension";
+import { EditorExtensionIDs } from "src/editor/common/extension/builtInExtension";
+import { EditorExtension, IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { EditorCommands, registerBasicEditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -10,7 +11,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 /**
  * An interface only for {@link EditorCommandExtension}.
  */
-export interface IEditorCommandExtension extends EditorExtension {
+export interface IEditorCommandExtension extends IEditorExtension {
 
     /**
      * @description Register a {@link Command} as editor command that can be 
@@ -30,6 +31,8 @@ export interface IEditorCommandExtension extends EditorExtension {
 export class EditorCommandExtension extends EditorExtension implements IEditorCommandExtension {
 
     // [fields]
+
+    public readonly id = EditorExtensionIDs.Command;
 
     /**
      * Mapping from {@link Shortcut}-hashed code to command ID.

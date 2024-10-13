@@ -1,18 +1,57 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { ProseExtension } from "src/editor/common/proseMirror";
+import { err, ok, Result } from "src/base/common/result";
+import { ProseEditorState, ProseExtension } from "src/editor/common/proseMirror";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+
+/**
+ * An interface only for {@link EditorExtension}.
+ */
+export interface IEditorExtension extends Disposable {
+    
+    // [fields]
+
+    readonly id: string;
+
+    // [events]
+    
+    readonly onDidFocusChange: Register<boolean>;
+    readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
+    readonly onClick: Register<IOnClickEvent>;
+    readonly onDidClick: Register<IOnDidClickEvent>;
+    readonly onDoubleClick: Register<IOnDoubleClickEvent>;
+    readonly onDidDoubleClick: Register<IOnDidDoubleClickEvent>;
+    readonly onTripleClick: Register<IOnTripleClickEvent>;
+    readonly onDidTripleClick: Register<IOnDidTripleClickEvent>;
+    readonly onKeydown: Register<IOnKeydownEvent>;
+    readonly onKeypress: Register<IOnKeypressEvent>;
+    readonly onTextInput: Register<IOnTextInputEvent>;
+    readonly onPaste: Register<IOnPasteEvent>;
+    readonly onDrop: Register<IOnDropEvent>;
+
+    // [methods]
+
+    getViewExtension(): ProseExtension;
+    getViewState(): Result<ProseEditorState, Error>;
+}
 
 /**
  * // TODO
  * // REVIEW: maybe support optional construction to either enable or disable the internal view extension. Maybe not every editor extension require views.
  */
-export abstract class EditorExtension extends Disposable {
+export abstract class EditorExtension extends Disposable implements IEditorExtension {
     
     // [fields]
 
-    private readonly _viewExtension: ProseExtension;
+    public abstract readonly id: string;
+
     private readonly _eventBroadcaster: ProseEventBroadcaster;
+    private readonly _viewExtension: ProseExtension;
+    
+    /**
+     * Will be defined when the editor is initialized for the first time.
+     */
+    private _viewState?: ProseEditorState;
 
     // [event]
 
@@ -34,7 +73,32 @@ export abstract class EditorExtension extends Disposable {
 
     constructor() {
         super();
-        this._viewExtension = new ProseExtension({});
+        this._viewExtension = new ProseExtension({
+            state: {
+                /**
+                 * This function is called once when the editor is loaded and 
+                 * sets up the initial state.
+                 */
+                init: (config, state) => {
+                    this._viewState = state;
+                    console.trace(`(${this.id}) initialized`); // TEST
+                    return;
+                },
+                /**
+                 * This function is invoked whenever a transaction in editor 
+                 * occurs, allowing the plugin to update its internal state.
+                 *
+                 * @param tr The transaction object representing the changes made to the editor state.
+                 * @param value The current plugin state before applying the transaction.
+                 * @param oldState The editor state before the transaction was applied.
+                 * @param newState The editor state after the transaction has been applied.
+                 * @returns The updated plugin state after applying the transaction.
+                 */
+                apply: (tr, value, oldState, newState) => {
+                    return value;
+                },
+            }
+        });
         this._eventBroadcaster = this.__register(new ProseEventBroadcaster(this._viewExtension.props));
 
         // event binding
@@ -59,5 +123,9 @@ export abstract class EditorExtension extends Disposable {
 
     public getViewExtension(): ProseExtension {
         return this._viewExtension;
+    }
+
+    public getViewState(): Result<ProseEditorState, Error> {
+        return this._viewState ? ok(this._viewState) : err(new Error(`The editor extension (${this.id}) is not initialized.`));
     }
 }
