@@ -25,8 +25,8 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
     // register toggle mark commands
     {
         const toggleMarkConfigs: [string, string[]][] = [
-            [MarkEnum.Strong, ['Ctrl+b', 'Ctrl+B', 'Meta+b', 'Meta+B']],
-            [MarkEnum.Em, ['Ctrl+i', 'Ctrl+I', 'Meta+i', 'Meta+I']],
+            [MarkEnum.Strong, ['Ctrl+B', 'Meta+B']],
+            [MarkEnum.Em, ['Ctrl+I', 'Meta+I']],
             [MarkEnum.Codespan, ['Ctrl+`', 'Meta+`']],
         ];
         toggleMarkConfigs.forEach(([markID, shortcuts]) => {
