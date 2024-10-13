@@ -42,7 +42,10 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
                 { id: toggleCmdID, when: CreateContextKeyExpr.Equal('isEditorFocused', true) },
                 markType, 
                 undefined, 
-                undefined,
+                {
+                    removeWhenPresent: true,
+                    enterInlineAtoms: true,
+                },
             ), shortcuts);
         });
     }
@@ -569,21 +572,30 @@ export namespace EditorCommands {
             attrs: ProseAttrs | null = null, 
             options?: {
                 /**
+                 * @default true
                  * Controls whether, when part of the selected range has the 
-                 * mark already and part doesn't, the mark is removed (`true`, 
-                 * the default) or added (`false`).
+                 * mark already and part doesn't, the mark is removed (`true`) 
+                 * or added (`false`).
                  */
                 removeWhenPresent?: boolean;
                 /**
+                 * @default true
                  * When set to false, this will prevent the command from acting 
                  * on the content of inline nodes marked as [atoms](#model.NodeSpec.atom) 
                  * that are completely covered by a selection range.
+                 * 
+                 * In ProseMirror, an atom is a type of node that is considered 
+                 * indivisible (like an image or an emoji) and cannot be split 
+                 * or modified internally by typical editing operations. When a 
+                 * node is marked as an atom, it means that even if you select 
+                 * part of the content that covers this node, the node should 
+                 * not be edited or split up.
                  */
                 enterInlineAtoms?: boolean;
             }
         ): Command {
-            const removeWhenPresent = options?.removeWhenPresent !== false;
-            const enterAtoms = options?.enterInlineAtoms !== false;
+            const removeWhenPresent = options?.removeWhenPresent ?? true;
+            const enterAtoms = options?.enterInlineAtoms ?? true;
 
             return new class extends EditorCommandBase {
 
