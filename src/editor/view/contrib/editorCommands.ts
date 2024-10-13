@@ -1,6 +1,6 @@
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { Constructor } from "src/base/common/utilities/type";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
 import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
@@ -20,6 +20,7 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension):
     extension.registerCommand(EditorCommands.Composite.Backspace, ['Backspace']);
     extension.registerCommand(EditorCommands.Composite.Delete, ['Delete']);
     extension.registerCommand(EditorCommands.Composite.SelectAll, ['Meta+A', 'Ctrl+A']);
+    extension.registerCommand(EditorCommands.Composite.ExitCodeBlock, ['Meta+Enter', 'Ctrl+Enter']);
 }
 
 /**
@@ -462,6 +463,60 @@ export namespace EditorCommands {
                 return true;
             }
         }
+
+        /**
+         * @description A command that allows users to exit from a code block by 
+         * creating a new default block (usually a paragraph) immediately after 
+         * the code block and moving the cursor to that new block. 
+         *
+         * The command performs the following steps:
+         * 1. It checks if the selection is entirely within a code block. This is 
+         *    determined by verifying if the parent node of the current selection 
+         *    has a `code` property in its spec, and ensuring the selection is not 
+         *    spanning across multiple nodes.
+         * 2. If the selection is inside a code block, it looks for the appropriate 
+         *    default block type (e.g., paragraph) to insert after the code block, 
+         *    ensuring the document structure allows for the new block to be placed 
+         *    after the code block.
+         * 3. If a valid block type is found and the document allows for the 
+         *    insertion, it creates the new block at the position right after the 
+         *    code block and moves the cursor into it.
+         */
+        export class ExitCodeBlock extends EditorCommandBase {
+    
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const { $head, $anchor } = state.selection;
+                const isInCodeBlock = $head.parent.type.spec.code;
+                const isSelectionCollapsed = $head.sameParent($anchor);
+
+                // Ensure the selection is entirely within a single code block
+                if (!isInCodeBlock || !isSelectionCollapsed) {
+                    return false;
+                }
+
+                const parentNode = $head.node(-1);
+                const nextNodeIndex = $head.indexAfter(-1);
+                const blockType = __defaultBlockAt(parentNode.contentMatchAt(nextNodeIndex));
+
+                // Check if the document structure allows inserting a new block after the code block
+                if (!blockType || !parentNode.canReplaceWith(nextNodeIndex, nextNodeIndex, blockType)) {
+                    return false;
+                }
+
+                // Proceed with creating the new block and updating the selection
+                if (dispatch) {
+                    const insertPosition = $head.after();
+                    const newBlock = blockType.createAndFill();
+                    const tr = state.tr.replaceWith(insertPosition, insertPosition, newBlock!);
+
+                    // Move the selection to the new block
+                    tr.setSelection(ProseSelection.near(tr.doc.resolve(insertPosition), 1));
+                    dispatch(tr.scrollIntoView());
+                }
+
+                return true;
+            }
+        }
     }
 
     /**
@@ -490,6 +545,7 @@ export namespace EditorCommands {
             Backspace = 'editor-backspace',
             Delete = 'editor-delete',
             SelectAll = 'editor-select-all',
+            ExitCodeBlock = 'editor-exit-code-block',
         }
         
         export const Enter = __buildCompositeCommand<ID.Enter>(
@@ -536,6 +592,17 @@ export namespace EditorCommands {
             },
             [
                 Basic.SelectAll,
+            ]
+        );
+        
+        // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
+        export const ExitCodeBlock = __buildCompositeCommand<ID.ExitCodeBlock>(
+            {
+                id: ID.ExitCodeBlock,
+                when: null,
+            },
+            [
+                Basic.ExitCodeBlock,
             ]
         );
     }
@@ -722,3 +789,12 @@ function __joinMaybeClear(state: ProseEditorState, $pos: IEditorResolvedPosition
     return true;
 }
 
+function __defaultBlockAt(match: ProseContentMatch) {
+    for (let i = 0; i < match.edgeCount; i++) {
+        const { type } = match.edge(i);
+        if (type.isTextblock && !type.hasRequiredAttrs()) {
+            return type;
+        }
+    }
+    return null;
+}
