@@ -423,7 +423,7 @@ class EditorExtensionController extends Disposable {
         return [...Array.from(this._extensions.entries(), ([id, extension]) => { return { id, extension }; })];
     }
 
-    public getExtensionBy(id: string): EditorExtension | undefined {
+    public getExtensionByID(id: string): EditorExtension | undefined {
         return this._extensions.get(id);
     }
 }
