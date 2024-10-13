@@ -1,8 +1,10 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
+import { ILogService } from "src/base/common/logger";
 import { err, ok, Result } from "src/base/common/result";
 import { ProseEditorState, ProseExtension } from "src/editor/common/proseMirror";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { EditorSchema } from "src/editor/viewModel/schema";
 
 /**
  * An interface only for {@link EditorExtension}.
@@ -32,7 +34,8 @@ export interface IEditorExtension extends Disposable {
     // [methods]
 
     getViewExtension(): ProseExtension;
-    getViewState(): Result<ProseEditorState, Error>;
+    getEditorState(): Result<ProseEditorState, Error>;
+    getEditorSchema(): Result<EditorSchema, Error>;
 }
 
 /**
@@ -71,7 +74,9 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     // [constructor]
 
-    constructor() {
+    constructor(
+        @ILogService protected readonly logService: ILogService,
+    ) {
         super();
         this._viewExtension = new ProseExtension({
             state: {
@@ -81,7 +86,11 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
                  */
                 init: (config, state) => {
                     this._viewState = state;
-                    console.trace(`(${this.id}) initialized`); // TEST
+
+                    this.logService.trace(this.id, `Extension initializing...`);
+                    this.init(state);
+                    this.logService.trace(this.id, `Extension initialized.`);
+
                     return;
                 },
                 /**
@@ -119,13 +128,21 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
         }
     }
 
+    // [abstract methods]
+
+    protected abstract init(state: ProseEditorState): void;
+
     // [public methods]
 
     public getViewExtension(): ProseExtension {
         return this._viewExtension;
     }
 
-    public getViewState(): Result<ProseEditorState, Error> {
+    public getEditorState(): Result<ProseEditorState, Error> {
         return this._viewState ? ok(this._viewState) : err(new Error(`The editor extension (${this.id}) is not initialized.`));
+    }
+    
+    public getEditorSchema(): Result<EditorSchema, Error> {
+        return this._viewState ? ok(<EditorSchema>this._viewState.schema) : err(new Error(`The editor extension (${this.id}) is not initialized.`));
     }
 }

@@ -1,5 +1,7 @@
+import { EditorState } from "prosemirror-state";
 import { trySafe } from "src/base/common/error";
 import { Shortcut } from "src/base/common/keyboard";
+import { ILogService } from "src/base/common/logger";
 import { EditorExtensionIDs } from "src/editor/common/extension/builtInExtension";
 import { EditorExtension, IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { EditorCommands, registerBasicEditorCommands } from "src/editor/view/contrib/editorCommands";
@@ -44,13 +46,9 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
     constructor(
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @ICommandService commandService: ICommandService,
+        @ILogService logService: ILogService,
     ) {
-        super();
-        
-        /**
-         * Binds predefined commands to their respective shortcuts.
-         */
-        registerBasicEditorCommands(this);
+        super(logService);
         
         /**
          * Keydown: when key is pressing in the editor:
@@ -87,6 +85,14 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
     }
 
     // [public methods]
+
+    protected override init(state: EditorState): void {
+        
+        /**
+         * Binds predefined commands to their respective shortcuts.
+         */
+        registerBasicEditorCommands(this, this.logService);
+    }
 
     public registerCommand(command: Command, shortcuts: string[]): void {
         /**
