@@ -40,7 +40,6 @@ export interface IEditorExtension extends Disposable {
 
 /**
  * // TODO
- * // REVIEW: maybe support optional construction to either enable or disable the internal view extension. Maybe not every editor extension require views.
  */
 export abstract class EditorExtension<TStateType = void> extends Disposable implements IEditorExtension {
     
@@ -124,6 +123,7 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
                     destroy: () => {
                         this.logService.trace(this.id, `Extension view destroying...`);
                         this.onViewDestroy(view);
+                        this._viewState = undefined;
                         this.logService.trace(this.id, `Extension view destroyed.`);
                     },
                     

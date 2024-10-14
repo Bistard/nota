@@ -86,7 +86,7 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
         }));
     }
 
-    // [public methods]
+    // [protected override methods]
 
     protected onStateInit(state: EditorState): void {
         
@@ -109,6 +109,8 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
         this._commandKeybinding.clear();
         this._commandSet.clear();
     }
+
+    // [public methods]
 
     public registerCommand(command: Command, shortcuts: string[]): void {
         this._commandSet.add(command.id);
