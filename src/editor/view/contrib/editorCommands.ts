@@ -21,41 +21,49 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
  * @description A set of default editor command configurations.
  */
 export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService): void {
-    
-    /**
-     * Register Toggle Mark Commands.
-     * @note These commands need to be constructed after the editor and schema 
-     * are initialized.
-     */
-    {
-        const schema = extension.getEditorSchema().unwrap();
-        const toggleMarkConfigs: [string, string[]][] = [
-            [MarkEnum.Strong, ['Ctrl+B', 'Meta+B']],
-            [MarkEnum.Em, ['Ctrl+I', 'Meta+I']],
-            [MarkEnum.Codespan, ['Ctrl+`', 'Meta+`']],
-        ];
+    __registerToggleMarkCommands(extension, logService);
+    __registerHeadingCommands(extension);
+    __registerOtherCommands(extension);
+}
 
-        toggleMarkConfigs.forEach(([markID, shortcuts]) => {
-            const toggleCmdID = `editor-toggle-mark-${markID}`;
-            const markType = schema.getMarkType(markID);
-            
-            if (!markType) {
-                logService.warn(extension.id, `Cannot register the editor command (${toggleCmdID}) because the mark type does not exists in the editor schema.`);
-                return;
-            }
-    
-            extension.registerCommand(EditorCommands.createToggleMarkCommand(
-                { id: toggleCmdID, when: CreateContextKeyExpr.Equal('isEditorFocused', true) },
-                markType, 
-                undefined, 
-                {
-                    removeWhenPresent: true,
-                    enterInlineAtoms: true,
-                },
-            ), shortcuts);
-        });
+/**
+ * @description Register Toggle Mark Commands.
+ * @note These commands need to be constructed after the editor and schema 
+ * are initialized.
+ */
+function __registerToggleMarkCommands(extension: IEditorCommandExtension, logService: ILogService): void {
+    const schema = extension.getEditorSchema().unwrap();
+    const toggleMarkConfigs: [string, string[]][] = [
+        [MarkEnum.Strong, ['Ctrl+B', 'Meta+B']],
+        [MarkEnum.Em, ['Ctrl+I', 'Meta+I']],
+        [MarkEnum.Codespan, ['Ctrl+`', 'Meta+`']],
+    ];
+    for (const [markID, shortcuts] of toggleMarkConfigs) {
+        const toggleCmdID = `editor-toggle-mark-${markID}`;
+        const markType = schema.getMarkType(markID);
+        
+        if (!markType) {
+            logService.warn(extension.id, `Cannot register the editor command (${toggleCmdID}) because the mark type does not exists in the editor schema.`);
+            continue;
+        }
+
+        extension.registerCommand(EditorCommands.createToggleMarkCommand(
+            { id: toggleCmdID, when: CreateContextKeyExpr.Equal('isEditorFocused', true) },
+            markType, 
+            undefined, 
+            {
+                removeWhenPresent: true,
+                enterInlineAtoms: true,
+            },
+        ), shortcuts);
     }
+}
 
+function __registerHeadingCommands(extension: IEditorCommandExtension): void {
+
+}
+
+function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             { 
                 id: EditorCommands.ID.Enter, 
@@ -110,7 +118,7 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
         ), 
         ['Meta+A', 'Ctrl+A']
     );
-    
+
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
     extension.registerCommand(__buildEditorCommand(
             {
