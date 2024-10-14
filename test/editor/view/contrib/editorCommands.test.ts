@@ -58,7 +58,7 @@ function execCommand(doc: ProseNode, cmd: EditorCommandBase, result: ProseNode |
 suite.skip('editorCommands-test', () => {
     
     suite('DeleteSelection', () => {
-        const cmd = new EditorCommands.Basic.DeleteSelection(nullObject());
+        const cmd = new EditorCommands.DeleteSelection(nullObject());
 
         test('deletes part of a text node', () => {
             execCommand(
@@ -97,7 +97,7 @@ suite.skip('editorCommands-test', () => {
     });
 
     suite('JoinBackward', () => {
-        const cmd = new EditorCommands.Basic.JoinBackward(nullObject());
+        const cmd = new EditorCommands.JoinBackward(nullObject());
         
         test('can join paragraphs', () =>
             execCommand(
