@@ -2,7 +2,6 @@ import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/v
 import { ProseEditorView, ProseEditorState, ProseNode, ProseExtension, ProseSchema } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { fillMapFromArray } from "src/base/common/structures/map";
-import { exampleSetup } from "prosemirror-example-setup";
 
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
@@ -141,12 +140,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             schema: schema,
             doc: document ?? undefined,
             plugins: extensions,
-            // plugins: exampleSetup({ 
-            //     schema: schema,
-            //     floatingMenu: true,
-            //     menuBar: false,
-            //     history: true,
-            // }),
         });
     }
 }
