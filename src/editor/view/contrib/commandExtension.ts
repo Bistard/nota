@@ -36,10 +36,11 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
 
     public readonly id = EditorExtensionIDs.Command;
 
-    /**
-     * Mapping from {@link Shortcut}-hashed code to command ID.
-     */
-    private readonly _commands = new Map<number, EditorCommands.Composite.ID>();
+    /** Mapping from {@link Shortcut}-hashed code to command ID. */
+    private readonly _commandKeybinding = new Map<number, EditorCommands.ID>();
+    
+    /** A set that contains all the editor commands' IDs */
+    private readonly _commandSet = new Set<string>();
 
     // [constructor]
 
@@ -49,7 +50,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
         @ILogService logService: ILogService,
     ) {
         super(logService);
-        
+
         /**
          * Keydown: when key is pressing in the editor:
          *  1. we look up for any registered command (from the map), 
@@ -59,7 +60,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
         this.__register(this.onKeydown(event => {
             const keyEvent = event.event;
             const shortcut = new Shortcut(keyEvent.ctrl, keyEvent.shift, keyEvent.alt, keyEvent.meta, keyEvent.key);
-            const commandID = this._commands.get(shortcut.toHashcode());
+            const commandID = this._commandKeybinding.get(shortcut.toHashcode());
             if (!commandID) {
                 return;
             }
@@ -95,6 +96,8 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
     }
 
     public registerCommand(command: Command, shortcuts: string[]): void {
+        this._commandSet.add(command.id);
+
         /**
          * Register the command to the standard {@link CommandService}.
          */
@@ -107,7 +110,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
         shortcuts
             .map(str => Shortcut.fromString(str).toHashcode())
             .forEach(hash => {
-                this._commands.set(hash, <EditorCommands.Composite.ID>command.id);
+                this._commandKeybinding.set(hash, <EditorCommands.ID>command.id);
             });
     }
 }
