@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { err, ok, Result } from "src/base/common/result";
-import { ProseEditorState, ProseExtension } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseEditorView, ProseExtension } from "src/editor/common/proseMirror";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
@@ -42,7 +42,7 @@ export interface IEditorExtension extends Disposable {
  * // TODO
  * // REVIEW: maybe support optional construction to either enable or disable the internal view extension. Maybe not every editor extension require views.
  */
-export abstract class EditorExtension extends Disposable implements IEditorExtension {
+export abstract class EditorExtension<TStateType = void> extends Disposable implements IEditorExtension {
     
     // [fields]
 
@@ -87,11 +87,11 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
                 init: (config, state) => {
                     this._viewState = state;
 
-                    this.logService.trace(this.id, `Extension initializing...`);
-                    this.init(state);
-                    this.logService.trace(this.id, `Extension initialized.`);
+                    this.logService.trace(this.id, `Extension state initializing...`);
+                    const initState = this.onStateInit(state);
+                    this.logService.trace(this.id, `Extension state initialized.`);
 
-                    return;
+                    return initState;
                 },
                 /**
                  * This function is invoked whenever a transaction in editor 
@@ -106,7 +106,35 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
                 apply: (tr, value, oldState, newState) => {
                     return value;
                 },
-            }
+            },
+            /**
+             * The function will be called when the extension's state is 
+             * associated with an editor view.
+             */
+            view: (view) => {
+                this.logService.trace(this.id, `Extension view initializing...`);
+                this.onViewInit(view);
+                this.logService.trace(this.id, `Extension view initialized.`);
+
+                return {
+                    /**
+                     * Called when the view is destroyed or receives a state 
+                     * with different plugins.
+                     */
+                    destroy: () => {
+                        this.logService.trace(this.id, `Extension view destroying...`);
+                        this.onViewDestroy(view);
+                        this.logService.trace(this.id, `Extension view destroyed.`);
+                    },
+                    
+                    /**
+                     * Called whenever the view's state is updated.
+                     */
+                    update: () => {
+                        
+                    },
+                };
+            },
         });
         this._eventBroadcaster = this.__register(new ProseEventBroadcaster(this._viewExtension.props));
 
@@ -130,7 +158,9 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     // [abstract methods]
 
-    protected abstract init(state: ProseEditorState): void;
+    protected abstract onStateInit(state: ProseEditorState): TStateType;
+    protected abstract onViewInit(view: ProseEditorView): void;
+    protected abstract onViewDestroy(view: ProseEditorView): void;
 
     // [public methods]
 

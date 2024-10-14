@@ -1,4 +1,5 @@
 import { EditorState } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
 import { trySafe } from "src/base/common/error";
 import { Shortcut } from "src/base/common/keyboard";
 import { ILogService } from "src/base/common/logger";
@@ -30,7 +31,7 @@ export interface IEditorCommandExtension extends IEditorExtension {
  * shortcuts. This class binds commands to specific shortcuts and registers 
  * these commands within the {@link CommandService}.
  */
-export class EditorCommandExtension extends EditorExtension implements IEditorCommandExtension {
+export class EditorCommandExtension extends EditorExtension<void> implements IEditorCommandExtension {
 
     // [fields]
 
@@ -87,12 +88,17 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
 
     // [public methods]
 
-    protected override init(state: EditorState): void {
+    protected onStateInit(state: EditorState): void {
         
         /**
          * Binds predefined commands to their respective shortcuts.
          */
         registerBasicEditorCommands(this, this.logService);
+    }
+
+    protected override onViewInit(view: EditorView): void {}
+    protected override onViewDestroy(view: EditorView): void {
+        // TODO: unregister editor commands
     }
 
     public registerCommand(command: Command, shortcuts: string[]): void {
