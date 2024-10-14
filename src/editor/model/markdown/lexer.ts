@@ -60,7 +60,9 @@ export class MarkdownLexer implements IMarkdownLexer {
     // [public methods]
 
     public lex(text: string): EditorToken[] {
-        const tokens = marked.lexer(text, {});
+        const tokens = marked.lexer(text, {
+            silent: false,
+        });
         return tokens;
     }
 

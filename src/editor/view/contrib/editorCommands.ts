@@ -894,7 +894,8 @@ function __findCutAfter($pos: IEditorResolvedPosition): IEditorResolvedPosition 
 function __deleteBarrier(state: ProseEditorState, $cut: IEditorResolvedPosition, dispatch: ((tr: ProseTransaction) => void) | undefined, dir: number) {
     const before = $cut.nodeBefore!;
     const after = $cut.nodeAfter!; 
-    let conn, match; // TODO: type
+    let conn: readonly ProseNodeType[] | null;
+    let match: ProseContentMatch;
 
     const isolated = before.type.spec.isolating || after.type.spec.isolating;
     if (!isolated && __joinMaybeClear(state, $cut, dispatch)) {
@@ -910,7 +911,7 @@ function __deleteBarrier(state: ProseEditorState, $cut: IEditorResolvedPosition,
             let wrap = ProseFragment.empty;
 
             for (let i = conn.length - 1; i >= 0; i--) {
-                wrap = ProseFragment.from(conn[i].create(null, wrap));
+                wrap = ProseFragment.from(conn[i]!.create(null, wrap));
             }
 
             wrap = ProseFragment.from(before.copy(wrap));
