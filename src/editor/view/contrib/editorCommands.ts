@@ -1,7 +1,7 @@
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
-import { MarkEnum } from "src/editor/common/markdown";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange } from "src/editor/common/proseMirror";
+import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
 import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
@@ -22,7 +22,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
  */
 export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService): void {
     __registerToggleMarkCommands(extension, logService);
-    __registerHeadingCommands(extension);
+    __registerHeadingCommands(extension, logService);
     __registerOtherCommands(extension);
 }
 
@@ -48,9 +48,9 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
         }
 
         extension.registerCommand(EditorCommands.createToggleMarkCommand(
-            { id: toggleCmdID, when: CreateContextKeyExpr.Equal('isEditorFocused', true) },
+            { id: toggleCmdID, when: _whenEditorFocused },
             markType, 
-            undefined, 
+            null, // attrs
             {
                 removeWhenPresent: true,
                 enterInlineAtoms: true,
@@ -59,14 +59,36 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
     }
 }
 
-function __registerHeadingCommands(extension: IEditorCommandExtension): void {
+/**
+ * @description Register Toggle Heading Commands. Ctrl+(1-6) will toggle the 
+ * block into Heading block node.
+ * @note These commands need to be constructed after the editor and schema 
+ * are initialized.
+ */
+function __registerHeadingCommands(extension: IEditorCommandExtension, logService: ILogService): void {
+    const schema = extension.getEditorSchema().unwrap();
+    const headingCmdID = `editor-toggle-heading`;
+    
+    const nodeType = schema.getNodeType(TokenEnum.Heading);
+    if (!nodeType) {
+        logService.warn(extension.id, `Cannot register the editor command (${headingCmdID}) because the token type does not exists in the editor schema.`);
+        return;
+    }
 
+    for (let level = 1; level <= 6; level++) {
+        const cmdID = `${headingCmdID}-${level}`;
+        extension.registerCommand(EditorCommands.createSetBlockCommand(
+            { id: cmdID, when: _whenEditorFocused },
+            nodeType,
+            { level: level }, // attrs
+        ), [`Ctrl+${level}`]);
+    }
 }
 
 function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             { 
-                id: EditorCommands.ID.Enter, 
+                id: 'editor-enter', 
                 when: null,
             }, 
             [
@@ -81,7 +103,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         
     extension.registerCommand(__buildEditorCommand(
             { 
-                id: EditorCommands.ID.Backspace, 
+                id: 'editor-backspace', 
                 when: null,
             }, 
             [
@@ -95,7 +117,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
 
     extension.registerCommand(__buildEditorCommand(
             {
-                id: EditorCommands.ID.Delete,
+                id: 'editor-delete',
                 when: null,
             },
             [
@@ -109,7 +131,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
 
     extension.registerCommand(__buildEditorCommand(
             {
-                id: EditorCommands.ID.SelectAll,
+                id: 'editor-select-all',
                 when: null,
             },
             [
@@ -122,7 +144,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
     extension.registerCommand(__buildEditorCommand(
             {
-                id: EditorCommands.ID.ExitCodeBlock,
+                id: 'editor-exit-code-block',
                 when: null,
             },
             [
@@ -134,7 +156,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
 }
 
 const _whenEditorFocused = CreateContextKeyExpr.Equal('isEditorFocused', true);
-function __buildEditorCommand<TID extends EditorCommands.ID>(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command<TID> {
+function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command {
     const editorSchema = { 
         ...schema,
         when: CreateContextKeyExpr.And(_whenEditorFocused, schema.when),
@@ -683,7 +705,6 @@ export namespace EditorCommands {
         const enterAtoms = options?.enterInlineAtoms ?? true;
 
         return new class extends EditorCommandBase {
-
             public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
                 const { empty, $cursor } = state.selection as ProseTextSelection;
                 let ranges = state.selection.ranges;
@@ -747,14 +768,72 @@ export namespace EditorCommands {
     }
 
     /**
-     * The identifiers for all the composite commands.
+     * @description A command that set the specified block type on the current 
+     * selection. 
+     * 
+     * The command performs the following steps:
+     * 1. It checks if the selection contains a block that can be replaced with the target node type.
+     * 2. If a suitable block is found, it either sets the block type or retains the current type, depending on the state and attributes.
+     * 3. The block is applied across the selection range, and any required adjustments are made to ensure consistent application.
      */
-    export const enum ID {
-        Enter = 'editor-enter',
-        Backspace = 'editor-backspace',
-        Delete = 'editor-delete',
-        SelectAll = 'editor-select-all',
-        ExitCodeBlock = 'editor-exit-code-block',
+    export function createSetBlockCommand<TType extends ProseNodeType>(
+        schema: ICommandSchema, 
+        nodeType: TType, 
+        attrs: ProseAttrs | null = null
+    ): Command {
+        return new class extends EditorCommandBase {
+            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                let applicable = false;
+
+                // Step 1: Check if the block type can be applied to any node in the selection ranges
+                for (const range of state.selection.ranges) {
+                    const { $from, $to } = range;
+                    state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+                        
+                        // Exit early if already applicable
+                        if (applicable) {
+                            return false; 
+                        }
+
+                        // Check if the current node can be replaced with the target nodeType
+                        if (!node.isTextblock || node.hasMarkup(nodeType, attrs)) {
+                            return;
+                        }
+
+                        // If the node type matches, mark it as applicable.
+                        if (node.type === nodeType) {
+                            applicable = true;
+                        } else {
+                            const $pos = state.doc.resolve(pos);
+                            const index = $pos.index();
+                            applicable = $pos.parent.canReplaceWith(index, index + 1, nodeType);
+                        }
+                    });
+
+                    // Exit early if we already found an applicable node
+                    if (applicable) {
+                        break;
+                    }
+                }
+
+                // If no applicable node was found, exit without making any changes
+                if (!applicable) {
+                    return false;
+                }
+
+                // Step 2: If dispatch is provided, apply the block type to the selection ranges
+                if (dispatch) {
+                    const tr = state.tr;
+                    for (const range of state.selection.ranges) {
+                        const { $from, $to } = range;
+                        tr.setBlockType($from.pos, $to.pos, nodeType, attrs);
+                    }
+                    dispatch(tr.scrollIntoView());
+                }
+
+                return true;
+            }
+        }(schema);
     }
 }
 

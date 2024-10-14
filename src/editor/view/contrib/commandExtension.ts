@@ -37,7 +37,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
     public readonly id = EditorExtensionIDs.Command;
 
     /** Mapping from {@link Shortcut}-hashed code to command ID. */
-    private readonly _commandKeybinding = new Map<number, EditorCommands.ID>();
+    private readonly _commandKeybinding = new Map<number, string>();
     
     /** A set that contains all the editor commands' IDs */
     private readonly _commandSet = new Set<string>();
@@ -110,7 +110,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
         shortcuts
             .map(str => Shortcut.fromString(str).toHashcode())
             .forEach(hash => {
-                this._commandKeybinding.set(hash, <EditorCommands.ID>command.id);
+                this._commandKeybinding.set(hash, command.id);
             });
     }
 }
