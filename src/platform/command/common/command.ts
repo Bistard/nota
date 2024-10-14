@@ -107,7 +107,7 @@ export interface ICommand {
  * // type safety (ensuring a 'number' must be provided)
  * commandService.executeCommand(AllCommands.MyCommand, 100);
  */
-export abstract class Command<ID extends string = string> implements ICommand {
+export class Command<ID extends string = string> implements ICommand {
 
     // [field]
 
@@ -156,7 +156,9 @@ export abstract class Command<ID extends string = string> implements ICommand {
     /**
      * The encapsulated implementation.
      */
-    public abstract run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean>;
+    public run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean> {
+        return false;
+    }
 }
 
 /**
@@ -176,7 +178,7 @@ export class ChainCommand<ID extends string = string> extends Command<ID> {
         this._commands = commands;
     }
 
-    public run(provider: IServiceProvider, ...args: any[]): boolean {
+    public override run(provider: IServiceProvider, ...args: any[]): boolean {
         const contextService = provider.getOrCreateService(IContextService);
 
         for (const cmd of this._commands) {
@@ -196,7 +198,7 @@ export class ChainCommand<ID extends string = string> extends Command<ID> {
 /**
  * @description A helpers to construct a {@link ChainCommand} easily.
  */
-export function buildChainCommand<ID extends string = string>(schema: ICommandSchema, ctors: Constructor<Command>[]): ChainCommand<ID> {
+export function buildChainCommand<ID extends string = string>(schema: ICommandSchema, ctors: (typeof Command)[]): ChainCommand<ID> {
     return new ChainCommand(
         schema,
         [
