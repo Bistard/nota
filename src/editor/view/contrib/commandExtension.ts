@@ -4,7 +4,7 @@ import { Shortcut } from "src/base/common/keyboard";
 import { ILogService } from "src/base/common/logger";
 import { EditorExtensionIDs } from "src/editor/common/extension/builtInExtension";
 import { EditorExtension, IEditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommands, registerBasicEditorCommands } from "src/editor/view/contrib/editorCommands";
+import { registerBasicEditorCommands } from "src/editor/view/contrib/editorCommands";
 import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
