@@ -98,7 +98,16 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
 
     protected override onViewInit(view: EditorView): void {}
     protected override onViewDestroy(view: EditorView): void {
-        // TODO: unregister editor commands
+        const registrant = this.registrantService.getRegistrant(RegistrantType.Command);
+        
+        // unregister all the editor commands
+        for (const registeredID of this._commandSet.values()) {
+            registrant.unregisterCommand(registeredID);
+        }
+
+        // cache cleanup
+        this._commandKeybinding.clear();
+        this._commandSet.clear();
     }
 
     public registerCommand(command: Command, shortcuts: string[]): void {
