@@ -88,7 +88,7 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
 
     // [protected override methods]
 
-    protected onStateInit(state: EditorState): void {
+    protected onViewStateInit(state: EditorState): void {
         
         /**
          * Binds predefined commands to their respective shortcuts.

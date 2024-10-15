@@ -98,7 +98,11 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     public render(document: ProseNode): void {
         const schema = this._ctx.viewModel.getSchema();
         const extensions = this.__getCurrentViewExtensions();
-        const newState = EditorViewProxy.__createNewViewStateFrom(schema, extensions, document);
+        const newState = ProseEditorState.create({
+            schema: schema,
+            doc: document,
+            plugins: extensions,
+        });
         this._view.updateState(newState);
     }
 

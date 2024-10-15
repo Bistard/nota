@@ -80,14 +80,14 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
         this._viewExtension = new ProseExtension({
             state: {
                 /**
-                 * This function is called once when the editor is loaded and 
-                 * sets up the initial state.
+                 * This function will be called once when an editor state is 
+                 * created by {@link EditorState.create()}.
                  */
                 init: (config, state) => {
                     this._viewState = state;
 
                     this.logService.trace(this.id, `Extension state initializing...`);
-                    const initState = this.onStateInit(state);
+                    const initState = this.onViewStateInit(state);
                     this.logService.trace(this.id, `Extension state initialized.`);
 
                     return initState;
@@ -103,35 +103,27 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
                  * @returns The updated plugin state after applying the transaction.
                  */
                 apply: (tr, value, oldState, newState) => {
+                    console.log('state apply');
                     return value;
                 },
             },
-            /**
-             * The function will be called when the extension's state is 
-             * associated with an editor view.
-             */
+            // Will be called when the state is associated with an {@link ProseEditorView}.
             view: (view) => {
                 this.logService.trace(this.id, `Extension view initializing...`);
                 this.onViewInit(view);
                 this.logService.trace(this.id, `Extension view initialized.`);
 
                 return {
-                    /**
-                     * Called when the view is destroyed or receives a state 
-                     * with different plugins.
-                     */
+                    // Called when the view is destroyed
                     destroy: () => {
                         this.logService.trace(this.id, `Extension view destroying...`);
                         this.onViewDestroy(view);
                         this._viewState = undefined;
                         this.logService.trace(this.id, `Extension view destroyed.`);
                     },
-                    
-                    /**
-                     * Called whenever the view's state is updated.
-                     */
+                    // Called whenever the view's state is updated.
                     update: () => {
-                        
+                        console.log('view update');
                     },
                 };
             },
@@ -158,8 +150,22 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
 
     // [abstract methods]
 
-    protected abstract onStateInit(state: ProseEditorState): TStateType;
+    /**
+     * @description This function will be called once when an editor state is 
+     * created by {@link EditorState.create()}.
+     */
+    protected abstract onViewStateInit(state: ProseEditorState): TStateType;
+
+    /**
+     * @description This function triggers when the extension is bounded with
+     * the {@link ProseEditorView}.
+     */
     protected abstract onViewInit(view: ProseEditorView): void;
+
+    /**
+     * @description This function triggers when the {@link ProseEditorView} is
+     * destroyed.
+     */
     protected abstract onViewDestroy(view: ProseEditorView): void;
 
     // [public methods]
