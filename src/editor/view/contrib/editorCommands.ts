@@ -1,10 +1,9 @@
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
 import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
-import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
 import { EditorSchema } from "src/editor/viewModel/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -565,10 +564,10 @@ export namespace EditorCommands {
     export class SelectNodeBackward extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
-            const $head = new EditorResolvedPosition(state.selection.$head);
+            const $head = state.selection.$head;
             const ifEmpty = state.selection.empty;
-
-            let $cut: IEditorResolvedPosition | null = new EditorResolvedPosition($head);
+            
+            let $cut: ProseResolvedPos | null = $head;
             if (!ifEmpty) {
                 return false;
             }
@@ -609,8 +608,8 @@ export namespace EditorCommands {
                 return false;
             }
 
-            const $head = new EditorResolvedPosition(state.selection.$head);
-            let $cut: IEditorResolvedPosition | null = new EditorResolvedPosition($head);
+            const $head = state.selection.$head;
+            let $cut: ProseResolvedPos | null = $head;
 
             if ($head.parent.isTextblock) {
                 if (view ? !view.endOfTextblock("forward", state) : $head.parentOffset < $head.parent.content.size) {
@@ -882,7 +881,7 @@ export namespace EditorCommands {
     export class SelectParent extends EditorCommandBase {
 
         public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            const from = new EditorResolvedPosition(state.selection.$from);
+            const from = state.selection.$from;
             const ancestorDepth = from.getCommonAncestorDepth(state.selection.to);
             
             /**
@@ -908,23 +907,23 @@ export namespace EditorCommands {
     }
 }
 
-function __atBlockStart(state: ProseEditorState, view?: ProseEditorView): IEditorResolvedPosition | null {
+function __atBlockStart(state: ProseEditorState, view?: ProseEditorView): ProseResolvedPos | null {
     const { $cursor } = <ProseTextSelection>state.selection;
     if (!$cursor || (view ? !view.endOfTextblock("backward", state) : $cursor.parentOffset > 0)) {
         return null;
     }
-    return new EditorResolvedPosition($cursor);
+    return $cursor;
 }
 
-function __atBlockEnd(state: ProseEditorState, view?: ProseEditorView): IEditorResolvedPosition | null {
+function __atBlockEnd(state: ProseEditorState, view?: ProseEditorView): ProseResolvedPos | null {
     const { $cursor } = state.selection as ProseTextSelection;
     if (!$cursor || (view ? !view.endOfTextblock("forward", state) : $cursor.parentOffset < $cursor.parent.content.size)) {
         return null;
     }
-    return new EditorResolvedPosition($cursor);
+    return $cursor;
   }
 
-function __findCutBefore($pos: IEditorResolvedPosition): IEditorResolvedPosition | null {
+function __findCutBefore($pos: ProseResolvedPos): ProseResolvedPos | null {
     if ($pos.parent.type.spec.isolating) {
         return null;
     }
@@ -932,7 +931,7 @@ function __findCutBefore($pos: IEditorResolvedPosition): IEditorResolvedPosition
     for (let i = $pos.depth - 1; i >= 0; i--) {
         if ($pos.index(i) > 0) {
             const newPos = $pos.doc.resolve($pos.before(i + 1));
-            return new EditorResolvedPosition(newPos);
+            return newPos;
         }
 
         if ($pos.getParentNodeAt(i)!.type.spec.isolating) {
@@ -943,7 +942,7 @@ function __findCutBefore($pos: IEditorResolvedPosition): IEditorResolvedPosition
     return null;
 }
 
-function __findCutAfter($pos: IEditorResolvedPosition): IEditorResolvedPosition | null {
+function __findCutAfter($pos: ProseResolvedPos): ProseResolvedPos | null {
     if ($pos.parent.type.spec.isolating) {
         return null;
     }
@@ -952,7 +951,7 @@ function __findCutAfter($pos: IEditorResolvedPosition): IEditorResolvedPosition 
         const parent = $pos.node(i);
         if ($pos.index(i) + 1 < parent.childCount) {
             const newPos = $pos.doc.resolve($pos.after(i + 1));
-            return new EditorResolvedPosition(newPos);
+            return newPos;
         }
         if (parent.type.spec.isolating) {
             break;
@@ -962,7 +961,7 @@ function __findCutAfter($pos: IEditorResolvedPosition): IEditorResolvedPosition 
     return null;
   }
 
-function __deleteBarrier(state: ProseEditorState, $cut: IEditorResolvedPosition, dispatch: ((tr: ProseTransaction) => void) | undefined, dir: number) {
+function __deleteBarrier(state: ProseEditorState, $cut: ProseResolvedPos, dispatch: ((tr: ProseTransaction) => void) | undefined, dir: number) {
     const before = $cut.nodeBefore!;
     const after = $cut.nodeAfter!; 
     let conn: readonly ProseNodeType[] | null;
@@ -1062,7 +1061,7 @@ function __textblockAt(node: ProseNode, side: "start" | "end", only = false): bo
     return false;
 }
 
-function __joinMaybeClear(state: ProseEditorState, $pos: IEditorResolvedPosition, dispatch: ((tr: ProseTransaction) => void) | undefined): boolean {
+function __joinMaybeClear(state: ProseEditorState, $pos: ProseResolvedPos, dispatch: ((tr: ProseTransaction) => void) | undefined): boolean {
     const before = $pos.nodeBefore;
     const after = $pos.nodeAfter;
     const index = $pos.index();

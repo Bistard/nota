@@ -1,5 +1,4 @@
-import { ProseContentMatch, ProseEditorState, ProseNode, ProseNodeType } from "src/editor/common/proseMirror";
-import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
+import { ProseContentMatch, ProseEditorState, ProseNode, ProseNodeType, ProseResolvedPos } from "src/editor/common/proseMirror";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -43,12 +42,12 @@ export namespace ProseUtils {
         return node.nodeSize;
     }
 
-    export function getResolvedPositionAt(state: ProseEditorState, position: number): IEditorResolvedPosition {
-        return new EditorResolvedPosition(state.doc.resolve(position));
+    export function getResolvedPositionAt(state: ProseEditorState, position: number): ProseResolvedPos {
+        return state.doc.resolve(position);
     }
 
     export function getNodeAt(state: ProseEditorState, position: number): ProseNode {
-        return (new EditorResolvedPosition(state.doc.resolve(position))).getCurrNode();
+        return state.doc.resolve(position).getCurrNode();
     }
 
     export function getNextValidDefaultNodeTypeAt(node: ProseNode, position: number): ProseNodeType | null {
