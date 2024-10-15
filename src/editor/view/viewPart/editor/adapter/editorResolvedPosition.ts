@@ -65,11 +65,58 @@ export interface IEditorResolvedPosition extends ProseResolvedPos {
      * ```
      */
     getParentNodeAt(depth: number): ProseNode | undefined;
+
+    /**
+     * @description Finds the deepest common ancestor node between this position 
+     *              and the given position. The returned value is the depth at 
+     *              which both positions share the same parent node.
+     * 
+     * ### Example 1: Positions within the same section but different paragraphs
+     * 
+     * Consider a document structured as:
+     * 
+     * ```plaintext
+     * doc (depth 0)
+     * └── section (depth 1)
+     *     ├── paragraph (depth 2)
+     *     │   └── text "Hello" (depth 3)
+     *     └── paragraph (depth 2)
+     *         └── text "World" (depth 3)
+     * ```
+     * 
+     * ```js
+     * const resolvedPos1 = doc.resolve(2);   // Inside first paragraph ("Hello")
+     * const resolvedPos2 = doc.resolve(12);  // Inside second paragraph ("World")
+     * 
+     * // Since both positions are in different paragraphs but share the same section,
+     * // the common ancestor depth will be 1 (the section node).
+     * const sharedDepth = resolvedPos1.getCommonAncestorDepth(resolvedPos2.pos);
+     * console.log(sharedDepth);  // Output: 1
+     * ```
+     * 
+     * ### Example 2: One position is at the root and another is deep in the document
+     * 
+     * Consider a document structured similarly to Example 1. 
+     * 
+     * ```js
+     * const resolvedPos1 = doc.resolve(0);   // Position at the start of the document (root)
+     * const resolvedPos2 = doc.resolve(4);   // Inside first paragraph ("Hello")
+     * 
+     * // The only common ancestor is the root (depth 0), so the result is 0.
+     * const sharedDepth = resolvedPos1.getCommonAncestorDepth(resolvedPos2.pos);
+     * console.log(sharedDepth);  // Output: 0
+     * ```
+     * 
+     * @param pos The position to compare with this one.
+     * @returns The depth of the shared ancestor node, or 0 if the only common 
+     *          ancestor is the root node.
+     */
+    getCommonAncestorDepth(pos: number): number;
 }
 
 /**
  * @description An wrapper for {@link ProseResolvedPos}. Additionally with more
- * readable documentaions and APIs.
+ * readable documentations and APIs.
  */
 export class EditorResolvedPosition extends ProseResolvedPos implements IEditorResolvedPosition {
 
@@ -90,6 +137,10 @@ export class EditorResolvedPosition extends ProseResolvedPos implements IEditorR
 
     public getCurrNode(): ProseNode {
         return this.node(this.depth);
+    }
+
+    public getCommonAncestorDepth(pos: number): number {
+        return this.sharedDepth(pos);
     }
 }
 

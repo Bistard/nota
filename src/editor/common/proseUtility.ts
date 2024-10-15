@@ -27,7 +27,7 @@ import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view
 export namespace ProseUtils {
 
     /**
-     * @description Get the enitre document size.
+     * @description Get the entire document size.
      */
     export function getEntireDocumentSize(state: ProseEditorState): number {
         return state.doc.content.size;
