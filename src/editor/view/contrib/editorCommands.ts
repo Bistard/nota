@@ -7,6 +7,7 @@ import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExt
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
 import { EditorSchema } from "src/editor/viewModel/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
+import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
@@ -140,6 +141,18 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
             ]
         ), 
         ['Meta+A', 'Ctrl+A']
+    );
+    
+    extension.registerCommand(__buildEditorCommand(
+            {
+                id: 'editor-select-parent',
+                when: null,
+            },
+            [
+                EditorCommands.SelectParent
+            ]
+        ), 
+        ['Meta+Shift+A', 'Ctrl+Shift+A']
     );
 
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
@@ -860,6 +873,34 @@ export namespace EditorCommands {
             
             if (dispatch) {
                 dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
+            }
+
+            return true;
+        }
+    }
+    
+    export class SelectParent extends EditorCommandBase {
+
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+            const from = new EditorResolvedPosition(state.selection.$from);
+            const ancestorDepth = from.getCommonAncestorDepth(state.selection.to);
+            
+            /**
+             * No shared ancestor of the endpoints of the selections. 0 is 
+             * returned to represent the root is the only ancestor. We select
+             * the entire document.
+             */
+            if (ancestorDepth === 0) {
+                const commandService = provider.getOrCreateService(ICommandService);
+                return commandService.executeCommand('editor-select-all', state, dispatch);
+            }
+            
+            if (dispatch) {
+                // This is the position where the selection of the parent node will start.
+                const pos = from.before(ancestorDepth);
+                const newSelection = ProseNodeSelection.create(state.doc, pos);
+                const tr = state.tr.setSelection(newSelection);
+                dispatch(tr);
             }
 
             return true;
