@@ -5,6 +5,7 @@ import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelecti
 import { ProseUtils } from "src/editor/common/proseUtility";
 import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { EditorResolvedPosition, IEditorResolvedPosition } from "src/editor/view/viewPart/editor/adapter/editorResolvedPosition";
+import { EditorSchema } from "src/editor/viewModel/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
@@ -152,6 +153,19 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
             ]
         ), 
         ['Meta+Enter', 'Ctrl+Enter']
+    );
+
+    extension.registerCommand(__buildEditorCommand(
+            {
+                id: 'editor-insert-hard-break',
+                when: null,
+            },
+            [
+                EditorCommands.ExitCodeBlock,
+                EditorCommands.InsertHardBreak,
+            ]
+        ),
+        ['Shift+Enter', 'Ctrl+Enter', 'Meta+Enter']
     );
 }
 
@@ -834,6 +848,22 @@ export namespace EditorCommands {
                 return true;
             }
         }(schema);
+    }
+
+    export class InsertHardBreak extends EditorCommandBase {
+
+        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+            const br = (<EditorSchema>state.schema).getNodeType(TokenEnum.LineBreak);
+            if (!br) {
+                return false;
+            }
+            
+            if (dispatch) {
+                dispatch(state.tr.replaceSelectionWith(br.create()).scrollIntoView());
+            }
+
+            return true;
+        }
     }
 }
 

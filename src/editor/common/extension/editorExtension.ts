@@ -103,7 +103,6 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
                  * @returns The updated plugin state after applying the transaction.
                  */
                 apply: (tr, value, oldState, newState) => {
-                    console.log('state apply');
                     return value;
                 },
             },
@@ -123,7 +122,7 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
                     },
                     // Called whenever the view's state is updated.
                     update: () => {
-                        console.log('view update');
+                        
                     },
                 };
             },
