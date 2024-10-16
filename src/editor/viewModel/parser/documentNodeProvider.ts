@@ -30,7 +30,7 @@ import { EditorSchema, TOP_NODE_NAME } from "src/editor/viewModel/schema";
  * {@link EditorSchema} that defines a set of rules how the parsing tree will
  * be look like.
  * 
- * @warn Must invoke {@link DocumentNodeProvider.init} before access any data.
+ * @warn Must invoke {@link DocumentNodeProvider["init"]} before access any data.
  */
 export class DocumentNodeProvider {
 
@@ -47,9 +47,7 @@ export class DocumentNodeProvider {
 
     public static create(): { register: IO<DocumentNodeProvider> } {
         const provider = new DocumentNodeProvider();
-
         return {
-            
             /**
              * @description Registers all the valid document nodes.
              */

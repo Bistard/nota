@@ -112,7 +112,7 @@ export class Editor extends Component implements IEditorService {
             getBuiltInExtension(),
             {
                 mode: EditorType.Rich,
-                writable: false,
+                writable: true,
             },
         );
         this._editorWidget = editor;
