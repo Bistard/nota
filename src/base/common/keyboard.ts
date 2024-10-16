@@ -490,18 +490,20 @@ export class Shortcut {
     /**
      * @description Converts the string form of the shortcut to a {@link Shortcut}.
      * @example 'Ctrl+Shift+Alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
+     * @example 'ctrl+shift+alt+meta+R', 'SHIFT+CTRL+MEta+aLT+R', etc...
      */
     public static fromString(string: string): Shortcut {
         const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
         const parts = string.split('+');
         for (const part of parts) {
-            if (part === 'Ctrl') {
+            const lowerPart = part.toLowerCase();
+            if (lowerPart === 'ctrl') {
                 shortcut.ctrl = true;
-            } else if (part === 'Shift') {
+            } else if (lowerPart === 'shift') {
                 shortcut.shift = true;
-            } else if (part === 'Alt') {
+            } else if (lowerPart === 'alt') {
                 shortcut.alt = true;
-            } else if (part === 'Meta') {
+            } else if (lowerPart === 'meta') {
                 shortcut.meta = true;
             } else {
                 if (shortcut.key !== KeyCode.None) {

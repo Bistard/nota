@@ -91,9 +91,18 @@ suite('keyboard-test', () => {
             assert.strictEqual(Shortcut.fromString('Ctrl+abc').equal(Shortcut.None), true);
             assert.strictEqual(Shortcut.fromString('ctrl').equal(Shortcut.None), true);
             assert.strictEqual(Shortcut.fromString('00').equal(Shortcut.None), true);
+
+            // also work with lowercase
+            assert.strictEqual(Shortcut.fromString('ctrl+Tab').equal(new Shortcut(true, false, false, false, KeyCode.Tab)), true);
+            assert.strictEqual(Shortcut.fromString('ctrl').equal(new Shortcut(true, false, false, false, KeyCode.None)), true);
+            assert.strictEqual(Shortcut.fromString('ctrl+shift+alt+meta+R').equal(new Shortcut(true, true, true, true, KeyCode.KeyR)), true);
+            assert.strictEqual(Shortcut.fromString('SHIFT+CTRL+MEta+aLT+R').equal(new Shortcut(true, true, true, true, KeyCode.KeyR)), true);
+            assert.strictEqual(Shortcut.fromString('PageDown').equal(new Shortcut(false, false, false, false, KeyCode.PageDown)), true);
+            assert.strictEqual(Shortcut.fromString('CTrL+PageDown').equal(new Shortcut(true, false, false, false, KeyCode.PageDown)), true);
+            assert.strictEqual(Shortcut.fromString('SHiFt+AlT+0').equal(new Shortcut(false, true, true, false, KeyCode.Digit0)), true);
         });
 
-        const enum KeyModifer {
+        const enum KeyModifier {
             CtrlCmd = (1 << 11) >>> 0,
             Shift = (1 << 10) >>> 0,
             Alt = (1 << 9) >>> 0,
@@ -105,10 +114,10 @@ suite('keyboard-test', () => {
             const hashcode = shortcut.toHashcode();
             const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
 
-            const expectCtrlCmd = expected & KeyModifer.CtrlCmd;
-            const expectShift = expected & KeyModifer.Shift;
-            const expectAlt = expected & KeyModifer.Alt;
-            const expectWinCtrl = expected & KeyModifer.WinCtrl;
+            const expectCtrlCmd = expected & KeyModifier.CtrlCmd;
+            const expectShift = expected & KeyModifier.Shift;
+            const expectAlt = expected & KeyModifier.Alt;
+            const expectWinCtrl = expected & KeyModifier.WinCtrl;
 
             assert.strictEqual(converted.shift, Boolean(expectShift));
             assert.strictEqual(converted.alt, Boolean(expectAlt));
@@ -129,21 +138,21 @@ suite('keyboard-test', () => {
             }
             
             testHash(new Shortcut(false, false, false, false, KeyCode.Enter), KeyCode.Enter, true);
-			testHash(new Shortcut(false, false, false, true, KeyCode.Enter), KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(false, false, true, false, KeyCode.Enter), KeyModifer.Alt | KeyCode.Enter, true);
-			testHash(new Shortcut(false, false, true, true, KeyCode.Enter), KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(false, true, false, false, KeyCode.Enter), KeyModifer.Shift | KeyCode.Enter, true);
-			testHash(new Shortcut(false, true, false, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(false, true, true, false, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, true);
-			testHash(new Shortcut(false, true, true, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(true, false, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyCode.Enter, true);
-			testHash(new Shortcut(true, false, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(true, false, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyCode.Enter, true);
-			testHash(new Shortcut(true, false, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(true, true, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyCode.Enter, true);
-			testHash(new Shortcut(true, true, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, true);
-			testHash(new Shortcut(true, true, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, true);
-			testHash(new Shortcut(true, true, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, false, false, true, KeyCode.Enter), KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, false, true, false, KeyCode.Enter), KeyModifier.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(false, false, true, true, KeyCode.Enter), KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, false, false, KeyCode.Enter), KeyModifier.Shift | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, false, true, KeyCode.Enter), KeyModifier.Shift | KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, true, false, KeyCode.Enter), KeyModifier.Shift | KeyModifier.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(false, true, true, true, KeyCode.Enter), KeyModifier.Shift | KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, false, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, false, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, true, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(true, false, true, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, false, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, false, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyModifier.WinCtrl | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, true, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyModifier.Alt | KeyCode.Enter, true);
+			testHash(new Shortcut(true, true, true, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, true);
         });
 
         test('WINDOWS & LINUX - shortcut encoding & decoding', function () {
@@ -152,21 +161,21 @@ suite('keyboard-test', () => {
             }
 
             testHash(new Shortcut(false, false, false, false, KeyCode.Enter), KeyCode.Enter, false);
-			testHash(new Shortcut(false, false, false, true, KeyCode.Enter), KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(false, false, true, false, KeyCode.Enter), KeyModifer.Alt | KeyCode.Enter, false);
-			testHash(new Shortcut(false, false, true, true, KeyCode.Enter), KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(false, true, false, false, KeyCode.Enter), KeyModifer.Shift | KeyCode.Enter, false);
-			testHash(new Shortcut(false, true, false, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(false, true, true, false, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, false);
-			testHash(new Shortcut(false, true, true, true, KeyCode.Enter), KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(true, false, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyCode.Enter, false);
-			testHash(new Shortcut(true, false, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(true, false, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyCode.Enter, false);
-			testHash(new Shortcut(true, false, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(true, true, false, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyCode.Enter, false);
-			testHash(new Shortcut(true, true, false, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.WinCtrl | KeyCode.Enter, false);
-			testHash(new Shortcut(true, true, true, false, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyCode.Enter, false);
-			testHash(new Shortcut(true, true, true, true, KeyCode.Enter), KeyModifer.CtrlCmd | KeyModifer.Shift | KeyModifer.Alt | KeyModifer.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, false, false, true, KeyCode.Enter), KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, false, true, false, KeyCode.Enter), KeyModifier.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(false, false, true, true, KeyCode.Enter), KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, false, false, KeyCode.Enter), KeyModifier.Shift | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, false, true, KeyCode.Enter), KeyModifier.Shift | KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, true, false, KeyCode.Enter), KeyModifier.Shift | KeyModifier.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(false, true, true, true, KeyCode.Enter), KeyModifier.Shift | KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, false, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, false, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, true, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(true, false, true, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, false, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, false, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyModifier.WinCtrl | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, true, false, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyModifier.Alt | KeyCode.Enter, false);
+			testHash(new Shortcut(true, true, true, true, KeyCode.Enter), KeyModifier.CtrlCmd | KeyModifier.Shift | KeyModifier.Alt | KeyModifier.WinCtrl | KeyCode.Enter, false);
         });
     });
 
