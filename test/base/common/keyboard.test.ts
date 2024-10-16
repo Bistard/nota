@@ -85,11 +85,11 @@ suite('keyboard-test', () => {
             assert.strictEqual(Shortcut.fromString('PageDown').equal(new Shortcut(false, false, false, false, KeyCode.PageDown)), true);
             assert.strictEqual(Shortcut.fromString('Ctrl+PageDown').equal(new Shortcut(true, false, false, false, KeyCode.PageDown)), true);
             assert.strictEqual(Shortcut.fromString('Shift+Alt+0').equal(new Shortcut(false, true, true, false, KeyCode.Digit0)), true);
+            assert.strictEqual(Shortcut.fromString('ctrl').equal(new Shortcut(true, false, false, false, KeyCode.None)), true);
 
             assert.strictEqual(Shortcut.fromString('Shift+Tab+0').equal(Shortcut.None), true);
             assert.strictEqual(Shortcut.fromString('abc').equal(Shortcut.None), true);
             assert.strictEqual(Shortcut.fromString('Ctrl+abc').equal(Shortcut.None), true);
-            assert.strictEqual(Shortcut.fromString('ctrl').equal(Shortcut.None), true);
             assert.strictEqual(Shortcut.fromString('00').equal(Shortcut.None), true);
 
             // also work with lowercase

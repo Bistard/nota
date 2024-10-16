@@ -489,6 +489,8 @@ export class Shortcut {
 
     /**
      * @description Converts the string form of the shortcut to a {@link Shortcut}.
+     * @note If the string is invalid, {@link Shortcut.None} is returned.
+     * 
      * @example 'Ctrl+Shift+Alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
      * @example 'ctrl+shift+alt+meta+R', 'SHIFT+CTRL+MEta+aLT+R', etc...
      */

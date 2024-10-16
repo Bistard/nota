@@ -124,10 +124,14 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
         /**
          * Bind the shortcuts with the command.
          */
-        shortcuts
-            .map(str => Shortcut.fromString(str).toHashcode())
-            .forEach(hash => {
-                this._commandKeybinding.set(hash, command.id);
-            });
+        for (const str of shortcuts) {
+            const shortcut = Shortcut.fromString(str);
+            if (shortcut === Shortcut.None) {
+                this.logService.warn(this.id, `Editor command (${command.id}) with shortcut registration (${str}) fails.`);
+                continue;
+            }
+            const hash = shortcut.toHashcode();
+            this._commandKeybinding.set(hash, command.id);
+        }
     }
 }

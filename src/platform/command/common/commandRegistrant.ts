@@ -162,8 +162,9 @@ export class CommandRegistrant implements ICommandRegistrant {
     }
 
     public unregisterCommand(id: string): void {
-        this._commands.delete(id);
-        this.logService.trace('CommandRegistrant', `Command un-registered: '${id}'`);
+        if (this._commands.delete(id)) {
+            this.logService.trace('CommandRegistrant', `Command un-registered: '${id}'`);
+        }
     }
 
     public getCommand(id: string): ICommandBasicSchema | undefined {

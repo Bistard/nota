@@ -1,9 +1,9 @@
+import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
-import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
 import { EditorSchema } from "src/editor/viewModel/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
