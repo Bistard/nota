@@ -421,6 +421,12 @@ export interface IEditorModelOptions {
      * A prefix URI for any relative link token.
      */
     baseURI?: string;
+
+    /**
+     * Determine if the editor is writable. If false, it means the file is 
+     * readonly.
+     */
+    readonly writable: boolean;
 }
 
 export namespace IModelEvent {

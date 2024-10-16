@@ -51,6 +51,7 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
                      */
                     plugins: [],
                 }),
+                editable: () => context.options.writable.value,
             }
         );
 

@@ -4,7 +4,7 @@ import { IEditorViewOptions } from "src/editor/common/view";
 import { EditorType, IEditorViewModelOptions } from "src/editor/common/viewModel";
 
 /**
- * Consturctor option for 'EditorWidget'.
+ * Constructor option for 'EditorWidget'.
  */
 export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewModelOptions, IEditorViewOptions {
 
@@ -92,6 +92,7 @@ export class EditorModeOption<K extends EditorOptionEnum> extends BasicEditorOpt
 
 export const enum EditorOptionEnum {
     baseURI,
+    writable,
     mode,
     codeblockHighlight,
     ignoreHTML,
@@ -100,14 +101,15 @@ export const enum EditorOptionEnum {
 /**
  * The actual editor options that initially sets with all default values.
  */
-export const EditorOptions = {
+export const EditorDefaultOptions = {
     baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
+    writable:           new BooleanEditorOption(EditorOptionEnum.writable, 'writable', false, {}),
     mode:               new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
     codeblockHighlight: new BooleanEditorOption(EditorOptionEnum.codeblockHighlight, 'codeblockHighlight', true, {}),
     ignoreHTML:         new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
 };
 
-export type EditorOptionsType = typeof EditorOptions;
+export type EditorOptionsType = typeof EditorDefaultOptions;
 type FindEditorOptionKey<E extends EditorOptionEnum> = { [K in keyof EditorOptionsType]: EditorOptionsType[K]['ID'] extends E ? K : never }[keyof EditorOptionsType];
 type FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : never;
 

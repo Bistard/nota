@@ -9,6 +9,7 @@ import { Command, ICommandSchema, buildChainCommand } from "src/platform/command
 import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 
 /**
  * [FILE OUTLINE]
@@ -17,6 +18,9 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
  * {@link EditorCommandBase}
  * {@link EditorCommands}
  */
+
+const whenEditorReadonly = CreateContextKeyExpr.And(EditorContextKeys.editorFocusedContext, EditorContextKeys.isEditorReadonly);
+const whenEditorWritable = CreateContextKeyExpr.And(EditorContextKeys.editorFocusedContext, EditorContextKeys.isEditorWritable);
 
 /**
  * @description A set of default editor command configurations.
@@ -49,7 +53,7 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
         }
 
         extension.registerCommand(EditorCommands.createToggleMarkCommand(
-            { id: toggleCmdID, when: _whenEditorFocused },
+            { id: toggleCmdID, when: whenEditorWritable },
             markType, 
             null, // attrs
             {
@@ -68,7 +72,7 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
  */
 function __registerHeadingCommands(extension: IEditorCommandExtension, logService: ILogService): void {
     const schema = extension.getEditorSchema().unwrap();
-    const headingCmdID = `editor-toggle-heading`;
+    const headingCmdID = 'editor-toggle-heading';
     
     const nodeType = schema.getNodeType(TokenEnum.Heading);
     if (!nodeType) {
@@ -79,7 +83,7 @@ function __registerHeadingCommands(extension: IEditorCommandExtension, logServic
     for (let level = 1; level <= 6; level++) {
         const cmdID = `${headingCmdID}-${level}`;
         extension.registerCommand(EditorCommands.createSetBlockCommand(
-            { id: cmdID, when: _whenEditorFocused },
+            { id: cmdID, when: whenEditorWritable },
             nodeType,
             { level: level }, // attrs
         ), [`Ctrl+${level}`]);
@@ -90,7 +94,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             { 
                 id: 'editor-enter', 
-                when: null,
+                when: whenEditorWritable,
             }, 
             [
                 EditorCommands.InsertNewLineInCodeBlock,
@@ -105,7 +109,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             { 
                 id: 'editor-backspace', 
-                when: null,
+                when: whenEditorWritable,
             }, 
             [
                 EditorCommands.DeleteSelection,
@@ -119,7 +123,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             {
                 id: 'editor-delete',
-                when: null,
+                when: whenEditorWritable,
             },
             [
                 EditorCommands.DeleteSelection,
@@ -133,7 +137,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             {
                 id: 'editor-select-all',
-                when: null,
+                when: whenEditorReadonly,
             },
             [
                 EditorCommands.SelectAll
@@ -145,7 +149,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             {
                 id: 'editor-select-parent',
-                when: null,
+                when: whenEditorReadonly,
             },
             [
                 EditorCommands.SelectParent
@@ -158,7 +162,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             {
                 id: 'editor-exit-code-block',
-                when: null,
+                when: whenEditorReadonly,
             },
             [
                 EditorCommands.ExitCodeBlock
@@ -170,7 +174,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     extension.registerCommand(__buildEditorCommand(
             {
                 id: 'editor-insert-hard-break',
-                when: null,
+                when: whenEditorWritable,
             },
             [
                 EditorCommands.ExitCodeBlock,
@@ -181,21 +185,12 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     );
 }
 
-const _whenEditorFocused = CreateContextKeyExpr.Equal('isEditorFocused', true);
 function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command {
-    const editorSchema = { 
-        ...schema,
-        when: CreateContextKeyExpr.And(_whenEditorFocused, schema.when),
-    };
-
-    // only 1 command, simply instantiate it.
     if (ctors.length === 1) {
         const command = ctors[0]!;
-        return new command(editorSchema);
+        return new command(schema);
     }
-    
-    // more than 1 commands, build a chain command.
-    return buildChainCommand(editorSchema, ctors);
+    return buildChainCommand(schema, ctors);
 }
 
 /**

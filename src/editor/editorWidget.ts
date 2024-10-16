@@ -3,13 +3,13 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { Emitter, Event, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService, defaultLog } from "src/base/common/logger";
-import { Constructor, isNonNullable } from "src/base/common/utilities/type";
+import { Constructor, isDefined } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
+import { EditorDefaultOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -24,6 +24,12 @@ import { assert } from "src/base/common/utilities/panic";
  * An interface only for {@link EditorWidget}.
  */
 export interface IEditorWidget extends IProseEventBroadcaster {
+
+    /**
+     * Determine if the editor is readonly. If false, it means the file is 
+     * writable.
+     */
+    readonly readonly: boolean;
 
     /**
      * The current rendering mode of the view.
@@ -182,6 +188,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [getter]
 
+    get readonly(): boolean {
+        return !this._options.writable.value;
+    }
+
     get model(): IEditorModel {
         return assert(this._model);
     }
@@ -274,7 +284,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
-        const mixOptions = EditorOptions;
+        const mixOptions = EditorDefaultOptions;
         this.__updateOptions(mixOptions, newOption);
 
         this.logService.debug('EditorWidget', 'Editor initialized with configurations.', toJsonEditorOption(mixOptions));
@@ -285,15 +295,15 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         for (const [key, value] of Object.entries(newOption)) {
 
             // only updates the option if they both have the same key
-            if (isNonNullable(option[key])) {
-                const opt = option[key];
+            if (isDefined(option[key])) {
+                const opt: IEditorOption<any, any> = option[key];
                 opt.updateWith(value);
             }
         }
     }
 
     private __saveEditorOptions(): void {
-        const option: IEditorWidgetOptions = {};
+        const option = {};
         for (const [key, value] of Object.entries(this._options)) {
             option[key] = value.value ?? null;
         }
@@ -359,6 +369,8 @@ class EditorContextHub extends Disposable {
     // [context]
 
     private readonly focusedEditor: IContextKey<boolean>;
+    private readonly isEditorReadonly: IContextKey<boolean>;
+    private readonly isEditorWritable: IContextKey<boolean>;
     private readonly editorRenderMode: IContextKey<EditorType | null>;
 
     // [constructor]
@@ -370,6 +382,8 @@ class EditorContextHub extends Disposable {
         super();
 
         this.focusedEditor = contextService.createContextKey('isEditorFocused', false, 'Whether the editor is focused.');
+        this.isEditorReadonly = contextService.createContextKey('isEditorReadonly', editor.readonly, 'Whether the editor is currently readonly.');
+        this.isEditorWritable = contextService.createContextKey('isEditorWritable', !editor.readonly, 'Whether the editor is currently writable.');
         this.editorRenderMode = contextService.createContextKey('editorRenderMode', editor.renderMode, 'The render mode of the editor.');
 
         // Register auto update context listeners
