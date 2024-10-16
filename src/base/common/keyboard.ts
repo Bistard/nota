@@ -63,11 +63,11 @@ export namespace Keyboard {
      * @description Returns the corresponding {@link KeyCode}.
      * @param key The string form of the keycode or {@link KeyboardEvent.keycode}.
      */
-    export function toKeyCode(strkeyOrEventkey: string | number): KeyCode {
-        if (typeof strkeyOrEventkey === 'string') {
-            return keyCodeStringMap.getKeyCode(strkeyOrEventkey);
+    export function toKeyCode(strKeyOrEventKey: string | number): KeyCode {
+        if (typeof strKeyOrEventKey === 'string') {
+            return keyCodeStringMap.getKeyCode(strKeyOrEventKey);
         } else {
-            return keyCodeMap.map[strkeyOrEventkey] || KeyCode.None;
+            return keyCodeMap.map[strKeyOrEventKey] || KeyCode.None;
         }
     }
 
@@ -238,7 +238,7 @@ export const enum KeyCode {
     Backslash,      // /
     Semicolon,      // ;
     Quote,          // '
-    Backquote,      // `
+    BackQuote,      // `
     Comma,          // ,
     Period,         // .
     Slash,          // /
@@ -385,7 +385,7 @@ for (const [keycode, keycodeNum, keycodeStr] of <[number, number, string][]>
     [KeyCode.Backslash,    220, '\\'],
     [KeyCode.Semicolon,    186, ';'],
     [KeyCode.Quote,        222, '\''],
-    [KeyCode.Backquote,    192, '`'],
+    [KeyCode.BackQuote,    192, '`'],
     [KeyCode.Comma,        188, ','],
     [KeyCode.Period,       190, '.'],
     [KeyCode.Slash,        191, '/'],
@@ -454,7 +454,7 @@ export class Shortcut {
 
     /**
      * @description Returns the string form of the shortcut.
-     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
+     * @example 'Ctrl+shift+alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
      */
     public toString(): string {
         let mask = 0;
@@ -489,11 +489,10 @@ export class Shortcut {
 
     /**
      * @description Converts the string form of the shortcut to a {@link Shortcut}.
-     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
+     * @example 'Ctrl+Shift+Alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
      */
     public static fromString(string: string): Shortcut {
         const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
-
         const parts = string.split('+');
         for (const part of parts) {
             if (part === 'Ctrl') {
@@ -517,7 +516,6 @@ export class Shortcut {
                 }
             }
         }
-
         return shortcut;
     }
 

@@ -11,7 +11,7 @@ suite('keyboard-test', () => {
         assert.strictEqual(Keyboard.isModifier(KeyCode.Meta), true);
         assert.strictEqual(Keyboard.isModifier(KeyCode.KeyA), false);
         assert.strictEqual(Keyboard.isModifier(KeyCode.PageDown), false);
-        assert.strictEqual(Keyboard.isModifier(KeyCode.Backquote), false);
+        assert.strictEqual(Keyboard.isModifier(KeyCode.BackQuote), false);
         assert.strictEqual(Keyboard.isModifier(KeyCode.None), false);
         assert.strictEqual(Keyboard.isModifier(KeyCode.Digit0), false);
         assert.strictEqual(Keyboard.isModifier(KeyCode.Space), false);
@@ -24,7 +24,7 @@ suite('keyboard-test', () => {
         assert.strictEqual(Keyboard.toString(KeyCode.Meta), 'Meta');
         assert.strictEqual(Keyboard.toString(KeyCode.KeyA), 'A');
         assert.strictEqual(Keyboard.toString(KeyCode.PageDown), 'PageDown');
-        assert.strictEqual(Keyboard.toString(KeyCode.Backquote), '`');
+        assert.strictEqual(Keyboard.toString(KeyCode.BackQuote), '`');
         assert.strictEqual(Keyboard.toString(KeyCode.None), 'None');
         assert.strictEqual(Keyboard.toString(KeyCode.Digit0), '0');
         assert.strictEqual(Keyboard.toString(KeyCode.Space), 'Space');
@@ -37,7 +37,7 @@ suite('keyboard-test', () => {
         assert.strictEqual(Keyboard.toKeyCode('Meta'), KeyCode.Meta);
         assert.strictEqual(Keyboard.toKeyCode('A'), KeyCode.KeyA);
         assert.strictEqual(Keyboard.toKeyCode('PageDown'), KeyCode.PageDown);
-        assert.strictEqual(Keyboard.toKeyCode('`'), KeyCode.Backquote);
+        assert.strictEqual(Keyboard.toKeyCode('`'), KeyCode.BackQuote);
         assert.strictEqual(Keyboard.toKeyCode('None'), KeyCode.None);
         assert.strictEqual(Keyboard.toKeyCode('0'), KeyCode.Digit0);
         assert.strictEqual(Keyboard.toKeyCode('Space'), KeyCode.Space);
