@@ -32,11 +32,11 @@ export namespace Keyboard {
                     return false;
             }
         } else {
-            switch (key) {
-                case 'Ctrl':
-                case 'Shift':
-                case 'Alt':
-                case 'Meta':
+            switch (key.toLowerCase()) {
+                case 'ctrl':
+                case 'shift':
+                case 'alt':
+                case 'meta':
                     return true;
                 default:
                     return false;
