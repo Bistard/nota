@@ -105,12 +105,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     /**
      * Responsible for constructing a list of editor extensions
      */
-    private readonly _extensionController: EditorExtensionController;
+    private readonly _extensions: EditorExtensionController;
 
     /**
      * Responsible for initializing and managing the editor options.
      */
-    private readonly _optionController: EditorOptionController;
+    private readonly _options: EditorOptionController;
 
     // [events]
 
@@ -178,7 +178,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
-        @IContextService contextService: IContextService,
     ) {
         super();
 
@@ -188,19 +187,19 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._view = null;
         this._editorData = null;
 
-        this._optionController    = instantiationService.createInstance(EditorOptionController, options);
-        const editorContextHub    = instantiationService.createInstance(EditorContextHub, this);
-        this._extensionController = instantiationService.createInstance(EditorExtensionController, extensions);
+        this._options    = instantiationService.createInstance(EditorOptionController, options);
+        const contextHub = instantiationService.createInstance(EditorContextHub, this);
+        this._extensions = instantiationService.createInstance(EditorExtensionController, extensions);
 
         this.__registerListeners();
-        this.__register(editorContextHub);
-        this.__register(this._extensionController);
+        this.__register(contextHub);
+        this.__register(this._extensions);
     }
 
     // [getter]
 
     get readonly(): boolean {
-        return !this._optionController.getOptions().writable.value;
+        return !this._options.getOptions().writable.value;
     }
 
     get model(): IEditorModel {
@@ -228,7 +227,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }
 
         this.__detachModel();
-        const textModel = this.instantiationService.createInstance(EditorModel, source, this._optionController.getOptions());
+        const textModel = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
         await this.__attachModel(textModel);
     }
 
@@ -239,8 +238,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
-        this._optionController.updateOptions(newOption);
-        this._model?.updateOptions(this._optionController.getOptions());
+        this._options.updateOptions(newOption);
+        this._model?.updateOptions(this._options.getOptions());
     }
 
     // [private helper methods]
@@ -259,14 +258,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._viewModel = this.instantiationService.createInstance(
             EditorViewModel,
             model,
-            this._optionController.getOptions(),
+            this._options.getOptions(),
         );
         this._view = this.instantiationService.createInstance(
             EditorView,
             this._container.raw,
             this._viewModel,
-            this._extensionController.getExtensions(),
-            this._optionController.getOptions(),
+            this._extensions.getExtensions(),
+            this._options.getOptions(),
         );
 
         const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
@@ -284,12 +283,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     private __registerListeners(): void {
-        this.__register(this.lifecycleService.onBeforeQuit(() => this._optionController.saveOptions()));
+        this.__register(this.lifecycleService.onBeforeQuit(() => this._options.saveOptions()));
 
         this.__register(this.configurationService.onDidConfigurationChange(e => {
             if (e.affect('editor')) {
                 const newOption = this.configurationService.get<IEditorWidgetOptions>('editor');
-                this._optionController.updateOptions(newOption);
+                this._options.updateOptions(newOption);
             }
         }));
     }
