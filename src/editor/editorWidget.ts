@@ -403,7 +403,7 @@ class EditorExtensionController extends Disposable {
         for (const { id, ctor} of extensions) {
             try {
                 logService.trace('EditorWidget', `Editor extension constructing: ${id}`);
-                const instance = instantiationService.createInstance(ctor);
+                const instance = instantiationService.createInstance(ctor, this);
                 this._extensions.set(id, instance);
                 logService.trace('EditorWidget', `Editor extension constructed: ${id}`);
             } catch (error: any) {
