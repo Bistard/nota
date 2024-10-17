@@ -9,7 +9,7 @@ import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecy
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorDefaultOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
+import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -477,12 +477,12 @@ class EditorOptionController {
         for (const [key, value] of Object.entries(newOption)) {
 
             // only updates the option if they both have the same key
-            if (!isDefined(option[key])) {
+            if (!isDefined(option[key]) || !(option[key] instanceof BasicEditorOption)) {
                 this.logService.warn('EditorWidget', `Cannot find editor option with key name: ${key}`);
                 continue;
             }
             
-            const opt: IEditorOption<any, any> = option[key];
+            const opt = option[key];
             opt.updateWith(value);
         }
     }
