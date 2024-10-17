@@ -10,6 +10,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
+import { OPERATING_SYSTEM, Platform } from "src/base/common/platform";
 
 /**
  * [FILE OUTLINE]
@@ -31,6 +32,10 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
     __registerOtherCommands(extension);
 }
 
+function getPlatformShortcut(ctrl: string, meta: string): string {
+    return OPERATING_SYSTEM === Platform.Mac ? meta : ctrl;
+}
+
 /**
  * @description Register Toggle Mark Commands.
  * @note These commands need to be constructed after the editor and schema 
@@ -38,12 +43,12 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
  */
 function __registerToggleMarkCommands(extension: IEditorCommandExtension, logService: ILogService): void {
     const schema = extension.getEditorSchema().unwrap();
-    const toggleMarkConfigs: [string, string[]][] = [
-        [MarkEnum.Strong  , ['Ctrl+B', 'Meta+B']],
-        [MarkEnum.Em      , ['Ctrl+I', 'Meta+I']],
-        [MarkEnum.Codespan, ['Ctrl+`', 'Meta+`']],
+    const toggleMarkConfigs: [string, string, string][] = [
+        [MarkEnum.Strong,   'Ctrl+B', 'Meta+B'],
+        [MarkEnum.Em,       'Ctrl+I', 'Meta+I'],
+        [MarkEnum.Codespan, 'Ctrl+`', 'Meta+`'],
     ];
-    for (const [markID, shortcuts] of toggleMarkConfigs) {
+    for (const [markID, ctrl, meta] of toggleMarkConfigs) {
         const toggleCmdID = `editor-toggle-mark-${markID}`;
         const markType = schema.getMarkType(markID);
         
@@ -52,15 +57,18 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
             continue;
         }
 
-        extension.registerCommand(EditorCommands.createToggleMarkCommand(
-            { id: toggleCmdID, when: whenEditorWritable },
-            markType, 
-            null, // attrs
-            {
-                removeWhenPresent: true,
-                enterInlineAtoms: true,
-            },
-        ), shortcuts);
+        extension.registerCommand(
+            EditorCommands.createToggleMarkCommand(
+                { id: toggleCmdID, when: whenEditorWritable },
+                markType, 
+                null, // attrs
+                {
+                    removeWhenPresent: true,
+                    enterInlineAtoms: true,
+                }
+            ), 
+            [getPlatformShortcut(ctrl, meta)]
+        );
     }
 }
 
@@ -82,11 +90,14 @@ function __registerHeadingCommands(extension: IEditorCommandExtension, logServic
 
     for (let level = 1; level <= 6; level++) {
         const cmdID = `${headingCmdID}-${level}`;
-        extension.registerCommand(EditorCommands.createSetBlockCommand(
-            { id: cmdID, when: whenEditorWritable },
-            nodeType,
-            { level: level }, // attrs
-        ), [`Ctrl+${level}`]);
+        extension.registerCommand(
+            EditorCommands.createSetBlockCommand(
+                { id: cmdID, when: whenEditorWritable },
+                nodeType,
+                { level: level }
+            ),
+            [getPlatformShortcut(`Ctrl+${level}`, `Meta+${level}`)]
+        );
     }
 }
 
@@ -131,7 +142,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.SelectNodeForward,
             ]
         ), 
-        ['Delete', 'Meta+Delete', 'Ctrl+Delete']
+        ['Delete', getPlatformShortcut('Ctrl+Delete', 'Meta+Delete')]
     );
 
     extension.registerCommand(__buildEditorCommand(
@@ -143,7 +154,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.SelectAll
             ]
         ), 
-        ['Meta+A', 'Ctrl+A']
+        [getPlatformShortcut('Ctrl+A', 'Meta+A')]
     );
     
     extension.registerCommand(__buildEditorCommand(
@@ -155,7 +166,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.SelectParent
             ]
         ), 
-        ['Meta+Shift+A', 'Ctrl+Shift+A']
+        [getPlatformShortcut('Ctrl+Shift+A', 'Meta+Shift+A')]
     );
 
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
@@ -168,7 +179,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.ExitCodeBlock
             ]
         ), 
-        ['Meta+Enter', 'Ctrl+Enter']
+        [getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
 
     extension.registerCommand(__buildEditorCommand(
@@ -181,7 +192,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.InsertHardBreak,
             ]
         ),
-        ['Shift+Enter', 'Ctrl+Enter', 'Meta+Enter']
+        ['Shift+Enter', getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
 }
 
