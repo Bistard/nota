@@ -47,7 +47,7 @@ export type TupleOf<T, S extends number, R extends T[] = []> = R['length'] exten
  * any class. This type allows specifying the types of arguments that the 
  * constructor function takes.
  *
- * @template TInstance The instance type that the constructor returns.
+ * @template T The instance type that the constructor returns.
  * @template TArgs The types of the arguments that the constructor function takes. Default is any[] if not provided.
  * 
  * @example
@@ -62,9 +62,9 @@ export type TupleOf<T, S extends number, R extends T[] = []> = R['length'] exten
  * instanceCreator = MyClass;
  * let instance = new instanceCreator(10, 'hello');
  */
-export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
-export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => TInstance;
-
+export type Constructor<T = any, TArgs extends any[] = any[]> = new (...args: TArgs) => T;
+export type AbstractConstructor<T = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => T;
+export type ExactConstructor<T> = T extends (new (...args: any[]) => infer R) ? (new (...args: ConstructorParameters<T>) => R) : never;
 /**
  * `Comparator` is a type representing a generic comparison function.
  * This function takes two arguments of the same type and returns a number.
