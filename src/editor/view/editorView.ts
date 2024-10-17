@@ -6,7 +6,7 @@ import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel, IRenderRichEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
 
@@ -41,6 +41,9 @@ export class EditorView extends Disposable implements IEditorView {
     
     public readonly onDidFocusChange!: Register<boolean>;
     public readonly onBeforeRender!: Register<IOnBeforeRenderEvent>;
+    public readonly onRender!: Register<IOnRenderEvent>;
+    public readonly onDidRender!: Register<IOnDidRenderEvent>;
+    public readonly onDidSelectionChange!: Register<IOnDidSelectionChangeEvent>;
     public readonly onClick!: Register<IOnClickEvent>;
     public readonly onDidClick!: Register<IOnDidClickEvent>;
     public readonly onDoubleClick!: Register<IOnDoubleClickEvent>;
@@ -66,20 +69,18 @@ export class EditorView extends Disposable implements IEditorView {
         const context = new ViewContext(viewModel, this, options, this._onLog.fire.bind(this));
         this._ctx = context;
 
-        // the overall element that contains all the relevant components
-        this._container = document.createElement('div');
-        this._container.className = 'editor-view-container';
+        // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-
-        // the centre that integrates the editor-related functionalities
         this._view = new RichtextEditor(editorElement, context, extensions);
-        this.__adaptViewListeners(this._view);
+        this.__bindEventWithView(this._view);
         
         // update listener registration from view-model
         this.__registerViewModelListeners();
 
         // render
+        this._container = document.createElement('div');
+        this._container.className = 'editor-view-container';
         this._container.appendChild(editorElement);
         container.appendChild(this._container);
 
@@ -136,9 +137,12 @@ export class EditorView extends Disposable implements IEditorView {
         }));
     }
 
-    private __adaptViewListeners(this: Mutable<IEditorView>, view: EditorWindow): void {
+    private __bindEventWithView(this: Mutable<IEditorView>, view: EditorWindow): void {
         this.onDidFocusChange = view.onDidFocusChange;
         this.onBeforeRender = view.onBeforeRender;
+        this.onRender = view.onRender;
+        this.onDidRender = view.onDidRender;
+        this.onDidSelectionChange = view.onDidSelectionChange;
         this.onClick = view.onClick;
         this.onDidClick = view.onDidClick;
         this.onDoubleClick = view.onDoubleClick;

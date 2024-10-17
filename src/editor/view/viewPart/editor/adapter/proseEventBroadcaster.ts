@@ -3,37 +3,37 @@ import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
 
-export interface IOnBeforeRenderEvent {
-    readonly tr: ProseTransaction;
-    prevent(): void;
-}
+type __TransactionEventBase = {
+    readonly view: ProseEditorView;
+    readonly transaction: ProseTransaction;
+};
 
-interface IOnBeforeClickEventBase {
+export interface IOnBeforeRenderEvent extends __TransactionEventBase { prevent(): void; }
+export interface IOnRenderEvent extends __TransactionEventBase {}
+export interface IOnDidRenderEvent extends __TransactionEventBase {}
+export interface IOnDidSelectionChangeEvent extends __TransactionEventBase {}
+
+type __OnBeforeClickEventBase = {
     readonly view: ProseEditorView;
     readonly position: number;
     readonly node: ProseNode;
     readonly nodePosition: number;
     readonly direct: boolean;
     readonly browserEvent: MouseEvent;
-}
+};
 
-interface IOnDidClickEventBase {
+type __OnDidClickEventBase = {
     readonly view: ProseEditorView;
     readonly position: number;
     readonly browserEvent: MouseEvent;
-}
+};
 
-export interface IOnClickEvent extends IOnBeforeClickEventBase {}
-
-export interface IOnDidClickEvent extends IOnDidClickEventBase {}
-
-export interface IOnDoubleClickEvent extends IOnBeforeClickEventBase {}
-
-export interface IOnDidDoubleClickEvent extends IOnDidClickEventBase {}
-
-export interface IOnTripleClickEvent extends IOnBeforeClickEventBase {}
-
-export interface IOnDidTripleClickEvent extends IOnDidClickEventBase {}
+export interface IOnClickEvent extends __OnBeforeClickEventBase {}
+export interface IOnDidClickEvent extends __OnDidClickEventBase {}
+export interface IOnDoubleClickEvent extends __OnBeforeClickEventBase {}
+export interface IOnDidDoubleClickEvent extends __OnDidClickEventBase {}
+export interface IOnTripleClickEvent extends __OnBeforeClickEventBase {}
+export interface IOnDidTripleClickEvent extends __OnDidClickEventBase {}
 
 export interface IOnKeydownEvent {
     readonly view: ProseEditorView;
@@ -87,9 +87,25 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onDidFocusChange: Register<boolean>;
 
     /**
-     * Fires before next rendering on DOM tree.
+     * Fires before next rendering on DOM tree. The client has a chance to 
+     * prevent the render action.
      */
     readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
+    
+    /**
+     * Fires right before a rendering action is taken on DOM tree.
+     */
+    readonly onRender: Register<IOnRenderEvent>;
+
+    /**
+     * Fires after a rendering action is taken on DOM tree.
+     */
+    readonly onDidRender: Register<IOnDidRenderEvent>;
+    
+    /**
+     * Fires whenever the selection of the editor changes.
+     */
+    readonly onDidSelectionChange: Register<IOnDidSelectionChangeEvent>;
 
     /**
      * Fires for each node around a click, from the inside out. The direct flag 
@@ -175,6 +191,15 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     private readonly _onBeforeRender = this.__register(new Emitter<IOnBeforeRenderEvent>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
+    
+    private readonly _onRender = this.__register(new Emitter<IOnRenderEvent>());
+    public readonly onRender = this._onRender.registerListener;
+    
+    private readonly _onDidRender = this.__register(new Emitter<IOnDidRenderEvent>());
+    public readonly onDidRender = this._onDidRender.registerListener;
+    
+    private readonly _onDidSelectionChange = this.__register(new Emitter<IOnDidSelectionChangeEvent>());
+    public readonly onDidSelectionChange = this._onDidSelectionChange.registerListener;
 
     private readonly _onClick = this.__register(new Emitter<IOnClickEvent>());
     public readonly onClick = this._onClick.registerListener;
@@ -228,20 +253,30 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
          * prosemirror view directly.
          */
         if (view) {
-            const proseView = view;
-            (<ProseDirectEditorProperty>property).dispatchTransaction = (tr) => {
+            const viewProperty = <ProseDirectEditorProperty>property;
+            viewProperty.dispatchTransaction = (transaction) => {
+                const event = {
+                    view: view,
+                    transaction: transaction,
+                };
                 let prevented = false;
-                this._onBeforeRender.fire({ 
-                    tr: tr, 
-                    prevent: () => prevented = true,
-                });
-    
+                this._onBeforeRender.fire({ ...event, prevent: () => prevented = true });
+                
                 if (prevented) {
                     return;
                 }
-    
-                const newState = proseView.state.apply(tr);
-                proseView.updateState(newState);
+
+                this._onRender.fire(event);
+
+                const newState = view.state.apply(transaction);
+                const selectionChanged = view.state.selection.eq(newState.selection) === false;
+                view.updateState(newState);
+
+                this._onDidRender.fire(event);
+
+                if (selectionChanged) {
+                    this._onDidSelectionChange.fire(event);
+                }
             };
         }
 
