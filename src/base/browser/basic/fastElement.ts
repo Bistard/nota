@@ -465,7 +465,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
 }
 
 export function isFastElement<T extends HTMLElement>(obj: any): obj is IFastElement<T> {
-    if (isObject(obj) && (<IFastElement<T>>obj.element)) {
+    if (isObject(obj) && ((<IFastElement<T>>obj).raw)) {
         return true;
     }
     return false;
