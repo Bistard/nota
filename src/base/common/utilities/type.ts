@@ -64,7 +64,7 @@ export type TupleOf<T, S extends number, R extends T[] = []> = R['length'] exten
  */
 export type Constructor<T = any, TArgs extends any[] = any[]> = new (...args: TArgs) => T;
 export type AbstractConstructor<T = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => T;
-export type ExactConstructor<T> = T extends (new (...args: any[]) => infer R) ? (new (...args: ConstructorParameters<T>) => R) : never;
+export type ExactConstructor<T> = T extends (abstract new (...args: any[]) => infer R) ? (new (...args: ConstructorParameters<T>) => R) : never;
 /**
  * `Comparator` is a type representing a generic comparison function.
  * This function takes two arguments of the same type and returns a number.

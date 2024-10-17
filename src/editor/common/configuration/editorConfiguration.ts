@@ -76,20 +76,12 @@ export class BasicEditorOption<K extends EditorOptionEnum, V> implements IEditor
     }
 }
 
-//#region [simple options]
+//#region [options]
 
 export class BooleanEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, boolean> {}
 export class NumberEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, number> {}
 export class StringEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, string> {}
-
-//#endregion
-
-//#region [advanced options]
-
 export class EditorModeOption<K extends EditorOptionEnum> extends BasicEditorOption<K, EditorType> {}
-
-//#endregion
-
 export const enum EditorOptionEnum {
     baseURI,
     writable,
@@ -101,6 +93,7 @@ export const enum EditorOptionEnum {
 /**
  * The actual editor options that initially sets with all default values.
  */
+export type EditorOptionsType = typeof EditorDefaultOptions;
 export const EditorDefaultOptions = {
     baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
     writable:           new BooleanEditorOption(EditorOptionEnum.writable, 'writable', false, {}),
@@ -109,15 +102,7 @@ export const EditorDefaultOptions = {
     ignoreHTML:         new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
 };
 
-export type EditorOptionsType = typeof EditorDefaultOptions;
-type FindEditorOptionKey<E extends EditorOptionEnum> = { [K in keyof EditorOptionsType]: EditorOptionsType[K]['ID'] extends E ? K : never }[keyof EditorOptionsType];
-type FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : never;
-
-/**
- * Given the {@link EditorOptionEnum} it returns the type of the corresponding 
- * type in {@link IEditorOption}.
- */
-export type FindEditorOption<T extends EditorOptionEnum> = FindEditorOptionValue<EditorOptionsType[FindEditorOptionKey<T>]>;
+//#endregion
 
 export function toJsonEditorOption(options: EditorOptionsType): Record<string, any> {
     const opt = {};
@@ -129,3 +114,11 @@ export function toJsonEditorOption(options: EditorOptionsType): Record<string, a
 
     return opt;
 }
+
+/**
+ * Given the {@link EditorOptionEnum} it returns the type of the corresponding 
+ * type in {@link IEditorOption}.
+ */
+export type FindEditorOption<T extends EditorOptionEnum> = __FindEditorOptionValue<EditorOptionsType[__FindEditorOptionKey<T>]>;
+type __FindEditorOptionKey<E extends EditorOptionEnum> = { [K in keyof EditorOptionsType]: EditorOptionsType[K]['ID'] extends E ? K : never }[keyof EditorOptionsType];
+type __FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : never;
