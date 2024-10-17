@@ -96,11 +96,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
      */
     private readonly _container: FastElement<HTMLElement>;
     
-    /**
-     * The smart editor options that supports API to self update.
-     */
-    private readonly _options: EditorOptionsType;
-
     // MVVM
     private _model: IEditorModel | null;
     private _viewModel: IEditorViewModel | null;
@@ -111,6 +106,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
      * Responsible for constructing a list of editor extensions
      */
     private readonly _extensionController: EditorExtensionController;
+
+    /**
+     * Responsible for initializing and managing the editor options.
+     */
+    private readonly _optionController: EditorOptionController;
 
     // [events]
 
@@ -188,10 +188,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._view = null;
         this._editorData = null;
 
-        this._options = this.__initOptions(options);
-        
-        const editorContextHub = new EditorContextHub(this, contextService);
-        this._extensionController = new EditorExtensionController(extensions, instantiationService, logService);
+        this._optionController    = instantiationService.createInstance(EditorOptionController, options);
+        const editorContextHub    = instantiationService.createInstance(EditorContextHub, this);
+        this._extensionController = instantiationService.createInstance(EditorExtensionController, extensions);
 
         this.__registerListeners();
         this.__register(editorContextHub);
@@ -201,7 +200,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // [getter]
 
     get readonly(): boolean {
-        return !this._options.writable.value;
+        return !this._optionController.getOptions().writable.value;
     }
 
     get model(): IEditorModel {
@@ -229,7 +228,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }
 
         this.__detachModel();
-        const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
+        const textModel = this.instantiationService.createInstance(EditorModel, source, this._optionController.getOptions());
         await this.__attachModel(textModel);
     }
 
@@ -240,8 +239,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
-        this.__updateOptions(this._options, newOption);
-        this._model?.updateOptions(this._options);
+        this._optionController.updateOptions(newOption);
+        this._model?.updateOptions(this._optionController.getOptions());
     }
 
     // [private helper methods]
@@ -260,14 +259,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._viewModel = this.instantiationService.createInstance(
             EditorViewModel,
             model,
-            this._options,
+            this._optionController.getOptions(),
         );
         this._view = this.instantiationService.createInstance(
             EditorView,
             this._container.raw,
             this._viewModel,
             this._extensionController.getExtensions(),
-            this._options,
+            this._optionController.getOptions(),
         );
 
         const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
@@ -285,42 +284,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     private __registerListeners(): void {
-        this.__register(this.lifecycleService.onBeforeQuit(() => this.__saveEditorOptions()));
+        this.__register(this.lifecycleService.onBeforeQuit(() => this._optionController.saveOptions()));
 
         this.__register(this.configurationService.onDidConfigurationChange(e => {
             if (e.affect('editor')) {
                 const newOption = this.configurationService.get<IEditorWidgetOptions>('editor');
-                this.__updateOptions(this._options, newOption);
+                this._optionController.updateOptions(newOption);
             }
         }));
-    }
-
-    private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
-        const mixOptions = EditorDefaultOptions;
-        this.__updateOptions(mixOptions, newOption);
-
-        this.logService.debug('EditorWidget', 'Editor initialized with configurations.', toJsonEditorOption(mixOptions));
-        return mixOptions;
-    }
-
-    private __updateOptions(option: EditorOptionsType, newOption: Partial<IEditorWidgetOptions>): void {
-        for (const [key, value] of Object.entries(newOption)) {
-
-            // only updates the option if they both have the same key
-            if (isDefined(option[key])) {
-                const opt: IEditorOption<any, any> = option[key];
-                opt.updateWith(value);
-            }
-        }
-    }
-
-    private __saveEditorOptions(): void {
-        const option = {};
-        for (const [key, value] of Object.entries(this._options)) {
-            option[key] = value.value ?? null;
-        }
-
-        this.configurationService.set('editor', option, { type: ConfigurationModuleType.Memory });
     }
 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {
@@ -393,7 +364,7 @@ class EditorContextHub extends Disposable {
 
     constructor(
         private readonly editor: IEditorWidget,
-        contextService: IContextService,
+        @IContextService contextService: IContextService,
     ) {
         super();
 
@@ -455,5 +426,65 @@ class EditorExtensionController extends Disposable {
 
     public getExtensionByID(id: string): EditorExtension | undefined {
         return this._extensions.get(id);
+    }
+}
+
+class EditorOptionController {
+
+    // [fields]
+
+    private readonly _options: EditorOptionsType;
+
+    // [constructor]
+
+    constructor(
+        unresolvedOption: IEditorWidgetOptions,
+        @ILogService private readonly logService: ILogService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
+    ) {
+        const resolvedOption = this.__initOptions(unresolvedOption);
+        this._options = resolvedOption;
+    }
+
+    // [public methods]
+
+    public getOptions(): EditorOptionsType {
+        return this._options;
+    }
+
+    public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
+        this.__updateOptions(this._options, newOption);
+    }
+
+    public saveOptions(): void {
+        const option = {};
+        for (const [key, value] of Object.entries(this._options)) {
+            option[key] = value.value ?? null;
+        }
+        this.configurationService.set('editor', option, { type: ConfigurationModuleType.Memory });
+    }
+
+    // [private methods]
+
+    private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
+        const mixOptions = EditorDefaultOptions;
+        this.__updateOptions(mixOptions, newOption);
+
+        this.logService.debug('EditorWidget', 'Editor initialized with configurations.', toJsonEditorOption(mixOptions));
+        return mixOptions;
+    }
+
+    private __updateOptions(option: EditorOptionsType, newOption: Partial<IEditorWidgetOptions>): void {
+        for (const [key, value] of Object.entries(newOption)) {
+
+            // only updates the option if they both have the same key
+            if (!isDefined(option[key])) {
+                this.logService.warn('EditorWidget', `Cannot find editor option with key name: ${key}`);
+                continue;
+            }
+            
+            const opt: IEditorOption<any, any> = option[key];
+            opt.updateWith(value);
+        }
     }
 }
