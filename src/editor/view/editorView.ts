@@ -1,14 +1,14 @@
 import 'src/editor/view/media/editorView.scss';
+import type { Mutable } from "src/base/common/utilities/type";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IEditorViewModel, IRenderRichEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { EditorWindowSwitcher, IEditorWindowSwitcher } from "src/editor/view/viewPart/editor/editorSwitcher";
-import { Mutable } from "src/base/common/utilities/type";
 import { EditorExtensionInfo } from "src/editor/editorWidget";
+import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
 
 export class ViewContext {
     constructor(
@@ -32,7 +32,7 @@ export class EditorView extends Disposable implements IEditorView {
      * A wrapper of some frequently used references.
      */
     private readonly _ctx: ViewContext;
-    private readonly _editorSwitcher: IEditorWindowSwitcher;
+    private readonly _view: EditorWindow;
 
     // [events]
     
@@ -67,18 +67,20 @@ export class EditorView extends Disposable implements IEditorView {
         this._ctx = context;
 
         // the overall element that contains all the relevant components
+        this._container = document.createElement('div');
+        this._container.className = 'editor-view-container';
         const editorContainer = document.createElement('div');
-        editorContainer.className = 'editor-view-container';
-        this._container = editorContainer;
+        editorContainer.className = 'editor-container';
 
         // the centre that integrates the editor-related functionalities
-        this._editorSwitcher = this.__register(new EditorWindowSwitcher(editorContainer, context, extensions));
-        this.__adaptEditorSwitcherListeners(this._editorSwitcher);
+        this._view = new RichtextEditor(editorContainer, context, extensions);
+        this.__adaptViewListeners(this._view);
         
         // update listener registration from view-model
         this.__registerViewModelListeners();
 
         // render
+        this._container.appendChild(editorContainer);
         container.appendChild(this._container);
 
         // others
@@ -88,27 +90,27 @@ export class EditorView extends Disposable implements IEditorView {
     // [public methods]
 
     get editor(): EditorWindow {
-        return this._editorSwitcher.editor;
+        return this._view;
     }
 
     public isEditable(): boolean {
-        return this._editorSwitcher.editor.isEditable();
+        return this._view.isEditable();
     }
 
     public focus(): void {
-        this._editorSwitcher.editor.focus();
+        this._view.focus();
     }
 
     public isFocused(): boolean {
-        return this._editorSwitcher.editor.isFocused();
+        return this._view.isFocused();
     }
 
     public destroy(): void {
-        this._editorSwitcher.editor.destroy();
+        this._view.destroy();
     }
 
     public isDestroyed(): boolean {
-        return this._editorSwitcher.editor.isDestroyed();
+        return this._view.isDestroyed();
     }
     
     public updateOptions(options: Partial<IEditorViewOptions>): void {
@@ -126,27 +128,27 @@ export class EditorView extends Disposable implements IEditorView {
         const viewModel = this._ctx.viewModel;
 
         this.__register(viewModel.onRender(event => {
-            this._editorSwitcher.render(event);
+            this._view.render((event as IRenderRichEvent).document);
         }));
 
         this.__register(viewModel.onDidRenderModeChange(mode => {
-            this._editorSwitcher.setRenderMode(mode);
+            // TODO
         }));
     }
 
-    private __adaptEditorSwitcherListeners(this: Mutable<IEditorView>, switcher: IEditorWindowSwitcher): void {
-        this.onDidFocusChange = switcher.editor.onDidFocusChange;
-        this.onBeforeRender = switcher.editor.onBeforeRender;
-        this.onClick = switcher.editor.onClick;
-        this.onDidClick = switcher.editor.onDidClick;
-        this.onDoubleClick = switcher.editor.onDoubleClick;
-        this.onDidDoubleClick = switcher.editor.onDidDoubleClick;
-        this.onTripleClick = switcher.editor.onTripleClick;
-        this.onDidTripleClick = switcher.editor.onDidTripleClick;
-        this.onKeydown = switcher.editor.onKeydown;
-        this.onKeypress = switcher.editor.onKeypress;
-        this.onTextInput = switcher.editor.onTextInput;
-        this.onPaste = switcher.editor.onPaste;
-        this.onDrop = switcher.editor.onDrop;
+    private __adaptViewListeners(this: Mutable<IEditorView>, view: EditorWindow): void {
+        this.onDidFocusChange = view.onDidFocusChange;
+        this.onBeforeRender = view.onBeforeRender;
+        this.onClick = view.onClick;
+        this.onDidClick = view.onDidClick;
+        this.onDoubleClick = view.onDoubleClick;
+        this.onDidDoubleClick = view.onDidDoubleClick;
+        this.onTripleClick = view.onTripleClick;
+        this.onDidTripleClick = view.onDidTripleClick;
+        this.onKeydown = view.onKeydown;
+        this.onKeypress = view.onKeypress;
+        this.onTextInput = view.onTextInput;
+        this.onPaste = view.onPaste;
+        this.onDrop = view.onDrop;
     }
 }

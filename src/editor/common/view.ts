@@ -5,9 +5,9 @@ import { EditorBase } from "src/editor/view/viewPart/editor/editorBase";
 import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
 export type PlaintextEditor = {} & EditorBase; // TEST
-export type SplitviewEditor = {} & EditorBase; // TEST
+export type SplitViewEditor = {} & EditorBase; // TEST
 
-export type EditorWindow = RichtextEditor | PlaintextEditor | SplitviewEditor;
+export type EditorWindow = RichtextEditor | PlaintextEditor | SplitViewEditor;
 
 /**
  * An interface only for {@link EditorView}.

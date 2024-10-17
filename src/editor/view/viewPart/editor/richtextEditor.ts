@@ -1,9 +1,9 @@
 import 'src/editor/view/media/editor/richtextEditor.scss';
 import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
-import { WriteableEditor } from "src/editor/view/viewPart/editor/writeableEditor";
+import { EditorBase } from 'src/editor/view/viewPart/editor/editorBase';
 
-export class RichtextEditor extends WriteableEditor {
+export class RichtextEditor extends EditorBase {
 
     // [fields]
 
