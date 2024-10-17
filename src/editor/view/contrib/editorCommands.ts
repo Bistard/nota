@@ -32,7 +32,7 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
     __registerOtherCommands(extension);
 }
 
-function metaOrCtrlUponOS(ctrl: string, meta: string): string {
+function getPlatformShortcut(ctrl: string, meta: string): string {
     return OPERATING_SYSTEM === Platform.Mac ? meta : ctrl;
 }
 
@@ -67,7 +67,7 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
                     enterInlineAtoms: true,
                 }
             ), 
-            [metaOrCtrlUponOS(ctrl, meta)]
+            [getPlatformShortcut(ctrl, meta)]
         );
     }
 }
@@ -96,7 +96,7 @@ function __registerHeadingCommands(extension: IEditorCommandExtension, logServic
                 nodeType,
                 { level: level }
             ),
-            [metaOrCtrlUponOS(`Ctrl+${level}`, `Meta+${level}`)]
+            [getPlatformShortcut(`Ctrl+${level}`, `Meta+${level}`)]
         );
     }
 }
@@ -142,7 +142,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.SelectNodeForward,
             ]
         ), 
-        ['Delete', metaOrCtrlUponOS('Ctrl+Delete', 'Meta+Delete')]
+        ['Delete', getPlatformShortcut('Ctrl+Delete', 'Meta+Delete')]
     );
 
     extension.registerCommand(__buildEditorCommand(
@@ -154,7 +154,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.SelectAll
             ]
         ), 
-        [metaOrCtrlUponOS('Ctrl+A', 'Meta+A')]
+        [getPlatformShortcut('Ctrl+A', 'Meta+A')]
     );
     
     extension.registerCommand(__buildEditorCommand(
@@ -166,7 +166,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.SelectParent
             ]
         ), 
-        [metaOrCtrlUponOS('Ctrl+Shift+A', 'Meta+Shift+A')]
+        [getPlatformShortcut('Ctrl+Shift+A', 'Meta+Shift+A')]
     );
 
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
@@ -179,7 +179,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.ExitCodeBlock
             ]
         ), 
-        [metaOrCtrlUponOS('Ctrl+Enter', 'Meta+Enter')]
+        [getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
 
     extension.registerCommand(__buildEditorCommand(
@@ -192,7 +192,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
                 EditorCommands.InsertHardBreak,
             ]
         ),
-        ['Shift+Enter', metaOrCtrlUponOS('Ctrl+Enter', 'Meta+Enter')]
+        ['Shift+Enter', getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
 }
 
