@@ -1,12 +1,10 @@
 import 'src/editor/view/media/editorView.scss';
-import type { Mutable } from "src/base/common/utilities/type";
 import { Disposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel, IRenderRichEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
 
@@ -39,22 +37,22 @@ export class EditorView extends Disposable implements IEditorView {
     private readonly _onLog = this.__register(new Emitter<ILogEvent>());
     public readonly onLog = this._onLog.registerListener;
     
-    public readonly onDidFocusChange!: Register<boolean>;
-    public readonly onBeforeRender!: Register<IOnBeforeRenderEvent>;
-    public readonly onRender!: Register<IOnRenderEvent>;
-    public readonly onDidRender!: Register<IOnDidRenderEvent>;
-    public readonly onDidSelectionChange!: Register<IOnDidSelectionChangeEvent>;
-    public readonly onClick!: Register<IOnClickEvent>;
-    public readonly onDidClick!: Register<IOnDidClickEvent>;
-    public readonly onDoubleClick!: Register<IOnDoubleClickEvent>;
-    public readonly onDidDoubleClick!: Register<IOnDidDoubleClickEvent>;
-    public readonly onTripleClick!: Register<IOnTripleClickEvent>;
-    public readonly onDidTripleClick!: Register<IOnDidTripleClickEvent>;
-    public readonly onKeydown!: Register<IOnKeydownEvent>;
-    public readonly onKeypress!: Register<IOnKeypressEvent>;
-    public readonly onTextInput!: Register<IOnTextInputEvent>;
-    public readonly onPaste!: Register<IOnPasteEvent>;
-    public readonly onDrop!: Register<IOnDropEvent>;
+    get onDidFocusChange() { return this._view.onDidFocusChange; }
+    get onBeforeRender() { return this._view.onBeforeRender; }
+    get onRender() { return this._view.onRender; }
+    get onDidRender() { return this._view.onDidRender; }
+    get onDidSelectionChange() { return this._view.onDidSelectionChange; }
+    get onClick() { return this._view.onClick; }
+    get onDidClick() { return this._view.onDidClick; }
+    get onDoubleClick() { return this._view.onDoubleClick; }
+    get onDidDoubleClick() { return this._view.onDidDoubleClick; }
+    get onTripleClick() { return this._view.onTripleClick; }
+    get onDidTripleClick() { return this._view.onDidTripleClick; }
+    get onKeydown() { return this._view.onKeydown; }
+    get onKeypress() { return this._view.onKeypress; }
+    get onTextInput() { return this._view.onTextInput; }
+    get onPaste() { return this._view.onPaste; }
+    get onDrop() { return this._view.onDrop; }
 
     // [constructor]
     
@@ -73,7 +71,6 @@ export class EditorView extends Disposable implements IEditorView {
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
         this._view = new RichtextEditor(editorElement, context, extensions);
-        this.__bindEventWithView(this._view);
         
         // update listener registration from view-model
         this.__registerViewModelListeners();
@@ -135,24 +132,5 @@ export class EditorView extends Disposable implements IEditorView {
         this.__register(viewModel.onDidRenderModeChange(mode => {
             // TODO
         }));
-    }
-
-    private __bindEventWithView(this: Mutable<IEditorView>, view: EditorWindow): void {
-        this.onDidFocusChange = view.onDidFocusChange;
-        this.onBeforeRender = view.onBeforeRender;
-        this.onRender = view.onRender;
-        this.onDidRender = view.onDidRender;
-        this.onDidSelectionChange = view.onDidSelectionChange;
-        this.onClick = view.onClick;
-        this.onDidClick = view.onDidClick;
-        this.onDoubleClick = view.onDoubleClick;
-        this.onDidDoubleClick = view.onDidDoubleClick;
-        this.onTripleClick = view.onTripleClick;
-        this.onDidTripleClick = view.onDidTripleClick;
-        this.onKeydown = view.onKeydown;
-        this.onKeypress = view.onKeypress;
-        this.onTextInput = view.onTextInput;
-        this.onPaste = view.onPaste;
-        this.onDrop = view.onDrop;
     }
 }
