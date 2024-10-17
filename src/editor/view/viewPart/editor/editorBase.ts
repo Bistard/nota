@@ -62,7 +62,5 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
 
     // [public methods]
 
-
     // [private helper methods]
-
 }

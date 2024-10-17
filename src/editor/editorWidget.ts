@@ -110,7 +110,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     /**
      * Responsible for constructing a list of editor extensions
      */
-    private readonly _extensionManager: EditorExtensionController;
+    private readonly _extensionController: EditorExtensionController;
 
     // [events]
 
@@ -179,11 +179,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._options = this.__initOptions(options);
         
         const editorContextHub = new EditorContextHub(this, contextService);
-        this._extensionManager = new EditorExtensionController(extensions, instantiationService, logService);
+        this._extensionController = new EditorExtensionController(extensions, instantiationService, logService);
 
         this.__registerListeners();
         this.__register(editorContextHub);
-        this.__register(this._extensionManager);
+        this.__register(this._extensionController);
     }
 
     // [getter]
@@ -254,7 +254,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             EditorView,
             this._container.raw,
             this._viewModel,
-            this._extensionManager.getExtensions(),
+            this._extensionController.getExtensions(),
             this._options,
         );
 

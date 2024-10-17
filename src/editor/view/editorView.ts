@@ -69,18 +69,18 @@ export class EditorView extends Disposable implements IEditorView {
         // the overall element that contains all the relevant components
         this._container = document.createElement('div');
         this._container.className = 'editor-view-container';
-        const editorContainer = document.createElement('div');
-        editorContainer.className = 'editor-container';
+        const editorElement = document.createElement('div');
+        editorElement.className = 'editor-container';
 
         // the centre that integrates the editor-related functionalities
-        this._view = new RichtextEditor(editorContainer, context, extensions);
+        this._view = new RichtextEditor(editorElement, context, extensions);
         this.__adaptViewListeners(this._view);
         
         // update listener registration from view-model
         this.__registerViewModelListeners();
 
         // render
-        this._container.appendChild(editorContainer);
+        this._container.appendChild(editorElement);
         container.appendChild(this._container);
 
         // others
