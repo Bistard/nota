@@ -16,7 +16,7 @@ import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
 
@@ -131,6 +131,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     
     private readonly _onDidSelectionChange = this.__register(new Emitter<IOnDidSelectionChangeEvent>());
     public readonly onDidSelectionChange = this._onDidSelectionChange.registerListener;
+    
+    private readonly _onDidContentChange = this.__register(new Emitter<IOnDidContentChangeEvent>());
+    public readonly onDidContentChange = this._onDidContentChange.registerListener;
 
     private readonly _onClick = this.__register(new Emitter<IOnClickEvent>());
     public readonly onClick = this._onClick.registerListener;
@@ -337,6 +340,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         disposables.register(view.onRender(e => this._onRender.fire(e)));
         disposables.register(view.onDidRender(e => this._onDidRender.fire(e)));
         disposables.register(view.onDidSelectionChange(e => this._onDidSelectionChange.fire(e)));
+        disposables.register(view.onDidContentChange(e => this._onDidContentChange.fire(e)));
         disposables.register(view.onClick(e => this._onClick.fire(e)));
         disposables.register(view.onDidClick(e => this._onDidClick.fire(e)));
         disposables.register(view.onDoubleClick(e => this._onDoubleClick.fire(e)));

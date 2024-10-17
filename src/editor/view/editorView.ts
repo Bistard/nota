@@ -42,6 +42,7 @@ export class EditorView extends Disposable implements IEditorView {
     get onRender() { return this._view.onRender; }
     get onDidRender() { return this._view.onDidRender; }
     get onDidSelectionChange() { return this._view.onDidSelectionChange; }
+    get onDidContentChange() { return this._view.onDidContentChange; }
     get onClick() { return this._view.onClick; }
     get onDidClick() { return this._view.onDidClick; }
     get onDoubleClick() { return this._view.onDoubleClick; }

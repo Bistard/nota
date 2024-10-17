@@ -12,6 +12,7 @@ export interface IOnBeforeRenderEvent extends __TransactionEventBase { prevent()
 export interface IOnRenderEvent extends __TransactionEventBase {}
 export interface IOnDidRenderEvent extends __TransactionEventBase {}
 export interface IOnDidSelectionChangeEvent extends __TransactionEventBase {}
+export interface IOnDidContentChangeEvent extends __TransactionEventBase {}
 
 type __OnBeforeClickEventBase = {
     readonly view: ProseEditorView;
@@ -98,7 +99,11 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onRender: Register<IOnRenderEvent>;
 
     /**
-     * Fires after a rendering action is taken on DOM tree.
+     * Fires after a rendering action is taken on DOM tree. 
+     * Either:
+     *      1. {@link onDidSelectionChange} or 
+     *      2. {@link onDidDocumentChange} 
+     * will also trigger this event.
      */
     readonly onDidRender: Register<IOnDidRenderEvent>;
     
@@ -106,6 +111,11 @@ export interface IProseEventBroadcaster extends IDisposable {
      * Fires whenever the selection of the editor changes.
      */
     readonly onDidSelectionChange: Register<IOnDidSelectionChangeEvent>;
+    
+    /**
+     * Fires whenever the content of the document of the editor changes.
+     */
+    readonly onDidContentChange: Register<IOnDidContentChangeEvent>;
 
     /**
      * Fires for each node around a click, from the inside out. The direct flag 
@@ -200,6 +210,9 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     
     private readonly _onDidSelectionChange = this.__register(new Emitter<IOnDidSelectionChangeEvent>());
     public readonly onDidSelectionChange = this._onDidSelectionChange.registerListener;
+    
+    private readonly _onDidContentChange = this.__register(new Emitter<IOnDidContentChangeEvent>());
+    public readonly onDidContentChange = this._onDidContentChange.registerListener;
 
     private readonly _onClick = this.__register(new Emitter<IOnClickEvent>());
     public readonly onClick = this._onClick.registerListener;
@@ -269,13 +282,16 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
                 this._onRender.fire(event);
 
                 const newState = view.state.apply(transaction);
-                const selectionChanged = view.state.selection.eq(newState.selection) === false;
                 view.updateState(newState);
 
                 this._onDidRender.fire(event);
 
-                if (selectionChanged) {
+                if (transaction.selectionSet) {
                     this._onDidSelectionChange.fire(event);
+                }
+
+                if (transaction.docChanged) {
+                    this._onDidContentChange.fire(event);
                 }
             };
         }
