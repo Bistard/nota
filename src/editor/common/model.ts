@@ -1,3 +1,4 @@
+import * as marked from "marked";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
@@ -5,7 +6,6 @@ import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {
     /** 
@@ -358,14 +358,12 @@ export interface IEditorModel extends IDisposable {
     /**
      * Fires when a log is about happen.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
+    readonly onLog: Register<ILogEvent>;
 
     /** 
      * Fires when the model is built.
      */
-    readonly onDidBuild: Register<void>;
-
-    readonly onDidContentChange: Register<void>;
+    readonly onDidBuild: Register<EditorToken[]>;
 
     /**
      * @description Start building the model.
@@ -408,24 +406,27 @@ export interface IEditorModel extends IDisposable {
     getLineLength(lineNumber: number): number;
 
     /**
-     * @description Inspect the current markdown tokens that is parsed by the
-     * lexer.
-     */
-    getTokens(): EditorToken[];
-
-    /**
      * @description Updates the options of the editor model.
      * @param options The editor option.
      */
     updateOptions(options: EditorOptionsType): void;
 }
 
+/**
+ * The option for {@link EditorModel}.
+ */
 export interface IEditorModelOptions {
 
     /**
      * A prefix URI for any relative link token.
      */
     baseURI?: string;
+
+    /**
+     * Determine if the editor is writable. If false, it means the file is 
+     * readonly.
+     */
+    readonly writable: boolean;
 }
 
 export namespace IModelEvent {

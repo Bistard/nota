@@ -17,6 +17,11 @@ import { IListViewRenderer } from "src/base/browser/secondary/listView/listRende
 export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
     
     /**
+     * The root data of the tree.
+     */
+    readonly root: T;
+
+    /**
      * @description Returns the number of nodes in the current tree model.
      * @note The size is counted in a tree perspective. Collapsing item 
      * (invisible) will also be count.
@@ -171,6 +176,10 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
     }
 
     // [public method]
+
+    get root(): T {
+        return this._model.root;
+    }
 
     public rerender(item: T): void {
         if (item === this._model.root) {

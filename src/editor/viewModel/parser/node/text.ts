@@ -23,11 +23,10 @@ export class Text extends DocumentNode<EditorTokens.Text> {
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Text): void {
         if (!token.tokens) {
-            state.addText(token.text);
+            state.addText(token.raw);
             return;
         }
 
-        
         /**
          * The following special handling cases can be linked by this issue
          * {@link https://github.com/markedjs/marked/issues/2684}.

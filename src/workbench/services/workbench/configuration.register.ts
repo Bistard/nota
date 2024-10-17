@@ -1,3 +1,4 @@
+import { CollapseState } from "src/base/browser/basic/dom";
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
@@ -22,14 +23,20 @@ export const enum WorkbenchConfiguration {
     ExplorerFileSortOrder       = 'navigationView.explorer.fileSortOrder',
     ExplorerConfirmDragAndDrop  = 'navigationView.explorer.confirmDragAndDrop',
     ExplorerIncrementFileNaming = 'navigationView.explorer.incrementFileNaming',
+
+    // [workspace]
+
+    RestorePrevious    = 'workspace.restorePrevious',
+    OutlineToggleState = 'workspace.outline.toggleState',
 }
 
 /**
- * {@link rendererWorkbenchConfigurationRegister}
- * {@link rendererNavigationViewConfigurationRegister}
+ * {@link sharedWorkbenchConfigurationRegister}
+ * {@link sharedNavigationViewConfigurationRegister}
+ * {@link sharedWorkspaceConfigurationRegister}
  */
 
-export const rendererWorkbenchConfigurationRegister = createRegister(
+export const sharedWorkbenchConfigurationRegister = createRegister(
     RegistrantType.Configuration,
     'rendererWorkbench',
     (registrant) => {
@@ -62,9 +69,9 @@ export const rendererWorkbenchConfigurationRegister = createRegister(
     },
 );
 
-export const rendererNavigationViewConfigurationRegister = createRegister(
+export const sharedNavigationViewConfigurationRegister = createRegister(
     RegistrantType.Configuration,
-    'rendererWorkbench',
+    'rendererNavigationView',
     (registrant) => {
         registrant.registerConfigurations({
             id: 'navigationView',
@@ -116,6 +123,39 @@ export const rendererNavigationViewConfigurationRegister = createRegister(
                                     type: 'string',
                                     default: IncrementFileType.Simple,
                                     enum: [IncrementFileType.Simple, IncrementFileType.Smart],
+                                }
+                            }
+                        }
+                    }
+                },
+            },
+        });
+    },
+);
+
+export const sharedWorkspaceConfigurationRegister = createRegister(
+    RegistrantType.Configuration,
+    'rendererWorkspace',
+    (registrant) => {
+        registrant.registerConfigurations({
+            id: 'workspace',
+            properties: {
+
+                // workspace configurations
+                ['workspace']: {
+                    type: 'object',
+                    properties: {
+                        ['restorePrevious']: {
+                            type: 'boolean',
+                            default: true,
+                        },
+                        ['outline']: {
+                            type: 'object',
+                            properties: {
+                                ['toggleState']: {
+                                    type: 'string',
+                                    enum: [CollapseState.Expand, CollapseState.Collapse],
+                                    default: CollapseState.Expand
                                 }
                             }
                         }

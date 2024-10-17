@@ -1,32 +1,28 @@
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
-import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
-import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
+import { IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { EditorBase } from "src/editor/view/viewPart/editor/editorBase";
+import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
-// TEST
-export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>;
-export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>;
+export type PlaintextEditor = {} & EditorBase; // TEST
+export type SplitViewEditor = {} & EditorBase; // TEST
 
-export type EditorInstance = RichtextEditor | PlaintextEditor | SplitviewEditor;
+export type EditorWindow = RichtextEditor | PlaintextEditor | SplitViewEditor;
 
-export interface IEditorView extends IEditorEventBroadcaster {
-
-    /**
-     * The binding view model.
-     */
-    readonly viewModel: IEditorViewModel;
+/**
+ * An interface only for {@link EditorView}.
+ */
+export interface IEditorView extends IProseEventBroadcaster {
 
     /**
      * The actual editor instance.
      */
-    readonly editor: EditorInstance;
+    readonly editor: EditorWindow;
 
     /**
      * Fires when a log is about happen.
      */
-    readonly onLog: Register<ILogEvent<string | Error>>;
+    readonly onLog: Register<ILogEvent>;
 
     /**
      * @description Updates the options of the editor view.

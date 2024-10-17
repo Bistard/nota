@@ -39,7 +39,10 @@ export class Link extends DocumentMark<EditorTokens.Link> {
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Link): void {
-        state.activateMark(this.ctor.create());
+        state.activateMark(this.ctor.create({
+            href: token.href,
+            title: token.title,
+        }));
         state.addText(token.text);
         state.deactivateMark(this.ctor);
     }

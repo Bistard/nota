@@ -13,11 +13,14 @@ $menu-item-height: var(--menu-item-height);
     
     border: 1px solid var(--nota-menu-border);
     border-radius: 4px;
+    background: var(--nota-menu-background);
 
     &:focus {
         outline: none;
     }
 
+    & > .base-item:first-child { margin-top: 4px; }
+    & > .base-item:last-child { margin-bottom: 4px; }
     & > .base-item {
         @include visualization.text(none, 10pt, center);
 
@@ -26,17 +29,10 @@ $menu-item-height: var(--menu-item-height);
         
         height: $menu-item-height;
         width: 100%;
-        
-        border-radius: 4px;
         box-sizing: border-box;
 
         &:focus {
             outline: none;
-        }
-
-        &.disabled {
-            color: var(--nota-menu-item-disabled);
-            cursor: default;
         }
 
         display: grid;
@@ -52,37 +48,67 @@ $menu-item-height: var(--menu-item-height);
     }
 
     & > .separator {
-        height: 1px;
-        width: 100%;
+        height: 1.5px;
+        width: 95%;
         margin-top: 4px;
         margin-bottom: 4px;
+        border-radius: 10px;
         background-color: var(--nota-menu-separator-background);
+        pointer-events: none;
     }
 
     & > .menu-item {
-        
-        &.focused {
-            background-color: var(--nota-menuItem-focus-background);
+        position: relative;
+
+        // hover effect
+        &.focused::before {
+            content: "";
+            position: absolute;
+            
+            height: 100%;
+            width: 95%;
+            left: 50%;
+            transform: translateX(-50%);
+
+            border-radius: 4px;
+            background-color: var(--nota-menu-item-focus-background);
+        }
+
+        // when the item is disabled
+        &.disabled {
+            & > .content {
+                color: var(--nota-menu-item-disabled);
+            }
+            cursor: default;
+        }
+
+        // content styles
+        & > .left-part, .content, .right-part {
+            position: relative;
         }
 
         & > .left-part {
-            & > .submenu-item-check {
+            & > .menu-item-check {
                 font-size: 10px;
+                margin-left: 4px;
+                color: var(--nota-menu-item-check-color);
             }
         }
 
         & > .content {
             justify-content: space-between;
+            color: var(--nota-menu-item-content-color);
 
             // the ones after the name
             & > .menu-item-name ~ * {
                 margin-left: 30px;
+                color: var(--nota-menu-item-disabled);
             }
         }
 
         & > .right-part {
             & > .submenu-item-arrow {
-                font-size: 10px;
+                font-size: 14px;
             }
         }
     }

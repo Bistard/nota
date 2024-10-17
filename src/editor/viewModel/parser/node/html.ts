@@ -27,10 +27,8 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
             ],
             toDOM: (node) => { 
                 const { text } = node.attrs;
-
                 const dom = document.createElement('div');
                 dom.innerHTML = text;
-
                 return dom;
             }
         };

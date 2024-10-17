@@ -300,11 +300,11 @@ export abstract class Component extends Themable implements IComponent {
         this._children   = new Map();
         this._splitView  = undefined;
 
-        this._element = new FastElement(document.createElement('div'));
+        this._element = this.__register(new FastElement(document.createElement('div')));
         this._element.addClassList('component-ui');
         this._element.setID(id);
 
-        this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
+        this._focusTracker = this.__register(new FocusTracker(this._element.raw, false));
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
         this._customParent = customParent ?? undefined;
@@ -369,8 +369,8 @@ export abstract class Component extends Themable implements IComponent {
 
         // actual rendering
         if (avoidRender === false) {
-            this._customParent = parentComponent?.element.element ?? this._customParent ?? document.body;
-            this._customParent.appendChild(this._element.element);
+            this._customParent = parentComponent?.element.raw ?? this._customParent ?? document.body;
+            this._customParent.appendChild(this._element.raw);
             this._isInDom = true;
         }
         
@@ -392,7 +392,7 @@ export abstract class Component extends Themable implements IComponent {
         
         // If no dimensions provided, we default to layout to fit to parent.
         if (width === undefined && height === undefined) {
-            const actualParent = this._element.element.parentElement;
+            const actualParent = this._element.raw.parentElement;
             const parent = assert(actualParent, 'layout() expect to have a parent HTMLElement when there is no provided dimension.');
             check(DomUtility.Elements.ifInDomTree(parent), 'layout() expect the parent HTMLElement is rendered in the DOM tree.');
             this._dimension = DomUtility.Positions.getClientDimension(parent);
@@ -451,8 +451,10 @@ export abstract class Component extends Themable implements IComponent {
     public setVisible(value: boolean): void {
         if (value === true) {
             this._element.setOpacity(1);
+            this._element.setPointerEvents('auto');
         } else {
             this._element.setOpacity(0);
+            this._element.setPointerEvents('none');
         }
         this._onDidVisibilityChange.fire(value);
     }
@@ -504,7 +506,7 @@ export abstract class Component extends Themable implements IComponent {
             each.component.createInDom(this, avoidRender);
             splitViewOption.viewOpts.push({
                 ID: each.component.id,
-                element: each.component.element.element,
+                element: each.component.element.raw,
                 ...each,
             });
         }
@@ -513,7 +515,7 @@ export abstract class Component extends Themable implements IComponent {
          * Construct the {@link SplitView}. The child component will be rendered 
          * into the DOM tree after the construction.
          */
-        this._splitView = this.__register(new SplitView(this.element.element, splitViewOption));
+        this._splitView = this.__register(new SplitView(this.element.raw, splitViewOption));
     
         /**
          * Construct child components recursively. The children's 

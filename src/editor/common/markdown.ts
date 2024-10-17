@@ -1,5 +1,3 @@
-import { marked } from "src/editor/model/markdown/marked/marked";
-
 /**
  * Those token types are identical to {@link marked.Tokens.type}.
  */

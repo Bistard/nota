@@ -594,7 +594,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         const submenuContainer = new FastElement(document.createElement('div'));
         this._submenuContainer = submenuContainer;
         
-        anchor.appendChild(submenuContainer.element);
+        anchor.appendChild(submenuContainer.raw);
         {
             submenuContainer.addClassList('context-menu');
             submenuContainer.setPosition('fixed');
@@ -605,7 +605,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
         this._submenu = new this._submenuCtor(
-            new Menu(this._submenuContainer.element, {
+            new Menu(this._submenuContainer.raw, {
                 contextProvider: this._menu.getContext.bind(this._menu),
                 /** shares the same {@link IActionRunEvent} with the parent menu */
                 actionRunner: this._menu.actionRunner,
@@ -626,7 +626,7 @@ export class MenuWithSubmenu extends MenuDecorator {
             width: rawAnchorBox.width,
         };
         
-        const submenuBox = submenuContainer.element.getBoundingClientRect();
+        const submenuBox = submenuContainer.raw.getBoundingClientRect();
         const { top, left } = this.__calculateSubmenuPosition(
             { width: submenuBox.width, height: submenuBox.height },
             anchorBox,

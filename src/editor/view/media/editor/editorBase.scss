@@ -1,0 +1,7 @@
+
+.editor-view-container > .editor-container.editor-base {
+
+    & > .ProseMirror[contenteditable]:focus {
+        outline: 0px solid transparent;
+    }
+}
