@@ -73,8 +73,11 @@ export class EditorView extends Disposable implements IEditorView {
         editorElement.className = 'editor-container';
         this._view = new RichtextEditor(editorElement, context, extensions);
         
-        // update listener registration from view-model
-        this.__registerViewModelListeners();
+        // start listening events from view-model
+        this.__registerEventFromViewModel();
+
+        // communication backward to view-model
+        this.__registerEventToViewModel();
 
         // render
         this._container = document.createElement('div');
@@ -123,7 +126,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [private helper methods]
 
-    private __registerViewModelListeners(): void {
+    private __registerEventFromViewModel(): void {
         const viewModel = this._ctx.viewModel;
 
         this.__register(viewModel.onRender(event => {
@@ -133,5 +136,9 @@ export class EditorView extends Disposable implements IEditorView {
         this.__register(viewModel.onDidRenderModeChange(mode => {
             // TODO
         }));
+    }
+
+    private __registerEventToViewModel(): void {
+        // TODO
     }
 }
