@@ -384,11 +384,6 @@ class EditorContextHub extends Disposable {
     }
 }
 
-export type EditorExtensionInfo = { 
-    readonly id: string;
-    readonly extension: EditorExtension;
-};
-
 class EditorExtensionController extends Disposable {
 
     // [fields]
@@ -419,8 +414,8 @@ class EditorExtensionController extends Disposable {
 
     // [public methods]
 
-    public getExtensions(): EditorExtensionInfo[] {
-        return [...Array.from(this._extensions.entries(), ([id, extension]) => { return { id, extension }; })];
+    public getExtensions(): EditorExtension[] {
+        return [...this._extensions.values()];
     }
 
     public getExtensionByID(id: string): EditorExtension | undefined {

@@ -1,8 +1,8 @@
 import 'src/editor/view/media/editor/editorBase.scss';
 import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
-import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { ViewContext } from "src/editor/view/editorView";
 import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/viewPart/editor/adapter/editorViewProxy";
+import { IEditorExtension } from 'src/editor/common/extension/editorExtension';
 
 export interface IEditorBase extends IEditorViewProxy {
     
@@ -20,13 +20,13 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     constructor(
         container: HTMLElement,
         context: ViewContext,
-        extensions: EditorExtensionInfo[],
+        extensions: IEditorExtension[],
     ) {
         container.classList.add('editor-base');
 
         // binding the view part of the extension to the proseMirror
         const schema = context.viewModel.getSchema();
-        const viewExtensionInfo = extensions.map(ext => { return { id: ext.id, extension: ext.extension.getViewExtension() }; });
+        const viewExtensionInfo = extensions.map(extension => ({ id: extension.id, extension: extension.getViewExtension() }));
         const view = new ProseEditorView(
             container, 
             {

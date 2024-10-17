@@ -5,8 +5,8 @@ import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel, IRenderRichEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { EditorExtensionInfo } from "src/editor/editorWidget";
 import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
+import { IEditorExtension } from 'src/editor/common/extension/editorExtension';
 
 export class ViewContext {
     constructor(
@@ -60,7 +60,7 @@ export class EditorView extends Disposable implements IEditorView {
     constructor(
         container: HTMLElement,
         viewModel: IEditorViewModel,
-        extensions: EditorExtensionInfo[],
+        extensions: IEditorExtension[],
         options: EditorOptionsType,
     ) {
         super();
