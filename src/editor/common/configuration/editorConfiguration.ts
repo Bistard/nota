@@ -94,8 +94,10 @@ export const enum EditorOptionEnum {
  */
 export type EditorOptionsType = typeof EditorDefaultOptions;
 export const EditorDefaultOptions = {
+    // [model]
     baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
     writable:           new BooleanEditorOption(EditorOptionEnum.writable, 'writable', false, {}),
+    // [view]
     mode:               new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
     codeblockHighlight: new BooleanEditorOption(EditorOptionEnum.codeblockHighlight, 'codeblockHighlight', true, {}),
     ignoreHTML:         new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),

@@ -9,7 +9,7 @@ import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecy
 import { IEditorModel } from "src/editor/common/model";
 import { EditorType, IEditorView } from "src/editor/common/view";
 import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
-import { EditorModel } from "src/editor/model/editorModel2";
+import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
