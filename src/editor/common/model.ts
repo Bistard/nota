@@ -165,6 +165,12 @@ export interface IEditorModel extends IDisposable {
      * @param lineOffset The offset relative to the line.
      */
     getCharCodeByLine(lineNumber: number, lineOffset: number): number;
+
+    // #region internal
+
+    __onDidStateChange(newState: ProseEditorState): void;
+
+    // #endregion
 }
 
 /**

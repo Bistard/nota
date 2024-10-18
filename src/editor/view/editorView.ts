@@ -78,6 +78,7 @@ export class EditorView extends Disposable implements IEditorView {
         
         // forward: start listening events from model
         this.__registerEventFromModel();
+        this.__registerEventToModel();
 
 
         // render
@@ -130,8 +131,27 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerEventFromModel(): void {
         const model = this._ctx.model;
 
-        this.__register(model.onDidBuild(state => {
-            // TODO
+        this.__register(model.onDidBuild(newState => {
+            this._view.render(newState);
+        }));
+
+        this.__register(model.onTransaction(tr => {
+            console.log('[view] dispatching');
+            this._view.internalView.dispatch(tr);
+        }));
+    }
+
+    private __registerEventToModel(): void {
+        const model = this._ctx.model;
+
+        /**
+         * Since in Prosemirror whenever the content of the document changes, 
+         * the old {@link ProseEditorState} is no longer valid. Therefore we 
+         * need to inform {@link IEditorModel} to update its state.
+         */
+        this.__register(this._view.onDidContentChange(e => {
+            const newState = e.view.state;
+            model.__onDidStateChange(newState);
         }));
     }
 }

@@ -133,6 +133,10 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [private methods]
 
+    public __onDidStateChange(newState: ProseEditorState): void {
+        this._editorState = newState;
+    }
+
     private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
         return {
             baseURI: options.baseURI.value,
