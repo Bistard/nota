@@ -239,7 +239,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         this._defaultNodeType = schema.topNodeType;
         this._createTextNode = schema.text.bind(schema);
 
-        this._actives = new Stack([{ ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined }]);
+        const root = { ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined };
+        this._actives = new Stack([root]);
     }
 
     // [public methods]
@@ -276,6 +277,10 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     public clean(): void {
         this._actives.clear();
+
+        // ready for next parsing
+        const root = { ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined };
+        this._actives.push(root);
     }
 
     // [public methods]
