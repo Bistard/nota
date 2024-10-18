@@ -5,7 +5,7 @@ import { err, ok, Result } from "src/base/common/result";
 import { ProseEditorState, ProseEditorView, ProseExtension } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { EditorSchema } from "src/editor/model/schema";
 
 /**
  * An interface only for {@link EditorExtension}.

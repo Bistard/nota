@@ -1,36 +1,36 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
-import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
+import { IDocumentParseState } from "src/editor/model/parser/parser";
 
 /**
- * @class A blockquote (`<blockquote>`) wrapping one or more blocks.
+ * @class A plain paragraph textblock. Represented in the DOM as a `<p>` 
+ * element.
  */
-export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
+export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
 
     constructor() {
-        super(TokenEnum.Blockquote);
+        super(TokenEnum.Paragraph);
     }
 
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
-            content: 'block+',
-            defining: true,
-            parseDOM: [{ tag: 'blockquote' }],
+            content: 'inline*',
+            parseDOM: [{ tag: 'p' }],
             toDOM: () => { 
                 return createDomOutputFromOptions({
                     type: 'node',
-                    tagName: `blockquote`,
+                    tagName: 'p',
                     editable: true,
                 });
             }
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Blockquote): void {
+    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Paragraph): void {
         state.activateNode(this.ctor);
         if (token.tokens) {
             state.parseTokens(token.tokens);

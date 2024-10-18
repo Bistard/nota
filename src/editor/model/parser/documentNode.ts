@@ -1,8 +1,8 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
-import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { EditorSchema } from "src/editor/model/schema";
 
 export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
     

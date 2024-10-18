@@ -7,9 +7,9 @@ import { isNullable } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
-import { IDocumentNode } from "src/editor/viewModel/parser/documentNode";
-import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNodeProvider";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { IDocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { EditorSchema } from "src/editor/model/schema";
 
 /**
  * Interface only for {@link DocumentParser}.

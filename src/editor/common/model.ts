@@ -5,11 +5,10 @@ import { URI } from "src/base/common/files/uri";
 import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
-import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { ProseEditorState } from "src/editor/common/proseMirror";
 import { AsyncResult } from "src/base/common/result";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { EditorSchema } from "src/editor/model/schema";
 
 export const enum EndOfLineType {
     /** 

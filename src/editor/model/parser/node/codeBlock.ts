@@ -2,8 +2,8 @@ import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirrror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
-import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
+import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { IDocumentParseState } from "src/editor/model/parser/parser";
 
 /**
  * @class A code listing. Disallows marks or non-text inline nodes by default. 

@@ -1,8 +1,8 @@
 import { MarkBuilder, NodeBuilder, builders } from 'prosemirror-test-builder';
 import { pipe } from 'src/base/common/utilities/functional';
 import { ProseEditorState, ProseEditorView, ProseNode, ProseNodeSelection, ProseSchema, ProseTextSelection } from "src/editor/common/proseMirror";
-import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNodeProvider";
-import { buildSchema } from "src/editor/viewModel/schema";
+import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { buildSchema } from "src/editor/model/schema";
 
 /**
  * Declaring an internal type from {@link NodeBuilder} and {@link MarkBuilder}.

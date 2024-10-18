@@ -3,7 +3,7 @@ import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
 import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorType } from "src/editor/common/view";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { EditorSchema } from "src/editor/model/schema";
 
 /**
  * The interface is only for {@link EditorViewModel}.

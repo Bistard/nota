@@ -4,7 +4,7 @@ import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
-import { EditorSchema } from "src/editor/viewModel/schema";
+import { EditorSchema } from "src/editor/model/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";

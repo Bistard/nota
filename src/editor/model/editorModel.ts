@@ -8,9 +8,9 @@ import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
 import { ProseEditorState } from "src/editor/common/proseMirror";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
-import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNodeProvider";
-import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
-import { buildSchema, EditorSchema } from "src/editor/viewModel/schema";
+import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { DocumentParser, IDocumentParser } from "src/editor/model/parser/parser";
+import { buildSchema, EditorSchema } from "src/editor/model/schema";
 import { IFileService } from "src/platform/files/common/fileService";
 
 

@@ -1,8 +1,8 @@
 import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMarkSpec } from "src/editor/common/proseMirror";
-import { DocumentMark } from "src/editor/viewModel/parser/documentNode";
-import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
+import { DocumentMark } from "src/editor/model/parser/documentNode";
+import { IDocumentParseState } from "src/editor/model/parser/parser";
 
 /**
  * @class Code font mark. Represented as a `<code>` element.
