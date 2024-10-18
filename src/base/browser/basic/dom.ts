@@ -80,13 +80,13 @@ export const enum Orientation {
 export type Direction = DirectionX | DirectionY;
 
 export const enum DirectionX {
-	Left = 0,
-	Right = 1,
+	Left = 'left',
+	Right = 'right',
 }
 
 export const enum DirectionY {
-	Top = 2,
-	Bottom = 3,
+	Top = 'top',
+	Bottom = 'bottom',
 }
 
 export const enum CollapseState {

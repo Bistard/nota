@@ -32,11 +32,11 @@ export namespace Keyboard {
                     return false;
             }
         } else {
-            switch (key) {
-                case 'Ctrl':
-                case 'Shift':
-                case 'Alt':
-                case 'Meta':
+            switch (key.toLowerCase()) {
+                case 'ctrl':
+                case 'shift':
+                case 'alt':
+                case 'meta':
                     return true;
                 default:
                     return false;
@@ -63,11 +63,11 @@ export namespace Keyboard {
      * @description Returns the corresponding {@link KeyCode}.
      * @param key The string form of the keycode or {@link KeyboardEvent.keycode}.
      */
-    export function toKeyCode(strkeyOrEventkey: string | number): KeyCode {
-        if (typeof strkeyOrEventkey === 'string') {
-            return keyCodeStringMap.getKeyCode(strkeyOrEventkey);
+    export function toKeyCode(strKeyOrEventKey: string | number): KeyCode {
+        if (typeof strKeyOrEventKey === 'string') {
+            return keyCodeStringMap.getKeyCode(strKeyOrEventKey);
         } else {
-            return keyCodeMap.map[strkeyOrEventkey] || KeyCode.None;
+            return keyCodeMap.map[strKeyOrEventKey] || KeyCode.None;
         }
     }
 
@@ -238,7 +238,7 @@ export const enum KeyCode {
     Backslash,      // /
     Semicolon,      // ;
     Quote,          // '
-    Backquote,      // `
+    BackQuote,      // `
     Comma,          // ,
     Period,         // .
     Slash,          // /
@@ -385,7 +385,7 @@ for (const [keycode, keycodeNum, keycodeStr] of <[number, number, string][]>
     [KeyCode.Backslash,    220, '\\'],
     [KeyCode.Semicolon,    186, ';'],
     [KeyCode.Quote,        222, '\''],
-    [KeyCode.Backquote,    192, '`'],
+    [KeyCode.BackQuote,    192, '`'],
     [KeyCode.Comma,        188, ','],
     [KeyCode.Period,       190, '.'],
     [KeyCode.Slash,        191, '/'],
@@ -454,7 +454,7 @@ export class Shortcut {
 
     /**
      * @description Returns the string form of the shortcut.
-     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
+     * @example 'Ctrl+shift+alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
      */
     public toString(): string {
         let mask = 0;
@@ -487,19 +487,25 @@ export class Shortcut {
         return result.join('+');
     }
 
+    /**
+     * @description Converts the string form of the shortcut to a {@link Shortcut}.
+     * @note If the string is invalid, {@link Shortcut.None} is returned.
+     * 
+     * @example 'Ctrl+Shift+Alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
+     * @example 'ctrl+shift+alt+meta+R', 'SHIFT+CTRL+MEta+aLT+R', etc...
+     */
     public static fromString(string: string): Shortcut {
-        
         const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
-
         const parts = string.split('+');
         for (const part of parts) {
-            if (part === 'Ctrl') {
+            const lowerPart = part.toLowerCase();
+            if (lowerPart === 'ctrl') {
                 shortcut.ctrl = true;
-            } else if (part === 'Shift') {
+            } else if (lowerPart === 'shift') {
                 shortcut.shift = true;
-            } else if (part === 'Alt') {
+            } else if (lowerPart === 'alt') {
                 shortcut.alt = true;
-            } else if (part === 'Meta') {
+            } else if (lowerPart === 'meta') {
                 shortcut.meta = true;
             } else {
                 if (shortcut.key !== KeyCode.None) {
@@ -514,7 +520,6 @@ export class Shortcut {
                 }
             }
         }
-
         return shortcut;
     }
 

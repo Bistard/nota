@@ -11,8 +11,8 @@
 
 /assets/src-svg
 /assets/codicons/**/*
-/**/*.ttf
-/**/*.woff
-/**/*.woff2
+/src/**/*.ttf
+/src/**/*.woff
+/src/**/*.woff2
 
 /.idea

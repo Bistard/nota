@@ -49,16 +49,13 @@ export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number
      * the anchor element.
      */
     const afterAnchorPositionBoundary = (
-        
         anchorBox.mode === AnchorMode.Align
-        
         /**
          * Align: the after boundary is at the beginning of the anchor 
          * element, and the view will be aligned with the beginning of the 
          * anchor.
          */
          ? anchorBox.offset
-
         /**
          * Avoid: the after boundary is at the end of the anchor element, 
          * and the view will be positioned after the anchor element to avoid 
@@ -71,16 +68,13 @@ export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number
      * represents the available position boundary along the given axis 
      * before the anchor element.
      */
-    const beforeAnchorPositionBoundary = 
-        
-        (anchorBox.mode === AnchorMode.Align
-        
+    const beforeAnchorPositionBoundary = (
+        anchorBox.mode === AnchorMode.Align
         /**
          * Align: the before boundary is at the end of the anchor element,
          * and the view will be aligned with the end of the anchor.
          */
          ? anchorBox.offset + anchorBox.size
-        
         /**
          * Avoid: the before boundary is at the beginning of the anchor
          * element, and the view will be positioned before the beginning of
@@ -89,13 +83,11 @@ export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number
          : anchorBox.offset
     );
     
-    
     /**
      * Attempts to position the view before the anchor element along with
      * the given axis.
      */
     if (anchorBox.direction === AnchorAbstractPosition.Before) {
-        
         // happy case, lay it out after the anchor.
         if (viewSize + afterAnchorPositionBoundary <= viewportSize) {
             return afterAnchorPositionBoundary;
@@ -105,9 +97,6 @@ export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number
         if (viewSize <= beforeAnchorPositionBoundary) {
             return beforeAnchorPositionBoundary - viewSize;
         }
-
-        // sad case, lay it over the anchor.
-        return Math.max(viewportSize - viewSize, 0);
     }
 
     /**
@@ -115,17 +104,17 @@ export function calcViewPositionAlongAxis(viewportSize: number, viewSize: number
      * the given axis.
      */
     else {
-        // happy case, lay it out before the anchor.
-        if (viewSize <= beforeAnchorPositionBoundary) {
-            return beforeAnchorPositionBoundary - viewSize;
-        }
-
-        // ok case, lay it out after the anchor.
+        // happy case, lay it out after the anchor.
         if (viewSize <= viewportSize - afterAnchorPositionBoundary) {
             return afterAnchorPositionBoundary;
         }
-
-        // sad case, lay it over the anchor.
-        return 0;
+        
+        // ok case, lay it out before the anchor.
+        if (viewSize <= beforeAnchorPositionBoundary) {
+            return beforeAnchorPositionBoundary - viewSize;
+        }
     }
+
+    // sad case, lay it over the anchor.
+    return Math.max(viewportSize - viewSize, 0);
 }

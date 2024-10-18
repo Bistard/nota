@@ -26,8 +26,8 @@ export interface IClipboardService extends IService {
      * @returns A promise that resolves when the operation is complete.
      */
     write(type: ClipboardType.Text, content: string): Promise<void>;
-    write(type: ClipboardType.Resources, content: URI[]): Promise<void>;
-    write<T>(type: ClipboardType.Arbitrary, content: T, key: string): Promise<void>;
+    write(type: ClipboardType.Resources, content: URI[]): void;
+    write<T>(type: ClipboardType.Arbitrary, content: T, key: string): void;
 
     /**
      * @description Reads content from the clipboard based on the specified 
@@ -43,6 +43,6 @@ export interface IClipboardService extends IService {
      * @returns A promise that resolves with the content read from the clipboard.
      */
     read(type: ClipboardType.Text): Promise<string>;
-    read(type: ClipboardType.Resources): Promise<URI[]>;
-    read<T>(type: ClipboardType.Arbitrary, key: string): Promise<T | undefined>;
+    read(type: ClipboardType.Resources): URI[];
+    read<T>(type: ClipboardType.Arbitrary, key: string): T | undefined;
 }

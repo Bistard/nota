@@ -3,7 +3,7 @@ import "src/workbench/parts/workspace/editor/editor"; // TODO
 import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
-import { waitDomToBeLoad } from "src/base/browser/basic/dom";
+import { CollapseState, waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -27,7 +27,7 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
@@ -61,6 +61,9 @@ import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigation
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
+import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
+import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
+import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -280,6 +283,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationBarService     , new ServiceDescriptor(NavigationBar            , []));
         registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
         registerService(IToolBarService           , new ServiceDescriptor(ToolBar                  , []));
+        registerService(IActionBarService         , new ServiceDescriptor(ActionBar                , []));
+        registerService(IFilterBarService         , new ServiceDescriptor(FilterBar                , []));
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
@@ -290,6 +295,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
         registerService(IFileTreeMetadataService  , new ServiceDescriptor(FileTreeService          , []));
         registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
+        registerService(IOutlineService           , new ServiceDescriptor(OutlineService           , []));
     
         // utilities && tools
         registerService(IContextService           , new ServiceDescriptor(ContextService           , []));
@@ -321,11 +327,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         class BrowserConfigurationRegistrant extends ConfigurationRegistrant {
             public override initRegistrations(provider: IServiceProvider): void {
                 super.initRegistrations(provider);
-                [
-                    rendererWorkbenchConfigurationRegister,
-                    rendererNavigationViewConfigurationRegister,
-                ]
-                .forEach(register => register(provider));
+                // no op for now
             }
         }
 

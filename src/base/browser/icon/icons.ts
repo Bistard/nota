@@ -1,6 +1,7 @@
 export const enum Icons {
   AddNew = 'add-new',
   ArrowRight = 'arrow-right',
+  Check = 'check',
   Close = 'close',
   CloudUpload = 'cloud-upload',
   CollapseAll = 'collapse-all',
@@ -18,7 +19,10 @@ export const enum Icons {
   NotaAiDefault = 'nota-ai-default',
   NotaAiOn = 'nota-ai-on',
   NotificationActive = 'notification-active',
+  NotificationError = 'notification-error',
+  NotificationInfo = 'notification-info',
   NotificationUnread = 'notification-unread',
+  NotificationWarn = 'notification-warn',
   NotificationsOff = 'notifications-off',
   Outline = 'outline',
   RestoreWindow = 'restore-window',
