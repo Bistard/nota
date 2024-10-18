@@ -7,7 +7,8 @@ import { assert } from "src/base/common/utilities/panic";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
-import { ProseEditorState } from "src/editor/common/proseMirror";
+import { IEditorPosition } from "src/editor/common/position";
+import { ProseEditorState, ProseTransaction } from "src/editor/common/proseMirror";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
 import { DocumentParser, IDocumentParser } from "src/editor/model/parser/parser";
@@ -24,6 +25,9 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
+
+    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>());
+    public readonly onTransaction = this._onTransaction.registerListener;
 
     // [fields]
 
@@ -66,17 +70,9 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [getter / setter]
 
-    get source(): URI {
-        return this._source;
-    }
-
-    get schema(): EditorSchema {
-        return this._schema;
-    }
-
-    get state(): ProseEditorState | undefined {
-        return this._editorState;
-    }
+    get source(): URI { return this._source; }
+    get schema(): EditorSchema { return this._schema; }
+    get state(): ProseEditorState | undefined { return this._editorState; }
 
     // [public methods]
 
@@ -97,6 +93,42 @@ export class EditorModel extends Disposable implements IEditorModel {
     public getRawContent(): string {
         const state = assert(this._editorState);
         return ''; // TODO
+    }
+
+    public getLine(lineNumber: number): string {
+        return ''; // TODO
+    }
+    
+    public getRawLine(lineNumber: number): string {
+        return ''; // TODO
+    }
+
+    public getLineLength(lineNumber: number): number {
+        return -1; // TODO
+    }
+
+    public getRawLineLength(lineNumber: number): number {
+        return -1; // TODO
+    }
+
+    public getLineCount(): number {
+        return -1; // TODO
+    }
+
+    public getOffsetAt(lineNumber: number, lineOffset: number): number {
+        return -1; // TODO
+    }
+
+    public getPositionAt(textOffset: number): IEditorPosition {
+        return undefined!; // TODO
+    }
+
+    public getCharCodeByOffset(textOffset: number): number {
+        return -1; // TODO
+    }
+
+    public getCharCodeByLine(lineNumber: number, lineOffset: number): number {
+        return -1; // TODO
     }
 
     // [private methods]
