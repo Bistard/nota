@@ -82,8 +82,10 @@ export class NumberEditorOption<K extends EditorOptionEnum> extends BasicEditorO
 export class StringEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, string> {}
 export class EditorModeOption<K extends EditorOptionEnum> extends BasicEditorOption<K, EditorType> {}
 export const enum EditorOptionEnum {
+    // [model]
     baseURI,
     writable,
+    // [view]
     mode,
     codeblockHighlight,
     ignoreHTML,

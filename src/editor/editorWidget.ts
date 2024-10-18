@@ -65,20 +65,7 @@ export interface IEditorWidget extends IProseEventBroadcaster {
 }
 
 /**
- * @class `EditorWidget` serves as a comprehensive UI component within an editor 
- * framework, embodying the Model-View-ViewModel (MVVM) architectural pattern to 
- * offer a highly interactive and responsive editing environment. 
- * 
- * The widget's model (`IEditorModel`) represents the editor's data and business 
- * logic.
- * 
- * The view (`IEditorView`), on the other hand, is concerned with the visual 
- * representation of the editor's content, handling user interactions and 
- * rendering the text within the editor's UI.
- * 
- * Bridging the model and view, the viewModel (`IEditorViewModel`) acts as an 
- * intermediary, synchronizing the model's state with its representation in the 
- * view and reacting to user inputs to update the model accordingly.
+ * @class // TODO
  */
 export class EditorWidget extends Disposable implements IEditorWidget {
 
@@ -197,13 +184,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return assert(this._model);
     }
 
-
     get view(): IEditorView {
         return assert(this._view);
     }
 
     get renderMode(): EditorType | null {
-        return null;
+        return null; // TODO
     }
 
     // [public methods]
@@ -275,9 +261,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         disposables.register(Event.any([model.onLog, view.onLog])((event) => {
             defaultLog(this.logService, event.level, 'EditorWidget', event.message, event.error, event.additionals);
         }));
-
-        // binding to the view model
-        // disposables.register(viewModel.onDidRenderModeChange(e => this._onDidRenderModeChange.fire(e)));
 
         // binding to the view
         disposables.register(view.onDidFocusChange(e => this._onDidFocusChange.fire(e)));

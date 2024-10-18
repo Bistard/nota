@@ -3,6 +3,7 @@ import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { AsyncResult, ok } from "src/base/common/result";
+import { assert } from "src/base/common/utilities/panic";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
@@ -89,7 +90,13 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     public getContent(): string[] {
+        const state = assert(this._editorState);
         return []; // TODO
+    }
+
+    public getRawContent(): string {
+        const state = assert(this._editorState);
+        return ''; // TODO
     }
 
     // [private methods]
