@@ -239,7 +239,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
         this._options.updateOptions(newOption);
-        this._model?.updateOptions(this._options.getOptions());
     }
 
     // [private helper methods]
