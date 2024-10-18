@@ -53,7 +53,7 @@ export interface IEditorModel extends IDisposable {
     readonly schema: EditorSchema;
 
     /**
-     * The state of the model.
+     * The state of the model. Returns undefined if the model is not ready yet.
      */
     readonly state?: ProseEditorState;
 
