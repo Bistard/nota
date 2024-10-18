@@ -8,7 +8,7 @@ import { EditorOptionsType } from "src/editor/common/configuration/editorConfigu
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorPosition } from "src/editor/common/position";
-import { ProseEditorState, ProseTransaction } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseNode, ProseTransaction } from "src/editor/common/proseMirror";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
 import { DocumentParser, IDocumentParser } from "src/editor/model/parser/parser";
@@ -25,7 +25,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
-
+    
     private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>());
     public readonly onTransaction = this._onTransaction.registerListener;
 
@@ -85,6 +85,19 @@ export class EditorModel extends Disposable implements IEditorModel {
             });
     }
 
+    public insertAt(textOffset: number, text: string): void {
+        const state = assert(this._editorState);
+        const document = this.__tokenizeAndParse(text);
+        const newTr = state.tr.insert(textOffset, document);
+        this._onTransaction.fire(newTr);
+    }
+
+    public deleteAt(textOffset: number, length: number): void {
+        const state = assert(this._editorState);
+        const newTr = state.tr.delete(textOffset, textOffset + length);
+        this._onTransaction.fire(newTr);
+    }
+
     public getContent(): string[] {
         const state = assert(this._editorState);
         return []; // TODO
@@ -137,6 +150,11 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._editorState = newState;
     }
 
+    private __tokenizeAndParse(raw: string): ProseNode {
+        const tokens = this._lexer.lex(raw);
+        return this._docParser.parse(tokens);
+    }
+
     private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
         return {
             baseURI: options.baseURI.value,
@@ -148,8 +166,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         return this.__readFileRaw(source)
             .andThen(raw => {
-                const tokens = this._lexer.lex(raw);
-                const document = this._docParser.parse(tokens);
+                const document = this.__tokenizeAndParse(raw);
                 const state = ProseEditorState.create({
                     schema: this._schema,
                     doc: document,
