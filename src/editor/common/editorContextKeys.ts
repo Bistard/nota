@@ -1,5 +1,5 @@
+import { EditorType } from "src/editor/common/view";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
-import { EditorType } from "src/editor/common/viewModel";
 
 export namespace EditorContextKeys {
 

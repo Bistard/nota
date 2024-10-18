@@ -54,8 +54,6 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
     ) {
         super(editorWidget, logService);
 
-        console.log(editorWidget);
-
         /**
          * Keydown: when key is pressing in the editor:
          *  1. we look up for any registered command (from the map), 

@@ -6,6 +6,10 @@ import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
+import { ProseEditorState } from "src/editor/common/proseMirror";
+import { AsyncResult } from "src/base/common/result";
+import { IEditorExtension } from "src/editor/common/extension/editorExtension";
+import { EditorSchema } from "src/editor/viewModel/schema";
 
 export const enum EndOfLineType {
     /** 
@@ -351,9 +355,16 @@ export namespace EditorTokens {
 export interface IEditorModel extends IDisposable {
 
     /**
-     * The source of the text model.
+     * The source of the model.
      */
     readonly source: URI;
+
+    readonly schema: EditorSchema;
+
+    /**
+     * The state of the model.
+     */
+    readonly state?: ProseEditorState;
 
     /**
      * Fires when a log is about happen.
@@ -363,20 +374,13 @@ export interface IEditorModel extends IDisposable {
     /** 
      * Fires when the model is built.
      */
-    readonly onDidBuild: Register<EditorToken[]>;
+    readonly onDidBuild: Register<ProseEditorState>;
 
     /**
      * @description Start building the model.
      * @note This will trigger `onDidBuild` event.
      */
-    build(): Promise<void>;
-
-    /**
-     * @description Replace the entire model with the new provided URI.
-     * @param source The new source in URI form.
-     * @note This will trigger `onDidBuild` event.
-     */
-    replaceWith(source: URI): Promise<void>;
+    build(extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error>;
 
     /**
      * @description Returns all the lines of the model.
@@ -386,30 +390,24 @@ export interface IEditorModel extends IDisposable {
     /**
      * @description Returns the raw content of the model.
      */
-    getRawContent(): string;
+    // getRawContent(): string;
 
     /**
      * @description Returns the number of lines in the model.
      */
-    getLineCount(): number;
+    // getLineCount(): number;
 
     /**
      * @description Returns the content of the line with the given line number.
      * @param lineNumber line number (zero-based).
      */
-    getLine(lineNumber: number): string;
+    // getLine(lineNumber: number): string;
 
     /**
      * @description Returns the length of the line with the given line number.
      * @param lineNumber line number (zero-based).
      */
-    getLineLength(lineNumber: number): number;
-
-    /**
-     * @description Updates the options of the editor model.
-     * @param options The editor option.
-     */
-    updateOptions(options: EditorOptionsType): void;
+    // getLineLength(lineNumber: number): number;
 }
 
 /**
@@ -427,12 +425,4 @@ export interface IEditorModelOptions {
      * readonly.
      */
     readonly writable: boolean;
-}
-
-export namespace IModelEvent {
-
-    export interface IContentChange {
-
-    }
-
 }

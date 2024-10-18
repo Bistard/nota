@@ -7,12 +7,10 @@ import { Constructor, isDefined } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
-import { IEditorView } from "src/editor/common/view";
-import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
-import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
-import { EditorModel } from "src/editor/model/editorModel";
+import { EditorType, IEditorView } from "src/editor/common/view";
+import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
+import { EditorModel } from "src/editor/model/editorModel2";
 import { EditorView } from "src/editor/view/editorView";
-import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
@@ -40,11 +38,6 @@ export interface IEditorWidget extends IProseEventBroadcaster {
      * Returns the model.
      */
     readonly model: IEditorModel;
-
-    /**
-     * Returns the view model.
-     */
-    readonly viewModel: IEditorViewModel;
 
     /**
      * Returns the view.
@@ -98,7 +91,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     
     // MVVM
     private _model: IEditorModel | null;
-    private _viewModel: IEditorViewModel | null;
     private _view: IEditorView | null;
     private _editorData: EditorData | null;
 
@@ -183,13 +175,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this._container = new FastElement(container);
         this._model = null;
-        this._viewModel = null;
         this._view = null;
         this._editorData = null;
 
         this._options    = instantiationService.createInstance(EditorOptionController, options);
         const contextHub = instantiationService.createInstance(EditorContextHub, this);
-        this._extensions = instantiationService.createInstance(EditorExtensionController, extensions);
+        this._extensions = instantiationService.createInstance(EditorExtensionController, this, extensions);
 
         this.__registerListeners();
         this.__register(contextHub);
@@ -206,16 +197,13 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return assert(this._model);
     }
 
-    get viewModel(): IEditorViewModel {
-        return assert(this._viewModel);
-    }
 
     get view(): IEditorView {
         return assert(this._view);
     }
 
     get renderMode(): EditorType | null {
-        return this._viewModel?.renderMode ?? null;
+        return null;
     }
 
     // [public methods]
@@ -226,14 +214,33 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return;
         }
 
-        this.__detachModel();
-        const textModel = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
-        await this.__attachModel(textModel);
+        this.__detachData();
+        const extensionList = this._extensions.getExtensions();
+
+        // model
+        this._model = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
+        const initState = await this._model.build(extensionList).unwrap();
+
+        // view
+        this._view = this.instantiationService.createInstance(
+            EditorView,
+            this._container.raw,
+            this._model,
+            initState,
+            extensionList,
+            this._options.getOptions(),
+        );
+
+        // listeners
+        const listeners = this.__registerMVVMListeners(this._model, this._view);
+
+        // cache data
+        this._editorData = new EditorData(this._model, this._view, listeners);
     }
 
     public override dispose(): void {
         super.dispose();
-        this.__detachModel();
+        this.__detachData();
         this.logService.debug('EditorWidget', 'Editor disposed.');
     }
 
@@ -243,40 +250,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [private helper methods]
 
-    private async __attachModel(model?: IEditorModel): Promise<void> {
-        if (!model) {
-            this._model = null;
-            return;
-        }
-
-        if (this._model === model) {
-            return;
-        }
-
-        this._model = model;
-        this._viewModel = this.instantiationService.createInstance(
-            EditorViewModel,
-            model,
-            this._options.getOptions(),
-        );
-        this._view = this.instantiationService.createInstance(
-            EditorView,
-            this._container.raw,
-            this._viewModel,
-            this._extensions.getExtensions(),
-            this._options.getOptions(),
-        );
-
-        const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
-        await this._model.build();
-
-        this._editorData = new EditorData(this._model, this._viewModel, this._view, listeners);
-    }
-
-    private __detachModel(): void {
+    private __detachData(): void {
         this._editorData?.dispose();
         this._model = null;
-        this._viewModel = null;
         this._view = null;
         this._editorData = null;
     }
@@ -292,16 +268,16 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }));
     }
 
-    private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {
+    private __registerMVVMListeners(model: IEditorModel, view: IEditorView): IDisposable {
         const disposables = new DisposableManager();
 
         // log out all the messages from MVVM
-        disposables.register(Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
+        disposables.register(Event.any([model.onLog, view.onLog])((event) => {
             defaultLog(this.logService, event.level, 'EditorWidget', event.message, event.error, event.additionals);
         }));
 
         // binding to the view model
-        disposables.register(viewModel.onDidRenderModeChange(e => this._onDidRenderModeChange.fire(e)));
+        // disposables.register(viewModel.onDidRenderModeChange(e => this._onDidRenderModeChange.fire(e)));
 
         // binding to the view
         disposables.register(view.onDidFocusChange(e => this._onDidFocusChange.fire(e)));
@@ -332,7 +308,6 @@ class EditorData implements IDisposable {
 
     constructor(
         public readonly model: IEditorModel,
-        public readonly viewModel: IEditorViewModel,
         public readonly view: IEditorView,
         public readonly listeners: IDisposable,
     ) { }
@@ -340,7 +315,6 @@ class EditorData implements IDisposable {
     public dispose(): void {
         this.listeners.dispose();
         this.model.dispose();
-        this.viewModel.dispose();
         this.view.dispose();
     }
 }
@@ -392,6 +366,7 @@ class EditorExtensionController extends Disposable {
     // [constructor]
 
     constructor(
+        editorWidget: IEditorWidget,
         extensions: { id: string, ctor: Constructor<EditorExtension> }[],
         @IInstantiationService instantiationService: IInstantiationService,
         @ILogService logService: ILogService,
@@ -402,7 +377,7 @@ class EditorExtensionController extends Disposable {
         for (const { id, ctor} of extensions) {
             try {
                 logService.trace('EditorWidget', `Editor extension constructing: ${id}`);
-                const instance = instantiationService.createInstance(ctor, this);
+                const instance = instantiationService.createInstance(ctor, editorWidget);
                 this._extensions.set(id, instance);
                 logService.trace('EditorWidget', `Editor extension constructed: ${id}`);
             } catch (error: any) {

@@ -2,13 +2,8 @@ import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
 import { ProseNode } from "src/editor/common/proseMirror";
+import { EditorType } from "src/editor/common/view";
 import { EditorSchema } from "src/editor/viewModel/schema";
-
-export const enum EditorType {
-    Plain = 'plain-text',
-    Split = 'split-view',
-    Rich = 'rich-text',
-}
 
 /**
  * The interface is only for {@link EditorViewModel}.

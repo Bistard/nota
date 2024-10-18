@@ -20,37 +20,17 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     constructor(
         container: HTMLElement,
         context: ViewContext,
+        editorState: ProseEditorState,
         extensions: IEditorExtension[],
     ) {
         container.classList.add('editor-base');
 
         // binding the view part of the extension to the proseMirror
-        const schema = context.viewModel.getSchema();
         const viewExtensionInfo = extensions.map(extension => ({ id: extension.id, extension: extension.getViewExtension() }));
         const view = new ProseEditorView(
             container, 
             {
-                state: ProseEditorState.create({
-                    schema: schema,
-                    doc: undefined,
-                    /**
-                     * Note:
-                     * 1. The {@link ProseEditorView} is always constructed 
-                     *    slightly before the {@link EditorModel.onDidBuild} 
-                     *    process completes. If we bind the extension immediately, 
-                     *    Initialization of {@link EditorExtension} will be 
-                     *    triggered at this point.
-                     * 2. When {@link EditorModel.onDidBuild} finishes, it will 
-                     *    call {@link this.render()} eventually, which will 
-                     *    cause the Initialization of {@link EditorExtension} to 
-                     *    be triggered again.
-                     * 
-                     * As a result, the Initialization of {@link EditorExtension} 
-                     * will be called twice in a short span of time. To avoid 
-                     * this, we only trigger them during the second step.
-                     */
-                    plugins: [],
-                }),
+                state: editorState,
                 editable: () => context.options.writable.value,
             }
         );

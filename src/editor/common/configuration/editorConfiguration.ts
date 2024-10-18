@@ -1,12 +1,11 @@
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { IEditorModelOptions } from "src/editor/common/model";
-import { IEditorViewOptions } from "src/editor/common/view";
-import { EditorType, IEditorViewModelOptions } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewOptions } from "src/editor/common/view";
 
 /**
  * Constructor option for 'EditorWidget'.
  */
-export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewModelOptions, IEditorViewOptions {
+export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewOptions {
 
 }
 

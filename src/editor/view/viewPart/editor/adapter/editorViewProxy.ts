@@ -13,9 +13,8 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
     /**
      * @description Renders the editor based on the given prosemirror document 
      * node.
-     * @param document The prosemirror root document node.
      */
-    render(document: ProseNode): void;
+    render(newState: ProseEditorState): void;
 
     /**
      * @description If the content of the window is directly editable.
@@ -95,14 +94,7 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     
     // [public methods]
 
-    public render(document: ProseNode): void {
-        const schema = this._ctx.viewModel.getSchema();
-        const extensions = this.__getCurrentViewExtensions();
-        const newState = ProseEditorState.create({
-            schema: schema,
-            doc: document,
-            plugins: extensions,
-        });
+    public render(newState: ProseEditorState): void {
         this._view.updateState(newState);
     }
 

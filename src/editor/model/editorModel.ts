@@ -11,7 +11,7 @@ import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 import { panic } from "src/base/common/utilities/panic";
 
-export class EditorModel extends Disposable implements IEditorModel {
+export class EditorModel extends Disposable /** implements IEditorModel */ {
 
     // [event]
 

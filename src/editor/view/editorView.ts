@@ -3,14 +3,16 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { IEditorViewModel, IRenderRichEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
 import { IEditorExtension } from 'src/editor/common/extension/editorExtension';
+import { IEditorModel } from 'src/editor/common/model';
+import { assert } from 'src/base/common/utilities/panic';
+import { ProseEditorState } from 'src/editor/common/proseMirror';
 
 export class ViewContext {
     constructor(
-        public readonly viewModel: IEditorViewModel,
+        public readonly model: IEditorModel,
         public readonly view: IEditorView,
         public readonly options: EditorOptionsType,
         public readonly log: (event: ILogEvent) => void,
@@ -59,25 +61,24 @@ export class EditorView extends Disposable implements IEditorView {
     
     constructor(
         container: HTMLElement,
-        viewModel: IEditorViewModel,
+        model: IEditorModel,
+        initState: ProseEditorState,
         extensions: IEditorExtension[],
         options: EditorOptionsType,
     ) {
         super();
 
-        const context = new ViewContext(viewModel, this, options, this._onLog.fire.bind(this));
+        const context = new ViewContext(model, this, options, this._onLog.fire.bind(this));
         this._ctx = context;
 
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = new RichtextEditor(editorElement, context, extensions);
+        this._view = new RichtextEditor(editorElement, context, initState, extensions);
         
-        // start listening events from view-model
-        this.__registerEventFromViewModel();
+        // forward: start listening events from model
+        this.__registerEventFromModel();
 
-        // communication backward to view-model
-        this.__registerEventToViewModel();
 
         // render
         this._container = document.createElement('div');
@@ -126,19 +127,11 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [private helper methods]
 
-    private __registerEventFromViewModel(): void {
-        const viewModel = this._ctx.viewModel;
+    private __registerEventFromModel(): void {
+        const model = this._ctx.model;
 
-        this.__register(viewModel.onRender(event => {
-            this._view.render((event as IRenderRichEvent).document);
-        }));
-
-        this.__register(viewModel.onDidRenderModeChange(mode => {
+        this.__register(model.onDidBuild(state => {
             // TODO
         }));
-    }
-
-    private __registerEventToViewModel(): void {
-        // TODO
     }
 }

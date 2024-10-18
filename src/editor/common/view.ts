@@ -4,6 +4,12 @@ import { IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/
 import { EditorBase } from "src/editor/view/viewPart/editor/editorBase";
 import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
 
+export const enum EditorType {
+    Plain = 'plain-text',
+    Split = 'split-view',
+    Rich = 'rich-text'
+}
+
 export type PlaintextEditor = {} & EditorBase; // TEST
 export type SplitViewEditor = {} & EditorBase; // TEST
 
@@ -33,4 +39,21 @@ export interface IEditorView extends IProseEventBroadcaster {
 
 export interface IEditorViewOptions {
 
+    /**
+     * Determines how the editor is about to render the view.
+     * @default EditorType.Rich
+     */
+    mode?: EditorType;
+
+    /**
+     * If enables code-block highlight functionality.
+     * @default true
+     */
+    codeblockHighlight?: boolean;
+
+    /**
+     * When parsing, if ignores parse HTML content.
+     * @default false
+     */
+    ignoreHTML?: boolean;
 }
