@@ -16,6 +16,13 @@ export namespace Arrays {
     }
 
     /**
+     * @description Return the last element of the given arr.
+     */
+    export function last<T>(arr: T[]): T | undefined {
+        return arr[arr.length - 1];
+    }
+
+    /**
      * @description Determines if all elements in an array are of a specified 
      * type, based on a provided type-checking function.
      * @param array The array to check.
