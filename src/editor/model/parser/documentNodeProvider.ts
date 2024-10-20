@@ -10,6 +10,7 @@ import { Link } from "src/editor/model/parser/mark/link";
 import { Strong } from "src/editor/model/parser/mark/strong";
 import { Blockquote } from "src/editor/model/parser/node/blockquote";
 import { CodeBlock } from "src/editor/model/parser/node/codeBlock";
+import { Escape } from "src/editor/model/parser/node/escape";
 import { Heading } from "src/editor/model/parser/node/heading";
 import { HorizontalRule } from "src/editor/model/parser/node/horizontalRule";
 import { HTML } from "src/editor/model/parser/node/html";
@@ -55,6 +56,7 @@ export class DocumentNodeProvider {
                 // nodes
                 provider.registerNode(new Space());
                 provider.registerNode(new Text());
+                provider.registerNode(new Escape());
                 provider.registerNode(new Paragraph());
                 provider.registerNode(new Blockquote());
                 provider.registerNode(new HorizontalRule());

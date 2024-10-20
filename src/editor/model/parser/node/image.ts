@@ -20,6 +20,7 @@ export class Image extends DocumentNode<EditorTokens.Image> {
         return <ProseNodeSpec>{
             group: 'inline',
             inline: true,
+            content: undefined,
             attrs: {
                 src: {},
                 alt: { default: null },
