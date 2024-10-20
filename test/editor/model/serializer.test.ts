@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { defaultMarkdownSerializer } from 'prosemirror-markdown';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
