@@ -5,7 +5,7 @@ export const enum TokenEnum {
     Space = 'space',
     CodeBlock = 'code',
     Heading = 'heading',
-    Table = 'table',
+    Table = 'table', // TODO
     HorizontalRule = 'hr',
     Blockquote = 'blockquote',
     List = 'list',
@@ -14,7 +14,7 @@ export const enum TokenEnum {
     HTML = 'html',
     Text = 'text',
     Def = 'def', // TODO
-    Escape = 'escape',
+    Escape = 'escape', // TODO
     Image = 'image',
     LineBreak = 'br',
 }
