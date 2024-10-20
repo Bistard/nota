@@ -57,8 +57,7 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
         const { level } = node.attrs;
-        // state.write('#'.repeat(level) + ' ');
-        state.write('#'.repeat(level - 1) + ' ');
+        state.write('#'.repeat(level) + ' ');
         state.serializeInline(node, false);
         state.closeBlock(node);
     };
