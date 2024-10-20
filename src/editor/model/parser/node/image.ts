@@ -54,7 +54,7 @@ export class Image extends DocumentNode<EditorTokens.Image> {
         state.activateNode(this.ctor, {
             src: token.href,
             title: token.title,
-            // alt: token.text,
+            alt: token.text,
         });
         state.deactivateNode();
     }
