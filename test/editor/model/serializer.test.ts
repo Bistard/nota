@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { defaultMarkdownSerializer } from 'prosemirror-markdown';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
@@ -28,6 +29,7 @@ suite('MarkdownSerializer', () => {
         const tokens = lexer.lex(content);
         const doc = docParser.parse(tokens);
         const serializedContent = serializer.serialize(doc);
+        // const serializedContent = defaultMarkdownSerializer.serialize(doc);
         return serializedContent;
     }
 
@@ -35,26 +37,8 @@ suite('MarkdownSerializer', () => {
         expectSame('Some paragraph.');
         expectSame('This is a multi-line paragraph.\nIt has two lines.');
         expectSame('\\');
-        // expectSame('\\;'); // FIX
-        // expectSame('!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/'); // FIX
-        
-
-    
-        // Paragraph with inline formatting (bold, italic, and code)
-        // expectSame('This is a paragraph with **bold** text and *italic* text.');
-        // expectSame('This is a paragraph with a `code span` in the middle.');
-    
-        // Paragraph with a link
-        // expectSame('This is a paragraph with a [link](https://example.com).');
-    
-        // Paragraph with complex mixed inline marks
-        // expectSame('This is **bold**, *italic*, and `code` in one paragraph.');
-    
-        // Paragraph with punctuation and mixed inline marks
-        // expectSame('Here is a sentence with punctuation, **bold text**, and a [link](https://example.com).');
-        
-        // Complex paragraph with special characters and inline formatting
-        // expectEqualTo('This paragraph includes special characters: **&**, *<*, `>` and `"quoted text"`, along with a [link](https://example.com).', 'This paragraph includes special characters: **&**, *<*, `>` and `"quoted text"`, along with a [link](https://example.com).');
+        expectSame('\\;');
+        expectSame('!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/');
     });
 
     suite('Heading', () => {
@@ -146,6 +130,91 @@ suite('MarkdownSerializer', () => {
         
         test('Invalid horizontal rule (mixed symbols)', () => {
             expectSame('-*-'); // Invalid HR, should not be serialized as HR
+        });
+    });
+
+    suite('escape', () => {
+        test('Asterisk', () => {
+            expectSame('\\*This is not bold\\*');
+        });
+        
+        test('Underscore', () => {
+            expectSame('\\_This is not italic\\_');
+        });
+        
+        test('Hash in heading', () => {
+            expectSame('\\# This is not a heading');
+        });
+        
+        test('Square brackets for links', () => {
+            expectSame('\\[This is not a link\\]');
+        });
+        
+        test('Parentheses in link text', () => {
+            expectSame('[Link text](https://example.com/\\(escaped\\))');
+        });
+        
+        test('Backslash', () => {
+            expectSame('This is a backslash: \\\\');
+        });
+        
+        test('Mixed special characters', () => {
+            expectSame('\\*Not bold\\*, \\_not italic\\_, \\# not a heading, \\[not a link\\], and \\\\ backslash.');
+        });
+        
+        test('Special characters in heading', () => {
+            expectSame('# Heading with \\*escaped asterisk\\* and \\_escaped underscore\\_');
+        });
+        
+        test.skip('Special characters in list items', () => {
+            expectSame('- List item with \\*escaped asterisk\\* and \\_escaped underscore\\_');
+        });
+        
+        test('Special characters in blockquote', () => {
+            expectSame('> Blockquote with \\# escaped hash and \\[escaped brackets\\]');
+        });
+        
+        test.skip('No escape inside inline code', () => {
+            expectSame('Here is `\\*no escape\\* inside code`');
+        });
+        
+        test.skip('No escape inside fenced code block', () => {
+            expectSame('```\nThis is code with \\*no escape\\* inside.\n```');
+        });
+        
+    });
+
+    suite.skip('lineBreak', () => {
+        test('Basic line break', () => {
+            expectEqualTo('First line  \nSecond line', 'First line  \nSecond line');
+        });
+        
+        test('Line break with trailing spaces', () => {
+            expectSame('Line with two spaces  \nNew line');
+        });
+        
+        test('Line break at the beginning of text', () => {
+            expectSame('  \nNew line after break');
+        });
+        
+        test('Line break at the end of text', () => {
+            expectSame('Line before break  \n');
+        });
+        
+        test('Multiple consecutive line breaks', () => {
+            expectSame('Line 1  \n  \nLine 3');
+        });
+        
+        test('Line break inside a list', () => {
+            expectSame('- First item  \n  Continued\n- Second item');
+        });
+        
+        test('Line break inside a blockquote', () => {
+            expectSame('> First line  \n> Second line');
+        });
+        
+        test('Line break with bold text', () => {
+            expectEqualTo('**Bold line**  \nNew line', '**Bold line**  \nNew line');
         });
     });
 });
