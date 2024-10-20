@@ -3,6 +3,7 @@ import { EditorTokens } from "src/editor/common/model";
 import { ProseMarkSpec } from "src/editor/common/proseMirror";
 import { DocumentMark } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IDocumentMarkSerializationOptions } from "src/editor/model/serializer/serializer";
 
 /**
  * @class A strong mark. Rendered as `<strong>`, parse rules also match `<b>` 
@@ -41,4 +42,11 @@ export class Strong extends DocumentMark<EditorTokens.Strong> {
         state.addText(token.text);
         state.deactivateMark(this.ctor);
     }
+
+    public readonly serializer: IDocumentMarkSerializationOptions = {
+        serializeOpen: () => '**',
+        serializeClose: () => '**',
+        mixable: true,
+        expelEnclosingWhitespace: true,
+    };
 }

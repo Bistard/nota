@@ -1,9 +1,10 @@
 import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirrror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class A code listing. Disallows marks or non-text inline nodes by default. 
@@ -24,6 +25,9 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             defining: true,
             attrs: {
                 view: {},
+                lang: {
+                    default: ''
+                },
             },
             parseDOM: [
                 { tag: 'pre', preserveWhitespace: 'full' },
@@ -39,12 +43,26 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         
         const view = new CodeEditorView({
             doc: token.text,
-            extensions: [minimalSetup]
+            extensions: [minimalSetup],
         });
         
-        state.activateNode(this.ctor, { view: view });
+        state.activateNode(this.ctor, { view: view, lang: token.lang });
         state.deactivateNode();
     }
 
-    // [private helper methods]
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        const { lang } = node.attrs;
+        
+        // Make sure the front matter fences are longer than any dash sequence within it
+        const backticks = node.textContent.match(/`{3,}/gm);
+        const fence = backticks ? (backticks.sort().slice(-1)[0] + '`') : '```';
+
+        state.write(fence + (lang || '') + '\n');
+        state.text(node.textContent, false);
+        
+        // Add a newline to the current content before adding closing marker
+        state.write('\n');
+        state.write(fence);
+        state.closeBlock(node);
+    };
 }

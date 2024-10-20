@@ -1,8 +1,9 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class A block node that represents ordered list or unordered list. Parsing 
@@ -54,6 +55,10 @@ export class List extends DocumentNode<EditorTokens.List> {
         state.parseTokens(token.items);
         state.deactivateNode();
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        // TODO
+    };
 }
 
 export class ListItem extends DocumentNode<EditorTokens.ListItem> {
@@ -89,4 +94,8 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
         state.parseTokens(token.tokens);
         state.deactivateNode();
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        // TODO
+    };
 }

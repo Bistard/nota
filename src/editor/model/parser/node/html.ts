@@ -1,8 +1,9 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class A block node that represents `<html>`.
@@ -40,4 +41,10 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         });
         state.deactivateNode();
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        const { text } = node.attrs;
+        // state.write(text);
+        // TODO
+    };
 }

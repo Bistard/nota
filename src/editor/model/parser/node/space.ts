@@ -1,9 +1,10 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class An empty space block. Represented in the DOM as an empty `<p>` 
@@ -59,4 +60,9 @@ export class Space extends DocumentNode<EditorTokens.Space> {
         state.parseTokens([{ type: 'text', raw: spaces, text: spaces }]);
         state.deactivateNode();
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        state.serializeInline(node);
+        state.serializeBlock(node);
+    };
 }

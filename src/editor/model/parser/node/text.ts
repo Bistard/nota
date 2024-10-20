@@ -1,8 +1,9 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class The plain-text node.
@@ -39,4 +40,9 @@ export class Text extends DocumentNode<EditorTokens.Text> {
         (<string>token.type) = TokenEnum.Paragraph;
         state.parseTokens([token]);
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        state.text(node.text!, !state.inAutoLink);
+        // state.text(node.text!, false);
+    };
 }

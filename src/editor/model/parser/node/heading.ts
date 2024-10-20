@@ -1,9 +1,10 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class A heading textblock, with a `level` attribute that should hold the 
@@ -53,4 +54,12 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
         
         state.deactivateNode();
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        const { level } = node.attrs;
+        // state.write('#'.repeat(level) + ' ');
+        state.write('#'.repeat(level - 1) + ' ');
+        state.serializeInline(node, false);
+        state.closeBlock(node);
+    };
 }

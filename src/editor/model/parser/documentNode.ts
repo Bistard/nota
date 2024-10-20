@@ -1,10 +1,11 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
-import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
+import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNode, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { EditorSchema } from "src/editor/model/schema";
+import { IDocumentMarkSerializationOptions, Serializer } from "src/editor/model/serializer/serializer";
 
-export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
+export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken, TNode extends ProseNode | ProseMark = ProseNode | ProseMark> {
     
     /**
      * Represents a corresponding markdown token type (original tokens parsed by 
@@ -39,22 +40,32 @@ export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
      * @param token A markdown token that matches this document node type.
      */
     parseFromToken(state: IDocumentParseState, token: TToken): void;
+
+    /**
+     * An option that defines how the serialization behavior of {@link DocumentMark}.
+     */
+    readonly serializer: TNode extends ProseMark ? IDocumentMarkSerializationOptions : Serializer<TNode, void>;
 }
 
-abstract class DocumentNodeBase<TCtor, TSpec, TToken> implements IDocumentNode<TCtor, TSpec, TToken> {
+abstract class DocumentNodeBase<TCtor, TSpec, TToken, TNode extends ProseNode | ProseMark> implements IDocumentNode<TCtor, TSpec, TToken, TNode> {
     constructor(public readonly name: string) {}
     public declare readonly ctor: TCtor;
     public abstract getSchema(): TSpec;
+    
+    // parser
     public abstract parseFromToken(state: IDocumentParseState, token: TToken): void;
+
+    // serializer
+    public abstract readonly serializer: TNode extends ProseMark ? IDocumentMarkSerializationOptions : Serializer<TNode, void>;
 }
 
 /**
  * @class A document node that represents an actual node in the DOM.
  */
-export abstract class DocumentNode<TToken> extends DocumentNodeBase<ProseNodeType, ProseNodeSpec, TToken> {}
+export abstract class DocumentNode<TToken> extends DocumentNodeBase<ProseNodeType, ProseNodeSpec, TToken, ProseNode> {}
 
 /**
  * @class A document mark that represents a mark. Such as 'strong', 'emphasis',
  * 'link' and so on.
  */
-export abstract class DocumentMark<TToken> extends DocumentNodeBase<ProseMarkType, ProseMarkSpec, TToken> {}
+export abstract class DocumentMark<TToken> extends DocumentNodeBase<ProseMarkType, ProseMarkSpec, TToken, ProseMark> {}

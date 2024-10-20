@@ -1,9 +1,10 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNodeSpec } from "src/editor/common/proseMirror";
+import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class A plain paragraph textblock. Represented in the DOM as a `<p>` 
@@ -37,4 +38,10 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
         }
         state.deactivateNode();
     }
+
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
+        state.serializeInline(node);
+        // state.serializeBlock(node);
+        state.closeBlock(node);
+    };
 }
