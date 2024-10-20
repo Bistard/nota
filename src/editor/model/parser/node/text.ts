@@ -42,7 +42,6 @@ export class Text extends DocumentNode<EditorTokens.Text> {
     }
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
-        state.text(node.text!, !state.inAutoLink);
-        // state.text(node.text!, false);
+        state.text(node.text!, false);
     };
 }
