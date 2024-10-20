@@ -44,7 +44,6 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
         const { text } = node.attrs;
-        // state.write(text);
-        // TODO
+        state.write(text);
     };
 }
