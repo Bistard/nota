@@ -69,7 +69,6 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     ) {
         super();
         this._ignored = new Set();
-
         this._state = this.__register(new DocumentParseState(this, schema, nodeProvider));
         this.onLog = this._state.onLog;
     }
@@ -80,7 +79,6 @@ export class DocumentParser extends Disposable implements IDocumentParser {
         this._state.parseTokens(tokens);
         const documentRoot = this._state.complete();
         this._state.clean();
-        
         return documentRoot;
     }
 

@@ -1,8 +1,8 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { ILogService, defaultLog } from "src/base/common/logger";
+import { ILogService } from "src/base/common/logger";
 import { Constructor, isDefined } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
@@ -256,11 +256,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private __registerMVVMListeners(model: IEditorModel, view: IEditorView): IDisposable {
         const disposables = new DisposableManager();
-
-        // log out all the messages from MVVM
-        disposables.register(Event.any([model.onLog, view.onLog])((event) => {
-            defaultLog(this.logService, event.level, 'EditorWidget', event.message, event.error, event.additionals);
-        }));
 
         // binding to the view
         disposables.register(view.onDidFocusChange(e => this._onDidFocusChange.fire(e)));

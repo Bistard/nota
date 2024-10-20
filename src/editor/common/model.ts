@@ -57,11 +57,6 @@ export interface IEditorModel extends IDisposable {
      */
     readonly state?: ProseEditorState;
 
-    /**
-     * Fires when a log is about happen.
-     */
-    readonly onLog: Register<ILogEvent>;
-
     /** 
      * Fires when the model is built.
      */

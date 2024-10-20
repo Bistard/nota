@@ -1,13 +1,12 @@
 import 'src/editor/view/media/editorView.scss';
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { ILogEvent, LogLevel } from "src/base/common/logger";
+import { defaultLog, ILogEvent, ILogService, LogLevel } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
 import { IEditorExtension } from 'src/editor/common/extension/editorExtension';
 import { IEditorModel } from 'src/editor/common/model';
-import { assert } from 'src/base/common/utilities/panic';
 import { ProseEditorState } from 'src/editor/common/proseMirror';
 
 export class ViewContext {
@@ -36,9 +35,6 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    private readonly _onLog = this.__register(new Emitter<ILogEvent>());
-    public readonly onLog = this._onLog.registerListener;
-    
     get onDidFocusChange() { return this._view.onDidFocusChange; }
     get onBeforeRender() { return this._view.onBeforeRender; }
     get onRender() { return this._view.onRender; }
@@ -65,10 +61,11 @@ export class EditorView extends Disposable implements IEditorView {
         initState: ProseEditorState,
         extensions: IEditorExtension[],
         options: EditorOptionsType,
+        @ILogService logService: ILogService,
     ) {
         super();
 
-        const context = new ViewContext(model, this, options, this._onLog.fire.bind(this));
+        const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additionals));
         this._ctx = context;
 
         // the centre that integrates the editor-related functionalities
@@ -88,7 +85,7 @@ export class EditorView extends Disposable implements IEditorView {
         container.appendChild(this._container);
 
         // others
-        this._onLog.fire({ level: LogLevel.DEBUG, message: 'EditorView constructed.' });
+        logService.debug('EditorView', 'Constructed');
     }
 
     // [public methods]

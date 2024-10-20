@@ -26,11 +26,6 @@ export interface IEditorView extends IProseEventBroadcaster {
     readonly editor: EditorWindow;
 
     /**
-     * Fires when a log is about happen.
-     */
-    readonly onLog: Register<ILogEvent>;
-
-    /**
      * @description Updates the options of the editor view.
      * @param options The options.
      */

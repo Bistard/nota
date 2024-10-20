@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { ILogEvent, LogLevel } from "src/base/common/logger";
+import { defaultLog, ILogService } from "src/base/common/logger";
 import { AsyncResult, ok } from "src/base/common/result";
 import { assert } from "src/base/common/utilities/panic";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
@@ -19,9 +19,6 @@ import { IFileService } from "src/platform/files/common/fileService";
 export class EditorModel extends Disposable implements IEditorModel {
 
     // [events]
-
-    private readonly _onLog = this.__register(new Emitter<ILogEvent>());
-    public readonly onLog = this._onLog.registerListener;
 
     private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
@@ -55,6 +52,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         source: URI,
         options: EditorOptionsType,
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._source = source;
@@ -64,8 +62,9 @@ export class EditorModel extends Disposable implements IEditorModel {
         const nodeProvider = DocumentNodeProvider.create().register();
         this._schema = buildSchema(nodeProvider);
         this._docParser = new DocumentParser(this._schema, nodeProvider, /* options */);
+        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additionals)));
 
-        this._onLog.fire({ level: LogLevel.DEBUG, message: 'EditorModel constructed.' });
+        logService.debug('EditorModel', 'Constructed');
     }
 
     // [getter / setter]
@@ -162,7 +161,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     private __buildModel(source: URI, extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error> {
-        this._onLog.fire({ level: LogLevel.DEBUG, message: `EditorModel start building at: ${URI.toString(source)}` });
+        this.logService.debug('EditorModel', `Start building at: ${URI.toString(source)}`);
 
         return this.__readFileRaw(source)
             .andThen(raw => {
