@@ -41,7 +41,6 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
         state.serializeInline(node);
-        // state.serializeBlock(node);
         state.closeBlock(node);
     };
 }
