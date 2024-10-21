@@ -123,6 +123,16 @@ export namespace Strings {
         }
         return s.slice(0, index);
     }
+
+    /**
+     * @description Removes all the characters c from the string s.
+     * @param s The string to be modified.
+     * @param c The character to be removed.
+     * @returns A new string without character c.
+     */
+    export function removeChar(s: string, c: string): string {
+        return s.replace(c, '');
+    }
     
     /**
      * @description Trims all occurrences of a specified substring from the end 

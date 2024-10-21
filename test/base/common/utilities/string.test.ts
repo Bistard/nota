@@ -124,6 +124,32 @@ suite('Strings-test', function () {
         });
     });
 
+    suite('removeChar', () => {
+        test('should remove specified character from the string', () => {
+            assert.strictEqual(Strings.removeChar('hello', 'l'), 'heo');
+        });
+    
+        test('should return the same string if character is not found', () => {
+            assert.strictEqual(Strings.removeChar('hello', 'x'), 'hello');
+        });
+    
+        test('should return an empty string if all characters are removed', () => {
+            assert.strictEqual(Strings.removeChar('aaaa', 'a'), '');
+        });
+    
+        test('should return the original string when removing an empty character', () => {
+            assert.strictEqual(Strings.removeChar('hello', ''), 'hello');
+        });
+    
+        test('should return an empty string when input is empty', () => {
+            assert.strictEqual(Strings.removeChar('', 'a'), '');
+        });
+    
+        test('should handle removing spaces from a string', () => {
+            assert.strictEqual(Strings.removeChar('h e l l o', ' '), 'hello');
+        });
+    });
+
     suite('#rtrim()', function () {
         test('should remove specified substring from the end', function () {
             assert.strictEqual(Strings.rtrim('Hello world!!!', '!'), 'Hello world');

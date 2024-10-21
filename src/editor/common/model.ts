@@ -2,7 +2,6 @@ import * as marked from "marked";
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { ILogEvent } from "src/base/common/logger";
 import { ProseEditorState, ProseTransaction } from "src/editor/common/proseMirror";
 import { AsyncResult } from "src/base/common/result";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";

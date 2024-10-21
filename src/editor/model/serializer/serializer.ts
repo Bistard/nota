@@ -200,7 +200,9 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         const active: ProseMark[] = [];
         const trailing = ref('');
 
-        parent.forEach((node, offset, index) => this.__serializeInline(node, offset, index, parent, active, trailing));
+        parent.forEach((node, offset, index) => {
+            this.__serializeInline(node, offset, index, parent, active, trailing);
+        });
         this.__serializeInline(null, 0, parent.childCount, parent, active, trailing);
         this._atBlockStart = false;
     }
