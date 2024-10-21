@@ -62,6 +62,39 @@ suite('Strings-test', function () {
         });
     });
 
+    suite('escape', () => {
+
+        test('should escape special characters', () => {
+            const input = 'Hello\nWorld! "Test" \\Example\\';
+            const expected = 'Hello\\nWorld! \\"Test\\" \\\\Example\\\\';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should return the same string if no special characters', () => {
+            const input = 'Hello World!';
+            const expected = 'Hello World!';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should handle an empty string', () => {
+            const input = '';
+            const expected = '';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should escape only the special characters present', () => {
+            const input = '\n\t\\';
+            const expected = '\\n\\t\\\\';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should handle string with no escapeable characters', () => {
+            const input = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const expected = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+    });
+
     suite('#rtrim()', function () {
         test('should remove specified substring from the end', function () {
             assert.strictEqual(Strings.rtrim('Hello world!!!', '!'), 'Hello world');

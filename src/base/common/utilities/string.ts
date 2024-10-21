@@ -77,6 +77,29 @@ export namespace Strings {
 
         return result;
     }
+
+    /**
+     * @description Escapes special characters in a string.
+     * @param str The string to be escaped.
+     * @returns The escaped string with special characters replaced.
+     * 
+     * @example
+     * const input = 'Hello\nWorld! "Test" \\Example\\';
+     * console.log(escape(input)); // 'Hello\\nWorld! \\"Test\\" \\\\Example\\\\'
+     */
+    export function escape(str: string): string {
+        let escapedStr = '';
+    
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i]!;
+            if (_escapeMap[char]) {
+                escapedStr += _escapeMap[char];
+            } else {
+                escapedStr += char;
+            }
+        }
+        return escapedStr;
+    }
     
     /**
      * @description Trims all occurrences of a specified substring from the end 
@@ -208,3 +231,14 @@ export function sortStringsAsc(str1: string, str2: string): number {
 export function sortStringsDesc(str1: string, str2: string): number {
     return str2.localeCompare(str1);
 }
+
+const _escapeMap = {
+    '\\': '\\\\',
+    '"': '\\"',
+    '\'': '\\\'',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\t': '\\t',
+    '\b': '\\b',
+    '\f': '\\f'
+};
