@@ -100,6 +100,29 @@ export namespace Strings {
         }
         return escapedStr;
     }
+
+    /**
+     * @description Returns a substring from the start of the given string `s` 
+     * up to (but not including) the first occurrence of the specified character 
+     * `c`. If the character `c` is not found, returns the entire string.
+     *
+     * @param s The input string to extract the substring from.
+     * @param c The character to search for in the string `s`.
+     * @returns The substring from the start of `s` up to but not including the 
+     *          first occurrence of `c`. If `c` is not found, returns the entire 
+     *          string.
+     * @example
+     * substringUntilChar('hello world', 'o'); // returns 'hell'
+     * substringUntilChar('javascript', 'a'); // returns 'j'
+     * substringUntilChar('javascript', 'z'); returns 'javascript' (because 'z' is not found)
+     */
+    export function substringUntilChar(s: string, c: string): string {
+        const index = s.indexOf(c);
+        if (index === -1) {
+            return s;
+        }
+        return s.slice(0, index);
+    }
     
     /**
      * @description Trims all occurrences of a specified substring from the end 

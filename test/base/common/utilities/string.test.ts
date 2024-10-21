@@ -63,7 +63,6 @@ suite('Strings-test', function () {
     });
 
     suite('escape', () => {
-
         test('should escape special characters', () => {
             const input = 'Hello\nWorld! "Test" \\Example\\';
             const expected = 'Hello\\nWorld! \\"Test\\" \\\\Example\\\\';
@@ -92,6 +91,36 @@ suite('Strings-test', function () {
             const input = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             const expected = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             assert.strictEqual(Strings.escape(input), expected);
+        });
+    });
+
+    suite('substringUntilChar', () => {
+        test('should return substring before the first occurrence of character', () => {
+            assert.strictEqual(Strings.substringUntilChar('hello world', 'o'), 'hell');
+        });
+    
+        test('should return substring before the first occurrence of character at the start', () => {
+            assert.strictEqual(Strings.substringUntilChar('javascript', 'a'), 'j');
+        });
+    
+        test('should return the entire string when character is not found', () => {
+            assert.strictEqual(Strings.substringUntilChar('javascript', 'z'), 'javascript');
+        });
+    
+        test('should return empty string when character is at the start', () => {
+            assert.strictEqual(Strings.substringUntilChar('apple', 'a'), '');
+        });
+    
+        test('should return entire string when character is not in string', () => {
+            assert.strictEqual(Strings.substringUntilChar('typescript', 'x'), 'typescript');
+        });
+    
+        test('should return the entire string if the input string is empty', () => {
+            assert.strictEqual(Strings.substringUntilChar('', 'a'), '');
+        });
+    
+        test('should return substring correctly when the character appears multiple times', () => {
+            assert.strictEqual(Strings.substringUntilChar('banana', 'n'), 'ba');
         });
     });
 
