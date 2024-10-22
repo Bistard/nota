@@ -24,7 +24,7 @@ export class Text extends DocumentNode<EditorTokens.Text> {
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Text): void {
         if (!token.tokens) {
-            state.addText(token.text);
+            state.addText(token.raw); // FIX: change to .text once the 'marked' moved the auto escaping into the renderer
             return;
         }
 
