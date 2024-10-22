@@ -38,15 +38,74 @@ suite('MarkdownSerializer', () => {
         return serializedContent;
     }
 
-    test('Paragraph & text', () => {
-        expectSame('Some paragraph.');
-        expectSame('This is a multi-line paragraph.\nIt has two lines.');
-        expectSame('\\');
-        expectSame('\\;');
-        expectSame('!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/');
-        expectSame('This   is   text   with   multiple   spaces.');
-        expectSame('   This line has leading spaces.');
-        expectSame('This line has trailing spaces.   ');
+    suite('Paragraph & Text', () => {
+        test('Single paragraph', () => {
+            expectSame('Some paragraph.');
+        });
+        
+        test('Multi-line paragraph', () => {
+            expectSame('This is a multi-line paragraph.\nIt has two lines.');
+        });
+        
+        test('Backslash escape', () => {
+            expectSame('\\');
+        });
+        
+        test('Backslash followed by semicolon', () => {
+            expectSame('\\;');
+        });
+        
+        test('Special characters', () => {
+            expectSame('!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/');
+        });
+        
+        test('Multiple spaces between words', () => {
+            expectSame('This   is   text   with   multiple   spaces.');
+        });
+        
+        test('Leading spaces', () => {
+            expectSame('   This line has leading spaces.');
+        });
+        
+        test('Trailing spaces', () => {
+            expectSame('This line has trailing spaces.   ');
+        });
+
+        test('Leading and trailing spaces', () => {
+            expectSame('   This line has both leading and trailing spaces.   ');
+        });
+
+        test('Empty paragraph', () => {
+            expectSame('');
+        });
+
+        test('Single letter', () => {
+            expectSame('A');
+        });
+
+        test('Special unicode characters', () => {
+            expectSame('This paragraph contains unicode: 😊, 你, ü.');
+        });
+
+        test('Numbers', () => {
+            expectSame('This is a paragraph with numbers 1234567890.');
+        });
+
+        test('Numbers and special characters', () => {
+            expectSame('Numbers 1234, special characters: @#$%&*().');
+        });
+
+        test('Single word paragraph', () => {
+            expectSame('Word');
+        });
+
+        test('Paragraph with single space', () => {
+            expectSame(' ');
+        });
+
+        test('Mix of spaces and tabs', () => {
+            expectSame('This paragraph has \t mixed spaces and tabs.');
+        });
     });
 
     suite('Heading', () => {
@@ -174,22 +233,9 @@ suite('MarkdownSerializer', () => {
             expectSame('# Heading with \\*escaped asterisk\\* and \\_escaped underscore\\_');
         });
         
-        test.skip('Special characters in list items', () => {
-            expectSame('- List item with \\*escaped asterisk\\* and \\_escaped underscore\\_');
-        });
-        
         test('Special characters in blockquote', () => {
             expectSame('> Blockquote with \\# escaped hash and \\[escaped brackets\\]');
         });
-        
-        test.skip('No escape inside inline code', () => {
-            expectSame('Here is `\\*no escape\\* inside code`');
-        });
-        
-        test.skip('No escape inside fenced code block', () => {
-            expectSame('```\nThis is code with \\*no escape\\* inside.\n```');
-        });
-        
     });
 
     suite('Space', () => {
@@ -197,13 +243,22 @@ suite('MarkdownSerializer', () => {
             expectSame('paragraph 1.\nparagraph2.');
             expectSame('paragraph 1.\n\nparagraph2.');
         });
-        
+
+        test('Newline at the start', () => {
+            expectSame('\nThis paragraph has a newline at the start.');
+        });
+
         // FIX: see issue https://github.com/markedjs/marked/issues/3501
-        test.skip('New line at the end of the paragraph', () => {
+        test.skip('Newline at the end', () => {
             // const token1 = lexer.lex('paragraph1\n');
             // const token2 = lexer.lex('paragraph1\nparagraph2');
         });
-    
+
+        // FIX
+        test.skip('Paragraph - Multiple consecutive empty lines', () => {
+            expectSame('\n\n\n');
+        });
+
         test('Multiple paragraphs with varying space', () => {
             expectSame('paragraph1\nparagraph1.5\nparagraph2');
             expectSame('paragraph 1.\n\nparagraph2.');
