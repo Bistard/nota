@@ -155,7 +155,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     
     private _output: string = '';
-    private _closed?: ProseNode;
+    private _prevClosedNode?: ProseNode;
     private _delim: string = '';
 
     private _atBlockStart: boolean = false;
@@ -282,7 +282,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     }
 
     public closeBlock(node: ProseNode): void {
-        this._closed = node;
+        this._prevClosedNode = node;
     }
 
     // [private methods]
@@ -484,8 +484,8 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         return /(^|\n)$/.test(this._output);
     }
 
-    private __flushClose(size: number = 2): void {
-        if (this._closed) {
+    private __flushClose(size: number = 1): void {
+        if (this._prevClosedNode) {
             if (!this.__atBlank()) {
                 this._output += "\n";
             }
@@ -499,7 +499,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
                     this._output += delimMin + "\n";
                 }
             }
-            this._closed = undefined;
+            this._prevClosedNode = undefined;
         }
     }
 
