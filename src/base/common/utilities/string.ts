@@ -130,8 +130,9 @@ export namespace Strings {
      * @param c The character to be removed.
      * @returns A new string without character c.
      */
-    export function removeChar(s: string, c: string): string {
-        return s.replace(c, '');
+    export function removeAllChar(s: string, c: string): string {
+        const regex = new RegExp(c, 'g');
+        return s.replace(regex, '');
     }
     
     /**

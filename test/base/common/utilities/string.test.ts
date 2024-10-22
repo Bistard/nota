@@ -124,29 +124,29 @@ suite('Strings-test', function () {
         });
     });
 
-    suite('removeChar', () => {
+    suite('removeAllChar', () => {
         test('should remove specified character from the string', () => {
-            assert.strictEqual(Strings.removeChar('hello', 'l'), 'heo');
+            assert.strictEqual(Strings.removeAllChar('hello', 'l'), 'heo');
         });
     
         test('should return the same string if character is not found', () => {
-            assert.strictEqual(Strings.removeChar('hello', 'x'), 'hello');
+            assert.strictEqual(Strings.removeAllChar('hello', 'x'), 'hello');
         });
     
         test('should return an empty string if all characters are removed', () => {
-            assert.strictEqual(Strings.removeChar('aaaa', 'a'), '');
+            assert.strictEqual(Strings.removeAllChar('aaaa', 'a'), '');
         });
     
         test('should return the original string when removing an empty character', () => {
-            assert.strictEqual(Strings.removeChar('hello', ''), 'hello');
+            assert.strictEqual(Strings.removeAllChar('hello', ''), 'hello');
         });
     
         test('should return an empty string when input is empty', () => {
-            assert.strictEqual(Strings.removeChar('', 'a'), '');
+            assert.strictEqual(Strings.removeAllChar('', 'a'), '');
         });
     
         test('should handle removing spaces from a string', () => {
-            assert.strictEqual(Strings.removeChar('h e l l o', ' '), 'hello');
+            assert.strictEqual(Strings.removeAllChar('h e l l o', ' '), 'hello');
         });
     });
 
