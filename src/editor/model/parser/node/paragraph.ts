@@ -36,6 +36,21 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
         if (token.tokens) {
             state.parseTokens(token.tokens);
         }
+
+        /**
+         * @see https://github.com/markedjs/marked/issues/3501
+         * In the `marked` library, the only case where a single '\n' appears at 
+         * the end of the raw text in a paragraph token is when this paragraph is 
+         * the last one in the entire document.
+         * 
+         * Since the presence of this special newline is only detectable within 
+         * the context of the paragraph token, we need to manually append a `\n` 
+         * after rendering the inner text.
+         */
+        if (token.raw.at(-1) === '\n') {
+            state.addText('\n');
+        }
+
         state.deactivateNode();
     }
 
