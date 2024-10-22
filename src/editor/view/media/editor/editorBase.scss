@@ -4,4 +4,9 @@
     & > .ProseMirror[contenteditable]:focus {
         outline: 0px solid transparent;
     }
+
+    & > .ProseMirror {
+        // https://stackoverflow.com/questions/588356/why-does-the-browser-renders-a-newline-as-space
+        white-space: pre-wrap;
+    }
 }
