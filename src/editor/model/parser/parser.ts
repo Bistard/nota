@@ -236,7 +236,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
     // [public methods]
 
     public parseTokens(tokens: EditorToken[]): void {
-        for (const token of tokens) {
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i]!;
             
             const name = token.type;
             if (this._parser.isTokenIgnored(name)) {
@@ -253,7 +254,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
                 continue;
             }
             
-            node.parseFromToken(this, token);
+            node.parseFromToken(this, token, tokens[i - 1], tokens[i + 1]);
         }
     }
 

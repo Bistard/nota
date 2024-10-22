@@ -38,8 +38,10 @@ export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken, TNode extends
      * @param state The parsing state, used to have full control over the 
      * parsing process.
      * @param token A markdown token that matches this document node type.
+     * @param prev The previous parsed token.
+     * @param next The next token that is about to parse.
      */
-    parseFromToken(state: IDocumentParseState, token: TToken): void;
+    parseFromToken(state: IDocumentParseState, token: TToken, prev?: EditorToken, next?: EditorToken): void;
 
     /**
      * An option that defines how the serialization behavior of {@link DocumentMark}.
@@ -53,7 +55,7 @@ abstract class DocumentNodeBase<TCtor, TSpec, TToken, TNode extends ProseNode | 
     public abstract getSchema(): TSpec;
     
     // parser
-    public abstract parseFromToken(state: IDocumentParseState, token: TToken): void;
+    public abstract parseFromToken(state: IDocumentParseState, token: TToken, prev?: EditorToken, next?: EditorToken): void;
 
     // serializer
     public abstract readonly serializer: TNode extends ProseMark ? IDocumentMarkSerializationOptions : Serializer<TNode, void>;

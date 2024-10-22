@@ -15,17 +15,21 @@ suite('MarkdownSerializer', () => {
     const docParser = new DocumentParser(schema, nodeProvider, /* options */);
     const serializer = new MarkdownSerializer(nodeProvider, { strict: true });
 
+    /**
+     * @description Expecting the serialized output is exactly the same as the 
+     * input.
+     */
     function expectSame(content: string): void {
-        const serializedContent = parseAndSerialize(content);
-
-        // console.log('expect', Strings.escape(content));
-        // console.log('actual', Strings.escape(serializedContent));
-
-        assert.strictEqual(content, serializedContent);
+        expectSameTo(content, content);
     }
     
     function expectSameTo(content: string, expect: string): void {
         const serializedContent = parseAndSerialize(content);
+
+        // console.log('[input ]', Strings.escape(content));
+        // console.log('[expect]', Strings.escape(expect));
+        // console.log('[actual]', Strings.escape(serializedContent));
+
         assert.strictEqual(expect, serializedContent);
     }
 
@@ -248,14 +252,27 @@ suite('MarkdownSerializer', () => {
             expectSame('\nThis paragraph has a newline at the start.');
         });
 
-        // FIX: see issue https://github.com/markedjs/marked/issues/3501
-        test.skip('Newline at the end', () => {
-            // const token1 = lexer.lex('paragraph1\n');
-            // const token2 = lexer.lex('paragraph1\nparagraph2');
+        test('Newline at the end', () => {
+            expectSame('paragraph1\n');
         });
 
-        // FIX
-        test.skip('Paragraph - Multiple consecutive empty lines', () => {
+        test('Multiple newline at the start', () => {
+            expectSame('\n\n\nparagraph1');
+        });
+        
+        test('Multiple newline at the end', () => {
+            expectSame('paragraph1\n\n\n');
+        });
+
+        test('One single new line', () => {
+            expectSame('\n');
+        });
+        
+        test('Two consecutive new lines', () => {
+            expectSame('\n\n');
+        });
+
+        test('Multiple consecutive empty lines', () => {
             expectSame('\n\n\n');
         });
 
@@ -284,7 +301,7 @@ suite('MarkdownSerializer', () => {
         });
     
         test('Spaces and newlines with tabs', () => {
-            expectSameTo('paragraph 1.\n\t\nparagraph 2.', 'paragraph 1.\n    \nparagraph 2.');
+            expectSameTo('paragraph 1.\n\t\nparagraph 2.', 'paragraph 1.\n    \nparagraph 2.'); // REVIEW: maybe need to change this behavior
             expectSame('paragraph1\n 1 \t 2 \nparagraph2');
         });
     });
