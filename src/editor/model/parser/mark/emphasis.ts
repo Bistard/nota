@@ -28,7 +28,11 @@ export class Emphasis extends DocumentMark<EditorTokens.Em> {
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Em): void {
         state.activateMark(this.ctor.create());
-        state.addText(token.text);
+        if (token.tokens) {
+            state.parseTokens(token.tokens);
+        } else {
+            state.addText(token.text);
+        }
         state.deactivateMark(this.ctor);
     }
 

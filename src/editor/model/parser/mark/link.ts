@@ -44,7 +44,11 @@ export class Link extends DocumentMark<EditorTokens.Link> {
             href: token.href,
             title: token.title,
         }));
-        state.addText(token.text);
+        if (token.tokens) {
+            state.parseTokens(token.tokens);
+        } else {
+            state.addText(token.text);
+        }
         state.deactivateMark(this.ctor);
     }
 
