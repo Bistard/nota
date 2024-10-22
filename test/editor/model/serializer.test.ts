@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+// import { defaultMarkdownParser, defaultMarkdownSerializer } from 'prosemirror-markdown';
+import { Strings } from 'src/base/common/utilities/string';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
@@ -9,17 +11,20 @@ suite('MarkdownSerializer', () => {
 
     const nodeProvider = DocumentNodeProvider.create().register();
     const schema = buildSchema(nodeProvider);
-
     const lexer = new MarkdownLexer({});
     const docParser = new DocumentParser(schema, nodeProvider, /* options */);
     const serializer = new MarkdownSerializer(nodeProvider, { strict: true });
 
     function expectSame(content: string): void {
         const serializedContent = parseAndSerialize(content);
+
+        // console.log('expect', Strings.escape(content));
+        // console.log('actual', Strings.escape(serializedContent));
+
         assert.strictEqual(content, serializedContent);
     }
     
-    function expectEqualTo(content: string, expect: string): void {
+    function expectSameTo(content: string, expect: string): void {
         const serializedContent = parseAndSerialize(content);
         assert.strictEqual(expect, serializedContent);
     }
@@ -28,6 +33,7 @@ suite('MarkdownSerializer', () => {
         const tokens = lexer.lex(content);
         const doc = docParser.parse(tokens);
         const serializedContent = serializer.serialize(doc);
+        // const doc = defaultMarkdownParser.parse(content);
         // const serializedContent = defaultMarkdownSerializer.serialize(doc);
         return serializedContent;
     }
@@ -38,6 +44,9 @@ suite('MarkdownSerializer', () => {
         expectSame('\\');
         expectSame('\\;');
         expectSame('!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/');
+        expectSame('This   is   text   with   multiple   spaces.');
+        expectSame('   This line has leading spaces.');
+        expectSame('This line has trailing spaces.   ');
     });
 
     suite('Heading', () => {
@@ -51,7 +60,7 @@ suite('MarkdownSerializer', () => {
         });
         
         test('With spaces before and after', () => {
-            expectEqualTo('  ## Heading with spaces   ', '## Heading with spaces');
+            expectSameTo('  ## Heading with spaces   ', '## Heading with spaces');
         });
         
         test('With special characters', () => {
@@ -95,7 +104,7 @@ suite('MarkdownSerializer', () => {
         expectSame('![alt text](image.jpg "Image Title")');
         expectSame('![alt text](image%20with%20spaces.jpg)');
         expectSame('![alt text](image.jpg "Title with (parentheses)")');
-        expectEqualTo('![alt text](image(withparentheses).jpg)', '![alt text](image\\(withparentheses\\).jpg)');
+        expectSameTo('![alt text](image(withparentheses).jpg)', '![alt text](image\\(withparentheses\\).jpg)');
     });
 
     suite('HorizontalRule', () => {
@@ -112,15 +121,15 @@ suite('MarkdownSerializer', () => {
         });
         
         test('With spaces before and after ---', () => {
-            expectEqualTo('  ---  ', '---');
+            expectSameTo('  ---  ', '---');
         });
         
         test('With spaces before and after ***', () => {
-            expectEqualTo('   ***   ', '***');
+            expectSameTo('   ***   ', '***');
         });
         
         test('With spaces before and after ___', () => {
-            expectEqualTo(' ___ ', '___');
+            expectSameTo(' ___ ', '___');
         });
         
         test('Invalid horizontal rule (too few dashes)', () => {
@@ -183,9 +192,51 @@ suite('MarkdownSerializer', () => {
         
     });
 
+    suite('Space', () => {
+        test('Basic space between paragraphs', () => {
+            expectSame('paragraph 1.\nparagraph2.');
+            expectSame('paragraph 1.\n\nparagraph2.');
+        });
+        
+        // FIX: see issue https://github.com/markedjs/marked/issues/3501
+        test.skip('New line at the end of the paragraph', () => {
+            // const token1 = lexer.lex('paragraph1\n');
+            // const token2 = lexer.lex('paragraph1\nparagraph2');
+        });
+    
+        test('Multiple paragraphs with varying space', () => {
+            expectSame('paragraph1\nparagraph1.5\nparagraph2');
+            expectSame('paragraph 1.\n\nparagraph2.');
+            expectSame('paragraph1\nparagraph1.5\nparagraph2');
+        });
+    
+        test('Excessive newlines between paragraphs', () => {
+            expectSame('paragraph 1.\n\n\nparagraph2.');
+            expectSame('paragraph 1.\n\n\n\nparagraph2.');
+        });
+    
+        test('Irregular spaces and newlines between paragraphs', () => {
+            expectSame('paragraph 1.\n\n       \n  \nparagraph2.');
+            expectSame('paragraph 1.\n12\n       \n  \nparagraph2.');
+        });
+    
+        test('Space before paragraphs', () => {
+            expectSame('   paragraph 1.\n\n   paragraph 2.');
+        });
+    
+        test('Space after paragraphs', () => {
+            expectSame('paragraph 1.   \n\nparagraph 2.   ');
+        });
+    
+        test('Spaces and newlines with tabs', () => {
+            expectSameTo('paragraph 1.\n\t\nparagraph 2.', 'paragraph 1.\n    \nparagraph 2.');
+            expectSame('paragraph1\n 1 \t 2 \nparagraph2');
+        });
+    });
+
     suite.skip('lineBreak', () => {
         test('Basic line break', () => {
-            expectEqualTo('First line  \nSecond line', 'First line  \nSecond line');
+            expectSameTo('First line  \nSecond line', 'First line  \nSecond line');
         });
         
         test('Line break with trailing spaces', () => {
@@ -213,7 +264,7 @@ suite('MarkdownSerializer', () => {
         });
         
         test('Line break with bold text', () => {
-            expectEqualTo('**Bold line**  \nNew line', '**Bold line**  \nNew line');
+            expectSameTo('**Bold line**  \nNew line', '**Bold line**  \nNew line');
         });
     });
 });

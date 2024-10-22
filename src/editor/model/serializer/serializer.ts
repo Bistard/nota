@@ -486,7 +486,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     private __flushClose(size: number = 1): void {
         if (this._prevClosedNode) {
-            if (!this.__atBlank()) {
+            if (!this.__atBlank() || this._prevClosedNode.type.name === TokenEnum.Space) {
                 this._output += "\n";
             }
             if (size > 1) {

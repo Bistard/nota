@@ -43,7 +43,7 @@ export class Space extends DocumentNode<EditorTokens.Space> {
          * because it ALSO includes the end of line from the previous paragraph. 
          * 
          * 2. Therefore, to visually represent `n` line breaks within the empty 
-         * paragraph, the paragraph content must contain `n-1` line breaks.
+         * paragraph, the paragraph content must contain `n-2` line breaks.
          * 
          * Based on 1 and 2, eventually we need to delete 2 line breaks to 
          * correctly visualize the spaces.
@@ -52,17 +52,30 @@ export class Space extends DocumentNode<EditorTokens.Space> {
          * is deleted.
          */
         let spaces = token.raw;
-        if (state.isAnyActiveToken()) {
-            spaces = spaces.slice(2, undefined) ?? '';
+
+        // step 1: clean up `\n`
+        if (!state.isAnyActiveToken() && spaces.at(-1) === '\n') {
+            spaces = spaces.slice(0, -1); 
         }
-        
+        else if (state.isAnyActiveToken()) {
+            // remove the first `\n`
+            if (spaces.at(0) === '\n') {
+                spaces = spaces.slice(1, undefined); 
+            }
+            // remove the last `\n`
+            if (spaces.at(-1) === '\n') {
+                spaces = spaces.slice(0, -1); 
+            }
+        }
+
         state.activateNode(this.ctor);
         state.parseTokens([{ type: 'text', raw: spaces, text: spaces }]);
         state.deactivateNode();
     }
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
-        state.serializeInline(node);
-        state.serializeBlock(node);
+        const text = node.textContent;
+        state.text(text);
+        state.closeBlock(node);
     };
 }
