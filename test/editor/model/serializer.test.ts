@@ -121,34 +121,92 @@ suite('MarkdownSerializer', () => {
             expectSame('##### Heading 5');
             expectSame('###### Heading 6');
         });
-        
+    
         test('With spaces before and after', () => {
             expectSameTo('  ## Heading with spaces   ', '## Heading with spaces');
         });
-        
+    
         test('With special characters', () => {
             expectSame('### Heading with punctuation !@#$%^&*()');
         });
-        
+    
         test('With bold and italic', () => {
             expectSame('### **Bold Heading**');
             expectSame('### *Italic Heading*');
         });
-        
+    
         test('With links', () => {
             expectSame('### [Link Heading](https://example.com)');
         });
-        
+    
         test('Mixed formatting', () => {
             expectSame('### **Bold** and *Italic* and [Link](https://example.com)');
         });
-        
+    
         test('Invalid heading (too few hash marks)', () => {
             expectSame('##InvalidHeading'); // Missing space, so it should not be treated as a heading
         });
-        
+    
         test('Invalid heading (too many hash marks)', () => {
             expectSame('####### Invalid Heading'); // Markdown supports up to H6, so this should not be treated as a heading
+        });
+    
+        test('Heading with newline in content', () => {
+            expectSame('## Heading with\nNewline'); // Newline in heading content
+        });
+    
+        test('Heading with leading spaces after hash marks', () => {
+            expectSameTo('##    Heading with leading spaces', '## Heading with leading spaces'); // Leading spaces should be removed
+        });
+    
+        test('Heading with multiple spaces between words', () => {
+            expectSame('## Heading   with   multiple   spaces');
+        });
+    
+        test('Heading with escape characters', () => {
+            expectSame('### Heading with \\*escaped\\* characters');
+        });
+    
+        test('Heading with code span', () => {
+            expectSame('### Heading with `code` span');
+        });
+    
+        test('Heading with mixed formatting and escape', () => {
+            expectSame('### **Bold** and *Italic* with \\*escaped\\* text and [Link](https://example.com)');
+        });
+    
+        test('Heading with excessive hash marks', () => {
+            expectSame('######## Excessive hash marks'); // Only up to 6 hashes should create a heading
+        });
+    
+        test('Heading with no content after hash marks', () => {
+            expectSame('### '); // Empty heading content should be allowed
+        });
+    
+        test('Heading with trailing spaces', () => {
+            expectSameTo('## Heading with trailing spaces   ', '## Heading with trailing spaces');
+        });
+
+        // FIX
+        test.skip('Heading with HTML tags', () => {
+            expectSame('## Heading with <b>HTML</b> tags');
+        });
+    
+        // FIX
+        test.skip('Heading with mixed Markdown and HTML', () => {
+            expectSame('### **Bold** and <em>HTML Italic</em> in heading');
+        });
+    
+        test('Heading with tab characters', () => {
+            expectSame('## Heading\twith\ttabs'); // Tabs should be preserved in heading content
+        });
+    
+        test('Heading with inline image', () => {
+            expectSame('### Heading with ![alt text](image.jpg)');
+        });
+    
+        test('Heading with an empty line after the hash marks', () => {
+            expectSame('## \nHeading with newline after hash marks'); // Content should not be treated as part of the heading
         });
     });
 
