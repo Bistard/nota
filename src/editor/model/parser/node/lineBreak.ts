@@ -1,3 +1,4 @@
+import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -20,11 +21,16 @@ export class LineBreak extends DocumentNode<EditorTokens.Br> {
             inline: true,
             selectable: false,
             parseDOM: [{ tag: 'br' }],
-            toDOM: () => { return ['br']; }
+            toDOM: () => { return ['br']; },
         };
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Br): void {
+        const spacesBeforeLineBreak = Strings.substringUntilChar(token.raw, '\n');
+        if (spacesBeforeLineBreak.length > 0) {
+            state.addText(spacesBeforeLineBreak);
+        }
+
         state.activateNode(this.ctor);
         state.deactivateNode();
     }
@@ -32,7 +38,7 @@ export class LineBreak extends DocumentNode<EditorTokens.Br> {
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
         for (let i = index + 1; i < parent.childCount; i++) {
             if (parent.child(i).type !== node.type) {
-                state.write("\\\n");
+                state.write("\n");
                 return;
             }
         }

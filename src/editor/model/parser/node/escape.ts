@@ -3,7 +3,6 @@ import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
-import { createDomOutputFromOptions } from "src/editor/model/schema";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
