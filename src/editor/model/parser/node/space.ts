@@ -5,6 +5,7 @@ import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * @class An empty space block. Represented in the DOM as an empty `<p>` 
@@ -53,19 +54,12 @@ export class Space extends DocumentNode<EditorTokens.Space> {
          */
         let spaces = token.raw;
 
-        // step 1: clean up `\n`
-        if (!state.isAnyActiveToken() && spaces.at(-1) === '\n') {
-            spaces = spaces.slice(0, -1); 
+        if (spaces.at(0) === '\n') {
+            spaces = spaces.slice(1, undefined); 
         }
-        else if (state.isAnyActiveToken()) {
-            // remove the first `\n`
-            if (spaces.at(0) === '\n') {
-                spaces = spaces.slice(1, undefined); 
-            }
-            // remove the last `\n`
-            if (spaces.at(-1) === '\n') {
-                spaces = spaces.slice(0, -1); 
-            }
+        // remove the last `\n` (this one presents the new line from the next block)
+        if (spaces.at(-1) === '\n') {
+            spaces = spaces.slice(0, -1); 
         }
 
         state.activateNode(this.ctor);
