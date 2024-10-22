@@ -474,29 +474,77 @@ suite('MarkdownSerializer', () => {
         test('Basic line break', () => {
             expectSame('First line\nSecond line');
         });
-        
+    
         test('Line break with trailing spaces', () => {
             expectSame('First line    \nSecond line');
         });
-        
+    
         test('Line break at the beginning of text', () => {
             expectSame('  \nNew line after break');
         });
-        
+    
         test('Line break at the end of text', () => {
             expectSame('Line before break  \n');
         });
-        
+    
         test('Multiple consecutive line breaks', () => {
             expectSame('Line 1  \n  \nLine 3');
         });
-        
+    
         test('Line break inside a blockquote', () => {
             expectSame('> First line  \n> Second line');
         });
-        
+    
         test('Line break with bold text', () => {
             expectSame('**Bold line**  \nNew line');
+        });
+    
+        test('Line break with leading and trailing spaces', () => {
+            expectSame('  Line with leading and trailing spaces  \nNext line.');
+        });
+    
+        test('Line break with inline code', () => {
+            expectSame('This is `inline code`  \nand a new line.');
+        });
+    
+        test('Multiple consecutive line breaks with text', () => {
+            expectSame('First line  \n  \n  \nFourth line');
+        });
+    
+        test('Line break with italic text', () => {
+            expectSame('*Italic text*  \nNew line');
+        });
+    
+        test('Line break at both start and end', () => {
+            expectSame('  \nLine with breaks around  \n');
+        });
+    
+        test('Line break inside a heading', () => {
+            expectSameTo('# Heading with break  \nNew line under heading', '# Heading with break\nNew line under heading');
+        });
+    
+        test('Line break between links', () => {
+            expectSame('[Link 1](https://example.com)  \n[Link 2](https://example.com)');
+        });
+    
+        test('Line break before blockquote', () => {
+            expectSame('Line before blockquote  \n> Blockquote starts here');
+        });
+    
+        test('Multiple line breaks inside blockquote', () => {
+            expectSame('> Line 1  \n>  \n> Line 3');
+        });
+    
+        test('Line break with escaped characters', () => {
+            expectSame('This is a backslash \\  \nand new line after');
+        });
+    
+        test('Line break with mixed formatting', () => {
+            expectSame('This is **bold**, *italic*, and a `code` span  \nNew line');
+        });
+    
+        test('Multiple line breaks between paragraphs', () => {
+            expectSame('Paragraph 1  \n  \nParagraph 2  \n  \nParagraph 3');
         });
     });
 });
