@@ -235,15 +235,103 @@ suite('MarkdownSerializer', () => {
         });
     });
 
-    test('Image', () => {
-        expectSame('![]()');
-        expectSame('![](image.jpg)');
-        expectSame('![alt text]()');
-        expectSame('![alt text](image.jpg)');
-        expectSame('![alt text](image.jpg "Image Title")');
-        expectSame('![alt text](image%20with%20spaces.jpg)');
-        expectSame('![alt text](image.jpg "Title with (parentheses)")');
-        expectSameTo('![alt text](image(withparentheses).jpg)', '![alt text](image\\(withparentheses\\).jpg)');
+    suite('Image', () => {
+        test('Empty image syntax', () => {
+            expectSame('![]()');
+        });
+    
+        test('URL without alt text', () => {
+            expectSame('![](image.jpg)');
+        });
+    
+        test('Alt text without URL', () => {
+            expectSame('![alt text]()');
+        });
+    
+        test('Alt text and URL', () => {
+            expectSame('![alt text](image.jpg)');
+        });
+    
+        test('Alt text, URL, and title', () => {
+            expectSame('![alt text](image.jpg "Image Title")');
+        });
+    
+        test('URL with encoded spaces', () => {
+            expectSame('![alt text](image%20with%20spaces.jpg)');
+        });
+    
+        test('Title with parentheses', () => {
+            expectSame('![alt text](image.jpg "Title with (parentheses)")');
+        });
+    
+        test('URL with parentheses', () => {
+            expectSameTo('![alt text](image(withparentheses).jpg)', '![alt text](image\\(withparentheses\\).jpg)');
+        });
+    
+        test('Special characters in URL', () => {
+            expectSame('![alt text](image@#$%.jpg)');
+        });
+    
+        test('Special characters in alt text', () => {
+            expectSame('![alt@#$%](image.jpg)');
+        });
+    
+        // FIX: should work after 'marked' update
+        test.skip('Special characters in title', () => {
+            expectSame('![alt text](image.jpg "Title with @#$%&*")');
+        });
+    
+        test('Escaped characters in URL', () => {
+            expectSame('![alt text](image\\(escaped\\).jpg)');
+        });
+    
+        test('Multiple parentheses in URL', () => {
+            expectSameTo('![alt text](image((multiple)).jpg)', '![alt text](image\\(\\(multiple\\)\\).jpg)');
+        });
+    
+        test('Missing closing parenthesis in URL', () => {
+            expectSame('![alt text](image.jpg');
+        });
+    
+        test('Leading and trailing spaces in alt text', () => {
+            expectSame('![   alt text   ](image.jpg)');
+        });
+    
+        test('Leading and trailing spaces in URL', () => {
+            expectSameTo('![alt text](   image.jpg   )', '![alt text](image.jpg)');
+        });
+    
+        test('Leading and trailing spaces in title', () => {
+            expectSame('![alt text](image.jpg "   Image Title   ")');
+        });
+    
+        test('Empty title and URL', () => {
+            expectSame('![alt text](" ")');
+        });
+    
+        test('Incomplete syntax (missing closing square bracket)', () => {
+            expectSame('![alt text(image.jpg)');
+        });
+    
+        test('Incomplete syntax (missing closing parenthesis)', () => {
+            expectSame('![alt text](image.jpg');
+        });
+    
+        test('Newline inside alt text', () => {
+            expectSame('![alt\ntext](image.jpg)');
+        });
+    
+        test('Newline inside title', () => {
+            expectSame('![alt text](image.jpg "Title\nWithNewline")');
+        });
+    
+        test('Multiple consecutive spaces in URL', () => {
+            expectSame('![alt text](image%20%20with%20spaces.jpg)');
+        });
+    
+        test('Escaped spaces in URL', () => {
+            expectSame('![alt text](image\\ with\\ spaces.jpg)');
+        });
     });
 
     suite('HorizontalRule', () => {
