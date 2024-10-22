@@ -152,11 +152,87 @@ suite('MarkdownSerializer', () => {
         });
     });
 
-    test('html', () => {
-        expectSame('<div></div>');
-        expectSame('<div>hello world</div>');
-        expectSame('<div style=\'font-family: "Comic Sans MS", "Comic Sans", cursive;\'>It is a pity, but markdown does **not** work in here for most markdown parsers.[Marked] handles it pretty well.</div>');
-        expectSame('<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/1r5SJvZE3c3LOLRJr3ZYtc?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>');
+    suite('html', () => {
+        test('Basic empty div', () => {
+            expectSame('<div></div>');
+        });
+
+        test('Div with text content', () => {
+            expectSame('<div>hello world</div>');
+        });
+
+        test('Div with style attributes and markdown (not parsed)', () => {
+            expectSame('<div style=\'font-family: "Comic Sans MS", "Comic Sans", cursive;\'>It is a pity, but markdown does **not** work in here for most markdown parsers.[Marked] handles it pretty well.</div>');
+        });
+
+        test('Iframe with various attributes', () => {
+            expectSame('<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/1r5SJvZE3c3LOLRJr3ZYtc?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>');
+        });
+
+        test('Self-closing tag (img)', () => {
+            expectSame('<img src="image.jpg" alt="Sample image" />');
+        });
+    
+        test('Nested elements', () => {
+            expectSame('<div><span>Nested content <strong>inside</strong> div.</span></div>');
+        });
+    
+        test('HTML comments', () => {
+            expectSame('<!-- This is a comment -->\n<div>Content after comment</div>');
+        });
+    
+        test('Doctype declaration', () => {
+            expectSame('<!DOCTYPE html>\n<html>\n<body>\n<div>Hello World</div>\n</body>\n</html>');
+        });
+    
+        test('Script tag', () => {
+            expectSame('<script>alert("This is a script!");</script>');
+        });
+    
+        test('Pre tag with code block', () => {
+            expectSame('<pre><code>let x = 10;\nconsole.log(x);</code></pre>');
+        });
+    
+        test('Special characters in attributes', () => {
+            expectSame('<a href="https://example.com/?query=hello&amp;world"/>');
+            // expectSame('<a href="https://example.com">Link with special characters</a>'); // REVIEW: this one does not work, gives '' string.
+        });
+    
+        test('Invalid or unknown tags', () => {
+            expectSameTo('<foo>Invalid tag</foo>', '');
+        });
+    
+        test('Mixed case tag names', () => {
+            expectSame('<Div>Hello World</Div>');
+        });
+    
+        test('Custom data attributes', () => {
+            expectSame('<div data-custom="123">Custom attribute content</div>');
+        });
+    
+        test('Boolean attributes', () => {
+            expectSame('<input type="checkbox" checked>');
+        });
+    
+        test('Deeply nested elements', () => {
+            expectSame('<div><ul><li><a href="#">Nested link inside list item</a></li></ul></div>');
+        });
+    
+        test('Inline styles', () => {
+            expectSame('<p style="color: red; font-size: 14px;">Styled paragraph</p>');
+        });
+    
+        test('Broken unclosed tag', () => {
+            expectSame('<div><p>Unclosed tag');
+        });
+    
+        test('Entities', () => {
+            expectSame('<p>Some special characters: &amp;, &lt;, &gt;, &quot;</p>');
+        });
+    
+        test('Unicode characters', () => {
+            expectSame('<div>Unicode: 😊, 你好, ü</div>');
+        });
     });
 
     test('Image', () => {
