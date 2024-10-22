@@ -34,7 +34,7 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Blockquote): void {
         state.activateNode(this.ctor);
         if (token.tokens) {
-            state.parseTokens(token.tokens);
+            state.parseTokens(token.tokens, token);
         }
         state.deactivateNode();
     }

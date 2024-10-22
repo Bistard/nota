@@ -34,7 +34,7 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Paragraph): void {
         state.activateNode(this.ctor);
         if (token.tokens) {
-            state.parseTokens(token.tokens);
+            state.parseTokens(token.tokens, token);
         }
 
         /**

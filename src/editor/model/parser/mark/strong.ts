@@ -40,7 +40,7 @@ export class Strong extends DocumentMark<EditorTokens.Strong> {
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Strong): void {
         state.activateMark(this.ctor.create());
         if (token.tokens) {
-            state.parseTokens(token.tokens);
+            state.parseTokens(token.tokens, token);
         } else {
             state.addText(token.text);
         }

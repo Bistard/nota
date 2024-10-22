@@ -45,7 +45,7 @@ export class Link extends DocumentMark<EditorTokens.Link> {
             title: token.title,
         }));
         if (token.tokens) {
-            state.parseTokens(token.tokens);
+            state.parseTokens(token.tokens, token);
         } else {
             state.addText(token.text);
         }

@@ -76,7 +76,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     // [public methods]
 
     public parse(tokens: EditorToken[]): ProseNode {        
-        this._state.parseTokens(tokens);
+        this._state.parseTokens(tokens, null);
         const documentRoot = this._state.complete();
         this._state.clean();
         return documentRoot;
@@ -155,8 +155,9 @@ export interface IDocumentParseState {
      * the newly activated nodes will be inserted as the children of the current
      * active ones.
      * @param tokens The provided markdown tokens.
+     * @param parent The parent token of the given token list.
      */
-    parseTokens(tokens: EditorToken[]): void;
+    parseTokens(tokens: EditorToken[], parent: EditorToken): void;
     
     /**
      * @description Insert the text of the current active document node.
@@ -235,7 +236,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [public methods]
 
-    public parseTokens(tokens: EditorToken[]): void {
+    public parseTokens(tokens: EditorToken[], parent: EditorToken | null): void {
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i]!;
             
@@ -254,7 +255,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
                 continue;
             }
             
-            node.parseFromToken(this, token, tokens[i - 1], tokens[i + 1]);
+            node.parseFromToken(this, token, parent, tokens[i - 1], tokens[i + 1]);
         }
     }
 

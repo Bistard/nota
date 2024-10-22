@@ -52,7 +52,7 @@ export class List extends DocumentNode<EditorTokens.List> {
             ordered: token.ordered,
             tight: !token.loose,
         });
-        state.parseTokens(token.items);
+        state.parseTokens(token.items, token);
         state.deactivateNode();
     }
 
@@ -91,7 +91,7 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
             task: token.task,
             checked: token.checked,
         });
-        state.parseTokens(token.tokens);
+        state.parseTokens(token.tokens, token);
         state.deactivateNode();
     }
 

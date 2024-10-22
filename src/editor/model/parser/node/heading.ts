@@ -1,5 +1,5 @@
 import { TokenEnum } from "src/editor/common/markdown";
-import { EditorTokens } from "src/editor/common/model";
+import { EditorToken, EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
@@ -49,7 +49,7 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
         });
 
         if (token.tokens) {
-            state.parseTokens(token.tokens);
+            state.parseTokens(token.tokens, token);
         }
         
         state.deactivateNode();

@@ -31,7 +31,7 @@ export class Space extends DocumentNode<EditorTokens.Space> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Space, prev?: EditorToken, next?: EditorToken): void {
+    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Space, parent: EditorToken | null, prev?: EditorToken, next?: EditorToken): void {
         
         /**
          * The rendering logic for a space is as follows: Always render an empty 
@@ -63,7 +63,7 @@ export class Space extends DocumentNode<EditorTokens.Space> {
         }
 
         state.activateNode(this.ctor);
-        state.parseTokens([{ type: 'text', raw: spaces, text: spaces }]);
+        state.parseTokens([{ type: 'text', raw: spaces, text: spaces }], token);
         state.deactivateNode();
     }
 
