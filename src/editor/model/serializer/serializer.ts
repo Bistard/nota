@@ -230,13 +230,14 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         const lines = text.split("\n");
 
         for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]!;
             this.write();
 
             // Escape exclamation marks in front of links
-            if (!escape && lines[i]![0] === "[" && /(^|[^\\])!$/.test(this._output)) {
+            if (!escape && line![0] === "[" && /(^|[^\\])!$/.test(this._output)) {
                 this._output = this._output.slice(0, this._output.length - 1) + "\\!";
             }
-            this._output += escape ? this.escaping(lines[i]!, this._atBlockStart) : lines[i];
+            this._output += escape ? this.escaping(line, this._atBlockStart) : line;
 
             if (i !== lines.length - 1) {
                 this._output += "\n";

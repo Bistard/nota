@@ -22,6 +22,7 @@ export namespace EditorTokens {
     export type ListItem = marked.Tokens.ListItem;
     export type Paragraph = marked.Tokens.Paragraph;
     export type HTML = marked.Tokens.HTML;
+    export type InlineHTML = marked.Tokens.HTML;
     export type Text = marked.Tokens.Text;
     export type Def = marked.Tokens.Def;
     export type Escape = marked.Tokens.Escape;
