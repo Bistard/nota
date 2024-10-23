@@ -38,14 +38,18 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.HTML): void {
         const deactivateOpts: IDeactivateNodeOptions = {
-            expectInlineHtml: true,
+            expectInlineHtml: undefined,
         };
 
         // block-level html
         if (token.block === true) {
+            const tagName = '';
+            deactivateOpts.expectInlineHtml = tagName;
+
             state.activateNode(this.ctor, {
                 text: token.text,
                 isBlock: token.block,
+                tagName: tagName,
             });
             state.deactivateNode(deactivateOpts);
             return;
@@ -62,6 +66,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
             attributes: attributes,
         };
         const inlineHTMLCtor = assert(state.getDocumentNode(TokenEnum.InlineHTML)).ctor;
+        deactivateOpts.expectInlineHtml = tagName ?? '';
 
 
         // self-closing tag: activate as a single node

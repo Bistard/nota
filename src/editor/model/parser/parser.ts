@@ -3,7 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
 import { panic } from "src/base/common/utilities/panic";
-import { isNullable } from "src/base/common/utilities/type";
+import { isNullable, isString } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
@@ -198,12 +198,16 @@ export interface IDocumentParseState {
 export interface IDeactivateNodeOptions {
     
     /**
-     * If expecting deactivating the `inline_html` node. If `true`, we construct 
-     * a `inline_html` node as expected. If `false` and unexpectedly 
-     * encountering a `inline_html` node, the node will be parsed as plain-text.
+     * If expecting deactivating the `inline_html` node. 
+     * - If `false` provided, it means we are not expecting a `inline_html` 
+     *        node, if met one, that node will be parsed as plain-text.
+     * - If a string provided, it represents we are expecting a `inline_html`
+     *        node with that tag name.
+     *      - If tag name meets, we are constructing a `inline_html` node.
+     *      - If tag name doesn't meet, we are rendering them as plain-text.
      * @default false
      */
-    readonly expectInlineHtml?: boolean;
+    expectInlineHtml?: false | string;
 }
 
 /**
@@ -300,25 +304,38 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         });
     }
 
-    public deactivateNode(opt?: IDeactivateNodeOptions): ProseNode | null {
-        const current = this.__popActive();
+    public deactivateNode(opt: IDeactivateNodeOptions = {}): ProseNode | null {
+        opt.expectInlineHtml ??= false;
+        const currNode = this.__popActive();
 
         /**
          * Unexpectedly encountering a `inline_html` node, it means it is 
          * incomplete, only found 1 open tag but not a close tag. Thus we need 
          * to render it as plain-text.
          */
-        if (!opt?.expectInlineHtml && current.ctor.name === TokenEnum.InlineHTML) {
-            return this.__onUnexpectedInlineHtml(current);
+        if ((opt?.expectInlineHtml === false) && currNode.ctor.name === TokenEnum.InlineHTML) {
+            return this.__onUnexpectedInlineHtml(currNode);
+        }
+
+        /**
+         * We are expecting a `inline_html` node with the given tag name. We 
+         * check if the tag name from the current node is matched with the 
+         * expecting tag name. If not, we render them as plain-text.
+         */
+        if (isString(opt?.expectInlineHtml)) {
+            const handled = this.__onUnmatchedInlineHtml(currNode, opt.expectInlineHtml);
+            if (handled) {
+                return null;
+            }
         }
         
         // happens when deactivating the root document node
         if (this._actives.empty()) {
-            return current.ctor.createAndFill(current.attrs, current.children, current.marks);
+            return currNode.ctor.createAndFill(currNode.attrs, currNode.children, currNode.marks);
         }
 
         const active = this.__getActive();
-        const node = current.ctor.createAndFill(current.attrs, current.children, active.marks);
+        const node = currNode.ctor.createAndFill(currNode.attrs, currNode.children, active.marks);
         if (!node) {
             return null;
         }
@@ -426,5 +443,24 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             this.addText(child.textContent);
         }
         return this.deactivateNode();
+    }
+
+    private __onUnmatchedInlineHtml(prevNode: IParsingNodeState, expectCloseTag: string): boolean {
+        const openTagName = prevNode.attrs!['tagName'] as string;
+        const closeTagName = expectCloseTag;
+        
+        if (openTagName !== closeTagName) {
+            const openText = prevNode.attrs!['text'] as string; // e.g. <div>, <em>, <strong>
+            const closeTag = `</${closeTagName}>`;             // e.g. </div>, </em>, </strong>
+            
+            this.addText(openText);
+            for (const child of prevNode.children) {
+                this.addText(child.textContent);
+            }
+            this.addText(closeTag);
+            return true;
+        }
+
+        return false;
     }
 }
