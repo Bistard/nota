@@ -334,6 +334,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             return currNode.ctor.createAndFill(currNode.attrs, currNode.children, currNode.marks);
         }
 
+        // normal deactivating
         const active = this.__getActive();
         const node = currNode.ctor.createAndFill(currNode.attrs, currNode.children, active.marks);
         if (!node) {

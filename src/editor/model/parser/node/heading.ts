@@ -19,7 +19,7 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
-            content: '(text | image)*',
+            content: 'inline*',
             defining: true,
             attrs: { 
                 level: { default: 1 } 
