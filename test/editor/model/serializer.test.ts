@@ -1,6 +1,5 @@
 import * as assert from 'assert';
 // import { defaultMarkdownParser, defaultMarkdownSerializer } from 'prosemirror-markdown';
-import { Strings } from 'src/base/common/utilities/string';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
@@ -187,13 +186,11 @@ suite('MarkdownSerializer', () => {
             expectSameTo('## Heading with trailing spaces   ', '## Heading with trailing spaces');
         });
 
-        // FIX
-        test.skip('Heading with HTML tags', () => {
+        test('Heading with HTML tags', () => {
             expectSame('## Heading with <b>HTML</b> tags');
         });
     
-        // FIX
-        test.skip('Heading with mixed Markdown and HTML', () => {
+        test('Heading with mixed Markdown and HTML', () => {
             expectSame('### **Bold** and <em>HTML Italic</em> in heading');
         });
     
@@ -213,6 +210,10 @@ suite('MarkdownSerializer', () => {
     suite('html', () => {
         test('Basic empty div', () => {
             expectSame('<div></div>');
+        });
+
+        test('Single hr', () => {
+            expectSame('<br>');
         });
 
         test('Div with text content', () => {
@@ -289,6 +290,101 @@ suite('MarkdownSerializer', () => {
     
         test('Unicode characters', () => {
             expectSame('<div>Unicode: 😊, 你好, ü</div>');
+        });
+    });
+
+    suite('inline_html', () => {
+        test('Basic inline HTML - <em>', () => {
+            expectSame('This is <em>emphasized</em> text.');
+        });
+
+        test('Basic inline HTML - <strong>', () => {
+            expectSame('This is <strong>bold</strong> text.');
+        });
+
+        test('Inline HTML with attributes - <a>', () => {
+            expectSame('Click <a href="https://example.com">here</a> for more information.');
+        });
+
+        test('Self-closing inline HTML tag - <img>', () => {
+            expectSame('This is an image <img src="image.jpg" alt="Image description"/> inline.');
+        });
+
+        test('Inline HTML with multiple attributes', () => {
+            expectSame('Click <a href="https://example.com" target="_blank">here</a> for more information.');
+        });
+
+        test('Inline HTML with special characters', () => {
+            expectSame('This is <span title="&quot;Special&quot;">special</span> text.');
+        });
+
+        test('Mixed Markdown and inline HTML', () => {
+            expectSame('This is *italic* and <strong>bold</strong> text with a [link](https://example.com).');
+        });
+
+        test('Nested inline HTML elements', () => {
+            expectSame('This is <em><strong>nested</strong></em> inline HTML.');
+        });
+
+        test('Empty inline HTML tag', () => {
+            expectSame('This is an empty inline tag: <br>.');
+        });
+
+        test('Invalid inline HTML tag', () => {
+            expectSame('This is invalid <invalidtag>inline HTML</invalidtag>.');
+        });
+
+        test('Inline HTML with mismatched tags', () => {
+            expectSame('This is <em>mismatched</strong> inline HTML tags.');
+        });
+        
+        test('Inline HTML with mismatched tags', () => {
+            expectSame('This is <em>mismatched</strong> inline HTML tags.');
+        });
+
+        test('Inline HTML with incomplete tag', () => {
+            expectSame('This is an incomplete tag: <em>');
+        });
+        
+        test('Inline HTML with multiple incomplete tag', () => {
+            expectSame('This is an incomplete tag: <em><strong><DiV>...');
+        });
+
+        test('Inline HTML tag with spaces', () => {
+            expectSame('This is <em> emphasized text </em> with spaces around.');
+        });
+
+        test('Inline HTML tag with missing closing angle bracket', () => {
+            expectSame('This is a tag with missing closing angle bracket: <em');
+        });
+
+        test('Inline HTML with multiple consecutive tags', () => {
+            expectSame('This is <em>first</em><strong>second</strong> inline HTML.');
+        });
+
+        test('Inline HTML tag with content spanning multiple lines', () => {
+            expectSame('This is <em>multi-line\ncontent</em> inside an inline HTML tag.');
+        });
+
+        // FIX: should work after 'marked' update
+        test.skip('Inline HTML inside a code span', () => {
+            expectSame('This is a code span with inline HTML: `<em>code</em>`.');
+        });
+
+        test('Inline HTML with escape sequences', () => {
+            expectSame('This is inline HTML with escape sequences: &lt;em&gt;escaped&lt;/em&gt;.');
+        });
+
+        test('Self-closing inline tag with attribute', () => {
+            expectSame('This is an image with title: <img src="image.jpg" title="Image"/>.');
+        });
+
+        test('Inline HTML tag within a heading', () => {
+            expectSame('# Heading with <em>inline</em> HTML');
+        });
+        
+        test('Inline HTML with no space between tags', () => {
+            expectSame('This is <em>emphasized</em><strong>bold</strong> with no space.');
         });
     });
 
@@ -522,7 +618,7 @@ suite('MarkdownSerializer', () => {
         });
     
         test('Spaces and newlines with tabs', () => {
-            expectSameTo('paragraph 1.\n\t\nparagraph 2.', 'paragraph 1.\n    \nparagraph 2.'); // REVIEW: maybe need to change this behavior
+            expectSame('paragraph 1.\n\t\nparagraph 2.');
             expectSame('paragraph1\n 1 \t 2 \nparagraph2');
         });
     });
