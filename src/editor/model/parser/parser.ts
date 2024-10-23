@@ -422,6 +422,9 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
     private __onUnexpectedInlineHtml(node: IParsingNodeState): ProseNode | null {
         const plainText = node.attrs!['text'] as string;
         this.addText(plainText);
+        for (const child of node.children) {
+            this.addText(child.textContent);
+        }
         return this.deactivateNode();
     }
 }
