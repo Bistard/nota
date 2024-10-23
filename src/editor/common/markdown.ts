@@ -12,6 +12,7 @@ export const enum TokenEnum {
     ListItem = 'list_item',
     Paragraph = 'paragraph',
     HTML = 'html',
+    InlineHTML = 'inline_html',
     Text = 'text',
     Def = 'def', // TODO
     Escape = 'escape', // TODO

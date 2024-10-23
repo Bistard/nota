@@ -7,7 +7,7 @@ import { isNullable } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
-import { IDocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentMark, DocumentNode, IDocumentNode } from "src/editor/model/parser/documentNode";
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
 import { EditorSchema } from "src/editor/model/schema";
 
@@ -190,6 +190,9 @@ export interface IDocumentParseState {
      * be used for debugging.
      */
     getActiveMark(): readonly ProseMark[];
+
+    getDocumentNode<TToken = EditorToken>(name: string): DocumentNode<TToken> | null;
+    getDocumentMark<TToken = EditorToken>(name: string): DocumentMark<TToken> | null;
 }
 
 /**
@@ -365,6 +368,14 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             return [];
         }
         return this._actives.top().marks;
+    }
+
+    public getDocumentNode<TToken = EditorToken>(name: string): DocumentNode<TToken> | null {
+        return this._nodeProvider.getNode(name) ?? null;
+    }
+
+    public getDocumentMark<TToken = EditorToken>(name: string): DocumentMark<TToken> | null {
+        return this._nodeProvider.getMark(name) ?? null;
     }
 
     public dispose(): void {

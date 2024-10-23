@@ -13,7 +13,7 @@ import { CodeBlock } from "src/editor/model/parser/node/codeBlock";
 import { Escape } from "src/editor/model/parser/node/escape";
 import { Heading } from "src/editor/model/parser/node/heading";
 import { HorizontalRule } from "src/editor/model/parser/node/horizontalRule";
-import { HTML } from "src/editor/model/parser/node/html";
+import { HTML, InlineHTML } from "src/editor/model/parser/node/html";
 import { Image } from "src/editor/model/parser/node/image";
 import { LineBreak } from "src/editor/model/parser/node/lineBreak";
 import { List, ListItem } from "src/editor/model/parser/node/list";
@@ -67,6 +67,7 @@ export class DocumentNodeProvider {
                 provider.registerNode(new LineBreak());
                 provider.registerNode(new Image());
                 provider.registerNode(new HTML());
+                provider.registerNode(new InlineHTML());
 
                 // marks
                 provider.registerMark(new Link());
