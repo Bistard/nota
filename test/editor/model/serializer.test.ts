@@ -253,11 +253,10 @@ suite('MarkdownSerializer', () => {
     
         test('Special characters in attributes', () => {
             expectSame('<a href="https://example.com/?query=hello&amp;world"/>');
-            // expectSame('<a href="https://example.com">Link with special characters</a>'); // REVIEW: this one does not work, gives '' string.
         });
     
         test('Invalid or unknown tags', () => {
-            expectSameTo('<foo>Invalid tag</foo>', '');
+            expectSame('<foo>Invalid tag</foo>');
         });
     
         test('Mixed case tag names', () => {
