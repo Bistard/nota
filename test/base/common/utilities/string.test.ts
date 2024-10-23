@@ -299,4 +299,59 @@ suite('Strings-test', function () {
         });
     });
 
+    suite('resolveHtmlTag', () => {
+        test('should parse an open tag with attributes', () => {
+            const result = Strings.resolveHtmlTag('<div class="container">');
+            assert.deepStrictEqual(result, {
+                type: 'open',
+                tagName: 'div',
+                attributes: { class: 'container' }
+            });
+        });
+    
+        test('should parse a self-closing tag with attributes', () => {
+            const result = Strings.resolveHtmlTag('<img src="image.jpg" alt="An image" />');
+            assert.deepStrictEqual(result, {
+                type: 'self-closing',
+                tagName: 'img',
+                attributes: { src: 'image.jpg', alt: 'An image' }
+            });
+        });
+    
+        test('should parse a closing tag', () => {
+            const result = Strings.resolveHtmlTag('</div>');
+            assert.deepStrictEqual(result, {
+                type: 'close',
+                tagName: 'div',
+                attributes: null
+            });
+        });
+    
+        test('should return unknown for invalid tag', () => {
+            const result = Strings.resolveHtmlTag('<invalid');
+            assert.deepStrictEqual(result, {
+                type: 'unknown',
+                tagName: null,
+                attributes: null
+            });
+        });
+    
+        test('should parse an open tag without attributes', () => {
+            const result = Strings.resolveHtmlTag('<span>');
+            assert.deepStrictEqual(result, {
+                type: 'open',
+                tagName: 'span',
+                attributes: null
+            });
+        });
+    
+        test('should parse a self-closing tag without attributes', () => {
+            const result = Strings.resolveHtmlTag('<br/>');
+            assert.deepStrictEqual(result, {
+                type: 'self-closing',
+                tagName: 'br',
+                attributes: null
+            });
+        });
+    });
 });

@@ -237,12 +237,113 @@ export namespace Strings {
             return Strings.IgnoreCase.startsWith(str, candidate);
         }
     }
+
+    /**
+     * @description Parses an HTML tag string and extracts information such as the 
+     * tag type, tag name, and attributes.
+     *
+     * @param htmlTag The HTML tag string to be parsed (e.g., "<div class='container'>").
+     * @returns An object containing the parsed tag's type, tag name, and attributes.
+     *
+     * @example
+     * resolveHtmlTag('<div class="container">');
+     * // Returns:
+     * // {
+     * //   type: 'open',
+     * //   tagName: 'div',
+     * //   attributes: { class: 'container' }
+     * // }
+     *
+     * resolveHtmlTag('<img src="image.jpg" alt="An image" />');
+     * // Returns:
+     * // {
+     * //   type: 'self-closing',
+     * //   tagName: 'img',
+     * //   attributes: { src: 'image.jpg', alt: 'An image' }
+     * // }
+     *
+     * resolveHtmlTag('</div>');
+     * // Returns:
+     * // {
+     * //   type: 'close',
+     * //   tagName: 'div',
+     * //   attributes: null
+     * // }
+     *
+     * resolveHtmlTag('<invalid');
+     * // Returns:
+     * // {
+     * //   type: 'unknown',
+     * //   tagName: null,
+     * //   attributes: null
+     * // }
+     */
+    export function resolveHtmlTag(htmlTag: string): IHtmlTagResult {
+        const tagPattern = /^<\s*\/?([a-zA-Z0-9]+)([^>]*)\s*\/?\s*>$/;
+        const attributePattern = /([a-zA-Z0-9\-:]+)\s*=\s*"(.*?)"/g;
+
+        const tagMatch = htmlTag.match(tagPattern);
+        if (!tagMatch) {
+            return {
+                type: 'unknown',
+                tagName: null,
+                attributes: null
+            };
+        }
+
+        const tagName = tagMatch[1] || null;
+        const attributesString = tagMatch[2] || '';
+
+        let tagType: 'open' | 'close' | 'self-closing' = 'open';
+        if (htmlTag.startsWith('</')) {
+            tagType = 'close';
+        } else if (htmlTag.endsWith('/>')) {
+            tagType = 'self-closing';
+        }
+
+        const attributes: { [key: string]: string } = {};
+        let anyAttributes = false;
+        let attributeMatch: RegExpExecArray | null = null;
+
+        do {
+            attributeMatch = attributePattern.exec(attributesString);
+            if (attributeMatch) {
+                const attributeName = attributeMatch[1] || ''; // Attribute name (e.g., "src", "alt")
+                const attributeValue = attributeMatch[2] || ''; // Attribute value (e.g., "image.jpg")
+                attributes[attributeName] = attributeValue;
+                anyAttributes = true;
+            }
+        } while (attributeMatch);
+
+        return {
+            type: tagType,
+            tagName: tagName,
+            attributes: anyAttributes ? attributes : null
+        };
+    }
 }
 
 /**
  * (U)niversal (U)nique (ID)entifier.
  */
 export type UUID = string;
+
+/**
+ * Represents the result of parsing an HTML tag.
+ *
+ * @property {} type The type of the HTML tag. 
+ *   - 'open' indicates a start tag (e.g., <div>), 
+ * 	 - 'close' indicates an end tag (e.g., </div>), 
+ *   - 'self-closing' indicates a self-closing tag (e.g., <img />),
+ * 	 -'unknown' indicates that the tag could not be recognized.
+ * @property {} tagName The name of the tag (e.g., 'div', 'img')
+ * @property {} attributes An object representing the tag's attributes (key-value pairs), or null if no attributes are found.
+ */
+export interface IHtmlTagResult {
+    type: 'open' | 'close' | 'self-closing' | 'unknown';
+    tagName: string | null;
+    attributes: { [key: string]: string } | null;
+}
 
 /**
  * @description Sorts two strings in ascending order.
