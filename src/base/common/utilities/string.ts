@@ -285,7 +285,7 @@ export namespace Strings {
         const tagMatch = htmlTag.match(tagPattern);
         if (!tagMatch) {
             return {
-                type: 'unknown',
+                type: HtmlTagType.unknown,
                 tagName: null,
                 attributes: null
             };
@@ -294,11 +294,11 @@ export namespace Strings {
         const tagName = tagMatch[1] || null;
         const attributesString = tagMatch[2] || '';
 
-        let tagType: 'open' | 'close' | 'self-closing' = 'open';
+        let tagType: HtmlTagType = HtmlTagType.open;
         if (htmlTag.startsWith('</')) {
-            tagType = 'close';
+            tagType = HtmlTagType.close;
         } else if (htmlTag.endsWith('/>')) {
-            tagType = 'self-closing';
+            tagType = HtmlTagType.selfClosing;
         }
 
         const attributes: { [key: string]: string } = {};
@@ -329,20 +329,30 @@ export namespace Strings {
 export type UUID = string;
 
 /**
+ * The type of the HTML tag. 
+ *   - 'open' indicates a start tag (e.g., <div>), 
+ *   - 'close' indicates an end tag (e.g., </div>), 
+ *   - 'self-closing' indicates a self-closing tag (e.g., <img />),
+ *   - 'unknown' indicates that the tag could not be recognized.
+ */
+export const enum HtmlTagType {
+    open = 'open', 
+    close = 'close',
+    selfClosing = 'self-closing',
+    unknown = 'unknown',
+}
+
+/**
  * Represents the result of parsing an HTML tag.
  *
- * @property {} type The type of the HTML tag. 
- *   - 'open' indicates a start tag (e.g., <div>), 
- * 	 - 'close' indicates an end tag (e.g., </div>), 
- *   - 'self-closing' indicates a self-closing tag (e.g., <img />),
- * 	 -'unknown' indicates that the tag could not be recognized.
+ * @property {} type See {@link HtmlTagType}.
  * @property {} tagName The name of the tag (e.g., 'div', 'img')
  * @property {} attributes An object representing the tag's attributes (key-value pairs), or null if no attributes are found.
  */
 export interface IHtmlTagResult {
-    type: 'open' | 'close' | 'self-closing' | 'unknown';
-    tagName: string | null;
-    attributes: { [key: string]: string } | null;
+    readonly type: HtmlTagType;
+    readonly tagName: string | null;
+    readonly attributes: { [key: string]: string } | null;
 }
 
 /**

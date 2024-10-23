@@ -1,7 +1,8 @@
-import { Tokens } from "marked";
 import { assert } from "src/base/common/utilities/panic";
+import { Strings, HtmlTagType } from "src/base/common/utilities/string";
+import { Dictionary } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
-import { EditorToken, EditorTokens } from "src/editor/common/model";
+import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
@@ -22,14 +23,12 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
             group: 'block',
             content: undefined,
             attrs: {
-                text: {}, // string
-                tagName: {}, // string
+                text: { default: '' },
+                isBlock: {},
             },
             parseDOM: [ { tag: 'html', } ],
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
-
-                // block rendering
                 const dom = document.createElement('div');
                 dom.innerHTML = text;
                 return dom;
@@ -38,45 +37,51 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.HTML): void {
-        const tagName = __getTagName(token.text);
-        const htmlAttrs = {
-            text: token.text,
-            isBlock: token.block,
-            tagName: tagName,
-        };
         
         // block-level html
         if (token.block === true) {
-            state.activateNode(this.ctor, htmlAttrs);
+            state.activateNode(this.ctor, {
+                text: token.text,
+                isBlock: token.block,
+            });
+            state.deactivateNode();
+            return;
+        }
+        
+        // inline-level html
+        
+        const { type: tagType, tagName, attributes } = Strings.resolveHtmlTag(token.text);
+        const htmlAttrs = {
+            text: token.text,
+            isBlock: token.block,
+            tagType: tagType,
+            tagName: tagName,
+            attributes: attributes,
+        };
+        const inlineHTMLCtor = assert(state.getDocumentNode(TokenEnum.InlineHTML)).ctor;
+
+
+        // self-closing tag: activate as a single node
+        if (tagType === HtmlTagType.selfClosing) {
+            state.activateNode(inlineHTMLCtor, htmlAttrs);
             state.deactivateNode();
             return;
         }
 
-        // open tag: we activate a node and stop.
-        if (__isOpenTag(token.text)) {
-            const inlineHTMLCtor = assert(state.getDocumentNode(TokenEnum.InlineHTML)).ctor;
+        // open tag: we activate an `inline_html` node.
+        if (tagType === HtmlTagType.open) {
             state.activateNode(inlineHTMLCtor, htmlAttrs);
-            return;
-        }
-
+        } 
         // close tag: deactivate node
-        state.deactivateNode();
+        else {
+            state.deactivateNode();
+        }
     }
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
         const { text } = node.attrs;
         state.write(text);
     };
-}
-
-function __getTagName(rawTag: string): string | null {
-    const match = rawTag.match(/^<\/?(\w+)/);
-    return match ? match[1]! : null;
-}
-
-
-function __isOpenTag(rawTag: string): boolean {
-    return !rawTag.startsWith('</');
 }
 
 export class InlineHTML extends DocumentNode<EditorTokens.InlineHTML> {
@@ -91,17 +96,22 @@ export class InlineHTML extends DocumentNode<EditorTokens.InlineHTML> {
             inline: true,
             content: 'inline*',
             attrs: {
-                text: {}, // string
-                tagName: {}, // string
+                text: { default: '' },
+                isBlock: {},
+                tagType: { default: 'unknown' },
+                tagName: { default: null },
+                attributes: { default: null },
             },
             toDOM: (node) => { 
                 const tagName = node.attrs['tagName'] as string;
+                const tagType = node.attrs['tagType'] as HtmlTagType;
+                const attributes = node.attrs['attributes'] as Dictionary<string, string> | null;
 
-                // inline rendering
                 return createDomOutputFromOptions({
                     type: 'node',
                     tagName: tagName,
                     editable: true,
+                    attributes: attributes ?? {}
                 });
             }
         };
@@ -114,11 +124,34 @@ export class InlineHTML extends DocumentNode<EditorTokens.InlineHTML> {
          */
     }
 
-    public serializer = (state: IMarkdownSerializerState, node: ProseNode) => {
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode): void => {
         const tagName = node.attrs['tagName'] as string;
-        
-        state.text(`<${tagName}>`, false);
-        state.serializeInline(node);
-        state.text(`</${tagName}>`, false);
+        const tagType = node.attrs['tagType'] as HtmlTagType;
+        const attributes = node.attrs['attributes'] as Dictionary<string, string> | null;
+
+        // starting
+        if (tagType === HtmlTagType.open || tagType === HtmlTagType.selfClosing) {
+            let tagString = `<${tagName}`;
+            
+            if (attributes) {
+                for (const [attrName, attrValue] of Object.entries(attributes)) {
+                    tagString += ` ${attrName}="${attrValue}"`;
+                }
+            }
+
+            if (tagType === HtmlTagType.selfClosing) {
+                tagString += '/>';
+            } else {
+                tagString += '>';
+            }
+
+            state.text(tagString, false);
+        }
+
+        // closing
+        if (tagType === HtmlTagType.open) {
+            state.serializeInline(node);
+            state.text(`</${tagName}>`, false);
+        }
     };
 }
