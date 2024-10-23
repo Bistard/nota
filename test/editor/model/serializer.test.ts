@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-// import { defaultMarkdownParser, defaultMarkdownSerializer } from 'prosemirror-markdown';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
@@ -337,10 +336,6 @@ suite('MarkdownSerializer', () => {
         test('Inline HTML with mismatched tags', () => {
             expectSame('This is <em>mismatched</strong> inline HTML tags.');
         });
-        
-        test('Inline HTML with mismatched tags', () => {
-            expectSame('This is <em>mismatched</strong> inline HTML tags.');
-        });
 
         test('Inline HTML with incomplete tag', () => {
             expectSame('This is an incomplete tag: <em>');
@@ -491,33 +486,97 @@ suite('MarkdownSerializer', () => {
         test('Basic ---', () => {
             expectSame('---');
         });
-        
+    
         test('Basic ***', () => {
             expectSame('***');
         });
-        
+    
         test('Basic ___', () => {
             expectSame('___');
         });
-        
+    
         test('With spaces before and after ---', () => {
-            expectSameTo('  ---  ', '---');
+            expectSame('  ---  ');
         });
-        
+    
         test('With spaces before and after ***', () => {
-            expectSameTo('   ***   ', '***');
+            expectSame('   ***   ');
         });
-        
+    
         test('With spaces before and after ___', () => {
-            expectSameTo(' ___ ', '___');
+            expectSame(' ___ ');
         });
-        
+    
         test('Invalid horizontal rule (too few dashes)', () => {
-            expectSame('--'); // Invalid HR, should not be serialized as HR
+            expectSame('--'); // Should not be serialized as HR
         });
-        
+    
         test('Invalid horizontal rule (mixed symbols)', () => {
-            expectSame('-*-'); // Invalid HR, should not be serialized as HR
+            expectSame('-*-'); // Should not be serialized as HR
+        });
+    
+        test('More than 3 dashes ---', () => {
+            expectSame('------'); // Should be serialized as HR
+        });
+    
+        test('More than 3 asterisks ***', () => {
+            expectSame('******'); // Should be serialized as HR
+        });
+    
+        test('More than 3 underscores ___', () => {
+            expectSame('______'); // Should be serialized as HR
+        });
+    
+        test('Horizontal rule with spaces between dashes', () => {
+            expectSame('- - -');
+        });
+    
+        test('Horizontal rule with spaces between asterisks', () => {
+            expectSame('* * *');
+        });
+    
+        test('Horizontal rule with spaces between underscores', () => {
+            expectSame('_ _ _');
+        });
+    
+        test('Horizontal rule with newline before ---', () => {
+            expectSame('\n---');
+        });
+    
+        test('Horizontal rule with newline after ---', () => {
+            expectSame('---\n');
+        });
+    
+        test('Horizontal rule surrounded by paragraphs', () => {
+            expectSame('Paragraph before\n\n---\n\nParagraph after');
+        });
+    
+        test('Horizontal rule with mixed case asterisks', () => {
+            expectSame('*** ** **');
+        });
+    
+        test('Horizontal rule with mixed case dashes', () => {
+            expectSame('--- -- --');
+        });
+    
+        test('Horizontal rule with newline and spaces after ---', () => {
+            expectSame('---   \n\n');
+        });
+    
+        test('Horizontal rule with multiple newlines before ---', () => {
+            expectSame('\n\n\n---');
+        });
+    
+        test('Invalid horizontal rule with letters', () => {
+            expectSame('---a---'); // Should not be serialized as HR
+        });
+    
+        test('Invalid horizontal rule with special characters', () => {
+            expectSame('---$---'); // Should not be serialized as HR
+        });
+    
+        test('Multiple horizontal rules', () => {
+            expectSame('---\n\n***\n\n___'); // Should serialize as multiple HRs
         });
     });
 

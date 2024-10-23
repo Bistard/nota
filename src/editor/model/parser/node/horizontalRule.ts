@@ -1,3 +1,4 @@
+import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -25,7 +26,8 @@ export class HorizontalRule extends DocumentNode<EditorTokens.Hr> {
             group: 'block',
             content: undefined,
             attrs: {
-                type: { default: HrType.Dash }
+                type: { default: HrType.Dash },
+                raw: { default: '---' }
             },
             parseDOM: [{ tag: 'hr' }],
             toDOM: () => { return ['hr']; }
@@ -33,20 +35,17 @@ export class HorizontalRule extends DocumentNode<EditorTokens.Hr> {
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Hr): void {
-        const type = __getHrType(token.raw.trim());
-        state.activateNode(this.ctor, { type: type });
+        const raw = token.raw;
+        state.activateNode(this.ctor, { 
+            type: __getHrType(raw),
+            raw: raw
+        });
         state.deactivateNode();
     }
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
-        const type: HrType = node.attrs['type'];
-
-        const serialized = 
-            (type === HrType.Dash) ? '---' 
-            : (type === HrType.Asterisk) ? '***' 
-            : '___';
-
-        state.write(serialized);
+        const raw = node.attrs['raw'] as string;
+        state.write(raw);
         state.closeBlock(node);
     };
 }
