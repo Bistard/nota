@@ -5,7 +5,7 @@ import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode } from "src/editor/model/parser/documentNode";
-import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IDeactivateNodeOptions, IDocumentParseState } from "src/editor/model/parser/parser";
 import { createDomOutputFromOptions } from "src/editor/model/schema";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -37,14 +37,17 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.HTML): void {
-        
+        const deactivateOpts: IDeactivateNodeOptions = {
+            expectInlineHtml: true,
+        };
+
         // block-level html
         if (token.block === true) {
             state.activateNode(this.ctor, {
                 text: token.text,
                 isBlock: token.block,
             });
-            state.deactivateNode();
+            state.deactivateNode(deactivateOpts);
             return;
         }
         
@@ -64,7 +67,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         // self-closing tag: activate as a single node
         if (tagType === HtmlTagType.selfClosing) {
             state.activateNode(inlineHTMLCtor, htmlAttrs);
-            state.deactivateNode();
+            state.deactivateNode(deactivateOpts);
             return;
         }
 
@@ -72,9 +75,9 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         if (tagType === HtmlTagType.open) {
             state.activateNode(inlineHTMLCtor, htmlAttrs);
         } 
-        // close tag: deactivate node
+        // close tag: deactivate node (we are expecting to deactivate a `inline_html` node)
         else {
-            state.deactivateNode();
+            state.deactivateNode(deactivateOpts);
         }
     }
 

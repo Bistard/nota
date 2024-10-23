@@ -148,7 +148,7 @@ export interface IDocumentParseState {
      * activated. The created node will be pops out from the internal stack to 
      * be inserted as a child into the parent document node.
      */
-    deactivateNode(): ProseNode | null;
+    deactivateNode(opts?: IDeactivateNodeOptions): ProseNode | null;
 
     /**
      * @description Given an array of tokens and parses them recursively. All
@@ -193,6 +193,17 @@ export interface IDocumentParseState {
 
     getDocumentNode<TToken = EditorToken>(name: string): DocumentNode<TToken> | null;
     getDocumentMark<TToken = EditorToken>(name: string): DocumentMark<TToken> | null;
+}
+
+export interface IDeactivateNodeOptions {
+    
+    /**
+     * If expecting deactivating the `inline_html` node. If `true`, we construct 
+     * a `inline_html` node as expected. If `false` and unexpectedly 
+     * encountering a `inline_html` node, the node will be parsed as plain-text.
+     * @default false
+     */
+    readonly expectInlineHtml?: boolean;
 }
 
 /**
@@ -289,8 +300,17 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         });
     }
 
-    public deactivateNode(): ProseNode | null {
+    public deactivateNode(opt?: IDeactivateNodeOptions): ProseNode | null {
         const current = this.__popActive();
+
+        /**
+         * Unexpectedly encountering a `inline_html` node, it means it is 
+         * incomplete, only found 1 open tag but not a close tag. Thus we need 
+         * to render it as plain-text.
+         */
+        if (!opt?.expectInlineHtml && current.ctor.name === TokenEnum.InlineHTML) {
+            return this.__onUnexpectedInlineHtml(current);
+        }
         
         // happens when deactivating the root document node
         if (this._actives.empty()) {
@@ -397,5 +417,11 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             panic('Current document parsing state has no active tokens.');
         }
         return this._actives.pop();
+    }
+
+    private __onUnexpectedInlineHtml(node: IParsingNodeState): ProseNode | null {
+        const plainText = node.attrs!['text'] as string;
+        this.addText(plainText);
+        return this.deactivateNode();
     }
 }
