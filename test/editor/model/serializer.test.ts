@@ -1021,8 +1021,7 @@ suite('MarkdownSerializer (inline-level)', () => {
             expectSame('`code`');
         });
         
-        // FIX: should work after 'marked' update
-        test.skip('Inline code with special characters', () => {
+        test('Inline code with special characters', () => {
             expectSame('`!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/`');
         });
         
@@ -1074,8 +1073,7 @@ suite('MarkdownSerializer (inline-level)', () => {
             expectSame('*This is emphasized with `inline code` inside*');
         });
     
-        // FIX: should work after 'marked' update
-        test.skip('Inline code with HTML inside', () => {
+        test('Inline code with HTML inside', () => {
             expectSame('`<strong>HTML</strong>` inside code');
         });
     
