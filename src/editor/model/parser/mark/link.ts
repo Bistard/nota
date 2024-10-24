@@ -22,16 +22,6 @@ export class Link extends DocumentMark<EditorTokens.Link> {
                 title: { default: null }
             },
             inclusive: false,
-            parseDOM: [
-            {
-                tag: 'a[href]', 
-                getAttrs: (dom: HTMLElement) => {
-                    return {
-                        href: dom.getAttribute('href'),
-                        title: dom.getAttribute('title'),
-                    };
-                }
-            }],
             toDOM: (node) => {
                 const { href, title } = node.attrs;
                 return ['a', { href, title }, 0];

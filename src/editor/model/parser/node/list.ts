@@ -23,22 +23,6 @@ export class List extends DocumentNode<EditorTokens.List> {
                 ordered: { default: false },
                 tight: { default: false },
             },
-            parseDOM: [
-                {
-                    tag: 'ul', 
-                    getAttrs: dom => ({ 
-                        ordered: false,
-                        tight: dom.hasAttribute('data-tight'),
-                    }),
-                },
-                {
-                    tag: 'ol', 
-                    getAttrs: dom => ({ 
-                        ordered: true,
-                        tight: dom.hasAttribute('data-tight'),
-                    }),
-                }
-            ],
             toDOM(node) { 
                 const { ordered, tight } = node.attrs;
                 const tag = ordered ? 'ol' : 'ul';
@@ -76,9 +60,6 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
                 task: { default: false },
                 checked: { default: false },
             },
-            parseDOM: [
-                { tag: 'li' },
-            ],
             toDOM(node) { 
                 // TODO: parsing by attributes
                 return ['li', 0]; 

@@ -29,9 +29,6 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
                     default: ''
                 },
             },
-            parseDOM: [
-                { tag: 'pre', preserveWhitespace: 'full' },
-            ],
             toDOM: (node) => { 
                 const { view } = node.attrs;
                 return view.dom;

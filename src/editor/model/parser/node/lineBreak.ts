@@ -20,7 +20,6 @@ export class LineBreak extends DocumentNode<EditorTokens.Br> {
             group: 'inline',
             inline: true,
             selectable: false,
-            parseDOM: [{ tag: 'br' }],
             toDOM: () => { return ['br']; },
         };
     }

@@ -27,18 +27,6 @@ export class Image extends DocumentNode<EditorTokens.Image> {
                 title: { default: null }
             },
             draggable: true,
-            parseDOM: [
-                {
-                    tag: 'img[src]', 
-                    getAttrs: (dom: HTMLElement) => {
-                        return {
-                            src: dom.getAttribute('src'),
-                            title: dom.getAttribute('title'),
-                            alt: dom.getAttribute('alt')
-                        };
-                    }
-                }
-            ],
             toDOM: (node) => {
                 const { src, alt, title } = node.attrs;
                 return createDomOutputFromOptions({

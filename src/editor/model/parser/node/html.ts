@@ -26,7 +26,6 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
                 text: { default: '' },
                 isBlock: {},
             },
-            parseDOM: [ { tag: 'html', } ],
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('div');

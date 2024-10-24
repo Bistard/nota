@@ -29,7 +29,6 @@ export class HorizontalRule extends DocumentNode<EditorTokens.Hr> {
                 type: { default: HrType.Dash },
                 raw: { default: '---' }
             },
-            parseDOM: [{ tag: 'hr' }],
             toDOM: () => { return ['hr']; }
         };
     }

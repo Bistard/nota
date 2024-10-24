@@ -16,7 +16,6 @@ export class Codespan extends DocumentMark<EditorTokens.Codespan> {
 
     public getSchema(): ProseMarkSpec {
         return <ProseMarkSpec>{
-            parseDOM: [{ tag: 'code' }],
             toDOM: () => { return ['code', 0]; }
         };
     }

@@ -22,11 +22,6 @@ export class Emphasis extends DocumentMark<EditorTokens.Em> {
 
     public getSchema(): ProseMarkSpec {
         return <ProseMarkSpec>{
-            parseDOM: [
-                { tag: 'i' }, 
-                { tag: 'em' }, 
-                { style: 'font-style=italic' }
-            ],
             attrs: {
                 type: { default: EmType.asterisk },
             },

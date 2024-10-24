@@ -20,7 +20,6 @@ export class Space extends DocumentNode<EditorTokens.Space> {
         return {
             group: 'block',
             content: 'inline*',
-            parseDOM: [{ tag: 'p' }],
             toDOM: () => { 
                 return createDomOutputFromOptions({
                     type: 'node',

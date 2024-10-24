@@ -20,7 +20,6 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
             group: 'block',
             content: 'block+',
             defining: true,
-            parseDOM: [{ tag: 'blockquote' }],
             toDOM: () => { 
                 return createDomOutputFromOptions({
                     type: 'node',

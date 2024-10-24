@@ -20,7 +20,6 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
         return {
             group: 'block',
             content: 'inline*',
-            parseDOM: [{ tag: 'p' }],
             toDOM: () => { 
                 return createDomOutputFromOptions({
                     type: 'node',
