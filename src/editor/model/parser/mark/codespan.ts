@@ -1,9 +1,9 @@
 import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseMarkSpec, ProseNode } from "src/editor/common/proseMirror";
+import { ProseMark, ProseMarkSpec, ProseNode } from "src/editor/common/proseMirror";
 import { DocumentMark } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
-import { IDocumentMarkSerializationOptions } from "src/editor/model/serializer/serializer";
+import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
 /**
  * @class Code font mark. Represented as a `<code>` element.
@@ -16,42 +16,35 @@ export class Codespan extends DocumentMark<EditorTokens.Codespan> {
 
     public getSchema(): ProseMarkSpec {
         return <ProseMarkSpec>{
+            attrs: {
+                backtickCount: { default: 1 },
+            },
             toDOM: () => { return ['code', 0]; }
         };
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Codespan): void {
-        state.activateMark(this.ctor.create());
-        state.addText(token.text);
+        let backtickCount = 0;
+        for (const c of token.raw) {
+            if (c !== '`') {
+                break;
+            }
+            backtickCount++;
+        }
+        const rawText = token.raw.slice(backtickCount, -backtickCount);
+        state.activateMark(this.ctor.create({ backtickCount: backtickCount }));
+        state.addText(rawText);
         state.deactivateMark(this.ctor);
     }
 
     public readonly serializer: IDocumentMarkSerializationOptions = {
-        serializeOpen: (_1, _2, parent, index) => __backticksFor(parent.child(index), -1),
-        serializeClose: (_1, _2, parent, index) => __backticksFor(parent.child(index), 1),
+        serializeOpen: (_state, mark) => __getOpenAndClose(mark),
+        serializeClose: (_state, mark) => __getOpenAndClose(mark),
+        escape: false,
     };
 }
 
-function __backticksFor(node: ProseNode, side: number): string {
-    const backtickPattern = /`+/g;
-    let maxBacktickLength = 0;
-    let match: RegExpExecArray | null;
-
-    // Find the longest sequence of backticks in the text node
-    if (node.isText) {
-        while ((match = backtickPattern.exec(node.text!)) !== null) {
-            maxBacktickLength = Math.max(maxBacktickLength, match[0].length);
-        }
-    }
-
-    // Construct the result string with the appropriate number of backticks
-    let result = maxBacktickLength > 0 && side > 0 ? " `" : "`";
-    result += "`".repeat(maxBacktickLength);
-    
-    // Add trailing space if the side is negative
-    if (maxBacktickLength > 0 && side < 0) {
-        result += " ";
-    }
-
-    return result;
+function __getOpenAndClose(mark: ProseMark): string {
+    const backtickCount = mark.attrs['backtickCount'] as number;
+    return '`'.repeat(backtickCount);
 }
