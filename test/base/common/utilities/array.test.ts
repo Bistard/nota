@@ -13,6 +13,23 @@ suite('array-test', () => {
             assert.strictEqual(Arrays.is<number>({ a: 1, b: 2 }), false);
         });
     });
+    
+    suite('last', function () {
+        test('should return the last element of a non-empty array', () => {
+            assert.strictEqual(Arrays.last([1, 2, 3]), 3);
+            assert.strictEqual(Arrays.last(['a', 'b', 'c']), 'c');
+            assert.strictEqual(Arrays.last([true, false, true]), true);
+        });
+    
+        test('should return undefined for an empty array', () => {
+            assert.strictEqual(Arrays.last([]), undefined);
+        });
+    
+        test('should handle arrays with one element', () => {
+            assert.strictEqual(Arrays.last([5]), 5);
+            assert.strictEqual(Arrays.last(['only']), 'only');
+        });
+    });
 
     suite('isType', function() {
         test('should return true for empty array', function() {

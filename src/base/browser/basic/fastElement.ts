@@ -8,7 +8,7 @@ import { isObject } from "src/base/common/utilities/type";
  */
 export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
 
-    readonly element: T;
+    readonly raw: T;
 
     setID(id: string): void;
     getID(): string;
@@ -41,6 +41,7 @@ export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
     setLineHeight(value: number): void;
     setVisibility(value: DomStyle.Visibility): void;
     setOpacity(value: number): void;
+    setPointerEvents(value: 'auto' | 'none'): void;
     setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void;
 
     setAttribute(name: string, value: string): void;
@@ -65,7 +66,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
     // [field]
 
     /** The actual {@link HTMLElement}. */
-    public readonly element: T;
+    public readonly raw: T;
     
     // Representing the DOM attributes of the wrapped HTMLElement. Initially are
     // sets to nothing:
@@ -98,23 +99,24 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
     private _lineHeight: number = -1;
     private _visibility: DomStyle.Visibility | '' = '';
     private _opacity: number = -1;
+    private _pointerEvents: 'auto' | 'none' = 'auto';
     private _backgroundColor: string = '';
 
     // [constructor]
 
     constructor(element: T) {
         super();
-        this.element = element;
+        this.raw = element;
     }
 
     // [public methods]
 
     public setID(id: string): void {
-        this.element.id = id;
+        this.raw.id = id;
     }
     
     public getID(): string {
-        return this.element.id;
+        return this.raw.id;
     }
 
     public setWidth(value: number): void {
@@ -122,7 +124,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._width = value;
-        this.element.style.width = `${value}px`;
+        this.raw.style.width = `${value}px`;
     }
 
     public setMinWidth(value: number): void {
@@ -130,7 +132,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._minWidth = value;
-        this.element.style.minWidth = `${value}px`;
+        this.raw.style.minWidth = `${value}px`;
     }
 
     public setHeight(value: number): void {
@@ -138,7 +140,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._height = value;
-        this.element.style.height = `${value}px`;
+        this.raw.style.height = `${value}px`;
     }
 
     public setMinHeight(value: number): void {
@@ -146,7 +148,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._minHeight = value;
-        this.element.style.minHeight = `${value}px`;
+        this.raw.style.minHeight = `${value}px`;
     }
 
     public setPosition(value: DomStyle.Position): void {
@@ -154,7 +156,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._position = value;
-        this.element.style.position = value;
+        this.raw.style.position = value;
     }
 
     public setDisplay(value: DomStyle.Display): void {
@@ -162,15 +164,15 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._display = value;
-        this.element.style.display = value;
+        this.raw.style.display = value;
     }
 
     public setFocus(): void {
-        this.element.focus();
+        this.raw.focus();
     }
 
     public setBlur(): void {
-        this.element.blur();
+        this.raw.blur();
     }
 
     public setTabIndex(value: number): void {
@@ -178,7 +180,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._tabIndex = value;
-        this.element.tabIndex = value;
+        this.raw.tabIndex = value;
     }
 
     public setZIndex(value: number): void {
@@ -186,7 +188,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._zIndex = value;
-        this.element.style.zIndex = `${value}`;
+        this.raw.style.zIndex = `${value}`;
     }
 
     public setTop(value: number): void {
@@ -194,7 +196,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._top = value;
-        this.element.style.top = `${value}px`;
+        this.raw.style.top = `${value}px`;
     }
 
     public setBottom(value: number): void {
@@ -202,7 +204,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._bottom = value;
-        this.element.style.bottom = `${value}px`;
+        this.raw.style.bottom = `${value}px`;
     }
 
     public setLeft(value: number): void {
@@ -210,7 +212,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._left = value;
-        this.element.style.left = `${value}px`;
+        this.raw.style.left = `${value}px`;
     }
 
     public setRight(value: number): void {
@@ -218,7 +220,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._right = value;
-        this.element.style.right = `${value}px`;
+        this.raw.style.right = `${value}px`;
     }
 
     public setClassName(value: string): void {
@@ -226,19 +228,19 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._className = value;
-        this.element.className = value;
+        this.raw.className = value;
     }
 
     public toggleClassName(value: string, force?: boolean): void {
-        this.element.classList.toggle(value, force);
+        this.raw.classList.toggle(value, force);
     }
 
     public addClassList(...values: string[]): void {
-        this.element.classList.add(...values);
+        this.raw.classList.add(...values);
     }
 
     public removeClassList(...values: string[]): void {
-        this.element.classList.remove(...values);
+        this.raw.classList.remove(...values);
     }
 
     public setFontSize(value: number): void {
@@ -246,7 +248,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._fontSize = value;
-        this.element.style.fontSize = `${value}px`;
+        this.raw.style.fontSize = `${value}px`;
     }
 
     public setFontWeight(value: DomStyle.FontWeight): void {
@@ -254,7 +256,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._fontWeight = value;
-        this.element.style.fontWeight = value;
+        this.raw.style.fontWeight = value;
     }
 
     public setFontFamily(value: string): void {
@@ -262,7 +264,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._fontFamily = value;
-        this.element.style.fontFamily = value;
+        this.raw.style.fontFamily = value;
     }
 
     public setLineHeight(value: number): void {
@@ -270,7 +272,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._lineHeight = value;
-        this.element.style.lineHeight = `${value}px`;
+        this.raw.style.lineHeight = `${value}px`;
     }
 
     public setVisibility(value: DomStyle.Visibility): void {
@@ -278,7 +280,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._visibility = value;
-        this.element.style.visibility = value;
+        this.raw.style.visibility = value;
     }
 
     public setOpacity(value: number): void {
@@ -287,7 +289,15 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._opacity = value;
-        this.element.style.opacity = `${value}`;
+        this.raw.style.opacity = `${value}`;
+    }
+
+    public setPointerEvents(value: 'auto' | 'none'): void {
+        if (this._pointerEvents === value) {
+            return;
+        }
+        this._pointerEvents = value;
+        this.raw.style.pointerEvents = `${value}`;
     }
 
     public setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void {
@@ -295,167 +305,167 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             return;
         }
         this._backgroundColor = value;
-        this.element.style.backgroundColor = value;
+        this.raw.style.backgroundColor = value;
     }
 
     public setAttribute(name: string, value: string): void {
-		this.element.setAttribute(name, value);
+		this.raw.setAttribute(name, value);
 	}
 
 	public removeAttribute(name: string): void {
-		this.element.removeAttribute(name);
+		this.raw.removeAttribute(name);
 	}
 
 	public appendChild(child: IFastElement<T> | T): void {
 		if (isFastElement(child)) {
-            this.element.appendChild(child.element);
+            this.raw.appendChild(child.raw);
         } else {
-            this.element.appendChild(child);
+            this.raw.appendChild(child);
         }
 	}
 
 	public removeChild(child: IFastElement<T> | T): void {
 		if (isFastElement(child)) {
-            this.element.removeChild(child.element);
+            this.raw.removeChild(child.raw);
         } else {
-            this.element.removeChild(child);
+            this.raw.removeChild(child);
         }
 	}
 
     public onClick(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.click, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.click, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onDoubleClick(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.doubleClick, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.doubleClick, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMouseover(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mouseover, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mouseover, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMouseout(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mouseout, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mouseout, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMouseenter(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mouseenter, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mouseenter, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMouseleave(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mouseleave, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mouseleave, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMousedown(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mousedown, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mousedown, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMouseup(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mouseup, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mouseup, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onMousemove(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mousemove, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.mousemove, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onWheel(callback: (event: WheelEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.wheel, (e: WheelEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.wheel, (e: WheelEvent) => {
             callback(e);
         }));
     }
 
     public onTouchstart(callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.touchstart, (e: TouchEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.touchstart, (e: TouchEvent) => {
             callback(e);
         }));
     }
 
     public onTouchmove(callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.touchmove, (e: TouchEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.touchmove, (e: TouchEvent) => {
             callback(e);
         }));
     }
 
     public onTouchend(callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.touchend, (e: TouchEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.touchend, (e: TouchEvent) => {
             callback(e);
         }));
     }
 
     public onTouchcancel(callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.touchcancel, (e: TouchEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.touchcancel, (e: TouchEvent) => {
             callback(e);
         }));
     }
 
     public onContextmenu(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.contextmenu, (e: MouseEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.contextmenu, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     public onFocusin(callback: (event: FocusEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.focusin, (e: FocusEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.focusin, (e: FocusEvent) => {
             callback(e);
         }));
     }
 
 	public onFocusout(callback: (event: FocusEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.focusout, (e: FocusEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.focusout, (e: FocusEvent) => {
             callback(e);
         }));
     }
 
     public onFocus(callback: (event: FocusEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.focus, (e: FocusEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.focus, (e: FocusEvent) => {
             callback(e);
         }));
     }
 
 	public onBlur(callback: (event: FocusEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.blur, (e: FocusEvent) => {
+        return this.__register(addDisposableListener(this.raw, EventType.blur, (e: FocusEvent) => {
             callback(e);
         }));
     }
 
     public onKeydown(callback: (event: KeyboardEvent) => void): IDisposable {
-		return this.__register(addDisposableListener(this.element, EventType.keydown, (e: KeyboardEvent) => {
+		return this.__register(addDisposableListener(this.raw, EventType.keydown, (e: KeyboardEvent) => {
             callback(e);
         }));
 	}
 
 	public onKeyup(callback: (event: KeyboardEvent) => void): IDisposable {
-		return this.__register(addDisposableListener(this.element, EventType.keyup, (e: KeyboardEvent) => {
+		return this.__register(addDisposableListener(this.raw, EventType.keyup, (e: KeyboardEvent) => {
             callback(e);
         }));
 	}
 
     public override dispose(): void {
-        this.element.remove();
+        this.raw.remove();
         super.dispose();
     }
 }
 
 export function isFastElement<T extends HTMLElement>(obj: any): obj is IFastElement<T> {
-    if (isObject(obj) && (<IFastElement<T>>obj.element)) {
+    if (isObject(obj) && ((<IFastElement<T>>obj).raw)) {
         return true;
     }
     return false;

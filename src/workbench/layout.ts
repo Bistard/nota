@@ -14,12 +14,12 @@ import { INavigationViewService} from "src/workbench/parts/navigationPanel/navig
 import { INavigationPanelService, NavigationPanel} from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
 import { IDimension } from "src/base/common/utilities/size";
-import { IToolBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 import { assert } from "src/base/common/utilities/panic";
 import { Disposable } from "src/base/common/dispose";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 import { Priority } from "src/base/common/event";
 import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
+import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -44,7 +44,7 @@ export abstract class WorkbenchLayout extends Component {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
-        @IToolBarService protected readonly toolBarService: IToolBarService,
+        @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationPanelService protected readonly navigationPanelService: INavigationPanelService,
@@ -106,7 +106,7 @@ export abstract class WorkbenchLayout extends Component {
         ];
         this.assembleComponents(Orientation.Horizontal, workbenchConfigurations);
         
-        this._collapseController.render(this.workspaceService.element.element);
+        this._collapseController.render(this.workspaceService.element.raw);
     }
 
     protected __registerLayoutListeners(): void {
@@ -117,11 +117,11 @@ export abstract class WorkbenchLayout extends Component {
         }));
 
         /**
-         * Listens to each NavigationBar button click events and notifies the 
+         * Listens to each ActionBar button click events and notifies the 
          * navigationView to switch the view.
          */
-        this.__register(this.navigationBarService.onDidClick(e => {
-            this.navigationViewService.switchView(e.ID);
+        this.__register(this.actionBarService.onDidClick(e => {
+            this.navigationViewService.switchView(e.currButtonID);
         }));
 
         // enable collapse/expand animation
@@ -167,8 +167,10 @@ class CollapseAnimationController extends Disposable {
 
         this._button = new ToggleCollapseButton({
             initState: initState,
-            position: DirectionX.Left,
-            positionOffset: 12,
+            positionX: {
+                position: DirectionX.Left,
+                offset: 12,
+            },
             direction: DirectionX.Left,
         });
     }

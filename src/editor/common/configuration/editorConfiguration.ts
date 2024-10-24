@@ -1,11 +1,11 @@
+import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { IEditorModelOptions } from "src/editor/common/model";
-import { IEditorViewOptions } from "src/editor/common/view";
-import { EditorType, IEditorViewModelOptions } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewOptions } from "src/editor/common/view";
 
 /**
- * Consturctor option for 'EditorWidget'.
+ * Constructor option for 'EditorWidget'.
  */
-export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewModelOptions, IEditorViewOptions {
+export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewOptions {
 
 }
 
@@ -75,22 +75,17 @@ export class BasicEditorOption<K extends EditorOptionEnum, V> implements IEditor
     }
 }
 
-//#region [simple options]
+//#region [options]
 
 export class BooleanEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, boolean> {}
 export class NumberEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, number> {}
 export class StringEditorOption<K extends EditorOptionEnum> extends BasicEditorOption<K, string> {}
-
-//#endregion
-
-//#region [advanced options]
-
 export class EditorModeOption<K extends EditorOptionEnum> extends BasicEditorOption<K, EditorType> {}
-
-//#endregion
-
 export const enum EditorOptionEnum {
+    // [model]
     baseURI,
+    writable,
+    // [view]
     mode,
     codeblockHighlight,
     ignoreHTML,
@@ -99,19 +94,34 @@ export const enum EditorOptionEnum {
 /**
  * The actual editor options that initially sets with all default values.
  */
-export const EditorOptions = {
-    baseURI: new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
-    mode: new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
+export type EditorOptionsType = typeof EditorDefaultOptions;
+export const EditorDefaultOptions = {
+    // [model]
+    baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
+    writable:           new BooleanEditorOption(EditorOptionEnum.writable, 'writable', false, {}),
+    // [view]
+    mode:               new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
     codeblockHighlight: new BooleanEditorOption(EditorOptionEnum.codeblockHighlight, 'codeblockHighlight', true, {}),
-    ignoreHTML: new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
+    ignoreHTML:         new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
 };
 
-export type EditorOptionsType = typeof EditorOptions;
-type FindEditorOptionKey<E extends EditorOptionEnum> = { [K in keyof EditorOptionsType]: EditorOptionsType[K]['ID'] extends E ? K : never }[keyof EditorOptionsType];
-type FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : never;
+//#endregion
+
+export function toJsonEditorOption(options: EditorOptionsType): Record<string, any> {
+    const opt = {};
+
+    iterPropEnumerable(options, (propName) => {
+        const optObj = options[propName];
+        opt[optObj.name] = optObj.value;
+    });
+
+    return opt;
+}
 
 /**
  * Given the {@link EditorOptionEnum} it returns the type of the corresponding 
  * type in {@link IEditorOption}.
  */
-export type FindEditorOption<T extends EditorOptionEnum> = FindEditorOptionValue<EditorOptionsType[FindEditorOptionKey<T>]>;
+export type FindEditorOption<T extends EditorOptionEnum> = __FindEditorOptionValue<EditorOptionsType[__FindEditorOptionKey<T>]>;
+type __FindEditorOptionKey<E extends EditorOptionEnum> = { [K in keyof EditorOptionsType]: EditorOptionsType[K]['ID'] extends E ? K : never }[keyof EditorOptionsType];
+type __FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : never;

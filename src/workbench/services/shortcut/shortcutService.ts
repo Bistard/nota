@@ -19,6 +19,7 @@ import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
 import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { errorToMessage } from "src/base/common/utilities/panic";
+import { trySafe } from "src/base/common/error";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -122,10 +123,12 @@ export class ShortcutService extends Disposable implements IShortcutService {
             }
 
             // executing the corresponding command
-            this.commandService.executeAnyCommand(shortcut.commandID, ...(shortcut.commandArgs ?? []))
-            .catch(error => {
-                logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${shortcut?.commandID}'`, error);
-            });
+            trySafe(
+                () => this.commandService.executeCommand<any>(shortcut.commandID, ...(shortcut.commandArgs ?? [])),
+                {
+                    onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${shortcut?.commandID}'`, err)
+                }
+            );
         }));
 
         // When the browser side is ready, we update registrations by reading from disk.

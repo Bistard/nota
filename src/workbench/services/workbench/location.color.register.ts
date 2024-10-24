@@ -6,20 +6,24 @@ export const rendererThemeLocationRegister = createRegister(
     (registrant) => {
         
         // general
+        registrant.registerTemplate('primary-text');
         registrant.registerTemplate('global-body-background');
         registrant.registerTemplate('global-body-foreground');
         registrant.registerTemplate('selection-background');
-        registrant.registerTemplate('primary-text');
+        registrant.registerTemplate('button-background');
 
         // utility
         registrant.registerTemplate('search-bar-background');
         registrant.registerTemplate('search-bar-border');
         registrant.registerTemplate('search-bar-icon');
         registrant.registerTemplate('search-bar-placeholder');
+        registrant.registerTemplate('menu-background');
         registrant.registerTemplate('menu-border');
         registrant.registerTemplate('menu-item-disabled');
+        registrant.registerTemplate('menu-item-check-color');
+        registrant.registerTemplate('menu-item-content-color');
         registrant.registerTemplate('menu-separator-background');
-        registrant.registerTemplate('menuItem-focus-background');
+        registrant.registerTemplate('menu-item-focus-background');
         registrant.registerTemplate('sash-hover');
         registrant.registerTemplate('sash-visible-background');
         registrant.registerTemplate('scroll-slider-background');
@@ -58,5 +62,20 @@ export const rendererThemeLocationRegister = createRegister(
         // Workspace
         registrant.registerTemplate('window-bar-button-hover-background');
         registrant.registerTemplate('window-bar-button-active-background');
+        registrant.registerTemplate('outline-primary-text');
+        registrant.registerTemplate('outline-select-text');
+        registrant.registerTemplate('outline-overflow-hover-box-background');
+
+        // Notification
+        registrant.registerTemplate('notification-background');
+        registrant.registerTemplate('notification-primary-text');
+        registrant.registerTemplate('notification-secondary-text');
+        registrant.registerTemplate('notification-on-dark-text');
+        registrant.registerTemplate('notification-info-primary');
+        registrant.registerTemplate('notification-warning-primary');
+        registrant.registerTemplate('notification-error-primary');
+        registrant.registerTemplate('notification-info-hover');
+        registrant.registerTemplate('notification-warning-hover');
+        registrant.registerTemplate('notification-error-hover');
     },
 );

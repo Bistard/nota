@@ -1,4 +1,4 @@
-import { ColorMap, RGBA } from "src/base/common/color";
+import { Color, ColorMap } from "src/base/common/color";
 import { panic } from "src/base/common/utilities/panic";
 import { Dictionary } from "src/base/common/utilities/type";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
@@ -17,12 +17,11 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
      * a given theme.
      * @param themeID The ID for the theme.
      * @param location The location in string form.
-     * @param color The RGBA color value to be registered for the specified 
-     * location within the theme.
-     * 
+     * @param color The {@link Color} to be registered for the specified 
+     *              location within the theme.
      * @panic If duplicate register colors to the same location.
      */
-    registerColor(themeID: string, location: string, color: RGBA): void;
+    registerColor(themeID: string, location: string, color: Color): void;
 
     /**
      * @description Retrieves a dictionary of all registered colors for a given 
@@ -51,7 +50,7 @@ export class ColorRegistrant implements IColorRegistrant{
 
     /**
      * Maintains a mapping of theme IDs to their corresponding {@link ColorMap}s.
-     * Each {@link ColorMap} maps locations to their RGBA color.
+     * Each {@link ColorMap} maps every location (string) to its {@link Color}.
      */
     private readonly _colors: Dictionary<string, ColorMap> = {};
 
@@ -68,7 +67,7 @@ export class ColorRegistrant implements IColorRegistrant{
         rendererDarkThemeColorRegister(provider);
     }
 
-    public registerColor(themeID: string, location: string, color: RGBA): void {
+    public registerColor(themeID: string, location: string, color: Color): void {
         this._colors[themeID] ??= {};
         const colorMap = this._colors[themeID]!;
 

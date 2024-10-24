@@ -10,6 +10,10 @@ export type Ref<T> = {
 	ref: T;
 };
 
+export function ref<T>(data: T): Ref<T> {
+	return { ref: data };
+}
+
 /**
  * Copies all properties of source into destination. The optional parameter 
  * 'overwrite' allows to control if existing properties on the destination 

@@ -7,7 +7,7 @@ import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchC
 import { URI } from "src/base/common/files/uri";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { IContextService } from "src/platform/context/common/contextService";
-import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileOperationError, FileOperationErrorType, FileType } from "src/base/common/files/file";
 import * as path from "src/base/common/files/path";
@@ -440,8 +440,8 @@ export namespace FileCommands {
             }
 
             const confirmed = await this.notificationService.confirm(
-                'Overwrite Warning', 
                 `A file or folder with the name '${URI.basename(destination)}' already exists in the destination folder. Do you want to replace it?`,
+                `Overwrite Warning.`
             );
             return confirmed;
         }
@@ -497,11 +497,11 @@ export namespace FileCommands {
                 const destinName = URI.basename(destination);
 
                 this.notificationService.notify({ 
-                    title: 'FilePaste Fails',
+                    type: NotificationTypes.Info,
                     message: `Cannot ${operation} ${targetName} to ${destinName}. Reason: ${errorToMessage(error)}`,
                     actions: [
                         { label: 'Ok', run: noop },
-                        { label: 'Retry', run: () => this.commandService.executeAnyCommand(AllCommands.filePaste, destination, [failed]) }
+                        { label: 'Retry', run: () => this.commandService.executeCommand(AllCommands.filePaste, destination, [failed]) }
                     ]
                 });
             });

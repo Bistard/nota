@@ -13,7 +13,7 @@ const { parseCLIArgv } = require('src/platform/environment/common/argument');
  */
 
 
-(function main() {
+(async function main() {
 
     /** 
      * Parse command arguments.
@@ -38,13 +38,17 @@ const { parseCLIArgv } = require('src/platform/environment/common/argument');
     /**
      * Runs the program when ready.
      */
-    app.whenReady()
-        .then(
-            function run() {
-                perf('main bundle loading start');
-                const application = require('./code/electron/main');
-                perf('main bundle loading end');
-                application.default.start(CLIArgv);
-            } ()
-        );
+    await app.whenReady();
+    
+    try {
+        perf('main bundle loading start');
+        const application = require('./code/electron/main');
+        perf('main bundle loading end');
+        
+        // run program
+        application.default.start(CLIArgv);
+    } 
+    catch (error) {
+        console.error(error);
+    }
 })();

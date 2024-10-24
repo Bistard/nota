@@ -62,6 +62,94 @@ suite('Strings-test', function () {
         });
     });
 
+    suite('escape', () => {
+        test('should escape special characters', () => {
+            const input = 'Hello\nWorld! "Test" \\Example\\';
+            const expected = 'Hello\\nWorld! \\"Test\\" \\\\Example\\\\';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should return the same string if no special characters', () => {
+            const input = 'Hello World!';
+            const expected = 'Hello World!';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should handle an empty string', () => {
+            const input = '';
+            const expected = '';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should escape only the special characters present', () => {
+            const input = '\n\t\\';
+            const expected = '\\n\\t\\\\';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+
+        test('should handle string with no escapeable characters', () => {
+            const input = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const expected = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            assert.strictEqual(Strings.escape(input), expected);
+        });
+    });
+
+    suite('substringUntilChar', () => {
+        test('should return substring before the first occurrence of character', () => {
+            assert.strictEqual(Strings.substringUntilChar('hello world', 'o'), 'hell');
+        });
+    
+        test('should return substring before the first occurrence of character at the start', () => {
+            assert.strictEqual(Strings.substringUntilChar('javascript', 'a'), 'j');
+        });
+    
+        test('should return the entire string when character is not found', () => {
+            assert.strictEqual(Strings.substringUntilChar('javascript', 'z'), 'javascript');
+        });
+    
+        test('should return empty string when character is at the start', () => {
+            assert.strictEqual(Strings.substringUntilChar('apple', 'a'), '');
+        });
+    
+        test('should return entire string when character is not in string', () => {
+            assert.strictEqual(Strings.substringUntilChar('typescript', 'x'), 'typescript');
+        });
+    
+        test('should return the entire string if the input string is empty', () => {
+            assert.strictEqual(Strings.substringUntilChar('', 'a'), '');
+        });
+    
+        test('should return substring correctly when the character appears multiple times', () => {
+            assert.strictEqual(Strings.substringUntilChar('banana', 'n'), 'ba');
+        });
+    });
+
+    suite('removeAllChar', () => {
+        test('should remove specified character from the string', () => {
+            assert.strictEqual(Strings.removeAllChar('hello', 'l'), 'heo');
+        });
+    
+        test('should return the same string if character is not found', () => {
+            assert.strictEqual(Strings.removeAllChar('hello', 'x'), 'hello');
+        });
+    
+        test('should return an empty string if all characters are removed', () => {
+            assert.strictEqual(Strings.removeAllChar('aaaa', 'a'), '');
+        });
+    
+        test('should return the original string when removing an empty character', () => {
+            assert.strictEqual(Strings.removeAllChar('hello', ''), 'hello');
+        });
+    
+        test('should return an empty string when input is empty', () => {
+            assert.strictEqual(Strings.removeAllChar('', 'a'), '');
+        });
+    
+        test('should handle removing spaces from a string', () => {
+            assert.strictEqual(Strings.removeAllChar('h e l l o', ' '), 'hello');
+        });
+    });
+
     suite('#rtrim()', function () {
         test('should remove specified substring from the end', function () {
             assert.strictEqual(Strings.rtrim('Hello world!!!', '!'), 'Hello world');
@@ -211,4 +299,59 @@ suite('Strings-test', function () {
         });
     });
 
+    suite('resolveHtmlTag', () => {
+        test('should parse an open tag with attributes', () => {
+            const result = Strings.resolveHtmlTag('<div class="container">');
+            assert.deepStrictEqual(result, {
+                type: 'open',
+                tagName: 'div',
+                attributes: { class: 'container' }
+            });
+        });
+    
+        test('should parse a self-closing tag with attributes', () => {
+            const result = Strings.resolveHtmlTag('<img src="image.jpg" alt="An image" />');
+            assert.deepStrictEqual(result, {
+                type: 'self-closing',
+                tagName: 'img',
+                attributes: { src: 'image.jpg', alt: 'An image' }
+            });
+        });
+    
+        test('should parse a closing tag', () => {
+            const result = Strings.resolveHtmlTag('</div>');
+            assert.deepStrictEqual(result, {
+                type: 'close',
+                tagName: 'div',
+                attributes: null
+            });
+        });
+    
+        test('should return unknown for invalid tag', () => {
+            const result = Strings.resolveHtmlTag('<invalid');
+            assert.deepStrictEqual(result, {
+                type: 'unknown',
+                tagName: null,
+                attributes: null
+            });
+        });
+    
+        test('should parse an open tag without attributes', () => {
+            const result = Strings.resolveHtmlTag('<span>');
+            assert.deepStrictEqual(result, {
+                type: 'open',
+                tagName: 'span',
+                attributes: null
+            });
+        });
+    
+        test('should parse a self-closing tag without attributes', () => {
+            const result = Strings.resolveHtmlTag('<br/>');
+            assert.deepStrictEqual(result, {
+                type: 'self-closing',
+                tagName: 'br',
+                attributes: null
+            });
+        });
+    });
 });

@@ -30,8 +30,14 @@ const ITestService = createService<ITestService>('test-service');
 suite('commandRegistrant-test', () => {
 
     let instantiationService: IInstantiationService;
-    const id = 'test';
+    const id = 'sync-command';
     const executor = (provider: IServiceProvider, num: number): number => {
+        const testService = provider.getOrCreateService(ITestService);
+        return testService.foo(num);
+    };
+
+    const idAsync = 'async-command';
+    const executor2 = async (provider: IServiceProvider, num: number): Promise<number> => {
         const testService = provider.getOrCreateService(ITestService);
         return testService.foo(num);
     };
@@ -58,21 +64,35 @@ suite('commandRegistrant-test', () => {
 
     test('register-command', () => {
         commandRegistrant.registerCommandBasic({ id, command: executor });
-
         const command = commandRegistrant.getCommand(id);
         assert.deepStrictEqual(command, {
             id: id,
             command: executor,
             description: 'No descriptions are provided.',
         });
+
+        commandRegistrant.registerCommandBasic({ id: idAsync, command: executor2 });
+        const command2 = commandRegistrant.getCommand(idAsync);
+        assert.deepStrictEqual(command2, {
+            id: idAsync,
+            command: executor2,
+            description: 'No descriptions are provided.',
+        });
     });
 
-    test('execute-command', async () => {
+    test('execute-command (sync)', () => {
         const commandService = instantiationService.getService(ICommandService);
         const testService = instantiationService.getService(ITestService);
-        const result = await commandService.executeAnyCommand(id, 100);
+        const result = commandService.executeCommand(id, 100);
         assert.strictEqual(100, testService.num);
         assert.strictEqual(100, result);
     });
-
+    
+    test('execute-command (async)', async () => {
+        const commandService = instantiationService.getService(ICommandService);
+        const testService = instantiationService.getService(ITestService);
+        const result = await commandService.executeCommand(idAsync, 100);
+        assert.strictEqual(100, testService.num);
+        assert.strictEqual(100, result);
+    });
 });

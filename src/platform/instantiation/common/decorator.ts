@@ -22,10 +22,9 @@ export type ServiceIdentifier<T> = ParameterDecorator<Function> & { _: T; };
  */
 export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
-    // retrieve the decorator from the cache
     const cachedServiceIdentifier = __ServiceUtil.serviceIdentifierMap.get(serviceId);
     if (cachedServiceIdentifier) {
-        return cachedServiceIdentifier;
+        panic(`[createService] decorator can only be created once: ${serviceId}`);
     }
 
     /**

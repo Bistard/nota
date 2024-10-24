@@ -77,6 +77,63 @@ export namespace Strings {
 
         return result;
     }
+
+    /**
+     * @description Escapes special characters in a string.
+     * @param str The string to be escaped.
+     * @returns The escaped string with special characters replaced.
+     * 
+     * @example
+     * const input = 'Hello\nWorld! "Test" \\Example\\';
+     * console.log(escape(input)); // 'Hello\\nWorld! \\"Test\\" \\\\Example\\\\'
+     */
+    export function escape(str: string): string {
+        let escapedStr = '';
+    
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i]!;
+            if (_escapeMap[char]) {
+                escapedStr += _escapeMap[char];
+            } else {
+                escapedStr += char;
+            }
+        }
+        return escapedStr;
+    }
+
+    /**
+     * @description Returns a substring from the start of the given string `s` 
+     * up to (but not including) the first occurrence of the specified character 
+     * `c`. If the character `c` is not found, returns the entire string.
+     *
+     * @param s The input string to extract the substring from.
+     * @param c The character to search for in the string `s`.
+     * @returns The substring from the start of `s` up to but not including the 
+     *          first occurrence of `c`. If `c` is not found, returns the entire 
+     *          string.
+     * @example
+     * substringUntilChar('hello world', 'o'); // returns 'hell'
+     * substringUntilChar('javascript', 'a'); // returns 'j'
+     * substringUntilChar('javascript', 'z'); returns 'javascript' (because 'z' is not found)
+     */
+    export function substringUntilChar(s: string, c: string): string {
+        const index = s.indexOf(c);
+        if (index === -1) {
+            return s;
+        }
+        return s.slice(0, index);
+    }
+
+    /**
+     * @description Removes all the characters c from the string s.
+     * @param s The string to be modified.
+     * @param c The character to be removed.
+     * @returns A new string without character c.
+     */
+    export function removeAllChar(s: string, c: string): string {
+        const regex = new RegExp(c, 'g');
+        return s.replace(regex, '');
+    }
     
     /**
      * @description Trims all occurrences of a specified substring from the end 
@@ -180,12 +237,123 @@ export namespace Strings {
             return Strings.IgnoreCase.startsWith(str, candidate);
         }
     }
+
+    /**
+     * @description Parses an HTML tag string and extracts information such as the 
+     * tag type, tag name, and attributes.
+     *
+     * @param htmlTag The HTML tag string to be parsed (e.g., "<div class='container'>").
+     * @returns An object containing the parsed tag's type, tag name, and attributes.
+     *
+     * @example
+     * resolveHtmlTag('<div class="container">');
+     * // Returns:
+     * // {
+     * //   type: 'open',
+     * //   tagName: 'div',
+     * //   attributes: { class: 'container' }
+     * // }
+     *
+     * resolveHtmlTag('<img src="image.jpg" alt="An image" />');
+     * // Returns:
+     * // {
+     * //   type: 'self-closing',
+     * //   tagName: 'img',
+     * //   attributes: { src: 'image.jpg', alt: 'An image' }
+     * // }
+     *
+     * resolveHtmlTag('</div>');
+     * // Returns:
+     * // {
+     * //   type: 'close',
+     * //   tagName: 'div',
+     * //   attributes: null
+     * // }
+     *
+     * resolveHtmlTag('<invalid');
+     * // Returns:
+     * // {
+     * //   type: 'unknown',
+     * //   tagName: null,
+     * //   attributes: null
+     * // }
+     */
+    export function resolveHtmlTag(htmlTag: string): IHtmlTagResult {
+        const tagPattern = /^<\s*\/?([a-zA-Z0-9]+)([^>]*)\s*\/?\s*>$/;
+        const attributePattern = /([a-zA-Z0-9\-:]+)\s*=\s*"(.*?)"/g;
+
+        const tagMatch = htmlTag.match(tagPattern);
+        if (!tagMatch) {
+            return {
+                type: HtmlTagType.unknown,
+                tagName: null,
+                attributes: null
+            };
+        }
+
+        const tagName = tagMatch[1] || null;
+        const attributesString = tagMatch[2] || '';
+
+        let tagType: HtmlTagType = HtmlTagType.open;
+        if (htmlTag.startsWith('</')) {
+            tagType = HtmlTagType.close;
+        } else if (htmlTag.endsWith('/>')) {
+            tagType = HtmlTagType.selfClosing;
+        }
+
+        const attributes: { [key: string]: string } = {};
+        let anyAttributes = false;
+        let attributeMatch: RegExpExecArray | null = null;
+
+        do {
+            attributeMatch = attributePattern.exec(attributesString);
+            if (attributeMatch) {
+                const attributeName = attributeMatch[1] || ''; // Attribute name (e.g., "src", "alt")
+                const attributeValue = attributeMatch[2] || ''; // Attribute value (e.g., "image.jpg")
+                attributes[attributeName] = attributeValue;
+                anyAttributes = true;
+            }
+        } while (attributeMatch);
+
+        return {
+            type: tagType,
+            tagName: tagName,
+            attributes: anyAttributes ? attributes : null
+        };
+    }
 }
 
 /**
  * (U)niversal (U)nique (ID)entifier.
  */
 export type UUID = string;
+
+/**
+ * The type of the HTML tag. 
+ *   - 'open' indicates a start tag (e.g., <div>), 
+ *   - 'close' indicates an end tag (e.g., </div>), 
+ *   - 'self-closing' indicates a self-closing tag (e.g., <img />),
+ *   - 'unknown' indicates that the tag could not be recognized.
+ */
+export const enum HtmlTagType {
+    open = 'open', 
+    close = 'close',
+    selfClosing = 'self-closing',
+    unknown = 'unknown',
+}
+
+/**
+ * Represents the result of parsing an HTML tag.
+ *
+ * @property {} type See {@link HtmlTagType}.
+ * @property {} tagName The name of the tag (e.g., 'div', 'img')
+ * @property {} attributes An object representing the tag's attributes (key-value pairs), or null if no attributes are found.
+ */
+export interface IHtmlTagResult {
+    readonly type: HtmlTagType;
+    readonly tagName: string | null;
+    readonly attributes: { [key: string]: string } | null;
+}
 
 /**
  * @description Sorts two strings in ascending order.
@@ -208,3 +376,14 @@ export function sortStringsAsc(str1: string, str2: string): number {
 export function sortStringsDesc(str1: string, str2: string): number {
     return str2.localeCompare(str1);
 }
+
+const _escapeMap = {
+    '\\': '\\\\',
+    '"': '\\"',
+    '\'': '\\\'',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\t': '\\t',
+    '\b': '\\b',
+    '\f': '\\f'
+};
