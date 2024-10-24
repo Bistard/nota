@@ -818,14 +818,12 @@ suite('MarkdownSerializer (inline-level)', () => {
             expectSame('*This is invalid emphasis');
         });
     
-        // fix: see prosemirror discussion https://discuss.prosemirror.net/t/investigation-on-nested-marks-in-prosemirror/7828
-        test.skip('Emphasis with nested emphasis', () => {
-            expectSame('*This is *italic* text*');
+        test('Emphasis with nested emphasis', () => {
+            expectSameTo('*This is *italic* text*', '*This is italic text*');
         });
 
-        // fix: see prosemirror discussion https://discuss.prosemirror.net/t/investigation-on-nested-marks-in-prosemirror/7828
-        test.skip('Emphasis with mixed formatting and escape characters', () => {
-            expectSame('*This is **bold**, *italic*, and \\*escaped\\* text*');
+        test('Emphasis with mixed formatting and escape characters', () => {
+            expectSameTo('*This is **bold**, *italic*, and \\*escaped\\* text*', '*This is **bold**, italic, and \\*escaped\\* text*');
         });
     
         test('Emphasis with inline HTML tag', () => {
@@ -950,9 +948,8 @@ suite('MarkdownSerializer (inline-level)', () => {
             expectSame('**This is invalid bold');
         });
     
-        // fix: see prosemirror discussion https://discuss.prosemirror.net/t/investigation-on-nested-marks-in-prosemirror/7828
-        test.skip('Bold with mixed formatting and escape characters', () => {
-            expectSame('**This is *italic*, **bold**, and \\*escaped\\* text**');
+        test('Bold with mixed formatting and escape characters', () => {
+            expectSameTo('**This is *italic*, **bold**, and \\*escaped\\* text**', '**This is *italic*, bold, and \\*escaped\\* text**');
         });
     
         test('Bold with inline HTML tag', () => {

@@ -2,7 +2,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
-import { panic } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
 import { isNullable, isString } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
@@ -231,6 +231,9 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
     private readonly _defaultNodeType: ProseNodeType;
     private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => IProseTextNode;
 
+    /** @see https://github.com/Bistard/nota/issues/236 */
+    private readonly _markActivationCount = new Map<ProseMarkType, number>();
+
     // [event]
 
     private readonly _onLog = new Emitter<ILogEvent>();
@@ -291,6 +294,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         // ready for next parsing
         const root = { ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined };
         this._actives.push(root);
+
+        this._markActivationCount.clear();
     }
 
     // [public methods]
@@ -386,12 +391,29 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     public activateMark(mark: ProseMark): void {
         const active = this.__getActive();
-        active.marks = mark.addToSet(active.marks);
+        const markType = mark.type;
+        
+        // Only activate the mark if it's not already in the markSet
+        const count = this._markActivationCount.get(markType) ?? 0;
+        if (count === 0) {
+            active.marks = mark.addToSet(active.marks);
+        }
+        
+        // increase the counter
+        this._markActivationCount.set(markType, count + 1);
     }
 
     public deactivateMark(mark: ProseMarkType): void {
         const active = this.__getActive();
-        active.marks = mark.removeFromSet(active.marks);
+        const count = assert(this._markActivationCount.get(mark));
+
+        // Only remove the mark when the counter reaches 1 (outermost level)
+        if (count === 1) {
+            active.marks = mark.removeFromSet(active.marks);
+        }
+
+        // Otherwise just decrease the activation counter
+        this._markActivationCount.set(mark, count - 1);
     }
 
     public getActiveNode(): ProseNodeType | null {
