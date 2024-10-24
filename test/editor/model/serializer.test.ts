@@ -1015,4 +1015,108 @@ suite('MarkdownSerializer (inline-level)', () => {
             expectSame('This is **!bold!**');
         });
     });
+
+    suite('codespan', () => {
+        test('Basic inline code with single backticks', () => {
+            expectSame('`code`');
+        });
+        
+        // FIX: should work after 'marked' update
+        test.skip('Inline code with special characters', () => {
+            expectSame('`!@#$%^&*()_+~=-[]{}\\|;:\'"<,>.?/`');
+        });
+        
+        test('Inline code with leading and trailing spaces', () => {
+            expectSame('`   code   `');
+        });
+        
+        test('Inline code with multiple backticks', () => {
+            expectSame('``code with `backticks` inside``');
+        });
+        
+        test('Inline code with triple backticks', () => {
+            expectSame('```code with ``double backticks`` inside```');
+        });
+    
+        test('Inline code at the start of a line', () => {
+            expectSame('`code` at the start of a line');
+        });
+    
+        test('Inline code at the end of a line', () => {
+            expectSame('This is some text with `code`');
+        });
+    
+        test('Multiple inline codes in a single line', () => {
+            expectSame('This is `code1` and this is `code2`.');
+        });
+    
+        test('Inline code with mixed formatting', () => {
+            expectSame('This is *italic* and `code` with **bold**');
+        });
+        
+        test('Inline code with a link inside', () => {
+            expectSame('`[Link](https://example.com)`');
+        });
+        
+        test('Inline code with escape sequences', () => {
+            expectSame('`\\*This is not italic\\*`');
+        });
+    
+        test('Inline code with asterisks inside', () => {
+            expectSame('`*this is not italic*`');
+        });
+    
+        test('Inline code with mixed spaces and tabs', () => {
+            expectSame('`code with \t tabs and   spaces`');
+        });
+    
+        test('Inline code with emphasis around', () => {
+            expectSame('*This is emphasized with `inline code` inside*');
+        });
+    
+        // FIX: should work after 'marked' update
+        test.skip('Inline code with HTML inside', () => {
+            expectSame('`<strong>HTML</strong>` inside code');
+        });
+    
+        test('Inline code with numbers', () => {
+            expectSame('`1234567890`');
+        });
+    
+        test('Inline code next to punctuation', () => {
+            expectSame('This is inline code `code`, followed by punctuation.');
+        });
+    
+        test('Inline code inside a heading', () => {
+            expectSame('# Heading with `inline code`');
+        });
+    
+        test('Inline code with leading backticks', () => {
+            expectSame('```code``` with leading backticks');
+        });
+    
+        test('Inline code surrounded by parentheses', () => {
+            expectSame('This is (inline `code`)');
+        });
+    
+        test('Inline code with empty content', () => {
+            expectSame('``');
+        });
+    
+        test('Inline code with underscores', () => {
+            expectSame('`code_with_underscores`');
+        });
+    
+        test('Inline code with dashes', () => {
+            expectSame('`code-with-dashes`');
+        });
+    
+        test('Invalid inline code with mismatched backticks', () => {
+            expectSame('``code with mismatched backticks`');
+        });
+    
+        test('Inline code across multiple lines (invalid)', () => {
+            expectSame('This is `inline\ncode across lines`');
+        });
+    });
 });
