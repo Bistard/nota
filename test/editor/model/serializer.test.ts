@@ -328,7 +328,7 @@ suite('MarkdownSerializer (block-level)', () => {
         });
 
         test('Invalid inline HTML tag', () => {
-            expectSame('This is invalid <invalidtag>inline HTML</invalidtag>.');
+            expectSame('This is invalid <invalidTag>inline HTML</invalidTag>.');
         });
 
         test('Inline HTML with mismatched tags', () => {
@@ -411,7 +411,7 @@ suite('MarkdownSerializer (block-level)', () => {
         });
     
         test('URL with parentheses', () => {
-            expectSameTo('![alt text](image(withparentheses).jpg)', '![alt text](image\\(withparentheses\\).jpg)');
+            expectSameTo('![alt text](image(with_parentheses).jpg)', '![alt text](image\\(with_parentheses\\).jpg)');
         });
     
         test('Special characters in URL', () => {
@@ -1115,6 +1115,129 @@ suite('MarkdownSerializer (inline-level)', () => {
     
         test('Inline code across multiple lines (invalid)', () => {
             expectSame('This is `inline\ncode across lines`');
+        });
+    });
+    
+    suite('link', () => {
+        test('Basic link', () => {
+            expectSame('[example](https://example.com)');
+        });
+    
+        test('Link with title', () => {
+            expectSame('[example](https://example.com "Example Title")');
+        });
+    
+        test('Link with special characters in URL', () => {
+            expectSame('[example](https://example.com/path?query=1&test=2)');
+        });
+    
+        test('Link with escaped parentheses in URL 1', () => {
+            expectSameTo('[example](https://example.com/path(withparentheses))', '[example](https://example.com/path\\(withparentheses\\))');
+        });
+        
+        test('Link with escaped parentheses in URL 2', () => {
+            expectSame('[example](https://example.com/path\\(withparentheses\\))');
+        });
+    
+        test('Link with space in URL', () => {
+            expectSame('[example](https://example.com/path%20with%20spaces)');
+        });
+    
+        test('Link with encoded characters in URL', () => {
+            expectSame('[example](https://example.com/%E2%9C%93)');
+        });
+    
+        test('Inline link next to text', () => {
+            expectSame('Here is a [link](https://example.com) in the middle of text.');
+        });
+    
+        test('Multiple consecutive links', () => {
+            expectSame('[first](https://first.com) [second](https://second.com)');
+        });
+    
+        test('Link with emphasis inside', () => {
+            expectSame('[*emphasized link*](https://example.com)');
+        });
+    
+        test('Link with bold inside', () => {
+            expectSame('[**bold link**](https://example.com)');
+        });
+    
+        test('Link with inline code inside', () => {
+            expectSame('[`code link`](https://example.com)');
+        });
+    
+        test('Link with title and emphasis inside', () => {
+            expectSame('[*emphasized link*](https://example.com "Example Title")');
+        });
+    
+        test('Link with self-closing HTML tag inside', () => {
+            expectSame('[Link with image](https://example.com) <img src="image.jpg" alt="image"/>');
+        });
+    
+        test('Link with special characters in label', () => {
+            expectSame('[example !@#$%^&*()](https://example.com)');
+        });
+    
+        test('Link with nested parentheses in label', () => {
+            expectSame('[example (with nested parentheses)](https://example.com)');
+        });
+    
+        test('Link with escape sequences in label', () => {
+            expectSame('[example \\(escaped\\)](https://example.com)');
+        });
+    
+        test('Link with escape sequences in URL', () => {
+            expectSame('[example](https://example.com/path\\(escaped\\))');
+        });
+    
+        // FIX: should work after 'marked' update
+        test.skip('Link with escaped characters in title', () => {
+            expectSame('[example](https://example.com "Title with \\"quotes\\"")');
+        });
+    
+        test('Invalid link with line break inside label', () => {
+            expectSame('[example\nwith break](https://example.com)'); // Should not be treated as a valid link
+        });
+    
+        test('Invalid link (no closing bracket)', () => {
+            expectSame('[example(https://example.com)'); // Invalid, missing closing bracket
+        });
+    
+        test('Invalid link (malformed URL)', () => {
+            expectSame('[example](example.com)'); // Missing protocol
+        });
+    
+        test('Invalid link (missing URL)', () => {
+            expectSame('[example]()'); // Invalid, empty URL
+        });
+    
+        test('Link surrounded by emphasis and bold', () => {
+            expectSame('*Here is a [link](https://example.com) in* **the** *middle of* text.');
+        });
+    
+        test('Link inside a heading', () => {
+            expectSame('# This is a heading with a [link](https://example.com)');
+        });
+    
+        test('Link with trailing punctuation', () => {
+            expectSame('Here is a [link](https://example.com).');
+        });
+    
+        test('Link with underscores and special characters in URL', () => {
+            expectSame('[example](https://example.com/path_with_underscores_and_special_chars)');
+        });
+    
+        test('Escaped characters around the link', () => {
+            expectSame('\\[example](https://example.com)');
+        });
+    
+        test('Link followed by inline code', () => {
+            expectSame('Here is a [link](https://example.com) and `inline code`');
+        });
+    
+        test('Link surrounded by parentheses', () => {
+            expectSame('(Here is a [link](https://example.com))');
         });
     });
 });

@@ -160,7 +160,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     private _atBlockStart: boolean = false;
     private _inTightList?: boolean = false;
-    private _inAutolink?: boolean = false;
+    private _inAutoLink?: boolean = false;
 
     // [constructor]
 
@@ -176,8 +176,8 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     get inTightList(): boolean | undefined { return this._inTightList; }
     public setInTightList(value: boolean | undefined): void { this._inTightList = value; }
-    get inAutolink(): boolean | undefined { return this._inAutolink; }
-    public setInAutoLink(value: boolean | undefined): void { this._inAutolink = value; }
+    get inAutoLink(): boolean | undefined { return this._inAutoLink; }
+    public setInAutoLink(value: boolean | undefined): void { this._inAutoLink = value; }
 
     public complete(): string {
         return this._output;
