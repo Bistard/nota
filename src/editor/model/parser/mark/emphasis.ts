@@ -5,7 +5,7 @@ import { DocumentMark } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
-const enum EmType {
+export const enum EmType {
     underscore = 'underscore',
     asterisk = 'asterisk',
 }

@@ -6,7 +6,7 @@ import { DocumentNode } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
-const enum HrType {
+export const enum HrType {
     Dash = 'dash',
     Asterisk = 'asterisk',
     Underline = 'underline'
