@@ -398,8 +398,8 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
          * of the marks for the token matches the order in active.
          */
         const inner = marks.length ? Arrays.last(marks) : null;
-        const noEsc = inner && this.__getMarkOptions(inner.type.name).escape === false;
-        const len = marks.length - (noEsc ? 1 : 0);
+        const noEscape = inner && this.__getMarkOptions(inner.type.name).escape === false;
+        const len = marks.length - (noEscape ? 1 : 0);
         outer: for (let i = 0; i < len; i++) {
             const mark = marks[i]!;
             if (!this.__getMarkOptions(mark.type.name).mixable) {
@@ -448,7 +448,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
             // Render the node. Special case code marks, since their content
             // may not be escaped.
-            if (noEsc && node.isText) {
+            if (noEscape && node.isText) {
                 this.text(
                     this.__serializeMark(inner!, true, parent, index) +
                     node.text +

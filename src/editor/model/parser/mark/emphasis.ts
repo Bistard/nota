@@ -41,13 +41,13 @@ export class Emphasis extends DocumentMark<EditorTokens.Em> {
     }
 
     public readonly serializer: IDocumentMarkSerializationOptions = {
-        serializeOpen: (state, mark) => this.__getOpenAndClose(state, mark),
-        serializeClose: (state, mark) => this.__getOpenAndClose(state, mark),
+        serializeOpen: (_state, mark) => this.__getOpenAndClose(mark),
+        serializeClose: (_state, mark) => this.__getOpenAndClose(mark),
         mixable: true,
         expelEnclosingWhitespace: true,
     };
 
-    private __getOpenAndClose(state: IMarkdownSerializerState, mark: ProseMark): string {
+    private __getOpenAndClose(mark: ProseMark): string {
         const type = mark.attrs['type'] as EmType;
         return type === EmType.asterisk ? '*' : '_';
     }

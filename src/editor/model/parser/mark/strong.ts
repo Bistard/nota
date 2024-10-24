@@ -41,14 +41,14 @@ export class Strong extends DocumentMark<EditorTokens.Strong> {
     }
 
     public readonly serializer: IDocumentMarkSerializationOptions = {
-        serializeOpen: (state, mark) => this.__getOpenAndClose(state, mark),
-        serializeClose: (state, mark) => this.__getOpenAndClose(state, mark),
+        serializeOpen: (_state, mark) => __getOpenAndClose(mark),
+        serializeClose: (_state, mark) => __getOpenAndClose(mark),
         mixable: true,
         expelEnclosingWhitespace: true,
     };
+}
 
-    private __getOpenAndClose(state: IMarkdownSerializerState, mark: ProseMark): string {
-        const type = mark.attrs['type'] as StrongType;
-        return type === StrongType.asterisk ? '**' : '__';
-    }
+function __getOpenAndClose(mark: ProseMark): string {
+    const type = mark.attrs['type'] as StrongType;
+    return type === StrongType.asterisk ? '**' : '__';
 }
