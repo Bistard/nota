@@ -5,40 +5,38 @@ import { DocumentParser } from 'src/editor/model/parser/parser';
 import { buildSchema } from 'src/editor/model/schema';
 import { MarkdownSerializer } from 'src/editor/model/serializer/serializer';
 
-suite('MarkdownSerializer', () => {
+const nodeProvider = DocumentNodeProvider.create().register();
+const schema = buildSchema(nodeProvider);
+const lexer = new MarkdownLexer({});
+const docParser = new DocumentParser(schema, nodeProvider, /* options */);
+const serializer = new MarkdownSerializer(nodeProvider, { strict: true });
 
-    const nodeProvider = DocumentNodeProvider.create().register();
-    const schema = buildSchema(nodeProvider);
-    const lexer = new MarkdownLexer({});
-    const docParser = new DocumentParser(schema, nodeProvider, /* options */);
-    const serializer = new MarkdownSerializer(nodeProvider, { strict: true });
+/**
+ * @description Expecting the serialized output is exactly the same as the 
+ * input.
+ */
+function expectSame(content: string): void {
+    expectSameTo(content, content);
+}
 
-    /**
-     * @description Expecting the serialized output is exactly the same as the 
-     * input.
-     */
-    function expectSame(content: string): void {
-        expectSameTo(content, content);
-    }
-    
-    function expectSameTo(content: string, expect: string): void {
-        const serializedContent = parseAndSerialize(content);
+function expectSameTo(content: string, expect: string): void {
+    const serializedContent = parseAndSerialize(content);
 
-        // console.log('[input ]', Strings.escape(content));
-        // console.log('[expect]', Strings.escape(expect));
-        // console.log('[actual]', Strings.escape(serializedContent));
+    // console.log('[input ]', Strings.escape(content));
+    // console.log('[expect]', Strings.escape(expect));
+    // console.log('[actual]', Strings.escape(serializedContent));
 
-        assert.strictEqual(expect, serializedContent);
-    }
+    assert.strictEqual(expect, serializedContent);
+}
 
-    function parseAndSerialize(content: string): string {
-        const tokens = lexer.lex(content);
-        const doc = docParser.parse(tokens);
-        const serializedContent = serializer.serialize(doc);
-        // const doc = defaultMarkdownParser.parse(content);
-        // const serializedContent = defaultMarkdownSerializer.serialize(doc);
-        return serializedContent;
-    }
+function parseAndSerialize(content: string): string {
+    const tokens = lexer.lex(content);
+    const doc = docParser.parse(tokens);
+    const serializedContent = serializer.serialize(doc);
+    return serializedContent;
+}
+
+suite('MarkdownSerializer (block-level)', () => {
 
     suite('Paragraph & Text', () => {
         test('Single paragraph', () => {
@@ -757,6 +755,264 @@ suite('MarkdownSerializer', () => {
     
         test('Multiple line breaks between paragraphs', () => {
             expectSame('Paragraph 1  \n  \nParagraph 2  \n  \nParagraph 3');
+        });
+    });
+});
+
+suite('MarkdownSerializer (inline-level)', () => {
+    
+    suite('em', () => {
+        test('Basic emphasis with *', () => {
+            expectSame('*This is emphasized*');
+        });
+    
+        test('Basic emphasis with _', () => {
+            expectSame('_This is emphasized_');
+        });
+    
+        test('Emphasis in the middle of text', () => {
+            expectSame('This is *emphasized* in the middle.');
+        });
+    
+        test('Emphasis with special characters inside', () => {
+            expectSame('*This is !@# emphasized*');
+        });
+    
+        test('Emphasis with multiple spaces inside', () => {
+            expectSame('*This   is   emphasized*');
+        });
+    
+        test('Emphasis combined with bold', () => {
+            expectSame('**This is bold and *emphasized* text**');
+        });
+    
+        test('Emphasis with code inside', () => {
+            expectSame('*Emphasized `code` inside*');
+        });
+    
+        test('Emphasis with link inside', () => {
+            expectSame('*This is [a link](https://example.com) inside*');
+        });
+    
+        test('Emphasis at the beginning and end', () => {
+            expectSame('*Emphasized* at the beginning and end *again*');
+        });
+    
+        test('Multiple adjacent emphasized sections', () => {
+            expectSame('*First* *Second* *Third*');
+        });
+    
+        test('Nested emphasis', () => {
+            expectSameTo('*This is *nested emphasis**', '*This is nested emphasis*'); // overlap, remove the nested unused one.
+        });
+    
+        test('Emphasis across multiple lines (invalid)', () => {
+            expectSame('This is *emphasized\nacross two lines*'); // Should not be serialized as valid emphasis
+        });
+    
+        test('Invalid emphasis (single asterisk)', () => {
+            expectSame('This is * invalid emphasis');
+        });
+    
+        test('Invalid emphasis (unmatched asterisks)', () => {
+            expectSame('*This is invalid emphasis');
+        });
+    
+        // fix: see prosemirror discussion https://discuss.prosemirror.net/t/investigation-on-nested-marks-in-prosemirror/7828
+        test.skip('Emphasis with nested emphasis', () => {
+            expectSame('*This is *italic* text*');
+        });
+
+        // fix: see prosemirror discussion https://discuss.prosemirror.net/t/investigation-on-nested-marks-in-prosemirror/7828
+        test.skip('Emphasis with mixed formatting and escape characters', () => {
+            expectSame('*This is **bold**, *italic*, and \\*escaped\\* text*');
+        });
+    
+        test('Emphasis with inline HTML tag', () => {
+            expectSame('*Emphasis with <strong>HTML</strong> tag*');
+        });
+    
+        test('Emphasis with self-closing HTML tag', () => {
+            expectSame('*Emphasis with <img src="image.jpg" alt="img"/> inside*');
+        });
+    
+        test('Emphasis with digits inside', () => {
+            expectSame('*1234*');
+        });
+    
+        test('Emphasis with underscores and digits inside', () => {
+            expectSame('_1234_');
+        });
+    
+        test('Emphasis with escape sequence', () => {
+            expectSame('\\*This is not emphasized\\*');
+        });
+    
+        test('Emphasis with empty content', () => {
+            expectSame('**'); // Empty emphasis
+        });
+        
+        test('Emphasis incomplete', () => {
+            expectSame('_');
+        });
+    
+        test('Emphasis surrounded by underscores and spaces', () => {
+            expectSame('_ This should be emphasized _');
+        });
+    
+        test('Emphasis with invalid characters around', () => {
+            expectSame('*This is emphasized*text');
+        });
+    
+        test('Emphasis with repeated underscores and spaces', () => {
+            expectSame('_ This _ is _emphasized_ text _');
+        });
+    
+        test('Emphasis with multiple underscores inside', () => {
+            expectSame('_This_is_emphasized_text_');
+        });
+    
+        test('Emphasis followed by punctuation', () => {
+            expectSame('*This is emphasized*!');
+        });
+    
+        test('Emphasis inside a heading', () => {
+            expectSame('# Heading with *emphasized* text');
+        });
+    
+        test('Emphasis with nested strong and links', () => {
+            expectSame('*This is **bold** and [link](https://example.com) inside*');
+        });
+    
+        test('Emphasis around parentheses and special characters', () => {
+            expectSame('*This is (emphasized) text!*');
+        });
+    
+        test('Emphasis with special characters at the start and end', () => {
+            expectSame('This is *!emphasized!*');
+        });
+    });
+
+    suite('strong', () => {
+        test('Basic bold with **', () => {
+            expectSame('**This is bold**');
+        });
+    
+        test('Basic bold with __', () => {
+            expectSame('__This is bold__');
+        });
+    
+        test('Bold in the middle of text', () => {
+            expectSame('This is **bold** in the middle.');
+        });
+    
+        test('Bold with special characters inside', () => {
+            expectSame('**This is !@#$%^&*() bold**');
+        });
+    
+        test('Bold with multiple spaces inside', () => {
+            expectSame('**This   is   bold**');
+        });
+    
+        test('Bold with leading and trailing spaces', () => {
+            expectSame('**   Bold with spaces   **');
+        });
+    
+        test('Bold combined with emphasis', () => {
+            expectSame('**This is bold and *emphasized* text**');
+        });
+    
+        test('Bold with code inside', () => {
+            expectSame('**Bold `code` inside**');
+        });
+    
+        test('Bold with link inside', () => {
+            expectSame('**This is [a link](https://example.com) inside**');
+        });
+    
+        test('Bold at the beginning and end', () => {
+            expectSame('**Bold** at the beginning and end **again**');
+        });
+    
+        test('Multiple adjacent bold sections', () => {
+            expectSame('**First** **Second** **Third**');
+        });
+    
+        test('Nested bold and emphasis', () => {
+            expectSame('**This is **nested *emphasis* bold**');
+        });
+    
+        test('Invalid bold (single asterisk)', () => {
+            expectSame('This is * invalid bold');
+        });
+    
+        test('Invalid bold (unmatched asterisks)', () => {
+            expectSame('**This is invalid bold');
+        });
+    
+        // fix: see prosemirror discussion https://discuss.prosemirror.net/t/investigation-on-nested-marks-in-prosemirror/7828
+        test.skip('Bold with mixed formatting and escape characters', () => {
+            expectSame('**This is *italic*, **bold**, and \\*escaped\\* text**');
+        });
+    
+        test('Bold with inline HTML tag', () => {
+            expectSame('**Bold with <em>HTML</em> tag**');
+        });
+    
+        test('Bold with self-closing HTML tag', () => {
+            expectSame('**Bold with <img src="image.jpg" alt="img"/> inside**');
+        });
+    
+        test('Bold with digits inside', () => {
+            expectSame('**1234**');
+        });
+    
+        test('Bold with underscores and digits inside', () => {
+            expectSame('__1234__');
+        });
+    
+        test('Bold with escape sequence', () => {
+            expectSame('\\**This is not bold\\**');
+        });
+    
+        test('Bold with empty content', () => {
+            expectSame('****'); // Empty bold
+        });
+    
+        test('Bold surrounded by underscores and spaces', () => {
+            expectSame('__ This should be bold __');
+        });
+    
+        test('Bold with invalid characters around', () => {
+            expectSame('**This is bold**text');
+        });
+    
+        test('Bold with repeated underscores and spaces', () => {
+            expectSame('__ This __ is __bold__ text __');
+        });
+    
+        test('Bold with multiple underscores inside', () => {
+            expectSame('__This_is_bold_text__');
+        });
+    
+        test('Bold followed by punctuation', () => {
+            expectSame('**This is bold**!');
+        });
+    
+        test('Bold inside a heading', () => {
+            expectSame('# Heading with **bold** text');
+        });
+
+        test('Bold with nested emphasis and links', () => {
+            expectSame('**This is *italic* and [link](https://example.com) inside**');
+        });
+    
+        test('Bold around parentheses and special characters', () => {
+            expectSame('**This is (bold) text!**');
+        });
+    
+        test('Bold with special characters at the start and end', () => {
+            expectSame('This is **!bold!**');
         });
     });
 });
