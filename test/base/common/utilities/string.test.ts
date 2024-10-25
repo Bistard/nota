@@ -124,6 +124,56 @@ suite('Strings-test', function () {
         });
     });
 
+    suite('substringUntilChar2', () => {
+        test('should return correct index and substring when character is found', () => {
+            assert.deepStrictEqual(Strings.substringUntilChar2('hello world', 'o'), { index: 4, str: 'hell' });
+            assert.deepStrictEqual(Strings.substringUntilChar2('javascript', 'a'), { index: 1, str: 'j' });
+        });
+    
+        test('should return -1 index and full string when character is not found', () => {
+            assert.deepStrictEqual(Strings.substringUntilChar2('javascript', 'z'), { index: -1, str: 'javascript' });
+        });
+    
+        test('should start search from startPosition when provided', () => {
+            assert.deepStrictEqual(Strings.substringUntilChar2('hello world', 'o', 5), { index: 7, str: 'hello w' });
+        });
+    
+        test('should handle startPosition beyond string length', () => {
+            assert.deepStrictEqual(Strings.substringUntilChar2('hello', 'e', 10), { index: -1, str: 'hello' });
+        });
+    
+        test('should handle empty string input', () => {
+            assert.deepStrictEqual(Strings.substringUntilChar2('', 'a'), { index: -1, str: '' });
+        });
+    });
+    
+    suite('firstNonSpaceChar', () => {
+        test('should return correct index and character for first non-space character', () => {
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('   hello'), { index: 3, char: 'h' });
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('   hello', 5), { index: 5, char: 'l' });
+        });
+    
+        test('should return -1 index and empty string when no non-space character is found', () => {
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('     '), { index: -1, char: '' });
+        });
+    
+        test('should start search from startPosition when provided', () => {
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('     hello', 5), { index: 5, char: 'h' });
+        });
+    
+        test('should handle startPosition beyond string length', () => {
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('hello', 10), { index: -1, char: '' });
+        });
+    
+        test('should handle empty string input', () => {
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('', 0), { index: -1, char: '' });
+        });
+    
+        test('should handle startPosition when negative', () => {
+            assert.deepStrictEqual(Strings.firstNonSpaceChar('hello', -5), { index: -1, char: '' });
+        });
+    });
+
     suite('removeAllChar', () => {
         test('should remove specified character from the string', () => {
             assert.strictEqual(Strings.removeAllChar('hello', 'l'), 'heo');

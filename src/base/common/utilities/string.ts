@@ -108,6 +108,7 @@ export namespace Strings {
      *
      * @param s The input string to extract the substring from.
      * @param c The character to search for in the string `s`.
+     * @param startPosition The initial index for searching string. 0 if not provided.
      * @returns The substring from the start of `s` up to but not including the 
      *          first occurrence of `c`. If `c` is not found, returns the entire 
      *          string.
@@ -116,12 +117,68 @@ export namespace Strings {
      * substringUntilChar('javascript', 'a'); // returns 'j'
      * substringUntilChar('javascript', 'z'); returns 'javascript' (because 'z' is not found)
      */
-    export function substringUntilChar(s: string, c: string): string {
-        const index = s.indexOf(c);
+    export function substringUntilChar(s: string, c: string, startPosition?: number): string {
+        const index = s.indexOf(c, startPosition ?? 0);
         if (index === -1) {
             return s;
         }
         return s.slice(0, index);
+    }
+
+    /**
+     * @description Returns an object containing the index of the first occurrence
+     * of the specified character `c` in the given string `s` (starting from an 
+     * optional `startPosition`) and the substring from the beginning of `s` up 
+     * to (but not including) that character. If `c` is not found, the index 
+     * will be `-1` and the substring will be the entire string.
+     *
+     * @param s The input string to search and extract the substring from.
+     * @param c The character to search for within the string `s`.
+     * @param [startPosition=0] The starting index from which to begin the search in `s`.
+     * @returns An object containing:
+     *  - `index`: the index of the first occurrence of `c` in `s`, or `-1` if not found.
+     *  - `str`: the substring from the start of `s` up to, but not including, the first occurrence of `c`.
+     *           If `c` is not found, returns the entire string.
+     * @example
+     * substringUntilChar2('hello world', 'o'); // returns { index: 4, str: 'hell' }
+     * substringUntilChar2('javascript', 'a');  // returns { index: 1, str: 'j' }
+     * substringUntilChar2('javascript', 'z');  // returns { index: -1, str: 'javascript' } (because 'z' is not found)
+     */
+    export function substringUntilChar2(s: string, c: string, startPosition: number = 0): { index: number, str: string } {
+        const index = s.indexOf(c, startPosition);
+        if (index === -1) {
+            return { index: -1, str: s };
+        }
+        const subStr = s.slice(0, index);
+        return { index: index, str: subStr };
+    }
+
+    /**
+     * @description Finds the first non-space character in a given string 
+     * starting from a specified position.
+     *
+     * @param s The string to search through.
+     * @param [startPosition=0] The position to start searching from. Defaults to `0`.
+     * @returns An object containing:
+     *   - `index`: The index of the first non-space character, or `-1` if not found.
+     *   - `char`: The first non-space character found, or an empty string if none exists.
+     *
+     * @example
+     * firstNonSpaceChar("   hello");    // Returns { index: 3, char: 'h' }
+     * firstNonSpaceChar("   hello", 5); // Returns { index: 5, char: 'e' }
+     * firstNonSpaceChar("     ");       // Returns { index: -1, char: '' }
+     */
+    export function firstNonSpaceChar(s: string, startPosition: number = 0): { index: number, char: string } {
+        if (startPosition < 0 || startPosition >= s.length) {
+            return { index: -1, char: '' };
+        }
+        for (let i = startPosition; i < s.length; i++) {
+            const c = s[i]!;
+            if (c !== ' ') {
+                return { index: i, char: c! };
+            }
+        }
+        return { index: -1, char: '' };
     }
 
     /**
