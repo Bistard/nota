@@ -482,7 +482,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     }
 
     private __atBlank(): boolean {
-        return /(^|\n)$/.test(this._output);
+        return this._output === '' || this._output.endsWith('\n');
     }
 
     private __flushClose(size: number = 1): void {
