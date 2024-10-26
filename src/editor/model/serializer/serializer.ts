@@ -491,13 +491,9 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
                 this._output += "\n";
             }
             if (size > 1) {
-                let delimMin = this._delim;
-                const trim = /\s+$/.exec(delimMin);
-                if (trim) {
-                    delimMin = delimMin.slice(0, delimMin.length - trim[0].length);
-                }
+                const trimmedDelim = this._delim.trimEnd();
                 for (let i = 1; i < size; i++) {
-                    this._output += delimMin + "\n";
+                    this._output += `${trimmedDelim}\n`;
                 }
             }
             this._prevClosedNode = undefined;
