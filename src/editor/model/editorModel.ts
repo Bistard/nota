@@ -13,6 +13,7 @@ import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
 import { DocumentParser, IDocumentParser } from "src/editor/model/parser/parser";
 import { buildSchema, EditorSchema } from "src/editor/model/schema";
+import { MarkdownSerializer } from "src/editor/model/serializer/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
 
 
@@ -34,14 +35,17 @@ export class EditorModel extends Disposable implements IEditorModel {
     /** The source file the model is about to read and parse. */
     private readonly _source: URI;
 
+    /** An object that defines how a view is organized. */
+    private readonly _schema: EditorSchema;
+    
     /** Responsible for parsing the raw text into tokens. */
     private readonly _lexer: IMarkdownLexer;
 
-    /** An object that defines how a view is organized. */
-    private readonly _schema: EditorSchema;
-
-    /** Parser that parses the given token into a legal view based on the schema */
+    /** Parser that parses the given token into a legal view based on the schema. */
     private readonly _docParser: IDocumentParser;
+
+    /** Serializer that transforms the prosemirror document back to raw string. */
+    private readonly _docSerializer: MarkdownSerializer;
 
     /** A reference to the prosemirror state. */
     private _editorState?: ProseEditorState;
@@ -63,6 +67,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._schema = buildSchema(nodeProvider);
         this._docParser = new DocumentParser(this._schema, nodeProvider, /* options */);
         this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additionals)));
+        this._docSerializer = new MarkdownSerializer(nodeProvider, { strict: true });
 
         logService.debug('EditorModel', 'Constructed');
     }
