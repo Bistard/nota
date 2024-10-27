@@ -102,6 +102,50 @@ export namespace Strings {
     }
 
     /**
+     * @description Iterates over a string, splitting it by the specified 
+     * character, and yields an object containing each segment (line) and its 
+     * line number.
+     * 
+     * @note This function processes the input string character by character 
+     * without using `String.prototype.split()`, making it efficient for large inputs.
+     * 
+     * @param text The input string to iterate over.
+     * @param char The character used to split the string.
+     * @yields An object containing:
+     * - `line`: The content of the segment (without the split character).
+     * - `lineNumber`: The zero-based index of the segment.
+     * 
+     * @example
+     * const text = `Hello,World,This,is,a,test`;
+     * for (const { line, lineNumber } of iterateSplit(text, ',')) {
+     *     console.log(`Segment ${lineNumber}: ${line}`);
+     * }
+     * // Segment 0: Hello
+     * // Segment 1: World
+     * // Segment 2: This
+     * // Segment 3: is
+     * // Segment 4: a
+     * // Segment 5: test
+     */
+    export function *iterateSplit(text: string, char: string): IterableIterator<{ line: string; lineNumber: number }> {
+        let lineStart = 0;
+        let lineNumber = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === char) {
+                yield { line: text.slice(lineStart, i), lineNumber };
+                lineStart = i + 1;
+                lineNumber++;
+            }
+        }
+
+        // yield the last line if any remaining
+        if (lineStart < text.length) {
+            yield { line: text.slice(lineStart), lineNumber };
+        }
+    }
+
+    /**
      * @description Iterates over each line in the provided text, yielding an 
      * object containing the line and its line number.
      * 
@@ -124,20 +168,8 @@ export namespace Strings {
      * // Line 2: And this is line 3
      */
     export function *iterateLines(text: string): IterableIterator<{ line: string; lineNumber: number }> {
-        let lineStart = 0;
-        let lineNumber = 0;
-
-        for (let i = 0; i < text.length; i++) {
-            if (text[i] === '\n') {
-                yield { line: text.slice(lineStart, i), lineNumber };
-                lineStart = i + 1;
-                lineNumber++;
-            }
-        }
-
-        // yield the last line if any remaining
-        if (lineStart < text.length) {
-            yield { line: text.slice(lineStart), lineNumber };
+        for (const result of iterateSplit(text, '\n')) {
+            yield result;
         }
     }
 
