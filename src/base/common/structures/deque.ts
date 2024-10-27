@@ -10,6 +10,7 @@ export interface IDeque<T> extends IIterable<T>, IDisposable {
     empty(): boolean;
     
     at(index: number): T;
+    atSafe(index: number): T | undefined;
     front(): T;
     back(): T;
     
@@ -56,6 +57,13 @@ export class Deque<T> implements IDeque<T> {
             panic(`Invalid index when getting elements in deque at ${index}.`);
         }
         return this._arr[index]!;
+    }
+
+    public atSafe(index: number): T | undefined {
+        if (index < 0 || index >= this.size()) {
+            return undefined;
+        }
+        return this._arr[index] ?? undefined;
     }
 
     public front(): T {
