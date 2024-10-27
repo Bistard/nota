@@ -262,7 +262,7 @@ export class URI implements IURI {
 		const toPath = to.path || '/';
 		
 		// disabled by now (@Bistard)
-		if (null) {
+		if (0) {
 			// make casing of fromPath match toPath
 			let i = 0;
 			for (const len = Math.min(fromPath.length, toPath.length); i < len; i++) {
