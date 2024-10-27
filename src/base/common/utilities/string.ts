@@ -140,8 +140,12 @@ export namespace Strings {
         }
 
         // yield the last line if any remaining
-        if (lineStart < text.length) {
+        if (lineStart <= text.length) {
             yield { line: text.slice(lineStart), lineNumber };
+        } 
+        // handle the case where the last character is the split character
+        else if (text[text.length - 1] === char) {
+            yield { line: '', lineNumber };
         }
     }
 

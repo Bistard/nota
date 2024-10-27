@@ -117,7 +117,9 @@ suite('Strings-test', function () {
     
         test('should handle empty string input', () => {
             const text = ``;
-            const expected: { line: string; lineNumber: number }[] = [];
+            const expected: { line: string; lineNumber: number }[] = [
+                { line: '', lineNumber: 0 },
+            ];
             
             const result = Array.from(Strings.iterateLines(text));
             assert.deepStrictEqual(result, expected);
@@ -128,7 +130,8 @@ suite('Strings-test', function () {
             const expected = [
                 { line: '', lineNumber: 0 },
                 { line: '', lineNumber: 1 },
-                { line: '', lineNumber: 2 }
+                { line: '', lineNumber: 2 },
+                { line: '', lineNumber: 3 },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
@@ -138,7 +141,8 @@ suite('Strings-test', function () {
         test('should handle text ending with a newline', () => {
             const text = `Ends with a newline\n`;
             const expected = [
-                { line: 'Ends with a newline', lineNumber: 0 }
+                { line: 'Ends with a newline', lineNumber: 0 },
+                { line: '', lineNumber: 1 },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
@@ -150,7 +154,8 @@ suite('Strings-test', function () {
             const expected = [
                 { line: 'Line 1', lineNumber: 0 },
                 { line: '', lineNumber: 1 },
-                { line: 'Line 3', lineNumber: 2 }
+                { line: 'Line 3', lineNumber: 2 },
+                { line: '', lineNumber: 3 },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
