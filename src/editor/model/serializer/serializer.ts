@@ -1,6 +1,8 @@
+import { Deque } from "src/base/common/structures/deque";
 import { Arrays } from "src/base/common/utilities/array";
 import { ref, Ref } from "src/base/common/utilities/object";
 import { assert, panic } from "src/base/common/utilities/panic";
+import { isString } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
 import { ProseMark, ProseNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
