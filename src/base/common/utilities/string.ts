@@ -102,6 +102,46 @@ export namespace Strings {
     }
 
     /**
+     * @description Iterates over each line in the provided text, yielding an 
+     * object containing the line and its line number.
+     * 
+     * @note This function processes the input string character by character 
+     * without using `String.prototype.split()`, making it more efficient for 
+     * large inputs.
+     * 
+     * @param text The input text to iterate over.
+     * @yields An object containing:
+     * - `line`: The content of the line (without the newline character).
+     * - `lineNumber`: The zero-based line number of the line.
+     * 
+     * @example
+     * const text = `Hello, World!\nThis is line 2.\nAnd this is line 3`;
+     * for (const { line, lineNumber } of iterateLines(text)) {
+     *     console.log(`Line ${lineNumber}: ${line}`);
+     * }
+     * // Line 0: Hello, World!
+     * // Line 1: This is line 2.
+     * // Line 2: And this is line 3
+     */
+    export function *iterateLines(text: string): IterableIterator<{ line: string; lineNumber: number }> {
+        let lineStart = 0;
+        let lineNumber = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === '\n') {
+                yield { line: text.slice(lineStart, i), lineNumber };
+                lineStart = i + 1;
+                lineNumber++;
+            }
+        }
+
+        // yield the last line if any remaining
+        if (lineStart < text.length) {
+            yield { line: text.slice(lineStart), lineNumber };
+        }
+    }
+
+    /**
      * @description Returns a substring from the start of the given string `s` 
      * up to (but not including) the first occurrence of the specified character 
      * `c`. If the character `c` is not found, returns the entire string.

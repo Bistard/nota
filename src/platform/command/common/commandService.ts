@@ -8,7 +8,6 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { panic } from "src/base/common/utilities/panic";
-import { isPromise } from "src/base/common/utilities/type";
 import { trySafe } from "src/base/common/error";
 
 export const ICommandService = createService<ICommandService>('command-service');

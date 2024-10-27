@@ -87,10 +87,74 @@ suite('Strings-test', function () {
             assert.strictEqual(Strings.escape(input), expected);
         });
 
-        test('should handle string with no escapeable characters', () => {
+        test('should handle string with no escapable characters', () => {
             const input = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             const expected = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             assert.strictEqual(Strings.escape(input), expected);
+        });
+    });
+
+    suite('iterateLines', () => {
+        test('should correctly iterate over multiple lines', () => {
+            const text = `Hello, World!\nThis is line 2.\nAnd this is line 3`;
+            const expected = [
+                { line: 'Hello, World!', lineNumber: 0 },
+                { line: 'This is line 2.', lineNumber: 1 },
+                { line: 'And this is line 3', lineNumber: 2 }
+            ];
+            
+            const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle single line text correctly', () => {
+            const text = `Only one line`;
+            const expected = [{ line: 'Only one line', lineNumber: 0 }];
+            
+            const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle empty string input', () => {
+            const text = ``;
+            const expected: { line: string; lineNumber: number }[] = [];
+            
+            const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle text with only newlines correctly', () => {
+            const text = `\n\n\n`;
+            const expected = [
+                { line: '', lineNumber: 0 },
+                { line: '', lineNumber: 1 },
+                { line: '', lineNumber: 2 }
+            ];
+            
+            const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle text ending with a newline', () => {
+            const text = `Ends with a newline\n`;
+            const expected = [
+                { line: 'Ends with a newline', lineNumber: 0 }
+            ];
+            
+            const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle multiple consecutive newlines within text', () => {
+            const text = `Line 1\n\nLine 3\n`;
+            const expected = [
+                { line: 'Line 1', lineNumber: 0 },
+                { line: '', lineNumber: 1 },
+                { line: 'Line 3', lineNumber: 2 }
+            ];
+            
+            const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
         });
     });
 
