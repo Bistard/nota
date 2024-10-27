@@ -237,20 +237,17 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
      */
     public text(text: string, escape = true): void {
         let needNewLine: boolean = false;
-        console.log(Strings.escape(`(${text})`));
 
         for (const { line } of Strings.iterateLines(text)) {
-            console.log(Strings.escape(`(${line})`));
-
             if (needNewLine) {
                 this._output += '\n';
             }
-
-
+            
             this.write();
             if (!escape && line[0] === '[' && /(^|[^\\])!$/.test(this._output)) {
                 this._output = this._output.slice(0, this._output.length - 1) + '\\!';
             }
+
             this._output += escape ? this.escaping(line, this._atBlockStart) : line;
             needNewLine = true;
         }
