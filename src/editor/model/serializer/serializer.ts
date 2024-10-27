@@ -1,10 +1,13 @@
 import { Deque } from "src/base/common/structures/deque";
 import { Arrays } from "src/base/common/utilities/array";
+import { repeat } from "src/base/common/utilities/async";
 import { ref, Ref } from "src/base/common/utilities/object";
 import { assert, panic } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 import { isString } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
 import { ProseMark, ProseNode } from "src/editor/common/proseMirror";
+import { ProseUtils } from "src/editor/common/proseUtility";
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
 
 export type Serializer<TNode extends ProseNode | ProseMark, TReturn extends void | string> = (state: IMarkdownSerializerState, node: TNode, parent: ProseNode, index: number) => TReturn;
@@ -141,8 +144,10 @@ export interface IMarkdownSerializerState {
     write(content?: string): void;
     text(text: string, escape?: boolean): void;
     escaping(str: string, startOfLine?: boolean): string;
-    wrapBlock(delim: string, firstDelim: string | null, node: ProseNode, f: () => void): void
     closeBlock(node: ProseNode): void;
+
+    serializeDelimitedBlock(delimiters: string[], parent: ProseNode): void;
+    setDelimiterIncrements(delimiters: string[]): void;
 }
 
 /**
@@ -155,11 +160,10 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _options: IMarkdownSerializerOptions;
 
+    private _output: string;
+    private _delimiter: IncrementalDelimiter;
     
-    private _output: string = '';
     private _prevClosedNode?: ProseNode;
-    private _delim: string = '';
-
     private _atBlockStart: boolean = false;
     private _inTightList?: boolean = false;
     private _inAutoLink?: boolean = false;
@@ -172,6 +176,8 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     ) {
         this._nodeProvider = nodeProvider;
         this._options = options;
+        this._output = '';
+        this._delimiter = new IncrementalDelimiter('');
     }
 
     // [public methods]
@@ -189,9 +195,9 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
      * @description Render the contents of a given node as block nodes.
      */
     public serializeBlock(parent: ProseNode): void {
-        parent.forEach((node, _, index) => {
-            this.__serializeBlock(node, parent, index);
-        });
+        for (const { node: child, index } of ProseUtils.iterateChild(parent)) {
+            this.__serializeBlock(child, parent, index);
+        }
     }
 
     /**
@@ -202,9 +208,9 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         const active: ProseMark[] = [];
         const trailing = ref('');
 
-        parent.forEach((node, offset, index) => {
-            this.__serializeInline(node, offset, index, parent, active, trailing);
-        });
+        for (const { node: child, offset, index } of ProseUtils.iterateChild(parent)) {
+            this.__serializeInline(child, offset, index, parent, active, trailing);
+        }
         this.__serializeInline(null, 0, parent.childCount, parent, active, trailing);
         this._atBlockStart = false;
     }
@@ -216,8 +222,9 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
      */
     public write(content?: string): void {
         this.__flushClose();
-        if (this._delim && this.__atBlank()) {
-            this._output += this._delim;
+        if (this.__atBlank()) {
+            const delimiter = this._delimiter.getDelimiter();
+            this._output += delimiter;
         }
         if (content) {
             this._output += content;
@@ -229,21 +236,23 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
      * escaped.
      */
     public text(text: string, escape = true): void {
-        const lines = text.split("\n");
+        let needNewLine: boolean = false;
+        console.log(Strings.escape(`(${text})`));
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]!;
+        for (const { line } of Strings.iterateLines(text)) {
+            console.log(Strings.escape(`(${line})`));
+
+            if (needNewLine) {
+                this._output += '\n';
+            }
+
+
             this.write();
-
-            // Escape exclamation marks in front of links
-            if (!escape && line![0] === "[" && /(^|[^\\])!$/.test(this._output)) {
-                this._output = this._output.slice(0, this._output.length - 1) + "\\!";
+            if (!escape && line[0] === '[' && /(^|[^\\])!$/.test(this._output)) {
+                this._output = this._output.slice(0, this._output.length - 1) + '\\!';
             }
             this._output += escape ? this.escaping(line, this._atBlockStart) : line;
-
-            if (i !== lines.length - 1) {
-                this._output += "\n";
-            }
+            needNewLine = true;
         }
     }
 
@@ -269,23 +278,19 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         return str;
     }
 
-    /**
-     * Render a block, prefixing each line with `delim`, and the first
-     * line in `firstDelim`. `node` should be the node that is closed at
-     * the end of the block, and `f` is a function that renders the
-     * content of the block.
-     */
-    public wrapBlock(delim: string, firstDelim: string | null, node: ProseNode, f: () => void): void {
-        const old = this._delim;
-        this.write(firstDelim !== null ? firstDelim : delim);
-        this._delim += delim;
-        f();
-        this._delim = old;
-        this.closeBlock(node);
+    public serializeDelimitedBlock(delimiters: string[], parent: ProseNode): void {
+        assert(delimiters.length === parent.childCount);
+        this.setDelimiterIncrements(delimiters);
+        this.serializeBlock(parent);
+        this.closeBlock(parent);
     }
 
     public closeBlock(node: ProseNode): void {
         this._prevClosedNode = node;
+    }
+
+    public setDelimiterIncrements(delimiters: string[]): void {
+        this._delimiter.setIncrement(delimiters);
     }
 
     // [private methods]
@@ -492,11 +497,14 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
             if (!this.__atBlank() || this._prevClosedNode.type.name === TokenEnum.Space) {
                 this._output += "\n";
             }
+
             if (size > 1) {
-                const trimmedDelim = this._delim.trimEnd();
-                for (let i = 1; i < size; i++) {
-                    this._output += `${trimmedDelim}\n`;
-                }
+                repeat(size - 1, () => {
+                    // TODO: small optimization: move this out the loop when no increments
+                    const delimiter = this._delimiter.getDelimiter();
+                    const trimEndDelimiter = delimiter.trimEnd();
+                    this._output += `${trimEndDelimiter}\n`;
+                });
             }
             this._prevClosedNode = undefined;
         }
@@ -550,13 +558,11 @@ export class IncrementalDelimiter {
 
     public getDelimiter(): string {
         let delimiter = this._defaultDelimiter;
-        
         if (this._increment.empty() === false) {
-            const increment = this._increment.back();
+            const increment = this._increment.front();
             delimiter += increment;
-            this._increment.popBack();
+            this._increment.popFront();
         }
-
         return delimiter;
     }
 
@@ -564,7 +570,7 @@ export class IncrementalDelimiter {
         // init increments if no any increments exists
         if (this._increment.empty()) {
             for (const delimiter of increments) {
-                this._increment.pushFront(delimiter);
+                this._increment.pushBack(delimiter);
             }
             return;
         }
@@ -581,7 +587,7 @@ export class IncrementalDelimiter {
             }
             // push the new increment as the last increment
             else {
-                this._increment.pushFront(newIncrement);
+                this._increment.pushBack(newIncrement);
             }
         }
     }
