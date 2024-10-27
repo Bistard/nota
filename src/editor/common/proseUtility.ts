@@ -64,4 +64,16 @@ export namespace ProseUtils {
         }
         return null;
     }
+
+    // [prose node related functions]
+
+    export function *iterateChild(node: ProseNode): IterableIterator<{ node: ProseNode, offset: number, index: number }> {
+        const fragment = node.content;
+        let offset = 0;
+        for (let i = 0; i < fragment.childCount; i++) {
+            const child = fragment.maybeChild(i)!;
+            yield { node: child, offset: offset, index: i };
+            offset += child.nodeSize;
+        }
+    }
 }
