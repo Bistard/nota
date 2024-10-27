@@ -4,7 +4,7 @@ import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
 import { buildSchema } from 'src/editor/model/schema';
-import { MarkdownSerializer } from 'src/editor/model/serializer/serializer';
+import { IncrementalDelimiter, MarkdownSerializer } from 'src/editor/model/serializer/serializer';
 
 const nodeProvider = DocumentNodeProvider.create().register();
 const schema = buildSchema(nodeProvider);
@@ -38,6 +38,75 @@ function parseAndSerialize(content: string): string {
 }
 
 suite('MarkdownSerializer', () => {
+    suite('IncrementalDelimiter', () => {
+        suite('constructor', () => {
+            test('should use the provided default delimiter', () => {
+                const manager = new IncrementalDelimiter('*');
+                assert.strictEqual(manager.getDelimiter(), '*');
+            });
+    
+            test('should default to an empty string if no default is provided', () => {
+                const manager = new IncrementalDelimiter(null);
+                assert.strictEqual(manager.getDelimiter(), '');
+            });
+        });
+        
+        suite('getDelimiter', () => {
+            test('should return default delimiter if no increments are set', () => {
+                const manager = new IncrementalDelimiter('>');
+                assert.strictEqual(manager.getDelimiter(), '>');
+            });
+    
+            test('should return updated delimiter after increments are set', () => {
+                const manager = new IncrementalDelimiter('>');
+                manager.setIncrement([' ', '  ']);
+                assert.strictEqual(manager.getDelimiter(), '> ');
+                assert.strictEqual(manager.getDelimiter(), '>  ');
+            });
+    
+            test('should return default delimiter if all increments are used', () => {
+                const manager = new IncrementalDelimiter('>');
+                manager.setIncrement([' ', '  ']);
+                manager.getDelimiter(); // Use increment
+                manager.getDelimiter(); // Use increment
+                assert.strictEqual(manager.getDelimiter(), '>');
+            });
+        });
+    
+        suite('setIncrement', () => {
+            test('should set increments when called for the first time', () => {
+                const manager = new IncrementalDelimiter('>');
+                manager.setIncrement([' ', '  ']);
+                assert.strictEqual(manager.getDelimiter(), '> ');
+                assert.strictEqual(manager.getDelimiter(), '>  ');
+            });
+    
+            test('should append new increments to existing ones', () => {
+                const manager = new IncrementalDelimiter('>');
+                manager.setIncrement([' ', '  ']);
+                manager.setIncrement(['>', '>']);
+                assert.strictEqual(manager.getDelimiter(), '> >');
+                assert.strictEqual(manager.getDelimiter(), '>  >');
+            });
+    
+            test('should handle empty increments properly', () => {
+                const manager = new IncrementalDelimiter('>');
+                manager.setIncrement([]);
+                assert.strictEqual(manager.getDelimiter(), '>');
+            });
+    
+            test('should append new increments when exceeds the current length', () => {
+                const manager = new IncrementalDelimiter('');
+                manager.setIncrement([' ', '  ']);
+                manager.setIncrement(['>', '>']);
+                manager.setIncrement(['|', '|', '|']);
+                assert.strictEqual(manager.getDelimiter(), ' >|');
+                assert.strictEqual(manager.getDelimiter(), '  >|');
+                assert.strictEqual(manager.getDelimiter(), '|');
+            });
+        });
+    });
+
     suite('block-level', () => {
         suite('Paragraph & Text', () => {
             test('Single paragraph', () => {

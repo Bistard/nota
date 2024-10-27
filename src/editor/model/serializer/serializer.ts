@@ -506,3 +506,85 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         return serializer(this, mark, parent, index);
     }
 }
+
+/**
+ * @internal
+ * A utility class for managing and constructing delimiters that can be 
+ * incrementally adjusted. This is particularly useful for serializers dealing 
+ * with nested or hierarchical structures (e.g., nested lists, blockQuotes) 
+ * where the delimiter or indentation changes frequently.
+ *
+ * ### Example Usage:
+ * ```ts
+ * const manager = new IncrementalDelimiterManager('>'); // Default two-space indentation
+ * console.log(manager.getDelimiter()); // Output: ">"
+ * 
+ * manager.setIncrement([' ', '  ']);
+ * console.log(manager.getDelimiter()); // Output: "> "
+ * console.log(manager.getDelimiter()); // Output: ">  "
+ * 
+ * manager.setIncrement([' ', '  ']);
+ * manager.setIncrement(['>', '>', '>']);
+ * console.log(manager.getDelimiter()); // Output: "> >"
+ * console.log(manager.getDelimiter()); // Output: ">  >"
+ * console.log(manager.getDelimiter()); // Output: ">>"
+ * ```
+ */
+export class IncrementalDelimiter {
+
+    // [fields]
+
+    private _defaultDelimiter: string;
+    private _increment: Deque<string>;
+
+    // [constructor]
+
+    constructor(defaultDelimiter: string | null) {
+        this._defaultDelimiter = defaultDelimiter ?? '';
+        this._increment = new Deque();
+    }
+
+    // [public methods]
+
+    public getDelimiter(): string {
+        let delimiter = this._defaultDelimiter;
+        
+        if (this._increment.empty() === false) {
+            const increment = this._increment.back();
+            delimiter += increment;
+            this._increment.popBack();
+        }
+
+        return delimiter;
+    }
+
+    public setIncrement(increments: string[]): void {
+        // init increments if no any increments exists
+        if (this._increment.empty()) {
+            for (const delimiter of increments) {
+                this._increment.pushFront(delimiter);
+            }
+            return;
+        }
+        
+        const len = increments.length;
+        for (let i = 0; i < len; i++) {
+            const newIncrement = increments[i]!;
+            const currIncrement = this._increment.atSafe(i);
+
+            // append the new increment to the current increment string
+            if (isString(currIncrement)) {
+                const updateIncrement = currIncrement + newIncrement;
+                this._increment.replace(i, updateIncrement);
+            }
+            // push the new increment as the last increment
+            else {
+                this._increment.pushFront(newIncrement);
+            }
+        }
+    }
+
+    public clearIncrements(): void {
+        this._increment.clear();
+    }
+}
