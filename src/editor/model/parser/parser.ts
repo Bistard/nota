@@ -3,6 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
 import { assert, panic } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 import { isNullable, isNumber, isString, StringDictionary } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
@@ -400,11 +401,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         const parent = this.__getActive();
         const node = activeNode.ctor.createAndFill(activeNode.attrs, activeNode.children, parent.marks);
         if (!node) {
-            // TODO: need more detailed snapshot for logging
-            this._onLog.fire({
-                level: LogLevel.WARN,
-                message: `Parser: failed to create prosemirror node type: '${activeNode.ctor.name}'.`,
-            });
+            this._onLog.fire({ level: LogLevel.WARN, message: __getCreateAndFillErrorMessage(activeNode), });
             return null;
         }
 
@@ -615,4 +612,24 @@ export class ActiveNodeTracker {
         const count = this._counters[nodeType.name] ?? 0;
         this._counters[nodeType.name] = count - 1;
     }
+
+function __getCreateAndFillErrorMessage(activeNode: IParsingNodeState): string {
+    const { ctor, level, attrs, children, marks } = activeNode;
+
+    const attrsInfo = attrs ? Strings.stringify(attrs) : 'No attributes';
+    const childrenInfo = children.map((node, index) => {
+        return `    Child ${index + 1}: ${node.toString()}`;
+    }).join('\n');
+    const marksInfo = marks.map((mark) => {
+        const markAttrs = Strings.stringify(mark.attrs);
+        return `    Mark Type = ${mark.type.name}, Attributes = ${markAttrs}`;
+    }).join('\n');
+
+    return `[Parsing Error] Deactivation during 'createAndFill()' operation:\n` +
+           `- [Depth] ${level}\n` + 
+           `- [Target Name] ${ctor.name}\n` +
+           `- [Target Spec] ${Strings.stringify(ctor.spec)}\n` +
+           `- [Target Attributes] ${attrsInfo}\n` +
+           `- [Target Children]\n${children.length > 0 ? childrenInfo : '    No children'}\n` +
+           `- [Target Marks]\n${marks.length > 0 ? marksInfo : '    No marks'}\n`;
 }
