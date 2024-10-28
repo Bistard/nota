@@ -1,7 +1,7 @@
 import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec, ProseNode } from "src/editor/common/proseMirror";
-import { DocumentMark } from "src/editor/model/parser/documentNode";
+import { DocumentMark, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IDocumentMarkSerializationOptions } from "src/editor/model/serializer/serializer";
 
@@ -29,13 +29,14 @@ export class Link extends DocumentMark<EditorTokens.Link> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Link): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Link>): void {
+        const { token } = status;
         state.activateMark(this.ctor.create({
             href: token.href,
             title: token.title,
         }));
         if (token.tokens) {
-            state.parseTokens(token.tokens, token);
+            state.parseTokens(status.level + 1, token.tokens, token);
         } else {
             state.addText(token.text);
         }

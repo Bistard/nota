@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
@@ -39,11 +39,14 @@ export class Image extends DocumentNode<EditorTokens.Image> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Image): void {
-        state.activateNode(this.ctor, {
-            src: token.href,
-            title: token.title,
-            alt: token.text,
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Image>): void {
+        const token = status.token;
+        state.activateNode(this.ctor, status, {
+            attrs: {
+                src: token.href,
+                title: token.title,
+                alt: token.text,
+            }
         });
         state.deactivateNode();
     }

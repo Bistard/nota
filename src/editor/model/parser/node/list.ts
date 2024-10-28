@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -31,12 +31,15 @@ export class List extends DocumentNode<EditorTokens.List> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.List): void {
-        state.activateNode(this.ctor, {
-            ordered: token.ordered,
-            tight: !token.loose,
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.List>): void {
+        const { token } = status;
+        state.activateNode(this.ctor, status, {
+            attrs: {
+                ordered: token.ordered,
+                tight: !token.loose,
+            }
         });
-        state.parseTokens(token.items, token);
+        state.parseTokens(status.level + 1, token.items, token);
         state.deactivateNode();
     }
 
@@ -67,12 +70,15 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.ListItem): void {
-        state.activateNode(this.ctor, {
-            task: token.task,
-            checked: token.checked,
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.ListItem>): void {
+        const { token } = status;
+        state.activateNode(this.ctor, status, {
+            attrs: {
+                task: token.task,
+                checked: token.checked,
+            }
         });
-        state.parseTokens(token.tokens, token);
+        state.parseTokens(status.level + 1, token.tokens, token);
         state.deactivateNode();
     }
 

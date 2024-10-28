@@ -1,7 +1,7 @@
 import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec, ProseNode } from "src/editor/common/proseMirror";
-import { DocumentMark } from "src/editor/model/parser/documentNode";
+import { DocumentMark, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -23,7 +23,7 @@ export class Codespan extends DocumentMark<EditorTokens.Codespan> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Codespan): void {
+    public parseFromToken(state: IDocumentParseState, { token }: IParseTokenStatus<EditorTokens.Codespan>): void {
         let backtickCount = 0;
         for (const c of token.raw) {
             if (c !== '`') {

@@ -4,8 +4,8 @@ import { Dictionary } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
-import { IDeactivateNodeOptions, IDocumentParseState } from "src/editor/model/parser/parser";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
+import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { createDomOutputFromOptions } from "src/editor/model/schema";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -35,22 +35,24 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.HTML): void {
-        const deactivateOpts: IDeactivateNodeOptions = {
-            expectInlineHtml: undefined,
-        };
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.HTML>): void {
+        const { token } = status;
+        let expectInlineHtmlTag: string | null = null;
+        
 
         // block-level html
         if (token.block === true) {
             const tagName = '';
-            deactivateOpts.expectInlineHtml = tagName;
+            expectInlineHtmlTag = tagName;
 
-            state.activateNode(this.ctor, {
-                text: token.text,
-                isBlock: token.block,
-                tagName: tagName,
+            state.activateNode(this.ctor, status, {
+                attrs: {
+                    text: token.text,
+                    isBlock: token.block,
+                    tagName: tagName,
+                },
             });
-            state.deactivateNode(deactivateOpts);
+            state.deactivateNode({ expectInlineHtmlTag });
             return;
         }
         
@@ -65,23 +67,21 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
             attributes: attributes,
         };
         const inlineHTMLCtor = assert(state.getDocumentNode(TokenEnum.InlineHTML)).ctor;
-        deactivateOpts.expectInlineHtml = tagName ?? '';
+        expectInlineHtmlTag = tagName ?? '';
 
 
         // self-closing tag: activate as a single node
         if (tagType === HtmlTagType.selfClosing) {
-            state.activateNode(inlineHTMLCtor, htmlAttrs);
-            state.deactivateNode(deactivateOpts);
-            return;
+            state.activateNode(inlineHTMLCtor, status, { attrs: htmlAttrs });
+            state.deactivateNode({ expectInlineHtmlTag });
         }
-
         // open tag: we activate an `inline_html` node.
-        if (tagType === HtmlTagType.open) {
-            state.activateNode(inlineHTMLCtor, htmlAttrs);
+        else if (tagType === HtmlTagType.open) {
+            state.activateNode(inlineHTMLCtor, status, { attrs: htmlAttrs });
         } 
         // close tag: deactivate node (we are expecting to deactivate a `inline_html` node)
         else {
-            state.deactivateNode(deactivateOpts);
+            state.deactivateNode({ expectInlineHtmlTag });
         }
     }
 

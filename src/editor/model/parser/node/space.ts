@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken, EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
@@ -30,7 +30,8 @@ export class Space extends DocumentNode<EditorTokens.Space> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Space, parent: EditorToken | null, prev?: EditorToken, next?: EditorToken): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Space>): void {
+        const { token, next, prev } = status;
         
         /**
          * The rendering logic for a space is as follows: Always render an empty 
@@ -61,8 +62,8 @@ export class Space extends DocumentNode<EditorTokens.Space> {
             spaces = spaces.slice(0, -1); 
         }
 
-        state.activateNode(this.ctor);
-        state.parseTokens([{ type: 'text', raw: spaces, text: spaces }], token);
+        state.activateNode(this.ctor, status, {});
+        state.parseTokens(status.level + 1, [{ type: 'text', raw: spaces, text: spaces }], token);
         state.deactivateNode();
     }
 

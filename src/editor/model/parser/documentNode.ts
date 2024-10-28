@@ -5,6 +5,44 @@ import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { EditorSchema } from "src/editor/model/schema";
 import { IDocumentMarkSerializationOptions, Serializer } from "src/editor/model/serializer/serializer";
 
+export interface IParseTokenStatus<TToken = EditorToken> {
+    
+    /**
+     * The current level of parsing.
+     */
+    readonly level: number;
+
+    /** 
+     * The markdown token that matches this document node type. 
+     */
+    readonly token: TToken;
+    
+    /** 
+     * The parent token of the current token. `Null` means there is no parents. 
+     */
+    readonly parent: EditorToken | null;
+    
+    /** 
+     * Is the current token the first token in its parent token 
+     */
+    readonly isFirstToken: boolean;
+    
+    /** 
+     * Is the current token the last token in its parent token. 
+     */
+    readonly isLastToken: boolean;
+
+    /**
+     * The previous parsed token. (only refers to the same level token)
+     */
+    readonly prev?: EditorToken;
+
+    /**
+     * The next token that is about to parse. (only refers to the same level token)
+     */
+    readonly next?: EditorToken;
+}
+
 export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken, TNode extends ProseNode | ProseMark = ProseNode | ProseMark> {
     
     /**
@@ -37,12 +75,9 @@ export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken, TNode extends
      * parsing rule.
      * @param state The parsing state, used to have full control over the 
      * parsing process.
-     * @param token A markdown token that matches this document node type.
-     * @param parent The parent token. `Null` means there is no parents.
-     * @param prev The previous parsed token. (only refers to the same level token)
-     * @param next The next token that is about to parse. (only refers to the same level token)
+     * 
      */
-    parseFromToken(state: IDocumentParseState, token: TToken, parent: EditorToken | null, prev?: EditorToken, next?: EditorToken): void;
+    parseFromToken(state: IDocumentParseState, status: IParseTokenStatus): void;
 
     /**
      * An option that defines how the serialization behavior of {@link DocumentMark}.
@@ -56,7 +91,7 @@ abstract class DocumentNodeBase<TCtor, TSpec, TToken, TNode extends ProseNode | 
     public abstract getSchema(): TSpec;
     
     // parser
-    public abstract parseFromToken(state: IDocumentParseState, token: TToken, parent: EditorToken | null, prev?: EditorToken, next?: EditorToken): void;
+    public abstract parseFromToken(state: IDocumentParseState, status: IParseTokenStatus): void;
 
     // serializer
     public abstract readonly serializer: TNode extends ProseMark ? IDocumentMarkSerializationOptions : Serializer<TNode, void>;

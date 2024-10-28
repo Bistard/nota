@@ -1,4 +1,4 @@
-import { ProseContentMatch, ProseEditorState, ProseNode, ProseNodeType, ProseResolvedPos } from "src/editor/common/proseMirror";
+import { ProseContentMatch, ProseEditorState, ProseNode, ProseNodeType, ProseResolvedPos, ProseTransaction } from "src/editor/common/proseMirror";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -32,6 +32,21 @@ export namespace ProseUtils {
         return state.doc.content.size;
     }
 
+    export function getResolvedPositionAt(state: ProseEditorState, position: number): ProseResolvedPos {
+        return state.doc.resolve(position);
+    }
+
+    export function getNodeAt(state: ProseEditorState, position: number): ProseNode {
+        return state.doc.resolve(position).getCurrNode();
+    }
+
+    export function appendTextToEnd(state: ProseEditorState, text: string): ProseTransaction {
+        const docEnd = state.doc.content.size;
+        return state.tr.insertText(text, docEnd);
+    }
+
+    // [prose node related functions]
+
     /**
      * @description Get the entire content size of the given node.
      * @note The returned size includes the open and close tokens of the node.
@@ -42,12 +57,14 @@ export namespace ProseUtils {
         return node.nodeSize;
     }
 
-    export function getResolvedPositionAt(state: ProseEditorState, position: number): ProseResolvedPos {
-        return state.doc.resolve(position);
-    }
-
-    export function getNodeAt(state: ProseEditorState, position: number): ProseNode {
-        return state.doc.resolve(position).getCurrNode();
+    export function *iterateChild(node: ProseNode): IterableIterator<{ node: ProseNode, offset: number, index: number }> {
+        const fragment = node.content;
+        let offset = 0;
+        for (let i = 0; i < fragment.childCount; i++) {
+            const child = fragment.maybeChild(i)!;
+            yield { node: child, offset: offset, index: i };
+            offset += child.nodeSize;
+        }
     }
 
     export function getNextValidDefaultNodeTypeAt(node: ProseNode, position: number): ProseNodeType | null {
@@ -63,17 +80,5 @@ export namespace ProseUtils {
             }
         }
         return null;
-    }
-
-    // [prose node related functions]
-
-    export function *iterateChild(node: ProseNode): IterableIterator<{ node: ProseNode, offset: number, index: number }> {
-        const fragment = node.content;
-        let offset = 0;
-        for (let i = 0; i < fragment.childCount; i++) {
-            const child = fragment.maybeChild(i)!;
-            yield { node: child, offset: offset, index: i };
-            offset += child.nodeSize;
-        }
     }
 }

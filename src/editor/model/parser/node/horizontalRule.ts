@@ -2,7 +2,7 @@ import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -33,11 +33,14 @@ export class HorizontalRule extends DocumentNode<EditorTokens.Hr> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Hr): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Hr>): void {
+        const { token } = status;
         const raw = token.raw;
-        state.activateNode(this.ctor, { 
-            type: __getHrType(raw),
-            raw: raw
+        state.activateNode(this.ctor, status, {
+            attrs: { 
+                type: __getHrType(raw),
+                raw: raw,
+            }
         });
         state.deactivateNode();
     }

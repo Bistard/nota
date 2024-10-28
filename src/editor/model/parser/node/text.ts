@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken, EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -22,7 +22,8 @@ export class Text extends DocumentNode<EditorTokens.Text> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Text, parent: EditorToken | null): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Text>): void {
+        const { token, parent } = status;
         if (!token.tokens) {
             state.addText(token.raw); // FIX: change to .text once the 'marked' moved the auto escaping into the renderer
             return;
@@ -36,7 +37,7 @@ export class Text extends DocumentNode<EditorTokens.Text> {
          * {@link https://github.com/markedjs/marked/issues/2684}.
          */
         (<string>token.type) = TokenEnum.Paragraph;
-        state.parseTokens([token], parent!);
+        state.parseTokens(status.level + 1, [token], parent!);
     }
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {

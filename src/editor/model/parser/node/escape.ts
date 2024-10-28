@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -22,7 +22,7 @@ export class Escape extends DocumentNode<EditorTokens.Escape> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Escape): void {
+    public parseFromToken(state: IDocumentParseState, { token }: IParseTokenStatus<EditorTokens.Escape>): void {
         state.addText(token.raw);
     }
 

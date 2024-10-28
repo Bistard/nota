@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
@@ -35,12 +35,18 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Blockquote): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Blockquote>): void {
+        const { token } = status;
         const delimiters = this.__getDelimitersFromRaw(state, token.raw);
-        state.activateNode(this.ctor, { delimiters: delimiters });
+
+        state.activateNode(this.ctor, status, {
+            attrs: { delimiters: delimiters }
+        });
+        
         if (token.tokens) {
-            state.parseTokens(token.tokens, token);
+            state.parseTokens(status.level + 1, token.tokens, token);
         }
+        
         state.deactivateNode();
     }
 
@@ -53,10 +59,13 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
 
     private __getDelimitersFromRaw(state: IDocumentParseState, raw: string): string[] {
         const delimiters: string[] = [];
-        
         const activeNode = assert(state.getActiveNode());
         const outMost = (activeNode.name !== TokenEnum.Blockquote);
         for (const { line } of Strings.iterateLines(raw)) {
+            if (line === '') {
+                continue;
+            }
+
             let delimiter = '';
             let startIndex = 0;
 

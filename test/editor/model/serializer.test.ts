@@ -1,16 +1,19 @@
 import * as assert from 'assert';
-// import { Strings } from 'src/base/common/utilities/string';
+import { defaultLog } from 'src/base/common/logger';
+import { Strings } from 'src/base/common/utilities/string';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
 import { DocumentParser } from 'src/editor/model/parser/parser';
 import { buildSchema } from 'src/editor/model/schema';
 import { IncrementalDelimiter, MarkdownSerializer } from 'src/editor/model/serializer/serializer';
+import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
 
 const nodeProvider = DocumentNodeProvider.create().register();
 const schema = buildSchema(nodeProvider);
 const lexer = new MarkdownLexer({});
 const docParser = new DocumentParser(schema, nodeProvider, /* options */);
 const serializer = new MarkdownSerializer(nodeProvider, { strict: true });
+docParser.onLog(e => defaultLog(new ConsoleLogger(), e.level, 'serializer.test.ts', e.message, e.error, e.additionals));
 
 /**
  * @description Expecting the serialized output is exactly the same as the 
@@ -24,8 +27,8 @@ function expectSameTo(content: string, expect: string): void {
     const serializedContent = parseAndSerialize(content);
 
     // console.log('[input ]', Strings.escape(content));
-    // console.log('[expect]', Strings.escape(expect));
-    // console.log('[actual]', Strings.escape(serializedContent));
+    console.log('[expect]', `(${Strings.escape(expect)})`);
+    console.log('[actual]', `(${Strings.escape(serializedContent)})`);
 
     assert.strictEqual(expect, serializedContent);
 }
@@ -38,6 +41,7 @@ function parseAndSerialize(content: string): string {
 }
 
 suite('MarkdownSerializer', () => {
+    
     suite('IncrementalDelimiter', () => {
         suite('constructor', () => {
             test('should use the provided default delimiter', () => {
@@ -104,6 +108,44 @@ suite('MarkdownSerializer', () => {
                 assert.strictEqual(manager.getDelimiter(), '  >|');
                 assert.strictEqual(manager.getDelimiter(), '|');
             });
+        });
+    });
+
+    suite('preserveLastEndOfLine', () => {
+        test('Paragraph - With new line at the end', () => {
+            expectSame('paragraph1\n');
+        });
+        
+        test('Paragraph - With space and new line at the end', () => {
+            expectSame('paragraph1   \n');
+        });
+
+        test('Paragraph - Line break at both start and end', () => {
+            expectSame('  \nLine with breaks around  \n');
+        });
+
+        test('Heading - With new line at the end', () => {
+            expectSame('# Heading\n');
+        });
+
+        test('Blockquote - with multiple blockquote levels and leading spaces 2', () => {
+            expectSame('   > Blockquote level 1.\n   >> Blockquote level 2.\n   >>> Blockquote level 3.\n');
+        });
+
+        test('Paragraph and Blockquote - only the last token with end of line at the end should be preserved', () => {
+            expectSame('paragraph1\n> blockquote1\n');
+        });
+
+        test('horizontalRule - with new line at the end', () => {
+            expectSame('---\n');
+        });
+
+        test.skip('codeBlock - with new line at the end', () => {
+            expectSame('```ts\nconsole.log("hello world");```\n');
+        });
+        
+        test.skip('list - with new line at the end', () => {
+            expectSame('* list item\n');
         });
     });
 
@@ -200,7 +242,7 @@ suite('MarkdownSerializer', () => {
                 expectSame('### **Bold Heading**');
                 expectSame('### *Italic Heading*');
             });
-        
+
             test('With links', () => {
                 expectSame('### [Link Heading](https://example.com)');
             });
@@ -285,6 +327,10 @@ suite('MarkdownSerializer', () => {
     
             test('Div with text content', () => {
                 expectSame('<div>hello world</div>');
+            });
+            
+            test('Div with a new line at the end', () => {
+                expectSame('<div>hello world</div>\n');
             });
     
             test('Div with style attributes and markdown (not parsed)', () => {
@@ -696,10 +742,6 @@ suite('MarkdownSerializer', () => {
                 expectSame('\nThis paragraph has a newline at the start.');
             });
     
-            test('Newline at the end', () => {
-                expectSame('paragraph1\n');
-            });
-    
             test('Multiple newline at the start', () => {
                 expectSame('\n\n\nparagraph1');
             });
@@ -763,10 +805,6 @@ suite('MarkdownSerializer', () => {
                 expectSame('  \nNew line after break');
             });
         
-            test('Line break at the end of text', () => {
-                expectSame('Line before break  \n');
-            });
-        
             test('Multiple consecutive line breaks', () => {
                 expectSame('Line 1  \n  \nLine 3');
             });
@@ -795,10 +833,6 @@ suite('MarkdownSerializer', () => {
                 expectSame('*Italic text*  \nNew line');
             });
         
-            test('Line break at both start and end', () => {
-                expectSame('  \nLine with breaks around  \n');
-            });
-        
             test('Line break inside a heading', () => {
                 expectSameTo('# Heading with break  \nNew line under heading', '# Heading with break\nNew line under heading');
             });
@@ -824,7 +858,7 @@ suite('MarkdownSerializer', () => {
             });
         });
     
-        suite.skip('blockquote', () => {
+        suite('blockquote', () => {
             test('Basic blockquote with single line', () => {
                 expectSame('> This is a blockquote.');
             });
@@ -841,15 +875,11 @@ suite('MarkdownSerializer', () => {
                 expectSame('   > Blockquote level 1.\n   >> Blockquote level 2.\n   >>> Blockquote level 3.');
             });
             
-            test('Blockquote with multiple blockquote levels and leading spaces 2', () => {
-                expectSame('   > Blockquote level 1.\n   >> Blockquote level 2.\n   >>> Blockquote level 3.\n');
-            });
-            
             test('Blockquote Complex Case 1', () => {
                 expectSame('  >bq1: first line\n> bq1: second line\n>\n  >> bq2: first line\n > > bq2: second line');
             });
             
-            test.skip('Blockquote Complex Case 2', () => {
+            test('Blockquote Complex Case 2', () => {
                 expectSame('  >bq1: first line\n> bq1: second line\n>\n  >> bq2: first line\n > > bq2: second line\n>>   > bq3: first line');
             });
         

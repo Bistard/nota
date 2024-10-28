@@ -2,7 +2,7 @@ import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -24,13 +24,14 @@ export class LineBreak extends DocumentNode<EditorTokens.Br> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Br): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Br>): void {
+        const { token } = status;
         const spacesBeforeLineBreak = Strings.substringUntilChar(token.raw, '\n');
         if (spacesBeforeLineBreak.length > 0) {
             state.addText(spacesBeforeLineBreak);
         }
 
-        state.activateNode(this.ctor);
+        state.activateNode(this.ctor, status, {});
         state.deactivateNode();
     }
 

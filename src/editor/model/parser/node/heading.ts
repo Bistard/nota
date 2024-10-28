@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken, EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
@@ -35,13 +35,14 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Heading): void {
-        state.activateNode(this.ctor, {
-            level: token.depth,
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Heading>): void {
+        const token = status.token;
+        state.activateNode(this.ctor, status, {
+            attrs: { level: token.depth, }
         });
 
         if (token.tokens) {
-            state.parseTokens(token.tokens, token);
+            state.parseTokens(status.level + 1, token.tokens, token);
         }
         
         state.deactivateNode();

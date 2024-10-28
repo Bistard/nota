@@ -3,11 +3,11 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
 import { assert, panic } from "src/base/common/utilities/panic";
-import { isNullable, isString } from "src/base/common/utilities/type";
+import { isNullable, isNumber, isString, StringDictionary } from "src/base/common/utilities/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
-import { DocumentMark, DocumentNode, IDocumentNode } from "src/editor/model/parser/documentNode";
+import { DocumentMark, DocumentNode, IDocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
 import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
 import { EditorSchema } from "src/editor/model/schema";
 
@@ -76,7 +76,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     // [public methods]
 
     public parse(tokens: EditorToken[]): ProseNode {        
-        this._state.parseTokens(tokens, null);
+        this._state.parseTokens(0, tokens, null);
         const documentRoot = this._state.complete();
         this._state.clean();
         return documentRoot;
@@ -92,8 +92,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
             } else {
                 this._ignored.add(type);
             }
-        }
-        else if (ignore) {
+        } else if (ignore) {
             this._ignored.add(type);
         } else {
             this._ignored.delete(type);
@@ -114,10 +113,46 @@ export class DocumentParser extends Disposable implements IDocumentParser {
  * @internal
  */
 interface IParsingNodeState {
+    readonly level: number;
     readonly ctor: ProseNodeType;
-    children: ProseNode[];
+    readonly children: ProseNode[];
     marks: readonly ProseMark[];
-    attrs?: ProseAttrs;
+    
+    readonly attrs?: ProseAttrs;
+
+    readonly isLastToken: boolean;
+    readonly isAncestorAllLastToken: boolean;
+}
+
+export interface IParseStateActivateOptions {
+
+    /**
+     * The attribute that will be passed into {@link ProseNode} for constructing.
+     */
+    readonly attrs?: ProseAttrs;
+}
+
+export interface IParseStateDeactivateOptions {
+
+    /**
+     * Each activation has a corresponding deactivation. When we encounter the 
+     * deactivation for this specific activation, we expect to deactivate an 
+     * `inline_html` node.
+     * - If `false` provided, it means we are not expecting a `inline_html` 
+     *        node, if met one, this node will be parsed as plain-text.
+     * - If a string provided, it represents we are expecting a `inline_html`
+     *        node with that tag name (e.g. 'div', 'strong', 'anyHtmlTagName').
+     *      - If tag name meets, we are constructing a `inline_html` node.
+     *      - If tag name doesn't meet, we are rendering them as plain-text.
+     * @default false
+     */
+    readonly expectInlineHtmlTag?: false | string;
+}
+
+function __defaultDeactivateOptions(): IParseStateDeactivateOptions {
+    return {
+        expectInlineHtmlTag: false
+    };
 }
 
 /**
@@ -138,9 +173,10 @@ export interface IDocumentParseState {
      * stack. All the newly deactivated nodes will be added as a child node into 
      * this one.
      * @param ctor The constructor for the newly activated document node.
-     * @param attrs The attributes for the newly activated document node.
+     * @param status The current parsing status.
+     * @param opts The options for activation.
      */
-    activateNode(ctor: ProseNodeType, attrs?: ProseAttrs): void;
+    activateNode(ctor: ProseNodeType, status: IParseTokenStatus, opts?: IParseStateActivateOptions): void;
 
     /**
      * @description Deactivates the current node and creates the corresponding
@@ -148,16 +184,17 @@ export interface IDocumentParseState {
      * activated. The created node will be pops out from the internal stack to 
      * be inserted as a child into the parent document node.
      */
-    deactivateNode(opts?: IDeactivateNodeOptions): ProseNode | null;
+    deactivateNode(opts?: IParseStateDeactivateOptions): ProseNode | null;
 
     /**
      * @description Given an array of tokens and parses them recursively. All
      * the newly activated nodes will be inserted as the children of the current
      * active ones.
+     * @param level The current level of parsing.
      * @param tokens The provided markdown tokens.
      * @param parent The parent token of the given token list.
      */
-    parseTokens(tokens: EditorToken[], parent: EditorToken): void;
+    parseTokens(level: number, tokens: EditorToken[], parent: EditorToken): void;
     
     /**
      * @description Insert the text of the current active document node.
@@ -193,21 +230,12 @@ export interface IDocumentParseState {
 
     getDocumentNode<TToken = EditorToken>(name: string): DocumentNode<TToken> | null;
     getDocumentMark<TToken = EditorToken>(name: string): DocumentMark<TToken> | null;
-}
 
-export interface IDeactivateNodeOptions {
-    
     /**
-     * If expecting deactivating the `inline_html` node. 
-     * - If `false` provided, it means we are not expecting a `inline_html` 
-     *        node, if met one, that node will be parsed as plain-text.
-     * - If a string provided, it represents we are expecting a `inline_html`
-     *        node with that tag name.
-     *      - If tag name meets, we are constructing a `inline_html` node.
-     *      - If tag name doesn't meet, we are rendering them as plain-text.
-     * @default false
+     * @description Is there any ancestor with the given type name during parsing
+     * stage.
      */
-    expectInlineHtml?: false | string;
+    anyAncestor(type: string): boolean;
 }
 
 /**
@@ -225,6 +253,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
      * control over it.
      */
     private readonly _actives: Stack<IParsingNodeState>;
+    private readonly _activesNodeTracker: ActiveNodeTracker;
+
     private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _parser: DocumentParser;
 
@@ -233,6 +263,9 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     /** @see https://github.com/Bistard/nota/issues/236 */
     private readonly _markActivationCount = new Map<ProseMarkType, number>();
+
+    /** @see https://github.com/markedjs/marked/issues/3506 */
+    private _preserveLastEndOfLine: boolean;
 
     // [event]
 
@@ -251,13 +284,16 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         this._defaultNodeType = schema.topNodeType;
         this._createTextNode = schema.text.bind(schema);
 
-        const root = { ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined };
+        this._activesNodeTracker = new ActiveNodeTracker(provider);
+        const root = this.__initRootNode();
         this._actives = new Stack([root]);
+
+        this._preserveLastEndOfLine = false;
     }
 
     // [public methods]
 
-    public parseTokens(tokens: EditorToken[], parent: EditorToken | null): void {
+    public parseTokens(level: number, tokens: EditorToken[], parent: EditorToken | null): void {
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i]!;
             
@@ -276,7 +312,11 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
                 continue;
             }
             
-            node.parseFromToken(this, token, parent, tokens[i - 1], tokens[i + 1]);
+            const isFirstToken = i === 0;
+            const isLastToken = i === tokens.length - 1;
+            const prevToken = tokens[i - 1];
+            const nextToken = tokens[i + 1];
+            node.parseFromToken(this, { level: level + 1, token, parent, isFirstToken, isLastToken, prev: prevToken, next: nextToken });
         }
     }
 
@@ -292,34 +332,51 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         this._actives.clear();
 
         // ready for next parsing
-        const root = { ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined };
+        const root = this.__initRootNode();
         this._actives.push(root);
 
         this._markActivationCount.clear();
     }
 
-    // [public methods]
+    public activateNode(ctor: ProseNodeType, status: IParseTokenStatus, opts?: IParseStateActivateOptions): void {
+        const { token, isLastToken, level } = status;
+        const parent = this.__getActive();
 
-    public activateNode(ctor: ProseNodeType, attrs?: ProseAttrs): void {
+        if (__requirePreserveLastNewLineCheck(token) && isLastToken && token.raw.at(-1) === '\n' && level === 1) {
+            this._preserveLastEndOfLine = true;
+        }
+        
+        this._activesNodeTracker.track(ctor);
         this._actives.push({
             ctor: ctor,
             children: [],
             marks: [],
-            attrs: attrs,
+            attrs: opts?.attrs,
+            level: status.level,
+            isLastToken: isLastToken,
+            isAncestorAllLastToken: parent.isAncestorAllLastToken && isLastToken,
         });
     }
 
-    public deactivateNode(opt: IDeactivateNodeOptions = {}): ProseNode | null {
-        opt.expectInlineHtml ??= false;
-        const currNode = this.__popActive();
+    public deactivateNode(opts: IParseStateDeactivateOptions = __defaultDeactivateOptions()): ProseNode | null {
+        let activeNode = this.__getActive();
+        this._activesNodeTracker.untrack(activeNode.ctor);
+
+        
+        if (this._preserveLastEndOfLine && activeNode.isAncestorAllLastToken) {
+            this._preserveLastEndOfLine = false;
+            this.addText('\n');
+        }
+        
+        activeNode = this.__popActive();
 
         /**
          * Unexpectedly encountering a `inline_html` node, it means it is 
          * incomplete, only found 1 open tag but not a close tag. Thus we need 
          * to render it as plain-text.
          */
-        if ((opt?.expectInlineHtml === false) && currNode.ctor.name === TokenEnum.InlineHTML) {
-            return this.__onUnexpectedInlineHtml(currNode);
+        if ((opts.expectInlineHtmlTag === false) && activeNode.ctor.name === TokenEnum.InlineHTML) {
+            return this.__onUnexpectedInlineHtml(activeNode);
         }
 
         /**
@@ -327,8 +384,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
          * check if the tag name from the current node is matched with the 
          * expecting tag name. If not, we render them as plain-text.
          */
-        if (isString(opt?.expectInlineHtml)) {
-            const handled = this.__onUnmatchedInlineHtml(currNode, opt.expectInlineHtml);
+        if (isString(opts.expectInlineHtmlTag)) {
+            const handled = this.__onUnmatchedInlineHtml(activeNode, opts.expectInlineHtmlTag);
             if (handled) {
                 return null;
             }
@@ -336,17 +393,22 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         
         // happens when deactivating the root document node
         if (this._actives.empty()) {
-            return currNode.ctor.createAndFill(currNode.attrs, currNode.children, currNode.marks);
+            return activeNode.ctor.createAndFill(activeNode.attrs, activeNode.children, activeNode.marks);
         }
 
         // normal deactivating
-        const active = this.__getActive();
-        const node = currNode.ctor.createAndFill(currNode.attrs, currNode.children, active.marks);
+        const parent = this.__getActive();
+        const node = activeNode.ctor.createAndFill(activeNode.attrs, activeNode.children, parent.marks);
         if (!node) {
+            // TODO: need more detailed snapshot for logging
+            this._onLog.fire({
+                level: LogLevel.WARN,
+                message: `Parser: failed to create prosemirror node type: '${activeNode.ctor.name}'.`,
+            });
             return null;
         }
 
-        active.children.push(node);
+        parent.children.push(node);
         return node;
     }
 
@@ -359,8 +421,8 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         const textNode = this._createTextNode(text, active.marks);
 
         const lastIdx = active.children.length - 1;
-        const previous = active.children[lastIdx];
-        if (!previous) {
+        const prevNode = active.children[lastIdx];
+        if (!prevNode) {
             active.children.push(textNode);
             return;
         }
@@ -373,18 +435,18 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
             return false;
         };
 
-        if (!mergable(previous, textNode)) {
+        if (!mergable(prevNode, textNode)) {
             active.children.push(textNode);
             return;
         }
 
-        if (!previous.text || !textNode.text) {
-            active.children[lastIdx] = (previous.text) ? previous : textNode;
+        if (!prevNode.text || !textNode.text) {
+            active.children[lastIdx] = (prevNode.text) ? prevNode : textNode;
             return;
         }
         
-        const newText = previous.text + textNode.text;
-        const mergedNode = (<IProseTextNode>previous).withText(newText);
+        const newText = prevNode.text + textNode.text;
+        const mergedNode = (<IProseTextNode>prevNode).withText(newText);
         
         active.children[lastIdx] = mergedNode;
     }
@@ -438,12 +500,29 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         return this._nodeProvider.getMark(name) ?? null;
     }
 
+    public anyAncestor(type: string): boolean {
+        return this._activesNodeTracker.anyAncestor(type);
+    }
+
     public dispose(): void {
         this.clean();
         this._onLog.dispose();
     }
 
     // [private helper methods]
+
+    private __initRootNode(): IParsingNodeState {
+        const root: IParsingNodeState = { 
+            ctor: this._defaultNodeType, 
+            children: [], 
+            marks: [], 
+            attrs: undefined, 
+            level: 0,
+            isLastToken: true,
+            isAncestorAllLastToken: true,
+        };
+        return root;
+    }
 
     private __getActive(): IParsingNodeState {
         if (this._actives.empty()) {
@@ -485,5 +564,55 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         }
 
         return false;
+    }
+}
+
+function __requirePreserveLastNewLineCheck(token: EditorToken): boolean {
+    switch (token.type) {
+        case TokenEnum.Paragraph:
+        case TokenEnum.Heading:
+        case TokenEnum.Blockquote:
+        case TokenEnum.CodeBlock:
+        case TokenEnum.List:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/** @internal */
+export class ActiveNodeTracker {
+
+    // [fields]
+
+    private _counters: StringDictionary<number>;
+
+    // [constructor]
+
+    constructor(provider: DocumentNodeProvider) {
+        this._counters = {};
+        for (const node of provider.getRegisteredNodes()) {
+            this._counters[node.name] = 0;
+        }
+    }
+
+    // [public methods]
+
+    public anyAncestor(type: string): boolean {
+        const count = this._counters[type];
+        if (isNumber(count)) {
+            return count > 0;
+        }
+        return false;
+    }
+
+    public track(nodeType: ProseNodeType): void {
+        const count = this._counters[nodeType.name] ?? 0;
+        this._counters[nodeType.name] = count + 1;
+    }
+
+    public untrack(nodeType: ProseNodeType): void {
+        const count = this._counters[nodeType.name] ?? 0;
+        this._counters[nodeType.name] = count - 1;
     }
 }
