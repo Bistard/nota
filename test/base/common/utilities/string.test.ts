@@ -35,6 +35,73 @@ suite('Strings-test', function () {
         test('should stringify and concatenate object arguments', function () {
             assert.strictEqual(Strings.stringify({ hello: 'world' }, 'test'), '{"hello":"world"} test');
         });
+
+        test('should join multiple string arguments with a space', () => {
+            const result = Strings.stringify('hello', 'world');
+            assert.strictEqual(result, 'hello world');
+        });
+    
+        test('should stringify and join objects and primitive values', () => {
+            const result = Strings.stringify({ key: 'value' }, 123, true);
+            assert.strictEqual(result, '{"key":"value"} 123 true');
+        });
+    
+        test('should handle a single object argument', () => {
+            const result = Strings.stringify({ foo: 'bar' });
+            assert.strictEqual(result, '{"foo":"bar"}');
+        });
+    
+        test('should handle a single string argument', () => {
+            const result = Strings.stringify('test');
+            assert.strictEqual(result, 'test');
+        });
+    
+        test('should handle mixed types including arrays', () => {
+            const result = Strings.stringify('hello', [1, 2, 3], false);
+            assert.strictEqual(result, 'hello [1,2,3] false');
+        });
+    
+        test('should handle errors in object stringification gracefully', () => {
+            const circularObj: any = {};
+            circularObj.self = circularObj;
+            const result = Strings.stringify(circularObj);
+            assert.strictEqual(result, '[Strings.stringify() error]');
+        });
+    
+        test('should return an empty string if no arguments are provided', () => {
+            const result = Strings.stringify();
+            assert.strictEqual(result, '');
+        });
+    
+        test('should convert null and undefined to string literals', () => {
+            const result = Strings.stringify(null, undefined);
+            assert.strictEqual(result, 'null undefined');
+        });
+
+        test('should handle deeply nested objects', () => {
+            const result = Strings.stringify({ level1: { level2: { level3: 'deep' } } });
+            assert.strictEqual(result, '{"level1":{"level2":{"level3":"deep"}}}');
+        });
+    
+        test('should handle objects with special characters', () => {
+            const result = Strings.stringify({ text: 'hello\nworld\t!' });
+            assert.strictEqual(result, '{"text":"hello\\nworld\\t!"}');
+        });
+    
+        test('should handle large numeric values correctly', () => {
+            const result = Strings.stringify(1e100, -1e100);
+            assert.strictEqual(result, '1e+100 -1e+100');
+        });
+    
+        test('should handle NaN and Infinity values correctly', () => {
+            const result = Strings.stringify(NaN, Infinity, -Infinity);
+            assert.strictEqual(result, 'NaN Infinity -Infinity');
+        });
+    
+        test('should handle functions by converting them to empty objects', () => {
+            const result = Strings.stringify(() => 'test', function namedFunc() {});
+            assert.strictEqual(result, "() => 'test' function namedFunc() { }");
+        });
     });
 
     suite('#format()', function () {

@@ -37,10 +37,11 @@ export namespace Strings {
         for (let i = 0; i < args.length; i++) {
             let obj = args[i];
 
-            if (isObject(obj)) {
+            if (isObject(obj) || Array.isArray(obj)) {
                 try {
                     obj = JSON.stringify(obj);
                 } catch (e) {
+                    obj = '[Strings.stringify() error]';
                     console.log(`[Strings.stringify] error: ${e}`);
                 }
             }
