@@ -27,8 +27,8 @@ function expectSameTo(content: string, expect: string): void {
     const serializedContent = parseAndSerialize(content);
 
     // console.log('[input ]', Strings.escape(content));
-    console.log('[expect]', `(${Strings.escape(expect)})`);
-    console.log('[actual]', `(${Strings.escape(serializedContent)})`);
+    // console.log('[expect]', `(${Strings.escape(expect)})`);
+    // console.log('[actual]', `(${Strings.escape(serializedContent)})`);
 
     assert.strictEqual(expect, serializedContent);
 }
@@ -111,7 +111,7 @@ suite('MarkdownSerializer', () => {
         });
     });
 
-    suite('preserveLastEndOfLine', () => {
+    suite('corner case: preserveLastEndOfLine', () => {
         test('Paragraph - With new line at the end', () => {
             expectSame('paragraph1\n');
         });

@@ -497,7 +497,6 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
             if (size > 1) {
                 repeat(size - 1, () => {
-                    // TODO: small optimization: move this out the loop when no increments
                     const delimiter = this._delimiter.getDelimiter();
                     const trimEndDelimiter = delimiter.trimEnd();
                     this._output += `${trimEndDelimiter}\n`;

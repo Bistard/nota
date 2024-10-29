@@ -116,11 +116,11 @@ export class DocumentParser extends Disposable implements IDocumentParser {
 interface IParsingNodeState {
     readonly level: number;
     readonly ctor: ProseNodeType;
-    readonly children: ProseNode[];
+    
+    children: ProseNode[];
     marks: readonly ProseMark[];
     
     readonly attrs?: ProseAttrs;
-
     readonly isLastToken: boolean;
     readonly isAncestorAllLastToken: boolean;
 }
@@ -143,7 +143,7 @@ export interface IParseStateDeactivateOptions {
      *        node, if met one, this node will be parsed as plain-text.
      * - If a string provided, it represents we are expecting a `inline_html`
      *        node with that tag name (e.g. 'div', 'strong', 'anyHtmlTagName').
-     *      - If tag name meets, we are constructing a `inline_html` node.
+     *      - If tag name meets, we are constructing an `inline_html` node.
      *      - If tag name doesn't meet, we are rendering them as plain-text.
      * @default false
      */
@@ -171,8 +171,8 @@ export interface IDocumentParseState {
     
     /**
      * @description Activates a new document node and pushes into the internal 
-     * stack. All the newly deactivated nodes will be added as a child node into 
-     * this one.
+     * stack. All the later activated nodes will eventually be added as a child 
+     * node into this one.
      * @param ctor The constructor for the newly activated document node.
      * @param status The current parsing status.
      * @param opts The options for activation.
@@ -254,7 +254,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
      * control over it.
      */
     private readonly _actives: Stack<IParsingNodeState>;
-    private readonly _activesNodeTracker: ActiveNodeTracker;
+    private readonly _activesTracker: ActiveNodeTracker;
 
     private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _parser: DocumentParser;
@@ -285,7 +285,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         this._defaultNodeType = schema.topNodeType;
         this._createTextNode = schema.text.bind(schema);
 
-        this._activesNodeTracker = new ActiveNodeTracker(provider);
+        this._activesTracker = new ActiveNodeTracker(provider);
         const root = this.__initRootNode();
         this._actives = new Stack([root]);
 
@@ -337,17 +337,19 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         this._actives.push(root);
 
         this._markActivationCount.clear();
+        this._activesTracker.clean();
+        this._preserveLastEndOfLine = false;
     }
 
     public activateNode(ctor: ProseNodeType, status: IParseTokenStatus, opts?: IParseStateActivateOptions): void {
         const { token, isLastToken, level } = status;
         const parent = this.__getActive();
 
-        if (__requirePreserveLastNewLineCheck(token) && isLastToken && token.raw.at(-1) === '\n' && level === 1) {
+        if (level === 1 && isLastToken && token.raw.at(-1) === '\n' && __requirePreserveLastNewLineCheck(token)) {
             this._preserveLastEndOfLine = true;
         }
         
-        this._activesNodeTracker.track(ctor);
+        this._activesTracker.track(ctor);
         this._actives.push({
             ctor: ctor,
             children: [],
@@ -360,32 +362,25 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
     }
 
     public deactivateNode(opts: IParseStateDeactivateOptions = __defaultDeactivateOptions()): ProseNode | null {
-        let activeNode = this.__getActive();
-        this._activesNodeTracker.untrack(activeNode.ctor);
-
         
+        // pre deactivation check
+        
+        let activeNode = this.__getActive();
+        this._activesTracker.untrack(activeNode.ctor);
+
         if (this._preserveLastEndOfLine && activeNode.isAncestorAllLastToken) {
             this._preserveLastEndOfLine = false;
             this.addText('\n');
         }
+
+        // post deactivation check
         
         activeNode = this.__popActive();
-
-        /**
-         * Unexpectedly encountering a `inline_html` node, it means it is 
-         * incomplete, only found 1 open tag but not a close tag. Thus we need 
-         * to render it as plain-text.
-         */
-        if ((opts.expectInlineHtmlTag === false) && activeNode.ctor.name === TokenEnum.InlineHTML) {
+        
+        if (opts.expectInlineHtmlTag === false && activeNode.ctor.name === TokenEnum.InlineHTML) {
             return this.__onUnexpectedInlineHtml(activeNode);
         }
-
-        /**
-         * We are expecting a `inline_html` node with the given tag name. We 
-         * check if the tag name from the current node is matched with the 
-         * expecting tag name. If not, we render them as plain-text.
-         */
-        if (isString(opts.expectInlineHtmlTag)) {
+        else if (isString(opts.expectInlineHtmlTag)) {
             const handled = this.__onUnmatchedInlineHtml(activeNode, opts.expectInlineHtmlTag);
             if (handled) {
                 return null;
@@ -393,11 +388,13 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         }
         
         // happens when deactivating the root document node
+
         if (this._actives.empty()) {
             return activeNode.ctor.createAndFill(activeNode.attrs, activeNode.children, activeNode.marks);
         }
 
         // normal deactivating
+
         const parent = this.__getActive();
         const node = activeNode.ctor.createAndFill(activeNode.attrs, activeNode.children, parent.marks);
         if (!node) {
@@ -498,7 +495,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
     }
 
     public anyAncestor(type: string): boolean {
-        return this._activesNodeTracker.anyAncestor(type);
+        return this._activesTracker.anyAncestor(type);
     }
 
     public dispose(): void {
@@ -535,6 +532,11 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         return this._actives.pop();
     }
 
+    /**
+     * Unexpectedly encountering a `inline_html` node, it means it is 
+     * incomplete, only found 1 open tag but not a close tag. Thus we need 
+     * to render it as plain-text.
+     */
     private __onUnexpectedInlineHtml(node: IParsingNodeState): ProseNode | null {
         const plainText = node.attrs!['text'] as string;
         this.addText(plainText);
@@ -544,13 +546,18 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         return this.deactivateNode();
     }
 
+    /**
+     * We are expecting a `inline_html` node with the given tag name. We 
+     * check if the tag name from the current node is matched with the 
+     * expecting tag name. If not, we render them as plain-text.
+     */
     private __onUnmatchedInlineHtml(prevNode: IParsingNodeState, expectCloseTag: string): boolean {
         const openTagName = prevNode.attrs!['tagName'] as string;
         const closeTagName = expectCloseTag;
         
         if (openTagName !== closeTagName) {
             const openText = prevNode.attrs!['text'] as string; // e.g. <div>, <em>, <strong>
-            const closeTag = `</${closeTagName}>`;             // e.g. </div>, </em>, </strong>
+            const closeTag = `</${closeTagName}>`;              // e.g. </div>, </em>, </strong>
             
             this.addText(openText);
             for (const child of prevNode.children) {
@@ -578,7 +585,7 @@ function __requirePreserveLastNewLineCheck(token: EditorToken): boolean {
 }
 
 /** @internal */
-export class ActiveNodeTracker {
+class ActiveNodeTracker {
 
     // [fields]
 
@@ -610,8 +617,13 @@ export class ActiveNodeTracker {
 
     public untrack(nodeType: ProseNodeType): void {
         const count = this._counters[nodeType.name] ?? 0;
-        this._counters[nodeType.name] = count - 1;
+        this._counters[nodeType.name] = Math.max(count - 1, 0);
     }
+
+    public clean(): void {
+        this._counters = {};
+    }
+}
 
 function __getCreateAndFillErrorMessage(activeNode: IParsingNodeState): string {
     const { ctor, level, attrs, children, marks } = activeNode;
