@@ -61,8 +61,22 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
         const delimiters: string[] = [];
         const activeNode = assert(state.getActiveNode());
         const outMost = (activeNode.name !== TokenEnum.Blockquote);
-        for (const { line } of Strings.iterateLines(raw)) {
+
+        for (const { line, isLastLine } of Strings.iterateLines(raw)) {
             if (line === '') {
+                continue;
+            }
+
+            /**
+             * For cases like '> p1\n  <br>', the second line '  <br>' is 
+             * considered part of the blockquote. This line could logically 
+             * contain any text.
+             * 
+             * If the last line includes the character `>`, it can interfere with 
+             * the algorithm's parsing. To avoid this, special handling is required.
+             */
+            if (isLastLine && /^ {0,3}>/.test(line) === false) {
+                delimiters.push('');
                 continue;
             }
 

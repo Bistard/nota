@@ -958,6 +958,18 @@ suite('MarkdownSerializer', () => {
             test('Blockquote with strong emphasis followed by regular text', () => {
                 expectSame('> This is a blockquote with **bold** text.\n\nRegular text.');
             });
+
+            test('Blockquote with space token inside', () => {
+                expectSame('> p1\n>\n>\np2');
+            });
+            
+            test('Blockquote with <br>', () => {
+                expectSame('> p1\n<br>');
+            });
+            
+            test('Blockquote with <br> 2', () => {
+                expectSame('> p1\n   <br>');
+            });
         });
     });
     
