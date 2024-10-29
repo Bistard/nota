@@ -128,13 +128,13 @@ export namespace Strings {
      * // Segment 4: a
      * // Segment 5: test
      */
-    export function *iterateSplit(text: string, char: string): IterableIterator<{ line: string; lineNumber: number }> {
+    export function *iterateSplit(text: string, char: string): IterableIterator<{ line: string; lineNumber: number, isLastLine: boolean }> {
         let lineStart = 0;
         let lineNumber = 0;
 
         for (let i = 0; i < text.length; i++) {
             if (text[i] === char) {
-                yield { line: text.slice(lineStart, i), lineNumber };
+                yield { line: text.slice(lineStart, i), lineNumber, isLastLine: false };
                 lineStart = i + 1;
                 lineNumber++;
             }
@@ -142,11 +142,11 @@ export namespace Strings {
 
         // yield the last line if any remaining
         if (lineStart <= text.length) {
-            yield { line: text.slice(lineStart), lineNumber };
+            yield { line: text.slice(lineStart), lineNumber, isLastLine: true };
         } 
         // handle the case where the last character is the split character
         else if (text[text.length - 1] === char) {
-            yield { line: '', lineNumber };
+            yield { line: '', lineNumber, isLastLine: true };
         }
     }
 
@@ -162,6 +162,7 @@ export namespace Strings {
      * @yields An object containing:
      * - `line`: The content of the line (without the newline character).
      * - `lineNumber`: The zero-based line number of the line.
+     * - `isLastLine`: Determine if the line is the last one.
      * 
      * @example
      * const text = `Hello, World!\nThis is line 2.\nAnd this is line 3`;
@@ -172,7 +173,7 @@ export namespace Strings {
      * // Line 1: This is line 2.
      * // Line 2: And this is line 3
      */
-    export function *iterateLines(text: string): IterableIterator<{ line: string; lineNumber: number }> {
+    export function *iterateLines(text: string): IterableIterator<{ line: string; lineNumber: number, isLastLine: boolean }> {
         for (const result of iterateSplit(text, '\n')) {
             yield result;
         }

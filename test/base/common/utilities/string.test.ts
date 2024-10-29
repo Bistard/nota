@@ -165,9 +165,9 @@ suite('Strings-test', function () {
         test('should correctly iterate over multiple lines', () => {
             const text = `Hello, World!\nThis is line 2.\nAnd this is line 3`;
             const expected = [
-                { line: 'Hello, World!', lineNumber: 0 },
-                { line: 'This is line 2.', lineNumber: 1 },
-                { line: 'And this is line 3', lineNumber: 2 }
+                { line: 'Hello, World!', lineNumber: 0, isLastLine: false },
+                { line: 'This is line 2.', lineNumber: 1, isLastLine: false },
+                { line: 'And this is line 3', lineNumber: 2, isLastLine: true }
             ];
             
             const result = Array.from(Strings.iterateLines(text));
@@ -176,7 +176,7 @@ suite('Strings-test', function () {
     
         test('should handle single line text correctly', () => {
             const text = `Only one line`;
-            const expected = [{ line: 'Only one line', lineNumber: 0 }];
+            const expected = [{ line: 'Only one line', lineNumber: 0, isLastLine: true }];
             
             const result = Array.from(Strings.iterateLines(text));
             assert.deepStrictEqual(result, expected);
@@ -184,8 +184,8 @@ suite('Strings-test', function () {
     
         test('should handle empty string input', () => {
             const text = ``;
-            const expected: { line: string; lineNumber: number }[] = [
-                { line: '', lineNumber: 0 },
+            const expected: { line: string; lineNumber: number, isLastLine: boolean }[] = [
+                { line: '', lineNumber: 0, isLastLine: true },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
@@ -195,10 +195,10 @@ suite('Strings-test', function () {
         test('should handle text with only newlines correctly', () => {
             const text = `\n\n\n`;
             const expected = [
-                { line: '', lineNumber: 0 },
-                { line: '', lineNumber: 1 },
-                { line: '', lineNumber: 2 },
-                { line: '', lineNumber: 3 },
+                { line: '', lineNumber: 0, isLastLine: false },
+                { line: '', lineNumber: 1, isLastLine: false },
+                { line: '', lineNumber: 2, isLastLine: false },
+                { line: '', lineNumber: 3, isLastLine: true },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
@@ -208,8 +208,8 @@ suite('Strings-test', function () {
         test('should handle text ending with a newline', () => {
             const text = `Ends with a newline\n`;
             const expected = [
-                { line: 'Ends with a newline', lineNumber: 0 },
-                { line: '', lineNumber: 1 },
+                { line: 'Ends with a newline', lineNumber: 0, isLastLine: false },
+                { line: '', lineNumber: 1, isLastLine: true },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
@@ -219,13 +219,59 @@ suite('Strings-test', function () {
         test('should handle multiple consecutive newlines within text', () => {
             const text = `Line 1\n\nLine 3\n`;
             const expected = [
-                { line: 'Line 1', lineNumber: 0 },
-                { line: '', lineNumber: 1 },
-                { line: 'Line 3', lineNumber: 2 },
-                { line: '', lineNumber: 3 },
+                { line: 'Line 1', lineNumber: 0, isLastLine: false },
+                { line: '', lineNumber: 1, isLastLine: false },
+                { line: 'Line 3', lineNumber: 2, isLastLine: false },
+                { line: '', lineNumber: 3, isLastLine: true },
             ];
             
             const result = Array.from(Strings.iterateLines(text));
+            assert.deepStrictEqual(result, expected);
+        });
+
+        test('should mark last line when ending with newline', () => {
+            const text = `Line 1\nLine 2\n`;
+            const expected = [
+                { line: 'Line 1', lineNumber: 0, isLastLine: false },
+                { line: 'Line 2', lineNumber: 1, isLastLine: false },
+                { line: '', lineNumber: 2, isLastLine: true },
+            ];
+    
+            const result = Array.from(Strings.iterateSplit(text, '\n'));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should mark last line without trailing newline', () => {
+            const text = `Line 1\nLine 2`;
+            const expected = [
+                { line: 'Line 1', lineNumber: 0, isLastLine: false },
+                { line: 'Line 2', lineNumber: 1, isLastLine: true },
+            ];
+    
+            const result = Array.from(Strings.iterateSplit(text, '\n'));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle single line without newline', () => {
+            const text = `Single line`;
+            const expected = [
+                { line: 'Single line', lineNumber: 0, isLastLine: true },
+            ];
+    
+            const result = Array.from(Strings.iterateSplit(text, '\n'));
+            assert.deepStrictEqual(result, expected);
+        });
+    
+        test('should handle multiple consecutive newlines with last line marking', () => {
+            const text = `Line 1\n\nLine 3\n`;
+            const expected = [
+                { line: 'Line 1', lineNumber: 0, isLastLine: false },
+                { line: '', lineNumber: 1, isLastLine: false },
+                { line: 'Line 3', lineNumber: 2, isLastLine: false },
+                { line: '', lineNumber: 3, isLastLine: true },
+            ];
+    
+            const result = Array.from(Strings.iterateSplit(text, '\n'));
             assert.deepStrictEqual(result, expected);
         });
     });
