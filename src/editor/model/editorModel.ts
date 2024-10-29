@@ -29,6 +29,9 @@ export class EditorModel extends Disposable implements IEditorModel {
     private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>());
     public readonly onTransaction = this._onTransaction.registerListener;
 
+    private readonly _onDidStateChange = this.__register(new Emitter<void>());
+    public readonly onDidStateChange = this._onDidStateChange.registerListener;
+
     // [fields]
 
     /** The configuration of the editor */
@@ -163,6 +166,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     public __onDidStateChange(newState: ProseEditorState): void {
         this._editorState = newState;
+        this._onDidStateChange.fire();
     }
 
     private __tokenizeAndParse(raw: string): ProseNode {

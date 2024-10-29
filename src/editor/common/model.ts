@@ -69,6 +69,11 @@ export interface IEditorModel extends IDisposable {
     readonly onTransaction: Register<ProseTransaction>;
 
     /**
+     * Fires whenever the state of the view is updated.
+     */
+    readonly onDidStateChange: Register<void>;
+
+    /**
      * @description Start building the model.
      * @note This will trigger `onDidBuild` event.
      */

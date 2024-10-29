@@ -51,6 +51,11 @@ export interface IEditorWidget extends IProseEventBroadcaster {
     readonly onDidRenderModeChange: Register<EditorType>;
 
     /**
+     * Fires whenever the state of the view is updated.
+     */
+    readonly onDidStateChange: Register<void>;
+
+    /**
      * @description Opens the source in the editor.
      * @param source The source in URI form.
      * 
@@ -97,7 +102,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
      */
     private readonly _options: EditorOptionController;
 
-    // [events]
+    // [model events]
+
+    private readonly _onDidStateChange = this.__register(new Emitter<void>());
+    public readonly onDidStateChange = this._onDidStateChange.registerListener;
+
+    // [view events]
 
     private readonly _onDidFocusChange = this.__register(new Emitter<boolean>());
     public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
@@ -240,6 +250,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     public override dispose(): void {
         super.dispose();
         this.__detachData();
+        this._extensions.dispose();
         this.logService.debug('EditorWidget', 'Editor disposed.');
     }
 
@@ -269,6 +280,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private __registerMVVMListeners(model: IEditorModel, view: IEditorView): IDisposable {
         const disposables = new DisposableManager();
+
+        // binding to the model
+        disposables.register(model.onDidStateChange(e => this._onDidStateChange.fire(e)));
 
         // binding to the view
         disposables.register(view.onDidFocusChange(e => this._onDidFocusChange.fire(e)));
@@ -385,6 +399,13 @@ class EditorExtensionController extends Disposable {
 
     public getExtensionByID(id: string): EditorExtension | undefined {
         return this._extensions.get(id);
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        for (const ext of this._extensions.values()) {
+            ext.dispose();
+        }
     }
 }
 
