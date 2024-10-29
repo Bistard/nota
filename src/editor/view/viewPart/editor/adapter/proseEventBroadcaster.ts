@@ -189,8 +189,14 @@ function __isProseEditorView(obj: any): obj is ProseEditorView {
 
 /**
  * @class Given either a prosemirror view, or a property object from an 
- * extension, the broadcaster will bind all the pre-defined event emitter with 
- * that target properly.
+ * extension, the broadcaster will bind all the event emitter from prosemirror 
+ * to our own {@link Emitter} for standardized event handling.
+ * 
+ * If:
+ *  - binding with a {@link ProseEditorProperty}, all the events from prosemirror
+ *    will be emitted through our own {@link Emitter}.
+ *  - binding with a {@link ProseEditorView}, all the events with an additional
+ *    event {@link ProseDirectEditorProperty.dispatchTransaction} will be emitted.
  */
 export class ProseEventBroadcaster extends Disposable implements IProseEventBroadcaster {
 
