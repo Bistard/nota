@@ -9,6 +9,7 @@ const { JSDOM } = require('jsdom');
 const { window } = new JSDOM('', {
     url: "http://localhost",
     pretendToBeVisual: true,
+    userAgent: global.userAgent,
 });
 
 global.window = window;
@@ -25,10 +26,6 @@ Object.keys(window).forEach((property) => {
 });
 
 window.console = global.console;
-global.navigator = {
-    userAgent: 'node.js',
-    platform: 'Node.js',
-};
 
 /**
  * fix: Prevents the CodeMirror error 'getClientRects is undefined'
