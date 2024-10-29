@@ -232,6 +232,24 @@ export namespace Strings {
     }
 
     /**
+     * @description Extracts a substring from the given string `s`, starting at 
+     * `startPosition` and ending just before the first occurrence of a character 
+     * different from `c`.
+     *
+     * @param s The string to extract the substring from.
+     * @param c The character to match continuously in `s`.
+     * @param startPosition The index to start checking from. Defaults to 0.
+     * @returns A substring of consecutive `c` characters starting from `startPosition`.
+     */
+    export function substringUntilNotChar(s: string, c: string, startPosition: number = 0): string {
+        let endPosition = startPosition;
+        while (endPosition < s.length && s[endPosition] === c) {
+            endPosition++;
+        }
+        return s.substring(startPosition, endPosition);
+    }
+
+    /**
      * @description Finds the first non-space character in a given string 
      * starting from a specified position.
      *

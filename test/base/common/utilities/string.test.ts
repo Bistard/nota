@@ -328,6 +328,41 @@ suite('Strings-test', function () {
             assert.deepStrictEqual(Strings.substringUntilChar2('', 'a'), { index: -1, str: '' });
         });
     });
+
+    suite('substringUntilNotChar', () => {
+        test('Extracts substring of consecutive characters at start of string', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('aaaaabbbb', 'a'), 'aaaaa');
+        });
+    
+        test('Extracts substring of consecutive characters from a given start position', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('cccccdddd', 'c', 1), 'cccc');
+        });
+    
+        test('Returns empty string if startPosition is at the end of the string', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('aaaaa', 'a', 5), '');
+        });
+    
+        test('Returns empty string if startPosition points to a different character', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('aaaabbbb', 'a', 4), '');
+        });
+    
+        test('Returns empty string when no matching characters are found at start position', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('bbbb', 'a'), '');
+        });
+    
+        test('Returns entire string if it consists solely of the target character', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('aaaaa', 'a'), 'aaaaa');
+        });
+    
+        test('Handles single character strings correctly', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('a', 'a'), 'a');
+            assert.strictEqual(Strings.substringUntilNotChar('b', 'a'), '');
+        });
+    
+        test('Handles empty string input', () => {
+            assert.strictEqual(Strings.substringUntilNotChar('', 'a'), '');
+        });
+    });
     
     suite('firstNonSpaceChar', () => {
         test('should return correct index and character for first non-space character', () => {
