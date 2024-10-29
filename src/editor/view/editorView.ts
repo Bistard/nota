@@ -1,7 +1,6 @@
 import 'src/editor/view/media/editorView.scss';
 import { Disposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
-import { defaultLog, ILogEvent, ILogService, LogLevel } from "src/base/common/logger";
+import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';

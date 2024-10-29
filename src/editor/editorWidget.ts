@@ -17,6 +17,7 @@ import { ConfigurationModuleType, IConfigurationService } from "src/platform/con
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
+import { AsyncResult } from "src/base/common/result";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -56,6 +57,11 @@ export interface IEditorWidget extends IProseEventBroadcaster {
      * @throws An exception will be thrown if the editor cannot open it.
      */
     open(source: URI): Promise<void>;
+
+    /**
+     * @description Save the text model into the disk.
+     */
+    save(): AsyncResult<void, Error>;
 
     /**
      * @description Updates the options of the editor widget.
@@ -222,6 +228,13 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         // cache data
         this._editorData = new EditorData(this._model, this._view, listeners);
+    }
+
+    public save(): AsyncResult<void, Error> {
+        if (!this._model) {
+            return AsyncResult.ok();
+        }
+        return this._model.save();
     }
 
     public override dispose(): void {

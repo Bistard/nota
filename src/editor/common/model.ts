@@ -161,11 +161,14 @@ export interface IEditorModel extends IDisposable {
      */
     getCharCodeByLine(lineNumber: number, lineOffset: number): number;
 
-    // #region internal
+    /**
+     * @description Save the text model into the disk.
+     */
+    save(): AsyncResult<void, Error>;
+
+    // internal
 
     __onDidStateChange(newState: ProseEditorState): void;
-
-    // #endregion
 }
 
 /**

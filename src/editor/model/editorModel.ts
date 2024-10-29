@@ -1,9 +1,11 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
+import { DataBuffer } from "src/base/common/files/buffer";
 import { URI } from "src/base/common/files/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
 import { AsyncResult, ok } from "src/base/common/result";
 import { assert } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
@@ -148,6 +150,15 @@ export class EditorModel extends Disposable implements IEditorModel {
         return -1; // TODO
     }
 
+    public save(): AsyncResult<void, Error> {
+        const state = assert(this._editorState);
+        const serialized = this._docSerializer.serialize(state.doc);
+        const buffer = DataBuffer.fromString(serialized);
+
+        return AsyncResult.err(new Error('save() is not implemented yet.'));
+        // return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false });
+    }
+
     // [private methods]
 
     public __onDidStateChange(newState: ProseEditorState): void {
@@ -156,7 +167,11 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private __tokenizeAndParse(raw: string): ProseNode {
         const tokens = this._lexer.lex(raw);
-        return this._docParser.parse(tokens);
+        const doc = this._docParser.parse(tokens);
+        console.log(tokens); // TEST
+        console.log(doc); // TEST
+        console.log(Strings.escape(this._docSerializer.serialize(doc))); // TEST
+        return doc;
     }
 
     private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
