@@ -89,9 +89,10 @@ const defaultMarkSerializationOptions: IDocumentMarkSerializationOptions = {
  */
 export interface IMarkdownSerializerOptions {
     readonly strict?: boolean;
+    readonly defaultDelimiter?: string;
 
     tightLists?: boolean;
-    escapeExtraCharacters?: RegExp;
+    escapeExtraCharacters: RegExp | undefined;
 }
 
 /**
@@ -102,7 +103,7 @@ export class MarkdownSerializer {
     // [fields]
 
     private readonly _nodeProvider: DocumentNodeProvider;
-    private readonly _options: IMarkdownSerializerOptions;
+    private readonly _options: Required<IMarkdownSerializerOptions>;
 
     // [constructor]
 
@@ -114,7 +115,8 @@ export class MarkdownSerializer {
         this._options = {
             tightLists: options.tightLists ?? false,
             strict: options.strict ?? true,
-            escapeExtraCharacters: options.escapeExtraCharacters,
+            escapeExtraCharacters: options.escapeExtraCharacters ?? undefined,
+            defaultDelimiter: options.defaultDelimiter ?? '',
         };
     }
 
@@ -148,6 +150,7 @@ export interface IMarkdownSerializerState {
 
     serializeDelimitedBlock(delimiters: string[], parent: ProseNode): void;
     setDelimiterIncrements(delimiters: string[]): void;
+    setDefaultDelimiter(delimiter: string): void;
 }
 
 /**
@@ -158,7 +161,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     // [fields]
 
     private readonly _nodeProvider: DocumentNodeProvider;
-    private readonly _options: IMarkdownSerializerOptions;
+    private readonly _options: Required<IMarkdownSerializerOptions>;
 
     private _output: string;
     private _delimiter: IncrementalDelimiter;
@@ -172,12 +175,12 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     constructor(
         nodeProvider: DocumentNodeProvider,
-        options: IMarkdownSerializerOptions,
+        options: Required<IMarkdownSerializerOptions>,
     ) {
         this._nodeProvider = nodeProvider;
         this._options = options;
         this._output = '';
-        this._delimiter = new IncrementalDelimiter('');
+        this._delimiter = new IncrementalDelimiter(this._options.defaultDelimiter);
     }
 
     // [public methods]
@@ -188,6 +191,8 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     public setInAutoLink(value: boolean | undefined): void { this._inAutoLink = value; }
 
     public complete(): string {
+        this._delimiter.clearIncrements();
+        this._delimiter.setDefault(this._options.defaultDelimiter);
         return this._output;
     }
 
@@ -288,6 +293,10 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     public setDelimiterIncrements(delimiters: string[]): void {
         this._delimiter.setIncrement(delimiters);
+    }
+
+    public setDefaultDelimiter(delimiter: string): void {
+        this._delimiter.setDefault(delimiter);
     }
 
     // [private methods]
@@ -560,6 +569,10 @@ export class IncrementalDelimiter {
             this._increment.popFront();
         }
         return delimiter;
+    }
+
+    public setDefault(delimiter: string): void {
+        this._defaultDelimiter = delimiter;
     }
 
     public setIncrement(increments: string[]): void {
