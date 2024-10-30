@@ -26,21 +26,23 @@ interface IEditorAutoSaveExtension extends IEditorExtension {
      * When editor is lost focus, file is saved immediately.
      */
     readonly autoSaveOnLoseFocus: boolean;
-    
 }
 
 export class EditorAutoSaveExtension extends EditorExtension implements IEditorAutoSaveExtension {
 
     // [fields]
 
-    public override id = EditorExtensionIDs.AutoSave;
-    public autoSave = false;
-    public autoSaveDelay = Time.sec(1);
-    public readonly autoSaveOnLoseFocus = false;
+    public override readonly id = EditorExtensionIDs.AutoSave;
+
+    private _autoSave = false;
+    private _autoSaveOnLoseFocus = false;
+    private _autoSaveDelay = Time.sec(1);
+    
     private _scheduler: UnbufferedScheduler<void>;
     private _editorWidget: IEditorWidget;
 
     // [constructor]
+
     constructor(
         editorWidget: IEditorWidget,
         @ILogService logService: ILogService,
@@ -49,15 +51,23 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     ) {
         super(editorWidget, logService);
         this._editorWidget = editorWidget;
-        this._scheduler = this.__register(new UnbufferedScheduler(this.autoSaveDelay, () => {
+        this._scheduler = this.__register(new UnbufferedScheduler(this._autoSaveDelay, () => {
             this.__saveEditorContent();
         }));
-        if (this.autoSave) {
-            this.__registerConfigurationListener();
-            this.__registerEditorStateListener();
-            this.__registerLoseFocusListener();
-        }
+
+        this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave);
+        // TODO: config init
+
+        this.__registerConfigurationListener();
+        this.__registerEditorStateListener();
+        this.__registerLoseFocusListener();
     }
+
+    // [getter]
+
+    get autoSave(): boolean { return this._autoSave; }
+    get autoSaveDelay(): Time { return this._autoSaveDelay; }
+    get autoSaveOnLoseFocus(): boolean { return this._autoSaveOnLoseFocus; }
 
     // [protected methods]
 
@@ -70,24 +80,31 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     }
 
     // [private methods]
+
     private __registerConfigurationListener(): void {
+
+        // autoSave: true -> false
+
         this.__register(this.configurationService.onDidConfigurationChange(e => {
-            if (e.affect('editor.autoSave')) {
-                const ifEnable = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave);
-                this.autoSave = ifEnable;
+            if (e.affect(WorkbenchConfiguration.EditorAutoSave)) {
+                this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave);
             }
+            // TODO: configuration sync
         }));
     }
 
     private __registerEditorStateListener(): void {
         this.__register(this._editorWidget.onDidStateChange(() => {
-            this._scheduler.schedule();
+            if (this._autoSave) {
+                this._scheduler.schedule();
+            }
         }));
     }
 
     private __registerLoseFocusListener(): void {
         this.__register(this._editorWidget.onDidFocusChange(focused => {
-            if (!focused && this.autoSaveOnLoseFocus) {
+            if (!focused && this._autoSaveOnLoseFocus) {
+                this._scheduler.cancel();
                 this.__saveEditorContent();
             }
         }));

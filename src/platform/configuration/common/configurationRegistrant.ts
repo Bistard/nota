@@ -6,7 +6,7 @@ import { Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
-import { sharedNavigationViewConfigurationRegister, sharedWorkbenchConfigurationRegister, sharedWorkspaceConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { sharedEditorConfigurationRegister, sharedNavigationViewConfigurationRegister, sharedWorkbenchConfigurationRegister, sharedWorkspaceConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
 
 export type IConfigurationSchema = IJsonSchema & {
 
@@ -188,6 +188,7 @@ export class ConfigurationRegistrant implements IConfigurationRegistrant {
             sharedWorkbenchConfigurationRegister,
             sharedNavigationViewConfigurationRegister,
             sharedWorkspaceConfigurationRegister,
+            sharedEditorConfigurationRegister,
         ]
         .forEach(register => register(provider));
     }
