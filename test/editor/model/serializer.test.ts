@@ -12,7 +12,7 @@ const nodeProvider = DocumentNodeProvider.create().register();
 const schema = buildSchema(nodeProvider);
 const lexer = new MarkdownLexer({});
 const docParser = new DocumentParser(schema, nodeProvider, /* options */);
-const serializer = new MarkdownSerializer(nodeProvider, { strict: true });
+const serializer = new MarkdownSerializer(nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
 docParser.onLog(e => defaultLog(new ConsoleLogger(), e.level, 'serializer.test.ts', e.message, e.error, e.additionals));
 
 /**
@@ -132,6 +132,10 @@ suite('MarkdownSerializer', () => {
             expectSame('   > Blockquote level 1.\n   >> Blockquote level 2.\n   >>> Blockquote level 3.\n');
         });
 
+        test.skip('Blockquote - with multiple blockquote levels and leading spaces 2', () => {
+            expectSame('   > Blockquote level 1.\n   >> Blockquote level 2.\n   >>> Blockquote level 3.\n with ending text');
+        });
+
         test('Paragraph and Blockquote - only the last token with end of line at the end should be preserved', () => {
             expectSame('paragraph1\n> blockquote1\n');
         });
@@ -140,8 +144,12 @@ suite('MarkdownSerializer', () => {
             expectSame('---\n');
         });
 
-        test.skip('codeBlock - with new line at the end', () => {
+        test('codeBlock - with new line at the end', () => {
             expectSame('```ts\nconsole.log("hello world");```\n');
+        });
+        
+        test('codeBlock - with new line at the end 2', () => {
+            expectSame('```ts\nconsole.log("hello world");```\n with ending text');
         });
         
         test.skip('list - with new line at the end', () => {
@@ -313,6 +321,11 @@ suite('MarkdownSerializer', () => {
         
             test('Heading with an empty line after the hash marks', () => {
                 expectSame('## \nHeading with newline after hash marks'); // Content should not be treated as part of the heading
+            });
+
+            // FIX: see https://github.com/markedjs/marked/issues/3513
+            test.skip('Heading with two line breaks', () => {
+                expectSame('# Heading\n\n');
             });
         });
     
@@ -969,6 +982,134 @@ suite('MarkdownSerializer', () => {
             
             test('Blockquote with <br> 2', () => {
                 expectSame('> p1\n   <br>');
+            });
+        });
+
+        suite('codeblock', () => {
+            test('Basic fenced code block with backticks', () => {
+                expectSame('```\nconsole.log("Hello, World!");\n```');
+            });
+        
+            test('Basic fenced code block with tildes', () => {
+                expectSame('~~~\nconsole.log("Hello, World!");\n~~~');
+            });
+        
+            test('Fenced code block with language (JavaScript)', () => {
+                expectSame('```javascript\nconsole.log("Hello, World!");\n```');
+            });
+        
+            test('Fenced code block with special characters', () => {
+                expectSame('```\n<>&{}\n```');
+            });
+            
+            test('Code block with empty text 1', () => {
+                expectSame('``````');
+            });
+
+            test('Code block with empty text 2', () => {
+                expectSame('```\n```');
+            });
+            
+            test('Code block with empty text 3', () => {
+                expectSame('```\n`````');
+            });
+        
+            test('Fenced code block with more than three backticks', () => {
+                expectSame('````\nCode with four backticks\n````');
+            });
+        
+            test('Code block with multiple lines', () => {
+                expectSame('```\nLine 1\nLine 2\nLine 3\n```');
+            });
+        
+            test('Code block with inline comments', () => {
+                expectSame('```\n// This is a comment\nconsole.log("Code with comment");\n```');
+            });
+        
+            test('Code block with HTML content', () => {
+                expectSame('```\n<div>Hello World</div>\n```');
+            });
+        
+            test('Indented code block with spaces', () => {
+                expectSame('    console.log("Indented code block");');
+            });
+        
+            test('Fenced code block with spaces inside backticks', () => {
+                expectSameTo('``` \nCode with space after backticks\n```', '```\nCode with space after backticks\n```');
+            });
+        
+            test('Code block with mixed tabs and spaces', () => {
+                expectSame('```\n\tconsole.log("Mixed tabs and spaces");\n```');
+            });
+        
+            test('Code block followed by regular text', () => {
+                expectSame('```\nconsole.log("Code block");\n```\n\nRegular text after code block.');
+            });
+        
+            test('Code block with empty lines inside', () => {
+                expectSame('```\nconsole.log("First line");\n\nconsole.log("Second line");\n```');
+            });
+        
+            test('Code block with extra blank lines before and after', () => {
+                expectSame('\n\n```\nconsole.log("Hello");\n```\n\n');
+            });
+        
+            test('Fenced code block with invalid closing fence', () => {
+                expectSame('```\nconsole.log("Unclosed code block");\n``'); // Missing last backtick
+            });
+        
+            test('Code block containing blockQuotes', () => {
+                expectSame('```\n> Blockquote inside code\nconsole.log("Still code");\n```');
+            });
+        
+            test('Code block with special characters and spaces', () => {
+                expectSame('```\n!@#$%^&*()   _+{}|:"<>?\n```');
+            });
+        
+            test('Nested code block within a blockquote', () => {
+                expectSame('> ```\n> console.log("Nested code block");\n> ```');
+            });
+        
+            // FIX: see https://github.com/markedjs/marked/issues/3514
+            test.skip('Code block with mismatched closing fence style 1', () => {
+                expectSame('```\nMismatched closing style\n~~~');
+            });
+            
+            // FIX: see https://github.com/markedjs/marked/issues/3514
+            test.skip('Code block with mismatched closing fence style 2', () => {
+                expectSame('```\nMismatched closing style\n~~~~');
+            });
+        
+            test('Code block with heading and fenced code', () => {
+                expectSame('# Heading\n```\nCode under heading\n```');
+            });
+
+            test('Code block with line breaks between code', () => {
+                expectSame('```\nconsole.log("Line 1");\n\nconsole.log("Line 3");\n```');
+            });
+        
+            test('Code block with special Markdown syntax characters inside', () => {
+                expectSame('```\n# This is not a heading\n- This is not a list item\n```');
+            });
+        
+            test('Code block with Python syntax', () => {
+                expectSame('```python\nprint("Hello, Python!")\n```');
+            });
+        
+            test('Multiple consecutive code blocks', () => {
+                expectSame('```\nFirst code block\n```\n\n```\nSecond code block\n```');
+            });
+
+            test('codeBlock - with new line at the end 1', () => {
+                expectSame('```ts\nconsole.log("hello world");\n```\n');
+            });
+            
+            test('codeBlock - with new line at the end 2', () => {
+                expectSame('```ts\nconsole.log("hello world");\n```\n\n\n\n\n');
+            });
+            
+            test('codeBlock - with new line at the end 3', () => {
+                expectSame('```ts\nconsole.log("hello world");```\n');
             });
         });
     });
