@@ -1,6 +1,6 @@
 import { Strings } from "src/base/common/utilities/string";
 import { isString } from "src/base/common/utilities/type";
-import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirrror";
+import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
