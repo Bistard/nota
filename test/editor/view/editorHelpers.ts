@@ -1,7 +1,7 @@
 import { MarkBuilder, NodeBuilder, builders } from 'prosemirror-test-builder';
 import { pipe } from 'src/base/common/utilities/functional';
 import { ProseEditorState, ProseEditorView, ProseNode, ProseNodeSelection, ProseSchema, ProseTextSelection } from "src/editor/common/proseMirror";
-import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
 import { buildSchema } from "src/editor/model/schema";
 
 /**

@@ -8,7 +8,7 @@ import { isString } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
 import { ProseMark, ProseNode } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
-import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
 
 export type Serializer<TNode extends ProseNode | ProseMark, TReturn extends void | string> = (state: IMarkdownSerializerState, node: TNode, parent: ProseNode, index: number) => TReturn;
 

@@ -1,37 +1,37 @@
 import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec } from "src/editor/common/proseMirror";
-import { DocumentMark, IParseTokenStatus } from "src/editor/model/parser/documentNode";
+import { DocumentMark, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
-export const enum StrongType {
+export const enum EmType {
     underscore = 'underscore',
     asterisk = 'asterisk',
 }
 
 /**
- * @class A strong mark. Rendered as `<strong>`, parse rules also match `<b>` 
- * and `font-weight: bold`.
+ * @class An emphasis mark. Rendered as an `<em>` element. Has parse rules that 
+ * also match `<i>` and `font-style: italic`.
  */
-export class Strong extends DocumentMark<EditorTokens.Strong> {
+export class Emphasis extends DocumentMark<EditorTokens.Em> {
 
     constructor() {
-        super(MarkEnum.Strong);
+        super(MarkEnum.Em);
     }
 
     public getSchema(): ProseMarkSpec {
         return <ProseMarkSpec>{
             attrs: {
-                type: { default: StrongType.asterisk },
+                type: { default: EmType.asterisk },
             },
-            toDOM: () => { return ['strong', 0]; }
+            toDOM: () => { return ['em', 0]; }
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Strong>): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Em>): void {
         const { token } = status;
-        const type = token.raw.at(0) === '*' ? StrongType.asterisk : StrongType.underscore;
+        const type = token.raw.at(0) === '*' ? EmType.asterisk : EmType.underscore;
         state.activateMark(this.ctor.create({ type: type }));
         if (token.tokens) {
             state.parseTokens(status.level + 1, token.tokens, token);
@@ -42,14 +42,14 @@ export class Strong extends DocumentMark<EditorTokens.Strong> {
     }
 
     public readonly serializer: IDocumentMarkSerializationOptions = {
-        serializeOpen: (_state, mark) => __getOpenAndClose(mark),
-        serializeClose: (_state, mark) => __getOpenAndClose(mark),
+        serializeOpen: (_state, mark) => this.__getOpenAndClose(mark),
+        serializeClose: (_state, mark) => this.__getOpenAndClose(mark),
         mixable: true,
         expelEnclosingWhitespace: true,
     };
-}
 
-function __getOpenAndClose(mark: ProseMark): string {
-    const type = mark.attrs['type'] as StrongType;
-    return type === StrongType.asterisk ? '**' : '__';
+    private __getOpenAndClose(mark: ProseMark): string {
+        const type = mark.attrs['type'] as EmType;
+        return type === EmType.asterisk ? '*' : '_';
+    }
 }

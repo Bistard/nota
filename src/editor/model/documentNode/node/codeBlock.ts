@@ -4,7 +4,7 @@ import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirrror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 
@@ -121,8 +121,16 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
 
 
 function __resolveFenceStatus(token: EditorTokens.CodeBlock): 
-    { type: CodeBlockFenceType.Indent, length: undefined } 
-    | { type: CodeBlockFenceType.backTick | CodeBlockFenceType.WaveLine, length: number, hasEndFence: boolean, hasSingleEndOfLine: boolean, mismatchFence?: string } 
+    { 
+        type: CodeBlockFenceType.Indent, 
+        length: undefined 
+    } | { 
+        type: CodeBlockFenceType.backTick | CodeBlockFenceType.WaveLine, 
+        length: number, 
+        hasEndFence: boolean, 
+        hasSingleEndOfLine: boolean, 
+        mismatchFence?: string 
+    } 
 {
     if (token.codeBlockStyle === 'indented') {
         return { type: CodeBlockFenceType.Indent, length: undefined };

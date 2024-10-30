@@ -5,14 +5,13 @@ import { URI } from "src/base/common/files/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
 import { AsyncResult, ok } from "src/base/common/result";
 import { assert } from "src/base/common/utilities/panic";
-import { Strings } from "src/base/common/utilities/string";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorPosition } from "src/editor/common/position";
 import { ProseEditorState, ProseNode, ProseTransaction } from "src/editor/common/proseMirror";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
-import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
 import { DocumentParser, IDocumentParser } from "src/editor/model/parser/parser";
 import { buildSchema, EditorSchema } from "src/editor/model/schema";
 import { MarkdownSerializer } from "src/editor/model/serializer/serializer";
@@ -174,7 +173,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const doc = this._docParser.parse(tokens);
         console.log(tokens); // TEST
         console.log(doc); // TEST
-        console.log(Strings.escape(this._docSerializer.serialize(doc))); // TEST
+        console.log(this._docSerializer.serialize(doc)); // TEST
         return doc;
     }
 

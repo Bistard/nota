@@ -8,8 +8,8 @@ import { isNullable, isNumber, isString, StringDictionary } from "src/base/commo
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, IProseTextNode } from "src/editor/common/proseMirror";
-import { DocumentMark, DocumentNode, IDocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
-import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { DocumentMark, DocumentNode, IDocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
+import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
 import { EditorSchema } from "src/editor/model/schema";
 
 /**

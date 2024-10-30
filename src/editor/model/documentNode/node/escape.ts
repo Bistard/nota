@@ -1,7 +1,7 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
-import { DocumentNode, IParseTokenStatus } from "src/editor/model/parser/documentNode";
+import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
 

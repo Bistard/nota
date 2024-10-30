@@ -2,7 +2,7 @@ import { panic } from "src/base/common/utilities/panic";
 import { Dictionary } from "src/base/common/utilities/type";
 import { ProseDOMOutputSpec } from "src/editor/common/proseMirror";
 import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, IProseTextNode } from "src/editor/common/proseMirror";
-import { DocumentNodeProvider } from "src/editor/model/parser/documentNodeProvider";
+import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
 
 /**
  * The top level document node.
