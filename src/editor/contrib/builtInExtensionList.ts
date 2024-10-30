@@ -1,6 +1,6 @@
 import { Constructor } from "src/base/common/utilities/type";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
-import { EditorCommandExtension } from "src/editor/view/contrib/commandExtension";
+import { EditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
 
 export const enum EditorExtensionIDs {
     Command = 'editor-command-extension',

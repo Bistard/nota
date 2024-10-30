@@ -1,4 +1,4 @@
-import type { IEditorCommandExtension } from "src/editor/view/contrib/commandExtension";
+import type { IEditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";

@@ -14,7 +14,7 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
 import { EditorType } from "src/editor/common/view";
-import { getBuiltInExtension } from 'src/editor/common/extension/builtInExtension';
+import { getBuiltInExtension } from 'src/editor/contrib/builtInExtensionList';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { assert, panic } from 'src/base/common/utilities/panic';
 import { Emitter } from 'src/base/common/event';
