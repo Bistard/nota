@@ -2,10 +2,10 @@ import * as assert from 'assert';
 import { defaultLog } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/utilities/string';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
-import { DocumentNodeProvider } from 'src/editor/model/parser/documentNodeProvider';
-import { DocumentParser } from 'src/editor/model/parser/parser';
+import { DocumentNodeProvider } from 'src/editor/model/documentNode/documentNodeProvider';
+import { DocumentParser } from 'src/editor/model/parser';
 import { buildSchema } from 'src/editor/model/schema';
-import { IncrementalDelimiter, MarkdownSerializer } from 'src/editor/model/serializer/serializer';
+import { IncrementalDelimiter, MarkdownSerializer } from 'src/editor/model/serializer';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
 
 const nodeProvider = DocumentNodeProvider.create().register();
@@ -1110,6 +1110,76 @@ suite('MarkdownSerializer', () => {
             
             test('codeBlock - with new line at the end 3', () => {
                 expectSame('```ts\nconsole.log("hello world");```\n');
+            });
+        });
+
+        suite.skip('list', () => {
+            test('Unordered list - Basic', () => {
+                expectSame('- Item 1\n- Item 2\n- Item 3');
+            });
+        
+            test('Ordered list - Basic', () => {
+                expectSame('1. First item\n2. Second item\n3. Third item');
+            });
+        
+            test('Ordered list - Non-standard start', () => {
+                expectSame('5. First item\n6. Second item\n7. Third item');
+            });
+        
+            test('Unordered list - Mixed symbols', () => {
+                expectSame('- Item 1\n* Item 2\n+ Item 3');
+            });
+        
+            test('Nested unordered list', () => {
+                expectSame('- Item 1\n  - Nested Item 1.1\n  - Nested Item 1.2\n- Item 2');
+            });
+        
+            test('Nested ordered list', () => {
+                expectSame('1. First item\n   1. Nested item 1.1\n   2. Nested item 1.2\n2. Second item');
+            });
+        
+            test('Mixed ordered and unordered lists', () => {
+                expectSame('1. Ordered item\n   - Unordered nested item\n2. Ordered item');
+            });
+        
+            test('Unordered list - Indented items', () => {
+                expectSame('  - Indented item 1\n    - More indented item 1.1\n  - Indented item 2');
+            });
+        
+            test('Ordered list - Indented items', () => {
+                expectSame('   1. Indented item 1\n      2. More indented item 1.1\n   2. Indented item 2');
+            });
+        
+            test('Unordered list - Line breaks between items', () => {
+                expectSame('- Item 1\n\n- Item 2\n\n- Item 3');
+            });
+        
+            test('Ordered list - Line breaks between items', () => {
+                expectSame('1. Item 1\n\n2. Item 2\n\n3. Item 3');
+            });
+        
+            test('List with special characters', () => {
+                expectSame('- Item with special characters !@#$%^&*()\n- Another item *bold* _italic_');
+            });
+        
+            test('List with bold and italic formatting', () => {
+                expectSame('- **Bold item**\n- *Italic item*\n1. **Bold ordered item**\n2. *Italic ordered item*');
+            });
+        
+            test('Ordered list - Incorrect numbering', () => {
+                expectSame('1. Item 1\n3. Item 2\n2. Item 3'); // Should not renumber automatically
+            });
+        
+            test('List with mixed indentation', () => {
+                expectSame('- Item 1\n     - Deeply indented item\n- Item 2\n    - Less indented item');
+            });
+        
+            test('List with trailing and leading spaces', () => {
+                expectSameTo('  - Leading and trailing spaces   \n- Regular item  ', '- Leading and trailing spaces\n- Regular item');
+            });
+        
+            test('Complex nested lists', () => {
+                expectSame('1. Item 1\n   - Nested Item\n      * Deep Nested Item\n2. Item 2\n   1. Nested Ordered Item\n      - Mixed Nested Item');
             });
         });
     });

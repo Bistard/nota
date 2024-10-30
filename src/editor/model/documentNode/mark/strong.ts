@@ -2,8 +2,8 @@ import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec } from "src/editor/common/proseMirror";
 import { DocumentMark, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
-import { IDocumentParseState } from "src/editor/model/parser/parser";
-import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
+import { IDocumentParseState } from "src/editor/model/parser";
+import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer";
 
 export const enum StrongType {
     underscore = 'underscore',

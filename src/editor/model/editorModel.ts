@@ -12,9 +12,9 @@ import { IEditorPosition } from "src/editor/common/position";
 import { ProseEditorState, ProseNode, ProseTransaction } from "src/editor/common/proseMirror";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
 import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
-import { DocumentParser, IDocumentParser } from "src/editor/model/parser/parser";
+import { DocumentParser, IDocumentParser } from "src/editor/model/parser";
 import { buildSchema, EditorSchema } from "src/editor/model/schema";
-import { MarkdownSerializer } from "src/editor/model/serializer/serializer";
+import { MarkdownSerializer } from "src/editor/model/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
 
 

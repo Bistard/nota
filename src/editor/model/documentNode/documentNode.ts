@@ -1,9 +1,9 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNode, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
-import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IDocumentParseState } from "src/editor/model/parser";
 import { EditorSchema } from "src/editor/model/schema";
-import { IDocumentMarkSerializationOptions, Serializer } from "src/editor/model/serializer/serializer";
+import { IDocumentMarkSerializationOptions, Serializer } from "src/editor/model/serializer";
 
 export interface IParseTokenStatus<TToken = EditorToken> {
     

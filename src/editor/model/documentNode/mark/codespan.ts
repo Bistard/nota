@@ -2,8 +2,8 @@ import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec, ProseNode } from "src/editor/common/proseMirror";
 import { DocumentMark, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
-import { IDocumentParseState } from "src/editor/model/parser/parser";
-import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
+import { IDocumentParseState } from "src/editor/model/parser";
+import { IDocumentMarkSerializationOptions, IMarkdownSerializerState } from "src/editor/model/serializer";
 
 /**
  * @class Code font mark. Represented as a `<code>` element.

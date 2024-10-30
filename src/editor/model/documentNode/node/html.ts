@@ -5,9 +5,9 @@ import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
-import { IDocumentParseState } from "src/editor/model/parser/parser";
+import { IDocumentParseState } from "src/editor/model/parser";
 import { createDomOutputFromOptions } from "src/editor/model/schema";
-import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
+import { IMarkdownSerializerState } from "src/editor/model/serializer";
 
 /**
  * @class A block node that represents `<html>`.

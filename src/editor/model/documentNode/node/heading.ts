@@ -3,8 +3,8 @@ import { EditorToken, EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
-import { IDocumentParseState } from "src/editor/model/parser/parser";
-import { IMarkdownSerializerState } from "src/editor/model/serializer/serializer";
+import { IDocumentParseState } from "src/editor/model/parser";
+import { IMarkdownSerializerState } from "src/editor/model/serializer";
 
 /**
  * @class A heading textblock, with a `level` attribute that should hold the 
