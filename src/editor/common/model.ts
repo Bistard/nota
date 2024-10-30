@@ -4,7 +4,7 @@ import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ProseEditorState, ProseTransaction } from "src/editor/common/proseMirror";
 import { AsyncResult } from "src/base/common/result";
-import { IEditorExtension } from "src/editor/common/extension/editorExtension";
+import { IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorSchema } from "src/editor/model/schema";
 import { IEditorPosition } from "src/editor/common/position";
 

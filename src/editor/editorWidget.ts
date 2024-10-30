@@ -8,14 +8,14 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
 import { EditorType, IEditorView } from "src/editor/common/view";
-import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/configuration/editorConfiguration";
+import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { EditorExtension } from "src/editor/common/extension/editorExtension";
+import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
 import { AsyncResult } from "src/base/common/result";
 

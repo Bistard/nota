@@ -4,7 +4,7 @@ import { trySafe } from "src/base/common/error";
 import { Shortcut } from "src/base/common/keyboard";
 import { ILogService } from "src/base/common/logger";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
-import { EditorExtension, IEditorExtension } from "src/editor/common/extension/editorExtension";
+import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { registerBasicEditorCommands } from "src/editor/contrib/commandExtension/editorCommands";
 import { Command } from "src/platform/command/common/command";

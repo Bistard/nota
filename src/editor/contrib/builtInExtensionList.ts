@@ -1,5 +1,5 @@
 import { Constructor } from "src/base/common/utilities/type";
-import { EditorExtension } from "src/editor/common/extension/editorExtension";
+import { EditorExtension } from "src/editor/common/editorExtension";
 import { EditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
 
 export const enum EditorExtensionIDs {

@@ -7,7 +7,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
-import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
+import { IEditorWidgetOptions } from "src/editor/common/editorConfiguration";
 import { deepCopy } from "src/base/common/utilities/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
