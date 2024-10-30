@@ -28,6 +28,11 @@ export const enum WorkbenchConfiguration {
 
     RestorePrevious    = 'workspace.restorePrevious',
     OutlineToggleState = 'workspace.outline.toggleState',
+
+    // [editor]
+    EditorAutoSave            = 'editor.autoSave',
+    EditorAutoSaveDelay       = 'editor.autoSaveDelay',
+    EditorAutoSaveOnLoseFocus = 'editor.autoSaveOnLoseFocus'
 }
 
 /**
@@ -164,4 +169,36 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
             },
         });
     },
+);
+
+export const sharedEditorConfigurationRegister = createRegister(
+    RegistrantType.Configuration,
+    'rendererEditor',
+    (registrant) => {
+        registrant.registerConfigurations({
+            id: 'editor',
+            properties: {
+
+                // editor configurations
+                ['editor']: {
+                    type: 'object',
+                    properties: {
+                        ['autoSave']: {
+                            type: 'boolean',
+                            default: false,
+                        },
+                        ['autoSaveDelay']: {
+                            type: 'number',
+                            default: 1000,
+                            minimum: 0,
+                        },
+                        ['autoSaveOnLoseFocus']: {
+                            type: 'boolean',
+                            default: false,
+                        }
+                    }
+                },
+            },
+        });
+    }
 );
