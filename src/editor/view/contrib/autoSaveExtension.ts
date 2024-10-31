@@ -1,3 +1,4 @@
+import { time } from "console";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Time } from "src/base/common/date";
@@ -55,8 +56,10 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
             this.__saveEditorContent();
         }));
 
-        this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave);
-        // TODO: config init
+        // Initialize the configuration settings
+        this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave, false);
+        this._autoSaveOnLoseFocus = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSaveOnLoseFocus, false);
+        this._autoSaveDelay = Time.ms(this.configurationService.get<number>(WorkbenchConfiguration.EditorAutoSaveDelay));
 
         this.__registerConfigurationListener();
         this.__registerEditorStateListener();
@@ -89,7 +92,12 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
             if (e.affect(WorkbenchConfiguration.EditorAutoSave)) {
                 this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave);
             }
-            // TODO: configuration sync
+            if (e.affect(WorkbenchConfiguration.EditorAutoSaveOnLoseFocus)) {
+                this._autoSaveOnLoseFocus = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSaveOnLoseFocus);
+            }
+            if (e.affect(WorkbenchConfiguration.EditorAutoSaveDelay)) {
+                this._autoSaveDelay = Time.ms(this.configurationService.get<number>(WorkbenchConfiguration.EditorAutoSaveDelay));
+            }
         }));
     }
 
