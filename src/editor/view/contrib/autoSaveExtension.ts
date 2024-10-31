@@ -35,9 +35,9 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
 
     public override readonly id = EditorExtensionIDs.AutoSave;
 
-    private _autoSave = false;
-    private _autoSaveOnLoseFocus = false;
-    private _autoSaveDelay = Time.sec(1);
+    private _autoSave: boolean;
+    private _autoSaveOnLoseFocus: boolean;
+    private _autoSaveDelay: Time;
     
     private _scheduler: UnbufferedScheduler<void>;
     private _editorWidget: IEditorWidget;
@@ -52,14 +52,15 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     ) {
         super(editorWidget, logService);
         this._editorWidget = editorWidget;
-        this._scheduler = this.__register(new UnbufferedScheduler(this._autoSaveDelay, () => {
-            this.__saveEditorContent();
-        }));
 
         // Initialize the configuration settings
         this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave, false);
         this._autoSaveOnLoseFocus = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSaveOnLoseFocus, false);
         this._autoSaveDelay = Time.ms(this.configurationService.get<number>(WorkbenchConfiguration.EditorAutoSaveDelay));
+
+        this._scheduler = this.__register(new UnbufferedScheduler(this._autoSaveDelay, () => {
+            this.__saveEditorContent();
+        }));
 
         this.__registerConfigurationListener();
         this.__registerEditorStateListener();
@@ -104,7 +105,7 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     private __registerEditorStateListener(): void {
         this.__register(this._editorWidget.onDidStateChange(() => {
             if (this._autoSave) {
-                this._scheduler.schedule();
+                this._scheduler.schedule(undefined, this._autoSaveDelay);
             }
         }));
     }
