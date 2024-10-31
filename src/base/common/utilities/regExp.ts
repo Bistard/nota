@@ -30,7 +30,7 @@ export class SmartRegExp {
     public replace(name: string | RegExp, value: string | RegExp): this {
         let valSource = typeof value === 'string' ? value : value.source;
         valSource = valSource.replace(/(^|[^[])\^/g, '$1');
-        this._source = this._source.replace(name, valSource);
+        this._source = this._source.replaceAll(name, valSource);
         return this;
     }
 
