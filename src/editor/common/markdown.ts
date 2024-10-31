@@ -15,7 +15,7 @@ export const enum TokenEnum {
     InlineHTML = 'inline_html',
     Text = 'text',
     Def = 'def', // TODO
-    Escape = 'escape', // TODO
+    Escape = 'escape',
     Image = 'image',
     LineBreak = 'br',
 }

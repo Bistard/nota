@@ -91,7 +91,10 @@ export interface IMarkdownSerializerOptions {
     readonly strict?: boolean;
     readonly defaultDelimiter?: string;
 
-    tightLists?: boolean;
+    /**
+     * whether should always serialize lists in tight.
+     */
+    readonly tightLists?: boolean;
     escapeExtraCharacters: RegExp | undefined;
 }
 
@@ -166,7 +169,11 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     private _output: string;
     private _delimiter: IncrementalDelimiter;
     
-    private _prevClosedNode?: ProseNode;
+    /**
+     * Indicates the previous finished block node.
+     */
+    private _prevClosedBlock?: ProseNode;
+
     private _atBlockStart: boolean = false;
     private _inTightList?: boolean = false;
     private _inAutoLink?: boolean = false;
@@ -226,7 +233,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
      * the output.
      */
     public write(content?: string): void {
-        this.__flushClose();
+        this.__flushCloseBlock();
         if (this.__atBlank()) {
             const delimiter = this._delimiter.getDelimiter();
             this._output += delimiter;
@@ -288,7 +295,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     }
 
     public closeBlock(node: ProseNode): void {
-        this._prevClosedNode = node;
+        this._prevClosedBlock = node;
     }
 
     public setDelimiterIncrements(delimiters: string[]): void {
@@ -498,9 +505,9 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         return this._output === '' || this._output.endsWith('\n');
     }
 
-    private __flushClose(size: number = 1): void {
-        if (this._prevClosedNode) {
-            if (!this.__atBlank() || this._prevClosedNode.type.name === TokenEnum.Space) {
+    private __flushCloseBlock(size: number = 1): void {
+        if (this._prevClosedBlock) {
+            if (!this.__atBlank() || this._prevClosedBlock.type.name === TokenEnum.Space) {
                 this._output += "\n";
             }
 
@@ -511,7 +518,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
                     this._output += `${trimEndDelimiter}\n`;
                 });
             }
-            this._prevClosedNode = undefined;
+            this._prevClosedBlock = undefined;
         }
     }
 
