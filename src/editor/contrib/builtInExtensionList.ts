@@ -6,7 +6,7 @@ import { EditorAutoSaveExtension } from "src/editor/contrib/autoSaveExtension";
 export const enum EditorExtensionIDs {
     Command = 'editor-command-extension',
     AutoSave = 'editor-autosave-extension',
-    InputRules = "InputRules",
+    InputRule = 'editor-inputRule-extension',
 }
 
 /**

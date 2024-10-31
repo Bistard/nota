@@ -17,6 +17,8 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
  */
 export interface IEditorCommandExtension extends IEditorExtension {
 
+    readonly id: EditorExtensionIDs.Command;
+
     /**
      * @description Register a {@link Command} as editor command that can be 
      * triggered by any of the given shortcuts.

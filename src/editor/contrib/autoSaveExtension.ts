@@ -13,6 +13,8 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 
 interface IEditorAutoSaveExtension extends IEditorExtension {
 	
+    readonly id: EditorExtensionIDs.AutoSave;
+
     /**
      * If auto save is enabled.
      */
