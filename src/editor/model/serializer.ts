@@ -106,7 +106,7 @@ export class MarkdownSerializer {
     // [fields]
 
     private readonly _nodeProvider: DocumentNodeProvider;
-    private readonly _options: Required<IMarkdownSerializerOptions>;
+    private readonly _options: IMarkdownSerializerOptions;
 
     // [constructor]
 
@@ -116,7 +116,7 @@ export class MarkdownSerializer {
     ) {
         this._nodeProvider = nodeProvider;
         this._options = {
-            tightLists: options.tightLists ?? false,
+            tightLists: options.tightLists,
             strict: options.strict ?? true,
             escapeExtraCharacters: options.escapeExtraCharacters ?? undefined,
             defaultDelimiter: options.defaultDelimiter ?? '',
@@ -146,6 +146,7 @@ export interface IMarkdownSerializerState {
     complete(): string;
     serializeBlock(parent: ProseNode): void;
     serializeInline(parent: ProseNode, fromBlockStart?: boolean): void;
+    serializeList(node: ProseNode, delimiter: string, firstDelimiter: (index: number) => string): void;
     write(content?: string): void;
     text(text: string, escape?: boolean): void;
     escaping(str: string, startOfLine?: boolean): string;
@@ -164,7 +165,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     // [fields]
 
     private readonly _nodeProvider: DocumentNodeProvider;
-    private readonly _options: Required<IMarkdownSerializerOptions>;
+    private readonly _options: IMarkdownSerializerOptions;
 
     private _output: string;
     private _delimiter: IncrementalDelimiter;
@@ -175,31 +176,31 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
     private _prevClosedBlock?: ProseNode;
 
     private _atBlockStart: boolean = false;
-    private _inTightList?: boolean = false;
+    private _inTightList: boolean = true;
     private _inAutoLink?: boolean = false;
 
     // [constructor]
 
     constructor(
         nodeProvider: DocumentNodeProvider,
-        options: Required<IMarkdownSerializerOptions>,
+        options: IMarkdownSerializerOptions,
     ) {
         this._nodeProvider = nodeProvider;
         this._options = options;
         this._output = '';
-        this._delimiter = new IncrementalDelimiter(this._options.defaultDelimiter);
+        this._delimiter = new IncrementalDelimiter(this._options.defaultDelimiter ?? '');
     }
 
     // [public methods]
 
-    get inTightList(): boolean | undefined { return this._inTightList; }
-    public setInTightList(value: boolean | undefined): void { this._inTightList = value; }
+    get inTightList(): boolean { return this._inTightList; }
+    public setInTightList(value: boolean): void { this._inTightList = value; }
     get inAutoLink(): boolean | undefined { return this._inAutoLink; }
     public setInAutoLink(value: boolean | undefined): void { this._inAutoLink = value; }
 
     public complete(): string {
         this._delimiter.clearIncrements();
-        this._delimiter.setDefault(this._options.defaultDelimiter);
+        this._delimiter.setDefault(this._options.defaultDelimiter ?? '');
         return this._output;
     }
 
@@ -210,6 +211,17 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         for (const { node: child, index } of ProseUtils.iterateChild(parent)) {
             this.__serializeBlock(child, parent, index);
         }
+    }
+
+    public wrapBlock(node: ProseNode, f: () => void, delimiter: string, firstDelimiter?: string): void {
+        const old = this._delimiter.getDelimiter();
+        this.write(firstDelimiter ?? delimiter);
+        
+        this._delimiter.incrementDefault(delimiter);
+        f();
+        this._delimiter.setDefault(old);
+
+        this.closeBlock(node);
     }
 
     /**
@@ -225,6 +237,29 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         }
         this.__serializeInline(null, 0, parent.childCount, parent, active, trailing);
         this._atBlockStart = false;
+    }
+
+    public serializeList(node: ProseNode, delimiter: string, firstDelimiter: (index: number) => string): void {
+        if (!this._inTightList && this._prevClosedBlock?.type.name === TokenEnum.List) {
+            this.__flushCloseBlock(3);
+        } else 
+        if (this._inTightList) {
+            this.__flushCloseBlock(1);
+        }
+        
+        const isTight = this._options.tightLists ?? node.attrs['tight'] as boolean;
+        const prevIsTight = this._inTightList;
+        this._inTightList = isTight;
+
+        // serialize child
+        for (const { node: child, index } of ProseUtils.iterateChild(node)) {
+            if (index > 0 && isTight) {
+                this.__flushCloseBlock(1);
+            }
+            this.wrapBlock(node, () => this.__serializeBlock(child, node, index), delimiter, firstDelimiter(index));
+        }
+
+        this._inTightList = prevIsTight;
     }
 
     /**
@@ -580,6 +615,12 @@ export class IncrementalDelimiter {
 
     public setDefault(delimiter: string): void {
         this._defaultDelimiter = delimiter;
+    }
+
+    public incrementDefault(increment: string): string {
+        const original = this._defaultDelimiter;
+        this._defaultDelimiter += increment;
+        return original;
     }
 
     public setIncrement(increments: string[]): void {

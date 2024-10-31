@@ -1113,7 +1113,7 @@ suite('MarkdownSerializer', () => {
             });
         });
 
-        suite.skip('list', () => {
+        suite('list', () => {
             test('Unordered list - Basic', () => {
                 expectSame('- Item 1\n- Item 2\n- Item 3');
             });
@@ -1142,19 +1142,19 @@ suite('MarkdownSerializer', () => {
                 expectSame('1. Ordered item\n   - Unordered nested item\n2. Ordered item');
             });
         
-            test('Unordered list - Indented items', () => {
+            test.skip('Unordered list - Indented items', () => {
                 expectSame('  - Indented item 1\n    - More indented item 1.1\n  - Indented item 2');
             });
         
-            test('Ordered list - Indented items', () => {
+            test.skip('Ordered list - Indented items', () => {
                 expectSame('   1. Indented item 1\n      2. More indented item 1.1\n   2. Indented item 2');
             });
         
-            test('Unordered list - Line breaks between items', () => {
+            test.skip('Unordered list - Line breaks between items', () => {
                 expectSame('- Item 1\n\n- Item 2\n\n- Item 3');
             });
         
-            test('Ordered list - Line breaks between items', () => {
+            test.skip('Ordered list - Line breaks between items', () => {
                 expectSame('1. Item 1\n\n2. Item 2\n\n3. Item 3');
             });
         
@@ -1166,19 +1166,19 @@ suite('MarkdownSerializer', () => {
                 expectSame('- **Bold item**\n- *Italic item*\n1. **Bold ordered item**\n2. *Italic ordered item*');
             });
         
-            test('Ordered list - Incorrect numbering', () => {
+            test.skip('Ordered list - Incorrect numbering', () => {
                 expectSame('1. Item 1\n3. Item 2\n2. Item 3'); // Should not renumber automatically
             });
         
-            test('List with mixed indentation', () => {
+            test.skip('List with mixed indentation', () => {
                 expectSame('- Item 1\n     - Deeply indented item\n- Item 2\n    - Less indented item');
             });
         
-            test('List with trailing and leading spaces', () => {
-                expectSameTo('  - Leading and trailing spaces   \n- Regular item  ', '- Leading and trailing spaces\n- Regular item');
+            test.skip('List with trailing and leading spaces', () => {
+                expectSame('  - Leading and trailing spaces   \n- Regular item  ');
             });
         
-            test('Complex nested lists', () => {
+            test.skip('Complex nested lists', () => {
                 expectSame('1. Item 1\n   - Nested Item\n      * Deep Nested Item\n2. Item 2\n   1. Nested Ordered Item\n      - Mixed Nested Item');
             });
         });

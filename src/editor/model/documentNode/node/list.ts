@@ -1,3 +1,4 @@
+import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -22,6 +23,8 @@ export class List extends DocumentNode<EditorTokens.List> {
             attrs: { 
                 ordered: { default: false },
                 tight: { default: false },
+                start: { default: 1, },
+                bullet: { default: '*', }
             },
             toDOM(node) { 
                 const { ordered, tight } = node.attrs;
@@ -33,18 +36,37 @@ export class List extends DocumentNode<EditorTokens.List> {
 
     public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.List>): void {
         const { token } = status;
+
         state.activateNode(this.ctor, status, {
             attrs: {
                 ordered: token.ordered,
                 tight: !token.loose,
+                start: token.start,
+                bullet: Strings.firstNonSpaceChar(token.raw, 0).char,
             }
         });
         state.parseTokens(status.level + 1, token.items, token);
         state.deactivateNode();
     }
 
-    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
-        // TODO
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode) => {
+        const isOrdered = node.attrs['ordered'] as boolean;
+        const bullet = node.attrs['bullet'] as string;
+        const start = node.attrs['start'] as string;
+
+        // un-ordered
+        if (isOrdered === false) {
+            state.serializeList(node, '  ', () => (bullet + ' '));
+        }
+        // ordered
+        else {
+            const maxW = String(Number(start) + node.childCount - 1).length;
+            const space = ' '.repeat(maxW + 2);
+            state.serializeList(node, space, index => {
+                const nStr = String(start + index);
+                return ' '.repeat(maxW - nStr.length) + nStr + '. ';
+            });
+        }
     };
 }
 
@@ -82,7 +104,7 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
         state.deactivateNode();
     }
 
-    public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
-        // TODO
+    public serializer = (state: IMarkdownSerializerState, node: ProseNode) => {
+        state.serializeBlock(node);
     };
 }

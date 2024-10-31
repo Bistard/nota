@@ -170,9 +170,11 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private __tokenizeAndParse(raw: string): ProseNode {
         const tokens = this._lexer.lex(raw);
-        const doc = this._docParser.parse(tokens);
         console.log(tokens); // TEST
+
+        const doc = this._docParser.parse(tokens);
         console.log(doc); // TEST
+        
         console.log(this._docSerializer.serialize(doc)); // TEST
         return doc;
     }
