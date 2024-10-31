@@ -27,7 +27,7 @@ suite('SmartRegExp', () => {
         });
 
         test('should replace RegExp pattern with a string pattern', () => {
-            const regex = new SmartRegExp(/hello world/).replace(/world/, 'planet');
+            const regex = new SmartRegExp(/hello world/).replace(/world/g, 'planet');
             assert.strictEqual(regex.get().toString(), '/hello planet/');
         });
 
