@@ -194,9 +194,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
     private afterFirstWindow(provider: IServiceProvider): void {
         
-        if (this.environmentService.CLIArguments.inspector === true 
-            || this.environmentService.CLIArguments.inspector === 'true'
-        ) {
+        // inspector mode
+        if ([true, 'true'].includes(this.environmentService.CLIArguments.inspector!)) {
             this.openDebugInspectorWindow(provider);
         }
     }

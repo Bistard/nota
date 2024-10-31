@@ -1,4 +1,4 @@
-import { IpcRenderer } from "electron";
+import type { IpcRenderer } from "electron";
 import { executeOnce } from "src/base/common/utilities/function";
 import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";

@@ -268,7 +268,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
 
         this._window.on('unmaximize', (e: Event) => {
-            electron.app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+            electron.app.emit(IpcChannel.WindowUnMaximized, e, this._window);
         });
 
         this._window.webContents.on('did-finish-load', () => {

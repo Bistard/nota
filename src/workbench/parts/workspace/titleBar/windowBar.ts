@@ -71,7 +71,7 @@ export class WindowBar extends Component {
             this.changeMaxResBtn(true);
         });
 
-        this.hostService.onDidUnmaximizeWindow(() => {
+        this.hostService.onDidUnMaximizeWindow(() => {
             this.changeMaxResBtn(false);
         });
     }
