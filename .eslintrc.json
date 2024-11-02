@@ -82,6 +82,7 @@
         ],
 
         "local/code-no-plain-enum": "error",
+        "local/code-no-json-stringify": "warn",
         "local/code-interface-check": "error",
         "local/code-service-marker": "error",
         "local/code-no-throw": "warn",
