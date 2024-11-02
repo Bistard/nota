@@ -1,6 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { ILogService } from "src/base/common/logger";
 import { err, ok, Result } from "src/base/common/result";
 import { ProseEditorState, ProseEditorView, ProseExtension } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
@@ -76,7 +75,6 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
 
     constructor(
         editorWidget: IEditorWidget,
-        @ILogService protected readonly logService: ILogService,
     ) {
         super();
         this._viewExtension = new ProseExtension({
@@ -87,11 +85,7 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
                  */
                 init: (config, state) => {
                     this._viewState = state;
-
-                    this.logService.trace(this.id, `Extension state initializing...`);
                     const initState = this.onViewStateInit(state);
-                    this.logService.trace(this.id, `Extension state initialized.`);
-
                     return initState;
                 },
                 /**
@@ -110,17 +104,13 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
             },
             // Will be called when the state is associated with an {@link ProseEditorView}.
             view: (view) => {
-                this.logService.trace(this.id, `Extension view initializing...`);
                 this.onViewInit(view);
-                this.logService.trace(this.id, `Extension view initialized.`);
 
                 return {
                     // Called when the view is destroyed
                     destroy: () => {
-                        this.logService.trace(this.id, `Extension view destroying...`);
                         this.onViewDestroy(view);
                         this._viewState = undefined;
-                        this.logService.trace(this.id, `Extension view destroyed.`);
                     },
                     // Called whenever the view's state is updated.
                     update: () => {

@@ -52,9 +52,9 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
         editorWidget: IEditorWidget,
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @ICommandService commandService: ICommandService,
-        @ILogService logService: ILogService,
+        @ILogService private readonly logService: ILogService,
     ) {
-        super(editorWidget, logService);
+        super(editorWidget);
 
         /**
          * Keydown: when key is pressing in the editor:

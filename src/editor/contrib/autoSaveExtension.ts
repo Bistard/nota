@@ -1,8 +1,6 @@
-import { time } from "console";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Time } from "src/base/common/date";
-import { ILogService } from "src/base/common/logger";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
@@ -48,11 +46,10 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
 
     constructor(
         editorWidget: IEditorWidget,
-        @ILogService logService: ILogService,
         @INotificationService private readonly notificationService: INotificationService,
         @IConfigurationService private readonly configurationService: IConfigurationService
     ) {
-        super(editorWidget, logService);
+        super(editorWidget);
         this._editorWidget = editorWidget;
 
         // Initialize the configuration settings
