@@ -17,7 +17,6 @@ import { buildSchema, EditorSchema } from "src/editor/model/schema";
 import { MarkdownSerializer } from "src/editor/model/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
 
-
 export class EditorModel extends Disposable implements IEditorModel {
 
     // [events]

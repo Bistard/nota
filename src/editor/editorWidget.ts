@@ -8,7 +8,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
 import { EditorType, IEditorView } from "src/editor/common/view";
-import { BasicEditorOption, EditorDefaultOptions, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/editorConfiguration";
+import { BasicEditorOption, EDITOR_OPTIONS_DEFAULT, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
@@ -464,7 +464,7 @@ class EditorOptionController {
     // [private methods]
 
     private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
-        const mixOptions = EditorDefaultOptions;
+        const mixOptions = EDITOR_OPTIONS_DEFAULT;
         this.__updateOptions(mixOptions, newOption);
 
         this.logService.debug('EditorWidget', 'Editor initialized with configurations.', toJsonEditorOption(mixOptions));

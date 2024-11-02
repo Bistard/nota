@@ -92,10 +92,15 @@ export const enum EditorOptionEnum {
 }
 
 /**
- * The actual editor options that initially sets with all default values.
+ * The editor option type. This is constructed from {@link EDITOR_OPTIONS_DEFAULT}.
  */
-export type EditorOptionsType = typeof EditorDefaultOptions;
-export const EditorDefaultOptions = {
+export type EditorOptionsType = typeof EDITOR_OPTIONS_DEFAULT;
+
+/**
+ * The actual editor options that initially sets with all default values. The 
+ * type of this object is {@link EditorOptionsType}.
+ */
+export const EDITOR_OPTIONS_DEFAULT = {
     // [model]
     baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
     writable:           new BooleanEditorOption(EditorOptionEnum.writable, 'writable', false, {}),
@@ -111,7 +116,7 @@ export function toJsonEditorOption(options: EditorOptionsType): Record<string, a
     const opt = {};
 
     iterPropEnumerable(options, (propName) => {
-        const optObj = options[propName];
+        const optObj = options[propName] as BasicEditorOption<EditorOptionEnum, any>;
         opt[optObj.name] = optObj.value;
     });
 
