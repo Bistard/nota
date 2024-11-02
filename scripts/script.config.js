@@ -40,7 +40,7 @@ const configuration = {
                 flags: ['--circular', '-c'], 
                 descriptions: [
                     'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies among all the used modules.',
-                    'default = true.',
+                    'default = false.',
                 ]
             },
             {
