@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { IS_LINUX } from 'src/base/common/platform';
 import { Strings } from 'src/base/common/utilities/string';
 
 suite('Strings-test', function () {
@@ -506,62 +505,6 @@ suite('Strings-test', function () {
                 assert.ok(!Strings.IgnoreCase.startsWith('alles klar', 'öALLES K '));
                 assert.ok(!Strings.IgnoreCase.startsWith('alles klar', ' '));
                 assert.ok(!Strings.IgnoreCase.startsWith('alles klar', 'ö'));
-            });
-        });
-    });
-
-    suite('Smart Namespace', function () {
-        
-        suite('#adjust()', function () {
-            test('CaseSensitive', function () {
-                if (!IS_LINUX) {
-                    this.skip();
-                }
-                assert.strictEqual(Strings.Smart.adjust('HeLLo'), 'HeLLo');
-            });
-            
-            test('CaseIgnore', function () {
-                if (IS_LINUX) {
-                    this.skip();
-                }
-                assert.strictEqual(Strings.Smart.adjust('HeLLo'), 'hello');
-                assert.strictEqual(Strings.Smart.adjust('hello'), 'hello');
-            });
-        });
-
-        suite('#equals()', function () {
-            test('CaseSensitive', function () {
-                if (!IS_LINUX) {
-                    this.skip();
-                }
-                assert.strictEqual(Strings.Smart.equals('hello', 'hello'), true);
-                assert.strictEqual(Strings.Smart.equals('hello', 'HELLO'), false);
-            });
-
-            test('CaseIgnore', function () {
-                if (IS_LINUX) {
-                    this.skip();
-                }
-                assert.strictEqual(Strings.Smart.equals('hello', 'hello'), true);
-                assert.strictEqual(Strings.Smart.equals('hello', 'HELLO'), true);
-            });
-        });
-
-        suite('#startsWith()', function () {
-            test('CaseSensitive', function () {
-                if (!IS_LINUX) {
-                    this.skip();
-                }
-                assert.strictEqual(Strings.Smart.startsWith('HELLO world', 'Hello'), false);
-                assert.strictEqual(Strings.Smart.startsWith('Hello world', 'Hello'), true);
-            });
-
-            test('CaseIgnore', function () {
-                if (IS_LINUX) {
-                    this.skip();
-                }
-                assert.strictEqual(Strings.Smart.startsWith('HELLO world', 'hello'), true);
-                assert.strictEqual(Strings.Smart.startsWith('hello world', 'hello'), true);
             });
         });
     });

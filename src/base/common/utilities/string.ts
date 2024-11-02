@@ -1,6 +1,5 @@
-import { compareSubstringIgnoreCase } from "src/base/common/files/glob";
-import { OS_CASE_SENSITIVE } from "src/base/common/platform";
 import { Iterable } from "src/base/common/utilities/iterable";
+import { compareSubstringIgnoreCase } from "src/base/common/files/glob";
 import { CompareOrder, isObject } from "src/base/common/utilities/type";
 
 /**
@@ -39,6 +38,7 @@ export namespace Strings {
 
             if (isObject(obj) || Array.isArray(obj)) {
                 try {
+                    // eslint-disable-next-line local/code-no-json-stringify
                     obj = JSON.stringify(obj);
                 } catch (e) {
                     obj = '[Strings.stringify() error]';
@@ -356,38 +356,6 @@ export namespace Strings {
                 return false;
             }
             return compareSubstringIgnoreCase(str, candidate, 0, candidateLength) === CompareOrder.Same;
-        }
-    }
-
-    /**
-     * This namespace will smartly detecting should enable or disable ignoring
-     * case when doing string comparison.
-     */
-    export namespace Smart {
-        
-        /**
-         * @description If case sensitive, return the same string, otherwise
-         * a lower case version of the string returned.
-         */
-        export function adjust(str: string): string {
-            if (OS_CASE_SENSITIVE) {
-                return str;
-            }
-            return str.toLowerCase();
-        }
-
-        export function equals(a: string, b: string): boolean {
-            if (OS_CASE_SENSITIVE) {
-                return a === b;
-            }
-            return Strings.IgnoreCase.equals(a, b);
-        }
-
-        export function startsWith(str: string, candidate: string): boolean {
-            if (OS_CASE_SENSITIVE) {
-                return str.startsWith(candidate);
-            }
-            return Strings.IgnoreCase.startsWith(str, candidate);
         }
     }
 

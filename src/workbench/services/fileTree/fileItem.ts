@@ -12,6 +12,7 @@ import { parse, posix } from "src/base/common/files/path";
 import { Strings } from "src/base/common/utilities/string";
 import { assert } from "src/base/common/utilities/panic";
 import { Lazy } from "src/base/common/lazy";
+import { SmartStrings } from "src/base/electron/smartString";
 
 export interface IFileTarget {
     readonly name: string;
@@ -244,7 +245,7 @@ export class FileItem implements IFileItem<FileItem> {
         this._mapChildren = new Lazy(() => {
             const cache = new Map();
             for (const child of this._children) {
-                const resolvedName = Strings.Smart.adjust(child.name);
+                const resolvedName = SmartStrings.adjust(child.name);
                 cache.set(resolvedName, child);
             }
             return cache;
@@ -411,11 +412,11 @@ export class FileItem implements IFileItem<FileItem> {
             return undefined;
         }
 
-        if (!Strings.Smart.equals(this.uri.authority, uri.authority)) {
+        if (!SmartStrings.equals(this.uri.authority, uri.authority)) {
             return undefined;
         }
 
-        if (!Strings.Smart.startsWith(uri.path, this.uri.path)) {
+        if (!SmartStrings.startsWith(uri.path, this.uri.path)) {
             return undefined;
         }
 
@@ -430,7 +431,7 @@ export class FileItem implements IFileItem<FileItem> {
     // [private helper methods]
 
     private __findChildByPath(path: string, index: number): FileItem | undefined {
-		if (Strings.Smart.equals(Strings.rtrim(this.uri.path, posix.sep), path)) {
+		if (SmartStrings.equals(Strings.rtrim(this.uri.path, posix.sep), path)) {
 			return this;
 		}
 
@@ -450,7 +451,7 @@ export class FileItem implements IFileItem<FileItem> {
         }
 
         // The name to search is between two separators
-        const name = Strings.Smart.adjust(path.substring(index, indexOfNextSep));
+        const name = SmartStrings.adjust(path.substring(index, indexOfNextSep));
         const child = this.mapChildren.get(name);
 
         if (child) {
