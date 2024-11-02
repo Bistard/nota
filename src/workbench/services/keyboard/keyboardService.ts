@@ -7,9 +7,10 @@ import { ILayoutService } from "src/workbench/services/layout/layoutService";
 
 export const IKeyboardService = createService<IKeyboardService>('keyboard-service');
 
-export interface IKeyboardService extends IService {
-
-    dispose(): void;
+/**
+ * An interface only for {@link KeyboardService}.
+ */
+export interface IKeyboardService extends IService, IDisposable {
 
     /**
      * Fires when key down happens in the current window.
@@ -25,6 +26,25 @@ export interface IKeyboardService extends IService {
      * Fires when key press happens in the current window.
      */
     onKeypress: Register<IStandardKeyboardEvent>;
+    
+    /**
+     * Event fired when a text composition (e.g., IME input) starts in the 
+     * current window. Typically used to handle non-Latin character inputs.
+     */
+    onCompositionStart: Register<IStandardKeyboardEvent>;
+    
+    /**
+     * Event fired when a text composition is updated in the current window.
+     * Updates occur as the composition progresses, such as when modifying 
+     * characters.
+     */
+    onCompositionUpdate: Register<IStandardKeyboardEvent>;
+    
+    /**
+     * Event fired when a text composition ends in the current window.
+     * Indicates that the composed text is finalized and inserted.
+     */
+    onCompositionEnd: Register<IStandardKeyboardEvent>;
 }
 
 /**
@@ -47,6 +67,9 @@ export class KeyboardService implements IDisposable, IKeyboardService {
     public readonly onKeydown: Register<IStandardKeyboardEvent>;
     public readonly onKeyup: Register<IStandardKeyboardEvent>;
     public readonly onKeypress: Register<IStandardKeyboardEvent>;
+    public readonly onCompositionStart: Register<IStandardKeyboardEvent>;
+    public readonly onCompositionUpdate: Register<IStandardKeyboardEvent>;
+    public readonly onCompositionEnd: Register<IStandardKeyboardEvent>;
 
     // [constructor]
 
@@ -58,14 +81,23 @@ export class KeyboardService implements IDisposable, IKeyboardService {
         const onKeydown = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keydown, true);
         const onKeyup = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keyup, true);
         const onKeypress = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keypress, true);
+        const onCompositionStart = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.compositionStart, true);
+        const onCompositionUpdate = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.compositionUpdate, true);
+        const onCompositionEnd = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.compositionEnd, true);
 
         this.onKeydown = Event.map(onKeydown.registerListener, e => createStandardKeyboardEvent(e));
         this.onKeyup = Event.map(onKeyup.registerListener, e => createStandardKeyboardEvent(e));
         this.onKeypress = Event.map(onKeypress.registerListener, e => createStandardKeyboardEvent(e));
+        this.onCompositionStart = Event.map(onCompositionStart.registerListener, e => createStandardKeyboardEvent(e));
+        this.onCompositionUpdate = Event.map(onCompositionUpdate.registerListener, e => createStandardKeyboardEvent(e));
+        this.onCompositionEnd = Event.map(onCompositionEnd.registerListener, e => createStandardKeyboardEvent(e));
 
         this.disposables.register(onKeydown);
         this.disposables.register(onKeyup);
         this.disposables.register(onKeypress);
+        this.disposables.register(onCompositionStart);
+        this.disposables.register(onCompositionUpdate);
+        this.disposables.register(onCompositionEnd);
     }
 
     public dispose(): void {

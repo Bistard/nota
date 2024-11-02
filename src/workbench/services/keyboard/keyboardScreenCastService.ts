@@ -9,7 +9,7 @@ import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 import { Scheduler } from 'src/base/common/utilities/async';
 import { Time } from 'src/base/common/date';
 
-export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
+export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screenCast-service');
 
 /**
  * An interface only for {@link KeyboardScreenCastService}.
@@ -28,7 +28,7 @@ export interface IKeyboardScreenCastService extends IDisposable, IService {
 }
 
 /**
- * @class A microservice that provides functionalities that screencasting user's
+ * @class A microservice that provides functionalities that screenCasting user's
  * keyboard input.
  */
 export class KeyboardScreenCastService implements IKeyboardScreenCastService {
@@ -80,7 +80,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._container.appendChild(this._tagContainer);
             this.layoutService.parentContainer.appendChild(this._container);
 
-            this._flushKeyScheduler = new Scheduler(this._flushDelay, () => this.__onTimeup());
+            this._flushKeyScheduler = new Scheduler(this._flushDelay, () => this.__onTimeUp());
         }
 
         // events
@@ -100,7 +100,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
                 this._flushKeyScheduler?.schedule();
             });
 
-            // mouseclick
+            // mouseClick
             this._rippleListener = addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
                 if (!DomEventHandler.isLeftClick(e)) {
                     return;
@@ -185,7 +185,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._tagContainer.appendChild(tag);
     }
 
-    private __onTimeup(): void {
+    private __onTimeUp(): void {
         this.__flushKeypress();
         this._visibilityController.setVisibility(false);
     }
