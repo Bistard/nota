@@ -156,9 +156,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const state = assert(this._editorState);
         const serialized = this._docSerializer.serialize(state.doc);
         const buffer = DataBuffer.fromString(serialized);
-
-        return AsyncResult.err(new Error('save() is not implemented yet.'));
-        // return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false });
+        return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false });
     }
 
     // [private methods]

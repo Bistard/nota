@@ -86,7 +86,7 @@ export class Editor extends Component implements IEditorService {
             this.logService.debug('EditorService', `Opening at: ${URI.toString(uri)}`);
             await editorWidget.open(uri);
             this.logService.debug('EditorService', `Open successfully at: ${URI.toString(uri)}`);
-            
+
             this._onDidOpen.fire(uri);
             return uri;
         });
