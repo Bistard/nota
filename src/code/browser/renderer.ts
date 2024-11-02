@@ -3,7 +3,7 @@ import "src/workbench/parts/workspace/editor/editor"; // TODO
 import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
-import { CollapseState, waitDomToBeLoad } from "src/base/browser/basic/dom";
+import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
@@ -15,7 +15,7 @@ import { ILoggerService } from "src/platform/logger/common/abstractLoggerService
 import { IFileService } from "src/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
-import { ErrorHandler, tryOrDefault } from "src/base/common/error";
+import { ErrorHandler } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
@@ -66,6 +66,7 @@ import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPane
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
 import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -136,7 +137,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // universal on unexpected error handling callback
         const onUnexpectedError = (error: any, additionalMessage?: any) => {
             if (this.logService) {
-                const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));
+                const safeAdditional = Strings.stringifySafe(additionalMessage);
                 this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
             } else {
                 console.error(error);

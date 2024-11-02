@@ -17,6 +17,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { Time } from "src/base/common/date";
+import { Strings } from "src/base/common/utilities/string";
 
 type LoadConfigurationResult = 
   | { readonly ifLoaded: false, readonly raw: IConfigurationStorage }
@@ -213,15 +214,18 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
          * This is hacky and a little slow, but it makes sure the job is done.
          */ 
         this.__register(configuration.onDidChange(async () => {
-            const write = await this.fileService.writeFile(
-                this._userResource, 
-                DataBuffer.fromString(JSON.stringify(configuration.model, null, 4)), 
-                { create: true, overwrite: true },
+            const stringify = Strings.stringifySafe(
+                configuration.model, 
+                () => this.logService.error('UserConfiguration', 'Failed to stringify the configuration. Replacing with empty string.'), 
+                undefined, 
+                4,
             );
-
-            if (write.isErr()) {
-                this.logService.error('UserConfiguration', 'Cannot sync configuration to the file.', write.error, { at: URI.toString(this._userResource) });
-            }
+            const buffer = DataBuffer.fromString(stringify);
+            await this.fileService.writeFile(this._userResource, buffer, { create: true, overwrite: true })
+                .match(
+                    () => {},
+                    error => this.logService.error('UserConfiguration', 'Cannot sync configuration to the file.', error, { at: URI.toString(this._userResource) })
+                );
         }));
     }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";

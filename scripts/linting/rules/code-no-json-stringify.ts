@@ -10,7 +10,7 @@ export = new class CodeNoJsonStringify implements eslint.Rule.RuleModule {
             recommended: true,
         },
         messages: {
-            noJsonStringify: 'Using "JSON.stringify" might lead to overlooked error handling. Consider using a "Strings.stringify" or "jsonSafeStringify".',
+            noJsonStringify: 'Using "JSON.stringify" might lead to overlooked error handling. Consider using "Strings.stringifySafe".',
         },
     };
 

@@ -53,6 +53,31 @@ export namespace Strings {
     }
 
     /**
+     * @description Safely converts an object to a JSON string, error free.
+     *
+     * This function attempts to stringify an object using {@link JSON.stringify}. 
+     * If an error occurs (e.g., due to circular references), returns an empty 
+     * string instead of throwing an exception.
+     *
+     * @param obj The object to be converted into a JSON string.
+     * @param onError invokes when encountering error.
+     * @param replacer Optional function that alters the behavior of the 
+     *                 stringification process. See {@link JSON.stringify} for details.
+     * @param space Optional string or number to use for indentation in the 
+     *              output JSON string. See {@link JSON.stringify} for details.
+     * @returns The JSON string representation of the object, or an empty string if an error occurs.
+     */
+    export function stringifySafe(obj: unknown, onError?: (error: any) => void, replacer?: (this: any, key: string, value: any) => any, space?: string | number): string {
+        try {
+            // eslint-disable-next-line local/code-no-json-stringify
+            return JSON.stringify(obj, replacer, space);
+        } catch (err) {
+            onError?.(err);
+            return '';
+        }
+    }
+
+    /**
      * @description Format a given raw string with the given interpolation using
      * indice.
      * @returns The formatted new string.

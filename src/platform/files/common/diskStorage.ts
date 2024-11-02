@@ -6,6 +6,7 @@ import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, If } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { errorToMessage } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * An interface only for {@link DiskStorage}.
@@ -169,7 +170,7 @@ class DiskStorageBase {
                 return err(success.error);
             }
 
-            const serialized = JSON.stringify(this._storage, null, 4);
+            const serialized = Strings.stringifySafe(this._storage);
             if (this._lastSaveStorage === serialized) {
                 // no diff, we quit in advance.
                 return ok();

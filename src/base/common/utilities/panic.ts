@@ -1,11 +1,5 @@
-
-/**
- * To prevent potential circular dependency issues due to the wide use of `panic` 
- * throughout the program, this function has been relocated to a separate file 
- * that does not import any other files.
- */
-
 import type { ArrayToUnion } from "src/base/common/utilities/type";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * @description Panics the program by throwing an error with the provided message.
@@ -89,7 +83,8 @@ export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow, equal?: 
             return raw;
         }
     }
-    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${JSON.stringify(narrow)})`);
+
+    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${Strings.stringifySafe(narrow)})`);
 }
 
 /**
@@ -204,7 +199,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
         return error.message;
     }
 
-    return `${UNKNOWN_MESSAGE}: ${JSON.stringify(error)}`;
+    return `${UNKNOWN_MESSAGE}: ${Strings.stringifySafe(error)}`;
 }
 
 const UNKNOWN_MESSAGE = 'An unknown error occurred. Please consult the log for more details.';

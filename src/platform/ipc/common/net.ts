@@ -120,6 +120,7 @@ class DataSerializer {
             }
         }
         else {
+            // eslint-disable-next-line local/code-no-json-stringify
             const buffer = DataBuffer.fromString(JSON.stringify(data));
             this._writer.write(DataSerializer._8BitType.Obj);
             this._writer.write(this.__write32BitSize(buffer.bufferLength));
