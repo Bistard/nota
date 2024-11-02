@@ -512,6 +512,13 @@ export function isBoolean(obj: any): obj is boolean {
     return typeof obj === 'boolean';
 }
 
+export function toBoolean(value: any): boolean {
+    if (typeof value === 'string') {
+        return value.toLowerCase() === 'true';
+    }
+    return !!value;
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isFunction(obj: any): obj is Function {
     return typeof obj === 'function';
