@@ -1,6 +1,5 @@
-import { INodeProcess } from "src/base/common/process";
-import { isObject } from "src/base/common/utilities/type";
-import { GLOBAL } from "src/platform/electron/browser/global";
+import type { INodeProcess } from "src/base/common/process";
+import { isDefined, isObject } from "src/base/common/utilities/type";
 
 interface INavigator {
     userAgent: string;
@@ -19,16 +18,16 @@ declare const process: INodeProcess;
 declare const navigator: INavigator;
 
 export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
-    = function resolvePlatformStatus(): [boolean, boolean, boolean, Platform] {
+    = function resolvePlatformStatus() {
         let isWin = false;
         let isMac = false;
         let isLinux = false;
         let nodeProcess: INodeProcess | undefined;
 
-        if (typeof GLOBAL.nota !== 'undefined' && typeof GLOBAL.nota.process !== 'undefined') {
+        if (isDefined(globalThis) && isDefined(globalThis.nota) && isDefined(globalThis.nota.process)) {
             // Native environment (sandboxed)
-            nodeProcess = GLOBAL.nota.process;
-        } else if (typeof process !== 'undefined') {
+            nodeProcess = globalThis.nota.process;
+        } else if (isDefined(process)) {
             // Native environment (non-sandboxed)
             nodeProcess = process;
         }
