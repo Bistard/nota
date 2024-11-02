@@ -26,6 +26,7 @@ export interface IEditorWidget extends
     IProseEventBroadcaster, 
     Pick<IEditorModel, 
         'source' 
+        | 'dirty'
         | 'onDidStateChange' 
         | 'save' 
         | 'insertAt' 
@@ -190,21 +191,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [getter]
 
-    get readonly(): boolean {
-        return !this._options.getOptions().writable.value;
-    }
+    get model(): IEditorModel { return assert(this._model); }
+    get view(): IEditorView { return assert(this._view); }
 
-    get model(): IEditorModel {
-        return assert(this._model);
-    }
-
-    get view(): IEditorView {
-        return assert(this._view);
-    }
-
-    get renderMode(): EditorType | null {
-        return null; // TODO
-    }
+    get readonly(): boolean { return !this._options.getOptions().writable.value; }
+    get renderMode(): EditorType | null { return null; } // TODO
 
     // #region [public methods]
 
@@ -258,9 +249,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // #region [editor-model methods]
 
-    get source(): URI {
-        return this.__assertModel().source;
-    }
+    get source(): URI { return this.__assertModel().source; }
+    get dirty(): boolean { return assert(this._model).dirty; }
 
     public insertAt(textOffset: number, text: string): void {
         return this.__assertModel().insertAt(textOffset, text);

@@ -21,37 +21,29 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [events]
 
-    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>());
+    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this._dirty = false }));
     public readonly onDidBuild = this._onDidBuild.registerListener;
     
-    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>());
+    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this._dirty = true }));
     public readonly onTransaction = this._onTransaction.registerListener;
 
-    private readonly _onDidStateChange = this.__register(new Emitter<void>());
+    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this._dirty = true }));
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
+
+    private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this._dirty = false }));
+    public readonly onDidSave = this._onDidSave.registerListener;
 
     // [fields]
 
-    /** The configuration of the editor */
-    private readonly _options: EditorOptionsType;
-
-    /** The source file the model is about to read and parse. */
-    private readonly _source: URI;
-
-    /** An object that defines how a view is organized. */
-    private readonly _schema: EditorSchema;
+    private readonly _options: EditorOptionsType;        // The configuration of the editor
+    private readonly _source: URI;                       // The source file the model is about to read and parse.
+    private readonly _schema: EditorSchema;              // An object that defines how a view is organized.
+    private readonly _lexer: IMarkdownLexer;             // Responsible for parsing the raw text into tokens.
+    private readonly _docParser: IDocumentParser;        // Parser that parses the given token into a legal view based on the schema.
+    private readonly _docSerializer: MarkdownSerializer; // Serializer that transforms the prosemirror document back to raw string.
     
-    /** Responsible for parsing the raw text into tokens. */
-    private readonly _lexer: IMarkdownLexer;
-
-    /** Parser that parses the given token into a legal view based on the schema. */
-    private readonly _docParser: IDocumentParser;
-
-    /** Serializer that transforms the prosemirror document back to raw string. */
-    private readonly _docSerializer: MarkdownSerializer;
-
-    /** A reference to the prosemirror state. */
-    private _editorState?: ProseEditorState;
+    private _editorState?: ProseEditorState; // A reference to the prosemirror state.
+    private _dirty: boolean;                 // Indicates if the file has unsaved changes.
 
     // [constructor]
 
@@ -72,6 +64,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additionals)));
         this._docSerializer = new MarkdownSerializer(nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
 
+        this._dirty = false;
+
         logService.debug('EditorModel', 'Constructed');
     }
 
@@ -80,6 +74,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     get source(): URI { return this._source; }
     get schema(): EditorSchema { return this._schema; }
     get state(): ProseEditorState | undefined { return this._editorState; }
+    get dirty(): boolean { return this._dirty; }
 
     // [public methods]
 
@@ -152,10 +147,22 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     public save(): AsyncResult<void, Error> {
+        if (this._dirty === false) {
+            return AsyncResult.ok();
+        }
+
         const state = assert(this._editorState);
         const serialized = this._docSerializer.serialize(state.doc);
         const buffer = DataBuffer.fromString(serialized);
-        return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false });
+
+        return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false })
+            .map(() => {
+                this._onDidSave.fire();
+            })
+            .mapErr(error => {
+                this.logService.trace('EditorModel', `File saved (${URI.toString(this._source)})`);
+                return error;
+            });
     }
 
     // [private methods]

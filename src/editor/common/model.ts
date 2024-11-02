@@ -48,6 +48,11 @@ export interface IEditorModel extends IDisposable {
     readonly source: URI;
 
     /**
+     * Indicates if the file has unsaved changes.
+     */
+    readonly dirty: boolean;
+
+    /**
      * The schema of the editor.
      */
     readonly schema: EditorSchema;
@@ -58,9 +63,14 @@ export interface IEditorModel extends IDisposable {
     readonly state?: ProseEditorState;
 
     /** 
-     * Fires when the model is built.
+     * Fires when the model is built for the first time.
      */
     readonly onDidBuild: Register<ProseEditorState>;
+
+    /**
+     * Fires whenever the file is saved back to the disk successfully.
+     */
+    readonly onDidSave: Register<void>;
 
     /**
      * Fires whenever a transaction to the {@link ProseEditorState} is made 
