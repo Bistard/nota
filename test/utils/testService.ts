@@ -77,7 +77,7 @@ export namespace TestIPC {
                 this._buffers = [];
                 this._buffering = false;
             },
-            onLastListenerRemoved: () => {
+            onLastListenerDidRemove: () => {
                 this._buffering = true;
             }
         });

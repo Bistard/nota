@@ -361,7 +361,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
                 });
             },
 
-            onLastListenerRemoved: () => {
+            onLastListenerDidRemove: () => {
                 this._activeRequest.delete(emitter);
                 this.__sendRequest(<IUnregisterRequest>{
                     type: RequestType.Unregister,

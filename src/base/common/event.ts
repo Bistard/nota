@@ -4,6 +4,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/utilities/async";
 import { Callable } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
+import { IO } from "src/base/common/utilities/functional";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -92,11 +93,19 @@ class __Listener<T> {
 
     constructor(
         public readonly callback: Listener<T>, 
-        public readonly thisObject: any
+        public readonly thisObject: any,
+        private readonly _options?: IEmitterOptions,
     ) {}
 
     public fire(e: T): void {
-        this.callback.call(this.thisObject, e);
+        try {
+            this._options?.onListenerRun?.();
+            this.callback.call(this.thisObject, e);
+            this._options?.onListenerDidRun?.();
+        } catch (err) {
+            const onErr = this._options?.onListenerError ?? ErrorHandler.onUnexpectedError;
+            onErr(err);
+        }
     }
 }
 
@@ -105,14 +114,26 @@ class __Listener<T> {
  */
 export interface IEmitterOptions {
 
-    /** Invokes before the first listener is about to be added. */
-    readonly onFirstListenerAdd?: ITask<any>;
+    // [listener - add]
 
-    /** Invokes after the first listener is added. */
-    readonly onFirstListenerDidAdd?: ITask<any>;
+    readonly onFirstListenerAdd?: IO<void>;
+    readonly onFirstListenerDidAdd?: IO<void>;
+    readonly onListenerWillAdd?: IO<void>;
+    readonly onListenerDidAdd?: IO<void>;
 
-    /** Invokes after the last listener is removed. */
-    readonly onLastListenerRemoved?: ITask<any>;
+    // [listener - remove]
+
+    readonly onLastListenerDidRemove?: IO<void>;
+    readonly onListenerWillRemove?: IO<void>;
+    readonly onListenerDidRemove?: IO<void>;
+
+    // [listener - others]
+
+    readonly onListenerRun?: IO<void>;
+    readonly onListenerDidRun?: IO<void>; // this will not be executed if error encountered
+
+    /** Invoked when a listener throws an error. Defaults to {@link onUnexpectedError}. */
+    readonly onListenerError?: (error: any) => void;
 }
 
 /**
@@ -165,24 +186,33 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
             }
 
             // register the listener (callback)
-            const listenerWrapper = new __Listener(listener, thisObject);
+            const listenerWrapper = new __Listener(listener, thisObject, this._opts);
+            this._opts?.onListenerWillAdd?.();
             const node = this._listeners.push_back(listenerWrapper);
+            this._opts?.onListenerDidAdd?.();
             let listenerRemoved = false;
+            let listenerRemoving = false;
 
+            // after first add callback
             if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
                 this._opts.onFirstListenerDidAdd();
             }
 
             // returns a disposable in order to decide when to stop listening (unregister)
             const unRegister = toDisposable(() => {
-                if (!this._disposed && !listenerRemoved) {
+                if (!this._disposed && !listenerRemoved && !listenerRemoving) {
+                    listenerRemoving = true;
+
+                    this._opts?.onListenerWillRemove?.();
                     this._listeners.remove(node);
+                    this._opts?.onListenerDidRemove?.();
             
                     // last remove callback
-                    if (this._opts?.onLastListenerRemoved && this._listeners.empty()) {
-                        this._opts.onLastListenerRemoved();
+                    if (this._opts?.onLastListenerDidRemove && this._listeners.empty()) {
+                        this._opts.onLastListenerDidRemove();
                     }
 
+                    listenerRemoving = false;
                     listenerRemoved = true;
                 }
             });
@@ -403,7 +433,7 @@ export class RelayEmitter<T> implements IDisposable {
             this._inputUnregister = this._inputRegister(e => this._relay.fire(e));
             this._listening = true;
         },
-        onLastListenerRemoved: () => {
+        onLastListenerDidRemove: () => {
             this._inputUnregister.dispose();
             this._listening = false;
         }
@@ -468,7 +498,7 @@ export class NodeEventEmitter<T> implements IDisposable {
 		const onLastRemove = () => nodeEmitter.removeListener(channel, onData);
         this._emitter = new Emitter({ 
             onFirstListenerAdd: onFirstAdd, 
-            onLastListenerRemoved: onLastRemove });
+            onLastListenerDidRemove: onLastRemove });
     }
 
     get registerListener(): Register<T> {

@@ -114,7 +114,7 @@ export class MainFileChannel implements IServerChannel {
         uri = URI.revive(uri, this._reviver);
 
         const emitter = new Emitter<ReadableStreamDataFlowType<DataBuffer>>({
-            onLastListenerRemoved: () => token.cancel()
+            onLastListenerDidRemove: () => token.cancel()
         });
 
         const provider = this.fileService.getProvider(Schemas.FILE);
