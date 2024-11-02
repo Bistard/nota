@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import assert from "assert";
 import { afterEach, before, beforeEach } from 'mocha';
 import { tryOrDefault } from "src/base/common/error";

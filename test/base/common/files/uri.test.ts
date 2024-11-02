@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import * as assert from 'assert';
 import { toForwardSlash } from 'src/base/common/files/extpath';
 import { posix, win32 } from 'src/base/common/files/path';

@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import * as assert from 'assert';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 

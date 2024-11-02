@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import * as assert from 'assert';
 import { after, before, beforeEach } from 'mocha';
 import { DataBuffer } from 'src/base/common/files/buffer';
@@ -31,7 +32,7 @@ suite('fileTreeCustomSorter-test', () => {
         await fileService.createDir(metadataRootURI).unwrap();
     }
 
-    // Always refresh the tree structure to the file system hierarchy befor every test
+    // Always refresh the tree structure to the file system hierarchy before every test
     async function refreshFileSystem(): Promise<void> {
         
         const opts: IFileTreeMetadataControllerOptions = {
@@ -515,14 +516,14 @@ suite('fileTreeCustomSorter-test', () => {
                 );
             });
 
-            test('Move: move mutiple items (files go first)', async () => {
+            test('Move: move multiple items (files go first)', async () => {
                 await assertMoveLotAction('root', 
                     [2, 3, 4], 0, 
                     ['file1', 'file2', 'file3', 'folder1', 'folder2'],
                 );
             });
             
-            test('Move: move mutiple items (move files to the middle)', async () => {
+            test('Move: move multiple items (move files to the middle)', async () => {
                 await assertMoveLotAction('root', 
                     [2, 3, 4], 1, 
                     ['folder1', 'file1', 'file2', 'file3', 'folder2'],

@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import * as assert from 'assert';
 import { after, before, beforeEach } from "mocha";
 import { Event } from 'src/base/common/event';
