@@ -134,6 +134,11 @@ export interface IEmitterOptions {
 
     /** Invoked when a listener throws an error. Defaults to {@link onUnexpectedError}. */
     readonly onListenerError?: (error: any) => void;
+
+    // [emitter]
+
+    readonly onFire?: IO<void>;
+    readonly onDidFire?: IO<void>;
 }
 
 /**
@@ -228,6 +233,8 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     }
 
     public fire(event: T): void {
+        this._opts?.onFire?.();
+
         for (const listener of this._listeners) {
             try {
                 listener.fire(event);
@@ -235,6 +242,8 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
                 ErrorHandler.onUnexpectedError(error);
             }
         }
+
+        this._opts?.onDidFire?.();
 	}
 
     public dispose(): void {
