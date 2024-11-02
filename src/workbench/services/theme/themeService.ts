@@ -10,7 +10,6 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { ILogService } from "src/base/common/logger";
 import { InitProtector } from "src/base/common/error";
 import { ColorTheme, IColorTheme, PRESET_COLOR_THEME_METADATA, isPresetColorTheme, toCssVariableName } from "src/workbench/services/theme/colorTheme";
-import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, isObject, isString } from "src/base/common/utilities/type";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
@@ -21,6 +20,7 @@ import { Color, ColorMap } from "src/base/common/color";
 import { noop } from "src/base/common/performance";
 import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
 import { ColorRegistrant } from "src/workbench/services/theme/colorRegistrant";
+import { Strings } from "src/base/common/utilities/string";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
@@ -145,7 +145,7 @@ export class ThemeService extends Disposable implements IThemeService {
         
         // read from the disk and try to parse it
         return this.fileService.readFile(themePath)
-            .andThen(themeData => jsonSafeParse(themeData.toString())
+            .andThen(themeData => Strings.jsonParseSafe(themeData.toString())
             
             // validate the raw data and apply the theme
             .andThen<IColorTheme, Error>(rawData => {

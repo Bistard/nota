@@ -2,7 +2,6 @@ import { AsyncResult, err, ok } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { jsonSafeParse } from "src/base/common/json";
 import { Dictionary, If } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { errorToMessage } from "src/base/common/utilities/panic";
@@ -204,7 +203,7 @@ class DiskStorageBase {
         }
     
         // Parse the file content
-        return jsonSafeParse<any>(this._lastSaveStorage)
+        return Strings.jsonParseSafe<any>(this._lastSaveStorage)
             .toAsync()
             .andThen(parsed => {
                 this._storage = parsed;

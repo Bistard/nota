@@ -344,29 +344,3 @@ export class JsonSchemaValidator {
         }
     }
 }
-
-/**
- * @description Safely parses a JSON string into an object. If the parsing is 
- * successful, it returns a `Result` containing the parsed object. If a 
- * `SyntaxError` occurs during parsing (e.g., due to an invalid JSON string), 
- * the error is caught and returned as an `Err` variant of the `Result`.
- *
- * @param str The JSON string to be parsed.
- * 
- * @example
- * // Successful parsing:
- * const jsonString = '{"name":"John", "age":30}';
- * const result = jsonSafeParse(jsonString);
- * if (result.isOk()) {
- *     const data = result.unwrap(); // data: { name: string; age: number; }
- *     console.log(data.name); // "John"
- * } else {
- *     console.error(result.error.message); // SyntaxError message
- * }
- */
-export function jsonSafeParse<T>(str: string): Result<T, SyntaxError> {
-    return Result.fromThrowable(
-        () => JSON.parse(str),
-        error => <SyntaxError>error,
-    );
-}

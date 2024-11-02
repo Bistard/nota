@@ -84,6 +84,13 @@ export namespace Strings {
         );
     }
 
+    export function jsonParseSafe<T>(str: string): Result<T, SyntaxError> {
+        return Result.fromThrowable(
+            () => JSON.parse(str),
+            error => <SyntaxError>error,
+        );
+    }
+
     /**
      * @description Format a given raw string with the given interpolation using
      * indice.

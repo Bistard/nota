@@ -3,7 +3,6 @@ import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { AsyncResult, err, ok } from "src/base/common/result";
@@ -306,7 +305,7 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         
         return this.__findOrCreateMetadataFile(folderUri, expectExist, resolvedChildren)
             .andThen(orderFileURI => this.fileService.readFile(orderFileURI))
-            .andThen(buffer => jsonSafeParse<string[]>(buffer.toString() || '[]'))
+            .andThen(buffer => Strings.jsonParseSafe<string[]>(buffer.toString() || '[]'))
             .andThen(order => {
                 const scheduler = this.__register(new UnbufferedScheduler<URI>(
                     this._cacheClearDelay, 

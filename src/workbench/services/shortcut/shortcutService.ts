@@ -15,7 +15,6 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyExpr";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { jsonSafeParse } from "src/base/common/json";
 import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { errorToMessage } from "src/base/common/utilities/panic";
@@ -197,7 +196,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 return ok();
             }
 
-            return jsonSafeParse<IShortcutConfiguration[]>(content);
+            return Strings.jsonParseSafe<IShortcutConfiguration[]>(content);
         })
         .andThen(configuration => {
             if (!configuration) {
