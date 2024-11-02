@@ -1,5 +1,19 @@
 import type { ArrayToUnion } from "src/base/common/utilities/type";
-import { Strings } from "src/base/common/utilities/string";
+
+/**
+ * To prevent potential circular dependency issues due to the wide use of `panic` 
+ * throughout the program, this function has been relocated to a separate file 
+ * that does not import any other files.
+ */
+
+function __stringifySafe(obj: unknown): string {
+    try {
+        // eslint-disable-next-line local/code-no-json-stringify
+        return JSON.stringify(obj);
+    } catch (err) {
+        return '';
+    }
+}
 
 /**
  * @description Panics the program by throwing an error with the provided message.
@@ -11,7 +25,6 @@ import { Strings } from "src/base/common/utilities/string";
  * @throws Will throw an error.
  * @returns This function never returns normally; always throws an error.
  */
-
 export function panic(error: unknown): never {
     if (error === undefined || error === null) {
         // eslint-disable-next-line local/code-no-throw
@@ -84,7 +97,7 @@ export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow, equal?: 
         }
     }
 
-    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${Strings.stringifySafe(narrow)})`);
+    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${__stringifySafe(narrow)})`);
 }
 
 /**
@@ -199,7 +212,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
         return error.message;
     }
 
-    return `${UNKNOWN_MESSAGE}: ${Strings.stringifySafe(error)}`;
+    return `${UNKNOWN_MESSAGE}: ${__stringifySafe(error)}`;
 }
 
 const UNKNOWN_MESSAGE = 'An unknown error occurred. Please consult the log for more details.';

@@ -1,5 +1,5 @@
+import type { Callable } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
-import { Callable } from "src/base/common/utilities/type";
 
 /**
  * An namespace that contains a list of helper functions that relates to 
