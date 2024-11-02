@@ -64,6 +64,8 @@ import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/na
 import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
+import { monitorEventEmitterListenerGC } from "src/base/common/event";
+import { toBoolean } from "src/base/common/utilities/type";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -88,6 +90,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
+            monitorEventEmitterListenerGC({
+                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+            });
 
             // ensure we handle almost every errors properly
             this.initErrorHandler();

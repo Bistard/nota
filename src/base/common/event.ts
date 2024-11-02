@@ -1,10 +1,10 @@
+import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { ITask } from "src/base/common/utilities/async";
-import { Callable } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
-import { IO } from "src/base/common/utilities/functional";
+import { createFinalizationRegistry } from "src/base/common/garbageCollection";
+import { Time } from "src/base/common/date";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -19,6 +19,20 @@ import { IO } from "src/base/common/utilities/functional";
  * 
  *  - {@link Event}
  ******************************************************************************/
+
+let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
+export function monitorEventEmitterListenerGC(opts: { ListenerGCedWarning: boolean }): void {
+    if (opts.ListenerGCedWarning) {
+        
+        _listenerFinalizer = createFinalizationRegistry({
+            onGarbageCollectedInterval: (stacks: string[]) => {
+                console.warn('[MEMORY LEAKING] GC\'ed these event listeners that were NOT yet disposed:');
+                console.warn(stacks.join('\n'));
+            },
+            internalTime: Time.sec(3),
+        });
+    }
+}
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -219,11 +233,18 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 
                     listenerRemoving = false;
                     listenerRemoved = true;
+                    _listenerFinalizer?.unregister(unRegister);
                 }
             });
 
             if (disposables) {
                 disposables.push(unRegister);
+            }
+
+            if (_listenerFinalizer) {
+                // only select the top stack info
+                const stack = new Error().stack!.split('\n').slice(2, 3).join('\n').trim();
+                _listenerFinalizer.register(unRegister, stack, unRegister);
             }
 
             return unRegister;
@@ -479,8 +500,8 @@ export class RelayEmitter<T> implements IDisposable {
 }
 
 export interface INodeEventEmitter {
-    on(eventName: string | symbol, listener: Callable<[], void>): any;
-    removeListener(eventName: string | symbol, listener: Callable<[], void>): any;
+    on(eventName: string | symbol, listener: IO<void>): any;
+    removeListener(eventName: string | symbol, listener: IO<void>): any;
 }
 
 /**

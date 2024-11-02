@@ -30,6 +30,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { toBoolean } from "src/base/common/utilities/type";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -195,7 +196,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private afterFirstWindow(provider: IServiceProvider): void {
         
         // inspector mode
-        if ([true, 'true'].includes(this.environmentService.CLIArguments.inspector!)) {
+        if (toBoolean(this.environmentService.CLIArguments.inspector)) {
             this.openDebugInspectorWindow(provider);
         }
     }

@@ -1,9 +1,9 @@
 import type { IpcRenderer } from "electron";
+import type { Mutable } from "src/base/common/utilities/type";
+import type { ISandboxProcess } from "src/platform/electron/common/electronType";
+import type { IWindowConfiguration } from "src/platform/window/common/window";
 import { executeOnce } from "src/base/common/utilities/function";
 import { panic } from "src/base/common/utilities/panic";
-import { Mutable } from "src/base/common/utilities/type";
-import { ISandboxProcess } from "src/platform/electron/common/electronType";
-import { IWindowConfiguration } from "src/platform/window/common/window";
 
 /**
  * Expose APIs from the main process at `preload.js`.
