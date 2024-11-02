@@ -1,3 +1,5 @@
+/* eslint-disable local/code-no-json-stringify */
+import { Result } from "src/base/common/result";
 import { Iterable } from "src/base/common/utilities/iterable";
 import { compareSubstringIgnoreCase } from "src/base/common/files/glob";
 import { CompareOrder, isObject } from "src/base/common/utilities/type";
@@ -38,7 +40,6 @@ export namespace Strings {
 
             if (isObject(obj) || Array.isArray(obj)) {
                 try {
-                    // eslint-disable-next-line local/code-no-json-stringify
                     obj = JSON.stringify(obj);
                 } catch (e) {
                     obj = '[Strings.stringify() error]';
@@ -69,12 +70,18 @@ export namespace Strings {
      */
     export function stringifySafe(obj: unknown, onError?: (error: any) => void, replacer?: (this: any, key: string, value: any) => any, space?: string | number): string {
         try {
-            // eslint-disable-next-line local/code-no-json-stringify
             return JSON.stringify(obj, replacer, space);
         } catch (err) {
             onError?.(err);
             return '';
         }
+    }
+
+    export function stringifySafe2(obj: unknown, replacer?: (this: any, key: string, value: any) => any, space?: string | number): Result<string, Error> {
+        return Result.fromThrowable(
+            () => JSON.stringify(obj, replacer, space),
+            error => <SyntaxError>error,
+        );
     }
 
     /**

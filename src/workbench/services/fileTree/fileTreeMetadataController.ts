@@ -3,7 +3,7 @@ import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
+import { jsonSafeParse } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { AsyncResult, err, ok } from "src/base/common/result";
@@ -11,6 +11,7 @@ import { ResourceMap } from "src/base/common/structures/map";
 import { Arrays } from "src/base/common/utilities/array";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { assert, panic } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 import { Comparator } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItem, IFileTarget } from "src/workbench/services/fileTree/fileItem";
@@ -282,9 +283,9 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
                 .map(target => target.name);
             
             // write to disk with the default order
-            return jsonSafeStringify(defaultOrder, undefined, 4)
-            .toAsync()
-            .andThen(parsed => this.fileService.createFile(metadataURI, DataBuffer.fromString(parsed))
+            return Strings.stringifySafe2(defaultOrder, undefined, 4)
+                .toAsync()
+                .andThen(parsed => this.fileService.createFile(metadataURI, DataBuffer.fromString(parsed))
                 .map(() => metadataURI));
         });
     }
@@ -324,7 +325,7 @@ export class FileTreeMetadataController extends Disposable implements IFileTreeM
         const metadataURI = this.__computeMetadataURI(folder);
         const metadata = assert(this.getMetadataFromCache(folder));
         
-        return jsonSafeStringify(metadata, undefined, 4).toAsync()
+        return Strings.stringifySafe2(metadata, undefined, 4).toAsync()
             .andThen(stringify => this.fileService.writeFile(metadataURI, DataBuffer.fromString(stringify), { create: true, overwrite: true, }));
     }
 

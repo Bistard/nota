@@ -15,11 +15,12 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { ContextKeyDeserializer } from "src/platform/context/common/contextKeyExpr";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { jsonSafeParse, jsonSafeStringify } from "src/base/common/json";
+import { jsonSafeParse } from "src/base/common/json";
 import { AsyncResult, Result, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { trySafe } from "src/base/common/error";
+import { Strings } from "src/base/common/utilities/string";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -161,16 +162,16 @@ export class ShortcutService extends Disposable implements IShortcutService {
             }
         }
 
-        return jsonSafeStringify(keybindings, undefined, 4).toAsync()
-        .andThen(raw => this.fileService.writeFile(
-            this._resource,
-            DataBuffer.fromString(raw),
-            { create: true, overwrite: true, unlock: true }
-        ))
-        .match(
-            () => this.logService.info('ShortcutService', 'shortcut configuration saved.', { WindowID: this.environmentService.windowID, at: URI.toString(this._resource) }),
-            (error) => this.logService.error('ShortcutService', 'shortcut configuration failed to save.', error, { at: URI.toString(this._resource) }),
-        );
+        return Strings.stringifySafe2(keybindings, undefined, 4).toAsync()
+            .andThen(raw => this.fileService.writeFile(
+                this._resource,
+                DataBuffer.fromString(raw),
+                { create: true, overwrite: true, unlock: true }
+            ))
+            .match(
+                () => this.logService.info('ShortcutService', 'shortcut configuration saved.', { WindowID: this.environmentService.windowID, at: URI.toString(this._resource) }),
+                (error) => this.logService.error('ShortcutService', 'shortcut configuration failed to save.', error, { at: URI.toString(this._resource) }),
+            );
     }
 
     private __readConfigurationFromDisk(): AsyncResult<void, Error> {
