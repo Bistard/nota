@@ -43,16 +43,6 @@ export interface IProseTextNode extends ProseNode {
     withText(text: string): IProseTextNode;
 }
 
-(function extendProseMirrorPrototypes() {
-    __extendResolvedPosPrototype();
-})();
-
-function __extendResolvedPosPrototype(): void {
-    ResolvedPos.prototype['getParentNodeAt'] = function (depth: number) { return this.node(depth); };
-    ResolvedPos.prototype['getCurrNode'] = function () { return this.node(this.depth); };
-    ResolvedPos.prototype['getCommonAncestorDepth'] = function (pos: number) { return this.sharedDepth(pos); };
-}
-
 declare module 'prosemirror-model' {
     
     // eslint-disable-next-line local/code-interface-check
@@ -165,4 +155,14 @@ declare module 'prosemirror-model' {
          */
         getCommonAncestorDepth(pos: number): number;
     }
+}
+
+(function extendProseMirrorPrototypes() {
+    __extendResolvedPosPrototype();
+})();
+
+function __extendResolvedPosPrototype(): void {
+    ResolvedPos.prototype['getParentNodeAt'] = function (depth: number) { return this.node(depth); };
+    ResolvedPos.prototype['getCurrNode'] = function () { return this.node(this.depth); };
+    ResolvedPos.prototype['getCommonAncestorDepth'] = function (pos: number) { return this.sharedDepth(pos); };
 }

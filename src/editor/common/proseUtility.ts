@@ -81,4 +81,39 @@ export namespace ProseUtils {
         }
         return null;
     }
+
+    /**
+     * @description Gets the boundaries of the word at the given position.
+     * @param pos The resolved position in the document.
+     * @returns The start and end positions of the word, or null if no word is found.
+     * 
+     * ### Example
+     * `hel|lo world` will returns `{ from: 0; to: 5 }` which contains the word `hello`.
+     */
+    export function getWordBound(pos: ProseResolvedPos): { from: number; to: number } | null {
+        const text = pos.parent.textContent;
+        const offset = pos.parentOffset;
+
+        if (!text) {
+            return null;
+        }
+
+        let start = offset;
+        while (start > 0 && /\w/.test(text[start - 1]!)) {
+            start--;
+        }
+
+        let end = offset;
+        while (end < text.length && /\w/.test(text[end]!)) {
+            end++;
+        }
+
+        if (start === end) {
+            return null;
+        }
+
+        const from = pos.start() + start;
+        const to = pos.start() + end;
+        return { from, to };
+    }
 }

@@ -760,52 +760,80 @@ export namespace EditorCommands {
                     return false;
                 }
 
-                if (dispatch) {
-                    // Handle the case where there is a cursor but no selection range
-                    if ($cursor) {
-                        if (markType.isInSet(state.storedMarks || $cursor.marks())) {
-                            dispatch(state.tr.removeStoredMark(markType));
-                        } else {
-                            dispatch(state.tr.addStoredMark(markType.create(attrs)));
-                        }
-                    } else {
-                        let shouldAddMark = !removeWhenPresent;
+                if (!dispatch) {
+                    return true;
+                }
+
+                // Handle the case where there is a cursor but no selection range
+                if ($cursor) {
+                    /**
+                     * If the cursor is positioned within a word, this allows 
+                     * the entire word to be toggled with the specified mark.
+                     */
+                    const wordBound = ProseUtils.getWordBound(state.selection.$from);
+                    if (wordBound) {
+                        const { from, to } = wordBound;
                         const tr = state.tr;
 
-                        if (!enterAtoms) {
-                            ranges = __removeInlineAtoms(ranges);
+                        const markExists = state.doc.rangeHasMark(from, to, markType);
+
+                        if (markExists) {
+                            // If the mark exists, remove it from the entire word
+                            tr.removeMark(from, to, markType);
+                        } else {
+                            // Otherwise, apply the mark to the entire word
+                            tr.addMark(from, to, markType.create(attrs));
                         }
-
-                        // Determine if the mark should be added or removed
-                        if (removeWhenPresent) {
-                            shouldAddMark = !ranges.some(range => 
-                                state.doc.rangeHasMark(range.$from.pos, range.$to.pos, markType)
-                            );
-                        }
-
-                        // Apply or remove the mark from the selected ranges
-                        ranges.forEach(({ $from, $to }) => {
-                            if (!shouldAddMark) {
-                                tr.removeMark($from.pos, $to.pos, markType);
-                            } else {
-                                let from = $from.pos, to = $to.pos;
-                                const startText = $from.nodeAfter, endText = $to.nodeBefore;
-
-                                // Adjust for whitespace at the start and end of the range
-                                const spaceStart = startText && startText.isText ? /^\s*/.exec(startText.text!)![0].length : 0;
-                                const spaceEnd = endText && endText.isText ? /\s*$/.exec(endText.text!)![0].length : 0;
-                                
-                                if (from + spaceStart < to) {
-                                    from += spaceStart;
-                                    to -= spaceEnd;
-                                }
-
-                                tr.addMark(from, to, markType.create(attrs));
-                            }
-                        });
 
                         dispatch(tr.scrollIntoView());
                     }
+
+                    // not positioned within a word (within spaces)
+                    else if (markType.isInSet(state.storedMarks || $cursor.marks())) {
+                        dispatch(state.tr.removeStoredMark(markType));
+                    } else {
+                        dispatch(state.tr.addStoredMark(markType.create(attrs)));
+                    }
+                } 
+
+                // have selection ranges
+                else {
+                    let shouldAddMark = !removeWhenPresent;
+                    const tr = state.tr;
+
+                    if (!enterAtoms) {
+                        ranges = __removeInlineAtoms(ranges);
+                    }
+
+                    // Determine if the mark should be added or removed
+                    if (removeWhenPresent) {
+                        shouldAddMark = !ranges.some(range => 
+                            state.doc.rangeHasMark(range.$from.pos, range.$to.pos, markType)
+                        );
+                    }
+
+                    // Apply or remove the mark from the selected ranges
+                    ranges.forEach(({ $from, $to }) => {
+                        if (!shouldAddMark) {
+                            tr.removeMark($from.pos, $to.pos, markType);
+                        } else {
+                            let from = $from.pos, to = $to.pos;
+                            const startText = $from.nodeAfter, endText = $to.nodeBefore;
+
+                            // Adjust for whitespace at the start and end of the range
+                            const spaceStart = startText && startText.isText ? /^\s*/.exec(startText.text!)![0].length : 0;
+                            const spaceEnd = endText && endText.isText ? /\s*$/.exec(endText.text!)![0].length : 0;
+                            
+                            if (from + spaceStart < to) {
+                                from += spaceStart;
+                                to -= spaceEnd;
+                            }
+
+                            tr.addMark(from, to, markType.create(attrs));
+                        }
+                    });
+
+                    dispatch(tr.scrollIntoView());
                 }
 
                 return true;
