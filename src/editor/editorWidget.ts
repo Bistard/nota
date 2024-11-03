@@ -75,6 +75,12 @@ export interface IEditorWidget extends
      * @param options The option.
      */
     updateOptions(options: Partial<IEditorWidgetOptions>): void;
+
+    /**
+     * @description Get an extension of this editor.
+     * @param id The unique identifier of the extension.
+     */
+    getExtension<T extends EditorExtension>(id: string): T | undefined;
 }
 
 /**
@@ -257,6 +263,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
         this._options.updateOptions(newOption);
+    }
+
+    public getExtension<T extends EditorExtension>(id: string): T | undefined {
+        return <T>this._extensions.getExtensionByID(id);
     }
 
     // #region [editor-model methods]
