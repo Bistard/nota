@@ -207,7 +207,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this.__register(this._extensions);
     }
 
-    // [getter]
+    // #region [getter]
 
     get model(): IEditorModel { return assert(this._model); }
     get view(): IEditorView { return assert(this._view); }
