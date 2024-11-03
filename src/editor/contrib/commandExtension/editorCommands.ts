@@ -196,6 +196,18 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ),
         ['Shift+Enter', getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
+    
+    extension.registerCommand(__buildEditorCommand(
+            {
+                id: 'editor-save',
+                when: whenEditorWritable,
+            },
+            [
+                EditorCommands.FileSave,
+            ]
+        ),
+        [getPlatformShortcut('Ctrl+S', 'Meta+S')]
+    );
 }
 
 function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command {
@@ -910,6 +922,24 @@ export namespace EditorCommands {
                 dispatch(tr);
             }
 
+            return true;
+        }
+    }
+
+    export class FileSave extends EditorCommandBase {
+
+        public run(provider: IServiceProvider, editor: IEditorWidget): boolean {
+            editor.save()
+                .match(
+                    () => {},
+                    error => {
+                        const notificationService = provider.getOrCreateService(INotificationService);
+                        notificationService.error(
+                            `Failed to save file: ${error.message}`,
+                            { actions: [ { label: 'Close', run: 'noop' }, ] }
+                        );
+                    }
+                );
             return true;
         }
     }
