@@ -64,7 +64,7 @@ export class EditorView extends Disposable implements IEditorView {
     ) {
         super();
 
-        const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additionals));
+        const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional));
         this._ctx = context;
 
         // the centre that integrates the editor-related functionalities

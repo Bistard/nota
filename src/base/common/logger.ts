@@ -10,7 +10,7 @@ export interface ILogEvent {
     readonly level: LogLevel;
     readonly message: string;
     readonly error?: Error;
-    readonly additionals?: Additional;
+    readonly additional?: Additional;
 }
 
 /**

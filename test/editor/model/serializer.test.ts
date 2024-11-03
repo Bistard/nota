@@ -13,7 +13,7 @@ const schema = buildSchema(nodeProvider);
 const lexer = new MarkdownLexer({});
 const docParser = new DocumentParser(schema, nodeProvider, /* options */);
 const serializer = new MarkdownSerializer(nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
-docParser.onLog(e => defaultLog(new ConsoleLogger(), e.level, 'serializer.test.ts', e.message, e.error, e.additionals));
+docParser.onLog(e => defaultLog(new ConsoleLogger(), e.level, 'serializer.test.ts', e.message, e.error, e.additional));
 
 /**
  * @description Expecting the serialized output is exactly the same as the 

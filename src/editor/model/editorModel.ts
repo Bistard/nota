@@ -61,7 +61,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const nodeProvider = DocumentNodeProvider.create().register();
         this._schema = buildSchema(nodeProvider);
         this._docParser = new DocumentParser(this._schema, nodeProvider, /* options */);
-        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additionals)));
+        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
         this._docSerializer = new MarkdownSerializer(nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
 
         this._dirty = false;
