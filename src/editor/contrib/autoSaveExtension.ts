@@ -126,7 +126,7 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
                 {
                     actions: [
                         { label: 'Close', run: 'noop' },
-                        { label: 'Retry', run: () => this._scheduler.schedule() }
+                        { label: 'Retry', run: () => this.__saveEditorContent() }
                     ]
                 }
             )
