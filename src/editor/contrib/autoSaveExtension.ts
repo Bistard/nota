@@ -39,8 +39,8 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     private _autoSaveOnLoseFocus: boolean;
     private _autoSaveDelay: Time;
     
-    private _scheduler: UnbufferedScheduler<void>;
-    private _editorWidget: IEditorWidget;
+    private readonly _scheduler: UnbufferedScheduler<void>;
+    private readonly _editorWidget: IEditorWidget;
 
     // [constructor]
 

@@ -116,7 +116,7 @@ class AlertError extends Command {
         const logService = provider.getOrCreateService(ILogService);
 
         let message: string;
-        if (error === 'string') {
+        if (typeof error === 'string') {
             message = error;
         } else {
             message = errorToMessage(error.message ?? error, false);
