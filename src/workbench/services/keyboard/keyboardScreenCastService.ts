@@ -1,6 +1,6 @@
 import 'src/workbench/services/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
-import { IDisposable } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -40,13 +40,14 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     private readonly _flushDelay = Time.sec(1);
 
     private _active: boolean;
+    private _imeInput: boolean;
+
     private _container?: HTMLElement;
     private _tagContainer?: HTMLElement;
     private _prevEvent?: IStandardKeyboardEvent;
     private _visibilityController: VisibilityController;
-    private _keydownListener?: IDisposable;
-    private _rippleListener?: IDisposable;
-    private _flushKeyScheduler?: Scheduler<void>;
+
+    private _disposables: DisposableManager;
 
     // [constructor]
 
@@ -56,6 +57,8 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     ) {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
         this._active = false;
+        this._imeInput = false;
+        this._disposables = new DisposableManager();
     }
 
     // [public methods]
@@ -67,47 +70,59 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         }
 
         // rendering
-        {
-            this._container = document.createElement('div');
-            this._container.className = 'keyboard-screen-cast';
+        this._container = document.createElement('div');
+        this._container.className = 'keyboard-screen-cast';
 
-            this._visibilityController.setDomNode(this._container);
-            this._visibilityController.setVisibility(false);
+        this._visibilityController.setDomNode(this._container);
+        this._visibilityController.setVisibility(false);
 
-            this._tagContainer = document.createElement('div');
-            this._tagContainer.className = 'container';
+        this._tagContainer = document.createElement('div');
+        this._tagContainer.className = 'container';
 
-            this._container.appendChild(this._tagContainer);
-            this.layoutService.parentContainer.appendChild(this._container);
+        this._container.appendChild(this._tagContainer);
+        this.layoutService.parentContainer.appendChild(this._container);
 
-            this._flushKeyScheduler = new Scheduler(this._flushDelay, () => this.__onTimeUp());
-        }
+        const flushKeyScheduler = this._disposables.register(new Scheduler<void>(this._flushDelay, () => this.__onTimeUp()));
 
         // events
         {
             // keydown
-            this._keydownListener = this.keyboardService.onKeydown(event => {
+            this._disposables.register(this.keyboardService.onKeydown(event => {
                 if (this.__ifAllowNewTag(event)) {
 
                     if (this.__excessMaxTags() || Keyboard.isEventModifier(event)) {
                         this.__flushKeypress();
                     }
 
-                    this.__appendTag(event);
+                    this.__appendTag(Keyboard.eventToString(event));
                     this._prevEvent = event;
                 }
                 this._visibilityController.setVisibility(true);
-                this._flushKeyScheduler?.schedule();
-            });
+                flushKeyScheduler.schedule();
+            }));
 
-            // mouseClick
-            this._rippleListener = addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
+            this._disposables.register(this.keyboardService.onCompositionStart(event => {
+                this._imeInput = true;
+            }));
+            
+            this._disposables.register(this.keyboardService.onCompositionUpdate(event => {
+                if (event.data !== '' && this._imeInput) {
+                    this.__flushKeypress();
+                    this.__appendTag(event.data);
+                }
+            }));
+            
+            this._disposables.register(this.keyboardService.onCompositionEnd(event => {
+                this._imeInput = false;
+            }));
+
+            // mouseClick (ripple)
+            this._disposables.register(addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
                 if (!DomEventHandler.isLeftClick(e)) {
                     return;
                 }
-
                 this.__createRippleEffect(e);
-            });
+            }));
         }
 
         this._active = true;
@@ -126,14 +141,8 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._visibilityController.setDomNode(undefined);
         }
 
-        this._keydownListener?.dispose();
-        this._keydownListener = undefined;
-
-        this._rippleListener?.dispose();
-        this._rippleListener = undefined;
-
-        this._flushKeyScheduler?.dispose();
-        this._flushKeyScheduler = undefined;
+        this._disposables.dispose();
+        this._disposables = new DisposableManager();
 
         this._active = false;
     }
@@ -145,6 +154,11 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         // first tag
         if (!this._prevEvent) {
             return true;
+        }
+
+        // composition
+        if (this._imeInput) {
+            return false;
         }
 
         // pressing modifier twice, but we only display modifier for once.
@@ -170,7 +184,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         return rightSpace < 150;
     }
 
-    private __appendTag(event: IStandardKeyboardEvent): void {
+    private __appendTag(text: string): void {
         if (!this._tagContainer) {
             return;
         }
@@ -179,7 +193,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         tag.className = 'tag';
 
         const span = document.createElement('span');
-        span.textContent = Keyboard.eventToString(event);
+        span.textContent = text;
 
         tag.appendChild(span);
         this._tagContainer.appendChild(tag);

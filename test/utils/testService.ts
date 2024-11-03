@@ -207,6 +207,7 @@ export class TestKeyboardService implements IKeyboardService {
     declare _serviceMarker: undefined;
 
     private readonly _emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
+    private readonly _emitter2: Emitter<CompositionEvent> = new Emitter();
 
     constructor() { }
 
@@ -214,16 +215,32 @@ export class TestKeyboardService implements IKeyboardService {
         this._emitter.fire(event);
     }
 
-    get onKeydown(): Register<IStandardKeyboardEvent> {
+    public fireComposition(event: CompositionEvent): void {
+        this._emitter2.fire(event);
+    }
+
+    get onKeydown() {
         return this._emitter.registerListener;
     }
 
-    get onKeyup(): Register<IStandardKeyboardEvent> {
+    get onKeyup() {
         return this._emitter.registerListener;
     }
 
-    get onKeypress(): Register<IStandardKeyboardEvent> {
+    get onKeypress() {
         return this._emitter.registerListener;
+    }
+    
+    get onCompositionStart() {
+        return this._emitter2.registerListener;
+    }
+    
+    get onCompositionUpdate() {
+        return this._emitter2.registerListener;
+    }
+    
+    get onCompositionEnd() {
+        return this._emitter2.registerListener;
     }
 
     public dispose(): void {
