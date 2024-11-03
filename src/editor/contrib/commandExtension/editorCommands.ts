@@ -13,6 +13,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { IS_MAC } from "src/base/common/platform";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
+import { redo, undo } from "prosemirror-history";
 
 /**
  * [FILE OUTLINE]
@@ -207,6 +208,30 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
             ]
         ),
         [getPlatformShortcut('Ctrl+S', 'Meta+S')]
+    );
+    
+    extension.registerCommand(__buildEditorCommand(
+            {
+                id: 'editor-undo',
+                when: whenEditorWritable,
+            },
+            [
+                EditorCommands.FileUndo,
+            ]
+        ),
+        [getPlatformShortcut('Ctrl+Z', 'Meta+Z')]
+    );
+    
+    extension.registerCommand(__buildEditorCommand(
+            {
+                id: 'editor-redo',
+                when: whenEditorWritable,
+            },
+            [
+                EditorCommands.FileRedo,
+            ]
+        ),
+        [getPlatformShortcut('Ctrl+Shift+Z', 'Meta+Shift+Z')]
     );
 }
 
@@ -969,6 +994,18 @@ export namespace EditorCommands {
                     }
                 );
             return true;
+        }
+    }
+
+    export class FileUndo extends EditorCommandBase {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            return undo(state, dispatch, view);
+        }
+    }
+    
+    export class FileRedo extends EditorCommandBase {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            return redo(state, dispatch, view);
         }
     }
 }

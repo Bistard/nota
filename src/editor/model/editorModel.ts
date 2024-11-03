@@ -16,6 +16,7 @@ import { DocumentParser, IDocumentParser } from "src/editor/model/parser";
 import { buildSchema, EditorSchema } from "src/editor/model/schema";
 import { MarkdownSerializer } from "src/editor/model/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
+import { history } from "prosemirror-history";
 
 export class EditorModel extends Disposable implements IEditorModel {
 
@@ -108,12 +109,14 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     public getContent(): string[] {
         const state = assert(this._editorState);
-        return []; // TODO
+        const raw = this._docSerializer.serialize(state.doc);
+        return raw.split('\n'); // TODO
     }
 
     public getRawContent(): string {
         const state = assert(this._editorState);
-        return ''; // TODO
+        const raw = this._docSerializer.serialize(state.doc);
+        return raw; // TODO
     }
 
     public getLine(lineNumber: number): string {
@@ -213,7 +216,7 @@ export class EditorModel extends Disposable implements IEditorModel {
                 const state = ProseEditorState.create({
                     schema: this._schema,
                     doc: document,
-                    plugins: extensions.map(extension => extension.getViewExtension()),
+                    plugins: [...extensions.map(extension => extension.getViewExtension()), history({ depth: 500 })],
                 });
                 return ok(state);
             });
