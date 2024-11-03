@@ -28,6 +28,9 @@ export interface IEditorWidget extends
         'source' 
         | 'dirty'
         | 'onDidStateChange' 
+        | 'onDidDirtyChange'
+        | 'onDidSave'
+        | 'onDidSaveError'
         | 'save' 
         | 'insertAt' 
         | 'deleteAt'>
@@ -105,6 +108,15 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private readonly _onDidStateChange = this.__register(new RelayEmitter<void>());
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
+
+    private readonly _onDidDirtyChange = this.__register(new RelayEmitter<boolean>());
+    public readonly onDidDirtyChange = this._onDidDirtyChange.registerListener;
+
+    private readonly _onDidSave = this.__register(new RelayEmitter<void>());
+    public readonly onDidSave = this._onDidSave.registerListener;
+    
+    private readonly _onDidSaveError = this.__register(new RelayEmitter<unknown>());
+    public readonly onDidSaveError = this._onDidSaveError.registerListener;
 
     // #region [view events]
 
@@ -292,6 +304,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         // binding to the model
         this._onDidStateChange.setInput(model.onDidStateChange);
+        this._onDidDirtyChange.setInput(model.onDidDirtyChange);
+        this._onDidSave.setInput(model.onDidSave);
+        this._onDidSaveError.setInput(model.onDidSaveError);
 
         // binding to the view
         this._onDidFocusChange.setInput(this.view.onDidFocusChange);

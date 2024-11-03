@@ -13,6 +13,9 @@ export interface IEditorExtension extends Disposable {
     
     // [fields]
 
+    /**
+     * Every extension should has a unique identifier binding to itself.
+     */
     readonly id: string;
 
     // [events]

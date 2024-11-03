@@ -71,6 +71,18 @@ export interface IEditorModel extends IDisposable {
      * Fires whenever the file is saved back to the disk successfully.
      */
     readonly onDidSave: Register<void>;
+    
+    /**
+     * Fires whenever the process of saving file encounters an error. The 
+     * operation fails.
+     */
+    readonly onDidSaveError: Register<unknown>;
+
+    /**
+     * Fires whenever the working file is dirty or not. True means the file is 
+     * turning to dirty, false if not.
+     */
+    readonly onDidDirtyChange: Register<boolean>;
 
     /**
      * Fires whenever a transaction to the {@link ProseEditorState} is made 

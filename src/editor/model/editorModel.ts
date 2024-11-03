@@ -21,17 +21,23 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [events]
 
-    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this._dirty = false }));
+    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this.__setDirty(false) }));
     public readonly onDidBuild = this._onDidBuild.registerListener;
     
-    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this._dirty = true }));
+    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this.__setDirty(true) }));
     public readonly onTransaction = this._onTransaction.registerListener;
 
-    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this._dirty = true }));
+    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this.__setDirty(true) }));
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
-    private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this._dirty = false }));
+    private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this.__setDirty(false) }));
     public readonly onDidSave = this._onDidSave.registerListener;
+
+    private readonly _onDidSaveError = this.__register(new Emitter<unknown>());
+    public readonly onDidSaveError = this._onDidSaveError.registerListener;
+
+    private readonly _onDidDirtyChange = this.__register(new Emitter<boolean>());
+    public readonly onDidDirtyChange = this._onDidDirtyChange.registerListener;
 
     // [fields]
 
@@ -43,7 +49,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     private readonly _docSerializer: MarkdownSerializer; // Serializer that transforms the prosemirror document back to raw string.
     
     private _editorState?: ProseEditorState; // A reference to the prosemirror state.
-    private _dirty: boolean;                 // Indicates if the file has unsaved changes.
+    private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.__setDirty()`
 
     // [constructor]
 
@@ -161,11 +167,20 @@ export class EditorModel extends Disposable implements IEditorModel {
             })
             .mapErr(error => {
                 this.logService.trace('EditorModel', `File saved (${URI.toString(this._source)})`);
+                this._onDidSaveError.fire(error);
                 return error;
             });
     }
 
     // [private methods]
+
+    private __setDirty(value: boolean): void {
+        if (this._dirty === value) {
+            return;
+        }
+        this._dirty = value;
+        this._onDidDirtyChange.fire(value);
+    }
 
     public __onDidStateChange(newState: ProseEditorState): void {
         this._editorState = newState;
@@ -179,7 +194,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const doc = this._docParser.parse(tokens);
         console.log(doc); // TEST
         
-        console.log(this._docSerializer.serialize(doc)); // TEST
+        // console.log(this._docSerializer.serialize(doc)); // TEST
         return doc;
     }
 
