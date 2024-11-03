@@ -49,8 +49,6 @@ export const enum AllCommands {
     fileMove  = 'fileMove', // TODO
 
     // [Test Commands]
-
-    popNotification = 'popNotification',
 }
 
 /**
@@ -71,7 +69,6 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.fileCopy]:         'Sets selected files in the file tree as ready to be copied.',
     [AllCommands.filePaste]:        'Paste the given targets to the file tree.',
     [AllCommands.fileMove]:         'Moves selected explorer files.',
-    [AllCommands.popNotification]:  'Pop up a sample notification.'
 };
 
 /**
@@ -102,7 +99,6 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileCopy] : [];
     [AllCommands.filePaste]: [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
     [AllCommands.fileMove] : [];
-    [AllCommands.popNotification] : [];
 };
 
 /**
@@ -130,5 +126,4 @@ export type AllCommandsReturnTypes = {
     [AllCommands.fileCopy] : void;
     [AllCommands.filePaste]: void;
     [AllCommands.fileMove] : void;
-    [AllCommands.popNotification] : void;
 };

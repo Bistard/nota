@@ -5,10 +5,9 @@ import { RegistrantType, createRegister } from "src/platform/registrant/common/r
 import { FileCommands } from "src/workbench/services/fileTree/fileCommands";
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { INotificationService, NotificationTypes } from "src/workbench/services/notification/notificationService";
+import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
-import { Icons } from "src/base/browser/icon/icons";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -43,59 +42,6 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 },
             },
         );
-
-        registrant.registerCommandBasic({
-            id: AllCommands.popNotification,
-            command: (provider) => {
-                const notificationService = provider.getOrCreateService(INotificationService);
-                notificationService.notify({
-                    message: 'This is another long sample notification message. Testing code~',
-                    subMessage: 'Source: file:///Users/asteria_zhaimu/Desktop/GitHub/nota/.wisp/app.config.json',
-                    type: NotificationTypes.Info,
-                    actions: [
-                        {
-                            label: 'Close',
-                            run: 'noop',
-                        },
-                    ]
-                });
-                notificationService.notify({
-                    message: 'This is a  sample notification message without specifying submessage.',
-                    type: NotificationTypes.Info,
-                    actions: [
-                        {
-                            label: 'Close',
-                            run: 'noop',
-                        },
-                    ]
-                });
-                notificationService.notify({
-                    message: 'This is a warning message.',
-                    type: NotificationTypes.Warning,
-                    actions: [
-                        {
-                            label: 'Close',
-                            run: 'noop',
-                        },
-                    ]
-                });
-                notificationService.notify({
-                    message: 'This is a very very very very very very very very very very very very very very very very very very very very long  ERROR message!',
-                    subMessage: 'Resource file: file:///Users/asteria_zhaimu/Desktop/砂浜/NOTA软件开发/',
-                    type: NotificationTypes.Error,
-                    actions: [
-                        {
-                            label: 'Close',
-                            run: 'noop',
-                        },
-                        {
-                            label: 'Yes',
-                            run: 'noop',
-                        },
-                    ]
-                });
-            }
-        });
 
         registrant.registerCommand(new AlertError());
         registrant.registerCommand(new FileCommands.FilePaste());
