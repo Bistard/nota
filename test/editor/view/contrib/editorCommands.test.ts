@@ -47,7 +47,7 @@ function createStateBy(doc: ProseNode) {
 function execCommand(doc: ProseNode, cmd: EditorCommandBase, result: ProseNode | null) {
     let state = createStateBy(doc);
     
-    cmd.run(undefined!, state, tr => state = state.apply(tr));
+    cmd.run(undefined!, undefined!, state, tr => state = state.apply(tr));
     ist(state.doc, result || doc, isEqualNode);
     
     if (result && getFrom(result) !== undefined) {
@@ -211,7 +211,7 @@ suite.skip('editorCommands-test', () => {
             
             
             
-            ist(cmd.run(undefined!, state, tr => state = state.apply(tr)));
+            ist(cmd.run(undefined!, undefined!, state, tr => state = state.apply(tr)));
             ist(state.doc.toString(), 'doc(block(para("ab")))');
         });
     });

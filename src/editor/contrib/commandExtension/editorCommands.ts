@@ -1,4 +1,5 @@
 import type { IEditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
+import type { IEditorWidget } from "src/editor/editorWidget";
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
@@ -10,7 +11,8 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
-import { OPERATING_SYSTEM, Platform } from "src/base/common/platform";
+import { IS_MAC } from "src/base/common/platform";
+import { INotificationService } from "src/workbench/services/notification/notificationService";
 
 /**
  * [FILE OUTLINE]
@@ -33,7 +35,7 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
 }
 
 function getPlatformShortcut(ctrl: string, meta: string): string {
-    return OPERATING_SYSTEM === Platform.Mac ? meta : ctrl;
+    return IS_MAC ? meta : ctrl;
 }
 
 /**
@@ -208,7 +210,7 @@ function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any
  * @class A base class for every command in the {@link EditorCommandsBasic}.
  */
 export abstract class EditorCommandBase extends Command {
-    public abstract override run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
+    public abstract override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
 /**
@@ -220,7 +222,7 @@ export namespace EditorCommands {
 
     export class SelectAll extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const allSelect = new ProseAllSelection(state.doc);
             const tr = state.tr.setSelection(allSelect);
             dispatch?.(tr);
@@ -239,7 +241,7 @@ export namespace EditorCommands {
      */
     export class InsertNewLineInCodeBlock extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $head, $anchor } = state.selection;
             if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
                 return false;
@@ -260,7 +262,7 @@ export namespace EditorCommands {
      */
     export class InsertEmptyParagraphAdjacentToBlock extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
 
             // Check if the selection is not suitable for paragraph insertion.
@@ -301,7 +303,7 @@ export namespace EditorCommands {
      */
     export class LiftEmptyTextBlock extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (!(state.selection instanceof ProseTextSelection)) {
                 return false;
             }
@@ -345,7 +347,7 @@ export namespace EditorCommands {
      */
     export class SplitBlockAtSelection extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
 
             if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
@@ -414,7 +416,7 @@ export namespace EditorCommands {
      */
     export class DeleteSelection extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (state.selection.empty) {
                 return false;
             }
@@ -436,7 +438,7 @@ export namespace EditorCommands {
      */
     export class JoinBackward extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $cursor = __atBlockStart(state, view);
             if (!$cursor) {
                 return false;
@@ -510,7 +512,7 @@ export namespace EditorCommands {
      */
     export class joinForward extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $cursor = __atBlockEnd(state, view);
             if (!$cursor) {
                 return false;
@@ -569,7 +571,7 @@ export namespace EditorCommands {
      */
     export class SelectNodeBackward extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $head = state.selection.$head;
             const ifEmpty = state.selection.empty;
             
@@ -608,7 +610,7 @@ export namespace EditorCommands {
      */
     export class SelectNodeForward extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const { empty } = state.selection;
             if (!empty) {
                 return false;
@@ -657,7 +659,7 @@ export namespace EditorCommands {
      */
     export class ExitCodeBlock extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const { $head, $anchor } = state.selection;
             const isInCodeBlock = $head.parent.type.spec.code;
             const isSelectionCollapsed = $head.sameParent($anchor);
@@ -737,7 +739,7 @@ export namespace EditorCommands {
         const enterAtoms = options?.enterInlineAtoms ?? true;
 
         return new class extends EditorCommandBase {
-            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
                 const { empty, $cursor } = state.selection as ProseTextSelection;
                 let ranges = state.selection.ranges;
 
@@ -814,7 +816,7 @@ export namespace EditorCommands {
         attrs: ProseAttrs | null = null
     ): Command {
         return new class extends EditorCommandBase {
-            public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
                 let applicable = false;
 
                 // Step 1: Check if the block type can be applied to any node in the selection ranges
@@ -870,7 +872,7 @@ export namespace EditorCommands {
 
     export class InsertHardBreak extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const br = (<EditorSchema>state.schema).getNodeType(TokenEnum.LineBreak);
             if (!br) {
                 return false;
@@ -886,7 +888,7 @@ export namespace EditorCommands {
     
     export class SelectParent extends EditorCommandBase {
 
-        public run(provider: IServiceProvider, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const from = state.selection.$from;
             const ancestorDepth = from.getCommonAncestorDepth(state.selection.to);
             

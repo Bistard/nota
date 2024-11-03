@@ -31,13 +31,5 @@ export const rendererWorkbenchShortcutRegister = createRegister(
             when: WorkbenchContextKey.inDevelopContext,
             commandArgs: [],
         });
-
-        registrant.register(
-            AllCommands.popNotification, {
-            shortcut: new Shortcut(true, false, false, false, KeyCode.KeyN),
-            weight: ShortcutWeight.Core,
-            when: WorkbenchContextKey.inDevelopContext,
-            commandArgs: [],
-        });
     },
 );
