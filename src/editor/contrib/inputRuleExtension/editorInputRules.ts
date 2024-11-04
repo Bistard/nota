@@ -10,7 +10,8 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     // Heading Rule: Matches "#" followed by a space
     extension.registerRule("headingRule", /^(#{1,6})\s$/, 
         {
-            nodeType: TokenEnum.Heading ,
+            nodeType: TokenEnum.Heading,
+            whenReplace: 'type',
             getNodeAttribute: (match) => {
                 return { level: 1 };
             },
@@ -22,6 +23,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     extension.registerRule("blockquoteRule", /^>\s$/, 
         { 
             nodeType: TokenEnum.Blockquote,
+            whenReplace: 'type',
             wrapType: 'WrapBlock'
         }
     );
@@ -30,7 +32,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     extension.registerRule("codeBlockRule", /^```$/, 
         { 
             nodeType: TokenEnum.CodeBlock,
-            replaceOnEnter: true,
+            whenReplace: 'enter',
             getNodeAttribute: (match) => {
                 const view = new CodeEditorView({
                     doc: '',
@@ -66,11 +68,6 @@ export interface IInputRule {
      * object that specifies the `nodeType` to wrap around the matched text.
      */
     readonly replacement: InputRuleReplacement;
-
-    /**
-     * Replacement only happens on the {@link KeyCode.Enter} key pressing.
-     */
-    readonly replaceOnEnter: boolean;
 }
 
 /**
@@ -84,7 +81,6 @@ export class InputRule implements IInputRule {
     public readonly id: string;
     public readonly pattern: RegExp;
     public readonly replacement: InputRuleReplacement;
-    public readonly replaceOnEnter: boolean;
 
     private readonly _replacementString?: string;
     private readonly _replacementObject?: Exclude<InputRuleReplacement, string>;
@@ -105,7 +101,6 @@ export class InputRule implements IInputRule {
 
         if (typeof this.replacement !== 'string') {
             this._replacementObject = this.replacement;
-            this.replaceOnEnter = this.replacement.replaceOnEnter ?? false;
             if (this.replacement.wrapType === 'WrapTextBlock') {
                 this.onMatch = this.__textblockTypeInputRule;
             } else {
@@ -113,7 +108,6 @@ export class InputRule implements IInputRule {
             }
         } else {
             this._replacementString = this.replacement;
-            this.replaceOnEnter = false;
             this.onMatch = this.__onSimpleStringMatch;
         }
     }

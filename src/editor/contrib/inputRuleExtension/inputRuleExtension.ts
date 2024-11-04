@@ -4,7 +4,7 @@ import { EditorExtension, IEditorExtension } from "src/editor/common/editorExten
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { canJoin } from "prosemirror-transform";
-import { Dictionary } from "src/base/common/utilities/type";
+import { Dictionary, isString } from "src/base/common/utilities/type";
 import { ProseEditorView, ProseNode, ProseResolvedPos, ProseTextSelection } from "src/editor/common/proseMirror";
 import { KeyCode } from "src/base/common/keyboard";
 import { TokenEnum } from "src/editor/common/markdown";
@@ -26,8 +26,6 @@ export type InputRuleReplacement =
 
         /**
          * Determines the wrapping function to use when applying the input rule.
-         * @type { 'WrapBlock' | 'WrapTextBlock' }
-         * 
          * - `WrapBlock`: Wraps the matched content as a block-level element.
          * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
          * 
@@ -36,10 +34,11 @@ export type InputRuleReplacement =
         readonly wrapType: 'WrapBlock' | 'WrapTextBlock';
 
         /**
-         * Replacement only happens on the {@link KeyCode.Enter} key pressing.
-         * @default false
+         * Determines when should the replacement happens.
+         * - `type`: Any keyboard typing will try to match content.
+         * - `enter`: Only when pressing the key `enter` will try to match content.
          */
-        readonly replaceOnEnter?: boolean;
+        readonly whenReplace: 'type' | 'enter';
 
         /** 
          * @description A function that generates node attributes based on the 
@@ -219,7 +218,8 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
         console.log(`Text before cursor: "${textBefore}"`); // TEST
         
         for (const rule of this._rules.values()) {
-            if (rule.replaceOnEnter !== onEnter) {
+            const replaceOnEnter = isString(rule.replacement) ? false : rule.replacement.whenReplace === 'enter';
+            if (replaceOnEnter !== onEnter) {
                 continue;
             }
 
