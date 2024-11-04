@@ -121,7 +121,10 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
         registerDefaultInputRules(this);
 
         this.__register(this.onTextInput(e => {
-            this.__handleTextInput(e.view, e.from, e.to, e.text);
+            const handled = this.__handleTextInput(e.view, e.from, e.to, e.text);
+            if (handled) {
+                e.preventDefault();
+            }
         }));
     }
 
