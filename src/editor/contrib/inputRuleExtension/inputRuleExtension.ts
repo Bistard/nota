@@ -1,15 +1,13 @@
-import { EditorState, Transaction, TextSelection, Plugin, PluginKey } from "prosemirror-state";
+import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { canJoin, findWrapping } from "prosemirror-transform";
-import { NodeType } from "prosemirror-model";
+import { canJoin } from "prosemirror-transform";
 import { Dictionary } from "src/base/common/utilities/type";
 import { ProseNode } from "src/editor/common/proseMirror";
-import { panic } from "src/base/common/utilities/panic";
 import { TokenEnum } from "src/editor/common/markdown";
-import { registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
+import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
 
 /**
  * Defines the replacement behavior for an input rule.
@@ -52,52 +50,18 @@ export type InputRuleReplacement =
          *       node will be joined with previous node.
          */
         readonly shouldJoinWithBefore?: (matchedText: RegExpExecArray, prevNode: ProseNode) => boolean;
+
+        /**
+         * @description Determines the wrapping function to use when applying the input rule.
+         * @type { 'WrapBlock' | 'WrapTextBlock' }
+         * 
+         * - `WrapBlock`: Wraps the matched content as a block-level element.
+         * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
+         * 
+         * @note This property is essential for selecting the appropriate wrapping strategy.
+         */
+        readonly wrapType: 'WrapBlock' | 'WrapTextBlock';
     };
-
-/**
- * Represents an individual input rule.
- */
-export interface IInputRule {
-    /** 
-     * Unique identifier for the input rule.
-     */
-    readonly id: string;
-
-    /** 
-     * Regular expression pattern that triggers the rule when matched in the 
-     * editor.
-     */
-    readonly pattern: RegExp;
-
-    /** 
-     * Defines the replacement strategy, either as a string or as a configuration 
-     * object that specifies the `nodeType` to wrap around the matched text.
-     */
-    readonly replacement: InputRuleReplacement;
-}
-
-/**
- * @internal 
- * Internal representation of an input rule.
- */
-class InputRule implements IInputRule {
-    public readonly id: string;
-    public readonly pattern: RegExp;
-    public readonly replacement: InputRuleReplacement;
-
-    constructor(id: string, pattern: RegExp, replacement: InputRuleReplacement) {
-        this.id = id;
-        this.pattern = pattern;
-        this.replacement = replacement;
-
-        // if (typeof replacement === 'string') {
-        //     this.replacement = replacement;
-        // } else {
-        //     this.replacement = { nodeType: replacement.nodeType };
-        // }
-    }
-}
-
 
 /**
  * Represents an editor extension that allows for managing input rules,
@@ -148,7 +112,6 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
 
     public override readonly id = EditorExtensionIDs.InputRule;
     public readonly _rules: Map<string, InputRule> = new Map();
-    private _pluginAdded: boolean = false;
     
     // [constructor]
 
@@ -156,6 +119,10 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
         super(editorWidget);
         console.log("Initializing EditorInputRuleExtension");
         registerDefaultInputRules(this);
+
+        this.__register(this.onTextInput(e => {
+            this.__handleTextInput(e.view, e.from, e.to, e.text);
+        }));
     }
 
     // [public methods]
@@ -192,55 +159,9 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
 
     protected override onViewStateInit(state: EditorState): void {}
 
-    protected override onViewInit(view: EditorView): void {
-        if (!this._pluginAdded) {
-            const plugins = this.getPlugins();
+    protected override onViewInit(view: EditorView): void {}
     
-            const existingPluginKeys = view.state.plugins
-                .map(plugin => plugin.spec.key)
-                .filter((key): key is PluginKey => key instanceof PluginKey);
-    
-            const newPlugins = plugins.filter(plugin => {
-                const pluginKey = plugin.spec.key;
-                return !(pluginKey instanceof PluginKey) || !existingPluginKeys.includes(pluginKey);
-            });
-    
-            if (newPlugins.length > 0) {
-                // Move this line before updating the state
-                this._pluginAdded = true;
-                const newState = view.state.reconfigure({
-                    plugins: view.state.plugins.concat(newPlugins),
-                });
-                view.updateState(newState);
-            }
-        }
-    }
-    
-
-    protected override onViewDestroy(view: EditorView): void {
-    }
-
-    protected getPlugins(): Plugin[] {
-        console.log("getPlugins called in EditorInputRuleExtension");
-        const plugin = new Plugin({
-            key: new PluginKey('inputRules'),
-            props: {
-                handleTextInput: (view, from, to, text) => {
-                    return this.__handleTextInput(view, from, to, text);
-                },
-                handleDOMEvents: {
-                    compositionend: (view) => {
-                        // const { $cursor } = view.state.selection as TextSelection;
-                        //     if ($cursor) {
-                        //         this.__handleTextInput(view, $cursor.pos, $cursor.pos, '');
-                        //     }
-                        return false;
-                    }
-                }
-            }
-        });
-        return [plugin];
-    }
+    protected override onViewDestroy(view: EditorView): void {}
 
     // [private methods]
 
@@ -266,43 +187,10 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
                 ruleMatched = true;
                 const start = from - (match[0].length - text.length);
                 const end = to;
-                let tr: Transaction | null = null;
-    
-                if (typeof rule.replacement === 'string') {
-                    tr = state.tr.insertText(rule.replacement, start, end);
-                } 
-                else {
-                    const schemaNodeType = state.schema.nodes[rule.replacement.nodeType];
-                    if (!schemaNodeType) {
-                        console.warn(`Node type "${rule.replacement.nodeType}" not found in schema.`);
-                        continue;
-                    }
-                    
-                    tr = state.tr.delete(start, end);
-                    const $start = tr.doc.resolve(start);
-                    const range = $start.blockRange();
-                    if (!range) {
-                        continue;
-                    }
 
-                    const attr = rule.replacement.getNodeAttribute?.(match);        
-                    const wrapping = findWrapping(range, schemaNodeType, attr);
-                    if (!wrapping) {
-                        continue;
-                    }
+                const tr = rule.onMatch(state, match, start, end);
+                if (!tr) continue;
 
-                    tr.wrap(range, wrapping);
-    
-                    const before = tr.doc.resolve(start - 1).nodeBefore;
-                    if (before && before.type === schemaNodeType && canJoin(tr.doc, start - 1)) {
-                        tr.join(start - 1);
-                    }
-                }
-
-                if (!tr) {
-                    continue;
-                }
-    
                 view.dispatch(tr);
                 return true;
             }      
@@ -312,5 +200,5 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
             console.log("No input rules matched.");
         }
         return false;
-    }  
+    }
 }
