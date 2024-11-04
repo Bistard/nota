@@ -5,17 +5,15 @@ import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { canJoin } from "prosemirror-transform";
 import { Dictionary } from "src/base/common/utilities/type";
-import { ProseNode } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseNode, ProseResolvedPos, ProseTextSelection } from "src/editor/common/proseMirror";
+import { KeyCode } from "src/base/common/keyboard";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
 
 /**
  * Defines the replacement behavior for an input rule.
- */
-/**
- * Defines the replacement behavior for an input rule.
  * An input rule replacement can either be a direct string replacement or an 
- * object that specifies a node type, node attributes, and optional join conditions.
+ * object that specifies complicated replacement rule.
  */
 export type InputRuleReplacement = 
     | string
@@ -25,6 +23,23 @@ export type InputRuleReplacement =
          * Can be a string identifier or a `TokenEnum` enum.
          */
         readonly nodeType: string | TokenEnum;
+
+        /**
+         * Determines the wrapping function to use when applying the input rule.
+         * @type { 'WrapBlock' | 'WrapTextBlock' }
+         * 
+         * - `WrapBlock`: Wraps the matched content as a block-level element.
+         * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
+         * 
+         * @note This property is essential for selecting the appropriate wrapping strategy.
+         */
+        readonly wrapType: 'WrapBlock' | 'WrapTextBlock';
+
+        /**
+         * Replacement only happens on the {@link KeyCode.Enter} key pressing.
+         * @default false
+         */
+        readonly replaceOnEnter?: boolean;
 
         /** 
          * @description A function that generates node attributes based on the 
@@ -50,17 +65,6 @@ export type InputRuleReplacement =
          *       node will be joined with previous node.
          */
         readonly shouldJoinWithBefore?: (matchedText: RegExpExecArray, prevNode: ProseNode) => boolean;
-
-        /**
-         * @description Determines the wrapping function to use when applying the input rule.
-         * @type { 'WrapBlock' | 'WrapTextBlock' }
-         * 
-         * - `WrapBlock`: Wraps the matched content as a block-level element.
-         * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
-         * 
-         * @note This property is essential for selecting the appropriate wrapping strategy.
-         */
-        readonly wrapType: 'WrapBlock' | 'WrapTextBlock';
     };
 
 /**
@@ -111,19 +115,30 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
     // [field]
 
     public override readonly id = EditorExtensionIDs.InputRule;
-    public readonly _rules: Map<string, InputRule> = new Map();
+    
+    private readonly _rules: Map<string, InputRule> = new Map();
+    private readonly MAX_TEXT_BEFORE = 100;
     
     // [constructor]
 
     constructor(editorWidget: IEditorWidget) {
         super(editorWidget);
-        console.log("Initializing EditorInputRuleExtension");
+        
         registerDefaultInputRules(this);
 
         this.__register(this.onTextInput(e => {
             const handled = this.__handleTextInput(e.view, e.from, e.to, e.text);
             if (handled) {
                 e.preventDefault();
+            }
+        }));
+
+        this.__register(this.onKeydown(e => {
+            if (e.event.key === KeyCode.Enter) {
+                const handled = this.__handleEnter(e.view);
+                if (handled) {
+                    e.markAsExecuted();
+                }
             }
         }));
     }
@@ -171,24 +186,48 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
     private __handleTextInput(view: EditorView, from: number, to: number, text: string): boolean {
         const state = view.state;
         const $from = state.doc.resolve(from);
+        return this.__matchRules(false, view, $from, text, from, to);
+    }
 
-        const maxMatch = 500;
-        const textBefore = $from.parent.textBetween(
-            Math.max(0, $from.parentOffset - maxMatch),
-            $from.parentOffset,
+    private __handleEnter(view: EditorView): boolean {
+        const state = view.state;
+        const { $cursor, empty } = state.selection as ProseTextSelection;
+        if (!$cursor || !empty) {
+            return false;
+        }
+        const from = $cursor.start(); // bug
+        const end = $cursor.end(); // bug
+        return this.__matchRules(true, view, $cursor, '', from, end);
+    }
+
+    private __matchRules(
+        onEnter: boolean,
+        view: ProseEditorView, 
+        currPosition: ProseResolvedPos, 
+        additionalText: string, 
+        from: number, 
+        to: number,
+    ): boolean {
+        const state = view.state;
+
+        const textBefore = currPosition.parent.textBetween(
+            Math.max(0, currPosition.parentOffset - this.MAX_TEXT_BEFORE),
+            currPosition.parentOffset,
             null,
             '\ufffc'
-        ) + text;
-    
+        ) + additionalText;
         console.log(`Text before cursor: "${textBefore}"`); // TEST
-    
+        
         for (const rule of this._rules.values()) {
-            
+            if (rule.replaceOnEnter !== onEnter) {
+                continue;
+            }
+
             const match = rule.pattern.exec(textBefore);
             if (match) {
                 console.log(`InputRule matched: ${rule.id}, Match:`, match); // TEST
 
-                const start = from - (match[0].length - text.length);
+                const start = from - (match[0].length - additionalText.length);
                 const end = to;
 
                 const tr = rule.onMatch(state, match, start, end);
@@ -196,7 +235,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
                     continue;
                 }
 
-                view.dispatch(tr);
+                view.dispatch(tr.scrollIntoView());
                 return true;
             }      
         }

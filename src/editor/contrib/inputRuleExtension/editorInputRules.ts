@@ -1,3 +1,4 @@
+import type { KeyCode } from "src/base/common/keyboard";
 import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
 import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
@@ -29,6 +30,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     extension.registerRule("codeBlockRule", /^```$/, 
         { 
             nodeType: TokenEnum.CodeBlock,
+            replaceOnEnter: true,
             getNodeAttribute: (match) => {
                 const view = new CodeEditorView({
                     doc: '',
@@ -64,6 +66,11 @@ export interface IInputRule {
      * object that specifies the `nodeType` to wrap around the matched text.
      */
     readonly replacement: InputRuleReplacement;
+
+    /**
+     * Replacement only happens on the {@link KeyCode.Enter} key pressing.
+     */
+    readonly replaceOnEnter: boolean;
 }
 
 /**
@@ -77,6 +84,7 @@ export class InputRule implements IInputRule {
     public readonly id: string;
     public readonly pattern: RegExp;
     public readonly replacement: InputRuleReplacement;
+    public readonly replaceOnEnter: boolean;
 
     private readonly _replacementString?: string;
     private readonly _replacementObject?: Exclude<InputRuleReplacement, string>;
@@ -97,6 +105,7 @@ export class InputRule implements IInputRule {
 
         if (typeof this.replacement !== 'string') {
             this._replacementObject = this.replacement;
+            this.replaceOnEnter = this.replacement.replaceOnEnter ?? false;
             if (this.replacement.wrapType === 'WrapTextBlock') {
                 this.onMatch = this.__textblockTypeInputRule;
             } else {
@@ -104,6 +113,7 @@ export class InputRule implements IInputRule {
             }
         } else {
             this._replacementString = this.replacement;
+            this.replaceOnEnter = false;
             this.onMatch = this.__onSimpleStringMatch;
         }
     }
