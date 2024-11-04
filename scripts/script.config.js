@@ -17,7 +17,37 @@ const configuration = {
     
     "run": {
         command: "electron . --- --log=info",
-        description: 'Run program.'
+        description: 'Run program.',
+        options: [
+            {
+                flags: ['--log'],
+                descriptions: [
+                    'Set the log level when the application is in development mode. Options are "trace", "debug", "info", "warn", "error", or "fatal".',
+                    'default = "info"'
+                ]
+            },
+            {
+                flags: ['--open-devtools'],
+                descriptions: [
+                    'Open developer tools when creating a renderer process.',
+                    'default = false'
+                ]
+            },
+            {
+                flags: ['--inspector'],
+                descriptions: [
+                    'Enable debug inspector. This will open a new window that tracks variable changes.',
+                    'default = false'
+                ]
+            },
+            {
+                flags: ['--ListenerGCedWarning'],
+                descriptions: [
+                    'Print warnings whenever a listener is garbage-collected without being disposed, indicating a potential memory leak.',
+                    'default = false'
+                ]
+            }
+        ]
     },
 
     "_run": {
@@ -40,7 +70,7 @@ const configuration = {
                 flags: ['--circular', '-c'], 
                 descriptions: [
                     'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies among all the used modules.',
-                    'default = true.',
+                    'default = false.',
                 ]
             },
             {

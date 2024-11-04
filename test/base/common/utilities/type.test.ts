@@ -3,7 +3,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -85,10 +85,63 @@ suite('type-test', () => {
         assert.strictEqual(isNumber(9999), true);
     });
 
-    test('isBoolean function', () => {
+    test('isBoolean', () => {
         assert.strictEqual(isBoolean(true), true);
         assert.strictEqual(isBoolean(false), true);
         assert.strictEqual(isBoolean('true'), false);
+    });
+    
+    suite('toBoolean', () => {
+        test('should return true for string "true" (case insensitive)', () => {
+            assert.strictEqual(toBoolean("true"), true);
+            assert.strictEqual(toBoolean("TRUE"), true);
+            assert.strictEqual(toBoolean("TrUe"), true);
+        });
+    
+        test('should return false for string "false" (case insensitive)', () => {
+            assert.strictEqual(toBoolean("false"), false);
+            assert.strictEqual(toBoolean("FALSE"), false);
+            assert.strictEqual(toBoolean("FaLsE"), false);
+        });
+    
+        test('should return false for non-boolean strings', () => {
+            assert.strictEqual(toBoolean("hello"), false);
+            assert.strictEqual(toBoolean("123"), false);
+            assert.strictEqual(toBoolean(""), false);
+        });
+    
+        test('should return true for boolean true', () => {
+            assert.strictEqual(toBoolean(true), true);
+        });
+    
+        test('should return false for boolean false', () => {
+            assert.strictEqual(toBoolean(false), false);
+        });
+    
+        test('should return false for undefined or null', () => {
+            assert.strictEqual(toBoolean(undefined), false);
+            assert.strictEqual(toBoolean(null), false);
+        });
+    
+        test('should return false for number 0', () => {
+            assert.strictEqual(toBoolean(0), false);
+        });
+    
+        test('should return true for non-zero numbers', () => {
+            assert.strictEqual(toBoolean(1), true);
+            assert.strictEqual(toBoolean(-1), true);
+            assert.strictEqual(toBoolean(42), true);
+        });
+    
+        test('should return true for truthy objects', () => {
+            assert.strictEqual(toBoolean({}), true);
+            assert.strictEqual(toBoolean([]), true);
+        });
+    
+        test('should return false for empty or falsy values', () => {
+            assert.strictEqual(toBoolean(NaN), false);
+            assert.strictEqual(toBoolean(''), false);
+        });
     });
 
     test('isObject', () => {
@@ -385,13 +438,24 @@ suite('typescript-types-test', () => {
         class Foo { }
         type FooConstructor = Constructor<Foo>;
         const foo: FooConstructor = Foo;
-        // no counter example as assigning another value would be a compile error
+    });
+    
+    test('ExactConstructor type', () => {
+        class Foo { constructor(a: number, b: string) {} }
+        type FooConstructor = ExactConstructor<typeof Foo>;
+        let foo: FooConstructor = Foo;
+        
+        class Foo2 { constructor(a: string) {} }
+        // @ts-expect-error
+        foo = Foo2;
+        
+        class Foo3 { constructor(a: number) {} }
+        foo = Foo3;
     });
 
     test('Comparator type', () => {
         type NumberComparator = Comparator<number>;
         const compare: NumberComparator = (a, b) => a - b;
-        // no counter example as assigning another value would be a compile error
     });
 
     test('IsTruthy type', () => {

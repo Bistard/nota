@@ -1,5 +1,5 @@
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
-import { GLOBAL } from "src/platform/electron/browser/global";
+import { isDefined } from "src/base/common/utilities/type";
 
 export const enum ProcessKey {
     PID = 'NOTA_PID',
@@ -55,8 +55,8 @@ const safeProcess = (function () {
     let _process: ISafeProcess;
 
     // Native sandbox environment
-    if (typeof GLOBAL.nota !== 'undefined' && typeof GLOBAL.nota.process !== 'undefined') {
-        const sandboxProcess: INodeProcess = GLOBAL.nota.process;
+    if (isDefined(globalThis.nota) && isDefined(globalThis.nota.process)) {
+        const sandboxProcess: INodeProcess = globalThis.nota.process;
         _process = {
             get platform() { return sandboxProcess.platform; },
             get arch() { return sandboxProcess.arch; },

@@ -16,6 +16,11 @@ export namespace Arrays {
     }
 
     /**
+     * @description Return the last element of the given arr.
+     */
+    export const last = tail;
+
+    /**
      * @description Determines if all elements in an array are of a specified 
      * type, based on a provided type-checking function.
      * @param array The array to check.
@@ -38,14 +43,14 @@ export namespace Arrays {
     /**
      * @description If the given array is empty.
      */
-    export function isEmpty<T>(array: T[]): boolean {
+    export function isEmpty<T>(array: readonly T[]): boolean {
         return array.length === 0;
     }
 
     /**
      * @description If the given array is not empty.
      */
-    export function isNonEmpty<T>(array: T[]): boolean {
+    export function isNonEmpty<T>(array: readonly T[]): boolean {
         return array.length !== 0;
     }
 
@@ -90,7 +95,7 @@ export namespace Arrays {
      * 
      * @note When the n is invalid, a undefined is returned.
      */
-    export function tail<T>(array: T[], n: number = 0): T {
+    export function tail<T>(array: readonly T[], n: number = 0): T {
         return array[array.length - (1 + n)]!;
     }
 

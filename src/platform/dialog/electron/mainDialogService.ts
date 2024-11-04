@@ -3,7 +3,7 @@ import { BrowserWindow, dialog } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { AsyncQueue } from "src/base/common/utilities/async";
-import { mockType, nullToUndefined } from "src/base/common/utilities/type";
+import { nullToUndefined } from "src/base/common/utilities/type";
 import { IDialogService, IInternalOpenDialogOptions, IOpenDialogOptions } from "src/platform/dialog/common/dialog";
 import { createService } from "src/platform/instantiation/common/decorator";
 

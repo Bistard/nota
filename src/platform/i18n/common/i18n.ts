@@ -8,7 +8,7 @@ import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
-import { jsonSafeParse } from "src/base/common/json";
+import { Strings } from "src/base/common/utilities/string";
 
 export const II18nService = createService<II18nService>('i18n-service');
 
@@ -315,7 +315,7 @@ export class i18n implements II18nService {
      */
     private __readLocale(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
         return this.fileService.readFile(uri)
-        .andThen(buffer => jsonSafeParse(buffer.toString()))
+        .andThen(buffer => Strings.jsonParseSafe(buffer.toString()))
         .andThen(parsed => {
             Object.assign(this._model, parsed);
             return ok();

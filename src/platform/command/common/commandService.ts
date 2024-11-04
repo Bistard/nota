@@ -8,6 +8,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { panic } from "src/base/common/utilities/panic";
+import { trySafe } from "src/base/common/error";
 
 export const ICommandService = createService<ICommandService>('command-service');
 
@@ -55,9 +56,9 @@ export interface ICommandService extends IService {
      * 
      * @example
      * // Execute a custom command with arbitrary arguments
-     * commandService.executeAnyCommand('customCommand', customArg1, customArg2);
+     * commandService.executeCommand('customCommand', customArg1, customArg2);
      */
-    executeAnyCommand(id: string, ...args: any[]): Promise<any>;
+    executeCommand<T>(id: string, ...args: any[]): T;
 }
 
 /**
@@ -87,28 +88,34 @@ export class CommandService extends Disposable implements ICommandService {
 
     // [public methods]
 
-    public executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
-    public executeCommand<T>(id: string, ...args: any[]): Promise<T>;
-    public executeCommand(id: string, ...args: any[]): Promise<any> {
-        return this.executeAnyCommand(id, ...args);
+    public executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): AllCommandsReturnTypes[ID];
+    public executeCommand<T>(id: string, ...args: any[]): T;
+    public executeCommand(id: string, ...args: any[]): Promise<any> | any {
+        return this.__executeAnyCommand(id, ...args);
     }
 
-    public async executeAnyCommand(id: string, ...args: any[]): Promise<any> {
+    // [private helper methods]
+
+    private __executeAnyCommand(id: string, ...args: any[]): Promise<any> | any {
         const command = this._registrant.getCommand(id);
         if (!command) {
             return panic(new Error(`command with ID '${id}' is not found`));
         }
 
-        try {
-            const ret = await command.command(this.instantiationService, ...args);
-            this.logService.trace('CommandService', `executed the command: '${id}'`);
+        const resultOrPromise = trySafe(
+            () => command.command(this.instantiationService, ...args),
+            {
+                onThen: () => {
+                    this._onDidExecuteCommand.fire({ id });
+                    this.logService.trace('CommandService', `executed the command: '${id}'`);
+                },
+                onError: err => {
+                    this.logService.error('CommandService', `encounters an error with command '${id}'.`, err);
+                    panic(err);
+                }
+            }
+        );
 
-            this._onDidExecuteCommand.fire({ id });
-            return ret;
-        }
-        catch (error: any) {
-            this.logService.error('CommandService', `encounters an error with command '${id}'.`, error);
-            panic(error);
-        }
+        return resultOrPromise;
     }
 }

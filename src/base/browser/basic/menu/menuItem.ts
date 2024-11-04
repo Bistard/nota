@@ -276,7 +276,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         if (this.action.enabled) {
             this.__registerListeners();
         }
-        parent.appendChild(this.element.element);
+        parent.appendChild(this.element.raw);
     }
 
     public onClick(event: MouseEvent): void {
@@ -492,7 +492,7 @@ export class CheckMenuItem extends SimpleMenuItem {
             return container;
         }
 
-        const checkIcon = createIcon(Icons.Help, ['submenu-item-check']);
+        const checkIcon = createIcon(Icons.Check, ['menu-item-check']);
         container.leftPart.appendChild(checkIcon);
 
         return container;
@@ -539,12 +539,12 @@ export class SubmenuItem extends AbstractMenuItem {
         {
             this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DELAY, () => {
                 this._delegate.closeCurrSubmenu();
-                this._delegate.openNewSubmenu(this.element.element, this.action.actions);
+                this._delegate.openNewSubmenu(this.element.raw, this.action.actions);
             });
 
             this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DELAY, () => {
                 const active = DomUtility.Elements.getActiveElement();
-                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.element, active)) {
+                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.raw, active)) {
                     this._delegate.closeCurrSubmenu();
                     this._delegate.focusParentMenu();
                     this._mouseover = false;
@@ -586,7 +586,7 @@ export class SubmenuItem extends AbstractMenuItem {
         name.className = 'menu-item-name';
         name.textContent = this.action.id;
 
-        const arrow = createIcon(Icons.Help, ['submenu-item-arrow']);
+        const arrow = createIcon(Icons.ArrowRight, ['submenu-item-arrow']);
         
         container.content.appendChild(name);
         container.rightPart.appendChild(arrow);

@@ -1,9 +1,9 @@
-import { IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
-import { ICommandRegistrant, ICommandBasicSchema } from "src/platform/command/common/commandRegistrant";
+import type { IShortcutRegistration } from "src/workbench/services/shortcut/shortcutRegistrant";
+import type { ICommandRegistrant, ICommandBasicSchema } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { Callable } from "src/base/common/utilities/type";
+import { Callable, Constructor } from "src/base/common/utilities/type";
 
 /**
  * A more concrete set of metadata to describe a command specifically used for
@@ -107,7 +107,7 @@ export interface ICommand {
  * // type safety (ensuring a 'number' must be provided)
  * commandService.executeCommand(AllCommands.MyCommand, 100);
  */
-export abstract class Command<ID extends string = string> implements ICommand {
+export class Command<ID extends string = string> implements ICommand {
 
     // [field]
 
@@ -156,15 +156,20 @@ export abstract class Command<ID extends string = string> implements ICommand {
     /**
      * The encapsulated implementation.
      */
-    public abstract run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean>;
+    public run(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean> {
+        return false;
+    }
 }
 
 /**
  * @class Combine a list of {@link Command} into one single {@link Command}. The
  * commands are executed in the provided sequence. Any one of the command returns
  * a true will stop the execution.
+ * 
+ * @note This only works with all synchronous commands. Including any 
+ *       asynchronous commands might cause weird behaviors.
  */
-export class ChainCommand extends Command {
+export class ChainCommand<ID extends string = string> extends Command<ID> {
 
     private readonly _commands: Command[];
 
@@ -173,7 +178,7 @@ export class ChainCommand extends Command {
         this._commands = commands;
     }
 
-    public async run(provider: IServiceProvider, ...args: any[]): Promise<boolean> {
+    public override run(provider: IServiceProvider, ...args: any[]): boolean {
         const contextService = provider.getOrCreateService(IContextService);
 
         for (const cmd of this._commands) {
@@ -181,11 +186,23 @@ export class ChainCommand extends Command {
                 continue;
             }
 
-            const success = await cmd.run(provider, ...args);
+            const success = cmd.run(provider, ...args);
             if (success) {
                 return true;
             }
         }
         return false;
     }
+}
+
+/**
+ * @description A helpers to construct a {@link ChainCommand} easily.
+ */
+export function buildChainCommand<ID extends string = string>(schema: ICommandSchema, ctors: (typeof Command)[]): ChainCommand<ID> {
+    return new ChainCommand(
+        schema,
+        [
+            ...ctors.map(ctor => new ctor(schema))
+        ],
+    );
 }

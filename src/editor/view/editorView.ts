@@ -1,18 +1,19 @@
+import 'src/editor/view/media/editorView.scss';
 import { Disposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
-import { ILogEvent } from "src/base/common/logger";
-import { EditorInstance, IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { EditorType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
-import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
+import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
+import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { EditorOptionsType } from "src/editor/common/editorConfiguration";
+import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
+import { IEditorExtension } from 'src/editor/common/editorExtension';
+import { IEditorModel } from 'src/editor/common/model';
+import { ProseEditorState } from 'src/editor/common/proseMirror';
 
 export class ViewContext {
     constructor(
-        public readonly viewModel: IEditorViewModel,
+        public readonly model: IEditorModel,
         public readonly view: IEditorView,
         public readonly options: EditorOptionsType,
-        public readonly log: (event: ILogEvent<string | Error>) => void,
+        public readonly log: (event: ILogEvent) => void,
     ) {}
 }
 
@@ -20,103 +21,96 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [fields]
 
+    /**
+     * The HTML container of the entire editor.
+     */
     private readonly _container: HTMLElement;
 
+    /**
+     * A wrapper of some frequently used references.
+     */
     private readonly _ctx: ViewContext;
-    private readonly _editorManager: IEditorManager;
+    private readonly _view: EditorWindow;
 
     // [events]
     
-    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
-    public readonly onLog = this._onLog.registerListener;
-    
-    public readonly onDidFocusChange: Register<boolean>;
-    public readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
-    public readonly onClick: Register<IOnClickEvent>;
-    public readonly onDidClick: Register<IOnDidClickEvent>;
-    public readonly onDoubleClick: Register<IOnDoubleClickEvent>;
-    public readonly onDidDoubleClick: Register<IOnDidDoubleClickEvent>;
-    public readonly onTripleClick: Register<IOnTripleClickEvent>;
-    public readonly onDidTripleClick: Register<IOnDidTripleClickEvent>;
-    public readonly onKeydown: Register<IOnKeydownEvent>;
-    public readonly onKeypress: Register<IOnKeypressEvent>;
-    public readonly onTextInput: Register<IOnTextInputEvent>;
-    public readonly onPaste: Register<IOnPasteEvent>;
-    public readonly onDrop: Register<IOnDropEvent>;
+    get onDidFocusChange() { return this._view.onDidFocusChange; }
+    get onBeforeRender() { return this._view.onBeforeRender; }
+    get onRender() { return this._view.onRender; }
+    get onDidRender() { return this._view.onDidRender; }
+    get onDidSelectionChange() { return this._view.onDidSelectionChange; }
+    get onDidContentChange() { return this._view.onDidContentChange; }
+    get onClick() { return this._view.onClick; }
+    get onDidClick() { return this._view.onDidClick; }
+    get onDoubleClick() { return this._view.onDoubleClick; }
+    get onDidDoubleClick() { return this._view.onDidDoubleClick; }
+    get onTripleClick() { return this._view.onTripleClick; }
+    get onDidTripleClick() { return this._view.onDidTripleClick; }
+    get onKeydown() { return this._view.onKeydown; }
+    get onKeypress() { return this._view.onKeypress; }
+    get onTextInput() { return this._view.onTextInput; }
+    get onPaste() { return this._view.onPaste; }
+    get onDrop() { return this._view.onDrop; }
 
     // [constructor]
     
     constructor(
         container: HTMLElement,
-        viewModel: IEditorViewModel,
+        model: IEditorModel,
+        initState: ProseEditorState,
+        extensions: IEditorExtension[],
         options: EditorOptionsType,
+        @ILogService logService: ILogService,
     ) {
         super();
 
-        const context = new ViewContext(viewModel, this, options, this._onLog.fire.bind(this));
+        const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional));
         this._ctx = context;
 
-        // the overall element that contains all the relevant components
-        const editorContainer = document.createElement('div');
-        editorContainer.className = 'editor-view-container';
-        this._container = editorContainer;
-
         // the centre that integrates the editor-related functionalities
-        this._editorManager = new EditorManager(editorContainer, context);
-        {
-            this.onDidFocusChange = this._editorManager.editor.onDidFocusChange;
-            this.onBeforeRender = this._editorManager.editor.onBeforeRender;
-            this.onClick = this._editorManager.editor.onClick;
-            this.onDidClick = this._editorManager.editor.onDidClick;
-            this.onDoubleClick = this._editorManager.editor.onDoubleClick;
-            this.onDidDoubleClick = this._editorManager.editor.onDidDoubleClick;
-            this.onTripleClick = this._editorManager.editor.onTripleClick;
-            this.onDidTripleClick = this._editorManager.editor.onDidTripleClick;
-            this.onKeydown = this._editorManager.editor.onKeydown;
-            this.onKeypress = this._editorManager.editor.onKeypress;
-            this.onTextInput = this._editorManager.editor.onTextInput;
-            this.onPaste = this._editorManager.editor.onPaste;
-            this.onDrop = this._editorManager.editor.onDrop;
-        }
+        const editorElement = document.createElement('div');
+        editorElement.className = 'editor-container';
+        this._view = new RichtextEditor(editorElement, context, initState, extensions);
+        
+        // forward: start listening events from model
+        this.__registerEventFromModel();
+        this.__registerEventToModel();
 
-        // update listener registration from view-model
-        this.__registerViewModelListeners();
-
-        // resource registration
-        this.__register(this._editorManager);
 
         // render
+        this._container = document.createElement('div');
+        this._container.className = 'editor-view-container';
+        this._container.appendChild(editorElement);
         container.appendChild(this._container);
+
+        // others
+        logService.debug('EditorView', 'Constructed');
     }
 
     // [public methods]
 
-    get viewModel(): IEditorViewModel {
-        return this._ctx.viewModel;
-    }
-
-    get editor(): EditorInstance {
-        return this._editorManager.editor;
+    get editor(): EditorWindow {
+        return this._view;
     }
 
     public isEditable(): boolean {
-        return this._editorManager.editor.isEditable();
+        return this._view.isEditable();
     }
 
     public focus(): void {
-        this._editorManager.editor.focus();
+        this._view.focus();
     }
 
     public isFocused(): boolean {
-        return this._editorManager.editor.isFocused();
+        return this._view.isFocused();
     }
 
     public destroy(): void {
-        this._editorManager.editor.destroy();
+        this._view.destroy();
     }
 
     public isDestroyed(): boolean {
-        return this._editorManager.editor.isDestroyed();
+        return this._view.isDestroyed();
     }
     
     public updateOptions(options: Partial<IEditorViewOptions>): void {
@@ -130,150 +124,30 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [private helper methods]
 
-    private __registerViewModelListeners(): void {
-        const viewModel = this._ctx.viewModel;
+    private __registerEventFromModel(): void {
+        const model = this._ctx.model;
 
-        this.__register(viewModel.onRender(event => {
-            this._editorManager.render(event);
+        this.__register(model.onDidBuild(newState => {
+            this._view.render(newState);
         }));
 
-        this.__register(viewModel.onDidRenderModeChange(mode => {
-            this._editorManager.setRenderMode(mode);
+        this.__register(model.onTransaction(tr => {
+            console.log('[view] dispatching');
+            this._view.internalView.dispatch(tr);
         }));
     }
-}
 
-/**
- * Interface only for {@link EditorManager}.
- */
-interface IEditorManager extends Disposable {
-
-    readonly container: HTMLElement;
-    readonly editor: EditorInstance;
-    readonly renderMode: EditorType;
-
-    /**
-     * @description Render the given context to the editor editor. Depending on
-     * the rendering mode, the centre will decide which type of editor to be 
-     * created.
-     * @param event The event that contains the context for rendering. 
-     */
-    render(event: IRenderEvent): void;
-
-    /**
-     * @description Change the current rendering mode. This will recreate the
-     * current editor editor to fit the desired rendering mode.
-     * @param mode The desired rendering mode.
-     */
-    setRenderMode(mode: EditorType): void;
-}
-
-/**
- * @class Integration on {@link EditorInstance} management.
- */
-class EditorManager extends Disposable implements IEditorManager {
-
-    // [field]
-
-    private readonly _container: HTMLElement;
-    private readonly _ctx: ViewContext;
-    
-    private _renderMode: EditorType;
-    private _editor: EditorInstance;
-
-    // [constructor]
-
-    constructor(container: HTMLElement, context: ViewContext) {
-        super();
-
-        this._ctx = context;
-
-        const winContainer = document.createElement('div');
-        winContainer.className = 'editor-container';
-        this._container = winContainer;
-
-        const mode = context.viewModel.renderMode;
-        const editor = this.__createWindow(mode);
-
-        this._renderMode = mode;
-        this._editor = editor;
-
-        container.appendChild(winContainer);
-    }
-
-    // [getter]
-
-    get container(): HTMLElement {
-        return this._container;
-    }
-
-    get editor(): EditorInstance {
-        return this._editor;
-    }
-    
-    get renderMode(): EditorType {
-        return this._renderMode;
-    }
-
-    // [public methods]
-
-    public render(event: IRenderEvent): void {
-        
-        console.log('[view] on render event', event); // TEST
+    private __registerEventToModel(): void {
+        const model = this._ctx.model;
 
         /**
-         * The new render event requires new type of rendering mode, destroys
-         * the old editor and create the new one.
+         * Since in Prosemirror whenever the content of the document changes, 
+         * the old {@link ProseEditorState} is no longer valid. Therefore we 
+         * need to inform {@link IEditorModel} to update its state.
          */
-        if (event.type !== this._renderMode) {
-            this.__destroyCurrWindow();
-            this._editor = this.__createWindow(event.type);
-        }
-
-        this._editor.updateContent(event as any);
-    }
-
-    public setRenderMode(mode: EditorType): void {
-        if (mode === this._renderMode) {
-            return;
-        }
-
-        this.__destroyCurrWindow();
-        this._editor = this.__createWindow(mode, this._editor);
-    }
-
-    // [private helper methods]
-
-    private __createWindow(mode: EditorType, oldEdtior?: EditorInstance): EditorInstance {
-        
-        const winArgs = [this._container, this._ctx, oldEdtior] as const;
-        let editor: EditorInstance;
-        
-        switch (mode) {
-            case EditorType.Plain: {
-                // todo: splitWindow
-                throw new Error('does not support plain text editor yet.');
-            }
-            case EditorType.Rich: {
-                editor = RichtextEditor.create(...winArgs);
-                break;
-            }
-            case EditorType.Split: {
-                // todo: splitWindow
-                throw new Error('does not support split editor yet.');
-            }
-            default: {
-                // todo: emptyWindow
-                throw new Error('does not support empty editor yet.');
-            }
-        }
-
-        this.__register(editor);
-        return editor;
-    }
-
-    private __destroyCurrWindow(): void {
-        this._editor.dispose();
-        this._editor = undefined!;
+        this.__register(this._view.onDidContentChange(e => {
+            const newState = e.view.state;
+            model.__onDidStateChange(newState);
+        }));
     }
 }

@@ -1,0 +1,189 @@
+@use 'src/styles/settings/constants' as const;
+
+@media only screen and (max-width: 670px) {
+    .notification-container {
+        display: none;
+    }
+}
+
+// The container of all the notifications, always stay as fixed.
+.notification-container {
+    
+    // notification is overlay, it should have high z-index.
+    z-index: const.$z-index-medium;
+
+    position: fixed;
+    bottom: 20px;
+    right: 15px;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 330px;
+    gap: 6px; // Spacing between notifications
+}
+
+// notification instance
+.notification-container > .notification {
+    position: relative;
+    background-color: var(--nota-notification-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 0px;
+    border-width: 0;
+    padding: 12px 12px 6px 12px;
+    
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    
+    transition: opacity 0.3s, transform 0.3s;
+    overflow: hidden;
+
+    &.info {
+        border-left: 1.5px solid var(--nota-notification-info-primary);
+    }
+
+    &.warning {
+        border-left: 1.5px solid var(--nota-notification-warning-primary);
+    }
+
+    &.error {
+        border-left: 1.5px solid var(--nota-notification-error-primary);
+    }
+
+    // notification icon (info, warning or error)
+    & > .notification-icon-wrapper {
+        width: 20px;
+        height: 20px;
+        padding-top: 0.7px;
+    }
+
+    // content (message, subMessage and action buttons)
+    & > .notification-content {
+        flex: 1;
+        min-width: 0;
+        word-wrap: break-word;
+
+        & > .notification-message {
+            flex: 1;
+            font-size: 12px !important;
+            margin-right: 8px;
+            color: var(--nota-notification-primary-text);
+        }
+    }
+
+    // close button (x)
+    & > .close-button {
+        position: absolute;
+        cursor: pointer;
+        
+        top: 10px;
+        right: 4px;
+        
+        line-height: 0.7;
+        padding: 3px;
+        color: var(--nota-notification-secondary-text);
+
+        &:hover { // for default & `info`
+            border-radius: 50%;
+            color: var(--nota-notification-info-primary); 
+            background-color: var(--nota-notification-info-hover);
+        }
+    
+        &.notification-warn:hover {
+            color: var(--nota-notification-warning-primary);
+            background-color: var(--nota-notification-warning-hover); 
+        }
+    
+        &.notification-error:hover {
+            color: var(--nota-notification-error-primary);
+            background-color: var(--nota-notification-error-hover); 
+        }
+    }
+}
+
+.notification-info {
+    color: var(--nota-notification-info-primary);
+}
+
+.notification-warn {
+    color: var(--nota-notification-warning-primary);
+}
+
+.notification-error {
+    color: var(--nota-notification-error-primary);
+}
+
+.submessage-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 0.5px;
+    gap: 5px;
+}
+
+.notification-submessage {
+    font-size: 0.78em;
+    color: var(--nota-notification-secondary-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-top: 10px;
+}
+
+.notification-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 3px;
+}
+
+/* Custom action buttons */
+.notification-custom-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Styling for all action buttons */
+.action-button {
+    padding: 4px 7px 4px 7px;
+    
+    font-weight: bold;
+    cursor: pointer;
+
+    line-height: 16px;
+    margin-top: 8px;
+    margin-left: 2px;
+    border-radius: 5px;
+    
+    transition: background-color 0.3s, color 0.3s;
+
+    /* Apply hover style on all buttons including last-child */
+    &:hover {
+        background-color: var(--nota-notification-info-primary);
+        color: var(--nota-notification-on-dark-text);
+    }
+
+    /* Last child style */
+    &:last-child {
+        margin-right: 11px !important;
+        background-color: var(--nota-button-background);
+    }
+}
+
+/* Hover styles based on notification type */
+.notification.info .action-button:hover {
+    background-color: var(--nota-notification-info-primary);
+}
+
+.notification.warning .action-button:hover {
+    background-color:  var(--nota-notification-warning-primary);
+}
+
+.notification.error .action-button:hover {
+    background-color:  var(--nota-notification-error-primary);
+}
+

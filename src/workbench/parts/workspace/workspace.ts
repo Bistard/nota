@@ -7,6 +7,8 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 import { ILogService } from "src/base/common/logger";
+import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
+import { assert, check } from 'src/base/common/utilities/panic';
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -23,8 +25,8 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     // [field]
 
-    private titleBarComponent!: TitleBar;
-    private editorComponent!: IEditorService;
+    private _titleBar?: TitleBar;
+    private _editor?: IEditorService;
 
     // [constructor]
 
@@ -40,13 +42,20 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [protected override methods]
 
     protected override _createContent(): void {
-        this._createTitleBar();
+        if (OPERATING_SYSTEM === Platform.Windows) {
+            this._createTitleBar();
+        }
         this._createEditor();
     }
 
     protected override _registerListeners(): void {
-        this.titleBarComponent.registerListeners();
-        this.editorComponent.registerListeners();
+        const editor = assert(this._editor, "editor error");
+        
+        if (OPERATING_SYSTEM === Platform.Windows) {
+            const titleBar = assert(this._titleBar, "title bar error");
+            titleBar.registerListeners();
+        }
+        editor.registerListeners();
     }
 
     // [public method]
@@ -54,12 +63,14 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [private helper methods]
 
     private _createTitleBar(): void {
-        this.titleBarComponent = this.instantiationService.createInstance(TitleBar);
-        this.titleBarComponent.create(this);
+        check(!this._titleBar);
+        this._titleBar = this.instantiationService.createInstance(TitleBar);
+        this._titleBar.create(this);
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService);
-        this.editorComponent.create(this);
+        check(!this._editor);
+        this._editor = this.instantiationService.getOrCreateService(IEditorService);
+        this._editor.create(this);
     }
 }

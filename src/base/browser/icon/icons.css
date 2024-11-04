@@ -20,81 +20,93 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-arrow-right:before {
     content: "\f102";
 }
-.icon-close:before {
+.icon-check:before {
     content: "\f103";
 }
-.icon-cloud-upload:before {
+.icon-close:before {
     content: "\f104";
 }
-.icon-collapse-all:before {
+.icon-cloud-upload:before {
     content: "\f105";
 }
-.icon-command:before {
+.icon-collapse-all:before {
     content: "\f106";
 }
-.icon-create-new-folder:before {
+.icon-command:before {
     content: "\f107";
 }
-.icon-create-new-note:before {
+.icon-create-new-folder:before {
     content: "\f108";
 }
-.icon-extension:before {
+.icon-create-new-note:before {
     content: "\f109";
 }
-.icon-folder-default:before {
+.icon-extension:before {
     content: "\f10a";
 }
-.icon-folder-open:before {
+.icon-folder-default:before {
     content: "\f10b";
 }
-.icon-help:before {
+.icon-folder-open:before {
     content: "\f10c";
 }
-.icon-maxmize-window:before {
+.icon-help:before {
     content: "\f10d";
 }
-.icon-menu:before {
+.icon-maxmize-window:before {
     content: "\f10e";
 }
-.icon-minimize-window:before {
+.icon-menu:before {
     content: "\f10f";
 }
-.icon-more-horiz:before {
+.icon-minimize-window:before {
     content: "\f110";
 }
-.icon-nota-ai-default:before {
+.icon-more-horiz:before {
     content: "\f111";
 }
-.icon-nota-ai-on:before {
+.icon-nota-ai-default:before {
     content: "\f112";
 }
-.icon-notification-active:before {
+.icon-nota-ai-on:before {
     content: "\f113";
 }
-.icon-notification-unread:before {
+.icon-notification-active:before {
     content: "\f114";
 }
-.icon-notifications-off:before {
+.icon-notification-error:before {
     content: "\f115";
 }
-.icon-outline:before {
+.icon-notification-info:before {
     content: "\f116";
 }
-.icon-restore-window:before {
+.icon-notification-unread:before {
     content: "\f117";
 }
-.icon-search:before {
+.icon-notification-warn:before {
     content: "\f118";
 }
-.icon-setting:before {
+.icon-notifications-off:before {
     content: "\f119";
 }
-.icon-sort-by-alpha:before {
+.icon-outline:before {
     content: "\f11a";
 }
-.icon-source-contorl-on:before {
+.icon-restore-window:before {
     content: "\f11b";
 }
-.icon-source-control-default:before {
+.icon-search:before {
     content: "\f11c";
+}
+.icon-setting:before {
+    content: "\f11d";
+}
+.icon-sort-by-alpha:before {
+    content: "\f11e";
+}
+.icon-source-contorl-on:before {
+    content: "\f11f";
+}
+.icon-source-control-default:before {
+    content: "\f120";
 }

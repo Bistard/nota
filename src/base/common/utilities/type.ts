@@ -47,7 +47,7 @@ export type TupleOf<T, S extends number, R extends T[] = []> = R['length'] exten
  * any class. This type allows specifying the types of arguments that the 
  * constructor function takes.
  *
- * @template TInstance The instance type that the constructor returns.
+ * @template T The instance type that the constructor returns.
  * @template TArgs The types of the arguments that the constructor function takes. Default is any[] if not provided.
  * 
  * @example
@@ -62,9 +62,9 @@ export type TupleOf<T, S extends number, R extends T[] = []> = R['length'] exten
  * instanceCreator = MyClass;
  * let instance = new instanceCreator(10, 'hello');
  */
-export type Constructor<TInstance = any, TArgs extends any[] = any[]> = new (...args: TArgs) => TInstance;
-export type AbstractConstructor<TInstance = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => TInstance;
-
+export type Constructor<T = any, TArgs extends any[] = any[]> = new (...args: TArgs) => T;
+export type AbstractConstructor<T = any, TArgs extends any[] = any[]> = abstract new (...args: TArgs) => T;
+export type ExactConstructor<T> = T extends (abstract new (...args: any[]) => infer R) ? (new (...args: ConstructorParameters<T>) => R) : never;
 /**
  * `Comparator` is a type representing a generic comparison function.
  * This function takes two arguments of the same type and returns a number.
@@ -443,14 +443,6 @@ export type TreeLike<T> = {
 };
 
 /**
- * @description Mocks the given value's type.
- * @deprecated Try not to use it since it causes unnecessary runtime impact.
- */
-export function mockType<T>(val: any): T {
-    return val as unknown as T;
-}
-
-/**
  * @description Ensures that the provided type `T` is strictly `true`.
  * @note The function itself doesn't perform any runtime checks. The type 
  * checking is done at compile time.
@@ -520,6 +512,13 @@ export function isBoolean(obj: any): obj is boolean {
     return typeof obj === 'boolean';
 }
 
+export function toBoolean(value: any): boolean {
+    if (typeof value === 'string') {
+        return value.toLowerCase() === 'true';
+    }
+    return !!value;
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isFunction(obj: any): obj is Function {
     return typeof obj === 'function';
@@ -551,10 +550,12 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
+export const isNotDefined = isNullable;
 export function isNullable(value: any): value is undefined | null {
     return (typeof value === 'undefined' || value === null);
 }
 
+export const isDefined = isNonNullable;
 export function isNonNullable<T>(value: T): value is NonNullable<T> {
     return !isNullable(value);
 }

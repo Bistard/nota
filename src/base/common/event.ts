@@ -1,9 +1,10 @@
+import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { ITask } from "src/base/common/utilities/async";
-import { Callable } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
+import { createFinalizationRegistry } from "src/base/common/garbageCollection";
+import { Time } from "src/base/common/date";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -18,6 +19,20 @@ import { panic } from "src/base/common/utilities/panic";
  * 
  *  - {@link Event}
  ******************************************************************************/
+
+let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
+export function monitorEventEmitterListenerGC(opts: { ListenerGCedWarning: boolean }): void {
+    if (opts.ListenerGCedWarning) {
+        
+        _listenerFinalizer = createFinalizationRegistry({
+            onGarbageCollectedInterval: (stacks: string[]) => {
+                console.warn('[MEMORY LEAKING] GC\'ed these event listeners that were NOT yet disposed:');
+                console.warn(stacks.join('\n'));
+            },
+            internalTime: Time.sec(3),
+        });
+    }
+}
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -92,11 +107,19 @@ class __Listener<T> {
 
     constructor(
         public readonly callback: Listener<T>, 
-        public readonly thisObject: any
+        public readonly thisObject: any,
+        private readonly _options?: IEmitterOptions,
     ) {}
 
     public fire(e: T): void {
-        this.callback.call(this.thisObject, e);
+        try {
+            this._options?.onListenerRun?.();
+            this.callback.call(this.thisObject, e);
+            this._options?.onListenerDidRun?.();
+        } catch (err) {
+            const onErr = this._options?.onListenerError ?? ErrorHandler.onUnexpectedError;
+            onErr(err);
+        }
     }
 }
 
@@ -105,14 +128,31 @@ class __Listener<T> {
  */
 export interface IEmitterOptions {
 
-    /** Invokes before the first listener is about to be added. */
-    readonly onFirstListenerAdd?: ITask<any>;
+    // [listener - add]
 
-    /** Invokes after the first listener is added. */
-    readonly onFirstListenerDidAdd?: ITask<any>;
+    readonly onFirstListenerAdd?: IO<void>;
+    readonly onFirstListenerDidAdd?: IO<void>;
+    readonly onListenerWillAdd?: IO<void>;
+    readonly onListenerDidAdd?: IO<void>;
 
-    /** Invokes after the last listener is removed. */
-    readonly onLastListenerRemoved?: ITask<any>;
+    // [listener - remove]
+
+    readonly onLastListenerDidRemove?: IO<void>;
+    readonly onListenerWillRemove?: IO<void>;
+    readonly onListenerDidRemove?: IO<void>;
+
+    // [listener - others]
+
+    readonly onListenerRun?: IO<void>;
+    readonly onListenerDidRun?: IO<void>; // this will not be executed if error encountered
+
+    /** Invoked when a listener throws an error. Defaults to {@link onUnexpectedError}. */
+    readonly onListenerError?: (error: any) => void;
+
+    // [emitter]
+
+    readonly onFire?: IO<void>;
+    readonly onDidFire?: IO<void>;
 }
 
 /**
@@ -165,30 +205,46 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
             }
 
             // register the listener (callback)
-            const listenerWrapper = new __Listener(listener, thisObject);
+            const listenerWrapper = new __Listener(listener, thisObject, this._opts);
+            this._opts?.onListenerWillAdd?.();
             const node = this._listeners.push_back(listenerWrapper);
+            this._opts?.onListenerDidAdd?.();
             let listenerRemoved = false;
+            let listenerRemoving = false;
 
+            // after first add callback
             if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
                 this._opts.onFirstListenerDidAdd();
             }
 
             // returns a disposable in order to decide when to stop listening (unregister)
             const unRegister = toDisposable(() => {
-                if (!this._disposed && !listenerRemoved) {
+                if (!this._disposed && !listenerRemoved && !listenerRemoving) {
+                    listenerRemoving = true;
+
+                    this._opts?.onListenerWillRemove?.();
                     this._listeners.remove(node);
+                    this._opts?.onListenerDidRemove?.();
             
                     // last remove callback
-                    if (this._opts?.onLastListenerRemoved && this._listeners.empty()) {
-                        this._opts.onLastListenerRemoved();
+                    if (this._opts?.onLastListenerDidRemove && this._listeners.empty()) {
+                        this._opts.onLastListenerDidRemove();
                     }
 
+                    listenerRemoving = false;
                     listenerRemoved = true;
+                    _listenerFinalizer?.unregister(unRegister);
                 }
             });
 
             if (disposables) {
                 disposables.push(unRegister);
+            }
+
+            if (_listenerFinalizer) {
+                // only select the top stack info
+                const stack = new Error().stack!.split('\n').slice(2, 3).join('\n').trim();
+                _listenerFinalizer.register(unRegister, stack, unRegister);
             }
 
             return unRegister;
@@ -198,6 +254,8 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     }
 
     public fire(event: T): void {
+        this._opts?.onFire?.();
+
         for (const listener of this._listeners) {
             try {
                 listener.fire(event);
@@ -205,6 +263,8 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
                 ErrorHandler.onUnexpectedError(error);
             }
         }
+
+        this._opts?.onDidFire?.();
 	}
 
     public dispose(): void {
@@ -403,7 +463,7 @@ export class RelayEmitter<T> implements IDisposable {
             this._inputUnregister = this._inputRegister(e => this._relay.fire(e));
             this._listening = true;
         },
-        onLastListenerRemoved: () => {
+        onLastListenerDidRemove: () => {
             this._inputUnregister.dispose();
             this._listening = false;
         }
@@ -440,8 +500,8 @@ export class RelayEmitter<T> implements IDisposable {
 }
 
 export interface INodeEventEmitter {
-    on(eventName: string | symbol, listener: Callable<[], void>): any;
-    removeListener(eventName: string | symbol, listener: Callable<[], void>): any;
+    on(eventName: string | symbol, listener: IO<void>): any;
+    removeListener(eventName: string | symbol, listener: IO<void>): any;
 }
 
 /**
@@ -468,7 +528,7 @@ export class NodeEventEmitter<T> implements IDisposable {
 		const onLastRemove = () => nodeEmitter.removeListener(channel, onData);
         this._emitter = new Emitter({ 
             onFirstListenerAdd: onFirstAdd, 
-            onLastListenerRemoved: onLastRemove });
+            onLastListenerDidRemove: onLastRemove });
     }
 
     get registerListener(): Register<T> {

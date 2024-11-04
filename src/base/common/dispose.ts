@@ -169,12 +169,12 @@ export function tryDispose(obj: any): void {
  * @note You may also register disposable children to the current object, those
  * children will be disposed along with the current object.
  */
-export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable {
+export class AutoDisposable<T extends IDisposable> implements IDisposable {
 
 	// [fields]
 
 	private _object?: T;
-	private readonly _children: IDisposable[];
+	private _children: IDisposable[];
 	private _disposed: boolean;
 
 	// [constructor]
@@ -217,13 +217,11 @@ export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable
 		this._children.push(...children);
 	}
 
-	public detach(): T | undefined {
+	public detach(): { obj: T, children: IDisposable[] } | undefined {
 		const obj = this._object;
 		this._object = undefined;
-
-		this._children.length = 0;
-		
-		return obj;
+		this._children = [];
+		return obj ? { obj, children: this._children } : undefined;
 	}
 
 	public dispose(): void {

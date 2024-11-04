@@ -13,20 +13,24 @@ export const rendererDarkThemeColorRegister = createRegister(
         });
 
         // general
+        registrant.registerColor(PresetColorTheme.DarkModern, 'primary-text', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'global-body-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.DarkModern, 'global-body-foreground', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'selection-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'primary-text', THEME_COLORS.primary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.sidebg);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-border', THEME_COLORS.mediumTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-icon', THEME_COLORS.subtext); 
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-border', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-disabled', THEME_COLORS.middle);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-check-color', THEME_COLORS.middle);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-content-color', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-separator-background', THEME_COLORS.middle);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'menuItem-focus-background', THEME_COLORS.subicon);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'menu-item-focus-background', THEME_COLORS.subicon);
         registrant.registerColor(PresetColorTheme.DarkModern, 'sash-hover', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.DarkModern, 'sash-visible-background', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'scroll-slider-background', THEME_COLORS.middle);
@@ -66,5 +70,20 @@ export const rendererDarkThemeColorRegister = createRegister(
         // Workspace
         registrant.registerColor(PresetColorTheme.DarkModern, 'window-bar-button-hover-background', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.DarkModern, 'window-bar-button-active-background', THEME_COLORS.light);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'outline-primary-text', THEME_COLORS.ternary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'outline-select-text', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'outline-overflow-hover-box-background', THEME_COLORS.white);
+
+        // Notification
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-background', THEME_COLORS.white);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-primary-text', THEME_COLORS.secondary);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-secondary-text', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-on-dark-text', THEME_COLORS.white);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-info-primary', THEME_COLORS.teal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-warning-primary', THEME_COLORS.goldenrod);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-error-primary', THEME_COLORS.crimson);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-info-hover', THEME_COLORS.lighterTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-warning-hover', THEME_COLORS.lightgoldenrod);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'notification-error-hover', THEME_COLORS.lightcrimson);
     },
 );
