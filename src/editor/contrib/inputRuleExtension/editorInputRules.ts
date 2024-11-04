@@ -4,6 +4,7 @@ import { canJoin, findWrapping } from "prosemirror-transform";
 import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
+import { tokenize } from "prismjs";
 
 export function registerDefaultInputRules(extension: IEditorInputRuleExtension): void {
 
@@ -44,6 +45,34 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
                 };
             },
             wrapStrategy: 'WrapTextBlock'
+        }
+    );
+
+    extension.registerRule("orderedListRule", /^(\d+)\.\s$/,
+         {
+            nodeType: TokenEnum.List,
+            whenReplace: 'type',
+            getNodeAttribute: (match) => {
+                if (match && match[1]) {
+                    return { order: +match[1] };
+                }
+                return { order: 1};
+            },
+            shouldJoinWithBefore: (match, prevNode) => {
+                if (match && match[1]) {
+                    return prevNode.type.name === TokenEnum.List && prevNode.attrs["order"] + 1 === +match[1];
+                }
+                return false;
+            }, 
+            wrapStrategy: 'WrapBlock'
+         }
+    );
+
+    extension.registerRule("bulletListRule", /^\s*([-+*])\s$/,
+        {
+            nodeType: TokenEnum.List,
+            whenReplace: 'type',
+            wrapStrategy: 'WrapBlock'
         }
     );
 }
