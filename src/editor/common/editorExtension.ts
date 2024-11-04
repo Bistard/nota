@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { err, ok, Result } from "src/base/common/result";
-import { ProseEditorState, ProseEditorView, ProseExtension } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorSchema } from "src/editor/model/schema";
@@ -44,7 +44,7 @@ export interface IEditorExtension extends Disposable {
 /**
  * // TODO
  */
-export abstract class EditorExtension<TStateType = void> extends Disposable implements IEditorExtension {
+export abstract class EditorExtension extends Disposable implements IEditorExtension {
     
     // [fields]
 
@@ -82,42 +82,31 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
         super();
         this._viewExtension = new ProseExtension({
             state: {
-                /**
-                 * This function will be called once when an editor state is 
-                 * created by {@link EditorState.create()}.
-                 */
+                // This function will be called once the extension is created by {@link EditorState.create({ plugin: [myPlugin] })}.
                 init: (config, state) => {
                     this._viewState = state;
-                    const initState = this.onViewStateInit(state);
-                    return initState;
+                    this.onViewStateInit?.(state);
                 },
-                /**
-                 * This function is invoked whenever a transaction in editor 
-                 * occurs, allowing the plugin to update its internal state.
-                 *
-                 * @param tr The transaction object representing the changes made to the editor state.
-                 * @param value The current plugin state before applying the transaction.
-                 * @param oldState The editor state before the transaction was applied.
-                 * @param newState The editor state after the transaction has been applied.
-                 * @returns The updated plugin state after applying the transaction.
-                 */
+                // This function is invoked whenever a transaction in editor.
                 apply: (tr, value, oldState, newState) => {
-                    return value;
+                    this._viewState = newState;
+                    this.onStateTransaction?.(tr, oldState, newState);
                 },
             },
             // Will be called when the state is associated with an {@link ProseEditorView}.
             view: (view) => {
-                this.onViewInit(view);
+                this.onViewInit?.(view);
 
                 return {
                     // Called when the view is destroyed
                     destroy: () => {
-                        this.onViewDestroy(view);
                         this._viewState = undefined;
+                        this.onViewDestroy?.(view);
                     },
                     // Called whenever the view's state is updated.
-                    update: () => {
-                        
+                    update: (view, prevState) => {
+                        this._viewState = view.state;
+                        this.onViewUpdate?.(view);
                     },
                 };
             },
@@ -131,19 +120,33 @@ export abstract class EditorExtension<TStateType = void> extends Disposable impl
      * @description This function will be called once when an editor state is 
      * created by {@link EditorState.create()}.
      */
-    protected abstract onViewStateInit(state: ProseEditorState): TStateType;
+    protected onViewStateInit?(state: ProseEditorState): void;
+    
+    /**
+     * @description This function is invoked whenever a transaction in editor 
+     * occurs, allowing the plugin to update its internal state.
+     * @param transaction The transaction object representing the changes made.
+     * @param oldState The editor state before the transaction was applied.
+     * @param newState The editor state after the transaction has been applied.
+     */
+    protected onStateTransaction?(transaction: ProseTransaction, oldState: ProseEditorState, newState: ProseEditorState): void;
 
     /**
      * @description This function triggers when the extension is bounded with
      * the {@link ProseEditorView}.
      */
-    protected abstract onViewInit(view: ProseEditorView): void;
+    protected onViewInit?(view: ProseEditorView): void;
+    
+    /**
+     * @description The function triggers when the view's state is updated.
+     */
+    protected onViewUpdate?(view: ProseEditorView): void;
 
     /**
      * @description This function triggers when the {@link ProseEditorView} is
      * destroyed.
      */
-    protected abstract onViewDestroy(view: ProseEditorView): void;
+    protected onViewDestroy?(view: ProseEditorView): void;
 
     // [public methods]
 

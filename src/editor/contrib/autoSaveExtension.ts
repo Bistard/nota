@@ -74,10 +74,6 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
 
     // [protected methods]
 
-    protected override onViewStateInit(state: EditorState): void {}
-
-    protected override onViewInit(view: EditorView): void {}
-
     protected override onViewDestroy(view: EditorView): void {
         super.dispose();
     }

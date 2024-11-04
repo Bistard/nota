@@ -34,7 +34,7 @@ export interface IEditorCommandExtension extends IEditorExtension {
  * shortcuts. This class binds commands to specific shortcuts and registers 
  * these commands within the {@link CommandService}.
  */
-export class EditorCommandExtension extends EditorExtension<void> implements IEditorCommandExtension {
+export class EditorCommandExtension extends EditorExtension implements IEditorCommandExtension {
 
     // [fields]
 
@@ -92,7 +92,7 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
 
     // [protected override methods]
 
-    protected onViewStateInit(state: EditorState): void {
+    protected override onViewStateInit(state: EditorState): void {
         
         /**
          * Binds predefined commands to their respective shortcuts.
@@ -100,7 +100,6 @@ export class EditorCommandExtension extends EditorExtension<void> implements IEd
         registerBasicEditorCommands(this, this.logService);
     }
 
-    protected override onViewInit(view: EditorView): void {}
     protected override onViewDestroy(view: EditorView): void {
         const registrant = this.registrantService.getRegistrant(RegistrantType.Command);
         
