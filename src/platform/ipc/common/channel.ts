@@ -19,7 +19,7 @@ export const enum IpcChannel {
 
     // Main process internal usage, no need for a `nota:` prefix.
     WindowMaximized = 'window-maximized',
-    WindowUnmaximized = 'window-unmaximized',
+    WindowUnMaximized = 'window-unMaximized',
     WindowFocused = 'window-focused',
     WindowBlurred = 'window-blurred',
 }

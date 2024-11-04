@@ -251,10 +251,6 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
 
     // [getter]
 
-    get root(): T {
-        return this._model.root;
-    }
-
     get rootNode(): ITreeNode<T, TFilter> {
         return this._model.rootNode;
     }

@@ -4,17 +4,22 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
-import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
-import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
+import { IEditorWidgetOptions } from "src/editor/common/editorConfiguration";
 import { deepCopy } from "src/base/common/utilities/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
-import { panic } from 'src/base/common/utilities/panic';
+import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
+import { EditorType } from "src/editor/common/view";
+import { getBuiltInExtension } from 'src/editor/contrib/builtInExtensionList';
+import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
+import { assert, panic } from 'src/base/common/utilities/panic';
+import { Emitter } from 'src/base/common/event';
+import { IOutlineService } from 'src/workbench/services/outline/outlineService';
+import { Throttler } from 'src/base/common/utilities/async';
 
 export class Editor extends Component implements IEditorService {
 
@@ -23,6 +28,17 @@ export class Editor extends Component implements IEditorService {
     // [field]
 
     private _editorWidget: IEditorWidget | null;
+    
+    /**
+     * Stores editor open request. A throttler is needed to avoid excessive file
+     * loading during a very short time.
+     */
+    private readonly _pendingRequest: Throttler;
+
+    // [event]
+
+    private readonly _onDidOpen = this.__register(new Emitter<URI>());
+    public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]
 
@@ -38,6 +54,9 @@ export class Editor extends Component implements IEditorService {
     ) {
         super('editor', null, themeService, componentService, logService);
         this._editorWidget = null;
+        this._pendingRequest = new Throttler();
+
+        this.logService.trace('EditorService', 'Constructed.');
     }
 
     // [getter]
@@ -48,22 +67,34 @@ export class Editor extends Component implements IEditorService {
 
     // [public methods]
 
-    public openSource(source: URI | string): void {
+    public override dispose(): void {
+        super.dispose();
+    }
+
+    public async openSource(source: URI | string): Promise<void> {
+        const uri = URI.isURI(source) ? source : URI.fromFile(source);
 
         if (!this._editorWidget) {
-            panic(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
+            panic(`[EditorService] Cannot open at "${URI.toString(uri)}". Reason: service currently is not created.`);
         }
 
-        const uri = URI.isURI(source) ? source : URI.fromFile(source);
-        this._editorWidget.open(uri);
+        // queue a request
+        await this._pendingRequest.queue(async () => {
+            const editorWidget = assert(this._editorWidget);
+
+            // do open
+            this.logService.debug('EditorService', `Opening at: ${URI.toString(uri)}`);
+            await editorWidget.open(uri);
+            this.logService.debug('EditorService', `Open successfully at: ${URI.toString(uri)}`);
+
+            this._onDidOpen.fire(uri);
+            return uri;
+        });
     }
 
     // [override protected methods]
 
     protected override async _createContent(): Promise<void> {
-
-        await this.lifecycleService.when(LifecyclePhase.Ready);
-
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
@@ -72,28 +103,39 @@ export class Editor extends Component implements IEditorService {
             options.baseURI = URI.toFsPath(explorerView.root);
         }
 
-        // editor widget construction
-        // FIX
-        // const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
-        // (<Mutable<EditorWidget>>this._editorWidget) = editor;
+        this.logService.debug('EditorService', 'Constructing editor...');
+
+        // editor construction
+        const editor = this.instantiationService.createInstance(
+            EditorWidget, 
+            this.element.raw,
+            getBuiltInExtension(),
+            {
+                mode: EditorType.Rich,
+                writable: true,
+            },
+        );
+        this._editorWidget = editor;
+
+        this.logService.debug('EditorService', 'Editor constructed.');
     }
 
     protected override async _registerListeners(): Promise<void> {
-
-        /**
-         * It should be a better idea to collect all the settings and options 
-         * and register the editor related listeners when the browser-side 
-         * lifecycle turns into ready state.
-         */
-        await this.lifecycleService.when(LifecyclePhase.Ready);
 
         // building options
         const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView) {
             explorerView.onDidOpen((e) => {
-                this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
+                // FIX
+                // this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
             });
         }
+
+        // listen to outline service click event
+        const outlineService = this.instantiationService.getOrCreateService(IOutlineService);
+        this.__register(outlineService.onDidClick(heading => {
+            console.log('[EditorService] heading clicked', heading); // TODO
+        }));
     }
 
     // [private helper methods]

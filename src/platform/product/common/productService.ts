@@ -2,12 +2,13 @@ import { InitProtector } from "src/base/common/error";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { JsonSchemaValidator, jsonSafeParse } from "src/base/common/json";
+import { JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IProductProfile, productProfileSchema } from "src/platform/product/common/product";
 import { panic } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 
 export const IProductService = createService<IProductService>('product-service');
 
@@ -51,7 +52,7 @@ export class ProductService implements IProductService {
         return this._protector.init('cannot initialize twice.')
         .toAsync()
         .andThen(() => this.fileService.readFile(productURI))
-        .andThen(buffer => jsonSafeParse(buffer.toString()))
+        .andThen(buffer => Strings.jsonParseSafe(buffer.toString()))
         .andThen((parsed: any) => {
             const validate = JsonSchemaValidator.validate(parsed, productProfileSchema);
             if (!validate.valid) {

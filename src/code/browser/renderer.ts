@@ -15,7 +15,7 @@ import { ILoggerService } from "src/platform/logger/common/abstractLoggerService
 import { IFileService } from "src/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
-import { ErrorHandler, tryOrDefault } from "src/base/common/error";
+import { ErrorHandler } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
@@ -27,7 +27,7 @@ import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecyc
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { WorkbenchConfiguration, rendererNavigationViewConfigurationRegister, rendererWorkbenchConfigurationRegister } from "src/workbench/services/workbench/configuration.register";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { URI } from "src/base/common/files/uri";
@@ -61,6 +61,12 @@ import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigation
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
+import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
+import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
+import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
+import { monitorEventEmitterListenerGC } from "src/base/common/event";
+import { toBoolean } from "src/base/common/utilities/type";
+import { Strings } from "src/base/common/utilities/string";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -85,6 +91,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
+            monitorEventEmitterListenerGC({
+                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+            });
 
             // ensure we handle almost every errors properly
             this.initErrorHandler();
@@ -128,7 +137,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // universal on unexpected error handling callback
         const onUnexpectedError = (error: any, additionalMessage?: any) => {
             if (this.logService) {
-                const safeAdditional = tryOrDefault('', () => JSON.stringify(additionalMessage));
+                const safeAdditional = Strings.stringifySafe(additionalMessage);
                 this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
             } else {
                 console.error(error);
@@ -280,6 +289,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationBarService     , new ServiceDescriptor(NavigationBar            , []));
         registerService(IQuickAccessBarService    , new ServiceDescriptor(QuickAccessBar           , []));
         registerService(IToolBarService           , new ServiceDescriptor(ToolBar                  , []));
+        registerService(IActionBarService         , new ServiceDescriptor(ActionBar                , []));
+        registerService(IFilterBarService         , new ServiceDescriptor(FilterBar                , []));
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
@@ -290,6 +301,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
         registerService(IFileTreeMetadataService  , new ServiceDescriptor(FileTreeService          , []));
         registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
+        registerService(IOutlineService           , new ServiceDescriptor(OutlineService           , []));
     
         // utilities && tools
         registerService(IContextService           , new ServiceDescriptor(ContextService           , []));
@@ -321,11 +333,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         class BrowserConfigurationRegistrant extends ConfigurationRegistrant {
             public override initRegistrations(provider: IServiceProvider): void {
                 super.initRegistrations(provider);
-                [
-                    rendererWorkbenchConfigurationRegister,
-                    rendererNavigationViewConfigurationRegister,
-                ]
-                .forEach(register => register(provider));
+                // no op for now
             }
         }
 

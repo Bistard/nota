@@ -42,8 +42,31 @@
             }
         }
 
+        &.macos {
+            top: 20px;
+            display: flex;
+            align-items: center;
+            width: 82%;
+            margin-left: 15px;
+            background-color: transparent;
+            .search-bar {
+                border-top : none;
+                border-left: none;
+                border-right: none;
+                border-bottom: var(--nota-search-bar-border) 1px solid;
+                border-radius: 0;
+            }
+        }
+
         ::placeholder {
             color: var(--nota-search-bar-placeholder);
         }
+    }
+
+    .mac-buttons-container {
+        display: flex;
+        align-items: center;
+        margin-left: 12.5px;
+        margin-top: 12.5px;
     }
 }

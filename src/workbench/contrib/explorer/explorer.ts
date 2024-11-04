@@ -22,6 +22,8 @@ import { IEditorService } from 'src/workbench/parts/workspace/editor/editorServi
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
 import { FixedArray } from 'src/base/common/utilities/type';
+import { IConfigurationService } from 'src/platform/configuration/common/configuration';
+import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -71,6 +73,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super(ExplorerViewID, parentElement, themeService, componentService, logService);
 
@@ -157,9 +160,10 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     // [private helper method]
 
     private async __onApplicationClose(): Promise<void> {
-
+        
         // save the last opened workspace root path.
-        const openedWorkspace = this.fileTreeService.root 
+        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
+        const openedWorkspace = (this.fileTreeService.root && shouldRestore) 
             ? URI.toString(URI.join(this.fileTreeService.root, '|directory'))
             : '';
         await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
@@ -396,7 +400,11 @@ class FileActionBar extends Disposable {
             for (const { id, icon, classes, fn } of buttons) {
                 const button = new Button({ id, icon, classes });
                 button.onDidClick(() => fn?.(button));
-                group.addItem({ id, item: button, dispose: () => button.dispose()});
+                group.addItem({ 
+                    id: id, 
+                    data: button, 
+                    dispose: () => button.dispose()
+                });
             }
         });
 

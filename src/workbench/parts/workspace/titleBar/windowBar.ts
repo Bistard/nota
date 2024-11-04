@@ -27,7 +27,7 @@ export class WindowBar extends Component {
 
     protected override _createContent(): void {
 
-        this._widgetBar = this.__register(this.__createWidgetBar(this.element.element));
+        this._widgetBar = this.__register(this.__createWidgetBar(this.element.raw));
 
     }
 
@@ -57,7 +57,7 @@ export class WindowBar extends Component {
 
                 widgetBar.addItem({
                     id: id,
-                    item: button,
+                    data: button,
                     dispose: button.dispose.bind(button),
                 });
             });
@@ -71,7 +71,7 @@ export class WindowBar extends Component {
             this.changeMaxResBtn(true);
         });
 
-        this.hostService.onDidUnmaximizeWindow(() => {
+        this.hostService.onDidUnMaximizeWindow(() => {
             this.changeMaxResBtn(false);
         });
     }

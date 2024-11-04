@@ -1,8 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/result";
 import { Event, NodeEventEmitter } from "src/base/common/event";
-import { FileOperationError } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
 import { memoize } from "src/base/common/memoization";
 import { IOpenDialogOptions } from "src/platform/dialog/common/dialog";
@@ -34,7 +32,7 @@ export interface IMainHostService extends IHostService, IDisposable {
  * - Window opening
  * 
  * Additionally, this class provides methods to manipulate window instances 
- * including focusing, maximizing, minimizing, unmaximizing, toggling fullscreen 
+ * including focusing, maximizing, minimizing, unMaximizing, toggling fullscreen 
  * mode, closing the window, and even manipulating the DevTools.
  * 
  * The class also facilitates dialog services, enabling functionalities such as 
@@ -52,8 +50,8 @@ export class MainHostService extends Disposable implements IMainHostService {
     private readonly _onDidMaximizeWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowMaximized, (_e, window: BrowserWindow) => window.id));
     public readonly onDidMaximizeWindow = this._onDidMaximizeWindow.registerListener;
 
-    private readonly _onDidUnmaximizeWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowUnmaximized, (_e, window: BrowserWindow) => window.id));
-    public readonly onDidUnmaximizeWindow = this._onDidUnmaximizeWindow.registerListener;
+    private readonly _onDidUnMaximizeWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowUnMaximized, (_e, window: BrowserWindow) => window.id));
+    public readonly onDidUnMaximizeWindow = this._onDidUnMaximizeWindow.registerListener;
 
     private readonly _onDidFocusWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowFocused, (_e, window: BrowserWindow) => window.id));
     public readonly onDidFocusWindow = this._onDidFocusWindow.registerListener;
@@ -91,7 +89,7 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.minimize();
     }
 
-    public async unmaximizeWindow(id?: number): Promise<void> {
+    public async unMaximizeWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
         window?.browserWindow.unmaximize();
     }

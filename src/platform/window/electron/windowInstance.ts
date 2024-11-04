@@ -12,6 +12,7 @@ import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
 import { IProductService } from "src/platform/product/common/productService";
+import { isDefined } from "src/base/common/utilities/type";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -121,16 +122,37 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [public methods]
 
-    public load(configuration: IWindowConfiguration): Promise<void> {
+    public async load(configuration: IWindowConfiguration): Promise<void> {
         this.logService.debug('WindowInstance', `Loading window (ID: ${this._id})...`);
 
         this._configurationIpcAccessible.updateData(configuration);
 
-        return this._window.loadFile(this.configuration.loadFile);
+        // loading page
+        const htmlFile = this.configuration.loadFile;
+        this.logService.debug('WindowInstance', `Loading HTML file (${htmlFile})...`);
+
+        this._window.webContents.once('did-fail-load', (e, errCode, errMsg) => {
+            this.logService.error('WindowInstance', `Loading page failed.`, new Error(), { errCode, errMsg });
+        });
+        
+        this._window.webContents.once('did-finish-load', () => {
+            this.logService.debug('WindowInstance', `Page loaded successfully.`);
+        });
+
+        await this._window.loadFile(htmlFile);
     }
 
     public toggleFullScreen(force?: boolean): void {
-        // TODO: complete
+        if (isDefined(force)) {
+            this._window.setFullScreen(force);
+            return;
+        }
+
+        if (this._window.isFullScreen()) {
+            this._window.setFullScreen(false);
+        } else {
+            this._window.setFullScreen(true);
+        }
     }
 
     public close(): void {
@@ -246,7 +268,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
 
         this._window.on('unmaximize', (e: Event) => {
-            electron.app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+            electron.app.emit(IpcChannel.WindowUnMaximized, e, this._window);
         });
 
         this._window.webContents.on('did-finish-load', () => {

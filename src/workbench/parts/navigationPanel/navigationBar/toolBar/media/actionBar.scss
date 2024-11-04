@@ -1,62 +1,63 @@
 #action-bar {
     position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: flex-end;
     flex-direction: row;
-    width: 100%;
+    width: 86%;
     height: 100%;
 
-    & .icon {
-        position: relative;
-        bottom: 8px;
-    }
+    & > .action-bar-buttons {
+        width: 100%;
+        height: 100%;
 
-    & .button {
-        width: 30px;
-        height: 30px;
-        align-self: center;
+        & .button {
+            width: 100%;
+            height: 31px;
+            align-self: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-top: 10px;
+    
+            & .icon {
+                width: 100%;
+                position: relative;
+                font-size: 31px;
+            }
 
-        & > .icon {
-            font-size: 28px;
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -4.5px;
+                width: 100%;
+                height: 1.5px;
+                background: #e2e2e2;
+                transition: background-color 0.2s ease-out;
+            }
 
-            &.icon-add-new {
-                color: var(--nota-action-bar-add-new-button) !important;
+            &:active {
+                opacity: 80%;       
+            }
+
+            &:hover::after {
+                background: #2aa882;
+                box-shadow: 0px 0px 5px #2aa882;
             }
         }
 
-        &:hover {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        // button hover transition
+        & .button:hover > .icon {      
+            color: rgb(155, 155, 155);
         }
 
-        &:active {
-            opacity: 70%;
-        }
-
-        &.focus {
-            filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+        // Activated button styles
+        & .button.activated::after {
+            background: #2aa882;
+            box-shadow: 0px 0px 5px #2aa882;
         }
     }
-}
-
-// TODO: move this logic to icon hover effects
-#action-bar::before {
-    content: '';
-    position: absolute;
-    bottom: 0px;
-    left: 41%;
-    width: 18%;
-    height: 1.8px;
-    background: #2aa882;
-    box-shadow: 0 0 8px #252a29;
-}
-
-#action-bar::after {
-    content: '';
-    position: absolute;
-    bottom: -0.01px;
-    left: 7%;
-    width: 86%;
-    height: 1.2px;
-    background:  #e2e2e2;
 }

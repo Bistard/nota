@@ -1,3 +1,4 @@
+/* eslint-disable local/code-no-json-stringify */
 import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
@@ -273,6 +274,11 @@ function paintDefaultValue(depth: number, value: PrettyTypes, insideArray: boole
             if (value.startsWith(Schemas.FILE) || value.startsWith(Schemas.HTTP) || value.startsWith(Schemas.HTTPS)) {
                 return TextColors.setRGBColor(value, ...RGB_colors.LightBlue);
             }
+
+            if (value.length === 0) {
+                return '\'\'';
+            }
+
             return value;
         }
         case "bigint":

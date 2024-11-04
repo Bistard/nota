@@ -53,9 +53,9 @@ export class BrowserClipboardService implements IClipboardService {
     // [public methods]
 
     public async write(type: ClipboardType.Text, content: string): Promise<void>;
-    public async write(type: ClipboardType.Resources, content: URI[]): Promise<void>;
-    public async write<T>(type: ClipboardType.Arbitrary, content: T): Promise<void>;
-    public async write<T>(type: ClipboardType, content: string | URI[] | T, key?: string): Promise<void> {
+    public write(type: ClipboardType.Resources, content: URI[]): void;
+    public write<T>(type: ClipboardType.Arbitrary, content: T): void;
+    public write<T>(type: ClipboardType, content: string | URI[] | T, key?: string): Promise<void> | void {
         switch (type) {
             case ClipboardType.Text:
                 return this.__writeText(<string>content);
@@ -67,9 +67,9 @@ export class BrowserClipboardService implements IClipboardService {
     }
 
     public async read(type: ClipboardType.Text): Promise<string>;
-    public async read(type: ClipboardType.Resources): Promise<URI[]>;
-    public async read<T>(type: ClipboardType.Arbitrary, key: string): Promise<T>;
-    public async read<T>(type: ClipboardType, key?: string): Promise<string | URI[] | T | undefined> {
+    public read(type: ClipboardType.Resources): URI[];
+    public read<T>(type: ClipboardType.Arbitrary, key: string): T;
+    public read<T>(type: ClipboardType, key?: string): Promise<string> | URI[] | T | undefined {
         switch (type) {
             case ClipboardType.Text:
                 return this.__readText();
@@ -104,7 +104,7 @@ export class BrowserClipboardService implements IClipboardService {
         return '';
     }
     
-    private async __readResources(): Promise<URI[]> {
+    private __readResources(): URI[] {
         const currResources = this.__cleanResources();
         return currResources;
     }

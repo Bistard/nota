@@ -1,3 +1,4 @@
+import type { ArrayToUnion } from "src/base/common/utilities/type";
 
 /**
  * To prevent potential circular dependency issues due to the wide use of `panic` 
@@ -5,7 +6,14 @@
  * that does not import any other files.
  */
 
-import { ArrayToUnion } from "src/base/common/utilities/type";
+function __stringifySafe(obj: unknown): string {
+    try {
+        // eslint-disable-next-line local/code-no-json-stringify
+        return JSON.stringify(obj);
+    } catch (err) {
+        return '';
+    }
+}
 
 /**
  * @description Panics the program by throwing an error with the provided message.
@@ -17,7 +25,6 @@ import { ArrayToUnion } from "src/base/common/utilities/type";
  * @throws Will throw an error.
  * @returns This function never returns normally; always throws an error.
  */
-
 export function panic(error: unknown): never {
     if (error === undefined || error === null) {
         // eslint-disable-next-line local/code-no-throw
@@ -89,7 +96,8 @@ export function narrow<T, TNarrow extends T[]>(raw: T, narrow: TNarrow, equal?: 
             return raw;
         }
     }
-    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${JSON.stringify(narrow)})`);
+
+    panic(`[narrow()] the provided raw data (${raw}) cannot be narrowed by the (${__stringifySafe(narrow)})`);
 }
 
 /**
@@ -204,7 +212,7 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
         return error.message;
     }
 
-    return `${UNKNOWN_MESSAGE}: ${JSON.stringify(error)}`;
+    return `${UNKNOWN_MESSAGE}: ${__stringifySafe(error)}`;
 }
 
 const UNKNOWN_MESSAGE = 'An unknown error occurred. Please consult the log for more details.';

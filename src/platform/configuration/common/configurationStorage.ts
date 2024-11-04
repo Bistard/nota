@@ -1,11 +1,11 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Result } from "src/base/common/result";
 import { Emitter, Register } from "src/base/common/event";
-import { jsonSafeStringify } from "src/base/common/json";
 import { deepCopy } from "src/base/common/utilities/object";
 import { DeepReadonly, Dictionary, isObject } from "src/base/common/utilities/type";
 import { Section } from "src/platform/configuration/common/configuration";
 import { panic } from "src/base/common/utilities/panic";
+import { Strings } from "src/base/common/utilities/string";
 
 export interface IConfigurationStorageChangeEvent {
 
@@ -227,7 +227,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
     }
 
     public toJSON(): Result<string, SyntaxError> {
-        return jsonSafeStringify(this.model, undefined, 4);
+        return Strings.stringifySafe2(this.model, undefined, 4);
     }
 
     // [private helper methods]

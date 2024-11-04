@@ -35,7 +35,13 @@ export interface ICLIArguments {
      * Enable debug inspector will pop up a new window that tracks variable
      * changes.
      */
-    'inspector'?: true | 'true';
+    inspector?: true | 'true';
+
+    /**
+     * Print warnings whenever a listener is GC'ed without having been disposed. 
+     * It means a memory LEAK.
+     */
+    ListenerGCedWarning?: boolean;
 }
 
 /**

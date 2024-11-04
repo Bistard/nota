@@ -2,40 +2,55 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { URI } from "src/base/common/files/uri";
-import { ILogEvent, LogLevel } from "src/base/common/logger";
-import { Blocker } from "src/base/common/utilities/async";
+import { defaultLog, ILogService } from "src/base/common/logger";
+import { AsyncResult, ok } from "src/base/common/result";
+import { assert } from "src/base/common/utilities/panic";
+import { EditorOptionsType } from "src/editor/common/editorConfiguration";
+import { IEditorExtension } from "src/editor/common/editorExtension";
+import { IEditorModel } from "src/editor/common/model";
+import { IEditorPosition } from "src/editor/common/position";
+import { ProseEditorState, ProseNode, ProseTransaction } from "src/editor/common/proseMirror";
+import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
+import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
+import { DocumentParser, IDocumentParser } from "src/editor/model/parser";
+import { buildSchema, EditorSchema } from "src/editor/model/schema";
+import { MarkdownSerializer } from "src/editor/model/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
-import { EditorToken, IEditorModel, IPieceTableModel } from "src/editor/common/model";
-import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
-import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
+import { history } from "prosemirror-history";
 
 export class EditorModel extends Disposable implements IEditorModel {
 
-    // [event]
+    // [events]
 
-    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
-    public readonly onLog = this._onLog.registerListener;
-
-    private readonly _onDidBuild = this.__register(new Emitter<void>());
+    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this.__setDirty(false) }));
     public readonly onDidBuild = this._onDidBuild.registerListener;
+    
+    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this.__setDirty(true) }));
+    public readonly onTransaction = this._onTransaction.registerListener;
 
-    private readonly _onDidContentChange = this.__register(new Emitter<void>());
-    public readonly onDidContentChange = this._onDidContentChange.registerListener;
+    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this.__setDirty(true) }));
+    public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
-    // [field]
+    private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this.__setDirty(false) }));
+    public readonly onDidSave = this._onDidSave.registerListener;
 
-    private readonly _source: URI;
-    private readonly _options: EditorOptionsType;
+    private readonly _onDidSaveError = this.__register(new Emitter<unknown>());
+    public readonly onDidSaveError = this._onDidSaveError.registerListener;
 
-    private readonly _lexer: IMarkdownLexer;
+    private readonly _onDidDirtyChange = this.__register(new Emitter<boolean>());
+    public readonly onDidDirtyChange = this._onDidDirtyChange.registerListener;
 
-    /**
-     * `undefined` indicates the model is not built yet. The text model is 
-     * registered, need to be disposed manually.
-     */
-    private _textModel: IPieceTableModel = undefined!;
-    private _tokens: EditorToken[] = [];
+    // [fields]
+
+    private readonly _options: EditorOptionsType;        // The configuration of the editor
+    private readonly _source: URI;                       // The source file the model is about to read and parse.
+    private readonly _schema: EditorSchema;              // An object that defines how a view is organized.
+    private readonly _lexer: IMarkdownLexer;             // Responsible for parsing the raw text into tokens.
+    private readonly _docParser: IDocumentParser;        // Parser that parses the given token into a legal view based on the schema.
+    private readonly _docSerializer: MarkdownSerializer; // Serializer that transforms the prosemirror document back to raw string.
+    
+    private _editorState?: ProseEditorState; // A reference to the prosemirror state.
+    private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.__setDirty()`
 
     // [constructor]
 
@@ -43,163 +58,172 @@ export class EditorModel extends Disposable implements IEditorModel {
         source: URI,
         options: EditorOptionsType,
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._source = source;
         this._options = options;
+        this._lexer = new MarkdownLexer(this.__initLexerOptions(options));
+        
+        const nodeProvider = DocumentNodeProvider.create().register();
+        this._schema = buildSchema(nodeProvider);
+        this._docParser = new DocumentParser(this._schema, nodeProvider, /* options */);
+        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
+        this._docSerializer = new MarkdownSerializer(nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
 
-        // lexer construction
-        const lexerOptions = this.__initLexerOptions(options);
-        this._lexer = new MarkdownLexer(lexerOptions);
+        this._dirty = false;
+
+        logService.debug('EditorModel', 'Constructed');
     }
 
     // [getter / setter]
 
-    get source(): URI {
-        return this._source;
-    }
+    get source(): URI { return this._source; }
+    get schema(): EditorSchema { return this._schema; }
+    get state(): ProseEditorState | undefined { return this._editorState; }
+    get dirty(): boolean { return this._dirty; }
 
     // [public methods]
 
-    public build(): Promise<void> {
-        return this.__buildModel(this._source);
+    public build(extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error> {
+        return this.__buildModel(this._source, extensions)
+            .map(state => {
+                this._editorState = state;
+                this._onDidBuild.fire(state);
+                return state;
+            });
     }
 
-    public replaceWith(source: URI): Promise<void> {
-        if (this.isDisposed()) {
-            throw new Error('editor model is already disposed.');
-        }
+    public insertAt(textOffset: number, text: string): void {
+        const state = assert(this._editorState);
+        const document = this.__tokenizeAndParse(text);
+        const newTr = state.tr.insert(textOffset, document);
+        this._onTransaction.fire(newTr);
+    }
 
-        this.__detachModel();
-
-        return this.__buildModel(source);
+    public deleteAt(textOffset: number, length: number): void {
+        const state = assert(this._editorState);
+        const newTr = state.tr.delete(textOffset, textOffset + length);
+        this._onTransaction.fire(newTr);
     }
 
     public getContent(): string[] {
-        this.__assertModel();
-        return this._textModel.getContent();
+        const state = assert(this._editorState);
+        const raw = this._docSerializer.serialize(state.doc);
+        return raw.split('\n'); // TODO
     }
 
     public getRawContent(): string {
-        this.__assertModel();
-        return this._textModel.getRawContent();
-    }
-
-    public getLineCount(): number {
-        this.__assertModel();
-        return this._textModel.getLineCount();
+        const state = assert(this._editorState);
+        const raw = this._docSerializer.serialize(state.doc);
+        return raw; // TODO
     }
 
     public getLine(lineNumber: number): string {
-        this.__assertModel();
-        return this._textModel.getLine(lineNumber);
+        return ''; // TODO
+    }
+    
+    public getRawLine(lineNumber: number): string {
+        return ''; // TODO
     }
 
     public getLineLength(lineNumber: number): number {
-        this.__assertModel();
-        return this._textModel.getLineLength(lineNumber);
+        return -1; // TODO
     }
 
-    public getTokens(): EditorToken[] {
-        return this._tokens;
+    public getRawLineLength(lineNumber: number): number {
+        return -1; // TODO
     }
 
-    public updateOptions(options: EditorOptionsType): void {
-        if (options.baseURI.value) {
-            this._lexer.updateOptions({ baseURI: options.baseURI.value });
+    public getLineCount(): number {
+        return -1; // TODO
+    }
+
+    public getOffsetAt(lineNumber: number, lineOffset: number): number {
+        return -1; // TODO
+    }
+
+    public getPositionAt(textOffset: number): IEditorPosition {
+        return undefined!; // TODO
+    }
+
+    public getCharCodeByOffset(textOffset: number): number {
+        return -1; // TODO
+    }
+
+    public getCharCodeByLine(lineNumber: number, lineOffset: number): number {
+        return -1; // TODO
+    }
+
+    public save(): AsyncResult<void, Error> {
+        if (this._dirty === false) {
+            return AsyncResult.ok();
         }
+
+        const state = assert(this._editorState);
+        const serialized = this._docSerializer.serialize(state.doc);
+        const buffer = DataBuffer.fromString(serialized);
+
+        return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false })
+            .map(() => {
+                this._onDidSave.fire();
+            })
+            .mapErr(error => {
+                this.logService.trace('EditorModel', `File saved (${URI.toString(this._source)})`);
+                this._onDidSaveError.fire(error);
+                return error;
+            });
     }
 
-    public override dispose(): void {
-        super.dispose();
-        this.__detachModel();
-    }
+    // [private methods]
 
-    // [private helper methods]
-
-    private __assertModel(): void {
-        if (this.isDisposed()) {
-            throw new Error('editor model is already disposed.');
-        }
-
-        if (!this._textModel) {
-            throw new Error('model is not built yet.');
-        }
-
-        if (this._textModel.isDisposed()) {
-            throw new Error('text model is already disposed.');
-        }
-    }
-
-    private __detachModel(): void {
-        if (this._textModel) {
-            this._textModel.dispose();
-            this._textModel = undefined!;
-        }
-    }
-
-    private async __buildModel(source: URI): Promise<void> {
-
-        // building plain text into piece-table
-        const builderOrError = await this.__createTextBufferBuilder(source);
-        if (builderOrError instanceof Error) {
-            this._onLog.fire({ level: LogLevel.ERROR, data: new Error(`cannot build text model at ${URI.toFsPath(source)}`) });
+    private __setDirty(value: boolean): void {
+        if (this._dirty === value) {
             return;
         }
-
-        const builder = builderOrError;
-
-        const textModel = builder.create();
-        this._textModel = textModel;
-
-        const rawContent = this._textModel.getRawContent();
-        this._tokens = this._lexer.lex(rawContent);
-
-        this._onDidBuild.fire();
+        this._dirty = value;
+        this._onDidDirtyChange.fire(value);
     }
 
-    /**
-     * @description Given the {@link URI}, reads the corresponding file chunk by
-     * chunk. After read all the chunks, we build a {@link __TextBufferBuilder}
-     * and returns it for later piece table usage.
-     * 
-     * `await` this function guarantees the file will be completely read into 
-     * the memory.
-     * 
-     * @note method will invoke `TextBufferBuilder.build()` automatically.
-     */
-    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | Error> {
+    public __onDidStateChange(newState: ProseEditorState): void {
+        this._editorState = newState;
+        this._onDidStateChange.fire();
+    }
 
-        const blocker = new Blocker<TextBufferBuilder | Error>();
-        const builder = new TextBufferBuilder();
-        const readResult = await this.fileService.readFileStream(source);
-        if (readResult.isErr()) {
-            return readResult.error;
-        }
+    private __tokenizeAndParse(raw: string): ProseNode {
+        const tokens = this._lexer.lex(raw);
+        console.log(tokens); // TEST
 
-        const stream = readResult.unwrap().flow();
-
-        stream.on('data', (data: DataBuffer) => {
-            builder.receive(data.toString());
-        });
-
-        stream.on('end', () => {
-            stream.destroy();
-            builder.build();
-            blocker.resolve(builder);
-        });
-
-        stream.on('error', (error: Error) => {
-            stream.destroy();
-            blocker.resolve(error);
-        });
-
-        return blocker.waiting();
+        const doc = this._docParser.parse(tokens);
+        console.log(doc); // TEST
+        
+        // console.log(this._docSerializer.serialize(doc)); // TEST
+        return doc;
     }
 
     private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
         return {
             baseURI: options.baseURI.value,
         };
+    }
+
+    private __buildModel(source: URI, extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error> {
+        this.logService.debug('EditorModel', `Start building at: ${URI.toString(source)}`);
+
+        return this.__readFileRaw(source)
+            .andThen(raw => {
+                const document = this.__tokenizeAndParse(raw);
+                const state = ProseEditorState.create({
+                    schema: this._schema,
+                    doc: document,
+                    plugins: [...extensions.map(extension => extension.getViewExtension()), history({ depth: 500 })],
+                });
+                return ok(state);
+            });
+    }
+
+    private __readFileRaw(source: URI): AsyncResult<string, Error> {
+        return this.fileService.readFile(source, {})
+            .map(buffer => buffer.toString());
     }
 }

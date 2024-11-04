@@ -1,5 +1,3 @@
-import { marked } from "src/editor/model/markdown/marked/marked";
-
 /**
  * Those token types are identical to {@link marked.Tokens.type}.
  */
@@ -7,13 +5,14 @@ export const enum TokenEnum {
     Space = 'space',
     CodeBlock = 'code',
     Heading = 'heading',
-    Table = 'table',
+    Table = 'table', // TODO
     HorizontalRule = 'hr',
     Blockquote = 'blockquote',
     List = 'list',
     ListItem = 'list_item',
     Paragraph = 'paragraph',
     HTML = 'html',
+    InlineHTML = 'inline_html',
     Text = 'text',
     Def = 'def', // TODO
     Escape = 'escape',

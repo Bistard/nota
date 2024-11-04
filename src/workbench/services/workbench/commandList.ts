@@ -47,6 +47,8 @@ export const enum AllCommands {
     fileCopy  = 'fileCopy',
     filePaste = 'filePaste',
     fileMove  = 'fileMove', // TODO
+
+    // [Test Commands]
 }
 
 /**

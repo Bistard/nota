@@ -49,6 +49,7 @@
         "@typescript-eslint/no-extra-non-null-assertion": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-namespace": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
         
         "@typescript-eslint/ban-types": [
             "error", {
@@ -81,6 +82,7 @@
         ],
 
         "local/code-no-plain-enum": "error",
+        "local/code-no-json-stringify": "warn",
         "local/code-interface-check": "error",
         "local/code-service-marker": "error",
         "local/code-no-throw": "warn",

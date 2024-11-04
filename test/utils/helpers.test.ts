@@ -6,7 +6,7 @@ import { URI } from 'src/base/common/files/uri';
 import { AsyncResult } from 'src/base/common/result';
 import { TreeLike, isNullable } from 'src/base/common/utilities/type';
 import { IFileService } from 'src/platform/files/common/fileService';
-import { FileTreeNode, buildFileTree } from 'test/utils/helpers';
+import { FileTreeNode, buildFileTree, isEqualTreeLike } from 'test/utils/helpers';
 
 suite('buildFileTree-test', () => {
 
@@ -188,3 +188,75 @@ suite('buildFileTree-test', () => {
         await assertFile(URI.join(rootURI, 'root', 'newFile.txt'), 'New file content');
     });
 });
+
+
+suite('isEqualTreeLike-test', () => {
+    const isNodeEqual = (node1: any, node2: any) => node1.value === node2.value;
+    const hasChildren1 = (node: any) => node.children && node.children.length > 0;
+    const getChildren1 = (node: any) => node.children || [];
+    const hasChildren2 = (node: any) => node.children && node.children.length > 0;
+    const getChildren2 = (node: any) => node.children || [];
+
+    test('should return true for identical trees', () => {
+        const tree1 = { value: 1, children: [{ value: 2, children: [] }, { value: 3, children: [] }] };
+        const tree2 = { value: 1, children: [{ value: 2, children: [] }, { value: 3, children: [] }] };
+
+        const result = isEqualTreeLike(tree1, tree2, isNodeEqual, hasChildren1, getChildren1, hasChildren2, getChildren2);
+        assert.strictEqual(result, true);
+    });
+
+    test('should return false for trees with different root values', () => {
+        const tree1 = { value: 1, children: [] };
+        const tree2 = { value: 2, children: [] };
+
+        const result = isEqualTreeLike(tree1, tree2, isNodeEqual, hasChildren1, getChildren1, hasChildren2, getChildren2);
+        assert.strictEqual(result, false);
+    });
+
+    test('should return false for trees with different structures', () => {
+        const tree1 = { value: 1, children: [{ value: 2, children: [] }] };
+        const tree2 = { value: 1, children: [{ value: 2, children: [{ value: 3, children: [] }] }] };
+
+        const result = isEqualTreeLike(tree1, tree2, isNodeEqual, hasChildren1, getChildren1, hasChildren2, getChildren2);
+        assert.strictEqual(result, false);
+    });
+
+    test('should return false for trees with different number of children', () => {
+        const tree1 = { value: 1, children: [{ value: 2, children: [] }] };
+        const tree2 = { value: 1, children: [{ value: 2, children: [] }, { value: 3, children: [] }] };
+
+        const result = isEqualTreeLike(tree1, tree2, isNodeEqual, hasChildren1, getChildren1, hasChildren2, getChildren2);
+        assert.strictEqual(result, false);
+    });
+
+    test('should return true for deeply nested identical trees', () => {
+        const tree1 = {
+            value: 1,
+            children: [
+                {
+                    value: 2, children: [
+                        { value: 3, children: [] }
+                    ]
+                }
+            ]
+        };
+        const tree2 = {
+            value: 1,
+            children: [
+                {
+                    value: 2, children: [
+                        { value: 3, children: [] }
+                    ]
+                }
+            ]
+        };
+
+        const result = isEqualTreeLike(tree1, tree2, isNodeEqual, hasChildren1, getChildren1, hasChildren2, getChildren2);
+        assert.strictEqual(result, true);
+    });
+});
+
+
+
+
+

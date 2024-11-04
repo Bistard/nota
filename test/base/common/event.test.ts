@@ -1,29 +1,303 @@
 import * as assert from 'assert';
 import { IDisposable } from 'src/base/common/dispose';
 import { ErrorHandler } from 'src/base/common/error';
-import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
-import { Blocker } from 'src/base/common/utilities/async';
+import { AsyncEmitter, DelayableEmitter, Emitter, Event, IEmitterOptions, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
+import { Blocker, repeat } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('event-test', () => {
 
-    test('emitter - basic', () => {
-        let counter = 0;
-        const callback = (e: undefined) => {
-            counter++;
-        };
+    suite('Emitter - basic', () => {
+        test('should add a listener and trigger it with fire()', () => {
+            const emitter = new Emitter<number>();
+            let receivedEvent = 0;
+            const listener = emitter.registerListener(event => receivedEvent = event);
+    
+            emitter.fire(42);
+            assert.strictEqual(receivedEvent, 42);
+    
+            listener.dispose();
+        });
+    
+        test('should dispose a listener properly', () => {
+            const emitter = new Emitter<number>();
+            let receivedEvent = 0;
+            const listener = emitter.registerListener(event => receivedEvent = event);
+    
+            listener.dispose();
+            emitter.fire(42);
+            assert.strictEqual(receivedEvent, 0);
+        });
+    
+        test('should invoke onFirstListenerAdd and onFirstListenerDidAdd callbacks', () => {
+            let firstAddCalled = false;
+            let firstDidAddCalled = false;
+            const options: IEmitterOptions = {
+                onFirstListenerAdd: () => firstAddCalled = true,
+                onFirstListenerDidAdd: () => firstDidAddCalled = true,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            const listener = emitter.registerListener(() => {});
+            assert.strictEqual(firstAddCalled, true);
+            assert.strictEqual(firstDidAddCalled, true);
+    
+            listener.dispose();
+        });
+    
+        test('should invoke onListenerWillAdd and onListenerDidAdd for each listener', () => {
+            let willAddCalled = 0;
+            let didAddCalled = 0;
+            const options: IEmitterOptions = {
+                onListenerWillAdd: () => willAddCalled++,
+                onListenerDidAdd: () => didAddCalled++,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            const listener1 = emitter.registerListener(() => {});
+            const listener2 = emitter.registerListener(() => {});
+            assert.strictEqual(willAddCalled, 2);
+            assert.strictEqual(didAddCalled, 2);
+    
+            listener1.dispose();
+            listener2.dispose();
+        });
+    
+        test('should invoke onListenerWillRemove and onListenerDidRemove callbacks', () => {
+            let willRemoveCalled = 0;
+            let didRemoveCalled = 0;
+            const options: IEmitterOptions = {
+                onListenerWillRemove: () => willRemoveCalled++,
+                onListenerDidRemove: () => didRemoveCalled++,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            const listener = emitter.registerListener(() => {});
+            listener.dispose();
+            assert.strictEqual(willRemoveCalled, 1);
+            assert.strictEqual(didRemoveCalled, 1);
+        });
+    
+        test('should invoke onLastListenerDidRemove when the last listener is removed', () => {
+            let lastRemoveCalled = false;
+            const options: IEmitterOptions = {
+                onLastListenerDidRemove: () => lastRemoveCalled = true,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            const listener = emitter.registerListener(() => {});
+            listener.dispose();
+            assert.strictEqual(lastRemoveCalled, true);
+        });
+    
+        test('should handle listener errors with onListenerError callback', () => {
+            let errorHandled = false;
+            const options: IEmitterOptions = {
+                onListenerError: () => errorHandled = true,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => { throw new Error('Listener error'); });
+            emitter.fire(42);
+            assert.strictEqual(errorHandled, true);
+        });
+    
+        test('should dispose the emitter and prevent further listeners or events', () => {
+            const emitter = new Emitter<number>();
+            emitter.dispose();
+    
+            assert.strictEqual(emitter.isDisposed(), true);
+            assert.strictEqual(emitter.hasListeners(), false);
+    
+            assert.throws(() => {
+                emitter.registerListener(() => {});
+            });
+        });
+    
+        test('should verify hasListeners reflects correct listener count', () => {
+            const emitter = new Emitter<number>();
+            const listener1 = emitter.registerListener(() => {});
+            const listener2 = emitter.registerListener(() => {});
+    
+            assert.strictEqual(emitter.hasListeners(), true);
+    
+            listener1.dispose();
+            listener2.dispose();
+    
+            assert.strictEqual(emitter.hasListeners(), false);
+        });
+    
+        test('should clear all listeners on dispose()', () => {
+            const emitter = new Emitter<number>();
+            emitter.registerListener(() => {});
+            emitter.registerListener(() => {});
+    
+            assert.strictEqual(emitter.hasListeners(), true);
+            emitter.dispose();
+            assert.strictEqual(emitter.hasListeners(), false);
+        });
 
-        const emitter = new Emitter<undefined>();
+        test('should call onListenerRun before each listener is triggered by fire()', () => {
+            let onListenerRunCalled = 0;
+            const options: IEmitterOptions = {
+                onListenerRun: () => onListenerRunCalled++,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.registerListener(() => {});
+    
+            emitter.fire(42);
+            assert.strictEqual(onListenerRunCalled, 2);
+        });
+    
+        test('should call onListenerDidRun after each listener is triggered by fire()', () => {
+            let onListenerDidRunCalled = 0;
+            const options: IEmitterOptions = {
+                onListenerDidRun: () => onListenerDidRunCalled++,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.registerListener(() => {});
+    
+            emitter.fire(42);
+            assert.strictEqual(onListenerDidRunCalled, 2);
+        });
+    
+        test('should call both onListenerRun and onListenerDidRun for each listener in correct order', () => {
+            const calls: string[] = [];
+            const options: IEmitterOptions = {
+                onListenerRun: () => calls.push('onListenerRun'),
+                onListenerDidRun: () => calls.push('onListenerDidRun'),
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.registerListener(() => {});
+            
+            emitter.fire(42);
+    
+            assert.deepStrictEqual(calls, [
+                'onListenerRun', 'onListenerDidRun',
+                'onListenerRun', 'onListenerDidRun'
+            ]);
+        });
 
-        const registration1 = emitter.registerListener(callback);
-        
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 1);
-
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
+        test('should call onFire before firing an event', () => {
+            let onFireCalled = false;
+            const options: IEmitterOptions = {
+                onFire: () => onFireCalled = true,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.fire(42);
+            assert.strictEqual(onFireCalled, true);
+        });
+    
+        test('should call onDidFire after firing an event', () => {
+            let onDidFireCalled = false;
+            const options: IEmitterOptions = {
+                onDidFire: () => onDidFireCalled = true,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.fire(42);
+            assert.strictEqual(onDidFireCalled, true);
+        });
+    
+        test('should call onFire and onDidFire in correct order', () => {
+            const callOrder: string[] = [];
+            const options: IEmitterOptions = {
+                onFire: () => callOrder.push('onFire'),
+                onDidFire: () => callOrder.push('onDidFire'),
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => callOrder.push('listener'));
+            emitter.fire(42);
+            
+            assert.deepStrictEqual(callOrder, ['onFire', 'listener', 'onDidFire']);
+        });
+    
+        test('should call onFire and onDidFire even if no listeners are registered', () => {
+            let onFireCalled = false;
+            let onDidFireCalled = false;
+            const options: IEmitterOptions = {
+                onFire: () => onFireCalled = true,
+                onDidFire: () => onDidFireCalled = true,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.fire(42);
+            assert.strictEqual(onFireCalled, true);
+            assert.strictEqual(onDidFireCalled, true);
+        });
+    
+        test('should call onFire once per fire call', () => {
+            let onFireCount = 0;
+            const options: IEmitterOptions = {
+                onFire: () => onFireCount++,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.fire(1);
+            emitter.fire(2);
+    
+            assert.strictEqual(onFireCount, 2);
+        });
+    
+        test('should call onDidFire once per fire call', () => {
+            let onDidFireCount = 0;
+            const options: IEmitterOptions = {
+                onDidFire: () => onDidFireCount++,
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            emitter.fire(1);
+            emitter.fire(2);
+    
+            assert.strictEqual(onDidFireCount, 2);
+        });
+    
+        test('should handle onFire and onDidFire even if listener throws an error', () => {
+            let onFireCalled = false;
+            let onDidFireCalled = false;
+            const options: IEmitterOptions = {
+                onFire: () => onFireCalled = true,
+                onDidFire: () => onDidFireCalled = true,
+                onListenerError: () => {}, // Handle errors to avoid breaking the test
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => { throw new Error('Listener error'); });
+            emitter.fire(42);
+    
+            assert.strictEqual(onFireCalled, true);
+            assert.strictEqual(onDidFireCalled, true);
+        });
+    
+        test('should not call onDidFire if onFire fails', () => {
+            let onFireCalled = false;
+            let onDidFireCalled = false;
+            const options: IEmitterOptions = {
+                onFire: () => { onFireCalled = true; throw new Error('onFire error'); },
+                onDidFire: () => onDidFireCalled = true,
+                onListenerError: () => {}, // Suppress error handling in test
+            };
+            const emitter = new Emitter<number>(options);
+    
+            emitter.registerListener(() => {});
+            assert.throws(() => emitter.fire(42));
+            assert.strictEqual(onFireCalled, true);
+            assert.strictEqual(onDidFireCalled, false);
+        });
     });
-
+    
     test('emitter - this object replace', () => {
 
         let name!: string;
@@ -89,7 +363,6 @@ suite('event-test', () => {
         assert.strictEqual(counter, 3);
     });
 
-    
     test('emitter - multiple listeners disposables', () => {
         let counter = 0;
         const callback = (e: undefined) => {
@@ -173,7 +446,7 @@ suite('event-test', () => {
 
         const emitter = new Emitter<undefined>({
             onFirstListenerAdd: () => firstAdded = true,
-            onLastListenerRemoved: () => lastRemoved = true
+            onLastListenerDidRemove: () => lastRemoved = true
         });
 
         const disposable = emitter.registerListener(() => {});
@@ -287,20 +560,14 @@ suite('event-test', () => {
         assert.strictEqual(result, 300);
     });
 
-    function loopFor(count: number, cb: () => void): void {
-        for (let i = 0; i < count; i++) {
-            cb();
-        }
-    }
-
     test('asyncEmitter - all async', () => FakeAsync.run(async () => {
         let result = 0;
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(async () => loopFor(loop, () => result++));
-        emitter.registerListener(async () => loopFor(loop, () => result++));
-        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(async () => repeat(loop, () => result++));
+        emitter.registerListener(async () => repeat(loop, () => result++));
+        emitter.registerListener(async () => repeat(loop, () => result++));
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);
@@ -311,7 +578,7 @@ suite('event-test', () => {
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(async () => (async () => loopFor(loop, () => result++))() );
+        emitter.registerListener(async () => (async () => repeat(loop, () => result++))() );
         await emitter.fireAsync();
 
         assert.strictEqual(result, 100);
@@ -322,9 +589,9 @@ suite('event-test', () => {
         const loop = 100;
         const emitter = new AsyncEmitter<void>();
         
-        emitter.registerListener(async () => loopFor(loop, () => result++));
-        emitter.registerListener(async () => loopFor(loop, () => result++));
-        emitter.registerListener(async () => loopFor(loop, () => result++));
+        emitter.registerListener(async () => repeat(loop, () => result++));
+        emitter.registerListener(async () => repeat(loop, () => result++));
+        emitter.registerListener(async () => repeat(loop, () => result++));
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);

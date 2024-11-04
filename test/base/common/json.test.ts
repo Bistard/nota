@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { IJsonSchema, IJsonSchemaValidateResult, JsonSchemaValidator, jsonSafeParse, jsonSafeStringify } from 'src/base/common/json';
+import { IJsonSchema, IJsonSchemaValidateResult, JsonSchemaValidator } from 'src/base/common/json';
 import { deepCopy } from 'src/base/common/utilities/object';
 
 suite('json-test', function () {
@@ -314,34 +314,6 @@ suite('json-test', function () {
                 result = JsonSchemaValidator.validate({ name: 'John', age: 25, email: 'john@example.com', extra: 'extra' }, schema);
                 assert.ok(result.valid);
             });
-        });
-    });
-
-    suite('Json-helpers', () => {
-
-        test('jsonSafeParse success', () => {
-            const jsonString = '{"name":"John", "age":30}';
-            const data = jsonSafeParse<{ name: string, age: number }>(jsonString).unwrap();
-            assert.strictEqual(data.name, 'John');
-        });
-        
-        test('jsonSafeParse fail', () => {
-            const jsonString = '{"name":"John", "age":30';
-            const data = jsonSafeParse<{ name: string, age: number }>(jsonString).unwrapOr({ name: 'Chris', age: 23 });
-            assert.strictEqual(data.name, 'Chris');
-        });
-
-        test('jsonSafeStringify success', () => {
-            const obj = { name: "John", age: 30 };
-            const str = jsonSafeStringify(obj).unwrap();
-            assert.strictEqual(str, '{"name":"John","age":30}');
-        });
-        
-        test('jsonSafeStringify fail', () => {
-            const cyclicObj = {};
-            cyclicObj["myself"] = cyclicObj; // circular reference
-            const result = jsonSafeStringify(cyclicObj).unwrapOr('error');
-            assert.strictEqual(result, 'error');
         });
     });
 });

@@ -57,7 +57,7 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
      * @description Registers a {@link ICommandBasicSchema} which includes a set 
      * of basic metadata to describe a command.
      * @param schema A set of metadata that describes the command.
-     * @returns A disposable for deregistration.
+     * @returns A disposable for un-registration.
      */
     registerCommandBasic(schema: ICommandBasicSchema): IDisposable;
 
@@ -67,9 +67,15 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
      *       shortcut options are provided in the command schema.
      * 
      * @param command The concrete command to register.
-     * @returns A disposable for deregistration.
+     * @returns A disposable for un-registration.
      */
     registerCommand(command: Command): IDisposable;
+
+    /**
+     * @description Unregister the command by the given ID.
+     * @param id The id of the command.
+     */
+    unregisterCommand(id: string): void;
 
     /**
      * @description Get the {@link ICommandBasicSchema} object through the command ID.
@@ -155,6 +161,12 @@ export class CommandRegistrant implements ICommandRegistrant {
         return this.__toUnregister(command.id);
     }
 
+    public unregisterCommand(id: string): void {
+        if (this._commands.delete(id)) {
+            this.logService.trace('CommandRegistrant', `Command un-registered: '${id}'`);
+        }
+    }
+
     public getCommand(id: string): ICommandBasicSchema | undefined {
         return this._commands.get(id);
     }
@@ -167,7 +179,7 @@ export class CommandRegistrant implements ICommandRegistrant {
 
     private __toUnregister(id: string): IDisposable {
         return toDisposable(() => {
-            this._commands.delete(id);
+            this.unregisterCommand(id);
         });
     }
 }

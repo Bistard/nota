@@ -5,6 +5,7 @@ import { IService, createService, refineDecorator } from "src/platform/instantia
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/platform/window/common/window";
 import { Dictionary, isObject } from "src/base/common/utilities/type";
+import { Strings } from "src/base/common/utilities/string";
 
 export const IEnvironmentService = createService<IEnvironmentService>('environment-service');
 export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, IBrowserEnvironmentService>(IEnvironmentService);
@@ -25,7 +26,7 @@ export function getAllEnvironments(service: IEnvironmentService): Record<string,
                 value = URI.toFsPath(propVal);
             }
             else if (isObject(propVal)) {
-                value = JSON.stringify(propVal);
+                value = Strings.stringifySafe(propVal);
             }
             else {
                 value = propVal;

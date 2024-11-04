@@ -1,4 +1,4 @@
-import { ColorMap, RGBA } from "src/base/common/color";
+import { Color, ColorMap } from "src/base/common/color";
 import { assert } from "src/base/common/utilities/panic";
 import { ColorThemeType, PresetColorTheme } from "src/workbench/services/theme/theme";
 import { IRawThemeJsonReadingData } from "src/workbench/services/theme/themeService";
@@ -56,7 +56,7 @@ export interface IColorTheme {
      * @description Resolves the color of the given color identifier.
      * @param id the id of the color.
      */
-    getColor(id: string): RGBA | undefined;
+    getColor(id: string): Color | undefined;
 
     /**
      * @description Retrieves a map of all colors in the theme.
@@ -83,16 +83,16 @@ export class ColorTheme implements IColorTheme {
         this.description = rawData.description;
         this._colors = {};
 
-        Object.entries(rawData.colors).forEach(([propName, hexOrRGBA]) => {
-            this._colors[propName] = RGBA.is(hexOrRGBA) 
-                ? hexOrRGBA 
-                : assert(RGBA.parse(hexOrRGBA), `[ColorTheme] Cannot parse the raw data at the color '${propName}' with the hexadecimal '${hexOrRGBA}'`);
+        Object.entries(rawData.colors).forEach(([propName, hexOrColor]) => {
+            this._colors[propName] = (hexOrColor instanceof Color)
+                ? hexOrColor 
+                : assert(Color.parseHex(hexOrColor), `[ColorTheme] Cannot parse the raw data at the color '${propName}' with the hexadecimal '${hexOrColor}'`);
         });
     }
     
     // [public methods]
 
-    public getColor(id: string): RGBA | undefined {
+    public getColor(id: string): Color | undefined {
         return this._colors[id];
     }
 

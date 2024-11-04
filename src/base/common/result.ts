@@ -1,5 +1,5 @@
+import type { Callable } from "src/base/common/utilities/type";
 import { panic } from "src/base/common/utilities/panic";
-import { Callable } from "src/base/common/utilities/type";
 
 /**
  * An namespace that contains a list of helper functions that relates to 
@@ -39,14 +39,17 @@ export namespace Result {
      * );
      * // Logs: Caught error: Error: Failed!
      */
-    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError: (error: unknown) => E): Result<T, E> {
+    export function fromThrowable<T, E>(mightThrow: Callable<any[], T>, onError?: (error: unknown) => E): Result<T, E> {
         let res: T;
 
         try {
             res = mightThrow();
         }
         catch (error: unknown) {
-            return err(onError(error));
+            if (onError) {
+                return err(onError(error));
+            }
+            return err(<E>error);
         }
 
         return ok(res);

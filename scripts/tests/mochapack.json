@@ -4,7 +4,7 @@
     "glob": "\"*.test.ts\" ./test/",
     "recursive": true,
     "ui": "tdd",
-    "require": "jsdom-global/register",
+    "require": "./scripts/tests/jsdomSetup.js",
     "include": "./test/globalHooks.ts",
     "timeout": "10000"
 }

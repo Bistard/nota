@@ -18,7 +18,7 @@ export interface IWidget extends IBaseElement {
      * @description Renders, apply styles and register listeners in 
      * chronological order.
      * @param element The provided HTMLElement to be treated as the widget's
-     * element.
+     * parent element.
      * 
      * @note A widget can only be rendered once.
      * @panic If the element is undefined or null, an throw will be thrown.

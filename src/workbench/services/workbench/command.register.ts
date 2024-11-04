@@ -62,14 +62,14 @@ class AlertError extends Command {
         const logService = provider.getOrCreateService(ILogService);
 
         let message: string;
-        if (error === 'string') {
+        if (typeof error === 'string') {
             message = error;
         } else {
             message = errorToMessage(error.message ?? error, false);
         }
 
         logService.error(reporter, message, error);
-        notificationService.error(message);
+        notificationService.error(message, { actions: [{ label: 'Close', run: 'noop' }] });
 
         return true;
     }
