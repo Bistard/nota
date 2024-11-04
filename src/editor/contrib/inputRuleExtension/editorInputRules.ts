@@ -15,7 +15,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
             getNodeAttribute: (match) => {
                 return { level: 1 };
             },
-            wrapType: 'WrapTextBlock'
+            wrapStrategy: 'WrapTextBlock'
         }
     );
 
@@ -24,7 +24,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         { 
             nodeType: TokenEnum.Blockquote,
             whenReplace: 'type',
-            wrapType: 'WrapBlock'
+            wrapStrategy: 'WrapBlock'
         }
     );
 
@@ -43,7 +43,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
                     lang: '',
                 };
             },
-            wrapType: 'WrapTextBlock'
+            wrapStrategy: 'WrapTextBlock'
         }
     );
 }
@@ -101,7 +101,7 @@ export class InputRule implements IInputRule {
 
         if (typeof this.replacement !== 'string') {
             this._replacementObject = this.replacement;
-            if (this.replacement.wrapType === 'WrapTextBlock') {
+            if (this.replacement.wrapStrategy === 'WrapTextBlock') {
                 this.onMatch = this.__textblockTypeInputRule;
             } else {
                 this.onMatch = this.__wrappingInputRule;

@@ -11,27 +11,25 @@ import { TokenEnum } from "src/editor/common/markdown";
 import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
 
 /**
- * Defines the replacement behavior for an input rule.
- * An input rule replacement can either be a direct string replacement or an 
- * object that specifies complicated replacement rule.
+ * Defines the replacement behavior for an input rule. An input rule replacement 
+ * can either be:
+ *   1. a direct string replacement or 
+ *   2. an object that specifies complicated replacement rule.
  */
 export type InputRuleReplacement = 
     | string
     | {
         /** 
-         * Specifies the type of node to create. 
-         * Can be a string identifier or a `TokenEnum` enum.
+         * Specifies the type of node to create when replacing. 
          */
         readonly nodeType: string | TokenEnum;
 
         /**
-         * Determines the wrapping function to use when applying the input rule.
+         * Determines the wrapping strategy to use when applying the input rule.
          * - `WrapBlock`: Wraps the matched content as a block-level element.
          * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
-         * 
-         * @note This property is essential for selecting the appropriate wrapping strategy.
          */
-        readonly wrapType: 'WrapBlock' | 'WrapTextBlock';
+        readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock';
 
         /**
          * Determines when should the replacement happens.
@@ -67,9 +65,7 @@ export type InputRuleReplacement =
     };
 
 /**
- * Represents an editor extension that allows for managing input rules,
- * enabling text patterns to be automatically replaced or formatted in the 
- * editor.
+ * An interface only for {@link EditorInputRuleExtension}.
  */
 export interface IEditorInputRuleExtension extends IEditorExtension {
 
@@ -106,9 +102,6 @@ export interface IEditorInputRuleExtension extends IEditorExtension {
     getAllRules(): IInputRule[];
 }
 
-/**
- * Implementation of the EditorInputRuleExtension.
- */
 export class EditorInputRuleExtension extends EditorExtension implements IEditorInputRuleExtension {
 
     // [field]
