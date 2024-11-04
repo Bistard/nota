@@ -18,6 +18,6 @@ export function getBuiltInExtension(): { id: string, ctor: Constructor<EditorExt
     return [
         { id: EditorExtensionIDs.Command, ctor: EditorCommandExtension },
         { id: EditorExtensionIDs.AutoSave, ctor: EditorAutoSaveExtension },
-        { id: EditorExtensionIDs.InputRule, ctor: EditorInputRuleExtension },
+        // { id: EditorExtensionIDs.InputRule, ctor: EditorInputRuleExtension },
     ];
 }
