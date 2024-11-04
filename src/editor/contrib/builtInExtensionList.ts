@@ -5,9 +5,10 @@ import { EditorAutoSaveExtension } from "src/editor/contrib/autoSaveExtension";
 import { EditorInputRuleExtension } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
 
 export const enum EditorExtensionIDs {
-    Command = 'editor-command-extension',
-    AutoSave = 'editor-autosave-extension',
+    Command   = 'editor-command-extension',
+    AutoSave  = 'editor-autosave-extension',
     InputRule = 'editor-inputRule-extension',
+    History   = 'editor-history-extension',
 }
 
 /**

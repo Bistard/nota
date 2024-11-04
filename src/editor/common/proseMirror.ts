@@ -31,6 +31,7 @@ export {
     Node as ProseNode, 
     NodeType as ProseNodeType, 
     MarkType as ProseMarkType, 
+    NodeRange as ProseNodeRange,
     Attrs as ProseAttrs, 
     Mark as ProseMark, 
     Fragment as ProseFragment,
