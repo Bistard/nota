@@ -13,7 +13,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
             nodeType: TokenEnum.Heading,
             whenReplace: 'type',
             getNodeAttribute: (match) => {
-                return { level: 1 };
+                return { level: match[1]?.length };
             },
             wrapStrategy: 'WrapTextBlock'
         }
