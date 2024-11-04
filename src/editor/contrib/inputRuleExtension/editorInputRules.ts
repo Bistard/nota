@@ -5,7 +5,6 @@ import { TokenEnum } from "src/editor/common/markdown";
 import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
 
 export function registerDefaultInputRules(extension: IEditorInputRuleExtension): void {
-    console.log("Registering default input rules"); // Add this line
 
     // Heading Rule: Matches "#" followed by a space
     extension.registerRule("headingRule", /^(#{1,6})\s$/, 
@@ -72,12 +71,15 @@ export interface IInputRule {
  * Internal representation of an input rule.
  */
 export class InputRule implements IInputRule {
+
+    // [fields]
+
     public readonly id: string;
     public readonly pattern: RegExp;
     public readonly replacement: InputRuleReplacement;
 
-    public readonly replacementString?: string;
-    public readonly replacementObject?: Exclude<InputRuleReplacement, string>;
+    private readonly _replacementString?: string;
+    private readonly _replacementObject?: Exclude<InputRuleReplacement, string>;
 
     public readonly onMatch: (
         state: EditorState,
@@ -86,23 +88,27 @@ export class InputRule implements IInputRule {
         end: number
     ) => Transaction | null;
 
+    // [constructor]
+
     constructor(id: string, pattern: RegExp, replacement: InputRuleReplacement) {
         this.id = id;
         this.pattern = pattern;
         this.replacement = replacement;
 
         if (typeof this.replacement !== 'string') {
-            this.replacementObject = this.replacement;
+            this._replacementObject = this.replacement;
             if (this.replacement.wrapType === 'WrapTextBlock') {
-                this.onMatch = this.__textblockTypeInputRule.bind(this);
+                this.onMatch = this.__textblockTypeInputRule;
             } else {
-                this.onMatch = this.__wrappingInputRule.bind(this);
+                this.onMatch = this.__wrappingInputRule;
             }
         } else {
-            this.replacementString = this.replacement;
-            this.onMatch = this.__onSimpleStringMatch.bind(this);
+            this._replacementString = this.replacement;
+            this.onMatch = this.__onSimpleStringMatch;
         }
     }
+
+    // [private methods]
 
     private __onSimpleStringMatch(
         state: EditorState,
@@ -110,7 +116,7 @@ export class InputRule implements IInputRule {
         start: number,
         end: number
     ): Transaction | null {
-        let insert = this.replacementString!;
+        let insert = this._replacementString!;
         if (match[1]) {
             const offset = match[0].lastIndexOf(match[1]);
             insert += match[0].slice(offset + match[1].length);
@@ -130,32 +136,34 @@ export class InputRule implements IInputRule {
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this.replacementObject!;
-        const schemaNodeType = state.schema.nodes[replacement.nodeType];
-        if (!schemaNodeType) {
+        const replacement = this._replacementObject!;
+        const nodeType = state.schema.nodes[replacement.nodeType];
+        if (!nodeType) {
             console.warn(`Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
-        const getAttrs = replacement.getNodeAttribute;
-        const shouldJoinWithBefore = replacement.shouldJoinWithBefore;
-    
-        const attrs = typeof getAttrs === "function" ? getAttrs(match) : null;
+        const attrs = replacement.getNodeAttribute?.(match);
         const tr = state.tr.delete(start, end);
         const $start = tr.doc.resolve(start);
         const range = $start.blockRange();
-        const wrapping = range && findWrapping(range, schemaNodeType, attrs);
-        if (!wrapping) return null;
+        
+        const wrapping = range && findWrapping(range, nodeType, attrs);
+        if (!wrapping) {
+            return null;
+        }
         tr.wrap(range!, wrapping);
+
         const before = tr.doc.resolve(start - 1).nodeBefore;
         if (
             before &&
-            before.type === schemaNodeType &&
+            before.type === nodeType &&
             canJoin(tr.doc, start - 1) &&
-            (!shouldJoinWithBefore || shouldJoinWithBefore(match, before))
+            (!replacement.shouldJoinWithBefore || replacement.shouldJoinWithBefore(match, before))
         ) {
             tr.join(start - 1);
         }
+
         return tr;
     }
     
@@ -165,22 +173,21 @@ export class InputRule implements IInputRule {
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this.replacementObject!;
-        const schemaNodeType = state.schema.nodes[replacement.nodeType];
-        if (!schemaNodeType) {
+        const replacement = this._replacementObject!;
+        const nodeType = state.schema.nodes[replacement.nodeType];
+        if (!nodeType) {
             console.warn(`Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
-        const getAttrs = replacement.getNodeAttribute;
-        const attrs = typeof getAttrs === "function" ? getAttrs(match) : null;
+        const attrs = replacement.getNodeAttribute?.(match);
         const $start = state.doc.resolve(start);
-        if (
-            !$start
-                .node(-1)
-                .canReplaceWith($start.index(-1), $start.indexAfter(-1), schemaNodeType)
-        )
+        if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) {
             return null;
-        return state.tr.delete(start, end).setBlockType(start, start, schemaNodeType, attrs);
+        }
+
+        return state.tr
+            .delete(start, end)
+            .setBlockType(start, start, nodeType, attrs);
     }
 }

@@ -168,37 +168,36 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
     private __handleTextInput(view: EditorView, from: number, to: number, text: string): boolean {
         const state = view.state;
         const $from = state.doc.resolve(from);
+
         const maxMatch = 500;
         const textBefore = $from.parent.textBetween(
             Math.max(0, $from.parentOffset - maxMatch),
             $from.parentOffset,
-            undefined,
+            null,
             '\ufffc'
         ) + text;
     
-        console.log(`Text before cursor: "${textBefore}"`);
-        let ruleMatched = false;
+        console.log(`Text before cursor: "${textBefore}"`); // TEST
     
         for (const rule of this._rules.values()) {
-            console.log(`Checking rule: ${rule.id} with pattern: ${rule.pattern}`);
+            
             const match = rule.pattern.exec(textBefore);
             if (match) {
-                console.log(`InputRule matched: ${rule.id}, Match: "${match[0]}"`);
-                ruleMatched = true;
+                console.log(`InputRule matched: ${rule.id}, Match:`, match); // TEST
+
                 const start = from - (match[0].length - text.length);
                 const end = to;
 
                 const tr = rule.onMatch(state, match, start, end);
-                if (!tr) continue;
+                if (!tr) {
+                    continue;
+                }
 
                 view.dispatch(tr);
                 return true;
             }      
         }
-    
-        if (!ruleMatched) {
-            console.log("No input rules matched.");
-        }
+        
         return false;
     }
 }
