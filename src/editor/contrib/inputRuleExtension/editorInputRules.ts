@@ -1,12 +1,17 @@
-import type { KeyCode } from "src/base/common/keyboard";
 import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
 import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
-import { tokenize } from "prismjs";
 
 export function registerDefaultInputRules(extension: IEditorInputRuleExtension): void {
+
+    extension.registerRule("emDashRule", /--$/, "—");
+    extension.registerRule("ellipsisRule", /\.\.\.$/, "…");
+    extension.registerRule("openDoubleQuoteRule", /(?:^|[\s{[(<'"\u2018\u201C])(")$/, "“");
+    extension.registerRule("closeDoubleQuoteRule", /"$/, "”");
+    extension.registerRule("openSingleQuoteRule", /(?:^|[\s{[(<'"\u2018\u201C])(')$/, "‘");
+    extension.registerRule("closeSingleQuoteRule", /'$/, "’");
 
     // Heading Rule: Matches "#" followed by a space
     extension.registerRule("headingRule", /^(#{1,6})\s$/, 
