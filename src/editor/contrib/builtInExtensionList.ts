@@ -17,8 +17,8 @@ export const enum EditorExtensionIDs {
  */
 export function getBuiltInExtension(): { id: string, ctor: Constructor<EditorExtension> }[] {
     return [
+        { id: EditorExtensionIDs.InputRule, ctor: EditorInputRuleExtension },
         { id: EditorExtensionIDs.Command, ctor: EditorCommandExtension },
         { id: EditorExtensionIDs.AutoSave, ctor: EditorAutoSaveExtension },
-        { id: EditorExtensionIDs.InputRule, ctor: EditorInputRuleExtension },
     ];
 }
