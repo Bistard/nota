@@ -1,7 +1,10 @@
 import { Node as ProseNode, ResolvedPos } from "prosemirror-model";
 
 export {
-    ReplaceStep as ProseReplaceStep
+    Step as ProseStep,
+    ReplaceStep as ProseReplaceStep,
+    Mapping as ProseMapping,
+    StepMap as ProseStepMapping,
 } from "prosemirror-transform";
 
 export { 

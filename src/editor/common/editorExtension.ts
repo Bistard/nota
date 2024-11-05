@@ -3,7 +3,7 @@ import { Register } from "src/base/common/event";
 import { err, ok, Result } from "src/base/common/result";
 import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorSchema } from "src/editor/model/schema";
 
 /**
@@ -21,7 +21,6 @@ export interface IEditorExtension extends Disposable {
     // [events]
     
     readonly onDidFocusChange: Register<boolean>;
-    readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
     readonly onClick: Register<IOnClickEvent>;
     readonly onDidClick: Register<IOnDidClickEvent>;
     readonly onDoubleClick: Register<IOnDoubleClickEvent>;
@@ -61,16 +60,18 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     // [view event]
 
     get onDidFocusChange(): Register<boolean> { return this._eventBroadcaster.onDidFocusChange; }
-    get onBeforeRender(): Register<IOnBeforeRenderEvent> { return this._eventBroadcaster.onBeforeRender; }
+    
     get onClick(): Register<IOnClickEvent> { return this._eventBroadcaster.onClick; }
     get onDidClick(): Register<IOnDidClickEvent> { return this._eventBroadcaster.onDidClick; }
     get onDoubleClick(): Register<IOnDoubleClickEvent> { return this._eventBroadcaster.onDoubleClick; }
     get onDidDoubleClick(): Register<IOnDidDoubleClickEvent> { return this._eventBroadcaster.onDidDoubleClick; }
     get onTripleClick(): Register<IOnTripleClickEvent> { return this._eventBroadcaster.onTripleClick; }
     get onDidTripleClick(): Register<IOnDidTripleClickEvent> { return this._eventBroadcaster.onDidTripleClick; }
+    
     get onKeydown(): Register<IOnKeydownEvent> { return this._eventBroadcaster.onKeydown; }
     get onKeypress(): Register<IOnKeypressEvent> { return this._eventBroadcaster.onKeypress; }
     get onTextInput(): Register<IOnTextInputEvent> { return this._eventBroadcaster.onTextInput; }
+    
     get onPaste(): Register<IOnPasteEvent> { return this._eventBroadcaster.onPaste; }
     get onDrop(): Register<IOnDropEvent> { return this._eventBroadcaster.onDrop; }
 
