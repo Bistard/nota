@@ -187,9 +187,8 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
         if (!$cursor || !empty) {
             return false;
         }
-        const from = $cursor.start(); // bug
-        const end = $cursor.end(); // bug
-        return this.__matchRules(true, view, $cursor, '', from, end);
+        const end = $cursor.end();
+        return this.__matchRules(true, view, $cursor, '', end, end);
     }
 
     private __matchRules(
