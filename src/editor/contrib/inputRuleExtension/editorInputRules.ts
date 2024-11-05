@@ -177,7 +177,7 @@ export class InputRule implements IInputRule {
         const replacement = this._replacementObject!;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
-            console.warn(`Node type "${replacement.nodeType}" not found in schema.`);
+            console.warn(`[EditorInputRuleExtension] Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
@@ -214,7 +214,7 @@ export class InputRule implements IInputRule {
         const replacement = this._replacementObject!;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
-            console.warn(`Node type "${replacement.nodeType}" not found in schema.`);
+            console.warn(`[EditorInputRuleExtension] Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     

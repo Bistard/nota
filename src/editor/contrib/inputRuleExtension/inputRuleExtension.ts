@@ -207,7 +207,6 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
             null,
             '\ufffc'
         ) + additionalText;
-        console.log(`Text before cursor: "${textBefore}"`); // TEST
         
         for (const rule of this._rules.values()) {
             const replaceOnEnter = isString(rule.replacement) ? false : rule.replacement.whenReplace === 'enter';
@@ -217,8 +216,6 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
 
             const match = rule.pattern.exec(textBefore);
             if (match) {
-                console.log(`InputRule matched: ${rule.id}, Match:`, match); // TEST
-
                 const start = from - (match[0].length - additionalText.length);
                 const end = to;
 
