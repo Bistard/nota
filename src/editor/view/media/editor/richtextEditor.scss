@@ -56,11 +56,17 @@
         font-size: 14px;
     }
     
+    & code {
+        background-color: #f0f0f0;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+    }
+
     & .cm-editor {
         background-color: #f9f9f9;
         padding: 2px 4px;
         border-radius: 3px;
-        font-family: 'Courier New', monospace;
     }
 
     & a {
@@ -79,6 +85,6 @@
         border: 0;
         height: 2px;
         background: #ddd;
-        margin: 24px 0;
+        margin: 8px 0;
     }
 }
