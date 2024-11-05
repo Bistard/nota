@@ -14,6 +14,8 @@ import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { IS_MAC } from "src/base/common/platform";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { redo, undo } from "prosemirror-history";
+import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
+import { IEditorHistoryExtension } from "src/editor/contrib/historyExtension/historyExtension";
 
 /**
  * [FILE OUTLINE]
@@ -999,12 +1001,16 @@ export namespace EditorCommands {
 
     export class FileUndo extends EditorCommandBase {
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            // const historyExtension = editor.getExtension(EditorExtensionIDs.History) as IEditorHistoryExtension;
+            // return historyExtension['undo'](state, dispatch);
             return undo(state, dispatch, view);
         }
     }
     
     export class FileRedo extends EditorCommandBase {
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            // const historyExtension = editor.getExtension(EditorExtensionIDs.History) as IEditorHistoryExtension;
+            // return historyExtension['redo'](state, dispatch);
             return redo(state, dispatch, view);
         }
     }
