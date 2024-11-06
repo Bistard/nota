@@ -3,7 +3,7 @@
     position: fixed;
     
     width: 230px;
-    height: calc(100% - 45px); /* Adjust height to take into account the title bar */
+    height: 100%; /* Adjust height to take into account the title bar */
     right: 0; /* Position on the right side of the screen */
     top: 45px;
     
@@ -11,7 +11,7 @@
     transition: right 0.3s ease-in-out;
 
     &.hidden {
-        right: -216px;  // Hide by sliding out
+        right: -230px;  // Hide by sliding out
     }
 
     &.visible {
