@@ -97,6 +97,8 @@ export const enum CollapseState {
 	Expand = 'expand',
 }
 
+export type DomEventMap = HTMLElementEventMap & DocumentEventMap & WindowEventMap;
+
 /**
  * @description Given a `EventTarget` (eg. HTMLElement), we add a `eventType` 
  * listener to the target with the provided callback. The function returns a 
@@ -584,11 +586,11 @@ export namespace DomUtility
  * 
  * @note LAZY: only start listening when there is one listener presents.
  */
-export class DomEmitter<T> implements IDisposable {
+export class DomEmitter<T extends keyof DomEventMap> implements IDisposable {
 
-    private readonly emitter: Emitter<T>;
+    private readonly emitter: Emitter<DomEventMap[T]>;
 
-    constructor(element: EventTarget, type: EventType, useCapture: boolean = false) {
+    constructor(element: EventTarget, type: T, useCapture: boolean = false) {
 		const fn = (e: any) => this.emitter.fire(e);
 		// LAZY
 		this.emitter = new Emitter({
@@ -597,7 +599,7 @@ export class DomEmitter<T> implements IDisposable {
 		});
     }
 
-	get registerListener(): Register<T> {
+	get registerListener(): Register<DomEventMap[T]> {
         return this.emitter.registerListener;
     }
 
