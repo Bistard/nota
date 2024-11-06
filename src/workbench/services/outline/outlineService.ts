@@ -2,11 +2,11 @@ import "src/workbench/services/outline/outline.scss";
 import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 import { Disposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
-import { Result, err } from "src/base/common/result";
+import { Result, err, ok } from "src/base/common/result";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
@@ -18,6 +18,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
+import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
 
@@ -85,6 +86,8 @@ export class OutlineService extends Disposable implements IOutlineService {
     private _currFile?: URI; // The URI of the current file being used to display the outline
     private _tree?: IOutlineTree; // the actual tree view
 
+    private _collapsed?: boolean;
+
     // [constructor]
 
     constructor(
@@ -95,6 +98,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
         super();
         this.logService.debug('OutlineService', 'Constructed.');
@@ -126,6 +130,10 @@ export class OutlineService extends Disposable implements IOutlineService {
         const editor = this.editorService.editor;
         if (!editor) {
             return err(new Error('OutlineService cannot initialized when the EditorService is not initialized.'));
+        }
+
+        if (this.__isRenderSpaceSufficient() === false) {
+            return ok();
         }
 
         // init container
@@ -188,6 +196,34 @@ export class OutlineService extends Disposable implements IOutlineService {
 
             afterWork.match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
         }));
+
+        /**
+         * Outline should only visible when there is enough space for rendering.
+         * We need to listen to any potential window size changes.
+         */
+
+        const anyEvents = Event.any([
+            this.workbenchService.onDidCollapseStateChange,
+            this.workbenchService.onDidLayout
+        ]);
+        
+        this.__register(Event.runAndListen<any>(anyEvents, () => {
+            const sufficient = this.__isRenderSpaceSufficient();
+
+            if (!sufficient) {
+                if (this.isInitialized) {
+                    this.__toggleOutlineVisibility(true);
+                }
+            }
+            else {
+                if (this.isInitialized) {
+                    this.__toggleOutlineVisibility(false);
+                } else {
+                    this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
+                }
+            }
+
+        }, undefined!));
     }
 
     private __initTree(container: HTMLElement): Result<void, Error> {
@@ -249,7 +285,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._button.render(container);
 
         this.__register(this._button.onDidCollapseStateChange(state => {
-            this.toggleOutlineVisibility(state === CollapseState.Collapse);
+            this.__toggleOutlineVisibility(state === CollapseState.Collapse);
         }));
 
         workspace.appendChild(container);
@@ -275,16 +311,40 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._container.insertBefore(this._heading, this._container.firstChild);
     }
 
-    private toggleOutlineVisibility(isCollapsed: boolean): void {
-        const editorElement = this.editorService.element;
-        if (isCollapsed) {
-            this._container?.classList.add('hidden');
-            this._container?.classList.remove('visible');
-            if (editorElement) editorElement.raw.style.paddingRight = '0';
-        } else {
-            this._container?.classList.add('visible');
-            this._container?.classList.remove('hidden');
-            if (editorElement) editorElement.raw.style.paddingRight = '230px';
+    private __toggleOutlineVisibility(isCollapsed: boolean): void {
+        if (!this._container) {
+            return;
         }
+
+        if (this._collapsed === isCollapsed) {
+            return;
+        }
+
+        if (isCollapsed) {
+            this._container.classList.add('hidden');
+            this._container.classList.remove('visible');
+        } else {
+            this._container.classList.add('visible');
+            this._container.classList.remove('hidden');
+        }
+
+        this._collapsed = isCollapsed;
+    }
+
+    private __isRenderSpaceSufficient(): boolean {
+        if (!this.editorService.editor) {
+            return false;
+        }
+
+        if (!this.editorService.editor.initialized) {
+            return false;
+        }
+
+        const editorContainer = this.editorService.editor.view.editor.editorContainer;
+        const computedStyle = getComputedStyle(editorContainer);
+        const padding = Math.max(0, parseFloat(computedStyle.getPropertyValue('padding-right')));
+        const margin = Math.max(0, parseFloat(computedStyle.getPropertyValue('margin-right')));
+        
+        return padding + margin > 230;
     }
 }
