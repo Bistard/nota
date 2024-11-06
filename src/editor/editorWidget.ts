@@ -37,6 +37,12 @@ export interface IEditorWidget extends
 {
 
     /**
+     * Is the editor initialized. if not, access to model, viewModel and view 
+     * will panic.
+     */
+    readonly initialized: boolean;
+
+    /**
      * Determine if the editor is readonly. If false, it means the file is 
      * writable.
      */
@@ -208,6 +214,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     // #region [getter]
+
+    get initialized(): boolean { return !!this._model; }
 
     get model(): IEditorModel { return assert(this._model); }
     get view(): IEditorView { return assert(this._view); }

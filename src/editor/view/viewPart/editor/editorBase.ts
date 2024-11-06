@@ -6,6 +6,10 @@ import { IEditorExtension } from 'src/editor/common/editorExtension';
 
 export interface IEditorBase extends IEditorViewProxy {
     
+    /**
+     * The direct wrapper container of `ProseMirror`.
+     */
+    readonly editorContainer: HTMLElement;
 }
 
 export abstract class EditorBase extends EditorViewProxy implements IEditorBase {
@@ -41,6 +45,8 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     }
 
     // [public methods]
+
+    get editorContainer(): HTMLElement { return this._container; }
 
     // [private helper methods]
 }
