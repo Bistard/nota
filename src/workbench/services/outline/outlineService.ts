@@ -19,7 +19,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
-import { delayFor } from "src/base/common/utilities/async";
+import { delayFor, UnbufferedScheduler } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
@@ -90,6 +90,8 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     private _collapsed?: boolean;
 
+    private _checkSpaceScheduler: UnbufferedScheduler<void>;
+
     // [constructor]
 
     constructor(
@@ -109,6 +111,22 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._currFile = undefined;
         this._button = undefined;
         this._heading = undefined;
+
+        this._checkSpaceScheduler = new UnbufferedScheduler(Time.ms(500), () => {
+            const sufficient = this.__isRenderSpaceSufficient();
+            if (!sufficient) {
+                if (this.isInitialized) {
+                    this.__toggleOutlineVisibility(true);
+                }
+            }
+            else {
+                if (this.isInitialized) {
+                    this.__toggleOutlineVisibility(false);
+                } else {
+                    this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
+                }
+            }
+        });
 
         this.__registerListeners();
     }
@@ -214,24 +232,7 @@ export class OutlineService extends Disposable implements IOutlineService {
              * Delay for a moment to let the animation finishes so that we find 
              * the accurate spaces.
              */
-            delayFor(Time.ms(500), () => {
-                const sufficient = this.__isRenderSpaceSufficient();
-                console.log('detected', sufficient, this.isInitialized);
-
-                if (!sufficient) {
-                    if (this.isInitialized) {
-                        this.__toggleOutlineVisibility(true);
-                    }
-                }
-                else {
-                    if (this.isInitialized) {
-                        this.__toggleOutlineVisibility(false);
-                    } else {
-                        this.init().match(noop, error => this.commandService.executeCommand(AllCommands.alertError, 'OutlineService', error));
-                    }
-                }
-            });
-
+            this._checkSpaceScheduler.schedule();
         }, undefined!));
     }
 
@@ -354,7 +355,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         const padding = Math.max(0, parseFloat(computedStyle.getPropertyValue('padding-right')));
         const margin = Math.max(0, parseFloat(computedStyle.getPropertyValue('margin-right')));
         
-        console.log(padding + margin);
+        // 2024/11/6: 230 is the width of the outline
         return padding + margin > 230;
     }
 }
