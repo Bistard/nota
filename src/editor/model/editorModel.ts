@@ -216,7 +216,10 @@ export class EditorModel extends Disposable implements IEditorModel {
                 const state = ProseEditorState.create({
                     schema: this._schema,
                     doc: document,
-                    plugins: [...extensions.map(extension => extension.getViewExtension()), history({ depth: 500 })],
+                    plugins: [
+                        ...extensions.map(extension => extension.getViewExtension()), 
+                        history({ depth: 500 }),
+                    ],
                 });
                 return ok(state);
             });

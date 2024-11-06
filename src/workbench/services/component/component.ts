@@ -130,22 +130,25 @@ export interface IComponent extends ICreatable {
 
     /**
      * @description Layout the component to the given dimension. This function
-     * will modify {@link Component.dimension} attribute.
+     * will modify {@link Component.prototype.dimension} attribute.
      * @param width The width of dimension.
      * @param height The height of dimension.
      * @param preventDefault If sets to `true`, the {@link onDidLayout} event 
-     *                       will not be triggered. Default sets to `false`.
+     *                       will not be triggered. Default sets to `true`.
+     * @param mockDimension If set, this dimension will be fired through the 
+     *                      emitters instead of the actual one. This allows you
+     *                      to do hacky thing.
      * @returns The new dimension of the component.
      * 
      * @note If no dimensions is provided, the component will try to be filled
      *       with the parent HTMLElement. If any dimensions is provided, the 
      *       component will layout the missing one either with the previous 
      *       value or just zero.
-     * @note This function will only mutate the {@link Component.dimension} and
+     * @note This function will only mutate the {@link Component.prototype.dimension} and
      *       will not actually change anything in the DOM tree.
      * @note Will trigger {@link onDidLayout} event.
      */
-    layout(width?: number, height?: number, preventDefault?: boolean): IDimension;
+    layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension;
 
     /**
      * @description Register a child {@link IComponent} into the current Component.
@@ -388,7 +391,7 @@ export abstract class Component extends Themable implements IComponent {
         this._created = true;
     }
 
-    public layout(width?: number, height?: number, preventDefault?: boolean): IDimension {
+    public layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension {
         
         // If no dimensions provided, we default to layout to fit to parent.
         if (width === undefined && height === undefined) {
@@ -405,7 +408,7 @@ export abstract class Component extends Themable implements IComponent {
         }
 
         if (preventDefault !== true) {
-            this._onDidLayout.fire(this._dimension);
+            this._onDidLayout.fire(mockDimension ?? this._dimension);
         }
         
         return this._dimension;
