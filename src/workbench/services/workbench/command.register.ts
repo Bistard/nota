@@ -17,44 +17,35 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.toggleDevTool,
-                command: (provider) => {
-                    const hostService = provider.getOrCreateService(IHostService);
-                    hostService.toggleDevTools();
-                },
+                command: (provider) => { provider.getOrCreateService(IHostService).toggleDevTools(); },
             },
         );
     
         registrant.registerCommandBasic(
             {
                 id: AllCommands.reloadWindow,
-                command: (provider) => {
-                    const hostService = provider.getOrCreateService(IHostService);
-                    hostService.reloadWebPage();
-                },
+                command: (provider) => { provider.getOrCreateService(IHostService).reloadWebPage(); },
             },
         );
     
         registrant.registerCommandBasic(
             {
                 id: AllCommands.closeApplication,
-                command: (provider) => {
-                    const lifecycleService = provider.getOrCreateService(ILifecycleService);
-                    lifecycleService.quit();
-                },
+                command: (provider) => { provider.getOrCreateService(ILifecycleService).quit(); },
             },
         );
 
         registrant.registerCommandBasic(
             {
                 id: AllCommands.zoomIn,
-                command: () => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1); },
+                command: () => { webFrame.setZoomLevel(Math.min(8, webFrame.getZoomLevel() + 1)); },
             },
         );
         
         registrant.registerCommandBasic(
             {
                 id: AllCommands.zoomOut,
-                command: (provider) => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1); },
+                command: () => { webFrame.setZoomLevel(Math.max(-8, webFrame.getZoomLevel() - 1)); },
             },
         );
         
