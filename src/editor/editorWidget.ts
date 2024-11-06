@@ -14,7 +14,7 @@ import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnMouseOverEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
 import { AsyncResult } from "src/base/common/result";
@@ -186,6 +186,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
 
+    private readonly _onMouseOver = this.__register(new RelayEmitter<IOnMouseOverEvent>());
+    public readonly onMouseOver = this._onMouseOver.registerListener;
+
     // #region [constructor]
 
     constructor(
@@ -344,6 +347,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onTextInput.setInput(this.view.onTextInput);
         this._onPaste.setInput(this.view.onPaste);
         this._onDrop.setInput(this.view.onDrop);
+        this._onMouseOver.setInput(this.view.onMouseOver);
 
         // TODO: configuration auto update
     }

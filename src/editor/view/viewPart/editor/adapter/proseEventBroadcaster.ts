@@ -1,7 +1,8 @@
+import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
+import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseResolvedPos, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
 
 type __TransactionEventBase = {
     readonly view: ProseEditorView;
@@ -74,6 +75,17 @@ export interface IOnDropEvent {
     readonly slice: ProseSlice;
     readonly moved: boolean;
     readonly browserEvent: DragEvent;
+}
+
+export interface IOnMouseOverEvent {
+    readonly view: ProseEditorView;
+    readonly event: MouseEvent;
+    
+    readonly target?: {
+        readonly node: ProseNode;
+        readonly position: number;
+        getResolvedPos(): ProseResolvedPos;
+    }
 }
 
 /**
@@ -181,6 +193,11 @@ export interface IProseEventBroadcaster extends IDisposable {
      * this drop moves from the current selection (which should thus be deleted).
      */
     readonly onDrop: Register<IOnDropEvent>;
+
+    /**
+     * Fires when the mouse is hovering on the editor.
+     */
+    readonly onMouseOver: Register<IOnMouseOverEvent>;
 }
 
 function __isProseEditorView(obj: any): obj is ProseEditorView {
@@ -253,6 +270,9 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
 
+    private readonly _onMouseOver = this.__register(new Emitter<IOnMouseOverEvent>());
+    public readonly onMouseOver = this._onMouseOver.registerListener;
+
     // [constructor]
 
     constructor(viewOrExtensionProperty: ProseEditorView | ProseEditorProperty<any>) {
@@ -300,6 +320,29 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
                     this._onDidContentChange.fire(event);
                 }
             };
+
+            this.__register(addDisposableListener(view.dom, EventType.mouseover, e => {
+                const pos = view.posAtCoords({
+                    left: e.clientX,
+                    top: e.clientY,
+                });
+        
+                const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
+                if (!node) {
+                    this._onMouseOver.fire({ view: view, event: e, target: undefined });
+                    return;
+                }
+        
+                this._onMouseOver.fire({ 
+                    view: view, 
+                    event: e, 
+                    target: { 
+                        node: node, 
+                        position: pos.pos, 
+                        getResolvedPos: () => view.state.doc.resolve(pos.pos),
+                    } 
+                });
+            }));
         }
 
         // dom event listeners
