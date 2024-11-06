@@ -26,7 +26,7 @@ export function getAllEnvironments(service: IEnvironmentService): Record<string,
                 value = URI.toFsPath(propVal);
             }
             else if (isObject(propVal)) {
-                value = Strings.stringifySafe(propVal);
+                value = Strings.stringifySafe(propVal, undefined, undefined, 4);
             }
             else {
                 value = propVal;
