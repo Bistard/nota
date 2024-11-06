@@ -42,8 +42,6 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
      * @description If the window is destroyed. 
      */
     isDestroyed(): boolean;
-
-    getDomNodeAt(position: number): Node | null;
 }
 
 export class EditorViewProxy extends ProseEventBroadcaster implements IEditorViewProxy {
@@ -86,12 +84,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
         return this._view;
     }
 
-    // [public DOM related methods]
-
-    public getDomNodeAt(position: number): Node | null {
-        return this._view.nodeDOM(position);
-    }
-    
     // [public methods]
 
     public render(newState: ProseEditorState): void {
