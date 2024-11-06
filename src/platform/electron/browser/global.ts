@@ -1,6 +1,6 @@
 import type { IpcRenderer } from "electron";
 import type { Mutable } from "src/base/common/utilities/type";
-import type { ISandboxProcess } from "src/platform/electron/common/electronType";
+import type { ISandboxProcess, IWebFrame } from "src/platform/electron/common/electronType";
 import type { IWindowConfiguration } from "src/platform/window/common/window";
 import { executeOnce } from "src/base/common/utilities/function";
 
@@ -16,7 +16,8 @@ import { executeOnce } from "src/base/common/utilities/function";
  */
 
 export const ipcRenderer: IpcRenderer = <any>{};
-export const process: Mutable<ISandboxProcess> = <any>{};
+export const process: ISandboxProcess = <any>{};
+export const webFrame: IWebFrame = <any>{};
 export const WIN_CONFIGURATION: IWindowConfiguration = <any>{};
 
 /**
@@ -26,5 +27,6 @@ export const WIN_CONFIGURATION: IWindowConfiguration = <any>{};
 export const initExposedElectronAPIs = executeOnce(function () {
     (<Mutable<IpcRenderer>>ipcRenderer) = globalThis.nota.ipcRenderer;
     (<Mutable<ISandboxProcess>>process) = globalThis.nota.process;
+    (<Mutable<IWebFrame>>webFrame) = globalThis.nota.webFrame;
     (<Mutable<IWindowConfiguration>>WIN_CONFIGURATION) = globalThis.nota.WIN_CONFIGURATION;
 });

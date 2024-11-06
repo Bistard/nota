@@ -24,7 +24,7 @@
 (async function () {
 	'use strict';
 
-	const { contextBridge, ipcRenderer } = require('electron');
+	const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 	/**
 	 * @typedef {import('../../window/common/window').IWindowConfiguration} IWindowConfiguration
@@ -108,6 +108,13 @@
 			}
 		};
 	})();
+
+	const wrappedWebFrame = (function wrapWebFrame() {
+		return {
+			setZoomLevel(level) { webFrame.setZoomLevel(level); },
+			getZoomLevel() { return webFrame.getZoomLevel(); },
+		};
+	})();
 	
 	/**
 	 * Since some window configurations will be modified after the browser 
@@ -136,6 +143,7 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
+		webFrame: wrappedWebFrame,
 		WIN_CONFIGURATION: configuration,
 	};
 
