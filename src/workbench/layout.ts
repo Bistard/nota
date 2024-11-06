@@ -77,11 +77,16 @@ export abstract class WorkbenchLayout extends Component {
          */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
 
-        // skip re-layout if needed
-        const hackDimension = this._collapseController.layout();
-        const dimension = super.layout(undefined, undefined, hackDimension !== null);
-        
-        return hackDimension ?? dimension;
+        /**
+         * hack: When the `left` is collapsed, we return -1 value to prevent the 
+         * {@link SplitView} to re-layout. Otherwise the width of the `right` will 
+         * be re corrected to the original width.
+         */
+        const collapsed = this._collapseController.state === CollapseState.Collapse;
+        const mockDimension = collapsed ? { height: -1, width: -1 } : undefined;
+
+        const dimension = super.layout(undefined, undefined, undefined, mockDimension);
+        return mockDimension ?? dimension;
     }
 
     // [protected helper methods]
@@ -239,17 +244,5 @@ class CollapseAnimationController extends Disposable {
                 splitView.layout(dimension.width, dimension.height);
             }
         }));
-    }
-
-    /**
-     * hack: When the `left` is collapsed, we return -1 value to prevent the 
-     * {@link SplitView} to re-layout. Otherwise the width of the `right` will 
-     * be re corrected to the original width.
-     */
-    public layout(): IDimension | null {
-        if (this.state === CollapseState.Collapse) {
-            return { width: -1, height: -1 };
-        }
-        return null;
     }
 }
