@@ -31,24 +31,27 @@ const _simulateRequestAnimationFrame = (callback: Callable<[], void>) => setTime
  * An error will be thrown since requestAnimationFrame must be executed via the 
  * context of `window`. To fix this, a wrapper function will fix this properly
  * by using `.call()`.
+ * 
+ * Also, wrapping is also important to make this function can be used anywhere 
+ * outside browser environment (the behavior will fallback to `setTimeout`).
  */
 export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDisposable => {
-    const doRequestAnimationFrame = window.requestAnimationFrame ||
+    const doRequestAnimationFrame = window && (
+        window.requestAnimationFrame ||
         (<any>window).mozRequestAnimationFrame || 
         (<any>window).webkitRequestAnimationFrame ||
         (<any>window).msRequestAnimationFrame ||
-        _simulateRequestAnimationFrame;
+        _simulateRequestAnimationFrame
+    );
     
     const token = doRequestAnimationFrame.call(window, callback);
-    return toDisposable(() => __cancelAnimationFrame(token));
-};
- 
- /**
-  * @readonly The method may be passed into a handle which is returned when the 
-  * request was succeed to cancel the corresponding callback animation.
-  */
-const __cancelAnimationFrame = (handle: number): void => {
-    window.cancelAnimationFrame(handle);
+    return toDisposable(() => {
+        if (window) {
+            window.cancelAnimationFrame(token);
+        } else {
+            clearTimeout(token);
+        }
+    });
 };
 
 /**

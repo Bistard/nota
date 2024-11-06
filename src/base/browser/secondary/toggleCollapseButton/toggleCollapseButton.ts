@@ -73,6 +73,12 @@ export interface IToggleCollapseButton extends IWidget {
      * Fires when the button whether collapsed.
      */
     readonly onDidCollapseStateChange: Register<CollapseState>;
+
+    /**
+     * @description Programmatically click the button. Returns false if it 
+     * succeeds.
+     */
+    click(): boolean;
 }
 
 /**
@@ -114,6 +120,22 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         return this._collapseState;
     }
     
+    public click(): boolean {
+        if (!this._button) {
+            return false;
+        }
+
+        // toggle current state
+        this._collapseState = (this._collapseState === CollapseState.Collapse)
+            ? CollapseState.Expand
+            : CollapseState.Collapse;
+
+        this.__flipOver(this._button);
+        this._onDidCollapseStateChange.fire(this._collapseState);
+
+        return true;
+    }
+
     // [protected override methods]
 
     protected override __render(element: HTMLElement): void {
@@ -219,16 +241,7 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         const button = assert(this._button);
 
         // click trigger collapse/expand
-        this.onClick(button, () => {
-
-            // toggle state
-            this._collapseState = (this._collapseState === CollapseState.Collapse)
-                ? CollapseState.Expand
-                : CollapseState.Collapse;
-
-            this.__flipOver(button);
-            this._onDidCollapseStateChange.fire(this._collapseState);
-        });
+        this.onClick(button, () => this.click());
     }
 
     private __flipOver(button: HTMLElement): void {

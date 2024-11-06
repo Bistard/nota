@@ -19,7 +19,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
-import { delayFor, UnbufferedScheduler } from "src/base/common/utilities/async";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
 
 export const IOutlineService = createService<IOutlineService>('outline-service');
@@ -90,6 +90,10 @@ export class OutlineService extends Disposable implements IOutlineService {
 
     private _collapsed?: boolean;
 
+    /**
+     * Delay for a moment to let the animation finishes so that we find the 
+     * accurate spaces.
+     */
     private _checkSpaceScheduler: UnbufferedScheduler<void>;
 
     // [constructor]
@@ -118,8 +122,7 @@ export class OutlineService extends Disposable implements IOutlineService {
                 if (this.isInitialized) {
                     this.__toggleOutlineVisibility(true);
                 }
-            }
-            else {
+            } else {
                 if (this.isInitialized) {
                     this.__toggleOutlineVisibility(false);
                 } else {
@@ -228,10 +231,6 @@ export class OutlineService extends Disposable implements IOutlineService {
         ]);
         
         this.__register(Event.runAndListen<any>(anyEvents, () => {
-            /**
-             * Delay for a moment to let the animation finishes so that we find 
-             * the accurate spaces.
-             */
             this._checkSpaceScheduler.schedule();
         }, undefined!));
     }
@@ -289,7 +288,7 @@ export class OutlineService extends Disposable implements IOutlineService {
         this._button = new ToggleCollapseButton({
             initState: toggleState,
             direction: DirectionX.Right,
-            positionX: { position: DirectionX.Left, offset: -3 },
+            positionX: { position: DirectionX.Left, offset: -30 },
             positionY: { position: DirectionY.Top, offset: 15.2 },
         });
         this._button.render(container);

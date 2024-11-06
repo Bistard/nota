@@ -27,7 +27,10 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
      * 
      * Sometimes the provided HTMLElement container is NOT in the DOM tree yet, 
      * so it cannot decide how big the view should be. If this is the case, set
-     * this to false or just do not provide, then call `layout()` manually.
+     * this to false or just do not provide, then call `layout()` manually when
+     * you ensures the container is in DOM tree.
+     * 
+     * @default false
      */
     readonly layout?: boolean;
 
