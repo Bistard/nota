@@ -31,5 +31,21 @@ export const rendererWorkbenchShortcutRegister = createRegister(
             when: WorkbenchContextKey.inDevelopContext,
             commandArgs: [],
         });
+        
+        registrant.register(
+            AllCommands.zoomIn, {
+            shortcut: new Shortcut(true, false, false, false, KeyCode.Equal),
+            weight: ShortcutWeight.Core,
+            when: null,
+            commandArgs: [],
+        });
+
+        registrant.register(
+            AllCommands.zoomOut, {
+            shortcut: new Shortcut(true, false, false, false, KeyCode.Minus),
+            weight: ShortcutWeight.Core,
+            when: null,
+            commandArgs: [],
+        });
     },
 );

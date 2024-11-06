@@ -8,6 +8,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
+import { webFrame } from "src/platform/electron/browser/global";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -43,6 +44,27 @@ export const rendererWorkbenchCommandRegister = createRegister(
             },
         );
 
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.zoomIn,
+                command: () => { webFrame.setZoomLevel(webFrame.getZoomLevel() + 1); },
+            },
+        );
+        
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.zoomOut,
+                command: (provider) => { webFrame.setZoomLevel(webFrame.getZoomLevel() - 1); },
+            },
+        );
+        
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.zoomSet,
+                command: (provider, level?: number) => { webFrame.setZoomLevel(Math.max(-8, Math.min(8, level ?? 0))); },
+            },
+        );
+        
         registrant.registerCommand(new AlertError());
         registrant.registerCommand(new FileCommands.FilePaste());
     },
