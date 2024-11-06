@@ -581,15 +581,20 @@ export namespace DomUtility
 /**
  * @class A Simple class for register callback on a given HTMLElement using an
  * {@link Emitter} instead of using raw *addEventListener()* method.
+ * 
+ * @note LAZY: only start listening when there is one listener presents.
  */
 export class DomEmitter<T> implements IDisposable {
 
     private readonly emitter: Emitter<T>;
-    private readonly listener: IDisposable;
 
     constructor(element: EventTarget, type: EventType, useCapture: boolean = false) {
-        this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, <any>type, (e) => this.emitter.fire(e), useCapture);
+		const fn = (e: any) => this.emitter.fire(e);
+		// LAZY
+		this.emitter = new Emitter({
+			onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
+			onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
+		});
     }
 
 	get registerListener(): Register<T> {
@@ -598,7 +603,6 @@ export class DomEmitter<T> implements IDisposable {
 
     public dispose(): void {
         this.emitter.dispose();
-        this.listener.dispose();
     }
 }
 
