@@ -111,11 +111,6 @@ export abstract class WorkbenchLayout extends Component {
 
     protected __registerLayoutListeners(): void {
 
-        // re-layout the entire workbench when the entire window is resizing
-        this.__register(addDisposableListener(window, EventType.resize, () => {
-            this.layout();
-        }));
-
         /**
          * Listens to each ActionBar button click events and notifies the 
          * navigationView to switch the view.
