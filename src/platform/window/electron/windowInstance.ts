@@ -13,6 +13,8 @@ import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
 import { IProductService } from "src/platform/product/common/productService";
 import { isDefined } from "src/base/common/utilities/type";
+import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
+import { StatusKey } from "src/platform/status/common/status";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -94,6 +96,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
+        @IMainStatusService private readonly mainStatusService: IMainStatusService,
     ) {
         super();
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
@@ -169,6 +172,10 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
         this.logService.debug('WindowInstance', 'creating window...');
+        const additionalArguments = [
+            `--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`,
+            `--${ArgumentKey.zoomLevel}=${this.mainStatusService.get<number>(StatusKey.WindowZoomLevel) ?? 0}`
+        ];
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         const browserOption: electron.BrowserWindowConstructorOptions = {
@@ -208,7 +215,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Pass any arguments use the following pattern:
                  *      --ArgName=argInString
                  */
-                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
+                additionalArguments: additionalArguments,
 
                 spellcheck: false,
                 enableWebSQL: false,

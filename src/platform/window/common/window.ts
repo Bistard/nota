@@ -6,7 +6,8 @@ import { IEnvironmentOpts } from "src/platform/environment/common/environment";
 import { IMonitorInfo } from "src/platform/screen/common/screen";
 
 export const enum ArgumentKey {
-    configuration = 'window-configuration'
+    configuration = 'window-configuration',
+    zoomLevel = 'window-zoom-level',
 }
 
 export const DEFAULT_HTML = './src/index.html';

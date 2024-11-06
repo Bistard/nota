@@ -8,6 +8,9 @@ import { Disposable } from "src/base/common/dispose";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { delayFor } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
+import { IHostService } from "src/platform/host/common/hostService";
+import { StatusKey } from "src/platform/status/common/status";
+import { webFrame } from "src/platform/electron/browser/global";
 
 export interface IBrowser {
     init(): void;
@@ -25,6 +28,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
         @IShortcutService private readonly shortcutService: IShortcutService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         super();
         logService.debug('BrowserInstance', 'BrowserInstance constructed.');
@@ -43,7 +47,13 @@ export class BrowserInstance extends Disposable implements IBrowser {
         this.lifecycleService.when(LifecyclePhase.Displayed)
             .then(() => {
                 // save user configurations on quit
-                this.__register(this.lifecycleService.onWillQuit((e) => e.join(this.configurationService.save())));
+                this.__register(this.lifecycleService.onWillQuit(e => 
+                    e.join(this.configurationService.save())
+                ));
+
+                this.__register(this.lifecycleService.onWillQuit(e => 
+                    e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
+                ));
             });
     }
 

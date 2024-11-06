@@ -115,7 +115,14 @@
 			getZoomLevel() { return webFrame.getZoomLevel(); },
 		};
 	})();
-	
+
+	/**
+	 * Apply zoom level early before even building the window DOM elements to 
+	 * avoid UI flicker.
+	 */
+	const level = retrieveFromArgv('window-zoom-level');
+	webFrame.setZoomLevel(parseInt(level) ?? 0);
+
 	/**
 	 * Since some window configurations will be modified after the browser 
 	 * window is created (windowID etc.). We have to wait for the updated version.
