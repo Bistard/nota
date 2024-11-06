@@ -107,7 +107,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
                     // Called whenever the view's state is updated.
                     update: (view, prevState) => {
                         this._viewState = view.state;
-                        this.onViewUpdate?.(view);
+                        this.onViewUpdate?.(view, prevState);
                     },
                 };
             },
@@ -141,7 +141,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     /**
      * @description The function triggers when the view's state is updated.
      */
-    protected onViewUpdate?(view: ProseEditorView): void;
+    protected onViewUpdate?(view: ProseEditorView, prevState: ProseEditorState): void;
 
     /**
      * @description This function triggers when the {@link ProseEditorView} is

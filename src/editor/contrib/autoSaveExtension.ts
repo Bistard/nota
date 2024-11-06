@@ -1,4 +1,3 @@
-import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Time } from "src/base/common/date";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
