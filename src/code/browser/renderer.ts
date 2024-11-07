@@ -67,6 +67,7 @@ import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPane
 import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { Strings } from "src/base/common/utilities/string";
+import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -308,6 +309,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
         registerService(IDialogService            , new ServiceDescriptor(BrowserDialogService     , []));
         registerService(IClipboardService         , new ServiceDescriptor(BrowserClipboardService  , []));
+        registerService(IBrowserZoomService       , new ServiceDescriptor(BrowserZoomService       , []));
     }
 
     // [end]
