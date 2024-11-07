@@ -2,6 +2,8 @@ import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/p
 import { ProseEditorView, ProseEditorState, ProseNode, ProseExtension, ProseSchema } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { fillMapFromArray } from "src/base/common/structures/map";
+import { ProseUtils } from "src/editor/common/proseUtility";
+import { printNaryTreeLike } from "src/base/common/utilities/string";
 
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
@@ -42,6 +44,11 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
      * @description If the window is destroyed. 
      */
     isDestroyed(): boolean;
+
+    /**
+     * @internal Debug purpose.
+     */
+    printDocumentTree(): void;
 }
 
 export class EditorViewProxy extends ProseEventBroadcaster implements IEditorViewProxy {
@@ -109,6 +116,15 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
         if (!this._view.isDestroyed) {
             this._view.destroy();
         }
+    }
+
+    public printDocumentTree(): void {
+        printNaryTreeLike(
+            this._view.state.doc, 
+            node => node.type.name,
+            node => node.childCount > 0,
+            node => [...ProseUtils.iterateChild(node)].map(item => item.node)
+        );
     }
 
     // [protected helper methods]

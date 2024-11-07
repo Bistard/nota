@@ -1,4 +1,5 @@
 /* eslint-disable local/code-no-json-stringify */
+import type { IResolvedFileStat } from "src/base/common/files/file";
 import { Result } from "src/base/common/result";
 import { Iterable } from "src/base/common/utilities/iterable";
 import { compareSubstringIgnoreCase } from "src/base/common/files/glob";
@@ -576,3 +577,89 @@ const _escapeMap = {
     '\b': '\\b',
     '\f': '\\f'
 };
+
+/**
+ * @description Prints the given n-ary tree.
+ * @param root The given root of the n-ary tree.
+ * @param getContent A function gets the content of the current node for printing.
+ * @param hasChildren A function determines if the the current node has children.
+ * @param getChildren A function returns the children of the current node.
+ * 
+ * @example
+ * ```
+ * root
+ * ├─base
+ * |  ├─browser
+ * |  |  └─secondary
+ * |  |     └─tree
+ * |  └─common
+ * |     ├─file
+ * |     └─util
+ * ├─code
+ * |  ├─browser
+ * |  |  └─service
+ * |  ├─platform
+ * |  └─service
+ * |     └─temp
+ * ├─editor
+ * |  └─model
+ * |     ├─markdown
+ * |     └─pieceTable
+ * └─util
+ * ```
+ */
+export function printNaryTreeLike<TNode>(
+    root: TNode,
+    getContent: (node: TNode) => string,
+    hasChildren: (node: TNode) => boolean,
+    getChildren: (node: TNode) => TNode[],
+): void {
+    
+    // in-order
+    const __print = (node: TNode, prefix: string, isParentTheLast: boolean): void => {
+        console.log(prefix + getContent(node));
+        
+        if (!hasChildren(node)) {
+            return;
+        }
+
+        if (prefix) {
+            prefix = prefix.substring(0, prefix.length - 2);
+            if (!isParentTheLast) {
+                prefix += '|  ';
+            } else {
+                prefix += '   ';
+            }
+        }
+
+        const children = getChildren(node);
+        const len = children.length;
+        
+        for (let i = 0; i < len; i++) {
+            const child = children[i]!;
+
+            if (i + 1 !== len) {
+                __print(child, prefix + '├─', false);
+            } else {
+                __print(child, prefix + '└─', true);
+            }
+        }
+    };
+
+    __print(root, '', false);
+}
+
+/**
+ * @description Prints the resolved stat structure starting from the given 
+ * 'stat'. This is a specialized usage of {@link printNaryTreeLike} function 
+ * tailored for printing {@link IResolvedFileStat}.
+ * @param root The root of the file stat to be printed.
+ */
+export function printFileStat(stat: IResolvedFileStat): void {
+    printNaryTreeLike(
+        stat,
+        stat => stat.name,
+        stat => [...(stat.children ?? [])].length > 0,
+        stat => [...(stat.children ?? [])],
+    );
+}
