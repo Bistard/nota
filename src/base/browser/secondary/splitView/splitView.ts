@@ -456,7 +456,7 @@ export class SplitView extends Disposable implements ISplitView {
         // no views can be fit into the split-view.
         if (low.length + normal.length + high.length === 0) {
             if (splitViewSize !== 0) {
-                panic(new SplitViewSpaceError(splitViewSize, currContentSize));
+                panic(new SplitViewSpaceError(splitViewSize, currContentSize, this.viewItems));
             }
             return;
         }
@@ -486,7 +486,7 @@ export class SplitView extends Disposable implements ISplitView {
             if (offset === 0) { return; }
             
             // flexible views try their best but still too big to be hold.
-            panic(new SplitViewSpaceError(splitViewSize, splitViewSize + offset));
+            panic(new SplitViewSpaceError(splitViewSize, splitViewSize + offset, this.viewItems));
         }
 
         // left-most flexible views need to be increased to fit the whole split-view.
@@ -511,7 +511,7 @@ export class SplitView extends Disposable implements ISplitView {
             if (offset === 0) { return; }
 
             // flexible views try their best but still too small to fit the entire view.
-            panic(new SplitViewSpaceError(splitViewSize, splitViewSize - offset));
+            panic(new SplitViewSpaceError(splitViewSize, splitViewSize - offset, this.viewItems));
         }
     }
 
@@ -642,7 +642,8 @@ export class SplitViewSpaceError extends Error {
     constructor(
         splitViewSize: number,
         contentSize: number,
+        items: ISplitViewItem[],
     ) {
-        super(`split-view space error: cannot fit all the views (${contentSize}px) into split-view (${splitViewSize}px)`);
+        super(`split-view space error: cannot fit all the views (${contentSize}px) into split-view (${splitViewSize}px) [${items.map(item => item.ID).join(',')}]`);
     }
 }
