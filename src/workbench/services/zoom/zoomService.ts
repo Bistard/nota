@@ -1,5 +1,6 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { Arrays } from "src/base/common/utilities/array";
 import { Numbers } from "src/base/common/utilities/number";
 import { webFrame } from "src/platform/electron/browser/global";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
@@ -29,6 +30,13 @@ export interface IBrowserZoomService extends IService {
     getZoomLevel(): number;
     zoomIn(): void;
     zoomOut(): void;
+
+    /**
+     * @description Mark the given element as ignored when changing the zoom 
+     * level.
+     * @return A disposable to undo the process.
+     */
+    markAsIgnored(element: HTMLElement): IDisposable;
 }
 
 /**
@@ -40,17 +48,27 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
 
     declare _serviceMarker: undefined;
 
-    public readonly maxZoomLevel = 8;
-    public readonly minZoomLevel = -8;
+    // [events]
 
-    private _level: number;
     private readonly _onDidZoomLevelChange = this.__register(new Emitter<number>());
     public readonly onDidZoomLevelChange = this._onDidZoomLevelChange.registerListener;
+    
+    // [fields]
+
+    public readonly maxZoomLevel = 8;
+    public readonly minZoomLevel = -8;
+    private _level: number;
+    private readonly _ignored: HTMLElement[];
+
+    // [constructor]
 
     constructor() {
         super();
         this._level = webFrame.getZoomLevel();
+        this._ignored = [];
     }
+
+    // [public methods]
 
     public getZoomLevel(): number {
         return this._level;
@@ -76,8 +94,30 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
         this.__doSetZoomLevel(this._level);
     }
 
+    public markAsIgnored(element: HTMLElement): IDisposable {
+        this._ignored.push(element);
+        return toDisposable(() => {
+            Arrays.remove(this._ignored, element);
+        });
+    }
+
+    // [private methods]
+
     private __doSetZoomLevel(level: number): void {
         webFrame.setZoomLevel(level);
+
+        for (const element of this._ignored) {
+            element.style.transform = `scale(${1 / this.__zoomLevelToZoomFactor(level)})`;
+        }
+
         this._onDidZoomLevelChange.fire(level);
+    }
+
+    /**
+     * According to Electron docs: `scale := 1.2 ^ level`.
+     * https://github.com/electron/electron/blob/master/docs/api/web-contents.md#contentssetzoomlevellevel
+     */
+    private __zoomLevelToZoomFactor(level: number): number {
+        return Math.pow(1.2, level);
     }
 }
