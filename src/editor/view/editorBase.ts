@@ -1,7 +1,7 @@
 import 'src/editor/view/media/editor/editorBase.scss';
 import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
-import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/viewPart/editor/adapter/editorViewProxy";
+import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/editorViewProxy";
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 
 export interface IEditorBase extends IEditorViewProxy {

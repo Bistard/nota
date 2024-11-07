@@ -3,7 +3,7 @@ import { Disposable } from "src/base/common/dispose";
 import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
 import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorOptionsType } from "src/editor/common/editorConfiguration";
-import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
+import { RichtextEditor } from 'src/editor/view/richtextEditor';
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 import { IEditorModel } from 'src/editor/common/model';
 import { ProseEditorState } from 'src/editor/common/proseMirror';

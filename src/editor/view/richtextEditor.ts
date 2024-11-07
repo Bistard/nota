@@ -1,6 +1,6 @@
 import 'src/editor/view/media/editor/richtextEditor.scss';
 import { ViewContext } from "src/editor/view/editorView";
-import { EditorBase } from 'src/editor/view/viewPart/editor/editorBase';
+import { EditorBase } from 'src/editor/view/editorBase';
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 import { ProseEditorState } from 'src/editor/common/proseMirror';
 

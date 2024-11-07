@@ -1,4 +1,4 @@
-import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { ProseEditorView, ProseEditorState, ProseNode, ProseExtension, ProseSchema } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { fillMapFromArray } from "src/base/common/structures/map";

@@ -1,8 +1,8 @@
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { EditorBase } from "src/editor/view/viewPart/editor/editorBase";
-import { RichtextEditor } from "src/editor/view/viewPart/editor/richtextEditor";
+import { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
+import { EditorBase } from "src/editor/view/editorBase";
+import { RichtextEditor } from "src/editor/view/richtextEditor";
 
 export const enum EditorType {
     Plain = 'plain-text',

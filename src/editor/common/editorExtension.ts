@@ -1,5 +1,5 @@
 import type { IEditorWidget } from "src/editor/editorWidget";
-import type { IEditorMouseEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import type { IEditorMouseEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/proseEventBroadcaster";
 import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
@@ -93,7 +93,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onMouseDown() { return this._editorWidget.onMouseDown; }
     get onMouseUp() { return this._editorWidget.onMouseUp; }
     get onMouseMove() { return this._editorWidget.onMouseMove; }
-    
+
     // [constructor]
 
     constructor(
