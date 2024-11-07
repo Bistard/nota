@@ -1,7 +1,10 @@
-.ProseMirror {
+.editor-container.rich-text > .ProseMirror {
 
     font-size: 16px;
     line-height: 150%;
+    
+    white-space: normal;
+    word-break: break-word;
     
     margin: 0 auto;
     color: #211f27;
