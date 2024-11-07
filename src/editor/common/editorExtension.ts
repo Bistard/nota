@@ -1,5 +1,5 @@
 import type { IEditorWidget } from "src/editor/editorWidget";
-import type { IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnMouseOverEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import type { IEditorMouseEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
@@ -36,7 +36,13 @@ export interface IEditorExtension extends Disposable {
     readonly onPaste: Register<IOnPasteEvent>;
     readonly onDrop: Register<IOnDropEvent>;
     
-    readonly onMouseOver: Register<IOnMouseOverEvent>;
+    readonly onMouseOver: Register<IEditorMouseEvent>;
+    readonly onMouseOut: Register<IEditorMouseEvent>;
+    readonly onMouseEnter: Register<IEditorMouseEvent>;
+    readonly onMouseLeave: Register<IEditorMouseEvent>;
+    readonly onMouseDown: Register<IEditorMouseEvent>;
+    readonly onMouseUp: Register<IEditorMouseEvent>;
+    readonly onMouseMove: Register<IEditorMouseEvent>;
 
     // [methods]
 
@@ -81,7 +87,13 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onDrop() { return this._editorWidget.onDrop; }
     
     get onMouseOver() { return this._editorWidget.onMouseOver; }
-
+    get onMouseOut() { return this._editorWidget.onMouseOut; }
+    get onMouseEnter() { return this._editorWidget.onMouseEnter; }
+    get onMouseLeave() { return this._editorWidget.onMouseLeave; }
+    get onMouseDown() { return this._editorWidget.onMouseDown; }
+    get onMouseUp() { return this._editorWidget.onMouseUp; }
+    get onMouseMove() { return this._editorWidget.onMouseMove; }
+    
     // [constructor]
 
     constructor(

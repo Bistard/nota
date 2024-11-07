@@ -14,7 +14,7 @@ import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnMouseOverEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
 import { AsyncResult } from "src/base/common/result";
@@ -186,8 +186,26 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
 
-    private readonly _onMouseOver = this.__register(new RelayEmitter<IOnMouseOverEvent>());
+    private readonly _onMouseOver = this.__register(new RelayEmitter<IEditorMouseEvent>());
     public readonly onMouseOver = this._onMouseOver.registerListener;
+    
+    private readonly _onMouseOut = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    public readonly onMouseOut = this._onMouseOut.registerListener;
+    
+    private readonly _onMouseEnter = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    public readonly onMouseEnter = this._onMouseEnter.registerListener;
+    
+    private readonly _onMouseLeave = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    public readonly onMouseLeave = this._onMouseLeave.registerListener;
+    
+    private readonly _onMouseDown = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    public readonly onMouseDown = this._onMouseDown.registerListener;
+    
+    private readonly _onMouseUp = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    public readonly onMouseUp = this._onMouseUp.registerListener;
+    
+    private readonly _onMouseMove = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    public readonly onMouseMove = this._onMouseMove.registerListener;
 
     // #region [constructor]
 
@@ -348,6 +366,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onPaste.setInput(this.view.onPaste);
         this._onDrop.setInput(this.view.onDrop);
         this._onMouseOver.setInput(this.view.onMouseOver);
+        this._onMouseOut.setInput(this.view.onMouseOut);
+        this._onMouseEnter.setInput(this.view.onMouseEnter);
+        this._onMouseLeave.setInput(this.view.onMouseLeave);
+        this._onMouseDown.setInput(this.view.onMouseDown);
+        this._onMouseUp.setInput(this.view.onMouseUp);
+        this._onMouseMove.setInput(this.view.onMouseMove);
 
         // TODO: configuration auto update
     }

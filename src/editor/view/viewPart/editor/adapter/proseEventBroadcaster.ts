@@ -1,7 +1,8 @@
-import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomEmitter, EventType } from "src/base/browser/basic/dom";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { memoize } from "src/base/common/memoization";
 import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseResolvedPos, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
 
 type __TransactionEventBase = {
@@ -77,7 +78,7 @@ export interface IOnDropEvent {
     readonly browserEvent: DragEvent;
 }
 
-export interface IOnMouseOverEvent {
+export interface IEditorMouseEvent {
     readonly view: ProseEditorView;
     readonly event: MouseEvent;
     
@@ -194,14 +195,13 @@ export interface IProseEventBroadcaster extends IDisposable {
      */
     readonly onDrop: Register<IOnDropEvent>;
 
-    /**
-     * Fires when the mouse is hovering on the editor.
-     */
-    readonly onMouseOver: Register<IOnMouseOverEvent>;
-}
-
-function __isProseEditorView(obj: any): obj is ProseEditorView {
-    return !!obj.state;
+    readonly onMouseOver: Register<IEditorMouseEvent>;
+    readonly onMouseOut: Register<IEditorMouseEvent>;
+    readonly onMouseEnter: Register<IEditorMouseEvent>;
+    readonly onMouseLeave: Register<IEditorMouseEvent>;
+    readonly onMouseDown: Register<IEditorMouseEvent>;
+    readonly onMouseUp: Register<IEditorMouseEvent>;
+    readonly onMouseMove: Register<IEditorMouseEvent>;
 }
 
 /**
@@ -216,6 +216,13 @@ function __isProseEditorView(obj: any): obj is ProseEditorView {
  *    event {@link ProseDirectEditorProperty.dispatchTransaction} will be emitted.
  */
 export class ProseEventBroadcaster extends Disposable implements IProseEventBroadcaster {
+
+    // [field]
+
+    /**
+     * The ProseMirror view reference.
+     */
+    protected readonly _view: ProseEditorView;
 
     // [event]
 
@@ -270,23 +277,21 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
 
-    private readonly _onMouseOver = this.__register(new Emitter<IOnMouseOverEvent>());
-    public readonly onMouseOver = this._onMouseOver.registerListener;
+    @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseLeave() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseDown() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseUp() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseMove() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
 
     // [constructor]
 
-    constructor(viewOrExtensionProperty: ProseEditorView | ProseEditorProperty<any>) {
+    constructor(view: ProseEditorView) {
         super();
+        this._view = view;
+        const property = view.props;
         
-        let view: ProseEditorView | undefined;
-        let property: ProseDirectEditorProperty | ProseEditorProperty<any>;
-        if (__isProseEditorView(viewOrExtensionProperty)) {
-            view = viewOrExtensionProperty;
-            property = view.props;
-        } else {
-            property = viewOrExtensionProperty;
-        }
-
         /**
          * Only applied when the event broadcaster is binding to the actual 
          * prosemirror view directly.
@@ -320,29 +325,6 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
                     this._onDidContentChange.fire(event);
                 }
             };
-
-            this.__register(addDisposableListener(view.dom, EventType.mouseover, e => {
-                const pos = view.posAtCoords({
-                    left: e.clientX,
-                    top: e.clientY,
-                });
-        
-                const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
-                if (!node) {
-                    this._onMouseOver.fire({ view: view, event: e, target: undefined });
-                    return;
-                }
-        
-                this._onMouseOver.fire({ 
-                    view: view, 
-                    event: e, 
-                    target: { 
-                        node: node, 
-                        position: pos.pos, 
-                        getResolvedPos: () => view.state.doc.resolve(pos.pos),
-                    } 
-                });
-            }));
         }
 
         // dom event listeners
@@ -470,4 +452,26 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
             });
         };
     }
+}
+
+function __standardizeMouseEvent(e: MouseEvent, view: ProseEditorView): IEditorMouseEvent {
+    const pos = view.posAtCoords({
+        left: e.clientX,
+        top: e.clientY,
+    });
+
+    const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
+    if (!node) {
+        return { view: view, event: e, target: undefined };
+    }
+
+    return { 
+        view: view, 
+        event: e, 
+        target: { 
+            node: node, 
+            position: pos.pos, 
+            getResolvedPos: () => view.state.doc.resolve(pos.pos),
+        } 
+    };
 }

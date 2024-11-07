@@ -52,6 +52,12 @@ export class EditorView extends Disposable implements IEditorView {
     get onPaste() { return this._view.onPaste; }
     get onDrop() { return this._view.onDrop; }
     get onMouseOver() { return this._view.onMouseOver; }
+    get onMouseOut() { return this._view.onMouseOut; }
+    get onMouseEnter() { return this._view.onMouseEnter; }
+    get onMouseLeave() { return this._view.onMouseLeave; }
+    get onMouseDown() { return this._view.onMouseDown; }
+    get onMouseUp() { return this._view.onMouseUp; }
+    get onMouseMove() { return this._view.onMouseMove; }
 
     // [constructor]
     

@@ -51,11 +51,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     protected readonly _ctx: ViewContext;
     
     /**
-     * The ProseMirror view reference.
-     */
-    protected readonly _view: ProseEditorView;
-
-    /**
      * Mapping from ID to view extensions.
      */
     protected readonly _extensionMap: Map<string, ProseExtension>;
@@ -68,7 +63,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
         view: ProseEditorView,
     ) {
         super(view);
-        this._view = view;
         this._ctx = context;
         this._extensionMap = new Map();
 
