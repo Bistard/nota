@@ -11,9 +11,14 @@ export const IBrowserZoomService = createService<IBrowserZoomService>('browser-z
  */
 export interface IBrowserZoomService extends IService {
 
+    readonly maxZoomLevel: number;
+    readonly minZoomLevel: number;
+
     /**
      * Fires whenever the zoom level changes. The number represents the zoom 
-     * level between -8 to 8 (default is 0).
+     * level between 
+     *  1. {@link BrowserZoomService.prototype.minZoomLevel} to 
+     *  2. {@link BrowserZoomService.prototype.maxZoomLevel} (default level is 0).
      */
     readonly onDidZoomLevelChange: Register<number>;
 
@@ -35,6 +40,9 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
 
     declare _serviceMarker: undefined;
 
+    public readonly maxZoomLevel = 8;
+    public readonly minZoomLevel = -8;
+
     private _level: number;
     private readonly _onDidZoomLevelChange = this.__register(new Emitter<number>());
     public readonly onDidZoomLevelChange = this._onDidZoomLevelChange.registerListener;
@@ -55,16 +63,16 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
             return;
         }
 
-        this.__doSetZoomLevel(Numbers.clamp(level, -8, 8));
+        this.__doSetZoomLevel(Numbers.clamp(level, this.minZoomLevel, this.maxZoomLevel));
     }
 
     public zoomIn(): void {
-        this._level = Math.min(8, this._level + 1);
+        this._level = Math.min(this.maxZoomLevel, this._level + 1);
         this.__doSetZoomLevel(this._level);
     }
     
     public zoomOut(): void {
-        this._level = Math.max(-8, this._level - 1);
+        this._level = Math.max(this.minZoomLevel, this._level - 1);
         this.__doSetZoomLevel(this._level);
     }
 

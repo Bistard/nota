@@ -1,5 +1,4 @@
 import "src/styles/index.scss";
-import "src/workbench/parts/workspace/editor/editor"; // TODO
 import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
