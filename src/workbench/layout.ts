@@ -198,6 +198,16 @@ class CollapseAnimationController extends Disposable {
             const splitView = this._getLayoutSplitView();
             const left  = assert(splitView.getViewBy('navigation-panel')).getContainer();
             const right = assert(splitView.getViewBy('workspace')).getContainer();
+            const workbenchContainer = document.getElementById('workbench'); 
+            
+            if (workbenchContainer) {
+                if (state === CollapseState.Collapse) {
+                    workbenchContainer.classList.add('collapsed');
+                } else {
+                    workbenchContainer.classList.remove('collapsed');
+                }
+            }
+
             const transitionTime = '0.5s';
 
             if (state === CollapseState.Collapse) {

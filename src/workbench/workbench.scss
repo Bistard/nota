@@ -10,4 +10,10 @@
 
     overflow: hidden;
     box-sizing: border-box;
+
+    &.collapsed .sash-container .sash {
+        transform: translateX(-100%);
+        opacity: 0;
+        pointer-events: none;
+    }
 }
