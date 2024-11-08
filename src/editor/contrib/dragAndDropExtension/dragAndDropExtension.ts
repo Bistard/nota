@@ -1,7 +1,5 @@
 import { dropPoint } from "prosemirror-transform";
-import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
-import { Time, TimeUnit } from "src/base/common/date";
-import { IUnbufferedScheduler } from "src/base/common/utilities/async";
+import { addDisposableListener } from "src/base/browser/basic/dom";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
@@ -13,55 +11,40 @@ export interface IDragAndDropExtension extends IEditorExtension {
 
 export class EditorDragAndDropExtension extends EditorExtension implements IDragAndDropExtension {
     public readonly id = EditorExtensionIDs.DragAndDrop;
-    private readonly _unbufferedScheduler: IUnbufferedScheduler<DragEvent> | undefined;
     private _cursorPos: number | null = null;
     private _cursorElement: HTMLElement | null = null;
-    private width: number;
+    private readonly width: number;
+    private readonly color: string;
 
-    constructor(editorWidget: IEditorWidget, unbufferedScheduler: IUnbufferedScheduler<DragEvent>, width: number = 2) {
+    constructor(editorWidget: IEditorWidget, width: number = 2, color: string = 'rgba(0, 0, 255, 0.5)') {
         super(editorWidget);
-        this._unbufferedScheduler = unbufferedScheduler;
         this.width = width;
-        console.log("EditorDragAndDropExtension initialized with width:", width);
-        if (!this._unbufferedScheduler) {
-            console.log("UnbufferedScheduler is not initialized. Ensure it is passed correctly.");
-        }
+        this.color = color;
     }
 
     protected override onViewInit(view: ProseEditorView): void {
-        console.log("onViewInit called");
-        this.__register(addDisposableListener(view.dom, EventType.dragover, event => {
-            console.log("Dragover event triggered");
-            if (this._unbufferedScheduler) {
-                this._unbufferedScheduler.schedule(event);
-                this.__onDragover(event, view);
-            }
-        }));
-        this.__register(addDisposableListener(view.dom, EventType.dragleave, event => {
-            console.log("Dragleave event triggered");
-            if (this._unbufferedScheduler) {
-                this._unbufferedScheduler.schedule(event);
-                this.__onDragleave(event, view);
-            }
-        }));
-        this.__register(addDisposableListener(view.dom, EventType.drop, event => {
-            console.log("Drop event triggered");
-            if (this._unbufferedScheduler) {
-                this._unbufferedScheduler.schedule(event);
-                this.__onDrop(event, view);
-            }
-        }));
-        this.__register(addDisposableListener(view.dom, EventType.dragend, event => {
-            console.log("Dragend event triggered");
-            if (this._unbufferedScheduler) {
-                this._unbufferedScheduler.schedule(event);
-                this.__onDragEnd(event, view);
-            }
-        }));
+        ["dragover", "dragleave", "drop", "dragend"].forEach(eventType => {
+            this.__register(addDisposableListener(view.dom, eventType as "dragover" | "dragleave" | "drop" | "dragend", 
+                (event) => {
+                switch (eventType) {
+                    case "dragover":
+                        this.__onDragover(event as DragEvent, view);
+                        break;
+                    case "dragleave":
+                        this.__onDragleave(event as DragEvent, view);
+                        break;
+                    case "drop":
+                        this.__onDrop(event as DragEvent, view);
+                        break;
+                    case "dragend":
+                        this.__onDragEnd(event as DragEvent, view);
+                        break;
+                }
+            }));
+        });
     }
 
     protected override onViewUpdate(view: ProseEditorView, prevState: ProseEditorState): void {
-        console.log("onViewUpdate called");
         if (this._cursorPos !== null && prevState.doc !== view.state.doc) {
             if (this._cursorPos > view.state.doc.content.size) {
                 console.log("Cursor position out of bounds, clearing cursor");
@@ -72,28 +55,19 @@ export class EditorDragAndDropExtension extends EditorExtension implements IDrag
         }
     }
 
-    protected override onViewDestroy(view: ProseEditorView): void {
-        console.log("onViewDestroy called");
-        this.dispose();
-        this._unbufferedScheduler?.cancel();
-    }
-
     private __renderCursor(pos: number | null, view: ProseEditorView): void {
-        console.log("Attempting to render cursor at position:", pos);
+        console.log("Rendering cursor at position: ", pos);
         if (pos === this._cursorPos) {
-            console.log("Position is the same as current cursor position; no action taken.");
             return;
         }
         
         this._cursorPos = pos;
         if (pos === null) {
-            console.log("Clearing cursor element");
             if (this._cursorElement && this._cursorElement.parentNode) {
                 this._cursorElement.parentNode.removeChild(this._cursorElement);
             }
             this._cursorElement = null;
         } else {
-            console.log("Rendering cursor at new position:", pos);
             this.__updateOverlay(view);
         }
     }
@@ -162,18 +136,22 @@ export class EditorDragAndDropExtension extends EditorExtension implements IDrag
         if (!this._cursorElement) {
             this._cursorElement = parent.appendChild(document.createElement("div"));
             this._cursorElement.classList.add("editor-dnd-cursor");
-            this._cursorElement.style.cssText = "position: absolute; z-index: 50; pointer-events: none;";
+            this._cursorElement.style.cssText = `
+                position: absolute; 
+                z-index: 50; 
+                pointer-events: none;
+                background-color: ${this.color};
+            `;
             console.log("Cursor element created and added to DOM");
         }
     
         this._cursorElement.classList.toggle("prosemirror-dropcursor-block", isBlock);
         this._cursorElement.classList.toggle("prosemirror-dropcursor-inline", !isBlock);
     
-        // Calculate parent offsets
         let parentLeft: number, parentTop: number;
         if (!parent || (parent === document.body && getComputedStyle(parent).position === "static")) {
-            parentLeft = -window.pageXOffset;
-            parentTop = -window.pageYOffset;
+            parentLeft = -window.scrollX;
+            parentTop = -window.scrollY;
         } else {
             const parentRect = parent.getBoundingClientRect();
             const parentScaleX = parentRect.width / parent.offsetWidth;
@@ -182,7 +160,6 @@ export class EditorDragAndDropExtension extends EditorExtension implements IDrag
             parentTop = parentRect.top - parent.scrollTop * parentScaleY;
         }
     
-        // Set the position and size of the cursor element based on calculated `rect`
         this._cursorElement.style.left = `${(rect.left - parentLeft) / scaleX}px`;
         this._cursorElement.style.top = `${(rect.top - parentTop) / scaleY}px`;
         this._cursorElement.style.width = `${(rect.right - rect.left) / scaleX}px`;
@@ -195,6 +172,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IDrag
             height: this._cursorElement.style.height
         });
     }
+
     private __onDragover(event: DragEvent, view: ProseEditorView): void {
         console.log("Handling dragover event");
     
@@ -209,39 +187,16 @@ export class EditorDragAndDropExtension extends EditorExtension implements IDrag
         if (pos && pos.inside >= 0) {
             console.log("Position is inside the document:", pos.inside);
     
-            // Check if the drop cursor is disabled for this node
-            const node = view.state.doc.nodeAt(pos.inside);
-            const disableDropCursor = node && node.type.spec["disableDropCursor"];
-            const isDisabled = typeof disableDropCursor === "function"
-                ? disableDropCursor(view, pos, event)
-                : disableDropCursor;
+            let target: number | null = pos.pos;
+            if (view.dragging && view.dragging.slice) {
+                const point = dropPoint(view.state.doc, target, view.dragging.slice);
+                console.log("Calculated drop point:", point);
+                if (point !== null) target = point;
+            }
     
-            console.log("Drop cursor disabled:", isDisabled);
-    
-            if (!isDisabled) {
-                // Calculate the target position, taking into account any dragging slice
-                let target: number | null = pos.pos;
-                console.log("Initial target position:", target);
-    
-                if (view.dragging && view.dragging.slice) {
-                    const point = dropPoint(view.state.doc, target, view.dragging.slice);
-                    console.log("Calculated drop point:", point);
-                    if (point !== null) target = point;
-                }
-    
-                // Set the cursor and schedule its removal
-                if (target !== null) {
-                    console.log("Final target position for cursor:", target);
-                    this.__renderCursor(target, view);  // This should now call __renderCursor
-    
-                    const time = new Time(TimeUnit.Milliseconds, 5000);
-                    if (this._unbufferedScheduler) {
-                        console.log("Scheduling cursor removal with _unbufferedScheduler after 5000 ms");
-                        this._unbufferedScheduler.schedule(event, time);
-                    }
-                }
-            } else {
-                console.log("Drop cursor is disabled for this node.");
+            if (target !== null) {
+                console.log("Final target position for cursor:", target);
+                this.__renderCursor(target, view);
             }
         } else {
             console.log("No valid position found or position is outside document.");
@@ -249,20 +204,21 @@ export class EditorDragAndDropExtension extends EditorExtension implements IDrag
     
         event.preventDefault();
     }
-    
 
     private __onDragleave(event: DragEvent, view: ProseEditorView): void {
-        const editorView = view;
-        if (!editorView || (event.relatedTarget && editorView.dom.contains(event.relatedTarget as Node))) return;
-        this.__renderCursor(null, editorView);
+        if (!event.relatedTarget || !view.dom.contains(event.relatedTarget as Node)) {
+            console.log("Drag leave event: clearing cursor");
+            this.__renderCursor(null, view);
+        }
     }
 
     private __onDrop(event: DragEvent, view: ProseEditorView): void {
+        console.log("Drop event triggered: clearing cursor");
         this.__renderCursor(null, view);
     }
 
     private __onDragEnd(event: DragEvent, view: ProseEditorView): void {
-        const editorView = view;
-        this.__renderCursor(null, editorView);
+        console.log("Drag end event triggered: clearing cursor");
+        this.__renderCursor(null, view);
     }
 }

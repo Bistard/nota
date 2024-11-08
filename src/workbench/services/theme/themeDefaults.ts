@@ -1,7 +1,7 @@
 import { Color, ColorMap } from "src/base/common/color";
 import { assert } from "src/base/common/utilities/panic";
 
-export const THEME_COLORS = <const>{
+export const THEME_COLORS = <const> {
 
     // primary (brand)
 
@@ -28,7 +28,7 @@ export const THEME_COLORS = <const>{
     goldenrod:           assert(Color.parseHex('#F1AD00')),
     lightgoldenrod:     assert(Color.parseHex('#f9de99')),
     crimson:             assert(Color.parseHex('#DA3A34')),
-    lightcrimson:       assert(Color.parseHex('#ec9c99')),
+    lightcrimson:       assert(Color.parseHex('#ec9c99'))
     
     // light theme special
     
