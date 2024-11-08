@@ -35,6 +35,7 @@ export class EditorView extends Disposable implements IEditorView {
     // [events]
     
     get onDidFocusChange() { return this._view.onDidFocusChange; }
+    
     get onBeforeRender() { return this._view.onBeforeRender; }
     get onRender() { return this._view.onRender; }
     get onDidRender() { return this._view.onDidRender; }
@@ -46,11 +47,12 @@ export class EditorView extends Disposable implements IEditorView {
     get onDidDoubleClick() { return this._view.onDidDoubleClick; }
     get onTripleClick() { return this._view.onTripleClick; }
     get onDidTripleClick() { return this._view.onDidTripleClick; }
+    
     get onKeydown() { return this._view.onKeydown; }
     get onKeypress() { return this._view.onKeypress; }
     get onTextInput() { return this._view.onTextInput; }
     get onPaste() { return this._view.onPaste; }
-    get onDrop() { return this._view.onDrop; }
+    
     get onMouseOver() { return this._view.onMouseOver; }
     get onMouseOut() { return this._view.onMouseOut; }
     get onMouseEnter() { return this._view.onMouseEnter; }
@@ -58,6 +60,14 @@ export class EditorView extends Disposable implements IEditorView {
     get onMouseDown() { return this._view.onMouseDown; }
     get onMouseUp() { return this._view.onMouseUp; }
     get onMouseMove() { return this._view.onMouseMove; }
+    
+    get onDrop() { return this._view.onDrop; }
+    get onDrag() { return this._view.onDrag; }
+    get onDragStart() { return this._view.onDragStart; }
+    get onDragEnd() { return this._view.onDragEnd; }
+    get onDragOver() { return this._view.onDragOver; }
+    get onDragEnter() { return this._view.onDragEnter; }
+    get onDragLeave() { return this._view.onDragLeave; }
 
     // [constructor]
     
