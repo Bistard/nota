@@ -11,13 +11,22 @@ export interface IEditorDragAndDropExtension extends IEditorExtension {
 }
 
 export class EditorDragAndDropExtension extends EditorExtension implements IEditorDragAndDropExtension {
+    
+    // [field]
+    
     public readonly id = EditorExtensionIDs.DragAndDrop;
-    private _cursorPos: number | null = null;
-    private _cursorElement: HTMLElement | null = null;
+    public readonly width: number = 4; // in pixel
+
+    private _cursorPosition: number | null = null;
+    private _cursorElement: HTMLElement | null = null; // TODO: replace with FastElement
+
+    // [constructor]
 
     constructor(editorWidget: IEditorWidget) {
         super(editorWidget);
     }
+
+    // [override methods]
 
     protected override onViewInit(view: ProseEditorView): void {
         this.__register(addDisposableListener(view.dom, 'dragover', (event: DragEvent) => {
@@ -38,8 +47,8 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     protected override onViewUpdate(view: ProseEditorView, prevState: ProseEditorState): void {
-        if (this._cursorPos !== null && prevState.doc !== view.state.doc) {
-            if (this._cursorPos > view.state.doc.content.size) {
+        if (this._cursorPosition !== null && prevState.doc !== view.state.doc) {
+            if (this._cursorPosition > view.state.doc.content.size) {
                 this.__renderCursor(null, view);
             } else {
                 this.__updateOverlay(view);
@@ -47,16 +56,16 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         }
     }
 
+    // [private methods]
+
     private __renderCursor(pos: number | null, view: ProseEditorView): void {
-        if (pos === this._cursorPos) {
+        if (pos === this._cursorPosition) {
             return;
         }
         
-        this._cursorPos = pos;
+        this._cursorPosition = pos;
         if (pos === null) {
-            if (this._cursorElement && this._cursorElement.parentNode) {
-                this._cursorElement.parentNode.removeChild(this._cursorElement);
-            }
+            this._cursorElement?.remove();
             this._cursorElement = null;
         } else {
             this.__updateOverlay(view);
@@ -64,11 +73,15 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     private __updateOverlay(view: ProseEditorView): void {
-        if (this._cursorPos === null) {
+        if (this._cursorPosition === null) {
             return;
         }
     
-        const $pos = view.state.doc.resolve(this._cursorPos);
+        /**
+         * Resolve the document position to find the current node context and 
+         * determine if we are dealing with a block-level element.
+         */
+        const $pos = view.state.doc.resolve(this._cursorPosition);
         const isBlock = !$pos.parent.inlineContent;
         let rect: { left: number; right: number; top: number; bottom: number } | undefined;
     
@@ -77,25 +90,29 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         const scaleX = editorRect.width / editorDOM.offsetWidth;
         const scaleY = editorRect.height / editorDOM.offsetHeight;
     
+        /**
+         * If the cursor is in a block-level position, determine the rectangle 
+         * to represent the cursor visually.
+         */
         if (isBlock) {
             const before = $pos.nodeBefore;
             const after = $pos.nodeAfter;
             if (before || after) {
                 const offset = before ? before.nodeSize : 0;
-                const node = view.nodeDOM(this._cursorPos - offset);
+                const node = view.nodeDOM(this._cursorPosition - offset);
                 if (node) {
                     const nodeRect = (node as HTMLElement).getBoundingClientRect();
                     let top = before ? nodeRect.bottom : nodeRect.top;
     
                     if (before && after) {
-                        const currentNode = view.nodeDOM(this._cursorPos);
+                        const currentNode = view.nodeDOM(this._cursorPosition);
                         if (currentNode) {
                             const currentNodeRect = (currentNode as HTMLElement).getBoundingClientRect();
                             top = (top + currentNodeRect.top) / 2;
                         }
                     }
     
-                    const halfWidth = scaleY;
+                    const halfWidth = (this.width / 2) * scaleY;
                     rect = {
                         left: nodeRect.left,
                         right: nodeRect.right,
@@ -106,9 +123,13 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
             }
         }
     
+        /**
+         * If the position is not block-level, calculate the cursor rectangle 
+         * for inline content.
+         */
         if (!rect) {
-            const coords = view.coordsAtPos(this._cursorPos);
-            const halfWidth = scaleX;
+            const coords = view.coordsAtPos(this._cursorPosition);
+            const halfWidth = (this.width / 2) * scaleX;
             rect = {
                 left: coords.left - halfWidth,
                 right: coords.left + halfWidth,
@@ -119,15 +140,15 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     
         const parent = editorDOM.offsetParent as HTMLElement;
         if (!this._cursorElement) {
-            this._cursorElement = parent.appendChild(document.createElement("div"));
-            this._cursorElement.classList.add("editor-dnd-cursor");
+            this._cursorElement = parent.appendChild(document.createElement('div'));
+            this._cursorElement.classList.add('editor-drop-cursor');
         }
     
-        this._cursorElement.classList.toggle("prosemirror-dropcursor-block", isBlock);
-        this._cursorElement.classList.toggle("prosemirror-dropcursor-inline", !isBlock);
+        this._cursorElement.classList.toggle('drop-cursor-block', isBlock);
+        this._cursorElement.classList.toggle('drop-cursor-inline', !isBlock);
     
         let parentLeft: number, parentTop: number;
-        if (!parent || (parent === document.body && getComputedStyle(parent).position === "static")) {
+        if (!parent || (parent === document.body && getComputedStyle(parent).position === 'static')) {
             parentLeft = -window.scrollX;
             parentTop = -window.scrollY;
         } else {
@@ -145,24 +166,21 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     private __onDragover(event: DragEvent, view: ProseEditorView): void {
-        if (!view || !view.editable) {
+        if (!view.editable) {
             return;
         }
     
         const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
     
         if (pos && pos.inside >= 0) {
-            let target: number | null = pos.pos;
-            if (view.dragging && view.dragging.slice) {
+            let target: number = pos.pos;
+            if (view.dragging) {
                 const point = dropPoint(view.state.doc, target, view.dragging.slice);
                 if (point !== null) {
                     target = point;
                 }
             }
-    
-            if (target !== null) {
-                this.__renderCursor(target, view);
-            }
+            this.__renderCursor(target, view);
         }
         event.preventDefault();
     }
