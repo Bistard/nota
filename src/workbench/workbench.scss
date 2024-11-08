@@ -11,7 +11,11 @@
     overflow: hidden;
     box-sizing: border-box;
 
-    &.collapsed .sash-container .sash {
+    /**
+     * hacky: since toggle collapse button doesn't work with splitView properly,
+     * we need some hacky way to disable sash when collapsing.
+     */
+     &.collapsed > .split-view > .sash-container > .sash {
         transform: translateX(-100%);
         opacity: 0;
         pointer-events: none;

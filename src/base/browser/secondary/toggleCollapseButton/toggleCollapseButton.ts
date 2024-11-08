@@ -121,7 +121,7 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
     }
     
     public click(): boolean {
-        if (!this._button) {
+        if (!this.rendered || !this._button) {
             return false;
         }
 
@@ -130,7 +130,7 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
             ? CollapseState.Expand
             : CollapseState.Collapse;
 
-        this.__flipOver(this._button);
+        this.__flipOver(this.element, this._button);
         this._onDidCollapseStateChange.fire(this._collapseState);
 
         return true;
@@ -230,7 +230,7 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         
         if (this._collapseState === CollapseState.Collapse) {
             // default state is collapse, we flip it over.
-            this.__flipOver(button);
+            this.__flipOver(this.element, button);
         } else {
             // default is expand, no flip over.
             button.style.transform += ` rotate(${this._rotationAngle}deg)`;
@@ -244,7 +244,8 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         this.onClick(button, () => this.click());
     }
 
-    private __flipOver(button: HTMLElement): void {
+    private __flipOver(element: HTMLElement, button: HTMLElement): void {
+        element.classList.toggle('collapsed');
         this._rotationAngle = (this._rotationAngle + 180) % 360;
         button.style.transform = `rotate(${this._rotationAngle}deg)`;
     }

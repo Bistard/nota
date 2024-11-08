@@ -20,6 +20,7 @@ import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseB
 import { Priority } from "src/base/common/event";
 import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
+import { FastElement } from "src/base/browser/basic/fastElement";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -55,6 +56,7 @@ export abstract class WorkbenchLayout extends Component {
         super('workbench', layoutService.parentContainer, themeService, componentService, logService);
         this._collapseController = new CollapseAnimationController(
             CollapseState.Expand, 
+            this.element,
             () => assert(this._splitView),
             () => assert(this.dimension),
         );
@@ -145,6 +147,8 @@ class CollapseAnimationController extends Disposable {
 
     private readonly _getLayoutSplitView: () => ISplitView;
     private readonly _getCurrentDimension: () => IDimension;
+    
+    private readonly _container: FastElement<HTMLElement>;
     private readonly _button: ToggleCollapseButton;
     
     private _animating: boolean;
@@ -157,6 +161,7 @@ class CollapseAnimationController extends Disposable {
 
     constructor(
         initState: CollapseState,
+        element: FastElement<HTMLElement>,
         retrieveSplitView: () => ISplitView,
         getCurrentDimension: () => IDimension,
     ) {
@@ -164,6 +169,8 @@ class CollapseAnimationController extends Disposable {
         this._getLayoutSplitView = retrieveSplitView;
         this._getCurrentDimension = getCurrentDimension;
         this._animating = false;
+        this._container = element;
+        this._container.toggleClassName('collapsed', initState === CollapseState.Collapse);
 
         this._button = new ToggleCollapseButton({
             initState: initState,
@@ -198,17 +205,9 @@ class CollapseAnimationController extends Disposable {
             const splitView = this._getLayoutSplitView();
             const left  = assert(splitView.getViewBy('navigation-panel')).getContainer();
             const right = assert(splitView.getViewBy('workspace')).getContainer();
-            const workbenchContainer = document.getElementById('workbench'); 
             
-            if (workbenchContainer) {
-                if (state === CollapseState.Collapse) {
-                    workbenchContainer.classList.add('collapsed');
-                } else {
-                    workbenchContainer.classList.remove('collapsed');
-                }
-            }
-
-            const transitionTime = '0.5s';
+            this._container.toggleClassName('collapsed', state === CollapseState.Collapse);
+            const transitionTime = '0.3s';
 
             if (state === CollapseState.Collapse) {
                 // opacity changes
