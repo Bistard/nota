@@ -24,7 +24,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this.__setDirty(false) }));
     public readonly onDidBuild = this._onDidBuild.registerListener;
-    
+
     private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this.__setDirty(true) }));
     public readonly onTransaction = this._onTransaction.registerListener;
 
@@ -48,7 +48,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     private readonly _lexer: IMarkdownLexer;             // Responsible for parsing the raw text into tokens.
     private readonly _docParser: IDocumentParser;        // Parser that parses the given token into a legal view based on the schema.
     private readonly _docSerializer: MarkdownSerializer; // Serializer that transforms the prosemirror document back to raw string.
-    
+
     private _editorState?: ProseEditorState; // A reference to the prosemirror state.
     private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.__setDirty()`
 
@@ -64,7 +64,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._source = source;
         this._options = options;
         this._lexer = new MarkdownLexer(this.__initLexerOptions(options));
-        
+
         const nodeProvider = DocumentNodeProvider.create().register();
         this._schema = buildSchema(nodeProvider);
         this._docParser = new DocumentParser(this._schema, nodeProvider, /* options */);
@@ -122,7 +122,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     public getLine(lineNumber: number): string {
         return ''; // TODO
     }
-    
+
     public getRawLine(lineNumber: number): string {
         return ''; // TODO
     }
@@ -196,7 +196,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         const doc = this._docParser.parse(tokens);
         console.log(doc); // TEST
-        
+
         // console.log(this._docSerializer.serialize(doc)); // TEST
         return doc;
     }
@@ -217,7 +217,7 @@ export class EditorModel extends Disposable implements IEditorModel {
                     schema: this._schema,
                     doc: document,
                     plugins: [
-                        ...extensions.map(extension => extension.getViewExtension()), 
+                        ...extensions.map(extension => extension.getViewExtension()),
                         history({ depth: 500 }),
                     ],
                 });

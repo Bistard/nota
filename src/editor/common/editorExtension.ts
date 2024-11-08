@@ -1,15 +1,18 @@
 import type { IEditorWidget } from "src/editor/editorWidget";
-import type { IEditorMouseEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/view/proseEventBroadcaster";
+import type { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
 
+
+
+
 /**
  * An interface only for {@link EditorExtension}.
  */
-export interface IEditorExtension extends Disposable {
+export interface IEditorExtension extends Omit<IProseEventBroadcaster, 'onBeforeRender' | 'onRender' | 'onDidRender' | 'onDidSelectionChange' | 'onDidContentChange'> {
     
     // [fields]
 
@@ -17,32 +20,6 @@ export interface IEditorExtension extends Disposable {
      * Every extension should has a unique identifier binding to itself.
      */
     readonly id: string;
-
-    // [events]
-    
-    readonly onDidFocusChange: Register<boolean>;
-    
-    readonly onClick: Register<IOnClickEvent>;
-    readonly onDidClick: Register<IOnDidClickEvent>;
-    readonly onDoubleClick: Register<IOnDoubleClickEvent>;
-    readonly onDidDoubleClick: Register<IOnDidDoubleClickEvent>;
-    readonly onTripleClick: Register<IOnTripleClickEvent>;
-    readonly onDidTripleClick: Register<IOnDidTripleClickEvent>;
-    
-    readonly onKeydown: Register<IOnKeydownEvent>;
-    readonly onKeypress: Register<IOnKeypressEvent>;
-    readonly onTextInput: Register<IOnTextInputEvent>;
-    
-    readonly onPaste: Register<IOnPasteEvent>;
-    readonly onDrop: Register<IOnDropEvent>;
-    
-    readonly onMouseOver: Register<IEditorMouseEvent>;
-    readonly onMouseOut: Register<IEditorMouseEvent>;
-    readonly onMouseEnter: Register<IEditorMouseEvent>;
-    readonly onMouseLeave: Register<IEditorMouseEvent>;
-    readonly onMouseDown: Register<IEditorMouseEvent>;
-    readonly onMouseUp: Register<IEditorMouseEvent>;
-    readonly onMouseMove: Register<IEditorMouseEvent>;
 
     // [methods]
 
@@ -82,9 +59,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onKeydown() { return this._editorWidget.onKeydown; }
     get onKeypress() { return this._editorWidget.onKeypress; }
     get onTextInput() { return this._editorWidget.onTextInput; }
-    
     get onPaste() { return this._editorWidget.onPaste; }
-    get onDrop() { return this._editorWidget.onDrop; }
     
     get onMouseOver() { return this._editorWidget.onMouseOver; }
     get onMouseOut() { return this._editorWidget.onMouseOut; }
@@ -93,6 +68,14 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onMouseDown() { return this._editorWidget.onMouseDown; }
     get onMouseUp() { return this._editorWidget.onMouseUp; }
     get onMouseMove() { return this._editorWidget.onMouseMove; }
+    
+    get onDrop() { return this._editorWidget.onDrop; }
+    get onDrag() { return this._editorWidget.onDrag; }
+    get onDragStart() { return this._editorWidget.onDragStart; }
+    get onDragEnd() { return this._editorWidget.onDragEnd; }
+    get onDragOver() { return this._editorWidget.onDragOver; }
+    get onDragEnter() { return this._editorWidget.onDragEnter; }
+    get onDragLeave() { return this._editorWidget.onDragLeave; }
 
     // [constructor]
 
