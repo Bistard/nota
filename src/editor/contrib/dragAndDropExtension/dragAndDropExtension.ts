@@ -46,16 +46,6 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         }));
     }
 
-    protected override onViewUpdate(view: ProseEditorView, prevState: ProseEditorState): void {
-        if (this._cursorPosition !== null && prevState.doc !== view.state.doc) {
-            if (this._cursorPosition > view.state.doc.content.size) {
-                this.__renderCursor(null, view);
-            } else {
-                this.__updateOverlay(view);
-            }
-        }
-    }
-
     // [private methods]
 
     private __renderCursor(pos: number | null, view: ProseEditorView): void {
