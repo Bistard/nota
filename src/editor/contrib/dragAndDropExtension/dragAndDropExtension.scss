@@ -2,18 +2,18 @@
     position: absolute;
     z-index: 50;
     pointer-events: none;
-    background-color: #2aa882;
+    background-color: var(--nota-drop-cursor, #2aa882);
     
     &.prosemirror-dropcursor-block {
         width: 100%;
         height: 2px;
-        background-color: #2aa882;
+        background-color: var(--nota-drop-cursor, #2aa882);
     }
   
     &.prosemirror-dropcursor-inline {
         width: 2px;
         height: 100%;
-        background-color: #2aa882;
+        background-color: var(--nota-drop-cursor, #2aa882);
     }
   
     &.highlight-animation {
@@ -29,4 +29,3 @@
         opacity: 1;
     }
 }
-  
