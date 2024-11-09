@@ -91,6 +91,7 @@ export interface IEditorMouseEvent {
 }
 
 export interface IEditorDragEvent extends IEditorMouseEvent {
+    readonly event: DragEvent;
     readonly dataTransfer?: DataTransfer;
 }
 
@@ -234,6 +235,7 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
      * The ProseMirror view reference.
      */
     protected readonly _view: ProseEditorView;
+    private readonly _$container: HTMLElement;
 
     // [event]
 
@@ -285,28 +287,29 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     private readonly _onPaste = this.__register(new Emitter<IOnPasteEvent>());
     public readonly onPaste = this._onPaste.registerListener;
 
-    @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseLeave() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseDown() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseUp() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseMove() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseDown() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseUp() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseMove() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
     
-    @memoize get onDrag() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.drag)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragStart() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragstart)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragEnd() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragend)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragOver() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragEnter() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragLeave() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDrag() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.drag)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragStart() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragstart)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragEnd() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragend)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
 
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
 
     // [constructor]
 
-    constructor(view: ProseEditorView) {
+    constructor(container: HTMLElement, view: ProseEditorView) {
         super();
+        this._$container = container;
         this._view = view;
         const property = view.props;
         

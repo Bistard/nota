@@ -39,7 +39,7 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
             }
         );
 
-        super(context, viewExtensionInfo, view);
+        super(container, context, viewExtensionInfo, view);
         this._container = container;
         this._context = context;
     }
