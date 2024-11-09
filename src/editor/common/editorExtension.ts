@@ -76,6 +76,8 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onDragOver() { return this._editorWidget.onDragOver; }
     get onDragEnter() { return this._editorWidget.onDragEnter; }
     get onDragLeave() { return this._editorWidget.onDragLeave; }
+    
+    get onWheel() { return this._editorWidget.onWheel; }
 
     // [constructor]
 

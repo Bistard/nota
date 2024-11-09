@@ -224,6 +224,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     
     private readonly _onDragLeave = this.__register(new RelayEmitter<IEditorDragEvent>());
     public readonly onDragLeave = this._onDragLeave.registerListener;
+    
+    private readonly _onWheel = this.__register(new RelayEmitter<WheelEvent>());
+    public readonly onWheel = this._onWheel.registerListener;
 
     // #region [constructor]
 
@@ -401,6 +404,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onDragEnter.setInput(this.view.onDragEnter);
         this._onDragLeave.setInput(this.view.onDragLeave);
         
+        this._onWheel.setInput(this.view.onWheel);
         // TODO: configuration auto update
     }
 }

@@ -68,6 +68,8 @@ export class EditorView extends Disposable implements IEditorView {
     get onDragOver() { return this._view.onDragOver; }
     get onDragEnter() { return this._view.onDragEnter; }
     get onDragLeave() { return this._view.onDragLeave; }
+    
+    get onWheel() { return this._view.onWheel; }
 
     // [constructor]
     

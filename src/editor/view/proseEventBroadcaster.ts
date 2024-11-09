@@ -214,6 +214,11 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onDragOver: Register<IEditorDragEvent>;
     readonly onDragEnter: Register<IEditorDragEvent>;
     readonly onDragLeave: Register<IEditorDragEvent>;
+
+    /**
+     * Fires when scrolling happens.
+     */
+    readonly onWheel: Register<WheelEvent>;
 }
 
 /**
@@ -309,6 +314,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
+
+    @memoize get onWheel() { return this.__register(new DomEmitter(this._$container, EventType.wheel)).registerListener; }
 
     // [constructor]
 
