@@ -85,6 +85,7 @@ export interface IEditorMouseEvent {
     readonly target?: {
         readonly node: ProseNode;
         readonly position: number;
+        readonly parentPosition: number;
         getResolvedPos(): ProseResolvedPos;
     }
 }
@@ -488,6 +489,7 @@ function __standardizeMouseEvent(e: MouseEvent, view: ProseEditorView): IEditorM
         target: { 
             node: node, 
             position: pos.pos, 
+            parentPosition: pos.inside,
             getResolvedPos: () => view.state.doc.resolve(pos.pos),
         } 
     };
@@ -513,6 +515,7 @@ function __standardizeDragEvent(e: DragEvent, view: ProseEditorView): IEditorDra
         target: { 
             node: node, 
             position: pos.pos, 
+            parentPosition: pos.inside,
             getResolvedPos: () => view.state.doc.resolve(pos.pos),
         } 
     };

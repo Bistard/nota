@@ -25,6 +25,8 @@ export {
     DirectEditorProps as ProseDirectEditorProperty,
     EditorProps as ProseEditorProps,
     Decoration as ProseDecoration,
+    DecorationSet as ProseDecorationSet,
+    DecorationSource as ProseDecorationSource,
 } from "prosemirror-view";
 
 export { 
