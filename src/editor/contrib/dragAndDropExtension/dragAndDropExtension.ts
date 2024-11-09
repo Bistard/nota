@@ -117,6 +117,8 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
             };
         }
     
+        // start rendering
+
         const parent = editorDOM.offsetParent as HTMLElement;
         if (!this._cursorElement) {
             this._cursorElement = parent.appendChild(document.createElement('div'));

@@ -9,14 +9,10 @@
     transition: top 0.2s ease;
     
     &.drop-cursor-block {
-        width: 100%;
-        height: 1.6px;
         background-color: var(--nota-drop-cursor);
     }
   
     &.drop-cursor-inline {
-        width: 1.6px;
-        height: 100%;
         background-color: var(--nota-drop-cursor);
     }
 }
