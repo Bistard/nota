@@ -3,15 +3,17 @@ import { EditorExtension } from "src/editor/common/editorExtension";
 import { EditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
 import { EditorAutoSaveExtension } from "src/editor/contrib/autoSaveExtension";
 import { EditorInputRuleExtension } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
-// import { EditorHistoryExtension } from "src/editor/contrib/historyExtension/historyExtension";
 import { EditorDragAndDropExtension } from "src/editor/contrib/dragAndDropExtension/dragAndDropExtension";
+// import { EditorHistoryExtension } from "src/editor/contrib/historyExtension/historyExtension";
+// import { EditorDragHandleExtension } from "src/editor/contrib/dragHandleExtension/dragHandleExtension";
 
 export const enum EditorExtensionIDs {
     Command   = 'editor-command-extension',
     AutoSave  = 'editor-autosave-extension',
     InputRule = 'editor-inputRule-extension',
     History   = 'editor-history-extension',
-    DragAndDrop = 'editor-draganddrop-extension'
+    DragAndDrop = 'editor-drag-and-drop-extension',
+    DragHandle = 'editor-dragHandle-extension',
 }
 
 /**
@@ -23,6 +25,7 @@ export function getBuiltInExtension(): { id: string, ctor: Constructor<EditorExt
         { id: EditorExtensionIDs.AutoSave, ctor: EditorAutoSaveExtension },
         { id: EditorExtensionIDs.Command, ctor: EditorCommandExtension },
         { id: EditorExtensionIDs.DragAndDrop, ctor: EditorDragAndDropExtension },
+        // { id: EditorExtensionIDs.DragHandle, ctor: EditorDragHandleExtension },
         // { id: EditorExtensionIDs.History, ctor: EditorHistoryExtension }, // TODO: unfinished (shit mountain)
     ];
 }
