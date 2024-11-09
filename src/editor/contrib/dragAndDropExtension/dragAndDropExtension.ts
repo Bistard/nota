@@ -45,9 +45,10 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         if (position === null) {
             this._cursorElement?.remove();
             this._cursorElement = null;
-        } else {
-            this.__updateOverlay(view);
-        }
+            return;
+        } 
+        
+        this.__updateOverlay(view);
     }
 
     private __updateOverlay(view: ProseEditorView): void {
@@ -102,8 +103,8 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         }
     
         /**
-         * If the position is not block-level, calculate the cursor rectangle 
-         * for inline content.
+         * If the position is not block-level and we are not restricting to block only,
+         * calculate the cursor rectangle for inline content.
          */
         if (!rect) {
             const coords = view.coordsAtPos(this._cursorPosition);
@@ -148,9 +149,13 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
             return;
         }
     
-        const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
-        if (pos && pos.inside >= 0) {
-            let target: number = pos.pos;
+        /**
+         * Handle the case when the mouse is inside the editor, we try to find
+         * the node at the exact mouse position (clientX and clientY).
+         */
+        const position = view.posAtCoords({ left: event.clientX, top: event.clientY });
+        if (position && position.inside !== -1) {
+            let target: number = position.pos;
             if (view.dragging) {
                 const point = dropPoint(view.state.doc, target, view.dragging.slice);
                 if (point !== null) {
@@ -159,6 +164,30 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
             }
             this.__renderCursor(target, view);
         }
+        /**
+         * Reach here might be either:
+         *  1. `position` is null, means the mouse is dragging outside the editor.
+         *  2. `position.inside = 1`, which means it is the node at the top level.
+         * Either case, we render the cursor only in block-level.
+         */
+        else {
+            const mouseY = event.clientY;
+            const viewRect = view.dom.getBoundingClientRect();
+            const position = view.posAtCoords({ left: viewRect.left, top: mouseY });
+            
+            // a node found at the mouse-y axis.
+            if (position) {
+                const target = position.inside === -1 ? position.pos : position.inside;
+                this.__renderCursor(target, view);
+            } 
+            // node not found at y axis. Must be either above/below the entire editor.
+            else {
+                const docSize = view.state.doc.content.size;
+                const target = mouseY > docSize ? docSize : 0;
+                this.__renderCursor(target, view);
+            }
+        }
+
         event.preventDefault();
     }
 
