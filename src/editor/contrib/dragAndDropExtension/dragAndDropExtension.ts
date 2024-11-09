@@ -167,7 +167,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         /**
          * Reach here might be either:
          *  1. `position` is null, means the mouse is dragging outside the editor.
-         *  2. `position.inside = 1`, which means it is the node at the top level.
+         *  2. `position.inside = -1`, which means it is the node at the top level.
          * Either case, we render the cursor only in block-level.
          */
         else {
