@@ -235,6 +235,11 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
      * The ProseMirror view reference.
      */
     protected readonly _view: ProseEditorView;
+    
+    /**
+     * The element only for dom event listening purpose. This is the element that
+     * triggers the dom-related events.
+     */
     private readonly _$container: HTMLElement;
 
     // [event]

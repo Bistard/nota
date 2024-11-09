@@ -81,13 +81,16 @@ export class EditorView extends Disposable implements IEditorView {
     ) {
         super();
 
+        this._container = document.createElement('div');
+        this._container.className = 'editor-view-container';
+
         const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional));
         this._ctx = context;
 
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = new RichtextEditor(editorElement, context, initState, extensions);
+        this._view = new RichtextEditor(editorElement, this._container, context, initState, extensions);
         
         // forward: start listening events from model
         this.__registerEventFromModel();
@@ -95,8 +98,6 @@ export class EditorView extends Disposable implements IEditorView {
 
 
         // render
-        this._container = document.createElement('div');
-        this._container.className = 'editor-view-container';
         this._container.appendChild(editorElement);
         container.appendChild(this._container);
 
