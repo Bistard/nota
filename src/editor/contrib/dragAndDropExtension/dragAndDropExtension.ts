@@ -28,32 +28,21 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     // [override methods]
 
     protected override onViewInit(view: ProseEditorView): void {
-        this.__register(this.onDragOver(e => {
-            this.__onDragover(e.event, view);
-        }));
-
-        this.__register(this.onDragLeave(e => {
-            this.__onDragleave(e.event, view);
-        }));
-
-        this.__register(this.onDrop(e => {
-            this.__onDrop(e.browserEvent, view);
-        }));
-        
-        this.__register(this.onDragEnd(e => {
-            this.__onDragEnd(e.event, view);
-        }));
+        this.__register(this.onDragOver(e => { this.__onDragover(e.event, view); }));
+        this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, view); }));
+        this.__register(this.onDrop(e => { this.__onDrop(e.browserEvent, view); }));
+        this.__register(this.onDragEnd(e => { this.__onDragEnd(e.event, view); }));
     }
 
     // [private methods]
 
-    private __renderCursor(pos: number | null, view: ProseEditorView): void {
-        if (pos === this._cursorPosition) {
+    private __renderCursor(position: number | null, view: ProseEditorView): void {
+        if (position === this._cursorPosition) {
             return;
         }
         
-        this._cursorPosition = pos;
-        if (pos === null) {
+        this._cursorPosition = position;
+        if (position === null) {
             this._cursorElement?.remove();
             this._cursorElement = null;
         } else {
@@ -160,7 +149,6 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         }
     
         const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
-    
         if (pos && pos.inside >= 0) {
             let target: number = pos.pos;
             if (view.dragging) {
