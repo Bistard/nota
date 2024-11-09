@@ -1,8 +1,7 @@
 import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
 import { dropPoint } from "prosemirror-transform";
-import { addDisposableListener } from "src/base/browser/basic/dom";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
-import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 
@@ -29,20 +28,20 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     // [override methods]
 
     protected override onViewInit(view: ProseEditorView): void {
-        this.__register(addDisposableListener(view.dom, 'dragover', (event: DragEvent) => {
-            this.__onDragover(event, view);
+        this.__register(this.onDragOver(e => {
+            this.__onDragover(e.event, view);
         }));
-    
-        this.__register(addDisposableListener(view.dom, 'dragleave', (event: DragEvent) => {
-            this.__onDragleave(event, view);
+
+        this.__register(this.onDragLeave(e => {
+            this.__onDragleave(e.event, view);
         }));
-    
-        this.__register(addDisposableListener(view.dom, 'drop', (event: DragEvent) => {
-            this.__onDrop(event, view);
+
+        this.__register(this.onDrop(e => {
+            this.__onDrop(e.browserEvent, view);
         }));
-    
-        this.__register(addDisposableListener(view.dom, 'dragend', (event: DragEvent) => {
-            this.__onDragEnd(event, view);
+        
+        this.__register(this.onDragEnd(e => {
+            this.__onDragEnd(e.event, view);
         }));
     }
 

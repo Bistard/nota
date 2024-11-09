@@ -3,7 +3,7 @@
     pointer-events: none;
     background-color: var(--nota-drop-cursor);
     
-    animation: cursor-pulse 1.2s infinite ease-in-out;
+    animation: cursor-pulse 0.5s infinite ease-in-out;
     transition: background-color 0.2s ease;
     transition: left 0.2s ease;
     transition: top 0.2s ease;
