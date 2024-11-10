@@ -51,7 +51,6 @@ export class EditorView extends Disposable implements IEditorView {
     get onKeydown() { return this._view.onKeydown; }
     get onKeypress() { return this._view.onKeypress; }
     get onTextInput() { return this._view.onTextInput; }
-    get onPaste() { return this._view.onPaste; }
     
     get onMouseOver() { return this._view.onMouseOver; }
     get onMouseOut() { return this._view.onMouseOut; }
@@ -61,6 +60,7 @@ export class EditorView extends Disposable implements IEditorView {
     get onMouseUp() { return this._view.onMouseUp; }
     get onMouseMove() { return this._view.onMouseMove; }
     
+    get onPaste() { return this._view.onPaste; }
     get onDrop() { return this._view.onDrop; }
     get onDrag() { return this._view.onDrag; }
     get onDragStart() { return this._view.onDragStart; }

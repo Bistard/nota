@@ -56,7 +56,6 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onKeydown() { return this._editorWidget.onKeydown; }
     get onKeypress() { return this._editorWidget.onKeypress; }
     get onTextInput() { return this._editorWidget.onTextInput; }
-    get onPaste() { return this._editorWidget.onPaste; }
     
     get onMouseOver() { return this._editorWidget.onMouseOver; }
     get onMouseOut() { return this._editorWidget.onMouseOut; }
@@ -66,6 +65,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onMouseUp() { return this._editorWidget.onMouseUp; }
     get onMouseMove() { return this._editorWidget.onMouseMove; }
     
+    get onPaste() { return this._editorWidget.onPaste; }
     get onDrop() { return this._editorWidget.onDrop; }
     get onDrag() { return this._editorWidget.onDrag; }
     get onDragStart() { return this._editorWidget.onDragStart; }

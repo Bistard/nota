@@ -180,9 +180,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onTextInput = this.__register(new RelayEmitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
-    private readonly _onPaste = this.__register(new RelayEmitter<IOnPasteEvent>());
-    public readonly onPaste = this._onPaste.registerListener;
-
     private readonly _onMouseOver = this.__register(new RelayEmitter<IEditorMouseEvent>());
     public readonly onMouseOver = this._onMouseOver.registerListener;
     
@@ -204,6 +201,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onMouseMove = this.__register(new RelayEmitter<IEditorMouseEvent>());
     public readonly onMouseMove = this._onMouseMove.registerListener;
     
+    private readonly _onPaste = this.__register(new RelayEmitter<IOnPasteEvent>());
+    public readonly onPaste = this._onPaste.registerListener;
+
     private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
     
@@ -386,7 +386,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onKeydown.setInput(this.view.onKeydown);
         this._onKeypress.setInput(this.view.onKeypress);
         this._onTextInput.setInput(this.view.onTextInput);
-        this._onPaste.setInput(this.view.onPaste);
         
         this._onMouseOver.setInput(this.view.onMouseOver);
         this._onMouseOut.setInput(this.view.onMouseOut);
@@ -396,6 +395,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onMouseUp.setInput(this.view.onMouseUp);
         this._onMouseMove.setInput(this.view.onMouseMove);
         
+        this._onPaste.setInput(this.view.onPaste);
         this._onDrop.setInput(this.view.onDrop);
         this._onDrag.setInput(this.view.onDrag);
         this._onDragStart.setInput(this.view.onDragStart);

@@ -220,13 +220,6 @@ export interface IProseEventBroadcaster extends IDisposable {
      */
     readonly onTextInput: Register<IOnTextInputEvent>;
 
-    /**
-     * Fires when the editor encounters a clipboard event. `slice` is the pasted 
-     * content parsed by the editor, but you can directly access the event to 
-     * get at the raw content.
-     */
-    readonly onPaste: Register<IOnPasteEvent>;
-
     readonly onMouseOver: Register<IEditorMouseEvent>;
     readonly onMouseOut: Register<IEditorMouseEvent>;
     readonly onMouseEnter: Register<IEditorMouseEvent>;
@@ -235,6 +228,13 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onMouseUp: Register<IEditorMouseEvent>;
     readonly onMouseMove: Register<IEditorMouseEvent>;
     
+    /**
+     * Fires when the editor encounters a clipboard event. `slice` is the pasted 
+     * content parsed by the editor, but you can directly access the event to 
+     * get at the raw content.
+     */
+    readonly onPaste: Register<IOnPasteEvent>;
+
     /**
      * Fires when something is dropped onto the editor. `moved` will be true if 
      * this drop moves from the current selection (which should thus be deleted).
@@ -326,9 +326,6 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     private readonly _onTextInput = this.__register(new Emitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
-    private readonly _onPaste = this.__register(new Emitter<IOnPasteEvent>());
-    public readonly onPaste = this._onPaste.registerListener;
-
     @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
     @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
     @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
@@ -343,6 +340,9 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     @memoize get onDragOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
     @memoize get onDragEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
     @memoize get onDragLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+
+    private readonly _onPaste = this.__register(new Emitter<IOnPasteEvent>());
+    public readonly onPaste = this._onPaste.registerListener;
 
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
