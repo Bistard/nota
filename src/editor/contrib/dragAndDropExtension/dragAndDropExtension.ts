@@ -15,7 +15,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     // [field]
     
     public readonly id = EditorExtensionIDs.DragAndDrop;
-    public readonly width: number = 4; // in pixel
+    public readonly width: number = 3; // in pixel
 
     private _cursorPosition: number | null = null;
     private _cursorElement: HTMLElement | null = null; // TODO: replace with FastElement
