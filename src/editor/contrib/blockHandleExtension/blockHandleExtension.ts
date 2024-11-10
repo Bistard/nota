@@ -173,6 +173,11 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             if (!node) {
                 return;
             }
+            
+            // Drop inside the dragged node, do nothing.
+            if (Numbers.within(dropPosition, dragPosition, dragPosition + node.nodeSize, false, false)) {
+                return;
+            }
 
             /**
              * We need to consider for the offset caused by deletion.
