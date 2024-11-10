@@ -175,7 +175,7 @@ class DragHandleButton extends BlockHandleButton {
     constructor() {
         super({
             id: 'drag-handle',
-            icon: Icons.Menu,
+            icon: Icons.DragHandle,
             classes: ['add-new-block'],
         });
     }

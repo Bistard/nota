@@ -41,72 +41,75 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-create-new-note:before {
     content: "\f109";
 }
-.icon-extension:before {
+.icon-drag-handle:before {
     content: "\f10a";
 }
-.icon-folder-default:before {
+.icon-extension:before {
     content: "\f10b";
 }
-.icon-folder-open:before {
+.icon-folder-default:before {
     content: "\f10c";
 }
-.icon-help:before {
+.icon-folder-open:before {
     content: "\f10d";
 }
-.icon-maxmize-window:before {
+.icon-help:before {
     content: "\f10e";
 }
-.icon-menu:before {
+.icon-maxmize-window:before {
     content: "\f10f";
 }
-.icon-minimize-window:before {
+.icon-menu:before {
     content: "\f110";
 }
-.icon-more-horiz:before {
+.icon-minimize-window:before {
     content: "\f111";
 }
-.icon-nota-ai-default:before {
+.icon-more-horiz:before {
     content: "\f112";
 }
-.icon-nota-ai-on:before {
+.icon-nota-ai-default:before {
     content: "\f113";
 }
-.icon-notification-active:before {
+.icon-nota-ai-on:before {
     content: "\f114";
 }
-.icon-notification-error:before {
+.icon-notification-active:before {
     content: "\f115";
 }
-.icon-notification-info:before {
+.icon-notification-error:before {
     content: "\f116";
 }
-.icon-notification-unread:before {
+.icon-notification-info:before {
     content: "\f117";
 }
-.icon-notification-warn:before {
+.icon-notification-unread:before {
     content: "\f118";
 }
-.icon-notifications-off:before {
+.icon-notification-warn:before {
     content: "\f119";
 }
-.icon-outline:before {
+.icon-notifications-off:before {
     content: "\f11a";
 }
-.icon-restore-window:before {
+.icon-outline:before {
     content: "\f11b";
 }
-.icon-search:before {
+.icon-restore-window:before {
     content: "\f11c";
 }
-.icon-setting:before {
+.icon-search:before {
     content: "\f11d";
 }
-.icon-sort-by-alpha:before {
+.icon-setting:before {
     content: "\f11e";
 }
-.icon-source-contorl-on:before {
+.icon-sort-by-alpha:before {
     content: "\f11f";
 }
-.icon-source-control-default:before {
+.icon-source-contorl-on:before {
     content: "\f120";
+}
+.icon-source-control-default:before {
+    content: "\f121";
 }
