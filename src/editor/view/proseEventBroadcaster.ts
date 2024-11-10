@@ -79,14 +79,43 @@ export interface IOnDropEvent {
 }
 
 export interface IEditorMouseEvent {
+    
+    /**
+     * The prosemirror view reference.
+     */
     readonly view: ProseEditorView;
+
+    /**
+     * The original browser event.
+     */
     readonly event: MouseEvent;
     
+    /**
+     * Defined when the mouse is interacting with any prosemirror node.
+     */
     readonly target?: {
+        /**
+         * The interacting prosemirror node.
+         */
         readonly node: ProseNode;
+        /**
+         * The corresponding HTMLElement.
+         */
+        readonly nodeElement: HTMLElement;
+        /**
+         * The absolute position of the node.
+         */
         readonly position: number;
+        /**
+         * The absolute position of the parent of the node. If no parent, 
+         * -1 returned.
+         */
         readonly parentPosition: number;
-        getResolvedPos(): ProseResolvedPos;
+        /**
+         * When `parentPosition` equals -1, this equal to `position`, otherwise
+         * equals to `parentPosition`.
+         */
+        readonly resolvedPosition: number;
     }
 }
 
@@ -493,19 +522,23 @@ function __standardizeMouseEvent(e: MouseEvent, view: ProseEditorView): IEditorM
         top: e.clientY,
     });
 
-    const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
-    if (!node) {
+    if (!pos) {
         return { view: view, event: e, target: undefined };
     }
 
+    const resolvedPosition = pos.inside === -1 ? pos.pos : pos.inside;
+    const node = view.state.doc.nodeAt(resolvedPosition)!;
+    const nodeElement = view.nodeDOM(resolvedPosition)! as HTMLElement;
+    
     return { 
         view: view, 
         event: e, 
         target: { 
             node: node, 
+            nodeElement: nodeElement,
             position: pos.pos, 
             parentPosition: pos.inside,
-            getResolvedPos: () => view.state.doc.resolve(pos.pos),
+            resolvedPosition: resolvedPosition,
         } 
     };
 }
@@ -515,13 +548,15 @@ function __standardizeDragEvent(e: DragEvent, view: ProseEditorView): IEditorDra
         left: e.clientX,
         top: e.clientY,
     });
-
     const dataTransfer = e.dataTransfer ?? undefined;
 
-    const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
-    if (!node) {
-        return { view: view, event: e, target: undefined, dataTransfer };
+    if (!pos) {
+        return { view: view, event: e, target: undefined };
     }
+
+    const resolvedPosition = pos.inside === -1 ? pos.pos : pos.inside;
+    const node = view.state.doc.nodeAt(resolvedPosition)!;
+    const nodeElement = view.nodeDOM(resolvedPosition)! as HTMLElement;
 
     return { 
         view: view, 
@@ -529,9 +564,10 @@ function __standardizeDragEvent(e: DragEvent, view: ProseEditorView): IEditorDra
         dataTransfer,
         target: { 
             node: node, 
+            nodeElement: nodeElement,
             position: pos.pos, 
             parentPosition: pos.inside,
-            getResolvedPos: () => view.state.doc.resolve(pos.pos),
+            resolvedPosition: resolvedPosition,
         } 
     };
 }
