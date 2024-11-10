@@ -3,7 +3,7 @@ import { Icons } from "src/base/browser/icon/icons";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { IEditorMouseEvent } from "src/editor/view/proseEventBroadcaster";
+import { IEditorMouseEvent, IOnDropEvent } from "src/editor/view/proseEventBroadcaster";
 import { IWidgetBar, WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { BlockHandleButton } from "src/editor/contrib/blockHandleExtension/blockHandleButton";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
@@ -13,6 +13,7 @@ import { EditorView } from "prosemirror-view";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
 import { DisposableManager } from "src/base/common/dispose";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * An interface only for {@link EditorBlockHandleExtension}.
@@ -130,8 +131,11 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
     }
 
     private __initDragButton(view: ProseEditorView, button: DragHandleButton, lifecycle: DisposableManager): void {
+        
+        // tell the browser the button is draggable
         button.element.draggable = true;
 
+        // on drag start
         lifecycle.register(addDisposableListener(button.element, EventType.dragstart, e => {
             if (e.dataTransfer === null || !this._currPosition) {
                 return;
@@ -144,9 +148,16 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             const element = view.nodeDOM(this._currPosition) as HTMLElement;
             e.dataTransfer.setDragImage(element, 0, 0);
 
-            e.dataTransfer.setData('$nota-editor-block-handle', this._currPosition.toString());
+            const dragPosition = this._currPosition.toString();
+            e.dataTransfer.setData('$nota-editor-block-handle', dragPosition);
         }));
 
+        // drag end
+        lifecycle.register(addDisposableListener(button.element, EventType.dragend, e => {
+            this.__dropEndAfterWork(e, button);
+        }));
+
+        // on drop
         lifecycle.register(this.onDrop(e => {
             if (!e.browserEvent.dataTransfer) {
                 return;
@@ -158,8 +169,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
                 return;
             }
 
-            button.element.classList.remove('dragging');
-            this._editorWidget.updateContext('editorDragState', EditorDragState.None);
+            this.__dropEndAfterWork(e, button);
 
             const dragPosition = parseInt(data);
             const dropPosition = getDropExactPosition(view, e.browserEvent, true);
@@ -186,6 +196,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
                 ? dropPosition - node.nodeSize 
                 : dropPosition;
 
+            // drop behavior
             tr.delete(dragPosition, dragPosition + node.nodeSize)
               .insert(adjustedDropPosition, node);
             view.dispatch(tr);
@@ -198,10 +209,13 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
             // reset widget position
             this.__unrenderWidget();
-
-            // prevent default drop behavior from prosemirror.
-            e.preventDefault();
         }));
+    }
+
+    private __dropEndAfterWork(event: MouseEvent | IOnDropEvent, button: DragHandleButton): void {
+        event.preventDefault(); // prevent default drop behavior from prosemirror.
+        button.element.classList.remove('dragging');
+        this._editorWidget.updateContext('editorDragState', EditorDragState.None);
     }
 }
 

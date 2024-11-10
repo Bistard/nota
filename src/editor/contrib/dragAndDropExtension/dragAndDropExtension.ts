@@ -181,10 +181,15 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
     private __onDrop(event: DragEvent, view: ProseEditorView): void {
         this.__renderCursor(null, view);
-        this._editorWidget.updateContext('editorDragState', EditorDragState.None);
+        this.__onDragOrDrop();
     }
 
     private __onDragEnd(event: DragEvent, view: ProseEditorView): void {
         this.__renderCursor(null, view);
+        this.__onDragOrDrop();
+    }
+
+    private __onDragOrDrop(): void {
+        this._editorWidget.updateContext('editorDragState', EditorDragState.None);
     }
 }
