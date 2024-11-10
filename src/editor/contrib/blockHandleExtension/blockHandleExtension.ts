@@ -3,7 +3,7 @@ import { Icons } from "src/base/browser/icon/icons";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { IEditorMouseEvent, IOnDropEvent } from "src/editor/view/proseEventBroadcaster";
+import { IEditorMouseEvent } from "src/editor/view/proseEventBroadcaster";
 import { IWidgetBar, WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { BlockHandleButton } from "src/editor/contrib/blockHandleExtension/blockHandleButton";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
@@ -11,9 +11,8 @@ import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
 import { EditorView } from "prosemirror-view";
 import { ProseEditorView } from "src/editor/common/proseMirror";
-import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
+import { EditorDragState } from "src/editor/common/cursorDrop";
 import { DisposableManager } from "src/base/common/dispose";
-import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * An interface only for {@link EditorBlockHandleExtension}.
@@ -152,70 +151,22 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             e.dataTransfer.setData('$nota-editor-block-handle', dragPosition);
         }));
 
-        // drag end
         lifecycle.register(addDisposableListener(button.element, EventType.dragend, e => {
-            this.__dropEndAfterWork(e, button);
+            this.__dropEndAfterWork(button);
         }));
 
-        // on drop
         lifecycle.register(this.onDrop(e => {
-            if (!e.browserEvent.dataTransfer) {
-                return;
-            }
+            this.__dropEndAfterWork(button);
+        }));
 
-            const data = e.browserEvent.dataTransfer.getData('$nota-editor-block-handle');
-            if (data === '') {
-                // not a drop action from the drag-handle button, do nothing.
-                return;
-            }
-
-            this.__dropEndAfterWork(e, button);
-
-            const dragPosition = parseInt(data);
-            const dropPosition = getDropExactPosition(view, e.browserEvent, true);
-            if (dragPosition === dropPosition) {
-                // drop at exact same position, do nothing.
-                return;
-            }
-
-            const tr = view.state.tr;
-            const node = tr.doc.nodeAt(dragPosition);
-            if (!node) {
-                return;
-            }
-            
-            // Drop inside the dragged node, do nothing.
-            if (Numbers.within(dropPosition, dragPosition, dragPosition + node.nodeSize, false, false)) {
-                return;
-            }
-
-            /**
-             * We need to consider for the offset caused by deletion.
-             */
-            const adjustedDropPosition = dragPosition < dropPosition 
-                ? dropPosition - node.nodeSize 
-                : dropPosition;
-
-            // drop behavior
-            tr.delete(dragPosition, dragPosition + node.nodeSize)
-              .insert(adjustedDropPosition, node);
-            view.dispatch(tr);
-            
-            /**
-             * Since we are clicking the button outside the editor, we need to 
-             * manually focus the editor after drop.
-             */
-            view.focus();
-
-            // reset widget position
-            this.__unrenderWidget();
+        lifecycle.register(this.onDropOverlay(e => {
+            this.__dropEndAfterWork(button);
         }));
     }
 
-    private __dropEndAfterWork(event: MouseEvent | IOnDropEvent, button: DragHandleButton): void {
-        event.preventDefault(); // prevent default drop behavior from prosemirror.
+    private __dropEndAfterWork(button: DragHandleButton): void {
         button.element.classList.remove('dragging');
-        this._editorWidget.updateContext('editorDragState', EditorDragState.None);
+        this.__unrenderWidget();
     }
 }
 

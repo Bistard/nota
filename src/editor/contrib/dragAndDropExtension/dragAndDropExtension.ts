@@ -7,6 +7,8 @@ import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorD
 import { IContextService } from "src/platform/context/common/contextService";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { DropCursorRenderer } from "src/editor/contrib/dragAndDropExtension/dropCursorRenderer";
+import { IEditorDragEvent } from "src/editor/view/proseEventBroadcaster";
+import { Numbers } from "src/base/common/utilities/number";
 
 export interface IEditorDragAndDropExtension extends IEditorExtension {
     readonly id: EditorExtensionIDs.DragAndDrop;
@@ -17,6 +19,10 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     // [field]
     
     public readonly id = EditorExtensionIDs.DragAndDrop;
+    
+    /**
+     * Responsible for rendering drop cursor.
+     */
     private readonly _cursorRenderer: DropCursorRenderer;
 
     // [constructor]
@@ -35,7 +41,8 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         this.__register(this.onDragStart(e => { this.__onDragStart(e.event, view); }));
         this.__register(this.onDragOver(e => { this.__onDragover(e.event, view); }));
         this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, view); }));
-        this.__register(this.onDrop(e => { this.__onDrop(e.browserEvent, view); }));
+        this.__register(this.onDrop(e => { this.__onDropEditor(e.browserEvent, view); }));
+        this.__register(this.onDropOverlay(e => { this.__onDropOverlay(e, view); }));
         this.__register(this.onDragEnd(e => { this.__onDragEnd(e.event, view); }));
     }
 
@@ -68,17 +75,72 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         }
     }
 
-    private __onDrop(event: DragEvent, view: ProseEditorView): void {
-        this._cursorRenderer.unrender();
-        this.__onDragOrDrop();
+    private __onDropEditor(event: DragEvent, view: ProseEditorView): void {
+        this.__dragAfterWork();
+    }
+
+    private __onDropOverlay(event: IEditorDragEvent, view: ProseEditorView): void {
+        this.__dragAfterWork();
+        
+        if (!event.event.dataTransfer) {
+            return;
+        }
+
+        const data = event.event.dataTransfer.getData('$nota-editor-block-handle');
+        if (data === '') {
+            // not a drop action from the drag-handle button, do nothing.
+            return;
+        }
+
+        /**
+         * Detect drop action from drag-handle button, we prevent default drop 
+         * behavior from prosemirror.
+         */
+        event.event.preventDefault();
+
+        const dragPosition = parseInt(data);
+        const dropPosition = getDropExactPosition(view, event.event, true);
+        if (dragPosition === dropPosition) {
+            // drop at exact same position, do nothing.
+            return;
+        }
+
+        const tr = view.state.tr;
+        const node = tr.doc.nodeAt(dragPosition);
+        if (!node) {
+            return;
+        }
+        
+        // Drop inside the dragged node, do nothing.
+        if (Numbers.within(dropPosition, dragPosition, dragPosition + node.nodeSize, false, false)) {
+            return;
+        }
+
+        /**
+         * We need to consider for the offset caused by deletion.
+         */
+        const adjustedDropPosition = dragPosition < dropPosition 
+            ? dropPosition - node.nodeSize 
+            : dropPosition;
+
+        // drop behavior
+        tr.delete(dragPosition, dragPosition + node.nodeSize)
+          .insert(adjustedDropPosition, node);
+        view.dispatch(tr);
+        
+        /**
+         * Since we are clicking the button outside the editor, we need to 
+         * manually focus the editor after drop.
+         */
+        view.focus();
     }
 
     private __onDragEnd(event: DragEvent, view: ProseEditorView): void {
-        this._cursorRenderer.unrender();
-        this.__onDragOrDrop();
+        this.__dragAfterWork();
     }
 
-    private __onDragOrDrop(): void {
+    private __dragAfterWork(): void {
+        this._cursorRenderer.unrender();
         this._editorWidget.updateContext('editorDragState', EditorDragState.None);
     }
 }
