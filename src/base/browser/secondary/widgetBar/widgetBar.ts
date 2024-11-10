@@ -2,13 +2,14 @@ import "src/base/browser/secondary/widgetBar/widgetBar.scss";
 import { IWidget } from "src/base/browser/basic/widget";
 import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
+import { FastElement } from "src/base/browser/basic/fastElement";
 
 export interface IWidgetBar<T extends IWidget> extends IDisposable {
     
     /** 
      * The HTMLElement of the widget bar which contains `viewContainer` 
      */
-    readonly container: HTMLElement;
+    readonly container: FastElement<HTMLElement>;
 
     /** 
      * The list HTMLElement to stores all the actual HTMLElements of each widget 
@@ -18,9 +19,9 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     /**
      * @description Renders the widget bar (appending the element into the 
      * provided parent element).
-     * @note Can only render twice.
+     * @param parentContainer Optional. Force to render under this container.
      */
-    render(): void;
+    render(parentContainer?: HTMLElement): void;
 
     /**
      * @description Inserts the provided widget item into the bar.
@@ -129,7 +130,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     protected readonly opts: IWidgetBarOptions;
 
     protected _parentContainer?: HTMLElement;
-    protected readonly _container: HTMLElement;
+    protected readonly _container: FastElement<HTMLElement>;
     protected readonly _itemContainer: HTMLElement;
     
     private _items: IWidgetBarItem<T>[];
@@ -145,8 +146,8 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         this._rendered = false;
         this._parentContainer = opts.parentContainer;
 
-        this._container = document.createElement('div');
-        this._container.classList.add('widget-bar', id);
+        this._container = new FastElement(document.createElement('div'));
+        this._container.addClassList('widget-bar', id);
 
         this._itemContainer = document.createElement('ui');
         this._itemContainer.classList.add('widget-item-container');
@@ -157,14 +158,14 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
         this._container.appendChild(this._itemContainer);
         if (opts?.render === true && this._parentContainer) {
-            this._parentContainer.appendChild(this._container);
+            this._parentContainer.appendChild(this._container.raw);
             this._rendered = true;
         }
     }
 
     // [getter]
 
-    get container(): HTMLElement {
+    get container(): FastElement<HTMLElement> {
         return this._container;
     }
 
@@ -175,11 +176,12 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     // [public methods]
 
     public render(parentContainer?: HTMLElement): void {
-        this._parentContainer = parentContainer;
+        this._parentContainer ??= parentContainer;
         if (this._rendered || !this._parentContainer) {
             return;
         }
-        this._parentContainer.appendChild(this._container);
+        this._parentContainer.appendChild(this._container.raw);
+        this._rendered = true;
     }
 
     public addItem(item: IWidgetBarItem<T>, index?: number): void {
@@ -260,7 +262,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     public override dispose(): void {
         disposeAll(this._items);
         this._items = [];
-        this._container.remove();
+        this._container.dispose();
         super.dispose();
     }
 }
