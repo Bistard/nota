@@ -17,11 +17,22 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     readonly viewsContainer: HTMLElement;
 
     /**
+     * Is the widget bar rendered.
+     */
+    readonly isRendered: boolean;
+
+    /**
      * @description Renders the widget bar (appending the element into the 
      * provided parent element).
      * @param parentContainer Optional. Force to render under this container.
      */
     render(parentContainer?: HTMLElement): void;
+
+    /**
+     * @description Unrender the widget bar. You may still render again after 
+     * unrender call.
+     */
+    unrender(): void;
 
     /**
      * @description Inserts the provided widget item into the bar.
@@ -173,6 +184,10 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         return this._itemContainer;
     }
 
+    get isRendered(): boolean {
+        return this._rendered;
+    }
+
     // [public methods]
 
     public render(parentContainer?: HTMLElement): void {
@@ -182,6 +197,11 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         }
         this._parentContainer.appendChild(this._container.raw);
         this._rendered = true;
+    }
+
+    public unrender(): void {
+        this._rendered = false;
+        this._container.dispose();
     }
 
     public addItem(item: IWidgetBarItem<T>, index?: number): void {

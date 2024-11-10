@@ -9,7 +9,7 @@ export class WindowButton extends Button {
     constructor(opts: IWindowButtonOptions) {
         super({
             ...opts,
-            classes: ['toggleBtn'],
+            classes: ['toggleBtn', ...(opts.classes ?? [])],
         });
     }
 
