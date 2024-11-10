@@ -55,6 +55,7 @@ export interface IOnKeydownEvent {
 export interface IOnKeypressEvent {
     readonly view: ProseEditorView;
     readonly event: IStandardKeyboardEvent;
+    preventDefault(): void;
 }
 
 export interface IOnTextInputEvent {
@@ -69,6 +70,7 @@ export interface IOnPasteEvent {
     readonly view: ProseEditorView;
     readonly slice: ProseSlice;
     readonly browserEvent: ClipboardEvent;
+    preventDefault(): void;
 }
 
 export interface IOnDropEvent {
@@ -76,6 +78,7 @@ export interface IOnDropEvent {
     readonly slice: ProseSlice;
     readonly moved: boolean;
     readonly browserEvent: DragEvent;
+    preventDefault(): void;
 }
 
 export interface IEditorMouseEvent {
@@ -474,10 +477,15 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         
         // on key press
         property.handleKeyPress = (view, event) => {
+            let prevented = false;
+            
             this._onKeypress.fire({
                 view: view,
                 event: createStandardKeyboardEvent(event),
+                preventDefault: () => prevented = true,
             });
+
+            return prevented;
         };
         
         // on text input
@@ -497,21 +505,31 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         
         // on paste
         property.handlePaste = (view, event, slice) => {
+            let prevented = false;
+            
             this._onPaste.fire({
                 view: view,
                 browserEvent: event,
                 slice: slice,
+                preventDefault: () => prevented = true,
             });
+
+            return prevented;
         };
         
         // on drop
         property.handleDrop = (view, event, slice, moved) => {
+            let prevented = false;
+
             this._onDrop.fire({
                 view: view,
                 browserEvent: event,
                 slice: slice,
                 moved: moved,
+                preventDefault: () => prevented = true,
             });
+
+            return prevented;
         };
     }
 }
