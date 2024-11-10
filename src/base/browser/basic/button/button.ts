@@ -45,7 +45,7 @@ export interface IButton extends IWidget {
     
     // [getter or setter]
 
-    readonly id?: string;
+    readonly id: string;
     
     readonly icon?: Icons;
 
@@ -99,9 +99,8 @@ export class Button extends Widget implements IButton {
 
     // [getter]
 
-	get enabled(): boolean {
-		return this.rendered && this._enabled;
-	}
+	get enabled() { return this.rendered && this._enabled; }
+    get id() { return this._opts.id; }
 
     // [protected override methods]
 
