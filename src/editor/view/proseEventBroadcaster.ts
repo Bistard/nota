@@ -240,6 +240,12 @@ export interface IProseEventBroadcaster extends IDisposable {
      * this drop moves from the current selection (which should thus be deleted).
      */
     readonly onDrop: Register<IOnDropEvent>;
+    
+    /**
+     * Fires when something is dropped on the editor overlay. Overlay is a layer
+     * not just including the editor, but also some spaces.
+     */
+    readonly onDropOverlay: Register<IEditorDragEvent>;
     readonly onDrag: Register<IEditorDragEvent>;
     readonly onDragStart: Register<IEditorDragEvent>;
     readonly onDragEnd: Register<IEditorDragEvent>;
@@ -346,6 +352,7 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
+    @memoize get onDropOverlay() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.drop)).registerListener, e => __standardizeDragEvent(e, this._view)); }
 
     @memoize get onWheel() { return this.__register(new DomEmitter(this._$container, EventType.wheel)).registerListener; }
 

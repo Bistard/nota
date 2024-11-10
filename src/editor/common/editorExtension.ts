@@ -67,6 +67,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     
     get onPaste() { return this._editorWidget.onPaste; }
     get onDrop() { return this._editorWidget.onDrop; }
+    get onDropOverlay() { return this._editorWidget.onDropOverlay; }
     get onDrag() { return this._editorWidget.onDrag; }
     get onDragStart() { return this._editorWidget.onDragStart; }
     get onDragEnd() { return this._editorWidget.onDragEnd; }

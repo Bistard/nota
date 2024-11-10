@@ -216,6 +216,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
     
+    private readonly _onDropOverlay = this.__register(new RelayEmitter<IEditorDragEvent>());
+    public readonly onDropOverlay = this._onDropOverlay.registerListener;
+    
     private readonly _onDrag = this.__register(new RelayEmitter<IEditorDragEvent>());
     public readonly onDrag = this._onDrag.registerListener;
     
@@ -414,6 +417,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         
         this._onPaste.setInput(this.view.onPaste);
         this._onDrop.setInput(this.view.onDrop);
+        this._onDropOverlay.setInput(this.view.onDropOverlay);
         this._onDrag.setInput(this.view.onDrag);
         this._onDragStart.setInput(this.view.onDragStart);
         this._onDragEnd.setInput(this.view.onDragEnd);
