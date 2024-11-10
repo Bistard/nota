@@ -9,6 +9,7 @@ import { BlockHandleButton } from "src/editor/contrib/blockHandleExtension/block
 import { Orientation } from "src/base/browser/basic/dom";
 import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
+import { EditorView } from "prosemirror-view";
 
 /**
  * An interface only for {@link EditorBlockHandleExtension}.
@@ -25,14 +26,13 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
     public readonly id = EditorExtensionIDs.BlockHandle;
 
     private _currPosition?: number;
-    private readonly _widget: IWidgetBar<BlockHandleButton>;
+    private _widget?: IWidgetBar<BlockHandleButton>;
 
     // [constructor]
 
     constructor(editorWidget: IEditorWidget) {
         super(editorWidget);
-        this._widget = this.__initWidget();
-
+        
         // render
         this.__register(this.onMouseMove(e => {
             if (!e.target) {
@@ -59,9 +59,23 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         }));
     }
 
+    protected override onViewInit(view: EditorView): void {
+        this._widget = this.__initWidget();
+    }
+
+    protected override onViewDestroy(view: EditorView): void {
+        this._widget?.dispose();
+        this._widget = undefined;
+        this._currPosition = undefined;
+    }
+
     // [private methods]
 
     private __renderWidget(container: HTMLElement, target: NonNullable<IEditorMouseEvent['target']>): void {
+        if (!this._widget) {
+            return;
+        }
+
         this._currPosition = target.resolvedPosition;
 
         // render under the editor overlay
@@ -77,7 +91,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
     }
 
     private __unrenderWidget(): void {
-        this._widget.unrender();
+        this._widget?.unrender();
         this._currPosition = undefined;
     }
 
@@ -88,7 +102,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         
         const buttonsOptions = [
             { id: 'add-new-block', icon: Icons.AddNew, classes: ['add-new-block'] },
-            { id: 'drag-handle', icon: Icons.Menu, classes: ['drag-handle'] },
+            // { id: 'drag-handle', icon: Icons.Menu, classes: ['drag-handle'] },
         ];
 
         for (const { id, icon, classes } of buttonsOptions) {
@@ -101,6 +115,26 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             });
         }
 
+        const button = new DragHandleButton();
+        widget.addItem({
+            id: button.id,
+            data: button,
+            dispose: button.dispose.bind(button),
+        });
+        // todo: onRender
+        // button.element.setAttribute('draggable', 'true');
+
         return widget;
+    }
+}
+
+class DragHandleButton extends BlockHandleButton {
+
+    constructor() {
+        super({
+            id: 'drag-handle',
+            icon: Icons.Menu,
+            classes: ['add-new-block'],
+        });
     }
 }

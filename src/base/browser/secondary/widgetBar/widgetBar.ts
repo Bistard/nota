@@ -157,7 +157,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         this._rendered = false;
         this._parentContainer = opts.parentContainer;
 
-        this._container = new FastElement(document.createElement('div'));
+        this._container = this.__register(new FastElement(document.createElement('div')));
         this._container.addClassList('widget-bar', id);
 
         this._itemContainer = document.createElement('ui');
@@ -201,7 +201,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
     public unrender(): void {
         this._rendered = false;
-        this._container.dispose();
+        this._container.raw.remove();
     }
 
     public addItem(item: IWidgetBarItem<T>, index?: number): void {
@@ -282,7 +282,6 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     public override dispose(): void {
         disposeAll(this._items);
         this._items = [];
-        this._container.dispose();
         super.dispose();
     }
 }
