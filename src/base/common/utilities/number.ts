@@ -71,7 +71,7 @@ export namespace Numbers {
     }
 
     /**
-     * @description Checks if a number is within a specified range.
+     * @description Checks if a number is within a specified range (a < x < b).
      * @param num The number to check.
      * @param start Start of the range.
      * @param end End of the range.
