@@ -166,7 +166,8 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         if (!view.editable) {
             return;
         }
-        const position = getDropExactPosition(view, event);
+        const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
+        const position = getDropExactPosition(view, event, isBlockDragging);
         this.__renderCursor(position, view);
         
         event.preventDefault();
