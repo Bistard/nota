@@ -26,14 +26,14 @@ export const enum EditorDragState {
  * for dropping a dragged item based on the mouse event coordinates.
  * @returns The calculated document position for the drop cursor.
  */
-export function getDropExactPosition(view: ProseEditorView, event: MouseEvent): number {
+export function getDropExactPosition(view: ProseEditorView, event: MouseEvent, blockLevelOnly: boolean): number {
 
     /**
      * Handle the case when the mouse is inside the editor, we try to find
      * the node at the exact mouse position (clientX and clientY).
      */
     const position = view.posAtCoords({ left: event.clientX, top: event.clientY });
-    if (position && position.inside !== -1) {
+    if (!blockLevelOnly && position && position.inside !== -1) {
         let target = position.pos;
         if (view.dragging) {
             const point = dropPoint(view.state.doc, target, view.dragging.slice);

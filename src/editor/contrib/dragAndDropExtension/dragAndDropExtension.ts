@@ -1,10 +1,11 @@
 import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
-import { dropPoint } from "prosemirror-transform";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { getDropExactPosition } from "src/editor/common/cursorDrop";
+import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
+import { IContextService } from "src/platform/context/common/contextService";
+import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 
 export interface IEditorDragAndDropExtension extends IEditorExtension {
     readonly id: EditorExtensionIDs.DragAndDrop;
@@ -22,13 +23,17 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
     // [constructor]
 
-    constructor(editorWidget: IEditorWidget) {
+    constructor(
+        editorWidget: IEditorWidget,
+        @IContextService private readonly contextService: IContextService,
+    ) {
         super(editorWidget);
     }
 
     // [override methods]
 
     protected override onViewInit(view: ProseEditorView): void {
+        this.__register(this.onDragStart(e => { this.__onDragStart(e.event, view); }));
         this.__register(this.onDragOver(e => { this.__onDragover(e.event, view); }));
         this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, view); }));
         this.__register(this.onDrop(e => { this.__onDrop(e.browserEvent, view); }));
@@ -147,6 +152,16 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         this._cursorElement.style.height = `${(rect.bottom - rect.top) / scaleY}px`;
     }
 
+    private __onDragStart(event: DragEvent, view: ProseEditorView): void {
+        /**
+         * Only set to normal when we are not dragging. Ensure not overriding
+         * any current dragging state.
+         */
+        if (this.contextService.contextMatchExpr(EditorContextKeys.isEditorDragging) === false) {
+            this._editorWidget.updateContext('editorDragState', EditorDragState.Normal);
+        }
+    }
+
     private __onDragover(event: DragEvent, view: ProseEditorView): void {
         if (!view.editable) {
             return;
@@ -165,6 +180,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
     private __onDrop(event: DragEvent, view: ProseEditorView): void {
         this.__renderCursor(null, view);
+        this._editorWidget.updateContext('editorDragState', EditorDragState.None);
     }
 
     private __onDragEnd(event: DragEvent, view: ProseEditorView): void {

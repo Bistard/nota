@@ -11,7 +11,7 @@ import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
 import { EditorView } from "prosemirror-view";
 import { ProseEditorView } from "src/editor/common/proseMirror";
-import { getDropExactPosition } from "src/editor/common/cursorDrop";
+import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
 import { DisposableManager } from "src/base/common/dispose";
 
 /**
@@ -137,6 +137,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
                 return;
             }
 
+            this._editorWidget.updateContext('editorDragState', EditorDragState.Block);
             button.element.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
 
@@ -158,8 +159,10 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             }
 
             button.element.classList.remove('dragging');
+            this._editorWidget.updateContext('editorDragState', EditorDragState.None);
+
             const dragPosition = parseInt(data);
-            const dropPosition = getDropExactPosition(view, e.browserEvent);
+            const dropPosition = getDropExactPosition(view, e.browserEvent, true);
             if (dragPosition === dropPosition) {
                 // drop at exact same position, do nothing.
                 return;
