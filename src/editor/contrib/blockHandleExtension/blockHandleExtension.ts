@@ -157,13 +157,9 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
                 return;
             }
 
-            const dropPosition = getDropExactPosition(view, e.browserEvent);
-            if (!dropPosition) {
-                // drop on no where, do nothing.
-                return;
-            }
-
+            button.element.classList.remove('dragging');
             const dragPosition = parseInt(data);
+            const dropPosition = getDropExactPosition(view, e.browserEvent);
             if (dragPosition === dropPosition) {
                 // drop at exact same position, do nothing.
                 return;
@@ -184,7 +180,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
             tr.delete(dragPosition, dragPosition + node.nodeSize)
               .insert(adjustedDropPosition, node);
-            view.dispatch(tr.scrollIntoView());
+            view.dispatch(tr);
             
             /**
              * Since we are clicking the button outside the editor, we need to 
@@ -192,11 +188,11 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
              */
             view.focus();
 
-            // prevent default drop behavior from prosemirror.
-            e.preventDefault();
-
             // reset widget position
             this.__unrenderWidget();
+
+            // prevent default drop behavior from prosemirror.
+            e.preventDefault();
         }));
     }
 }
