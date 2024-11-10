@@ -6,9 +6,6 @@ import { Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
 
-
-
-
 /**
  * An interface only for {@link EditorExtension}.
  */
@@ -86,7 +83,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     ) {
         super();
         this._editorWidget = editorWidget;
-        this._viewExtension = new ProseExtension({
+        this._viewExtension = new ProseExtension<void>({
             state: {
                 // This function will be called once the extension is created by {@link EditorState.create({ plugin: [myPlugin] })}.
                 init: (config, state) => {
@@ -143,7 +140,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     protected onViewInit?(view: ProseEditorView): void;
     
     /**
-     * @description The function triggers when the view's state is updated.
+     * @description This function triggers when the view's state is updated.
      */
     protected onViewUpdate?(view: ProseEditorView, prevState: ProseEditorState): void;
 

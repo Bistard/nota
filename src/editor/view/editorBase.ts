@@ -12,9 +12,10 @@ export interface IEditorBase extends IEditorViewProxy {
     readonly container: HTMLElement;
 
     /**
-     * The container that directly contains the actual editor components.
+     * The container that directly contains the actual editor components and 
+     * editor-related overlay components.
      */
-    readonly editorContainer: HTMLElement;
+    readonly overlayContainer: HTMLElement;
 }
 
 export abstract class EditorBase extends EditorViewProxy implements IEditorBase {
@@ -28,18 +29,18 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     // [constructor]
 
     constructor(
-        editorContainer: HTMLElement,
+        overlayContainer: HTMLElement,
         domEventElement: HTMLElement,
         context: ViewContext,
         editorState: ProseEditorState,
         extensions: IEditorExtension[],
     ) {
-        editorContainer.classList.add('editor-base');
+        overlayContainer.classList.add('editor-base');
 
         // binding the view part of the extension to the proseMirror
         const viewExtensionInfo = extensions.map(extension => ({ id: extension.id, extension: extension.getViewExtension() }));
         const view = new ProseEditorView(
-            editorContainer, 
+            overlayContainer, 
             {
                 state: editorState,
                 editable: () => context.options.writable.value,
@@ -47,7 +48,7 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
         );
 
         super(domEventElement, context, viewExtensionInfo, view);
-        this._editorContainer = editorContainer;
+        this._editorContainer = overlayContainer;
         this._container = domEventElement;
         this._context = context;
     }
@@ -55,7 +56,7 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     // [public methods]
 
     get container() { return this._container; }
-    get editorContainer() { return this._editorContainer; }
+    get overlayContainer() { return this._editorContainer; }
 
     // [private helper methods]
 }
