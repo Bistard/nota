@@ -2,6 +2,26 @@ import { dropPoint } from "prosemirror-transform";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 
 /**
+ * Describes how many possible states of dragging action in the editor.
+ */
+export const enum EditorDragState {
+    /**
+     * No dragging action presented in the editor.
+     */
+    None = 'none',
+    
+    /**
+     * Dragging action that can dropped as inline-level or block-level.
+     */
+    Normal = 'normal',
+
+    /**
+     * Dragging action that can only dropped as block-level.
+     */
+    Block = 'block',
+}
+
+/**
  * @description Calculates the exact position within the ProseMirror document 
  * for dropping a dragged item based on the mouse event coordinates.
  * @returns The calculated document position for the drop cursor.

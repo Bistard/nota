@@ -18,6 +18,7 @@ import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEven
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
 import { AsyncResult } from "src/base/common/result";
+import { EditorDragState } from "src/editor/common/cursorDrop";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -87,6 +88,9 @@ export interface IEditorWidget extends
      * @param id The unique identifier of the extension.
      */
     getExtension<T extends EditorExtension>(id: string): T | undefined;
+    
+    getContextKey<T>(name: string): IContextKey<T> | undefined;
+    updateContext(name: string, value: any): boolean;
 }
 
 /**
@@ -107,7 +111,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _editorData: EditorData | null;
 
     /**
-     * Responsible for constructing a list of editor extensions
+     * Responsible for managing the context key of the editor.
+     */
+    private readonly _contextHub: EditorContextHub;
+
+    /**
+     * Responsible for constructing a list of editor extensions.
      */
     private readonly _extensions: EditorExtensionController;
 
@@ -247,11 +256,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._editorData = null;
 
         this._options    = instantiationService.createInstance(EditorOptionController, options);
-        const contextHub = instantiationService.createInstance(EditorContextHub, this);
+        this._contextHub = instantiationService.createInstance(EditorContextHub, this);
         this._extensions = instantiationService.createInstance(EditorExtensionController, this, extensions);
 
         this.__registerListeners();
-        this.__register(contextHub);
+        this.__register(this._contextHub);
         this.__register(this._extensions);
     }
 
@@ -317,6 +326,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     public getExtension<T extends EditorExtension>(id: string): T | undefined {
         return <T>this._extensions.getExtensionByID(id);
+    }
+
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this._contextHub.getContextKey(name);
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        return this._contextHub.updateContext(name, value);
     }
 
     // #region [editor-model methods]
@@ -436,12 +453,14 @@ class EditorContextHub extends Disposable {
     private readonly isEditorReadonly: IContextKey<boolean>;
     private readonly isEditorWritable: IContextKey<boolean>;
     private readonly editorRenderMode: IContextKey<EditorType | null>;
+    private readonly editorDragState: IContextKey<EditorDragState>;
 
     // [constructor]
 
     constructor(
         private readonly editor: IEditorWidget,
         @IContextService contextService: IContextService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
 
@@ -449,9 +468,31 @@ class EditorContextHub extends Disposable {
         this.isEditorReadonly = contextService.createContextKey('isEditorReadonly', editor.readonly, 'Whether the editor is currently readonly.');
         this.isEditorWritable = contextService.createContextKey('isEditorWritable', !editor.readonly, 'Whether the editor is currently writable.');
         this.editorRenderMode = contextService.createContextKey('editorRenderMode', editor.renderMode, 'The render mode of the editor.');
+        this.editorDragState = contextService.createContextKey('editorDragState', EditorDragState.None, 'Indicates the current status of a drag action within the editor.');
 
         // Register auto update context listeners
         this.__registerListeners();
+    }
+
+    // [public methods]
+
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this[name];
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        const contextKey: IContextKey<unknown> | undefined = this[name];
+        if (!contextKey) {
+            return false;
+        }
+
+        if (contextKey.key !== name) {
+            this.logService.warn('EditorWidget', `Cannot update context (incompatible name): '${name}' !== '${contextKey.key}'`);
+            return false;
+        }
+
+        contextKey.set(value);
+        return true;
     }
 
     // [private helper methods]
