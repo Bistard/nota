@@ -33,17 +33,18 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     ) {
         super(editorWidget);
         this._cursorRenderer = this.__register(new DropCursorRenderer());
+        this.__register(this.onDragStart(e => { this.__onDragStart(e.event, e.view); }));
+        this.__register(this.onDragOver(e => { this.__onDragover(e.event, e.view); }));
+        this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, e.view); }));
+        this.__register(this.onDrop(e => { this.__onDropEditor(e.browserEvent, e.view); }));
+        this.__register(this.onDropOverlay(e => { this.__onDropOverlay(e, e.view); }));
+        this.__register(this.onDragEnd(e => { this.__onDragEnd(e.event, e.view); }));
     }
 
     // [override methods]
 
-    protected override onViewInit(view: ProseEditorView): void {
-        this.__register(this.onDragStart(e => { this.__onDragStart(e.event, view); }));
-        this.__register(this.onDragOver(e => { this.__onDragover(e.event, view); }));
-        this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, view); }));
-        this.__register(this.onDrop(e => { this.__onDropEditor(e.browserEvent, view); }));
-        this.__register(this.onDropOverlay(e => { this.__onDropOverlay(e, view); }));
-        this.__register(this.onDragEnd(e => { this.__onDragEnd(e.event, view); }));
+    protected override onViewDestroy(view: ProseEditorView): void {
+        this._cursorRenderer.unrender();
     }
 
     // [private methods]
