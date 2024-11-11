@@ -1,3 +1,4 @@
+import { FastElement } from "src/base/browser/basic/fastElement";
 import { IDisposable } from "src/base/common/dispose";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 
@@ -10,7 +11,7 @@ export class DropCursorRenderer implements IDisposable {
 
     public readonly width: number = 3; // in pixel
     private _cursorPosition: number | null = null;
-    private _cursorElement: HTMLElement | null = null; // TODO: replace with FastElement
+    private _cursorElement: FastElement<HTMLElement> | null = null;
 
     // [constructor]
 
@@ -108,12 +109,12 @@ export class DropCursorRenderer implements IDisposable {
 
         const parent = editorDOM.offsetParent as HTMLElement;
         if (!this._cursorElement) {
-            this._cursorElement = parent.appendChild(document.createElement('div'));
-            this._cursorElement.classList.add('editor-drop-cursor');
+            this._cursorElement = new FastElement(parent.appendChild(document.createElement('div')));
+            this._cursorElement.addClassList('editor-drop-cursor');
         }
     
-        this._cursorElement.classList.toggle('drop-cursor-block', isBlock);
-        this._cursorElement.classList.toggle('drop-cursor-inline', !isBlock);
+        this._cursorElement.toggleClassName('drop-cursor-block', isBlock);
+        this._cursorElement.toggleClassName('drop-cursor-inline', !isBlock);
     
         let parentLeft: number, parentTop: number;
         if (!parent || (parent === document.body && getComputedStyle(parent).position === 'static')) {
@@ -127,9 +128,9 @@ export class DropCursorRenderer implements IDisposable {
             parentTop = parentRect.top - parent.scrollTop * parentScaleY;
         }
     
-        this._cursorElement.style.left = `${(rect.left - parentLeft) / scaleX}px`;
-        this._cursorElement.style.top = `${(rect.top - parentTop) / scaleY}px`;
-        this._cursorElement.style.width = `${(rect.right - rect.left) / scaleX}px`;
-        this._cursorElement.style.height = `${(rect.bottom - rect.top) / scaleY}px`;
+        this._cursorElement.setLeft((rect.left - parentLeft) / scaleX);
+        this._cursorElement.setTop((rect.top - parentTop) / scaleY);
+        this._cursorElement.setWidth((rect.right - rect.left) / scaleX);
+        this._cursorElement.setHeight((rect.bottom - rect.top) / scaleY);
     }
 }

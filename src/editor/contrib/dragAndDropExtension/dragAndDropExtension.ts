@@ -153,7 +153,6 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     private __onDragEnd(event: DragEvent, view: ProseEditorView): void {
-        console.log('dragend');
         this.__dragAfterWork();
     }
 
