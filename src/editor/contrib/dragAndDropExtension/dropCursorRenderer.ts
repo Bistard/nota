@@ -14,9 +14,7 @@ export class DropCursorRenderer implements IDisposable {
 
     // [constructor]
 
-    constructor() {
-
-    }
+    constructor() {}
 
     // [public methods]
 

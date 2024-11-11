@@ -137,6 +137,9 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     /**
      * @description This function triggers when the extension is bounded with
      * the {@link ProseEditorView}.
+     * 
+     * @note If the view gets destroyed, the reference of the view passed into
+     * this function will be no longer valid.
      */
     protected onViewInit?(view: ProseEditorView): void;
     
