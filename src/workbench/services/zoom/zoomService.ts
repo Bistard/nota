@@ -95,6 +95,10 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
     }
 
     public markAsIgnored(element: HTMLElement): IDisposable {
+        if (this._level !== 0) {
+            this.__applyStyleToElement(element, this._level);
+        }
+        
         this._ignored.push(element);
         return toDisposable(() => {
             Arrays.remove(this._ignored, element);
@@ -107,7 +111,7 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
         webFrame.setZoomLevel(level);
 
         for (const element of this._ignored) {
-            element.style.transform = `scale(${1 / this.__zoomLevelToZoomFactor(level)})`;
+            this.__applyStyleToElement(element, level);
         }
 
         this._onDidZoomLevelChange.fire(level);
@@ -119,5 +123,9 @@ export class BrowserZoomService extends Disposable implements IBrowserZoomServic
      */
     private __zoomLevelToZoomFactor(level: number): number {
         return Math.pow(1.2, level);
+    }
+
+    private __applyStyleToElement(element: HTMLElement, level: number): void {
+        element.style.transform = `scale(${1 / this.__zoomLevelToZoomFactor(level)})`;
     }
 }
