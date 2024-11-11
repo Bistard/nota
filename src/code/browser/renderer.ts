@@ -1,5 +1,4 @@
 import "src/styles/index.scss";
-import "src/workbench/parts/workspace/editor/editor"; // TODO
 import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
@@ -67,6 +66,7 @@ import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPane
 import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { Strings } from "src/base/common/utilities/string";
+import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -137,7 +137,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // universal on unexpected error handling callback
         const onUnexpectedError = (error: any, additionalMessage?: any) => {
             if (this.logService) {
-                const safeAdditional = Strings.stringifySafe(additionalMessage);
+                const safeAdditional = Strings.stringifySafe(additionalMessage, undefined, undefined, 4);
                 this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
             } else {
                 console.error(error);
@@ -308,6 +308,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
         registerService(IDialogService            , new ServiceDescriptor(BrowserDialogService     , []));
         registerService(IClipboardService         , new ServiceDescriptor(BrowserClipboardService  , []));
+        registerService(IBrowserZoomService       , new ServiceDescriptor(BrowserZoomService       , []));
     }
 
     // [end]

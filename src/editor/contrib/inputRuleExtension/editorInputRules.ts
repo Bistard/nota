@@ -59,9 +59,9 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
             whenReplace: 'type',
             getNodeAttribute: (match) => {
                 if (match && match[1]) {
-                    return { order: +match[1] };
+                    return { ordered: true, start: parseInt(match[1]) };
                 }
-                return { order: 1};
+                return { ordered: true, start: 1, };
             },
             shouldJoinWithBefore: (match, prevNode) => {
                 if (match && match[1]) {

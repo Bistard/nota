@@ -63,7 +63,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
             },
             { 
                 component: this.navigationViewService,
-                minimumSize: NavView.HEIGHT,
+                minimumSize: 0,
                 initSize: NavView.HEIGHT,
                 maximumSize: null,
             },

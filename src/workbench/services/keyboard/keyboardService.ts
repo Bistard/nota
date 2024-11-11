@@ -73,12 +73,12 @@ export class KeyboardService extends Disposable implements IDisposable, IKeyboar
         @ILayoutService layoutService: ILayoutService,
     ) {
         super();
-        const onKeydown = this.__register(new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keydown, true));
-        const onKeyup = this.__register(new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keyup, true));
-        const onKeypress = this.__register(new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keypress, true));
-        const onCompositionStart = this.__register(new DomEmitter<CompositionEvent>(layoutService.parentContainer, EventType.compositionStart, true));
-        const onCompositionUpdate = this.__register(new DomEmitter<CompositionEvent>(layoutService.parentContainer, EventType.compositionUpdate, true));
-        const onCompositionEnd = this.__register(new DomEmitter<CompositionEvent>(layoutService.parentContainer, EventType.compositionEnd, true));
+        const onKeydown = this.__register(new DomEmitter(layoutService.parentContainer, EventType.keydown, true));
+        const onKeyup = this.__register(new DomEmitter(layoutService.parentContainer, EventType.keyup, true));
+        const onKeypress = this.__register(new DomEmitter(layoutService.parentContainer, EventType.keypress, true));
+        const onCompositionStart = this.__register(new DomEmitter(layoutService.parentContainer, EventType.compositionStart, true));
+        const onCompositionUpdate = this.__register(new DomEmitter(layoutService.parentContainer, EventType.compositionUpdate, true));
+        const onCompositionEnd = this.__register(new DomEmitter(layoutService.parentContainer, EventType.compositionEnd, true));
 
         this.onKeydown = Event.map(onKeydown.registerListener, e => createStandardKeyboardEvent(e));
         this.onKeyup = Event.map(onKeyup.registerListener, e => createStandardKeyboardEvent(e));

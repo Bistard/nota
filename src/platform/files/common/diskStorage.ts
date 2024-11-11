@@ -169,7 +169,7 @@ class DiskStorageBase {
                 return err(success.error);
             }
 
-            const serialized = Strings.stringifySafe(this._storage);
+            const serialized = Strings.stringifySafe(this._storage, undefined, undefined, 4);
             if (this._lastSaveStorage === serialized) {
                 // no diff, we quit in advance.
                 return ok();

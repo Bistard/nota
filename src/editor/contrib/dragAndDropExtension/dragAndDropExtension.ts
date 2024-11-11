@@ -1,0 +1,150 @@
+import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
+import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
+import { ProseEditorView, ProseNodeSelection, ProseTextSelection } from "src/editor/common/proseMirror";
+import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
+import { IEditorWidget } from "src/editor/editorWidget";
+import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
+import { IContextService } from "src/platform/context/common/contextService";
+import { EditorContextKeys } from "src/editor/common/editorContextKeys";
+import { DropCursorRenderer } from "src/editor/contrib/dragAndDropExtension/dropCursorRenderer";
+import { IEditorDragEvent } from "src/editor/view/proseEventBroadcaster";
+import { Numbers } from "src/base/common/utilities/number";
+
+export interface IEditorDragAndDropExtension extends IEditorExtension {
+    readonly id: EditorExtensionIDs.DragAndDrop;
+}
+
+export class EditorDragAndDropExtension extends EditorExtension implements IEditorDragAndDropExtension {
+    
+    // [field]
+    
+    public readonly id = EditorExtensionIDs.DragAndDrop;
+    
+    /**
+     * Responsible for rendering drop cursor.
+     */
+    private readonly _cursorRenderer: DropCursorRenderer;
+
+    // [constructor]
+
+    constructor(
+        editorWidget: IEditorWidget,
+        @IContextService private readonly contextService: IContextService,
+    ) {
+        super(editorWidget);
+        this._cursorRenderer = this.__register(new DropCursorRenderer());
+        this.__register(this.onDragStart(e => { this.__onDragStart(e.event, e.view); }));
+        this.__register(this.onDragOver(e => { this.__onDragover(e.event, e.view); }));
+        this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, e.view); }));
+        this.__register(this.onDrop(e => { this.__onDropEditor(e.browserEvent, e.view); }));
+        this.__register(this.onDropOverlay(e => { this.__onDropOverlay(e, e.view); }));
+        this.__register(this.onDragEnd(e => { this.__onDragEnd(e.event, e.view); }));
+    }
+
+    // [override methods]
+
+    protected override onViewDestroy(view: ProseEditorView): void {
+        this._cursorRenderer.unrender();
+    }
+
+    // [private methods]
+
+    private __onDragStart(event: DragEvent, view: ProseEditorView): void {
+        /**
+         * Only set to normal when we are not dragging. Ensure not overriding
+         * any current dragging state.
+         */
+        if (this.contextService.contextMatchExpr(EditorContextKeys.isEditorDragging) === false) {
+            this._editorWidget.updateContext('editorDragState', EditorDragState.Normal);
+        }
+    }
+
+    private __onDragover(event: DragEvent, view: ProseEditorView): void {
+        if (!view.editable) {
+            return;
+        }
+        const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
+        const position = getDropExactPosition(view, event, isBlockDragging);
+        this._cursorRenderer.render(position, view);
+        
+        event.preventDefault();
+    }
+
+    private __onDragleave(event: DragEvent, view: ProseEditorView): void {
+        if (!event.relatedTarget || !view.dom.contains(event.relatedTarget as Node)) {
+            this._cursorRenderer.unrender();
+        }
+    }
+
+    private __onDropEditor(event: DragEvent, view: ProseEditorView): void {
+        this.__dragAfterWork();
+    }
+
+    private __onDropOverlay(event: IEditorDragEvent, view: ProseEditorView): void {
+        this.__dragAfterWork();
+        
+        if (!event.event.dataTransfer) {
+            return;
+        }
+
+        const data = event.event.dataTransfer.getData('$nota-editor-block-handle');
+        if (data === '') {
+            // not a drop action from the drag-handle button, do nothing.
+            return;
+        }
+
+        /**
+         * Detect drop action from drag-handle button, we prevent default drop 
+         * behavior from prosemirror.
+         */
+        event.event.preventDefault();
+
+        const dragPosition = parseInt(data);
+        const dropPosition = getDropExactPosition(view, event.event, true);
+        if (dragPosition === dropPosition) {
+            // drop at exact same position, do nothing.
+            return;
+        }
+
+        const tr = view.state.tr;
+        const node = tr.doc.nodeAt(dragPosition);
+        if (!node) {
+            return;
+        }
+        
+        // Drop inside the dragged node, do nothing.
+        if (Numbers.within(dropPosition, dragPosition, dragPosition + node.nodeSize, false, false)) {
+            return;
+        }
+
+        /**
+         * We need to consider for the offset caused by deletion.
+         */
+        const adjustedDropPosition = dragPosition < dropPosition 
+            ? dropPosition - node.nodeSize 
+            : dropPosition;
+
+        // drop behavior
+        tr.delete(dragPosition, dragPosition + node.nodeSize)
+          .insert(adjustedDropPosition, node)
+          .setSelection(ProseNodeSelection.create(tr.doc, adjustedDropPosition));
+        
+        // update view
+        view.dispatch(tr);
+
+        /**
+         * Since we are clicking the button outside the editor, we need to 
+         * manually focus the editor after drop.
+         */
+        view.focus();
+    }
+
+    private __onDragEnd(event: DragEvent, view: ProseEditorView): void {
+        this.__dragAfterWork();
+    }
+
+    private __dragAfterWork(): void {
+        this._cursorRenderer.unrender();
+        this._editorWidget.updateContext('editorDragState', EditorDragState.None);
+    }
+}

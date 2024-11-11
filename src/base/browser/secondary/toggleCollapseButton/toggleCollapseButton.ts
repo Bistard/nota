@@ -73,6 +73,12 @@ export interface IToggleCollapseButton extends IWidget {
      * Fires when the button whether collapsed.
      */
     readonly onDidCollapseStateChange: Register<CollapseState>;
+
+    /**
+     * @description Programmatically click the button. Returns false if it 
+     * succeeds.
+     */
+    click(): boolean;
 }
 
 /**
@@ -114,6 +120,22 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         return this._collapseState;
     }
     
+    public click(): boolean {
+        if (!this.rendered || !this._button) {
+            return false;
+        }
+
+        // toggle current state
+        this._collapseState = (this._collapseState === CollapseState.Collapse)
+            ? CollapseState.Expand
+            : CollapseState.Collapse;
+
+        this.__flipOver(this.element, this._button);
+        this._onDidCollapseStateChange.fire(this._collapseState);
+
+        return true;
+    }
+
     // [protected override methods]
 
     protected override __render(element: HTMLElement): void {
@@ -208,7 +230,7 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         
         if (this._collapseState === CollapseState.Collapse) {
             // default state is collapse, we flip it over.
-            this.__flipOver(button);
+            this.__flipOver(this.element, button);
         } else {
             // default is expand, no flip over.
             button.style.transform += ` rotate(${this._rotationAngle}deg)`;
@@ -219,19 +241,11 @@ export class ToggleCollapseButton extends Widget implements IToggleCollapseButto
         const button = assert(this._button);
 
         // click trigger collapse/expand
-        this.onClick(button, () => {
-
-            // toggle state
-            this._collapseState = (this._collapseState === CollapseState.Collapse)
-                ? CollapseState.Expand
-                : CollapseState.Collapse;
-
-            this.__flipOver(button);
-            this._onDidCollapseStateChange.fire(this._collapseState);
-        });
+        this.onClick(button, () => this.click());
     }
 
-    private __flipOver(button: HTMLElement): void {
+    private __flipOver(element: HTMLElement, button: HTMLElement): void {
+        element.classList.toggle('collapsed');
         this._rotationAngle = (this._rotationAngle + 180) % 360;
         button.style.transform = `rotate(${this._rotationAngle}deg)`;
     }

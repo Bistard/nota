@@ -681,7 +681,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return this.__toEvent(e);
     }
 
-    private __toContextmenuEvent(e: PointerEvent): IListContextmenuEvent<T> {
+    private __toContextmenuEvent(e: MouseEvent): IListContextmenuEvent<T> {
         const event = this.__toEvent(e);
         return {
             ...event,
@@ -699,7 +699,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         }));
 
         // mouse right click
-        const onMouse = Event.map<PointerEvent, IListContextmenuEvent<T>>(this.view.onContextmenu, e => this.__toContextmenuEvent(e));
+        const onMouse = Event.map<MouseEvent, IListContextmenuEvent<T>>(this.view.onContextmenu, e => this.__toContextmenuEvent(e));
 
         // contextmenu key OR shift + F10
         const onKeyRaw = Event.filter(this.onKeyup, e => e.key === KeyCode.ContextMenu || (e.shift && e.key === KeyCode.F10));

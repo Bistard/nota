@@ -8,6 +8,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
+import { IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -16,33 +17,45 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.toggleDevTool,
-                command: (provider) => {
-                    const hostService = provider.getOrCreateService(IHostService);
-                    hostService.toggleDevTools();
-                },
+                command: (provider) => { provider.getOrCreateService(IHostService).toggleDevTools(); },
             },
         );
     
         registrant.registerCommandBasic(
             {
                 id: AllCommands.reloadWindow,
-                command: (provider) => {
-                    const hostService = provider.getOrCreateService(IHostService);
-                    hostService.reloadWebPage();
-                },
+                command: (provider) => { provider.getOrCreateService(IHostService).reloadWebPage(); },
             },
         );
     
         registrant.registerCommandBasic(
             {
                 id: AllCommands.closeApplication,
-                command: (provider) => {
-                    const lifecycleService = provider.getOrCreateService(ILifecycleService);
-                    lifecycleService.quit();
-                },
+                command: (provider) => { provider.getOrCreateService(ILifecycleService).quit(); },
             },
         );
 
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.zoomIn,
+                command: (provider) => { provider.getOrCreateService(IBrowserZoomService).zoomIn(); },
+            },
+        );
+        
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.zoomOut,
+                command: (provider) => { provider.getOrCreateService(IBrowserZoomService).zoomOut(); },
+            },
+        );
+        
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.zoomSet,
+                command: (provider, level?: number) => { provider.getOrCreateService(IBrowserZoomService).setZoomLevel(level); },
+            },
+        );
+        
         registrant.registerCommand(new AlertError());
         registrant.registerCommand(new FileCommands.FilePaste());
     },

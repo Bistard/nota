@@ -1,4 +1,3 @@
-import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Time } from "src/base/common/date";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
@@ -40,7 +39,6 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     private _autoSaveDelay: Time;
     
     private readonly _scheduler: UnbufferedScheduler<void>;
-    private readonly _editorWidget: IEditorWidget;
 
     // [constructor]
 
@@ -50,7 +48,6 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
         @IConfigurationService private readonly configurationService: IConfigurationService
     ) {
         super(editorWidget);
-        this._editorWidget = editorWidget;
 
         // Initialize the configuration settings
         this._autoSave = this.configurationService.get<boolean>(WorkbenchConfiguration.EditorAutoSave, false);
