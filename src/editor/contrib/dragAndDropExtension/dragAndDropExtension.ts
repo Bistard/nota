@@ -1,6 +1,6 @@
 import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
-import { ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseNodeSelection, ProseTextSelection } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
@@ -127,7 +127,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         // drop behavior
         tr.delete(dragPosition, dragPosition + node.nodeSize)
           .insert(adjustedDropPosition, node)
-          .setSelection(ProseTextSelection.create(tr.doc, adjustedDropPosition + 1));
+          .setSelection(ProseNodeSelection.create(tr.doc, adjustedDropPosition));
         
         // update view
         view.dispatch(tr);
