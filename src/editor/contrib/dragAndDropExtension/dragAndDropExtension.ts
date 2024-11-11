@@ -1,6 +1,6 @@
 import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
-import { ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
@@ -126,9 +126,12 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
         // drop behavior
         tr.delete(dragPosition, dragPosition + node.nodeSize)
-          .insert(adjustedDropPosition, node);
-        view.dispatch(tr);
+          .insert(adjustedDropPosition, node)
+          .setSelection(ProseTextSelection.create(tr.doc, adjustedDropPosition + 1));
         
+        // update view
+        view.dispatch(tr);
+
         /**
          * Since we are clicking the button outside the editor, we need to 
          * manually focus the editor after drop.
