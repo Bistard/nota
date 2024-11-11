@@ -230,6 +230,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             browserOption.frame = false;
         }
 
+        browserOption.titleBarStyle = 'hidden';
+
         // window construction
         const window = new electron.BrowserWindow(browserOption);
 
