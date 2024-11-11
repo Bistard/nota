@@ -6,9 +6,6 @@ import { Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
 
-
-
-
 /**
  * An interface only for {@link EditorExtension}.
  */
@@ -59,7 +56,6 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onKeydown() { return this._editorWidget.onKeydown; }
     get onKeypress() { return this._editorWidget.onKeypress; }
     get onTextInput() { return this._editorWidget.onTextInput; }
-    get onPaste() { return this._editorWidget.onPaste; }
     
     get onMouseOver() { return this._editorWidget.onMouseOver; }
     get onMouseOut() { return this._editorWidget.onMouseOut; }
@@ -69,13 +65,17 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onMouseUp() { return this._editorWidget.onMouseUp; }
     get onMouseMove() { return this._editorWidget.onMouseMove; }
     
+    get onPaste() { return this._editorWidget.onPaste; }
     get onDrop() { return this._editorWidget.onDrop; }
+    get onDropOverlay() { return this._editorWidget.onDropOverlay; }
     get onDrag() { return this._editorWidget.onDrag; }
     get onDragStart() { return this._editorWidget.onDragStart; }
     get onDragEnd() { return this._editorWidget.onDragEnd; }
     get onDragOver() { return this._editorWidget.onDragOver; }
     get onDragEnter() { return this._editorWidget.onDragEnter; }
     get onDragLeave() { return this._editorWidget.onDragLeave; }
+    
+    get onWheel() { return this._editorWidget.onWheel; }
 
     // [constructor]
 
@@ -84,7 +84,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     ) {
         super();
         this._editorWidget = editorWidget;
-        this._viewExtension = new ProseExtension({
+        this._viewExtension = new ProseExtension<void>({
             state: {
                 // This function will be called once the extension is created by {@link EditorState.create({ plugin: [myPlugin] })}.
                 init: (config, state) => {
@@ -137,11 +137,14 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     /**
      * @description This function triggers when the extension is bounded with
      * the {@link ProseEditorView}.
+     * 
+     * @note If the view gets destroyed, the reference of the view passed into
+     * this function will be no longer valid.
      */
     protected onViewInit?(view: ProseEditorView): void;
     
     /**
-     * @description The function triggers when the view's state is updated.
+     * @description This function triggers when the view's state is updated.
      */
     protected onViewUpdate?(view: ProseEditorView, prevState: ProseEditorState): void;
 

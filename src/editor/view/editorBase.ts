@@ -7,9 +7,15 @@ import { IEditorExtension } from 'src/editor/common/editorExtension';
 export interface IEditorBase extends IEditorViewProxy {
     
     /**
-     * The direct wrapper container of `ProseMirror`.
+     * The container that contains all the editor-related components.
      */
-    readonly editorContainer: HTMLElement;
+    readonly container: HTMLElement;
+
+    /**
+     * The container that directly contains the actual editor components and 
+     * editor-related overlay components.
+     */
+    readonly overlayContainer: HTMLElement;
 }
 
 export abstract class EditorBase extends EditorViewProxy implements IEditorBase {
@@ -17,36 +23,40 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
     // [fields]
 
     protected readonly _container: HTMLElement;
+    protected readonly _editorContainer: HTMLElement;
     protected readonly _context: ViewContext;
 
     // [constructor]
 
     constructor(
-        container: HTMLElement,
+        overlayContainer: HTMLElement,
+        domEventElement: HTMLElement,
         context: ViewContext,
         editorState: ProseEditorState,
         extensions: IEditorExtension[],
     ) {
-        container.classList.add('editor-base');
+        overlayContainer.classList.add('editor-base');
 
         // binding the view part of the extension to the proseMirror
         const viewExtensionInfo = extensions.map(extension => ({ id: extension.id, extension: extension.getViewExtension() }));
         const view = new ProseEditorView(
-            container, 
+            overlayContainer, 
             {
                 state: editorState,
                 editable: () => context.options.writable.value,
             }
         );
 
-        super(context, viewExtensionInfo, view);
-        this._container = container;
+        super(domEventElement, context, viewExtensionInfo, view);
+        this._editorContainer = overlayContainer;
+        this._container = domEventElement;
         this._context = context;
     }
 
     // [public methods]
 
-    get editorContainer(): HTMLElement { return this._container; }
+    get container() { return this._container; }
+    get overlayContainer() { return this._editorContainer; }
 
     // [private helper methods]
 }

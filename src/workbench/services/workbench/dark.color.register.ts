@@ -36,6 +36,7 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'scroll-slider-background', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'toggle-collapse-button', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.DarkModern, 'toggle-collapse-button-hover', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'drop-cursor', THEME_COLORS.teal);
 
         // NavigationPanel
         registrant.registerColor(PresetColorTheme.DarkModern, 'quick-access-bar-menu-button-foreground', THEME_COLORS.mediumTeal);

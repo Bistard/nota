@@ -18,6 +18,7 @@ import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEven
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert } from "src/base/common/utilities/panic";
 import { AsyncResult } from "src/base/common/result";
+import { EditorDragState } from "src/editor/common/cursorDrop";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -87,6 +88,9 @@ export interface IEditorWidget extends
      * @param id The unique identifier of the extension.
      */
     getExtension<T extends EditorExtension>(id: string): T | undefined;
+    
+    getContextKey<T>(name: string): IContextKey<T> | undefined;
+    updateContext(name: string, value: any): boolean;
 }
 
 /**
@@ -107,7 +111,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _editorData: EditorData | null;
 
     /**
-     * Responsible for constructing a list of editor extensions
+     * Responsible for managing the context key of the editor.
+     */
+    private readonly _contextHub: EditorContextHub;
+
+    /**
+     * Responsible for constructing a list of editor extensions.
      */
     private readonly _extensions: EditorExtensionController;
 
@@ -180,9 +189,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onTextInput = this.__register(new RelayEmitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
-    private readonly _onPaste = this.__register(new RelayEmitter<IOnPasteEvent>());
-    public readonly onPaste = this._onPaste.registerListener;
-
     private readonly _onMouseOver = this.__register(new RelayEmitter<IEditorMouseEvent>());
     public readonly onMouseOver = this._onMouseOver.registerListener;
     
@@ -204,8 +210,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _onMouseMove = this.__register(new RelayEmitter<IEditorMouseEvent>());
     public readonly onMouseMove = this._onMouseMove.registerListener;
     
+    private readonly _onPaste = this.__register(new RelayEmitter<IOnPasteEvent>());
+    public readonly onPaste = this._onPaste.registerListener;
+
     private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
+    
+    private readonly _onDropOverlay = this.__register(new RelayEmitter<IEditorDragEvent>());
+    public readonly onDropOverlay = this._onDropOverlay.registerListener;
     
     private readonly _onDrag = this.__register(new RelayEmitter<IEditorDragEvent>());
     public readonly onDrag = this._onDrag.registerListener;
@@ -224,6 +236,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     
     private readonly _onDragLeave = this.__register(new RelayEmitter<IEditorDragEvent>());
     public readonly onDragLeave = this._onDragLeave.registerListener;
+    
+    private readonly _onWheel = this.__register(new RelayEmitter<WheelEvent>());
+    public readonly onWheel = this._onWheel.registerListener;
 
     // #region [constructor]
 
@@ -244,11 +259,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._editorData = null;
 
         this._options    = instantiationService.createInstance(EditorOptionController, options);
-        const contextHub = instantiationService.createInstance(EditorContextHub, this);
+        this._contextHub = instantiationService.createInstance(EditorContextHub, this);
         this._extensions = instantiationService.createInstance(EditorExtensionController, this, extensions);
 
         this.__registerListeners();
-        this.__register(contextHub);
+        this.__register(this._contextHub);
         this.__register(this._extensions);
     }
 
@@ -314,6 +329,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     public getExtension<T extends EditorExtension>(id: string): T | undefined {
         return <T>this._extensions.getExtensionByID(id);
+    }
+
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this._contextHub.getContextKey(name);
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        return this._contextHub.updateContext(name, value);
     }
 
     // #region [editor-model methods]
@@ -383,7 +406,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onKeydown.setInput(this.view.onKeydown);
         this._onKeypress.setInput(this.view.onKeypress);
         this._onTextInput.setInput(this.view.onTextInput);
-        this._onPaste.setInput(this.view.onPaste);
         
         this._onMouseOver.setInput(this.view.onMouseOver);
         this._onMouseOut.setInput(this.view.onMouseOut);
@@ -393,7 +415,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onMouseUp.setInput(this.view.onMouseUp);
         this._onMouseMove.setInput(this.view.onMouseMove);
         
+        this._onPaste.setInput(this.view.onPaste);
         this._onDrop.setInput(this.view.onDrop);
+        this._onDropOverlay.setInput(this.view.onDropOverlay);
         this._onDrag.setInput(this.view.onDrag);
         this._onDragStart.setInput(this.view.onDragStart);
         this._onDragEnd.setInput(this.view.onDragEnd);
@@ -401,6 +425,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onDragEnter.setInput(this.view.onDragEnter);
         this._onDragLeave.setInput(this.view.onDragLeave);
         
+        this._onWheel.setInput(this.view.onWheel);
         // TODO: configuration auto update
     }
 }
@@ -432,12 +457,14 @@ class EditorContextHub extends Disposable {
     private readonly isEditorReadonly: IContextKey<boolean>;
     private readonly isEditorWritable: IContextKey<boolean>;
     private readonly editorRenderMode: IContextKey<EditorType | null>;
+    private readonly editorDragState: IContextKey<EditorDragState>;
 
     // [constructor]
 
     constructor(
         private readonly editor: IEditorWidget,
         @IContextService contextService: IContextService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
 
@@ -445,9 +472,31 @@ class EditorContextHub extends Disposable {
         this.isEditorReadonly = contextService.createContextKey('isEditorReadonly', editor.readonly, 'Whether the editor is currently readonly.');
         this.isEditorWritable = contextService.createContextKey('isEditorWritable', !editor.readonly, 'Whether the editor is currently writable.');
         this.editorRenderMode = contextService.createContextKey('editorRenderMode', editor.renderMode, 'The render mode of the editor.');
+        this.editorDragState = contextService.createContextKey('editorDragState', EditorDragState.None, 'Indicates the current status of a drag action within the editor.');
 
         // Register auto update context listeners
         this.__registerListeners();
+    }
+
+    // [public methods]
+
+    public getContextKey<T>(name: string): IContextKey<T> | undefined {
+        return this[name];
+    }
+
+    public updateContext(name: string, value: any): boolean {
+        const contextKey: IContextKey<unknown> | undefined = this[name];
+        if (!contextKey) {
+            return false;
+        }
+
+        if (contextKey.key !== name) {
+            this.logService.warn('EditorWidget', `Cannot update context (incompatible name): '${name}' !== '${contextKey.key}'`);
+            return false;
+        }
+
+        contextKey.set(value);
+        return true;
     }
 
     // [private helper methods]

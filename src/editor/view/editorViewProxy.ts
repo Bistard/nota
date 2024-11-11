@@ -65,11 +65,12 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     // [constructor]
 
     constructor(
+        domEventElement: HTMLElement,
         context: ViewContext,
         extensions: { id: string, extension: ProseExtension }[],
         view: ProseEditorView,
     ) {
-        super(view);
+        super(domEventElement, view);
         this._ctx = context;
         this._extensionMap = new Map();
 

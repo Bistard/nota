@@ -349,8 +349,8 @@ export class OutlineService extends Disposable implements IOutlineService {
             return false;
         }
 
-        const editorContainer = this.editorService.editor.view.editor.editorContainer;
-        const computedStyle = getComputedStyle(editorContainer);
+        const overlayContainer = this.editorService.editor.view.editor.overlayContainer;
+        const computedStyle = getComputedStyle(overlayContainer);
         const padding = Math.max(0, parseFloat(computedStyle.getPropertyValue('padding-right')));
         const margin = Math.max(0, parseFloat(computedStyle.getPropertyValue('margin-right')));
         

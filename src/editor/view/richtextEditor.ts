@@ -12,12 +12,13 @@ export class RichtextEditor extends EditorBase {
 
     constructor(
         container: HTMLElement,
+        domEventElement: HTMLElement,
         context: ViewContext,
         editorState: ProseEditorState,
         extensions: IEditorExtension[],
     ) {
         container.classList.add('rich-text');
-        super(container, context, editorState, extensions);
+        super(container, domEventElement, context, editorState, extensions);
     }
 
     // [public methods]

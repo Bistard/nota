@@ -55,6 +55,7 @@ export interface IOnKeydownEvent {
 export interface IOnKeypressEvent {
     readonly view: ProseEditorView;
     readonly event: IStandardKeyboardEvent;
+    preventDefault(): void;
 }
 
 export interface IOnTextInputEvent {
@@ -69,6 +70,7 @@ export interface IOnPasteEvent {
     readonly view: ProseEditorView;
     readonly slice: ProseSlice;
     readonly browserEvent: ClipboardEvent;
+    preventDefault(): void;
 }
 
 export interface IOnDropEvent {
@@ -76,20 +78,52 @@ export interface IOnDropEvent {
     readonly slice: ProseSlice;
     readonly moved: boolean;
     readonly browserEvent: DragEvent;
+    preventDefault(): void;
 }
 
 export interface IEditorMouseEvent {
+    
+    /**
+     * The prosemirror view reference.
+     */
     readonly view: ProseEditorView;
+
+    /**
+     * The original browser event.
+     */
     readonly event: MouseEvent;
     
+    /**
+     * Defined when the mouse is interacting with any prosemirror node.
+     */
     readonly target?: {
+        /**
+         * The interacting prosemirror node.
+         */
         readonly node: ProseNode;
+        /**
+         * The corresponding HTMLElement.
+         */
+        readonly nodeElement: HTMLElement;
+        /**
+         * The absolute position of the node.
+         */
         readonly position: number;
-        getResolvedPos(): ProseResolvedPos;
+        /**
+         * The absolute position of the parent of the node. If no parent, 
+         * -1 returned.
+         */
+        readonly parentPosition: number;
+        /**
+         * When `parentPosition` equals -1, this equal to `position`, otherwise
+         * equals to `parentPosition`.
+         */
+        readonly resolvedPosition: number;
     }
 }
 
 export interface IEditorDragEvent extends IEditorMouseEvent {
+    readonly event: DragEvent;
     readonly dataTransfer?: DataTransfer;
 }
 
@@ -186,13 +220,6 @@ export interface IProseEventBroadcaster extends IDisposable {
      */
     readonly onTextInput: Register<IOnTextInputEvent>;
 
-    /**
-     * Fires when the editor encounters a clipboard event. `slice` is the pasted 
-     * content parsed by the editor, but you can directly access the event to 
-     * get at the raw content.
-     */
-    readonly onPaste: Register<IOnPasteEvent>;
-
     readonly onMouseOver: Register<IEditorMouseEvent>;
     readonly onMouseOut: Register<IEditorMouseEvent>;
     readonly onMouseEnter: Register<IEditorMouseEvent>;
@@ -202,16 +229,34 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onMouseMove: Register<IEditorMouseEvent>;
     
     /**
+     * Fires when the editor encounters a clipboard event. `slice` is the pasted 
+     * content parsed by the editor, but you can directly access the event to 
+     * get at the raw content.
+     */
+    readonly onPaste: Register<IOnPasteEvent>;
+
+    /**
      * Fires when something is dropped onto the editor. `moved` will be true if 
      * this drop moves from the current selection (which should thus be deleted).
      */
     readonly onDrop: Register<IOnDropEvent>;
+    
+    /**
+     * Fires when something is dropped on the editor overlay. Overlay is a layer
+     * not just including the editor, but also some spaces.
+     */
+    readonly onDropOverlay: Register<IEditorDragEvent>;
     readonly onDrag: Register<IEditorDragEvent>;
     readonly onDragStart: Register<IEditorDragEvent>;
     readonly onDragEnd: Register<IEditorDragEvent>;
     readonly onDragOver: Register<IEditorDragEvent>;
     readonly onDragEnter: Register<IEditorDragEvent>;
     readonly onDragLeave: Register<IEditorDragEvent>;
+
+    /**
+     * Fires when scrolling happens.
+     */
+    readonly onWheel: Register<WheelEvent>;
 }
 
 /**
@@ -233,6 +278,12 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
      * The ProseMirror view reference.
      */
     protected readonly _view: ProseEditorView;
+    
+    /**
+     * The element only for dom event listening purpose. This is the element that
+     * triggers the dom-related events.
+     */
+    private readonly _$container: HTMLElement;
 
     // [event]
 
@@ -281,31 +332,35 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     private readonly _onTextInput = this.__register(new Emitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
+    @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseDown() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseUp() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseMove() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    
+    @memoize get onDrag() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.drag)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragStart() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragstart)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragEnd() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragend)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+
     private readonly _onPaste = this.__register(new Emitter<IOnPasteEvent>());
     public readonly onPaste = this._onPaste.registerListener;
 
-    @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseLeave() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseDown() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseUp() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseMove() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    
-    @memoize get onDrag() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.drag)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragStart() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragstart)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragEnd() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragend)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragOver() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragEnter() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragLeave() { return Event.map(this.__register(new DomEmitter(this._view.dom, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-
     private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
+    @memoize get onDropOverlay() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.drop)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+
+    @memoize get onWheel() { return this.__register(new DomEmitter(this._$container, EventType.wheel)).registerListener; }
 
     // [constructor]
 
-    constructor(view: ProseEditorView) {
+    constructor(container: HTMLElement, view: ProseEditorView) {
         super();
+        this._$container = container;
         this._view = view;
         const property = view.props;
         
@@ -429,10 +484,15 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         
         // on key press
         property.handleKeyPress = (view, event) => {
+            let prevented = false;
+            
             this._onKeypress.fire({
                 view: view,
                 event: createStandardKeyboardEvent(event),
+                preventDefault: () => prevented = true,
             });
+
+            return prevented;
         };
         
         // on text input
@@ -452,21 +512,31 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         
         // on paste
         property.handlePaste = (view, event, slice) => {
+            let prevented = false;
+            
             this._onPaste.fire({
                 view: view,
                 browserEvent: event,
                 slice: slice,
+                preventDefault: () => prevented = true,
             });
+
+            return prevented;
         };
         
         // on drop
         property.handleDrop = (view, event, slice, moved) => {
+            let prevented = false;
+
             this._onDrop.fire({
                 view: view,
                 browserEvent: event,
                 slice: slice,
                 moved: moved,
+                preventDefault: () => prevented = true,
             });
+
+            return prevented;
         };
     }
 }
@@ -477,18 +547,23 @@ function __standardizeMouseEvent(e: MouseEvent, view: ProseEditorView): IEditorM
         top: e.clientY,
     });
 
-    const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
-    if (!node) {
+    if (!pos) {
         return { view: view, event: e, target: undefined };
     }
 
+    const resolvedPosition = pos.inside === -1 ? pos.pos : pos.inside;
+    const node = view.state.doc.nodeAt(resolvedPosition)!;
+    const nodeElement = view.nodeDOM(resolvedPosition)! as HTMLElement;
+    
     return { 
         view: view, 
         event: e, 
         target: { 
             node: node, 
+            nodeElement: nodeElement,
             position: pos.pos, 
-            getResolvedPos: () => view.state.doc.resolve(pos.pos),
+            parentPosition: pos.inside,
+            resolvedPosition: resolvedPosition,
         } 
     };
 }
@@ -498,13 +573,15 @@ function __standardizeDragEvent(e: DragEvent, view: ProseEditorView): IEditorDra
         left: e.clientX,
         top: e.clientY,
     });
-
     const dataTransfer = e.dataTransfer ?? undefined;
 
-    const node = pos && pos.inside >= 0 && view.state.doc.nodeAt(pos.inside);
-    if (!node) {
-        return { view: view, event: e, target: undefined, dataTransfer };
+    if (!pos) {
+        return { view: view, event: e, target: undefined };
     }
+
+    const resolvedPosition = pos.inside === -1 ? pos.pos : pos.inside;
+    const node = view.state.doc.nodeAt(resolvedPosition)!;
+    const nodeElement = view.nodeDOM(resolvedPosition)! as HTMLElement;
 
     return { 
         view: view, 
@@ -512,8 +589,10 @@ function __standardizeDragEvent(e: DragEvent, view: ProseEditorView): IEditorDra
         dataTransfer,
         target: { 
             node: node, 
+            nodeElement: nodeElement,
             position: pos.pos, 
-            getResolvedPos: () => view.state.doc.resolve(pos.pos),
+            parentPosition: pos.inside,
+            resolvedPosition: resolvedPosition,
         } 
     };
 }

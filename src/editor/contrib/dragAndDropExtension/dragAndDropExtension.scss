@@ -1,36 +1,29 @@
-.editor-dnd-cursor {
-    pointer-events: none;
-    z-index: 50;
+.editor-drop-cursor {
     position: absolute;
-    opacity: 1; /* Make cursor visible by default */
-    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-}
-
-.editor-dnd-cursor-block {
-    height: 2px;
-    width: 100%;
-    background-color: #2aa882;
-    display: block;
-    opacity: 1;
-    animation: fadeInOut 0.5s infinite alternate;
-}
-
-.editor-dnd-cursor-inline {
-    width: 2px;
-    height: 1.2em;
-    background-color: #2aa882;
-    display: inline-block;
-    opacity: 1;
-    animation: fadeInOut 0.5s infinite alternate;
-}
-
-@keyframes fadeInOut {
-    0% {
-        opacity: 0.3;
-        transform: scale(1);
+    pointer-events: none;
+    background-color: var(--nota-drop-cursor);
+    
+    animation: cursor-pulse 0.5s infinite ease-in-out;
+    transition: background-color 0.2s ease;
+    transition: left 0.2s ease;
+    transition: top 0.2s ease;
+    
+    &.drop-cursor-block {
+        background-color: var(--nota-drop-cursor);
     }
-    100% {
-        opacity: 0.8;
-        transform: scale(1.1);
+  
+    &.drop-cursor-inline {
+        background-color: var(--nota-drop-cursor);
+    }
+}
+
+@keyframes cursor-pulse {
+    0%, 100% {
+        opacity: 1;
+        background-color: var(--nota-drop-cursor);
+    }
+    50% {
+        opacity: 0.45;
+        background-color: #8baca3;
     }
 }

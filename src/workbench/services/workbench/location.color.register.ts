@@ -29,6 +29,7 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('scroll-slider-background');
         registrant.registerTemplate('toggle-collapse-button');
         registrant.registerTemplate('toggle-collapse-button-hover');
+        registrant.registerTemplate('drop-cursor');
         
         // NavigationPanel
         registrant.registerTemplate('quick-access-bar-menu-button-foreground');

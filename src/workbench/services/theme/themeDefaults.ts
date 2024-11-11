@@ -1,7 +1,7 @@
 import { Color, ColorMap } from "src/base/common/color";
 import { assert } from "src/base/common/utilities/panic";
 
-export const THEME_COLORS = <const>{
+export const THEME_COLORS = <const> {
 
     // primary (brand)
 
@@ -21,14 +21,14 @@ export const THEME_COLORS = <const>{
     subicon:             assert(Color.parseHex('#cccccc')),
     stroke:              assert(Color.parseHex('#e2e2e2')),
     lightstroke:         assert(Color.parseHex('#eaeaea')),
-    light:               assert(Color.parseHex('#fcf3f3')),
+    light:               assert(Color.parseHex('#fcf3f3')), // FIX: this color is not even a gray.
     sidebg:              assert(Color.parseHex('#fcfcfc')),
 
     // utility
     goldenrod:           assert(Color.parseHex('#F1AD00')),
     lightgoldenrod:     assert(Color.parseHex('#f9de99')),
     crimson:             assert(Color.parseHex('#DA3A34')),
-    lightcrimson:       assert(Color.parseHex('#ec9c99')),
+    lightcrimson:       assert(Color.parseHex('#ec9c99'))
     
     // light theme special
     

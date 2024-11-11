@@ -51,7 +51,6 @@ export class EditorView extends Disposable implements IEditorView {
     get onKeydown() { return this._view.onKeydown; }
     get onKeypress() { return this._view.onKeypress; }
     get onTextInput() { return this._view.onTextInput; }
-    get onPaste() { return this._view.onPaste; }
     
     get onMouseOver() { return this._view.onMouseOver; }
     get onMouseOut() { return this._view.onMouseOut; }
@@ -61,13 +60,17 @@ export class EditorView extends Disposable implements IEditorView {
     get onMouseUp() { return this._view.onMouseUp; }
     get onMouseMove() { return this._view.onMouseMove; }
     
+    get onPaste() { return this._view.onPaste; }
     get onDrop() { return this._view.onDrop; }
+    get onDropOverlay() { return this._view.onDropOverlay; }
     get onDrag() { return this._view.onDrag; }
     get onDragStart() { return this._view.onDragStart; }
     get onDragEnd() { return this._view.onDragEnd; }
     get onDragOver() { return this._view.onDragOver; }
     get onDragEnter() { return this._view.onDragEnter; }
     get onDragLeave() { return this._view.onDragLeave; }
+    
+    get onWheel() { return this._view.onWheel; }
 
     // [constructor]
     
@@ -81,13 +84,16 @@ export class EditorView extends Disposable implements IEditorView {
     ) {
         super();
 
+        this._container = document.createElement('div');
+        this._container.className = 'editor-view-container';
+
         const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional));
         this._ctx = context;
 
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = new RichtextEditor(editorElement, context, initState, extensions);
+        this._view = this.__register(new RichtextEditor(editorElement, this._container, context, initState, extensions));
         
         // forward: start listening events from model
         this.__registerEventFromModel();
@@ -95,8 +101,6 @@ export class EditorView extends Disposable implements IEditorView {
 
 
         // render
-        this._container = document.createElement('div');
-        this._container.className = 'editor-view-container';
         this._container.appendChild(editorElement);
         container.appendChild(this._container);
 
