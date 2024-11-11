@@ -1,13 +1,5 @@
 import { iterPropEnumerable } from "src/base/common/utilities/object";
-import { IEditorModelOptions } from "src/editor/common/model";
-import { EditorType, IEditorViewOptions } from "src/editor/common/view";
-
-/**
- * Constructor option for 'EditorWidget'.
- */
-export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewOptions {
-
-}
+import { EditorType } from "src/editor/common/view";
 
 /**
  * An interface that represents a single editor option.
@@ -89,6 +81,7 @@ export const enum EditorOptionEnum {
     mode,
     codeblockHighlight,
     ignoreHTML,
+    dropAnimation,
 }
 
 /**
@@ -104,10 +97,12 @@ export const EDITOR_OPTIONS_DEFAULT = {
     // [model]
     baseURI:            new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
     writable:           new BooleanEditorOption(EditorOptionEnum.writable, 'writable', false, {}),
+    
     // [view]
     mode:               new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
     codeblockHighlight: new BooleanEditorOption(EditorOptionEnum.codeblockHighlight, 'codeblockHighlight', true, {}),
     ignoreHTML:         new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
+    dropAnimation:      new BooleanEditorOption(EditorOptionEnum.dropAnimation, 'dropAnimation', true, {}),
 };
 
 //#endregion
@@ -130,3 +125,43 @@ export function toJsonEditorOption(options: EditorOptionsType): Record<string, a
 export type FindEditorOption<T extends EditorOptionEnum> = __FindEditorOptionValue<EditorOptionsType[__FindEditorOptionKey<T>]>;
 type __FindEditorOptionKey<E extends EditorOptionEnum> = { [K in keyof EditorOptionsType]: EditorOptionsType[K]['ID'] extends E ? K : never }[keyof EditorOptionsType];
 type __FindEditorOptionValue<T> = T extends IEditorOption<any, infer V> ? V : never;
+
+/**
+ * Configuration options for initializing an `EditorWidget`.
+ */
+export interface IEditorWidgetOptions {
+
+    /**
+     * A base URI used as the prefix for any relative link token.
+     */
+    baseURI?: string;
+
+    /**
+     * Indicates if the editor allows modifications. When set to `false`, the content is read-only.
+     */
+    readonly writable: boolean;
+
+    /**
+     * Specifies the rendering mode of the editor's view.
+     * @default EditorType.Rich
+     */
+    mode?: EditorType;
+
+    /**
+     * Enables syntax highlighting for code blocks.
+     * @default true
+     */
+    codeblockHighlight?: boolean;
+
+    /**
+     * Determines whether HTML content is ignored during parsing.
+     * @default false
+     */
+    ignoreHTML?: boolean;
+
+    /**
+     * Enables an animation effect when content is dropped into the editor.
+     * @default true
+     */
+    dropAnimation?: boolean;
+}

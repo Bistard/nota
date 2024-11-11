@@ -20,6 +20,11 @@ export class DropBlinkRenderer implements IDisposable {
     // [public methods]
 
     public setNodeBlink(view: ProseEditorView, position: number, nodeSize: number): void {
+        // animation disabled, do nothing.
+        if (this._editorWidget.getOptions().dropAnimation.value === false) {
+            return;
+        }
+        
         const decoration = ProseDecoration.node(position, position + nodeSize, {
             class: 'drop-blink-animation'
         });

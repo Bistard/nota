@@ -1,5 +1,3 @@
-import { Register } from "src/base/common/event";
-import { ILogEvent } from "src/base/common/logger";
 import { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { EditorBase } from "src/editor/view/editorBase";
 import { RichtextEditor } from "src/editor/view/richtextEditor";
@@ -24,31 +22,4 @@ export interface IEditorView extends IProseEventBroadcaster {
      * The actual editor instance.
      */
     readonly editor: EditorWindow;
-
-    /**
-     * @description Updates the options of the editor view.
-     * @param options The options.
-     */
-    updateOptions(options: Partial<IEditorViewOptions>): void;
-}
-
-export interface IEditorViewOptions {
-
-    /**
-     * Determines how the editor is about to render the view.
-     * @default EditorType.Rich
-     */
-    mode?: EditorType;
-
-    /**
-     * If enables code-block highlight functionality.
-     * @default true
-     */
-    codeblockHighlight?: boolean;
-
-    /**
-     * When parsing, if ignores parse HTML content.
-     * @default false
-     */
-    ignoreHTML?: boolean;
 }

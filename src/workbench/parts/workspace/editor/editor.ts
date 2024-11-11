@@ -113,6 +113,7 @@ export class Editor extends Component implements IEditorService {
             {
                 mode: EditorType.Rich,
                 writable: true,
+                dropAnimation: true,
             },
         );
         this._editorWidget = editor;
