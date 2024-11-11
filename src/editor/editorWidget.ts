@@ -84,6 +84,12 @@ export interface IEditorWidget extends
     updateOptions(options: Partial<IEditorWidgetOptions>): void;
 
     /**
+     * @description Returns the editor option. The value of each configuration
+     * is auto updated.
+     */
+    getOptions(): EditorOptionsType;
+
+    /**
      * @description Get an extension of this editor.
      * @param id The unique identifier of the extension.
      */
@@ -325,6 +331,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
         this._options.updateOptions(newOption);
+    }
+
+    public getOptions(): EditorOptionsType {
+        return this._options.getOptions();
     }
 
     public getExtension<T extends EditorExtension>(id: string): T | undefined {
