@@ -1,6 +1,6 @@
 import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
-import { ProseEditorView, ProseNodeSelection, ProseTextSelection } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseNodeSelection } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
