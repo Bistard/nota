@@ -8,6 +8,7 @@ import { addDisposableListener } from 'src/base/browser/basic/dom';
 import { IS_MAC } from 'src/base/common/platform';
 import { panic } from 'src/base/common/utilities/panic';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
+import { IBrowserZoomService } from 'src/workbench/services/zoom/zoomService';
 
 export class MacWindowBar extends Component implements IComponent {
     
@@ -17,6 +18,7 @@ export class MacWindowBar extends Component implements IComponent {
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IBrowserZoomService private readonly browserZoomService: IBrowserZoomService,
         @IThemeService themeService: IThemeService,
         @ILogService logService: ILogService,
     ) {
@@ -24,7 +26,6 @@ export class MacWindowBar extends Component implements IComponent {
             panic(`[MacWindowBar] cannot construct if the operating system is not MacOS`);
         }
         super('mac-window-bar', null, themeService, componentService, logService);
-        this._createContent();
     }
 
     // [public methods]
@@ -46,6 +47,10 @@ export class MacWindowBar extends Component implements IComponent {
         container.appendChild(close);
         container.appendChild(minimize);
         container.appendChild(fullscreen);
+        // this.browserZoomService.markAsIgnored(close);
+        // this.browserZoomService.markAsIgnored(minimize);
+        // this.browserZoomService.markAsIgnored(fullscreen);
+        this.browserZoomService.markAsIgnored(container);
         this.element.appendChild(container);
     }
 
