@@ -2,7 +2,6 @@ import type { IEditorWidget } from "src/editor/editorWidget";
 import type { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
 
@@ -44,7 +43,12 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     // [view event]
 
-    get onDidFocusChange(): Register<boolean> { return this._editorWidget.onDidFocusChange; }
+    get onDidFocusChange() { return this._editorWidget.onDidFocusChange; }
+    get onBeforeRender() { return this._editorWidget.onBeforeRender; }
+    get onRender() { return this._editorWidget.onRender; }
+    get onDidRender() { return this._editorWidget.onDidRender; }
+    get onDidSelectionChange() { return this._editorWidget.onDidSelectionChange; }
+    get onDidContentChange() { return this._editorWidget.onDidContentChange; }
     
     get onClick() { return this._editorWidget.onClick; }
     get onDidClick() { return this._editorWidget.onDidClick; }
