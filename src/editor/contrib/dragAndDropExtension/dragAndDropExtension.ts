@@ -10,6 +10,7 @@ import { DropCursorRenderer } from "src/editor/contrib/dragAndDropExtension/drop
 import { IEditorDragEvent } from "src/editor/view/proseEventBroadcaster";
 import { Numbers } from "src/base/common/utilities/number";
 import { DropBlinkRenderer } from "src/editor/contrib/dragAndDropExtension/dropBlinkRenderer";
+import { ScrollOnEdgeController } from "src/editor/contrib/dragAndDropExtension/scrollOnEdgeController";
 
 export interface IEditorDragAndDropExtension extends IEditorExtension {
     readonly id: EditorExtensionIDs.DragAndDrop;
@@ -23,6 +24,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     
     private readonly _cursorRenderer: DropCursorRenderer;
     private readonly _dropBlinkRenderer: DropBlinkRenderer;
+    private readonly _scrollOnEdgeController: ScrollOnEdgeController;
 
     // [constructor]
 
@@ -33,6 +35,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         super(editorWidget);
         this._cursorRenderer = this.__register(new DropCursorRenderer());
         this._dropBlinkRenderer = this.__register(new DropBlinkRenderer(editorWidget));
+        this._scrollOnEdgeController = this.__register(new ScrollOnEdgeController(editorWidget));
 
         this.__register(this.onDragStart(e => { this.__onDragStart(e.event, e.view); }));
         this.__register(this.onDragOver(e => { this.__onDragover(e.event, e.view); }));
@@ -65,9 +68,12 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     private __onDragover(event: DragEvent, view: ProseEditorView): void {
+        this._scrollOnEdgeController.attemptScrollOnEdge(event);
+        
         if (!view.editable) {
             return;
         }
+
         const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
         const position = getDropExactPosition(view, event, isBlockDragging);
         this._cursorRenderer.render(position, view);
@@ -147,11 +153,13 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     private __onDragEnd(event: DragEvent, view: ProseEditorView): void {
+        console.log('dragend');
         this.__dragAfterWork();
     }
 
     private __dragAfterWork(): void {
         this._cursorRenderer.unrender();
+        this._scrollOnEdgeController.clearCache();
         this._editorWidget.updateContext('editorDragState', EditorDragState.None);
     }
 }
