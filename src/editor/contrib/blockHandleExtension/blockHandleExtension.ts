@@ -10,7 +10,7 @@ import { addDisposableListener, EventType, Orientation } from "src/base/browser/
 import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
 import { ProseEditorView } from "src/editor/common/proseMirror";
-import { EditorDragState } from "src/editor/common/cursorDrop";
+import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
 import { DisposableManager } from "src/base/common/dispose";
 
 /**
@@ -35,27 +35,34 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
     constructor(editorWidget: IEditorWidget) {
         super(editorWidget);
         
-        // render
+        // render widget when possible
         this.__register(this.onMouseMove(e => {
+            
+            /**
+             * If hovering outside the editor (hovering overlay), we still can
+             * try to render the widget.
+             */
             if (!e.target) {
+                this.__renderWidgetWithoutTarget(e);
                 return;
             }
 
+            // same position, do nothing.
             if (this._currPosition === e.target.resolvedPosition) {
                 return;
             }
             
-            // // not the top-level node, we ignore it.
+            // not the top-level node, do nothing.
             const pos = e.view.state.doc.resolve(e.target.resolvedPosition);
             if (pos.depth !== 0) {
                 return;
             }
 
             this.__unrenderWidget();
-            this.__renderWidget(editorWidget.view.editor.overlayContainer, e.target);
+            this.__renderWidget(editorWidget.view.editor.overlayContainer, e.target.resolvedPosition, e.target.nodeElement);
         }));
 
-        // unrender
+        // unrender cases
         this.__register(Event.any([this.onMouseLeave, this.onTextInput])(() => {
             this.__unrenderWidget();
         }));
@@ -73,16 +80,31 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
     // [private methods]
 
-    private __renderWidget(container: HTMLElement, target: NonNullable<IEditorMouseEvent['target']>): void {
+    private __renderWidgetWithoutTarget(e: IEditorMouseEvent): void {
+        const position = getDropExactPosition(e.view, e.event, true);
+        if (this._currPosition === position) {
+            return;
+        }
+
+        const node = e.view.nodeDOM(position) as HTMLElement | undefined;
+        if (!node) {
+            return;
+        }
+
+        this.__unrenderWidget();
+        this.__renderWidget(this._editorWidget.view.editor.overlayContainer, position, node);
+    }
+
+    private __renderWidget(container: HTMLElement, nodePosition: number, nodeElement: HTMLElement): void {
         if (!this._widget) {
             return;
         }
 
-        this._currPosition = target.resolvedPosition;
+        this._currPosition = nodePosition;
 
         // render under the editor overlay
-        this._widget.container.setLeft(target.nodeElement.offsetLeft - 55);
-        this._widget.container.setTop(target.nodeElement.offsetTop);
+        this._widget.container.setLeft(nodeElement.offsetLeft - 55);
+        this._widget.container.setTop(nodeElement.offsetTop);
         this._widget.render(container);
 
         // fade-out effect
