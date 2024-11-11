@@ -42,7 +42,6 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         @ILogService logService: ILogService,
     ) {
         super('quick-access-bar', null, themeService, componentService, logService);
-        this._createContent();
     }
 
     // [public methods]
@@ -56,7 +55,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     protected override _createContent(): void {
         if (OPERATING_SYSTEM === Platform.Mac) {
             this._macWindowBar = this.__register(this.instantiationService.createInstance(MacWindowBar));
-            this.element.appendChild(this._macWindowBar.element);
+            this._macWindowBar.create(this);
         } else {
             this._menuButton = this.__register(this.__createMenuButton());
             this.element.appendChild(this._menuButton.element);

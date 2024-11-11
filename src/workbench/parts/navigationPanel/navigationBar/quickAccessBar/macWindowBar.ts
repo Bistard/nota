@@ -24,7 +24,6 @@ export class MacWindowBar extends Component implements IComponent {
             panic(`[MacWindowBar] cannot construct if the operating system is not MacOS`);
         }
         super('mac-window-bar', null, themeService, componentService, logService);
-        this._createContent();
     }
 
     // [public methods]
