@@ -1,95 +1,103 @@
-.mac-bar-container {
-    display: flex;
-    align-items: center;
-    margin-left: 12.5px;
-    margin-top: 12.5px;
+#mac-window-bar {
+    position: fixed;
+    top: 8;
+    left: 8;
 
-    & > .btn {
-        width: 11.5px;
-        height: 11.5px;
-        border-radius: 50%;
-        margin-right: 8px;
-        position: relative;
-        overflow: hidden;
+    .mac-bar-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        margin: 8px;
     
-        &:last-child {
-            margin-right: 0;
+        & > .btn {
+            width: 11.5px;
+            height: 11.5px;
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+            overflow: hidden;
+        
+            &:last-child {
+                margin-right: 0;
+            }
+        
+            &:before, &:after {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                border-radius: 1px;
+                opacity: 0;
+            }
         }
-    
-        &:before, &:after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 1px;
-            opacity: 0;
+        
+        & > .close-btn {
+            background: #FF5D5B;
+            border: 0.5px solid #CF544D;
+        
+            &:active {
+                background: #E55252; // Slightly darker shade
+            }
+        
+            &:before, &:after {
+                width: 1.4px;
+                margin-top: 0.5px;
+                height: 66%;
+                background: #460100;
+            }
+        
+            &:before {
+                transform: translate(-50%, -50%) rotate(45deg);
+            }
+        
+            &:after {
+                transform: translate(-50%, -50%) rotate(-45deg);
+            }
         }
-    }
-    
-    & > .close-btn {
-        background: #FF5D5B;
-        border: 0.5px solid #CF544D;
-    
-        &:active {
-            background: #E55252; // Slightly darker shade
+        
+        & > .min-btn {
+            background: #FFBB39;
+            border: 0.5px solid #CFA64E;
+        
+            &:active {
+                background: #E6A932; // Slightly darker shade
+            }
+        
+            &:before {
+                width: 70%;
+                height: 1.5px;
+                background: #460100;
+            }
         }
-    
-        &:before, &:after {
-            width: 1.4px;
-            margin-top: 0.5px;
-            height: 66%;
-            background: #460100;
-        }
-    
-        &:before {
-            transform: translate(-50%, -50%) rotate(45deg);
-        }
-    
-        &:after {
-            transform: translate(-50%, -50%) rotate(-45deg);
-        }
-    }
-    
-    & > .min-btn {
-        background: #FFBB39;
-        border: 0.5px solid #CFA64E;
-    
-        &:active {
-            background: #E6A932; // Slightly darker shade
-        }
-    
-        &:before {
-            width: 70%;
-            height: 1.5px;
-            background: #460100;
-        }
-    }
-    
-    & > .max-btn {
-        background: #00CD4E;
-        border: 0.5px solid #0EA642;
-    
-        &:active {
-            background: #00B947; // Slightly darker shade
-        }
-    
-        &:before {
-            width: 60%;
-            height: 60%;
-            background: #024D0F;
-        }
-    
-        &:after {
-            width: 2.2px;
-            height: 70%;
-            transform: translate(-50%, -50%) rotate(45deg);
+        
+        & > .max-btn {
             background: #00CD4E;
+            border: 0.5px solid #0EA642;
+        
+            &:active {
+                background: #00B947; // Slightly darker shade
+            }
+        
+            &:before {
+                width: 60%;
+                height: 60%;
+                background: #024D0F;
+            }
+        
+            &:after {
+                width: 2.2px;
+                height: 70%;
+                transform: translate(-50%, -50%) rotate(45deg);
+                background: #00CD4E;
+            }
         }
     }
-}
-
-.mac-bar-container:hover .btn:before, .mac-bar-container:hover .btn:after {
-    opacity: 0.68;
-    top: 50%;
+    
+    .mac-bar-container:hover .btn:before, .mac-bar-container:hover .btn:after {
+        opacity: 0.68;
+        top: 50%;
+    }    
 }
