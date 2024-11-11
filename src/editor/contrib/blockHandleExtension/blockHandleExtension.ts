@@ -9,7 +9,6 @@ import { BlockHandleButton } from "src/editor/contrib/blockHandleExtension/block
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
-import { EditorView } from "prosemirror-view";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorDragState } from "src/editor/common/cursorDrop";
 import { DisposableManager } from "src/base/common/dispose";
@@ -62,11 +61,11 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         }));
     }
 
-    protected override onViewInit(view: EditorView): void {
+    protected override onViewInit(view: ProseEditorView): void {
         this._widget = this.__initWidget(view);
     }
 
-    protected override onViewDestroy(view: EditorView): void {
+    protected override onViewDestroy(view: ProseEditorView): void {
         this._widget?.dispose();
         this._widget = undefined;
         this._currPosition = undefined;
@@ -136,7 +135,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
         // on drag start
         lifecycle.register(addDisposableListener(button.element, EventType.dragstart, e => {
-            if (e.dataTransfer === null || !this._currPosition) {
+            if (e.dataTransfer === null || this._currPosition === undefined) {
                 return;
             }
 
