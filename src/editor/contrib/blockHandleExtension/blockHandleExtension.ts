@@ -7,7 +7,7 @@ import { IEditorMouseEvent } from "src/editor/view/proseEventBroadcaster";
 import { IWidgetBar, WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { BlockHandleButton } from "src/editor/contrib/blockHandleExtension/blockHandleButton";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
-import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
+import { RequestAnimateController, requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
@@ -29,6 +29,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
     private _currPosition?: number;
     private _widget?: IWidgetBar<BlockHandleButton>;
+    private readonly _renderController: RequestAnimateController<{ event: IEditorMouseEvent }>;
 
     // [constructor]
 
@@ -37,7 +38,16 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         
         // render widget when possible
         this.__register(this.onMouseMove(e => {
-            
+            this._renderController.request({ event: e });
+        }));
+
+        // unrender cases
+        this.__register(Event.any([this.onMouseLeave, this.onDidRender, this.onDidBlur])(() => {
+            this.__unrenderWidget();
+        }));
+
+        // RENDER LOGIC
+        this._renderController = new RequestAnimateController(({ event: e }) => {
             /**
              * If hovering outside the editor (hovering overlay), we still can
              * try to render the widget.
@@ -60,12 +70,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
             this.__unrenderWidget();
             this.__renderWidget(editorWidget.view.editor.overlayContainer, e.target.resolvedPosition, e.target.nodeElement);
-        }));
-
-        // unrender cases
-        this.__register(Event.any([this.onMouseLeave, this.onTextInput])(() => {
-            this.__unrenderWidget();
-        }));
+        });
     }
 
     protected override onViewInit(view: ProseEditorView): void {
@@ -76,6 +81,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         this._widget?.dispose();
         this._widget = undefined;
         this._currPosition = undefined;
+        this._renderController.cancel();
     }
 
     // [private methods]

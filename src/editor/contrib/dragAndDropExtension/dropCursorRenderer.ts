@@ -1,4 +1,9 @@
-import { IDisposable } from "src/base/common/dispose";
+import type { IContextService } from "src/platform/context/common/contextService";
+import type { IDisposable } from "src/base/common/dispose";
+import { RequestAnimateController } from "src/base/browser/basic/animation";
+import { FastElement } from "src/base/browser/basic/fastElement";
+import { getDropExactPosition } from "src/editor/common/cursorDrop";
+import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 
 /**
@@ -10,26 +15,44 @@ export class DropCursorRenderer implements IDisposable {
 
     public readonly width: number = 3; // in pixel
     private _cursorPosition: number | null = null;
-    private _cursorElement: HTMLElement | null = null; // TODO: replace with FastElement
+    private _cursorElement: FastElement<HTMLElement> | null = null;
+    private readonly _animateController: RequestAnimateController<{ 
+        mouseEvent: MouseEvent,
+        view: ProseEditorView,
+    }>;
 
     // [constructor]
 
-    constructor() {}
+    constructor(
+        private readonly contextService: IContextService,
+    ) {
+        this._animateController = new RequestAnimateController(({ mouseEvent, view }) => {
+            if (view && view.isDestroyed) {
+                return;
+            }
+
+            const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
+            const position = getDropExactPosition(view, mouseEvent, isBlockDragging);
+            if (position === this._cursorPosition) {
+                return;
+            }
+
+            this._cursorPosition = position;
+            this.__updateOverlay(view);
+        });
+    }
 
     // [public methods]
 
-    public render(position: number, view: ProseEditorView): void {
-        if (position === this._cursorPosition) {
-            return;
-        }
-        this._cursorPosition = position;
-        this.__updateOverlay(view);
+    public render(view: ProseEditorView, event: MouseEvent): void {
+        this._animateController.request({ mouseEvent: event, view });
     }
 
     public unrender(): void {
         this._cursorElement?.remove();
         this._cursorElement = null;
         this._cursorPosition = null;
+        this._animateController.cancel();
     }
 
     public dispose(): void {
@@ -108,12 +131,12 @@ export class DropCursorRenderer implements IDisposable {
 
         const parent = editorDOM.offsetParent as HTMLElement;
         if (!this._cursorElement) {
-            this._cursorElement = parent.appendChild(document.createElement('div'));
-            this._cursorElement.classList.add('editor-drop-cursor');
+            this._cursorElement = new FastElement(parent.appendChild(document.createElement('div')));
+            this._cursorElement.addClassList('editor-drop-cursor');
         }
     
-        this._cursorElement.classList.toggle('drop-cursor-block', isBlock);
-        this._cursorElement.classList.toggle('drop-cursor-inline', !isBlock);
+        this._cursorElement.toggleClassName('drop-cursor-block', isBlock);
+        this._cursorElement.toggleClassName('drop-cursor-inline', !isBlock);
     
         let parentLeft: number, parentTop: number;
         if (!parent || (parent === document.body && getComputedStyle(parent).position === 'static')) {
@@ -127,9 +150,9 @@ export class DropCursorRenderer implements IDisposable {
             parentTop = parentRect.top - parent.scrollTop * parentScaleY;
         }
     
-        this._cursorElement.style.left = `${(rect.left - parentLeft) / scaleX}px`;
-        this._cursorElement.style.top = `${(rect.top - parentTop) / scaleY}px`;
-        this._cursorElement.style.width = `${(rect.right - rect.left) / scaleX}px`;
-        this._cursorElement.style.height = `${(rect.bottom - rect.top) / scaleY}px`;
+        this._cursorElement.setLeft((rect.left - parentLeft) / scaleX);
+        this._cursorElement.setTop((rect.top - parentTop) / scaleY);
+        this._cursorElement.setWidth((rect.right - rect.left) / scaleX);
+        this._cursorElement.setHeight((rect.bottom - rect.top) / scaleY);
     }
 }

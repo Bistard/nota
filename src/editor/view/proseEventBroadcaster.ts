@@ -133,10 +133,14 @@ export interface IEditorDragEvent extends IEditorMouseEvent {
 export interface IProseEventBroadcaster extends IDisposable {
 
     /** 
-	 * Fires when the component is either focused or blurred (true represents 
-	 * focused). 
+	 * Fires when the component is either blurred.
 	 */
-    readonly onDidFocusChange: Register<boolean>;
+    readonly onDidBlur: Register<void>;
+    
+    /** 
+	 * Fires when the component is either focused.
+	 */
+    readonly onDidFocus: Register<void>;
 
     /**
      * Fires before next rendering on DOM tree. The client has a chance to 
@@ -287,8 +291,11 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     // [event]
 
-    private readonly _onDidFocusChange = this.__register(new Emitter<boolean>());
-    public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
+    private readonly _onDidBlur = this.__register(new Emitter<void>());
+    public readonly onDidBlur = this._onDidBlur.registerListener;
+    
+    private readonly _onDidFocus = this.__register(new Emitter<void>());
+    public readonly onDidFocus = this._onDidFocus.registerListener;
 
     private readonly _onBeforeRender = this.__register(new Emitter<IOnBeforeRenderEvent>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
@@ -402,8 +409,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         // dom event listeners
         property.handleDOMEvents = {
             ...property.handleDOMEvents,
-            focus: () => this._onDidFocusChange.fire(true),
-            blur: () => this._onDidFocusChange.fire(false),
+            focus: () => this._onDidFocus.fire(),
+            blur: () => this._onDidBlur.fire(),
         };
 
         // on before click

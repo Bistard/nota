@@ -1,6 +1,6 @@
 import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
-import { ProseEditorView, ProseNodeSelection, ProseTextSelection } from "src/editor/common/proseMirror";
+import { ProseDecorationSource, ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
@@ -9,6 +9,8 @@ import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { DropCursorRenderer } from "src/editor/contrib/dragAndDropExtension/dropCursorRenderer";
 import { IEditorDragEvent } from "src/editor/view/proseEventBroadcaster";
 import { Numbers } from "src/base/common/utilities/number";
+import { DropBlinkRenderer } from "src/editor/contrib/dragAndDropExtension/dropBlinkRenderer";
+import { ScrollOnEdgeController } from "src/editor/contrib/dragAndDropExtension/scrollOnEdgeController";
 
 export interface IEditorDragAndDropExtension extends IEditorExtension {
     readonly id: EditorExtensionIDs.DragAndDrop;
@@ -20,10 +22,9 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     
     public readonly id = EditorExtensionIDs.DragAndDrop;
     
-    /**
-     * Responsible for rendering drop cursor.
-     */
     private readonly _cursorRenderer: DropCursorRenderer;
+    private readonly _dropBlinkRenderer: DropBlinkRenderer;
+    private readonly _scrollOnEdgeController: ScrollOnEdgeController;
 
     // [constructor]
 
@@ -32,7 +33,10 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         @IContextService private readonly contextService: IContextService,
     ) {
         super(editorWidget);
-        this._cursorRenderer = this.__register(new DropCursorRenderer());
+        this._cursorRenderer = this.__register(new DropCursorRenderer(contextService));
+        this._dropBlinkRenderer = this.__register(new DropBlinkRenderer(editorWidget));
+        this._scrollOnEdgeController = this.__register(new ScrollOnEdgeController(editorWidget));
+
         this.__register(this.onDragStart(e => { this.__onDragStart(e.event, e.view); }));
         this.__register(this.onDragOver(e => { this.__onDragover(e.event, e.view); }));
         this.__register(this.onDragLeave(e => { this.__onDragleave(e.event, e.view); }));
@@ -45,6 +49,10 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
     protected override onViewDestroy(view: ProseEditorView): void {
         this._cursorRenderer.unrender();
+    }
+
+    protected override onDecoration(state: ProseEditorState): ProseDecorationSource | null | undefined {
+        return this._dropBlinkRenderer.getDecorations();
     }
 
     // [private methods]
@@ -60,13 +68,13 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
     }
 
     private __onDragover(event: DragEvent, view: ProseEditorView): void {
+        this._scrollOnEdgeController.attemptScrollOnEdge(event);
+        
         if (!view.editable) {
             return;
         }
-        const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
-        const position = getDropExactPosition(view, event, isBlockDragging);
-        this._cursorRenderer.render(position, view);
-        
+
+        this._cursorRenderer.render(view, event);
         event.preventDefault();
     }
 
@@ -126,11 +134,13 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
         // drop behavior
         tr.delete(dragPosition, dragPosition + node.nodeSize)
-          .insert(adjustedDropPosition, node)
-          .setSelection(ProseNodeSelection.create(tr.doc, adjustedDropPosition));
+          .insert(adjustedDropPosition, node);
+        //   .setSelection(ProseNodeSelection.create(tr.doc, adjustedDropPosition));
         
         // update view
         view.dispatch(tr);
+
+        this._dropBlinkRenderer.setNodeBlink(view, adjustedDropPosition, node.nodeSize);
 
         /**
          * Since we are clicking the button outside the editor, we need to 
@@ -145,6 +155,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
 
     private __dragAfterWork(): void {
         this._cursorRenderer.unrender();
+        this._scrollOnEdgeController.clearCache();
         this._editorWidget.updateContext('editorDragState', EditorDragState.None);
     }
 }

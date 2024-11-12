@@ -49,6 +49,7 @@ export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
 
 	appendChild(child: IFastElement<T> | T): void;
 	removeChild(child: IFastElement<T> | T): void;
+    remove(): void;
 }
 
 /**
@@ -331,6 +332,10 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             this.raw.removeChild(child);
         }
 	}
+
+    public remove(): void {
+        this.raw.remove();
+    }
 
     public onClick(callback: (event: MouseEvent) => void): IDisposable {
         return this.__register(addDisposableListener(this.raw, EventType.click, (e: MouseEvent) => {

@@ -1,7 +1,7 @@
 import 'src/editor/view/media/editorView.scss';
 import { Disposable } from "src/base/common/dispose";
 import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
-import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { EditorWindow, IEditorView } from "src/editor/common/view";
 import { EditorOptionsType } from "src/editor/common/editorConfiguration";
 import { RichtextEditor } from 'src/editor/view/richtextEditor';
 import { IEditorExtension } from 'src/editor/common/editorExtension';
@@ -34,7 +34,8 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    get onDidFocusChange() { return this._view.onDidFocusChange; }
+    get onDidBlur() { return this._view.onDidFocus; }
+    get onDidFocus() { return this._view.onDidFocus; }
     
     get onBeforeRender() { return this._view.onBeforeRender; }
     get onRender() { return this._view.onRender; }
@@ -132,10 +133,6 @@ export class EditorView extends Disposable implements IEditorView {
 
     public isDestroyed(): boolean {
         return this._view.isDestroyed();
-    }
-    
-    public updateOptions(options: Partial<IEditorViewOptions>): void {
-        
     }
 
     public override dispose(): void {

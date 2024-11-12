@@ -2,8 +2,7 @@ import type { IEditorWidget } from "src/editor/editorWidget";
 import type { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
-import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
+import { ProseDecorationSource, ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
 
 /**
@@ -23,6 +22,9 @@ export interface IEditorExtension extends Omit<IProseEventBroadcaster, 'onBefore
     getViewExtension(): ProseExtension;
     getEditorState(): Result<ProseEditorState, Error>;
     getEditorSchema(): Result<EditorSchema, Error>;
+
+    setMeta(tr: ProseTransaction, value: any): void;
+    getMeta<T>(tr: ProseTransaction): T | undefined;
 }
 
 /**
@@ -44,7 +46,14 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     // [view event]
 
-    get onDidFocusChange(): Register<boolean> { return this._editorWidget.onDidFocusChange; }
+    get onDidBlur() { return this._editorWidget.onDidFocus; }
+    get onDidFocus() { return this._editorWidget.onDidFocus; }
+
+    get onBeforeRender() { return this._editorWidget.onBeforeRender; }
+    get onRender() { return this._editorWidget.onRender; }
+    get onDidRender() { return this._editorWidget.onDidRender; }
+    get onDidSelectionChange() { return this._editorWidget.onDidSelectionChange; }
+    get onDidContentChange() { return this._editorWidget.onDidContentChange; }
     
     get onClick() { return this._editorWidget.onClick; }
     get onDidClick() { return this._editorWidget.onDidClick; }
@@ -114,6 +123,11 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
                     },
                 };
             },
+            props: {
+                decorations: (state) => {
+                    return this.onDecoration?.(state);
+                }
+            }
         });
     }
 
@@ -154,6 +168,13 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
      */
     protected onViewDestroy?(view: ProseEditorView): void;
 
+    /**
+     * @description It is called whenever the view's decorations are updated.
+     * @returns A decoration source object defining the visual modifications, or 
+     * `null`/`undefined` if no decorations are to be applied.
+     */
+    protected onDecoration?(state: ProseEditorState): ProseDecorationSource | null | undefined;
+
     // [public methods]
 
     public getViewExtension(): ProseExtension {
@@ -166,5 +187,13 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     
     public getEditorSchema(): Result<EditorSchema, Error> {
         return this._viewState ? ok(<EditorSchema>this._viewState.schema) : err(new Error(`The editor extension (${this.id}) is not initialized.`));
+    }
+
+    public setMeta(tr: ProseTransaction, value: any): void {
+        tr.setMeta(this._viewExtension, value);
+    }
+
+    public getMeta<T>(tr: ProseTransaction): T | undefined {
+        return tr.getMeta(this._viewExtension);
     }
 }
