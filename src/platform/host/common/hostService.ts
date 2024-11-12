@@ -16,6 +16,8 @@ export interface IHostService extends IService {
     readonly onDidFocusWindow: Register<number>;
     readonly onDidBlurWindow: Register<number>;
     readonly onDidOpenWindow: Register<number>;
+    readonly onDidEnterFullScreenWindow: Register<number>;
+    readonly onDidLeaveFullScreenWindow: Register<number>;
 
     // window-service
     focusWindow(id?: number): Promise<void>;

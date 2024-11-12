@@ -22,6 +22,8 @@ export const enum IpcChannel {
     WindowUnMaximized = 'window-unMaximized',
     WindowFocused = 'window-focused',
     WindowBlurred = 'window-blurred',
+    WindowEnterFullScreen = 'window-enter-full-screen',
+    WindowLeaveFullScreen = 'window-leave-full-screen',
 }
 
 /**
