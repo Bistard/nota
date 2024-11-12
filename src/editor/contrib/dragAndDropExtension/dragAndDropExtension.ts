@@ -33,7 +33,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         @IContextService private readonly contextService: IContextService,
     ) {
         super(editorWidget);
-        this._cursorRenderer = this.__register(new DropCursorRenderer());
+        this._cursorRenderer = this.__register(new DropCursorRenderer(contextService));
         this._dropBlinkRenderer = this.__register(new DropBlinkRenderer(editorWidget));
         this._scrollOnEdgeController = this.__register(new ScrollOnEdgeController(editorWidget));
 
@@ -74,10 +74,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
             return;
         }
 
-        const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
-        const position = getDropExactPosition(view, event, isBlockDragging);
-        this._cursorRenderer.render(position, view);
-        
+        this._cursorRenderer.render(view, event);
         event.preventDefault();
     }
 
