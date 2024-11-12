@@ -103,8 +103,8 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     }
 
     private __registerLoseFocusListener(): void {
-        this.__register(this._editorWidget.onDidFocusChange(focused => {
-            if (!focused && this._autoSaveOnLoseFocus) {
+        this.__register(this._editorWidget.onDidBlur(() => {
+            if (this._autoSaveOnLoseFocus) {
                 this._scheduler.cancel();
                 this.__saveEditorContent();
             }

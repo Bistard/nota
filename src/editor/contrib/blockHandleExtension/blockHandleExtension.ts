@@ -42,7 +42,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         }));
 
         // unrender cases
-        this.__register(Event.any([this.onMouseLeave, this.onTextInput])(() => {
+        this.__register(Event.any([this.onMouseLeave, this.onDidRender, this.onDidBlur])(() => {
             this.__unrenderWidget();
         }));
 
@@ -81,6 +81,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         this._widget?.dispose();
         this._widget = undefined;
         this._currPosition = undefined;
+        this._renderController.cancel();
     }
 
     // [private methods]
