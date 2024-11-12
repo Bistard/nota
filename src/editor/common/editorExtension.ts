@@ -125,8 +125,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
             },
             props: {
                 decorations: (state) => {
-                    const decorations = this.onDecoration?.(state);
-                    return decorations;
+                    return this.onDecoration?.(state);
                 }
             }
         });
