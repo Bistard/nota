@@ -8,7 +8,6 @@ import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
-import { MacWindowBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/macWindowBar';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
