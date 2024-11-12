@@ -24,7 +24,7 @@
 (async function () {
 	'use strict';
 
-	const { contextBridge, ipcRenderer } = require('electron');
+	const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 	/**
 	 * @typedef {import('../../window/common/window').IWindowConfiguration} IWindowConfiguration
@@ -108,7 +108,21 @@
 			}
 		};
 	})();
-	
+
+	const wrappedWebFrame = (function wrapWebFrame() {
+		return {
+			setZoomLevel(level) { webFrame.setZoomLevel(level); },
+			getZoomLevel() { return webFrame.getZoomLevel(); },
+		};
+	})();
+
+	/**
+	 * Apply zoom level early before even building the window DOM elements to 
+	 * avoid UI flicker.
+	 */
+	const level = retrieveFromArgv('window-zoom-level');
+	webFrame.setZoomLevel(parseInt(level) ?? 0);
+
 	/**
 	 * Since some window configurations will be modified after the browser 
 	 * window is created (windowID etc.). We have to wait for the updated version.
@@ -136,6 +150,7 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
+		webFrame: wrappedWebFrame,
 		WIN_CONFIGURATION: configuration,
 	};
 

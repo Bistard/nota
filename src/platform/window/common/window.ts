@@ -6,7 +6,8 @@ import { IEnvironmentOpts } from "src/platform/environment/common/environment";
 import { IMonitorInfo } from "src/platform/screen/common/screen";
 
 export const enum ArgumentKey {
-    configuration = 'window-configuration'
+    configuration = 'window-configuration',
+    zoomLevel = 'window-zoom-level',
 }
 
 export const DEFAULT_HTML = './src/index.html';
@@ -61,6 +62,20 @@ export function defaultDisplayState(info: IMonitorInfo, mode: WindowDisplayMode 
     };
 }
 
+export function shouldUseWindowControlOverlay(): boolean {
+    if (IS_MAC) {
+        return false;
+    }
+    return true;
+}
+
+export function resolveWindowControlOverlayOptions(options: Electron.TitleBarOverlayOptions): Required<Electron.TitleBarOverlayOptions> {
+    return {
+        color: options.color ?? '#ffffff',
+        symbolColor: options.symbolColor ?? 'black',
+        height: options.height ?? 29, // the smallest size of the title bar on windows accounting for the border on windows 11
+    };
+}
 
 /**
  * Indicates different type of opening option.

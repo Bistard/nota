@@ -1,9 +1,9 @@
 import 'src/editor/view/media/editorView.scss';
 import { Disposable } from "src/base/common/dispose";
 import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
-import { EditorWindow, IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { EditorWindow, IEditorView } from "src/editor/common/view";
 import { EditorOptionsType } from "src/editor/common/editorConfiguration";
-import { RichtextEditor } from 'src/editor/view/viewPart/editor/richtextEditor';
+import { RichtextEditor } from 'src/editor/view/richtextEditor';
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 import { IEditorModel } from 'src/editor/common/model';
 import { ProseEditorState } from 'src/editor/common/proseMirror';
@@ -34,7 +34,9 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    get onDidFocusChange() { return this._view.onDidFocusChange; }
+    get onDidBlur() { return this._view.onDidFocus; }
+    get onDidFocus() { return this._view.onDidFocus; }
+    
     get onBeforeRender() { return this._view.onBeforeRender; }
     get onRender() { return this._view.onRender; }
     get onDidRender() { return this._view.onDidRender; }
@@ -46,11 +48,30 @@ export class EditorView extends Disposable implements IEditorView {
     get onDidDoubleClick() { return this._view.onDidDoubleClick; }
     get onTripleClick() { return this._view.onTripleClick; }
     get onDidTripleClick() { return this._view.onDidTripleClick; }
+    
     get onKeydown() { return this._view.onKeydown; }
     get onKeypress() { return this._view.onKeypress; }
     get onTextInput() { return this._view.onTextInput; }
+    
+    get onMouseOver() { return this._view.onMouseOver; }
+    get onMouseOut() { return this._view.onMouseOut; }
+    get onMouseEnter() { return this._view.onMouseEnter; }
+    get onMouseLeave() { return this._view.onMouseLeave; }
+    get onMouseDown() { return this._view.onMouseDown; }
+    get onMouseUp() { return this._view.onMouseUp; }
+    get onMouseMove() { return this._view.onMouseMove; }
+    
     get onPaste() { return this._view.onPaste; }
     get onDrop() { return this._view.onDrop; }
+    get onDropOverlay() { return this._view.onDropOverlay; }
+    get onDrag() { return this._view.onDrag; }
+    get onDragStart() { return this._view.onDragStart; }
+    get onDragEnd() { return this._view.onDragEnd; }
+    get onDragOver() { return this._view.onDragOver; }
+    get onDragEnter() { return this._view.onDragEnter; }
+    get onDragLeave() { return this._view.onDragLeave; }
+    
+    get onWheel() { return this._view.onWheel; }
 
     // [constructor]
     
@@ -64,13 +85,16 @@ export class EditorView extends Disposable implements IEditorView {
     ) {
         super();
 
+        this._container = document.createElement('div');
+        this._container.className = 'editor-view-container';
+
         const context = new ViewContext(model, this, options, event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional));
         this._ctx = context;
 
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = new RichtextEditor(editorElement, context, initState, extensions);
+        this._view = this.__register(new RichtextEditor(editorElement, this._container, context, initState, extensions));
         
         // forward: start listening events from model
         this.__registerEventFromModel();
@@ -78,8 +102,6 @@ export class EditorView extends Disposable implements IEditorView {
 
 
         // render
-        this._container = document.createElement('div');
-        this._container.className = 'editor-view-container';
         this._container.appendChild(editorElement);
         container.appendChild(this._container);
 
@@ -111,10 +133,6 @@ export class EditorView extends Disposable implements IEditorView {
 
     public isDestroyed(): boolean {
         return this._view.isDestroyed();
-    }
-    
-    public updateOptions(options: Partial<IEditorViewOptions>): void {
-        
     }
 
     public override dispose(): void {

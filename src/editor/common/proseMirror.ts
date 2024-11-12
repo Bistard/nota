@@ -1,7 +1,10 @@
 import { Node as ProseNode, ResolvedPos } from "prosemirror-model";
 
 export {
-    ReplaceStep as ProseReplaceStep
+    Step as ProseStep,
+    ReplaceStep as ProseReplaceStep,
+    Mapping as ProseMapping,
+    StepMap as ProseStepMapping,
 } from "prosemirror-transform";
 
 export { 
@@ -21,6 +24,9 @@ export {
     EditorProps as ProseEditorProperty, 
     DirectEditorProps as ProseDirectEditorProperty,
     EditorProps as ProseEditorProps,
+    Decoration as ProseDecoration,
+    DecorationSet as ProseDecorationSet,
+    DecorationSource as ProseDecorationSource,
 } from "prosemirror-view";
 
 export { 

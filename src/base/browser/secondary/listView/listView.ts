@@ -27,7 +27,10 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
      * 
      * Sometimes the provided HTMLElement container is NOT in the DOM tree yet, 
      * so it cannot decide how big the view should be. If this is the case, set
-     * this to false or just do not provide, then call `layout()` manually.
+     * this to false or just do not provide, then call `layout()` manually when
+     * you ensures the container is in DOM tree.
+     * 
+     * @default false
      */
     readonly layout?: boolean;
 
@@ -146,7 +149,7 @@ export interface IListView<T> extends IList<T>, IDisposable {
      * This event is typically triggered by clicking the right mouse button, or 
      * by pressing the context menu key.
      */
-    get onContextmenu(): Register<PointerEvent>;
+    get onContextmenu(): Register<MouseEvent>;
 
     // [public methods]
 
@@ -321,19 +324,19 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     get onDidFocus(): Register<void> { return this._focusTracker.onDidFocus; }
     get onDidBlur(): Register<void> { return this._focusTracker.onDidBlur; }
     
-    @memoize get onClick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.click)).registerListener; }
-    @memoize get onDoubleClick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.doubleClick)).registerListener; }
-    @memoize get onMouseover(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.mouseover)).registerListener; }
-    @memoize get onMouseout(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.mouseout)).registerListener; }
-    @memoize get onMousedown(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.mousedown)).registerListener; }
-    @memoize get onMouseup(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.mouseup)).registerListener; }
-    @memoize get onMousemove(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this._element, EventType.mousemove)).registerListener; }
-    @memoize get onTouchstart(): Register<TouchEvent> { return this.__register(new DomEmitter<TouchEvent>(this._element, EventType.touchstart)).registerListener; }
+    @memoize get onClick(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.click)).registerListener; }
+    @memoize get onDoubleClick(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.doubleClick)).registerListener; }
+    @memoize get onMouseover(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.mouseover)).registerListener; }
+    @memoize get onMouseout(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.mouseout)).registerListener; }
+    @memoize get onMousedown(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.mousedown)).registerListener; }
+    @memoize get onMouseup(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.mouseup)).registerListener; }
+    @memoize get onMousemove(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.mousemove)).registerListener; }
+    @memoize get onTouchstart(): Register<TouchEvent> { return this.__register(new DomEmitter(this._element, EventType.touchstart)).registerListener; }
 
-    @memoize get onKeydown(): Register<KeyboardEvent> { return this.__register(new DomEmitter<KeyboardEvent>(this._element, EventType.keydown)).registerListener; }
-    @memoize get onKeyup(): Register<KeyboardEvent> { return this.__register(new DomEmitter<KeyboardEvent>(this._element, EventType.keyup)).registerListener; }
-    @memoize get onKeypress(): Register<KeyboardEvent> { return this.__register(new DomEmitter<KeyboardEvent>(this._element, EventType.keypress)).registerListener; }
-    @memoize get onContextmenu(): Register<PointerEvent> { return this.__register(new DomEmitter<PointerEvent>(this._element, EventType.contextmenu)).registerListener; }
+    @memoize get onKeydown(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keydown)).registerListener; }
+    @memoize get onKeyup(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keyup)).registerListener; }
+    @memoize get onKeypress(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keypress)).registerListener; }
+    @memoize get onContextmenu(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this._element; }
     get listElement(): HTMLElement { return this._listContainer; }

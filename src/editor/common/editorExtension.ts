@@ -1,15 +1,14 @@
+import type { IEditorWidget } from "src/editor/editorWidget";
+import type { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
+import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
+import { ProseDecorationSource, ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
-import { ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
-import { IEditorWidget } from "src/editor/editorWidget";
-import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
-import { EditorSchema } from "src/editor/model/schema";
 
 /**
  * An interface only for {@link EditorExtension}.
  */
-export interface IEditorExtension extends Disposable {
+export interface IEditorExtension extends Omit<IProseEventBroadcaster, 'onBeforeRender' | 'onRender' | 'onDidRender' | 'onDidSelectionChange' | 'onDidContentChange'> {
     
     // [fields]
 
@@ -18,27 +17,14 @@ export interface IEditorExtension extends Disposable {
      */
     readonly id: string;
 
-    // [events]
-    
-    readonly onDidFocusChange: Register<boolean>;
-    readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
-    readonly onClick: Register<IOnClickEvent>;
-    readonly onDidClick: Register<IOnDidClickEvent>;
-    readonly onDoubleClick: Register<IOnDoubleClickEvent>;
-    readonly onDidDoubleClick: Register<IOnDidDoubleClickEvent>;
-    readonly onTripleClick: Register<IOnTripleClickEvent>;
-    readonly onDidTripleClick: Register<IOnDidTripleClickEvent>;
-    readonly onKeydown: Register<IOnKeydownEvent>;
-    readonly onKeypress: Register<IOnKeypressEvent>;
-    readonly onTextInput: Register<IOnTextInputEvent>;
-    readonly onPaste: Register<IOnPasteEvent>;
-    readonly onDrop: Register<IOnDropEvent>;
-
     // [methods]
 
     getViewExtension(): ProseExtension;
     getEditorState(): Result<ProseEditorState, Error>;
     getEditorSchema(): Result<EditorSchema, Error>;
+
+    setMeta(tr: ProseTransaction, value: any): void;
+    getMeta<T>(tr: ProseTransaction): T | undefined;
 }
 
 /**
@@ -50,7 +36,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     public abstract readonly id: string;
 
-    private readonly _eventBroadcaster: ProseEventBroadcaster;
+    protected readonly _editorWidget: IEditorWidget;
     private readonly _viewExtension: ProseExtension;
     
     /**
@@ -60,19 +46,45 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     // [view event]
 
-    get onDidFocusChange(): Register<boolean> { return this._eventBroadcaster.onDidFocusChange; }
-    get onBeforeRender(): Register<IOnBeforeRenderEvent> { return this._eventBroadcaster.onBeforeRender; }
-    get onClick(): Register<IOnClickEvent> { return this._eventBroadcaster.onClick; }
-    get onDidClick(): Register<IOnDidClickEvent> { return this._eventBroadcaster.onDidClick; }
-    get onDoubleClick(): Register<IOnDoubleClickEvent> { return this._eventBroadcaster.onDoubleClick; }
-    get onDidDoubleClick(): Register<IOnDidDoubleClickEvent> { return this._eventBroadcaster.onDidDoubleClick; }
-    get onTripleClick(): Register<IOnTripleClickEvent> { return this._eventBroadcaster.onTripleClick; }
-    get onDidTripleClick(): Register<IOnDidTripleClickEvent> { return this._eventBroadcaster.onDidTripleClick; }
-    get onKeydown(): Register<IOnKeydownEvent> { return this._eventBroadcaster.onKeydown; }
-    get onKeypress(): Register<IOnKeypressEvent> { return this._eventBroadcaster.onKeypress; }
-    get onTextInput(): Register<IOnTextInputEvent> { return this._eventBroadcaster.onTextInput; }
-    get onPaste(): Register<IOnPasteEvent> { return this._eventBroadcaster.onPaste; }
-    get onDrop(): Register<IOnDropEvent> { return this._eventBroadcaster.onDrop; }
+    get onDidBlur() { return this._editorWidget.onDidFocus; }
+    get onDidFocus() { return this._editorWidget.onDidFocus; }
+
+    get onBeforeRender() { return this._editorWidget.onBeforeRender; }
+    get onRender() { return this._editorWidget.onRender; }
+    get onDidRender() { return this._editorWidget.onDidRender; }
+    get onDidSelectionChange() { return this._editorWidget.onDidSelectionChange; }
+    get onDidContentChange() { return this._editorWidget.onDidContentChange; }
+    
+    get onClick() { return this._editorWidget.onClick; }
+    get onDidClick() { return this._editorWidget.onDidClick; }
+    get onDoubleClick() { return this._editorWidget.onDoubleClick; }
+    get onDidDoubleClick() { return this._editorWidget.onDidDoubleClick; }
+    get onTripleClick() { return this._editorWidget.onTripleClick; }
+    get onDidTripleClick() { return this._editorWidget.onDidTripleClick; }
+
+    get onKeydown() { return this._editorWidget.onKeydown; }
+    get onKeypress() { return this._editorWidget.onKeypress; }
+    get onTextInput() { return this._editorWidget.onTextInput; }
+    
+    get onMouseOver() { return this._editorWidget.onMouseOver; }
+    get onMouseOut() { return this._editorWidget.onMouseOut; }
+    get onMouseEnter() { return this._editorWidget.onMouseEnter; }
+    get onMouseLeave() { return this._editorWidget.onMouseLeave; }
+    get onMouseDown() { return this._editorWidget.onMouseDown; }
+    get onMouseUp() { return this._editorWidget.onMouseUp; }
+    get onMouseMove() { return this._editorWidget.onMouseMove; }
+    
+    get onPaste() { return this._editorWidget.onPaste; }
+    get onDrop() { return this._editorWidget.onDrop; }
+    get onDropOverlay() { return this._editorWidget.onDropOverlay; }
+    get onDrag() { return this._editorWidget.onDrag; }
+    get onDragStart() { return this._editorWidget.onDragStart; }
+    get onDragEnd() { return this._editorWidget.onDragEnd; }
+    get onDragOver() { return this._editorWidget.onDragOver; }
+    get onDragEnter() { return this._editorWidget.onDragEnter; }
+    get onDragLeave() { return this._editorWidget.onDragLeave; }
+    
+    get onWheel() { return this._editorWidget.onWheel; }
 
     // [constructor]
 
@@ -80,7 +92,8 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
         editorWidget: IEditorWidget,
     ) {
         super();
-        this._viewExtension = new ProseExtension({
+        this._editorWidget = editorWidget;
+        this._viewExtension = new ProseExtension<void>({
             state: {
                 // This function will be called once the extension is created by {@link EditorState.create({ plugin: [myPlugin] })}.
                 init: (config, state) => {
@@ -106,12 +119,16 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
                     // Called whenever the view's state is updated.
                     update: (view, prevState) => {
                         this._viewState = view.state;
-                        this.onViewUpdate?.(view);
+                        this.onViewUpdate?.(view, prevState);
                     },
                 };
             },
+            props: {
+                decorations: (state) => {
+                    return this.onDecoration?.(state);
+                }
+            }
         });
-        this._eventBroadcaster = this.__register(new ProseEventBroadcaster(this._viewExtension.props));
     }
 
     // [abstract methods]
@@ -134,19 +151,29 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     /**
      * @description This function triggers when the extension is bounded with
      * the {@link ProseEditorView}.
+     * 
+     * @note If the view gets destroyed, the reference of the view passed into
+     * this function will be no longer valid.
      */
     protected onViewInit?(view: ProseEditorView): void;
     
     /**
-     * @description The function triggers when the view's state is updated.
+     * @description This function triggers when the view's state is updated.
      */
-    protected onViewUpdate?(view: ProseEditorView): void;
+    protected onViewUpdate?(view: ProseEditorView, prevState: ProseEditorState): void;
 
     /**
      * @description This function triggers when the {@link ProseEditorView} is
      * destroyed.
      */
     protected onViewDestroy?(view: ProseEditorView): void;
+
+    /**
+     * @description It is called whenever the view's decorations are updated.
+     * @returns A decoration source object defining the visual modifications, or 
+     * `null`/`undefined` if no decorations are to be applied.
+     */
+    protected onDecoration?(state: ProseEditorState): ProseDecorationSource | null | undefined;
 
     // [public methods]
 
@@ -160,5 +187,13 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     
     public getEditorSchema(): Result<EditorSchema, Error> {
         return this._viewState ? ok(<EditorSchema>this._viewState.schema) : err(new Error(`The editor extension (${this.id}) is not initialized.`));
+    }
+
+    public setMeta(tr: ProseTransaction, value: any): void {
+        tr.setMeta(this._viewExtension, value);
+    }
+
+    public getMeta<T>(tr: ProseTransaction): T | undefined {
+        return tr.getMeta(this._viewExtension);
     }
 }

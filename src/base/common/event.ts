@@ -270,7 +270,8 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     public dispose(): void {
 		if (!this._disposed) {
 			this._disposed = true;
-			this._listeners.clear();
+            this._listeners.clear();
+            this._opts?.onLastListenerDidRemove?.();
 		}
 	}
 

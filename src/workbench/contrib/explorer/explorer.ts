@@ -1,12 +1,10 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { IComponentService } from 'src/workbench/services/component/componentService';
 import { II18nService } from 'src/platform/i18n/common/i18n';
 import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
-import { ILogService } from 'src/base/common/logger';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
@@ -19,11 +17,11 @@ import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetB
 import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
 import { FixedArray } from 'src/base/common/utilities/type';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -62,12 +60,10 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     constructor(
         parentElement: HTMLElement,
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @IDialogService private readonly dialogService: IBrowserDialogService,
         @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
-        @ILogService logService: ILogService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IHostService private readonly hostService: IHostService,
@@ -75,7 +71,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
-        super(ExplorerViewID, parentElement, themeService, componentService, logService);
+        super(ExplorerViewID, parentElement, instantiationService);
 
         this._actionBar = new FileActionBar();
         this.__register(this._actionBar);

@@ -1,7 +1,9 @@
-import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/viewPart/editor/adapter/proseEventBroadcaster";
+import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { ProseEditorView, ProseEditorState, ProseNode, ProseExtension, ProseSchema } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { fillMapFromArray } from "src/base/common/structures/map";
+import { ProseUtils } from "src/editor/common/proseUtility";
+import { printNaryTreeLike } from "src/base/common/utilities/string";
 
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
@@ -43,7 +45,10 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
      */
     isDestroyed(): boolean;
 
-    getDomNodeAt(position: number): Node | null;
+    /**
+     * @internal Debug purpose.
+     */
+    printDocumentTree(): void;
 }
 
 export class EditorViewProxy extends ProseEventBroadcaster implements IEditorViewProxy {
@@ -53,11 +58,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     protected readonly _ctx: ViewContext;
     
     /**
-     * The ProseMirror view reference.
-     */
-    protected readonly _view: ProseEditorView;
-
-    /**
      * Mapping from ID to view extensions.
      */
     protected readonly _extensionMap: Map<string, ProseExtension>;
@@ -65,12 +65,12 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     // [constructor]
 
     constructor(
+        domEventElement: HTMLElement,
         context: ViewContext,
         extensions: { id: string, extension: ProseExtension }[],
         view: ProseEditorView,
     ) {
-        super(view);
-        this._view = view;
+        super(domEventElement, view);
         this._ctx = context;
         this._extensionMap = new Map();
 
@@ -86,12 +86,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
         return this._view;
     }
 
-    // [public DOM related methods]
-
-    public getDomNodeAt(position: number): Node | null {
-        return this._view.nodeDOM(position);
-    }
-    
     // [public methods]
 
     public render(newState: ProseEditorState): void {
@@ -123,6 +117,15 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
         if (!this._view.isDestroyed) {
             this._view.destroy();
         }
+    }
+
+    public printDocumentTree(): void {
+        printNaryTreeLike(
+            this._view.state.doc, 
+            node => node.type.name,
+            node => node.childCount > 0,
+            node => [...ProseUtils.iterateChild(node)].map(item => item.node)
+        );
     }
 
     // [protected helper methods]

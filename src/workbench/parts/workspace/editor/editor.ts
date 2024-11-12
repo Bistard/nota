@@ -1,16 +1,11 @@
 import 'src/workbench/parts/workspace/editor/media/editor.scss';
 import { URI } from "src/base/common/files/uri";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, } from "src/workbench/services/component/component";
-import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerViewID, IExplorerViewService } from "src/workbench/contrib/explorer/explorerService";
-import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { ILogService } from "src/base/common/logger";
 import { IEditorWidgetOptions } from "src/editor/common/editorConfiguration";
 import { deepCopy } from "src/base/common/utilities/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { EditorWidget, IEditorWidget } from 'src/editor/editorWidget';
 import { EditorType } from "src/editor/common/view";
@@ -43,16 +38,11 @@ export class Editor extends Component implements IEditorService {
     // [constructor]
 
     constructor(
-        @IComponentService componentService: IComponentService,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IFileService private readonly fileService: IFileService,
-        @IThemeService themeService: IThemeService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
-        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
-        @ILogService logService: ILogService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
-        super('editor', null, themeService, componentService, logService);
+        super('editor', null, instantiationService);
         this._editorWidget = null;
         this._pendingRequest = new Throttler();
 
@@ -113,6 +103,7 @@ export class Editor extends Component implements IEditorService {
             {
                 mode: EditorType.Rich,
                 writable: true,
+                dropAnimation: true,
             },
         );
         this._editorWidget = editor;

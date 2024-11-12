@@ -20,7 +20,6 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
-        registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-background', THEME_COLORS.sidebg);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-border', THEME_COLORS.mediumTeal);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-icon', THEME_COLORS.subtext); 
@@ -36,6 +35,7 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'scroll-slider-background', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.LightModern, 'toggle-collapse-button', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.LightModern, 'toggle-collapse-button-hover', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.LightModern, 'drop-cursor', THEME_COLORS.teal);
 
         // NavigationPanel
         registrant.registerColor(PresetColorTheme.LightModern, 'quick-access-bar-menu-button-foreground', THEME_COLORS.mediumTeal);
@@ -68,8 +68,6 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'file-button-box-shadow-active', THEME_COLORS.mediumTeal);
 
         // Workspace
-        registrant.registerColor(PresetColorTheme.LightModern, 'window-bar-button-hover-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.LightModern, 'window-bar-button-active-background', THEME_COLORS.light);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-primary-text', THEME_COLORS.ternary);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-select-text', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-overflow-hover-box-background', THEME_COLORS.white);

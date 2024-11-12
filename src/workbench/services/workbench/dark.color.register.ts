@@ -20,7 +20,6 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
-        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-background', THEME_COLORS.sidebg);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-border', THEME_COLORS.mediumTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-icon', THEME_COLORS.subtext); 
@@ -36,6 +35,7 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'scroll-slider-background', THEME_COLORS.middle);
         registrant.registerColor(PresetColorTheme.DarkModern, 'toggle-collapse-button', THEME_COLORS.stroke);
         registrant.registerColor(PresetColorTheme.DarkModern, 'toggle-collapse-button-hover', THEME_COLORS.subtext);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'drop-cursor', THEME_COLORS.teal);
 
         // NavigationPanel
         registrant.registerColor(PresetColorTheme.DarkModern, 'quick-access-bar-menu-button-foreground', THEME_COLORS.mediumTeal);
@@ -68,8 +68,6 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-box-shadow-active', THEME_COLORS.mediumTeal);
 
         // Workspace
-        registrant.registerColor(PresetColorTheme.DarkModern, 'window-bar-button-hover-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'window-bar-button-active-background', THEME_COLORS.light);
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-primary-text', THEME_COLORS.ternary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-select-text', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-overflow-hover-box-background', THEME_COLORS.white);

@@ -1,0 +1,8 @@
+.drop-blink-animation {
+    animation: blink 0.5s ease-in-out;
+}
+
+@keyframes blink {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}

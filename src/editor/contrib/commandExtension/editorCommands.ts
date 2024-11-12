@@ -14,6 +14,8 @@ import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { IS_MAC } from "src/base/common/platform";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { redo, undo } from "prosemirror-history";
+import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
+import { IEditorHistoryExtension } from "src/editor/contrib/historyExtension/historyExtension";
 
 /**
  * [FILE OUTLINE]
@@ -105,6 +107,18 @@ function __registerHeadingCommands(extension: IEditorCommandExtension, logServic
 }
 
 function __registerOtherCommands(extension: IEditorCommandExtension): void {
+    extension.registerCommand(__buildEditorCommand(
+            { 
+                id: 'editor-esc', 
+                when: whenEditorReadonly,
+            }, 
+            [
+                EditorCommands.Unselect
+            ],
+        ), 
+        ['Escape']
+    );
+
     extension.registerCommand(__buildEditorCommand(
             { 
                 id: 'editor-enter', 
@@ -256,6 +270,17 @@ export abstract class EditorCommandBase extends Command {
  * are only used when you know what you are doing. 
  */
 export namespace EditorCommands {
+
+    export class Unselect extends EditorCommandBase {
+        
+        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            const { $to } = state.selection;
+            const tr = state.tr.setSelection(ProseTextSelection.create(state.doc, $to.pos));
+            dispatch?.(tr);
+            view?.dom.blur();
+            return true;
+        }
+    }
 
     export class SelectAll extends EditorCommandBase {
 
@@ -956,7 +981,7 @@ export namespace EditorCommands {
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const from = state.selection.$from;
             const ancestorDepth = from.getCommonAncestorDepth(state.selection.to);
-            
+
             /**
              * No shared ancestor of the endpoints of the selections. 0 is 
              * returned to represent the root is the only ancestor. We select
@@ -964,7 +989,7 @@ export namespace EditorCommands {
              */
             if (ancestorDepth === 0) {
                 const commandService = provider.getOrCreateService(ICommandService);
-                return commandService.executeCommand('editor-select-all', state, dispatch);
+                return commandService.executeCommand('editor-select-all', editor, state, dispatch);
             }
             
             if (dispatch) {
@@ -972,7 +997,7 @@ export namespace EditorCommands {
                 const pos = from.before(ancestorDepth);
                 const newSelection = ProseNodeSelection.create(state.doc, pos);
                 const tr = state.tr.setSelection(newSelection);
-                dispatch(tr);
+                dispatch(tr.scrollIntoView());
             }
 
             return true;
@@ -999,12 +1024,16 @@ export namespace EditorCommands {
 
     export class FileUndo extends EditorCommandBase {
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            // const historyExtension = editor.getExtension(EditorExtensionIDs.History) as IEditorHistoryExtension;
+            // return historyExtension['undo'](state, dispatch);
             return undo(state, dispatch, view);
         }
     }
     
     export class FileRedo extends EditorCommandBase {
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+            // const historyExtension = editor.getExtension(EditorExtensionIDs.History) as IEditorHistoryExtension;
+            // return historyExtension['redo'](state, dispatch);
             return redo(state, dispatch, view);
         }
     }

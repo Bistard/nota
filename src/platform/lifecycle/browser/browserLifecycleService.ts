@@ -79,6 +79,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         @IHostService private readonly hostService: IBrowserHostService,
     ) {
         super('Browser', LifecyclePhase.Starting, parsePhaseToString, logService);
+        this.__registerListeners();
     }
 
     // [public methods]
@@ -133,6 +134,17 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
         await this._ongoingQuitParticipants;
         this._ongoingQuitParticipants = undefined;
+    }
+
+    private _preventedOnce = false;
+    private __registerListeners(): void {
+        window.addEventListener('beforeunload', e => {
+            if (!this._preventedOnce) {
+                e.preventDefault();
+                this._preventedOnce = true;
+                this.quit();
+            }
+        });
     }
 }
 

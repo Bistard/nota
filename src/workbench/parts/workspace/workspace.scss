@@ -1,21 +1,4 @@
 #workspace {
     display: flex;
     height: 100vh;
-  
-    // FIX: this style should be removed when refactoring `workspace` layout
-    #title-bar {
-        position: absolute;
-        width: 100%;
-        top: 0;
-    }
-
-    // FIX: this style should be removed when refactoring `workspace` layout
-    #editor {
-        position: relative;
-        padding-left: 40px;
-        padding-right: 230px;
-        width: 100%;
-        top: 49px;
-        transition: padding-right 0.3s ease-in-out;
-    }
 }

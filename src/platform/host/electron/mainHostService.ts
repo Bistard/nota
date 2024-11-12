@@ -58,6 +58,12 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     private readonly _onDidBlurWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowBlurred, (_e, window: BrowserWindow) => window.id));
     public readonly onDidBlurWindow = this._onDidBlurWindow.registerListener;
+    
+    private readonly _onDidEnterFullScreenWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowEnterFullScreen, (_e, window: BrowserWindow) => window.id));
+    public readonly onDidEnterFullScreenWindow = this._onDidEnterFullScreenWindow.registerListener;
+    
+    private readonly _onDidLeaveFullScreenWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowLeaveFullScreen, (_e, window: BrowserWindow) => window.id));
+    public readonly onDidLeaveFullScreenWindow = this._onDidLeaveFullScreenWindow.registerListener;
 
     @memoize
     public get onDidOpenWindow() { return Event.map(this.windowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }

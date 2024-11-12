@@ -48,7 +48,7 @@ export abstract class Widget extends BaseElement implements IWidget {
 
     get element(): HTMLElement {
         if (!this._element) {
-            panic('[The widget is not rendered');
+            panic('[Widget] The widget is not rendered');
         }
         return this._element;
     }
@@ -59,13 +59,13 @@ export abstract class Widget extends BaseElement implements IWidget {
 
     public render(element: HTMLElement): void {
         if (this._rendered) {
-            console.warn('Cannot render the widget twice');
+            console.warn('[Widget] Cannot render the widget twice');
             return;
         }
 
         this._element = element;
         if (!this._element) {
-            panic('The widget is not rendered properly');
+            panic('[Widget] The widget is not rendered properly');
         }
         
         this._rendered = true;

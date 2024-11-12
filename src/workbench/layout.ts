@@ -1,14 +1,11 @@
 import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
-import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { ILogService } from "src/base/common/logger";
 import { INavigationBarService } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel} from "src/workbench/parts/navigationPanel/navigationPanel";
@@ -20,6 +17,7 @@ import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseB
 import { Priority } from "src/base/common/event";
 import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
+import { FastElement } from "src/base/browser/basic/fastElement";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -38,11 +36,8 @@ export abstract class WorkbenchLayout extends Component {
     // [constructor]
 
     constructor(
-        protected readonly instantiationService: IInstantiationService,
-        @ILogService logService: ILogService,
+        instantiationService: IInstantiationService,
         @ILayoutService protected readonly layoutService: ILayoutService,
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
         @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
@@ -52,9 +47,10 @@ export abstract class WorkbenchLayout extends Component {
         @IConfigurationService protected readonly configurationService: IConfigurationService,
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
-        super('workbench', layoutService.parentContainer, themeService, componentService, logService);
+        super('workbench', layoutService.parentContainer, instantiationService);
         this._collapseController = new CollapseAnimationController(
             CollapseState.Expand, 
+            this.element,
             () => assert(this._splitView),
             () => assert(this.dimension),
         );
@@ -77,11 +73,16 @@ export abstract class WorkbenchLayout extends Component {
          */
         DomUtility.Modifiers.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
 
-        // skip re-layout if needed
-        const hackDimension = this._collapseController.layout();
-        const dimension = super.layout(undefined, undefined, hackDimension !== null);
-        
-        return hackDimension ?? dimension;
+        /**
+         * hack: When the `left` is collapsed, we return -1 value to prevent the 
+         * {@link SplitView} to re-layout. Otherwise the width of the `right` will 
+         * be re corrected to the original width.
+         */
+        const collapsed = this._collapseController.state === CollapseState.Collapse;
+        const mockDimension = collapsed ? { height: -1, width: -1 } : undefined;
+
+        const dimension = super.layout(undefined, undefined, undefined, mockDimension);
+        return mockDimension ?? dimension;
     }
 
     // [protected helper methods]
@@ -110,11 +111,6 @@ export abstract class WorkbenchLayout extends Component {
     }
 
     protected __registerLayoutListeners(): void {
-
-        // re-layout the entire workbench when the entire window is resizing
-        this.__register(addDisposableListener(window, EventType.resize, () => {
-            this.layout();
-        }));
 
         /**
          * Listens to each ActionBar button click events and notifies the 
@@ -145,6 +141,8 @@ class CollapseAnimationController extends Disposable {
 
     private readonly _getLayoutSplitView: () => ISplitView;
     private readonly _getCurrentDimension: () => IDimension;
+    
+    private readonly _container: FastElement<HTMLElement>;
     private readonly _button: ToggleCollapseButton;
     
     private _animating: boolean;
@@ -157,6 +155,7 @@ class CollapseAnimationController extends Disposable {
 
     constructor(
         initState: CollapseState,
+        element: FastElement<HTMLElement>,
         retrieveSplitView: () => ISplitView,
         getCurrentDimension: () => IDimension,
     ) {
@@ -164,6 +163,8 @@ class CollapseAnimationController extends Disposable {
         this._getLayoutSplitView = retrieveSplitView;
         this._getCurrentDimension = getCurrentDimension;
         this._animating = false;
+        this._container = element;
+        this._container.toggleClassName('collapsed', initState === CollapseState.Collapse);
 
         this._button = new ToggleCollapseButton({
             initState: initState,
@@ -198,7 +199,9 @@ class CollapseAnimationController extends Disposable {
             const splitView = this._getLayoutSplitView();
             const left  = assert(splitView.getViewBy('navigation-panel')).getContainer();
             const right = assert(splitView.getViewBy('workspace')).getContainer();
-            const transitionTime = '0.5s';
+            
+            this._container.toggleClassName('collapsed', state === CollapseState.Collapse);
+            const transitionTime = '0.3s';
 
             if (state === CollapseState.Collapse) {
                 // opacity changes
@@ -244,17 +247,5 @@ class CollapseAnimationController extends Disposable {
                 splitView.layout(dimension.width, dimension.height);
             }
         }));
-    }
-
-    /**
-     * hack: When the `left` is collapsed, we return -1 value to prevent the 
-     * {@link SplitView} to re-layout. Otherwise the width of the `right` will 
-     * be re corrected to the original width.
-     */
-    public layout(): IDimension | null {
-        if (this.state === CollapseState.Collapse) {
-            return { width: -1, height: -1 };
-        }
-        return null;
     }
 }

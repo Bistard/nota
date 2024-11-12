@@ -97,6 +97,8 @@ export const enum CollapseState {
 	Expand = 'expand',
 }
 
+export type DomEventMap = HTMLElementEventMap & DocumentEventMap & WindowEventMap;
+
 /**
  * @description Given a `EventTarget` (eg. HTMLElement), we add a `eventType` 
  * listener to the target with the provided callback. The function returns a 
@@ -581,24 +583,28 @@ export namespace DomUtility
 /**
  * @class A Simple class for register callback on a given HTMLElement using an
  * {@link Emitter} instead of using raw *addEventListener()* method.
+ * 
+ * @note LAZY: only start listening when there is one listener presents.
  */
-export class DomEmitter<T> implements IDisposable {
+export class DomEmitter<T extends keyof DomEventMap> implements IDisposable {
 
-    private readonly emitter: Emitter<T>;
-    private readonly listener: IDisposable;
+    private readonly emitter: Emitter<DomEventMap[T]>;
 
-    constructor(element: EventTarget, type: EventType, useCapture: boolean = false) {
-        this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, <any>type, (e) => this.emitter.fire(e), useCapture);
+    constructor(element: EventTarget, type: T, useCapture: boolean = false) {
+		const fn = (e: any) => this.emitter.fire(e);
+		// LAZY
+		this.emitter = new Emitter({
+			onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
+			onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
+		});
     }
 
-	get registerListener(): Register<T> {
+	get registerListener(): Register<DomEventMap[T]> {
         return this.emitter.registerListener;
     }
 
     public dispose(): void {
         this.emitter.dispose();
-        this.listener.dispose();
     }
 }
 

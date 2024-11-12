@@ -1,15 +1,13 @@
 import "src/workbench/parts/navigationPanel/navigationPanel.scss";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
-import { IThemeService } from "src/workbench/services/theme/themeService";
 import { Orientation } from "src/base/browser/basic/dom";
 import { INavigationViewService, NavView} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationBarService, NavigationBar } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigationPanel/functionBar/functionBar";
-import { ILogService } from "src/base/common/logger";
 import { Icons } from "src/base/browser/icon/icons";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
@@ -30,15 +28,13 @@ export class NavigationPanel extends Component implements INavigationPanelServic
     // [constructor]
 
     constructor(
-        @IComponentService componentService: IComponentService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @INavigationViewService protected readonly navigationViewService: INavigationViewService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
         @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
     ) {
-        super('navigation-panel', null, themeService, componentService, logService);
+        super('navigation-panel', null, instantiationService);
     }
 
     // [protected override methods]
@@ -63,7 +59,7 @@ export class NavigationPanel extends Component implements INavigationPanelServic
             },
             { 
                 component: this.navigationViewService,
-                minimumSize: NavView.HEIGHT,
+                minimumSize: 0,
                 initSize: NavView.HEIGHT,
                 maximumSize: null,
             },

@@ -1,11 +1,9 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/filterBar.scss';
 import { Component, IComponent } from 'src/workbench/services/component/component';
-import { IComponentService } from 'src/workbench/services/component/componentService';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { ILogService } from 'src/base/common/logger';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
 import { createService, IService } from 'src/platform/instantiation/common/decorator';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export const IFilterBarService = createService<IFilterBarService>('filter-bar-service');
 
@@ -27,11 +25,9 @@ export class FilterBar extends Component implements IFilterBarService {
     // [constructor]
 
     constructor(
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
-        super('filter-bar', null, themeService, componentService, logService);
+        super('filter-bar', null, instantiationService);
     }
 
     // [public method]

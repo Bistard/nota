@@ -1,0 +1,29 @@
+.editor-drop-cursor {
+    position: absolute;
+    pointer-events: none;
+    background-color: var(--nota-drop-cursor);
+    
+    animation: cursor-pulse 0.5s infinite ease-in-out;
+    transition: background-color 0.2s ease;
+    transition: left 0.2s ease;
+    transition: top 0.2s ease;
+    
+    &.drop-cursor-block {
+        background-color: var(--nota-drop-cursor);
+    }
+  
+    &.drop-cursor-inline {
+        background-color: var(--nota-drop-cursor);
+    }
+}
+
+@keyframes cursor-pulse {
+    0%, 100% {
+        opacity: 1;
+        background-color: var(--nota-drop-cursor);
+    }
+    50% {
+        opacity: 0.45;
+        background-color: #8baca3;
+    }
+}

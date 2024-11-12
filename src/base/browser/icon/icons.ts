@@ -8,6 +8,7 @@ export const enum Icons {
   Command = 'command',
   CreateNewFolder = 'create-new-folder',
   CreateNewNote = 'create-new-note',
+  DragHandle = 'drag-handle',
   Extension = 'extension',
   FolderDefault = 'folder-default',
   FolderOpen = 'folder-open',

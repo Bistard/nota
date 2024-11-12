@@ -38,6 +38,10 @@ export const enum AllCommands {
     toggleDevTool    = 'toggle-develop-tool',
     reloadWindow     = 'reload-window',
     closeApplication = 'close-application',
+    
+    zoomIn           = 'zoom-in',
+    zoomOut          = 'zoom-out',
+    zoomSet          = 'zoom-set',
 
     // [FileTree]
 
@@ -62,6 +66,10 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.toggleDevTool]:    'Toggle the developer tool of the whole application.',
     [AllCommands.reloadWindow]:     'Reload the browser entirely.',
     [AllCommands.closeApplication]: 'Close the current window.',
+    
+    [AllCommands.zoomIn]:           'Zoom in the entire program to the next level.',
+    [AllCommands.zoomOut]:          'Zoom out the entire program to the next level.',
+    [AllCommands.zoomSet]:          'Set the zoom level to the given number. In the range of -8 to 8. 0 means default.',
 
     [AllCommands.newFile]:          '',
     [AllCommands.newFolder]:        '',
@@ -93,6 +101,10 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.reloadWindow]    : [];
     [AllCommands.closeApplication]: [];
     
+    [AllCommands.zoomIn]: [];
+    [AllCommands.zoomOut]: [];
+    [AllCommands.zoomSet]: [level?: number];
+    
     [AllCommands.newFile]  : [];
     [AllCommands.newFolder]: [];
     [AllCommands.fileCut]  : [];
@@ -119,6 +131,10 @@ export type AllCommandsReturnTypes = {
     [AllCommands.toggleDevTool]   : void;
     [AllCommands.reloadWindow]    : void;
     [AllCommands.closeApplication]: void;
+    
+    [AllCommands.zoomIn]: void;
+    [AllCommands.zoomOut]: void;
+    [AllCommands.zoomSet]: void;
 
     [AllCommands.newFile]  : void;
     [AllCommands.newFolder]: void;
