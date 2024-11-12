@@ -1,14 +1,12 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/media/navigationBar.scss';
 import { Component, IAssembleComponentOpts, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/workbench/services/component/componentService';
 import { Orientation } from 'src/base/browser/basic/dom';
-import { ILogService } from 'src/base/common/logger';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar';
 import { ToolBarType, IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 import { assert } from 'src/base/common/utilities/panic';
 import { IBrowserZoomService } from 'src/workbench/services/zoom/zoomService';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
@@ -34,14 +32,12 @@ export class NavigationBar extends Component implements INavigationBarService {
     // [constructor]
 
     constructor(
+        @IInstantiationService instantiationService: IInstantiationService,
         @IQuickAccessBarService private readonly quickAccessBarService: IQuickAccessBarService,
         @IBrowserZoomService private readonly browserZoomService: IBrowserZoomService,
         @IToolBarService private readonly toolBarService: IToolBarService,
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
     ) {
-        super('navigation-bar', null, themeService, componentService, logService);
+        super('navigation-bar', null, instantiationService);
     }
 
     // [public method]

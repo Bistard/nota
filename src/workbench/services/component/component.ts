@@ -14,6 +14,7 @@ import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { ILogService } from 'src/base/common/logger';
 import { isNonNullable } from 'src/base/common/utilities/type';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export interface ICreatable {
     create(): void;
@@ -270,6 +271,9 @@ export abstract class Component extends Themable implements IComponent {
     /** Relate to {@link assembleComponents()} */
     protected _splitView: ISplitView | undefined;
 
+    protected readonly componentService: IComponentService;
+    protected readonly logService: ILogService;
+
     // [event]
 
     public readonly onDidFocusChange: Register<boolean>;
@@ -291,11 +295,12 @@ export abstract class Component extends Themable implements IComponent {
     constructor(
         id: string,
         customParent: HTMLElement | null,
-        themeService: IThemeService,
-        protected readonly componentService: IComponentService,
-        protected readonly logService: ILogService,
+        protected readonly instantiationService: IInstantiationService,
     ) {
+        const themeService = instantiationService.getOrCreateService(IThemeService);
         super(themeService);
+        this.componentService = instantiationService.getOrCreateService(IComponentService);
+        this.logService = instantiationService.getOrCreateService(ILogService);
         
         this._isInDom    = false;
         this._created    = false;
@@ -311,7 +316,7 @@ export abstract class Component extends Themable implements IComponent {
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
         this._customParent = customParent ?? undefined;
-        componentService.register(this);
+        this.componentService.register(this);
 
         this.logService.trace(`${this.id}`, 'UI component constructed.');
     }

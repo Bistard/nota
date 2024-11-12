@@ -1,12 +1,9 @@
 import 'src/workbench/parts/workspace/workspace.scss';
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
 import { IWindowsTitleBarService, WindowsTitleBar } from "src/workbench/parts/workspace/titleBar/titleBar";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IThemeService } from "src/workbench/services/theme/themeService";
-import { ILogService } from "src/base/common/logger";
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
 import { Orientation } from 'src/base/browser/basic/dom';
 
@@ -26,13 +23,10 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [constructor]
 
     constructor(
-        @IComponentService componentService: IComponentService,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @IEditorService private readonly editorService: IEditorService,
     ) {
-        super('workspace', null, themeService, componentService, logService);
+        super('workspace', null, instantiationService);
     }
 
     // [protected override methods]

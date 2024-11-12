@@ -1,12 +1,10 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/toolBar.scss';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { Component, IComponent } from 'src/workbench/services/component/component';
-import { IComponentService } from 'src/workbench/services/component/componentService';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
-import { ILogService } from 'src/base/common/logger';
 import { Emitter, Register } from 'src/base/common/event';
 import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
 import { IFilterBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export const IToolBarService = createService<IToolBarService>('tool-bar-service');
 
@@ -53,13 +51,11 @@ export class ToolBar extends Component implements IToolBarService {
     // [constructor]
 
     constructor(
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @IActionBarService private readonly actionBarService: IActionBarService,
         @IFilterBarService private readonly filterBarService: IFilterBarService,
     ) {
-        super("tool-bar", null, themeService, componentService, logService);
+        super("tool-bar", null, instantiationService);
         this._currentState = ToolBarType.Action;
     }
 

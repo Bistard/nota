@@ -1,14 +1,11 @@
 import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
-import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { ILogService } from "src/base/common/logger";
 import { INavigationBarService } from "src/workbench/parts/navigationPanel/navigationBar/navigationBar";
 import { INavigationViewService} from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { INavigationPanelService, NavigationPanel} from "src/workbench/parts/navigationPanel/navigationPanel";
@@ -39,11 +36,8 @@ export abstract class WorkbenchLayout extends Component {
     // [constructor]
 
     constructor(
-        protected readonly instantiationService: IInstantiationService,
-        @ILogService logService: ILogService,
+        instantiationService: IInstantiationService,
         @ILayoutService protected readonly layoutService: ILayoutService,
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
         @INavigationBarService protected readonly navigationBarService: INavigationBarService,
         @IActionBarService protected readonly actionBarService: IActionBarService,
         @IFunctionBarService protected readonly functionBarService: IFunctionBarService,
@@ -53,7 +47,7 @@ export abstract class WorkbenchLayout extends Component {
         @IConfigurationService protected readonly configurationService: IConfigurationService,
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
-        super('workbench', layoutService.parentContainer, themeService, componentService, logService);
+        super('workbench', layoutService.parentContainer, instantiationService);
         this._collapseController = new CollapseAnimationController(
             CollapseState.Expand, 
             this.element,

@@ -2,11 +2,8 @@ import 'src/workbench/parts/navigationPanel/navigationView/media/navigationView.
 import { Component, IComponent } from 'src/workbench/services/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Constructor} from 'src/base/common/utilities/type';
-import { ILogService } from 'src/base/common/logger';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 
 export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
 
@@ -98,12 +95,9 @@ export class NavigationView extends Component implements INavigationViewService 
     // [constructor]
 
     constructor(
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
-        super('navigation-view', null, themeService, componentService, logService);
+        super('navigation-view', null, instantiationService);
         this._viewCtors = new Map();
     }
 
