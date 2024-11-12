@@ -6,7 +6,7 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, ArgumentKey } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, ArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
@@ -102,6 +102,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
         
         const displayOptions = configuration.displayOptions;
+
         this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
         
@@ -155,6 +156,12 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             this._window.setFullScreen(false);
         } else {
             this._window.setFullScreen(true);
+        }
+    }
+
+    public updateTitleBarOptions(options: Electron.TitleBarOverlayOptions): void {
+        if (shouldUseWindowControlOverlay()) {
+            this._window.setTitleBarOverlay(resolveWindowControlOverlayOptions(options));
         }
     }
 
@@ -223,14 +230,17 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             },
             show: false, // to prevent flicker, we will show it later.
             resizable: displayOpts.resizable ?? true,
+            frame: !displayOpts.frameless,
         };
 
-        // frame
-        if (displayOpts.frameless) {
-            browserOption.frame = false;
-        }
+        // title bar configuration
+        if (browserOption.frame === false) {
+            browserOption.titleBarStyle = 'hidden';
 
-        browserOption.titleBarStyle = 'hidden';
+            if (shouldUseWindowControlOverlay()) {
+                browserOption.titleBarOverlay = resolveWindowControlOverlayOptions({});
+            }
+        }
 
         // window construction
         const window = new electron.BrowserWindow(browserOption);
@@ -279,12 +289,17 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this._window.on('unmaximize', (e: Event) => {
             electron.app.emit(IpcChannel.WindowUnMaximized, e, this._window);
         });
+        
+        this._window.on('enter-full-screen', (e: Event) => {
+            electron.app.emit(IpcChannel.WindowEnterFullScreen, e, this._window);
+        });
+        
+        this._window.on('leave-full-screen', (e: Event) => {
+            electron.app.emit(IpcChannel.WindowLeaveFullScreen, e, this._window);
+        });
 
         this._window.webContents.on('did-finish-load', () => {
             this._onDidLoad.fire();
         });
     }
-
-    // [private helper methods]
-
 }

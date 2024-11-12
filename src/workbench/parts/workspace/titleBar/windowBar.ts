@@ -2,26 +2,22 @@ import 'src/workbench/parts/workspace/titleBar/media/windowBar.scss';
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/browser/basic/dom";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Component } from "src/workbench/services/component/component";
 import { WindowButton } from "src/workbench/parts/workspace/titleBar/windowButton";
 import { IHostService } from "src/platform/host/common/hostService";
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
-import { ILogService } from 'src/base/common/logger';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export class WindowBar extends Component {
 
     protected _widgetBar: WidgetBar<WindowButton> | undefined;
 
     constructor(
-        @IComponentService componentService: IComponentService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @IHostService private readonly hostService: IHostService,
-        @IThemeService themeService: IThemeService,
         @ILifecycleService private readonly lifeCycleService: IBrowserLifecycleService,
-        @ILogService logService: ILogService,
     ) {
-        super('window-bar', null, themeService, componentService, logService);
+        super('window-bar', null, instantiationService);
 
     }
 
