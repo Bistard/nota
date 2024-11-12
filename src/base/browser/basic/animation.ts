@@ -74,8 +74,7 @@ export function requestAnimate(animateFn: () => void): IDisposable {
 /**
  * @class A controller class to manage animation frame requests with updatable 
  * arguments. The controller allows for scheduled callback execution on the next 
- * animation frame, with the option to update specific arguments 
- * before execution.
+ * animation frame, with the option to update specific arguments before execution.
  *
  * @template TArgumentMap An object type representing the arguments for the animation callback.
  */
@@ -89,6 +88,10 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
 
     // [constructor]
     
+    /**
+     * @param callback The callback function to be executed with the latest 
+     * arguments on the next animation frame.
+     */
     constructor(
         callback: (argsObject: TArgumentMap) => void
     ) {
@@ -98,9 +101,11 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
     // [public methods]
 
     /**
-     * @description Requests the callback to be executed on the next animation 
-     * frame. If a request is already pending, it updates the latest arguments.
-     * @param latestArguments Latest arguments for the animation callback.
+     * @description Requests a callback execution on the next animation frame 
+     * with the specified arguments.
+     * 
+     * @param latestArguments The arguments to update and pass to the callback 
+     * on the next animation frame.
      */
     public request(latestArguments: TArgumentMap): void {
         this._latestArguments = latestArguments;
@@ -108,6 +113,27 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
         if (!this._animateDisposable) {
             this._animateDisposable = requestAtNextAnimationFrame(() => {
                 this._animateDisposable = undefined;
+                if (!this._latestArguments) {
+                    return;
+                }
+                this._callback(this._latestArguments);
+            });
+        }
+    }
+
+    /**
+     * @description Continuously requests callback execution on every animation 
+     * frame with the specified arguments. The request persists and continues to 
+     * schedule the callback on each frame until manually disposed.
+     *
+     * @param latestArguments The arguments to update and pass to the callback 
+     * on each animation frame.
+     */
+    public requestOnEveryFrame(latestArguments: TArgumentMap): void {
+        this._latestArguments = latestArguments;
+
+        if (!this._animateDisposable) {
+            this._animateDisposable = requestAnimate(() => {
                 if (!this._latestArguments) {
                     return;
                 }

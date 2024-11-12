@@ -1,6 +1,6 @@
 import type { IContextService } from "src/platform/context/common/contextService";
 import type { IDisposable } from "src/base/common/dispose";
-import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
+import { RequestAnimateController } from "src/base/browser/basic/animation";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { getDropExactPosition } from "src/editor/common/cursorDrop";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
@@ -16,49 +16,43 @@ export class DropCursorRenderer implements IDisposable {
     public readonly width: number = 3; // in pixel
     private _cursorPosition: number | null = null;
     private _cursorElement: FastElement<HTMLElement> | null = null;
-
-    private _dropCursorAnimation?: IDisposable;
-    private _dropCursorLatestEvent?: MouseEvent;
+    private readonly _animateController: RequestAnimateController<{ 
+        mouseEvent: MouseEvent,
+        view: ProseEditorView,
+    }>;
 
     // [constructor]
 
     constructor(
         private readonly contextService: IContextService,
-    ) {}
+    ) {
+        this._animateController = new RequestAnimateController(({ mouseEvent, view }) => {
+            if (view && view.isDestroyed) {
+                return;
+            }
+
+            const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
+            const position = getDropExactPosition(view, mouseEvent, isBlockDragging);
+            if (position === this._cursorPosition) {
+                return;
+            }
+
+            this._cursorPosition = position;
+            this.__updateOverlay(view);
+        });
+    }
 
     // [public methods]
 
     public render(view: ProseEditorView, event: MouseEvent): void {
-        this._dropCursorLatestEvent = event;
-        
-        // prevent excessive calculations and rendering
-        if (!this._dropCursorAnimation) {
-            this._dropCursorAnimation = requestAtNextAnimationFrame(() => {
-                this._dropCursorAnimation = undefined;
-                if ((view && view.isDestroyed) || !this._dropCursorLatestEvent) {
-                    return;
-                }
-
-                const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
-                const position = getDropExactPosition(view, this._dropCursorLatestEvent, isBlockDragging);
-                if (position === this._cursorPosition) {
-                    return;
-                }
-
-                this._cursorPosition = position;
-                this.__updateOverlay(view);
-            });
-        }
+        this._animateController.request({ mouseEvent: event, view });
     }
 
     public unrender(): void {
         this._cursorElement?.remove();
         this._cursorElement = null;
         this._cursorPosition = null;
-        
-        this._dropCursorAnimation?.dispose();
-        this._dropCursorAnimation = undefined;
-        this._dropCursorLatestEvent = undefined;
+        this._animateController.cancel();
     }
 
     public dispose(): void {
