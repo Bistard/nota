@@ -8,6 +8,7 @@ import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IQuickAccessBarService, QuickAccessBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar';
 import { ToolBarType, IToolBarService, ToolBar } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar';
 import { assert } from 'src/base/common/utilities/panic';
+import { IBrowserZoomService } from 'src/workbench/services/zoom/zoomService';
 
 export const INavigationBarService = createService<INavigationBarService>('navigation-bar-service');
 
@@ -34,6 +35,7 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     constructor(
         @IQuickAccessBarService private readonly quickAccessBarService: IQuickAccessBarService,
+        @IBrowserZoomService private readonly browserZoomService: IBrowserZoomService,
         @IToolBarService private readonly toolBarService: IToolBarService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
@@ -69,7 +71,7 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     protected override _registerListeners(): void {
         const searchBar = assert(this.quickAccessBarService.getSearchBar());
-
+        const toolBar = assert(this.toolBarService.getComponent);
         this.__register(searchBar.onDidFocus(() => {
             console.log("switching to filterBar");
             this.toolBarService.switchTo(ToolBarType.Filter);
@@ -78,6 +80,14 @@ export class NavigationBar extends Component implements INavigationBarService {
         this.__register(searchBar.onDidBlur(() => {
             console.log("switching to actionBar");
             this.toolBarService.switchTo(ToolBarType.Action);
+        }));
+
+        this.__register(this.browserZoomService.onDidZoomLevelChange((zoomLevel: number) => {
+            if (zoomLevel < -1) {
+                searchBar.element.style.display = 'none';
+            } else {
+                searchBar.element.style.display = '';
+            }
         }));
     }
 }
