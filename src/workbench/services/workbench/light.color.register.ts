@@ -68,8 +68,6 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'file-button-box-shadow-active', THEME_COLORS.mediumTeal);
 
         // Workspace
-        registrant.registerColor(PresetColorTheme.LightModern, 'window-bar-button-hover-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.LightModern, 'window-bar-button-active-background', THEME_COLORS.light);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-primary-text', THEME_COLORS.ternary);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-select-text', THEME_COLORS.secondary);
         registrant.registerColor(PresetColorTheme.LightModern, 'outline-overflow-hover-box-background', THEME_COLORS.white);
