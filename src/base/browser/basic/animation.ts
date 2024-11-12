@@ -70,3 +70,69 @@ export function requestAnimate(animateFn: () => void): IDisposable {
 	animateDisposable = requestAtNextAnimationFrame(animation);
 	return animateDisposable;
 }
+
+/**
+ * @class A controller class to manage animation frame requests with updatable 
+ * arguments. The controller allows for scheduled callback execution on the next 
+ * animation frame, with the option to update specific arguments 
+ * before execution.
+ *
+ * @template TArgumentMap An object type representing the arguments for the animation callback.
+ */
+export class RequestAnimateController<TArgumentMap extends Record<string, unknown>> implements IDisposable {
+
+    // [field]
+
+    private _animateDisposable?: IDisposable;
+    private _latestArguments?: TArgumentMap;
+    private _callback: (argsObject: TArgumentMap) => void;
+
+    // [constructor]
+    
+    constructor(
+        callback: (argsObject: TArgumentMap) => void
+    ) {
+        this._callback = callback;
+    }
+
+    // [public methods]
+
+    /**
+     * @description Requests the callback to be executed on the next animation 
+     * frame. If a request is already pending, it updates the latest arguments.
+     * @param latestArguments Latest arguments for the animation callback.
+     */
+    public request(latestArguments: TArgumentMap): void {
+        this._latestArguments = latestArguments;
+        
+        if (!this._animateDisposable) {
+            this._animateDisposable = requestAtNextAnimationFrame(() => {
+                this._animateDisposable = undefined;
+                if (!this._latestArguments) {
+                    return;
+                }
+                this._callback(this._latestArguments);
+            });
+        }
+    }
+
+    /**
+     * @description Cancels the currently scheduled animation frame request, if 
+     * any. Resets the latest arguments to undefined, clears the request handle,
+     * and returns the last set arguments for potential resource cleanup.
+     *
+     * @returns The latest arguments that were set before cancellation, or 
+     * `undefined` if none were set.
+     */
+    public cancel(): TArgumentMap | undefined {
+        this._animateDisposable?.dispose();
+        this._animateDisposable = undefined;
+        const args = this._latestArguments;
+        this._latestArguments = undefined;
+        return args;
+    }
+
+    public dispose(): void {
+        this.cancel();
+    }
+}
