@@ -34,7 +34,8 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    get onDidFocusChange() { return this._view.onDidFocusChange; }
+    get onDidBlur() { return this._view.onDidFocus; }
+    get onDidFocus() { return this._view.onDidFocus; }
     
     get onBeforeRender() { return this._view.onBeforeRender; }
     get onRender() { return this._view.onRender; }

@@ -147,8 +147,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // #region [view events]
 
-    private readonly _onDidFocusChange = this.__register(new RelayEmitter<boolean>());
-    public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
+    private readonly _onDidBlur = this.__register(new RelayEmitter<void>());
+    public readonly onDidBlur = this._onDidBlur.registerListener;
+    
+    private readonly _onDidFocus = this.__register(new RelayEmitter<void>());
+    public readonly onDidFocus = this._onDidFocus.registerListener;
 
     private readonly _onDidRenderModeChange = this.__register(new RelayEmitter<EditorType>());
     public readonly onDidRenderModeChange = this._onDidRenderModeChange.registerListener;
@@ -399,7 +402,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onDidSaveError.setInput(model.onDidSaveError);
 
         // binding to the view
-        this._onDidFocusChange.setInput(this.view.onDidFocusChange);
+        this._onDidBlur.setInput(this.view.onDidBlur);
+        this._onDidFocus.setInput(this.view.onDidFocus);
         
         this._onBeforeRender.setInput(this.view.onBeforeRender);
         this._onRender.setInput(this.view.onRender);
@@ -512,7 +516,8 @@ class EditorContextHub extends Disposable {
     // [private helper methods]
 
     private __registerListeners(): void {
-        this.__register(this.editor.onDidFocusChange(isFocused => this.focusedEditor.set(isFocused)));
+        this.__register(this.editor.onDidFocus(() => this.focusedEditor.set(true)));
+        this.__register(this.editor.onDidBlur(() => this.focusedEditor.set(false)));
         this.__register(this.editor.onDidRenderModeChange(mode => this.editorRenderMode.set(mode)));
     }
 }

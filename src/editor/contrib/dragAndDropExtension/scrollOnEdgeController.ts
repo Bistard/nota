@@ -1,4 +1,4 @@
-import { requestAnimate } from "src/base/browser/basic/animation";
+import { RequestAnimateController } from "src/base/browser/basic/animation";
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IDisposable } from "src/base/common/dispose";
 import { IEditorWidget } from "src/editor/editorWidget";
@@ -11,29 +11,27 @@ export class ScrollOnEdgeController implements IDisposable {
 
     // [fields]
 
-    private _scrollAnimationMouseTop?: number;
-    private _scrollAnimationOnEdgeDisposable?: IDisposable;
+    private readonly _animateController: RequestAnimateController<{ mouseTop: number; }>;
 
     // [constructor]
 
     constructor(
         private readonly editorWidget: IEditorWidget,
-    ) {}
+    ) {
+        this._animateController = new RequestAnimateController(({ mouseTop }) => {
+            const viewTop = DomUtility.Attrs.getViewportTop(this.editorWidget.view.editor.container);
+            this.__animationOnEdge(mouseTop, viewTop);
+        });
+    }
 
     // [public methods]
 
     public attemptScrollOnEdge(event: MouseEvent): void {
-        if (!this._scrollAnimationOnEdgeDisposable) {
-            const top = DomUtility.Attrs.getViewportTop(this.editorWidget.view.editor.container);
-            this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
-        }
-        this._scrollAnimationMouseTop = event.clientY;
+        this._animateController.requestOnEveryFrame({ mouseTop: event.clientY });
     }
 
     public clearCache(): void {
-        this._scrollAnimationMouseTop = undefined;
-        this._scrollAnimationOnEdgeDisposable?.dispose();
-        this._scrollAnimationOnEdgeDisposable = undefined;
+        this._animateController.cancel();
     }
 
     public dispose(): void {
@@ -42,14 +40,14 @@ export class ScrollOnEdgeController implements IDisposable {
 
     // [private methods]
 
-    private __animationOnEdge(viewTop: number): void {
-        if (this._scrollAnimationMouseTop === undefined) {
+    private __animationOnEdge(mouseTop: number, viewTop: number): void {
+        if (mouseTop === undefined) {
             return;
         }
 
         const view = this.editorWidget.view.editor.container;
         const rect = view.getBoundingClientRect();
-        const y = this._scrollAnimationMouseTop - viewTop;
+        const y = mouseTop - viewTop;
 
         const edgeThreshold  = 100;
         const lowerLimit     = edgeThreshold;

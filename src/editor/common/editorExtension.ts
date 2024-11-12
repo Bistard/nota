@@ -46,7 +46,9 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
 
     // [view event]
 
-    get onDidFocusChange() { return this._editorWidget.onDidFocusChange; }
+    get onDidBlur() { return this._editorWidget.onDidFocus; }
+    get onDidFocus() { return this._editorWidget.onDidFocus; }
+
     get onBeforeRender() { return this._editorWidget.onBeforeRender; }
     get onRender() { return this._editorWidget.onRender; }
     get onDidRender() { return this._editorWidget.onDidRender; }
@@ -123,8 +125,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
             },
             props: {
                 decorations: (state) => {
-                    const decorations = this.onDecoration?.(state);
-                    return decorations;
+                    return this.onDecoration?.(state);
                 }
             }
         });

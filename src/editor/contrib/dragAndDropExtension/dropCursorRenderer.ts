@@ -1,5 +1,9 @@
+import type { IContextService } from "src/platform/context/common/contextService";
+import type { IDisposable } from "src/base/common/dispose";
+import { RequestAnimateController } from "src/base/browser/basic/animation";
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { IDisposable } from "src/base/common/dispose";
+import { getDropExactPosition } from "src/editor/common/cursorDrop";
+import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 
 /**
@@ -12,25 +16,43 @@ export class DropCursorRenderer implements IDisposable {
     public readonly width: number = 3; // in pixel
     private _cursorPosition: number | null = null;
     private _cursorElement: FastElement<HTMLElement> | null = null;
+    private readonly _animateController: RequestAnimateController<{ 
+        mouseEvent: MouseEvent,
+        view: ProseEditorView,
+    }>;
 
     // [constructor]
 
-    constructor() {}
+    constructor(
+        private readonly contextService: IContextService,
+    ) {
+        this._animateController = new RequestAnimateController(({ mouseEvent, view }) => {
+            if (view && view.isDestroyed) {
+                return;
+            }
+
+            const isBlockDragging = this.contextService.contextMatchExpr(EditorContextKeys.isEditorBlockDragging);
+            const position = getDropExactPosition(view, mouseEvent, isBlockDragging);
+            if (position === this._cursorPosition) {
+                return;
+            }
+
+            this._cursorPosition = position;
+            this.__updateOverlay(view);
+        });
+    }
 
     // [public methods]
 
-    public render(position: number, view: ProseEditorView): void {
-        if (position === this._cursorPosition) {
-            return;
-        }
-        this._cursorPosition = position;
-        this.__updateOverlay(view);
+    public render(view: ProseEditorView, event: MouseEvent): void {
+        this._animateController.request({ mouseEvent: event, view });
     }
 
     public unrender(): void {
         this._cursorElement?.remove();
         this._cursorElement = null;
         this._cursorPosition = null;
+        this._animateController.cancel();
     }
 
     public dispose(): void {
