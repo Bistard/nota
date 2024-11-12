@@ -1,14 +1,10 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/media/quickAccessBar.scss';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { Component, IComponent } from 'src/workbench/services/component/component';
-import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
-import { ILogService } from 'src/base/common/logger';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
-import { MacWindowBar } from 'src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/macWindowBar';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
@@ -27,21 +23,17 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [fields]
 
     declare _serviceMarker: undefined;
-    public static readonly HEIGHT = 40;
+    public static readonly HEIGHT = 20;
 
     private _searchBar?: SearchBar;
-    private _macWindowBar?: MacWindowBar;
     private _menuButton?: Button;
 
     // [constructor]
 
     constructor(
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
-        super('quick-access-bar', null, themeService, componentService, logService);
+        super('quick-access-bar', null, instantiationService);
     }
 
     // [public methods]
@@ -49,18 +41,14 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     public getSearchBar(): SearchBar | undefined {
         return this._searchBar;
     }
-
+    
     // [protected methods]
 
     protected override _createContent(): void {
-        if (OPERATING_SYSTEM === Platform.Mac) {
-            this._macWindowBar = this.__register(this.instantiationService.createInstance(MacWindowBar));
-            this._macWindowBar.create(this);
-        } else {
+        if (OPERATING_SYSTEM !== Platform.Mac) {
             this._menuButton = this.__register(this.__createMenuButton());
             this.element.appendChild(this._menuButton.element);
         }
-
         const searchBar = this.__createSearchBar();
         this.element.appendChild(searchBar);
     }

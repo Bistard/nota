@@ -1,7 +1,7 @@
 import 'src/workbench/services/component/media.scss';
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
 import { IComponentService } from "src/workbench/services/component/componentService";
 import { Themable } from "src/workbench/services/theme/theme";
@@ -14,6 +14,9 @@ import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { ILogService } from 'src/base/common/logger';
 import { isNonNullable } from 'src/base/common/utilities/type';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IHostService } from 'src/platform/host/common/hostService';
+import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 
 export interface ICreatable {
     create(): void;
@@ -270,6 +273,8 @@ export abstract class Component extends Themable implements IComponent {
     /** Relate to {@link assembleComponents()} */
     protected _splitView: ISplitView | undefined;
 
+    protected readonly logService: ILogService;
+
     // [event]
 
     public readonly onDidFocusChange: Register<boolean>;
@@ -291,11 +296,12 @@ export abstract class Component extends Themable implements IComponent {
     constructor(
         id: string,
         customParent: HTMLElement | null,
-        themeService: IThemeService,
-        protected readonly componentService: IComponentService,
-        protected readonly logService: ILogService,
+        protected readonly instantiationService: IInstantiationService,
     ) {
+        const themeService = instantiationService.getOrCreateService(IThemeService);
         super(themeService);
+        const componentService = instantiationService.getOrCreateService(IComponentService);
+        this.logService = instantiationService.getOrCreateService(ILogService);
         
         this._isInDom    = false;
         this._created    = false;
@@ -422,10 +428,27 @@ export abstract class Component extends Themable implements IComponent {
         this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
         this._registerListeners();
 
-        // automatically resizing
-        this.__register(addDisposableListener(window, EventType.resize, () => {
-            this.layout();
-        }));
+        // automatically re-layout
+        {
+            this.__register(addDisposableListener(window, EventType.resize, () => {
+                this.layout();
+            }));
+
+            const hostService = this.instantiationService.getOrCreateService(IHostService);
+            const environmentService = this.instantiationService.getOrCreateService(IBrowserEnvironmentService);
+            const anyEvents = Event.any([
+                hostService.onDidEnterFullScreenWindow,
+                hostService.onDidLeaveFullScreenWindow,
+                hostService.onDidMaximizeWindow,
+                hostService.onDidUnMaximizeWindow,
+            ]);
+            this.__register(anyEvents(windowID => {
+                if (windowID === environmentService.windowID) {
+                    this.layout();
+                }
+            }));
+        }
+        
 
         this.logService.trace(`${this.id}`, 'Component register listeners succeeded.');
         this._registered = true;

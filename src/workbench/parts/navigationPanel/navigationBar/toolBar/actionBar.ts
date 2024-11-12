@@ -1,13 +1,11 @@
 import 'src/workbench/parts/navigationPanel/navigationBar/toolBar/media/actionBar.scss';
-import { ILogService } from 'src/base/common/logger';
 import { Component, IComponent } from 'src/workbench/services/component/component';
-import { IComponentService } from 'src/workbench/services/component/componentService';
-import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Emitter, Register } from 'src/base/common/event';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Button, IButtonOptions } from 'src/base/browser/basic/button/button';
 import { createService, IService } from 'src/platform/instantiation/common/decorator';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
@@ -51,11 +49,9 @@ export class ActionBar extends Component implements IActionBarService {
     // [constructor]
 
     constructor(
-        @IComponentService componentService: IComponentService,
-        @IThemeService themeService: IThemeService,
-        @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
-        super('action-bar', null, themeService, componentService, logService);
+        super('action-bar', null, instantiationService);
         this._buttonBar = new WidgetBar('action-bar-buttons', { orientation: Orientation.Horizontal });
 
         this._currActiveButton = null;
