@@ -597,11 +597,7 @@ class EditorOptionController {
     }
 
     public saveOptions(): void {
-        const option = {};
-        for (const [key, value] of Object.entries(this._options)) {
-            option[key] = value.value ?? null;
-        }
-        this.configurationService.set('editor', option, { type: ConfigurationModuleType.Memory });
+        // TODO
     }
 
     // [private methods]
