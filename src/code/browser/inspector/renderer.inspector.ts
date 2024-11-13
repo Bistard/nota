@@ -1,7 +1,10 @@
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ErrorHandler } from "src/base/common/error";
+import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
-import { initExposedElectronAPIs } from "src/platform/electron/browser/global";
+import { toBoolean } from "src/base/common/utilities/type";
+import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
+import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
 import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -10,10 +13,10 @@ import { IpcService, IIpcService } from "src/platform/ipc/browser/ipcService";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 /**
- * Renderer first entry for inspector window.
+ * InspectorRenderer first entry for inspector window.
  * // TODO
  */
-export class Renderer {
+export class InspectorRenderer {
     
     // [fields]
 
@@ -21,9 +24,7 @@ export class Renderer {
 
     // [constructor]
 
-    constructor() {
-        console.log('debug inspector window created.');
-    }
+    constructor() {}
     
     // [public methods]
 
@@ -35,7 +36,12 @@ export class Renderer {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
-            Error.stackTraceLimit = Infinity;
+            monitorEventEmitterListenerGC({
+                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+            });
+
+            // ensure we handle almost every errors properly
+            initGlobalErrorHandler(this.logService, WIN_CONFIGURATION);
 
             // core service construction
             instantiationService = this.createCoreServices();
@@ -89,4 +95,4 @@ export class Renderer {
     }
 }
 
-(new Renderer()).init();
+(new InspectorRenderer()).init();

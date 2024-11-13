@@ -67,6 +67,7 @@ import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { Strings } from "src/base/common/utilities/string";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
+import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -96,7 +97,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             });
 
             // ensure we handle almost every errors properly
-            this.initErrorHandler();
+            initGlobalErrorHandler(this.logService, WIN_CONFIGURATION);
 
             // register microservices
             this.rendererServiceRegistrations();
@@ -121,43 +122,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
         }
-    }
-
-    // [private methods]
-
-    // [error handling]
-
-    private initErrorHandler(): void {
-
-        // only enable infinity stack trace when needed for performance issue.
-        if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
-            Error.stackTraceLimit = Infinity;
-        }
-        
-        // universal on unexpected error handling callback
-        const onUnexpectedError = (error: any, additionalMessage?: any) => {
-            if (this.logService) {
-                const safeAdditional = Strings.stringifySafe(additionalMessage, undefined, undefined, 4);
-                this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
-            } else {
-                console.error(error);
-            }
-        };
-
-        // case1
-        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
-
-        // case2
-        window.onerror = (message, source, lineno, colno, error) => {
-            onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
-            return true; // prevent default handling (log to console)
-        };
-
-        // case3
-        window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-            onUnexpectedError(event.reason, 'unexpected rejection');
-            event.preventDefault(); // prevent default handling (log to console)
-        };
     }
 
     // [end]
