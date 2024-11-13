@@ -520,12 +520,15 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
         // context menu listener
         cleanup.register(tree.onContextmenu(e => {
+            const anchor = this.__getContextMenuAnchor(e);
+            const actions = this.__getContextMenuActions(e);
+
             this.contextMenuService.showContextMenu({
                 primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
                 horizontalPosition: AnchorHorizontalPosition.Right,
                 verticalPosition: AnchorVerticalPosition.Below,
-                getAnchor: () => this.__getContextMenuAnchor(e),
-                getActions: () => this.__getContextMenuActions(e),
+                getAnchor: () => anchor,
+                getActions: () => actions,
                 getContext: () => e
             }, this.workbenchService.element.raw);
         }));
