@@ -6,13 +6,13 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, ArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, WindowInstanceArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions, WindowInstancePhase } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
 import { IProductService } from "src/platform/product/common/productService";
-import { isDefined } from "src/base/common/utilities/type";
+import { Callable, isDefined } from "src/base/common/utilities/type";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { StatusKey } from "src/platform/status/common/status";
 
@@ -48,18 +48,37 @@ function createIpcAccessible<T>(): IIpcAccessible<T> {
 export interface IWindowInstance extends Disposable {
 
     readonly id: number;
-
     readonly browserWindow: electron.BrowserWindow;
 
     readonly onDidLoad: Register<void>;
-
     readonly onDidClose: Register<void>;
 
+    /**
+     * Fires whenever the renderer process of this window is ready.
+     */
+    readonly onRendererReady: Register<void>;
+
     load(configuration: IWindowConfiguration): Promise<void>;
+    close(): void;
+    isClosed(): boolean;
+
+    /**
+     * Notify the main process that the renderer process is ready. This will
+     * trigger firing event {@link IWindowInstance['onRendererReady']}.
+     */
+    setAsRendererReady(): void;
+    whenRendererReady(): Promise<void>;
+    isRendererReady(): boolean;
+
+    /**
+     * Send IPC message to the renderer process. The message either send 
+     * immediately or wait until the renderer process is ready.
+     * @param channel The channel name.
+     * @param args The arguments.
+     */
+    sendIPCMessage(channel: string, ...args: any[]): void;
 
     toggleFullScreen(force?: boolean): void;
-
-    close(): void;
 }
 
 /**
@@ -76,6 +95,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private readonly _onDidClose = this.__register(new Emitter<void>());
     public readonly onDidClose = this._onDidClose.registerListener;
 
+    private readonly _onRendererReady = this.__register(new Emitter<void>());
+    public readonly onRendererReady = this._onRendererReady.registerListener;
+
     // [field]
 
     private readonly _window: electron.BrowserWindow;
@@ -86,6 +108,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
      * be disposed after loading.
      */
     private readonly _configurationIpcAccessible = createIpcAccessible<IWindowConfiguration>();
+    private _phase: WindowInstancePhase;
+    private readonly _onRendererReadyCallbacks: (Callable<[], void>)[];
 
     // [constructor]
 
@@ -101,6 +125,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         super();
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
         
+        this._phase = WindowInstancePhase.Initializing;
+        this._onRendererReadyCallbacks = [];
         const displayOptions = configuration.displayOptions;
 
         this._window = this.doCreateWindow(displayOptions);
@@ -167,12 +193,64 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public close(): void {
         this._window.close();
+        this.dispose();
+    }
+
+    public isClosed(): boolean {
+        return this._phase === WindowInstancePhase.Closed;
+    }
+
+    public setAsRendererReady(): void {
+        if (this._phase >= WindowInstancePhase.RendererReady) {
+            return;
+        }
+        this._phase = WindowInstancePhase.RendererReady;
+
+        // notify these who are waiting for
+        for (const callback of this._onRendererReadyCallbacks) {
+            callback();
+        }
+        this._onRendererReadyCallbacks.length = 0;
+
+        // notify outgoing event
+        this._onRendererReady.fire();
+    }
+
+    public whenRendererReady(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (this.isRendererReady()) {
+                resolve();
+            }
+            this._onRendererReadyCallbacks.push(resolve);
+        });
+    }
+
+    public isRendererReady(): boolean {
+        return this._phase === WindowInstancePhase.RendererReady;
+    }
+
+    public sendIPCMessage(channel: string, ...args: any[]): void {
+        if (this._phase === WindowInstancePhase.Closed) {
+            this.logService.warn('WindowInstance', `Cannot send IPC message to channel (${channel}) with window id (${this.id}) because it is already closed.`);
+            return;
+        }
+
+        if (this._phase === WindowInstancePhase.Initializing) {
+            this.whenRendererReady().then(() => {
+                this.__doSendIPC(channel, ...args);
+            });
+        }
+
+        if (this._phase === WindowInstancePhase.RendererReady) {
+            this.__doSendIPC(channel, ...args);
+        }
     }
 
     public override dispose(): void {
         super.dispose();
         // issue: https://stackoverflow.com/questions/38309240/object-has-been-destroyed-when-open-secondary-child-window-in-electron-js
         (<any>this._window) = null;
+        this._phase = WindowInstancePhase.Closed;
     }
 
     // [private methods]
@@ -180,8 +258,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
         this.logService.debug('WindowInstance', 'creating window...');
         const additionalArguments = [
-            `--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`,
-            `--${ArgumentKey.zoomLevel}=${this.mainStatusService.get<number>(StatusKey.WindowZoomLevel) ?? 0}`
+            `--${WindowInstanceArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`,
+            `--${WindowInstanceArgumentKey.zoomLevel}=${this.mainStatusService.get<number>(StatusKey.WindowZoomLevel) ?? 0}`
         ];
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
@@ -301,5 +379,13 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this._window.webContents.on('did-finish-load', () => {
             this._onDidLoad.fire();
         });
+    }
+
+    private __doSendIPC(channel: string, ...args: any[]): void {
+        try {
+            this._window.webContents.send(channel, ...args);
+        } catch (error) {
+            this.logService.error('WindowInstance', `Error sending IPC message to channel (${channel}) with window id (${this.id})`, error);
+        }
     }
 }

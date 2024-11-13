@@ -80,6 +80,11 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     // [public methods]
 
+    public async setWindowAsRendererReady(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.setAsRendererReady();
+    }
+
     public async focusWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
         window?.browserWindow.focus();

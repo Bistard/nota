@@ -20,6 +20,7 @@ export interface IHostService extends IService {
     readonly onDidLeaveFullScreenWindow: Register<number>;
 
     // window-service
+    setWindowAsRendererReady(id?: number): Promise<void>;
     focusWindow(id?: number): Promise<void>;
     maximizeWindow(id?: number): Promise<void>;
     minimizeWindow(id?: number): Promise<void>;

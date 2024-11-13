@@ -39,22 +39,24 @@ export class BrowserInstance extends Disposable implements IBrowser {
     public init(): void {
         this.registerListeners();
         this.setBrowserPhase();
+
+        // notify the main process we are ready.
+        this.hostService.setWindowAsRendererReady();
     }
 
     // [private helper methods]
 
-    private registerListeners(): void {
-        this.lifecycleService.when(LifecyclePhase.Displayed)
-            .then(() => {
-                // save user configurations on quit
-                this.__register(this.lifecycleService.onWillQuit(e => 
-                    e.join(this.configurationService.save())
-                ));
+    private async registerListeners(): Promise<void> {
+        await this.lifecycleService.when(LifecyclePhase.Displayed);
+        
+        // save user configurations on quit
+        this.__register(this.lifecycleService.onWillQuit(e => 
+            e.join(this.configurationService.save())
+        ));
 
-                this.__register(this.lifecycleService.onWillQuit(e => 
-                    e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
-                ));
-            });
+        this.__register(this.lifecycleService.onWillQuit(e => 
+            e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
+        ));
     }
 
     private setBrowserPhase(): void {

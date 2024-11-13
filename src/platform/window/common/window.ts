@@ -5,7 +5,19 @@ import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
 import { IMonitorInfo } from "src/platform/screen/common/screen";
 
-export const enum ArgumentKey {
+/**
+ * Indicates the lifecycle of {@link WindowInstance}.
+ */
+export const enum WindowInstancePhase {
+    Initializing,
+    RendererReady,
+    Closed,
+}
+
+/**
+ * Argument names of {@link WindowInstance}.
+ */
+export const enum WindowInstanceArgumentKey {
     configuration = 'window-configuration',
     zoomLevel = 'window-zoom-level',
 }

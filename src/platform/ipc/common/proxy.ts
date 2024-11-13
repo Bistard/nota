@@ -102,7 +102,7 @@ export namespace ProxyChannel {
 
                     let methodsArgs = args;
                     if (typeof opt?.context !== 'undefined') {
-                        methodsArgs = [...args, opt.context];
+                        methodsArgs = [opt.context, ...args];
                     }
 
                     let result: any = await channel.callCommand(propName, methodsArgs);
@@ -133,7 +133,8 @@ export namespace ProxyChannel {
     export interface IUnwrapChannelOpt {
 
         /**
-         * In our case, it will be window ID.
+         * Context is any data that will always be passed as the first argument
+         * whenever a function is invoked from the result of {@link ProxyChannel.unwrapChannel}.
          */
         readonly context?: any;
 
