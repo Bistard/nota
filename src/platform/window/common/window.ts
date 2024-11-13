@@ -48,6 +48,7 @@ export interface IWindowDisplayOpts {
     readonly resizable?: boolean;
     readonly mode?: WindowDisplayMode;
     readonly frameless?: boolean;
+    readonly alwaysOnTop?: boolean;
 }
 
 /**

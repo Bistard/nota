@@ -309,6 +309,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             show: false, // to prevent flicker, we will show it later.
             resizable: displayOpts.resizable ?? true,
             frame: !displayOpts.frameless,
+            alwaysOnTop: displayOpts.alwaysOnTop ?? false,
         };
 
         // title bar configuration
