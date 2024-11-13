@@ -501,7 +501,9 @@ export namespace FileCommands {
                     message: `Cannot ${operation} ${targetName} to ${destinName}. Reason: ${errorToMessage(error)}`,
                     actions: [
                         { label: 'Ok', run: noop },
-                        { label: 'Retry', run: () => this.commandService.executeCommand(AllCommands.fileTreePaste, destination, [failed]) }
+
+                        // FIX: parameter wrong
+                        // { label: 'Retry', run: () => this.commandService.executeCommand(AllCommands.fileTreePaste, destination, [failed]) }
                     ]
                 });
             });

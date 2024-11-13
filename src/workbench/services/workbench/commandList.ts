@@ -106,7 +106,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
  */
 export type AllCommandsArgumentsTypes = {
     
-    [AllCommands.alertError]      : [reporter: string, error: Error];
+    [AllCommands.alertError]      : [reporter: string, error: any];
     [AllCommands.toggleDevTool]   : [];
     [AllCommands.reloadWindow]    : [];
     [AllCommands.closeApplication]: [];
@@ -126,6 +126,8 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileTreeRevealInOS]      : [target: URI | string];
     [AllCommands.fileTreeCopyPath]        : [target: URI | string];
     [AllCommands.fileTreeCopyRelativePath]: [target: URI | string];
+
+    [key: string]: any[];
 };
 
 /**
@@ -162,4 +164,6 @@ export type AllCommandsReturnTypes = {
     [AllCommands.fileTreeRevealInOS]      : void;
     [AllCommands.fileTreeCopyPath]        : void;
     [AllCommands.fileTreeCopyRelativePath]: void;
+
+    [key: string]: any | Promise<any>;
 };
