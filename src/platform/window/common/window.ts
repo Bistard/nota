@@ -159,7 +159,8 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
  * This is mapping type for {@link WindowInstance} IPC channel communication.
  */
 export type WindowInstanceIPCMessageMap = {
-    [IpcChannel.runRendererCommand]: [IWindowRunRendererCommandRequest];
+    [IpcChannel.rendererAlertError]: [error: any];
+    [IpcChannel.rendererRunCommand]: [request: IWindowRunRendererCommandRequest];
     
     // if not predefined, fallback to general case.
     [key: string]: any[];

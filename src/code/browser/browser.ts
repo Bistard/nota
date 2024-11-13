@@ -15,6 +15,7 @@ import { ipcRenderer, webFrame } from "src/platform/electron/browser/global";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
+import { ErrorHandler } from "src/base/common/error";
 
 export interface IBrowser {
     init(): void;
@@ -63,15 +64,19 @@ export class BrowserInstance extends Disposable implements IBrowser {
             e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
         ));
 
-        // able to execute command request from main process
-        onMainProcess(ipcRenderer, IpcChannel.runRendererCommand, async request => {
+        // alert error from main process
+        onMainProcess(ipcRenderer, IpcChannel.rendererAlertError, error => {
+            ErrorHandler.onUnexpectedError(error);
+        });
+
+        // execute command request from main process
+        onMainProcess(ipcRenderer, IpcChannel.rendererRunCommand, async request => {
             try {
                 await this.commandService.executeCommand(request.commandID, ...request.args);
             } catch (error) {
                 this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
             }
         });
-
     }
 
     private setBrowserPhase(): void {
