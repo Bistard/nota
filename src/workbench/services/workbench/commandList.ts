@@ -45,12 +45,12 @@ export const enum AllCommands {
 
     // [FileTree]
 
-    newFile   = 'newFile', // TODO
-    newFolder = 'newFolder', // TODO
-    fileCut   = 'fileCut',
-    fileCopy  = 'fileCopy',
-    filePaste = 'filePaste',
-    fileMove  = 'fileMove', // TODO
+    fileTreeNewFile   = 'fileTreeNewFile', // TODO
+    fileTreeNewFolder = 'fileTreeNewFolder', // TODO
+    fileTreeCut       = 'fileTreeCut',
+    fileTreeCopy      = 'fileTreeCopy',
+    fileTreePaste     = 'fileTreePaste',
+    fileTreeMove      = 'fileTreeMove', // TODO
 
     // [Test Commands]
 }
@@ -71,12 +71,12 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.zoomOut]:          'Zoom out the entire program to the next level.',
     [AllCommands.zoomSet]:          'Set the zoom level to the given number. In the range of -8 to 8. 0 means default.',
 
-    [AllCommands.newFile]:          '',
-    [AllCommands.newFolder]:        '',
-    [AllCommands.fileCut]:          'Sets selected files in the file tree as ready to be cut.',
-    [AllCommands.fileCopy]:         'Sets selected files in the file tree as ready to be copied.',
-    [AllCommands.filePaste]:        'Paste the given targets to the file tree.',
-    [AllCommands.fileMove]:         'Moves selected explorer files.',
+    [AllCommands.fileTreeNewFile]:          'Create a new file in the file tree.',
+    [AllCommands.fileTreeNewFolder]:        'Create a new folder in the file tree.',
+    [AllCommands.fileTreeCut]:              'Sets selected files in the file tree as ready to be cut.',
+    [AllCommands.fileTreeCopy]:             'Sets selected files in the file tree as ready to be copied.',
+    [AllCommands.fileTreePaste]:            'Paste the targets from the clipboard to the file tree.',
+    [AllCommands.fileTreeMove]:             'Moves the targets from the clipboard to the file tree.',
 };
 
 /**
@@ -101,16 +101,16 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.reloadWindow]    : [];
     [AllCommands.closeApplication]: [];
     
-    [AllCommands.zoomIn]: [];
+    [AllCommands.zoomIn]:  [];
     [AllCommands.zoomOut]: [];
     [AllCommands.zoomSet]: [level?: number];
     
-    [AllCommands.newFile]  : [];
-    [AllCommands.newFolder]: [];
-    [AllCommands.fileCut]  : [];
-    [AllCommands.fileCopy] : [];
-    [AllCommands.filePaste]: [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
-    [AllCommands.fileMove] : [];
+    [AllCommands.fileTreeNewFile]  : [];
+    [AllCommands.fileTreeNewFolder]: [];
+    [AllCommands.fileTreeCut]      : [];
+    [AllCommands.fileTreeCopy]     : [];
+    [AllCommands.fileTreePaste]    : [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
+    [AllCommands.fileTreeMove]     : [];
 };
 
 /**
@@ -132,14 +132,14 @@ export type AllCommandsReturnTypes = {
     [AllCommands.reloadWindow]    : void;
     [AllCommands.closeApplication]: void;
     
-    [AllCommands.zoomIn]: void;
+    [AllCommands.zoomIn]:  void;
     [AllCommands.zoomOut]: void;
     [AllCommands.zoomSet]: void;
 
-    [AllCommands.newFile]  : void;
-    [AllCommands.newFolder]: void;
-    [AllCommands.fileCut]  : void;
-    [AllCommands.fileCopy] : void;
-    [AllCommands.filePaste]: void;
-    [AllCommands.fileMove] : void;
+    [AllCommands.fileTreeNewFile]  : void;
+    [AllCommands.fileTreeNewFolder]: void;
+    [AllCommands.fileTreeCut]      : void;
+    [AllCommands.fileTreeCopy]     : void;
+    [AllCommands.fileTreePaste]    : void;
+    [AllCommands.fileTreeMove]     : void;
 };

@@ -57,6 +57,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
         );
         
         registrant.registerCommand(new AlertError());
+        registrant.registerCommand(new FileCommands.FileCut());
+        registrant.registerCommand(new FileCommands.FileCopy());
         registrant.registerCommand(new FileCommands.FilePaste());
     },
 );
