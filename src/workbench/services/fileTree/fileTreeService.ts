@@ -33,6 +33,8 @@ import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
+import { ICommandService } from "src/platform/command/common/commandService";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -64,6 +66,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
         @IClipboardService private readonly clipboardService: IClipboardService,
+        @ICommandService private readonly commandService: ICommandService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
@@ -605,7 +608,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         {
             if (isFile) {
                 openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open', callback: (ctx) => console.log(ctx) }));
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open In New Tab', callback: (ctx) => console.log(ctx) }));
+                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open in New Tab', callback: (ctx) => console.log(ctx) }));
             } 
             else if (isFolder) {
                 openGroup.push(new SimpleMenuAction({ enabled: true, id: 'New file...', callback: (ctx) => console.log(ctx) }));
@@ -613,10 +616,12 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             }
 
             const revealID = 
-                IS_MAC      ? 'Reveal In Finder' : 
-                IS_WINDOWS  ? 'Reveal In File Explorer' 
-                /* Linux */ : 'Reveal In Files';
-            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, key: 'Shift+Alt+R', mac: undefined, callback: (ctx) => console.log(ctx) }));
+                IS_MAC      ? 'Reveal in Finder' : 
+                IS_WINDOWS  ? 'Reveal in File Explorer' 
+                /* Linux */ : 'Reveal in Files';
+            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, key: 'Shift+Alt+R', mac: undefined, callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
+                ctx.data && this.commandService.executeCommand(AllCommands.fileTreeRevealInOS, ctx.data.uri);
+            } }));
         }
 
         // moveGroup

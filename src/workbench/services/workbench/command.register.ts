@@ -9,6 +9,7 @@ import { INotificationService } from "src/workbench/services/notification/notifi
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
+import { URI } from "src/base/common/files/uri";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -60,6 +61,12 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommand(new FileCommands.FileCut());
         registrant.registerCommand(new FileCommands.FileCopy());
         registrant.registerCommand(new FileCommands.FilePaste());
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeRevealInOS,
+                command: (provider, source: URI) => provider.getOrCreateService(IHostService).showItemInFolder(URI.toFsPath(source))
+            }
+        );
     },
 );
 

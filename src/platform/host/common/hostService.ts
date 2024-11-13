@@ -46,6 +46,9 @@ export interface IHostService extends IService {
     setApplicationStatus(key: StatusKey, val: any): Promise<void>;
     setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void>;
     deleteApplicationStatus(key: StatusKey): Promise<boolean>;
+
+    // OS
+    showItemInFolder(path: string): Promise<void>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {

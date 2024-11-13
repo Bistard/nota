@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, shell } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, NodeEventEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
@@ -178,6 +178,10 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     public deleteApplicationStatus(key: StatusKey): Promise<boolean> {
         return this.statusService.delete(key).unwrap();
+    }
+
+    public async showItemInFolder(path: string): Promise<void> {
+        shell.showItemInFolder(path);
     }
 
     // [private helper methods]

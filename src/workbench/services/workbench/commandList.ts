@@ -45,12 +45,14 @@ export const enum AllCommands {
 
     // [FileTree]
 
-    fileTreeNewFile   = 'fileTreeNewFile', // TODO
-    fileTreeNewFolder = 'fileTreeNewFolder', // TODO
-    fileTreeCut       = 'fileTreeCut',
-    fileTreeCopy      = 'fileTreeCopy',
-    fileTreePaste     = 'fileTreePaste',
-    fileTreeMove      = 'fileTreeMove', // TODO
+    fileTreeNewFile    = 'fileTreeNewFile', // TODO
+    fileTreeNewFolder  = 'fileTreeNewFolder', // TODO
+    fileTreeCut        = 'fileTreeCut',
+    fileTreeCopy       = 'fileTreeCopy',
+    fileTreePaste      = 'fileTreePaste',
+    fileTreeMove       = 'fileTreeMove', // TODO
+    fileTreeDelete     = 'fileTreeDelete', // TODO
+    fileTreeRevealInOS = 'fileTreeRevealInOS',
 
     // [Test Commands]
 }
@@ -71,12 +73,14 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.zoomOut]:          'Zoom out the entire program to the next level.',
     [AllCommands.zoomSet]:          'Set the zoom level to the given number. In the range of -8 to 8. 0 means default.',
 
-    [AllCommands.fileTreeNewFile]:          'Create a new file in the file tree.',
-    [AllCommands.fileTreeNewFolder]:        'Create a new folder in the file tree.',
-    [AllCommands.fileTreeCut]:              'Sets selected files in the file tree as ready to be cut.',
-    [AllCommands.fileTreeCopy]:             'Sets selected files in the file tree as ready to be copied.',
-    [AllCommands.fileTreePaste]:            'Paste the targets from the clipboard to the file tree.',
-    [AllCommands.fileTreeMove]:             'Moves the targets from the clipboard to the file tree.',
+    [AllCommands.fileTreeNewFile]:    'Create a new file in the file tree.',
+    [AllCommands.fileTreeNewFolder]:  'Create a new folder in the file tree.',
+    [AllCommands.fileTreeCut]:        'Sets selected files in the file tree as ready to be cut.',
+    [AllCommands.fileTreeCopy]:       'Sets selected files in the file tree as ready to be copied.',
+    [AllCommands.fileTreePaste]:      'Paste the targets from the clipboard to the file tree.',
+    [AllCommands.fileTreeMove]:       'Moves the targets from the clipboard to the file tree.',
+    [AllCommands.fileTreeDelete]:     'Delete the targets in the file tree.',
+    [AllCommands.fileTreeRevealInOS]: 'Reveal the target in the native file explorer.',
 };
 
 /**
@@ -105,12 +109,14 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.zoomOut]: [];
     [AllCommands.zoomSet]: [level?: number];
     
-    [AllCommands.fileTreeNewFile]  : [];
-    [AllCommands.fileTreeNewFolder]: [];
-    [AllCommands.fileTreeCut]      : [];
-    [AllCommands.fileTreeCopy]     : [];
-    [AllCommands.fileTreePaste]    : [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
-    [AllCommands.fileTreeMove]     : [];
+    [AllCommands.fileTreeNewFile]   : [];
+    [AllCommands.fileTreeNewFolder] : [];
+    [AllCommands.fileTreeCut]       : [];
+    [AllCommands.fileTreeCopy]      : [];
+    [AllCommands.fileTreePaste]     : [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
+    [AllCommands.fileTreeMove]      : [];
+    [AllCommands.fileTreeDelete]    : [];
+    [AllCommands.fileTreeRevealInOS]: [target: URI];
 };
 
 /**
@@ -135,11 +141,13 @@ export type AllCommandsReturnTypes = {
     [AllCommands.zoomIn]:  void;
     [AllCommands.zoomOut]: void;
     [AllCommands.zoomSet]: void;
-
-    [AllCommands.fileTreeNewFile]  : void;
-    [AllCommands.fileTreeNewFolder]: void;
-    [AllCommands.fileTreeCut]      : void;
-    [AllCommands.fileTreeCopy]     : void;
-    [AllCommands.fileTreePaste]    : void;
-    [AllCommands.fileTreeMove]     : void;
+ 
+    [AllCommands.fileTreeNewFile]   : void;
+    [AllCommands.fileTreeNewFolder] : void;
+    [AllCommands.fileTreeCut]       : void;
+    [AllCommands.fileTreeCopy]      : void;
+    [AllCommands.fileTreePaste]     : void;
+    [AllCommands.fileTreeMove]      : void;
+    [AllCommands.fileTreeDelete]    : void;
+    [AllCommands.fileTreeRevealInOS]: void;
 };
