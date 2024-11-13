@@ -9,6 +9,7 @@ import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
+import { IS_MAC } from "src/base/common/platform";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -44,19 +45,37 @@ interface IShortcutBase<TArgs extends any[]> {
     // TODO: description?: string;
 }
 
+type IShortcutRegistrationBase<ID extends string> = ID extends AllCommands
+    ? IShortcutBase<AllCommandsArgumentsTypes[ID]>
+    : IShortcutBase<any[]>;
+
 /**
  * An interface describes the shortcut for register programmatically.
  */
-export type IShortcutRegistration<ID extends string> = (
-    ID extends AllCommands
-     ? IShortcutBase<AllCommandsArgumentsTypes[ID]>
-     : IShortcutBase<any[]>
-) & {
+export type IShortcutRegistration<ID extends string> = IShortcutRegistrationBase<ID> & {
 
     /**
      * The shortcut of the given command.
      */
     readonly shortcut: Shortcut;
+};
+
+/**
+ * An interface describes the shortcut for register programmatically.
+ */
+export type IShortcutRegistration2<ID extends string> = IShortcutRegistrationBase<ID> & {
+
+    /**
+     * The shortcut of the given command in string format. Check the format 
+     * details at {@link Shortcut.fromString}.
+     */
+    readonly key: string;
+
+    /**
+     * If provided, this will be the shortcut only in MacOS. Check the format 
+     * details at {@link Shortcut.fromString}.
+     */
+    readonly mac?: string;
 };
 
 /**
@@ -85,6 +104,7 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
      * @returns A disposable to unregister the shortcut.
      */
     register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable;
+    registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable;
 
     /**
      * @description Check if the command is already registered with the given
@@ -141,6 +161,18 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
     public initRegistrations(provider: IServiceProvider): void {
         rendererWorkbenchShortcutRegister(provider);
+    }
+
+    public registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable {
+        const shortcut = (IS_MAC && registration.mac) 
+            ? Shortcut.fromString(registration.mac) 
+            : Shortcut.fromString(registration.key);
+        
+        const resolved: IShortcutRegistration<ID> = {
+            ...registration,
+            shortcut: shortcut,
+        };
+        return this.register(commandID, resolved);
     }
 
     public register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable {

@@ -493,6 +493,7 @@ export class Shortcut {
      * 
      * @example 'Ctrl+Shift+Alt+D', 'Ctrl+PageDown', 'Alt+RightArrow', etc...
      * @example 'ctrl+shift+alt+meta+R', 'SHIFT+CTRL+MEta+aLT+R', etc...
+     * @example 'ctrl+A', 'meta+A', 'cmd+A' etc...
      */
     public static fromString(string: string): Shortcut {
         const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
@@ -505,7 +506,7 @@ export class Shortcut {
                 shortcut.shift = true;
             } else if (lowerPart === 'alt') {
                 shortcut.alt = true;
-            } else if (lowerPart === 'meta') {
+            } else if (lowerPart === 'meta' || lowerPart === 'cmd') {
                 shortcut.meta = true;
             } else {
                 if (shortcut.key !== KeyCode.None) {
