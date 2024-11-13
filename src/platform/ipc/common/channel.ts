@@ -10,6 +10,9 @@ export const enum IpcChannel {
     Connect = 'nota:connect',
     Disconnect = 'nota:disconnect',
 
+    // main process direct communication to renderer process
+    runRendererCommand = 'nota:runRendererCommand',
+
     // micro-service channel
     Logger = 'nota:mainLogger',
     DiskFile = 'nota:diskFile',
@@ -17,7 +20,7 @@ export const enum IpcChannel {
     Host = 'nota:host',
     Dialog = 'nota:dialog',
 
-    // Main process internal usage, no need for a `nota:` prefix.
+    // Main process internal usage (not actually went through IPC), no need for a `nota:` prefix.
     WindowMaximized = 'window-maximized',
     WindowUnMaximized = 'window-unMaximized',
     WindowFocused = 'window-focused',

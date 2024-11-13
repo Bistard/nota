@@ -6,7 +6,7 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, WindowInstanceArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions, WindowInstancePhase } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, WindowInstanceArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions, WindowInstancePhase, WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
@@ -76,7 +76,7 @@ export interface IWindowInstance extends Disposable {
      * @param channel The channel name.
      * @param args The arguments.
      */
-    sendIPCMessage(channel: string, ...args: any[]): void;
+    sendIPCMessage<TChannel extends string>(channel: TChannel, ...args: WindowInstanceIPCMessageMap[TChannel]): void;
 
     toggleFullScreen(force?: boolean): void;
 }
@@ -229,7 +229,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         return this._phase === WindowInstancePhase.RendererReady;
     }
 
-    public sendIPCMessage(channel: string, ...args: any[]): void {
+    public sendIPCMessage<TChannel extends string>(channel: TChannel, ...args: WindowInstanceIPCMessageMap[TChannel]): void {
         if (this._phase === WindowInstancePhase.Closed) {
             this.logService.warn('WindowInstance', `Cannot send IPC message to channel (${channel}) with window id (${this.id}) because it is already closed.`);
             return;

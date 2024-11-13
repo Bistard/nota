@@ -3,6 +3,7 @@ import { IS_MAC } from "src/base/common/platform";
 import { UUID } from "src/base/common/utilities/string";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
+import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IMonitorInfo } from "src/platform/screen/common/screen";
 
 /**
@@ -152,4 +153,19 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
      * If under any existed windows operation. 
      */
     readonly hostWindowID: number | undefined; // TODO: unused
+}
+
+/**
+ * This is mapping type for {@link WindowInstance} IPC channel communication.
+ */
+export type WindowInstanceIPCMessageMap = {
+    [IpcChannel.runRendererCommand]: [IWindowRunRendererCommandRequest];
+    
+    // if not predefined, fallback to general case.
+    [key: string]: any[];
+};
+
+export interface IWindowRunRendererCommandRequest {
+    readonly commandID: string;
+    readonly args: any[];
 }

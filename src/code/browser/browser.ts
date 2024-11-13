@@ -1,3 +1,4 @@
+import type { IWindowRunRendererCommandRequest, WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { ILogService } from "src/base/common/logger";
 import { IShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -10,7 +11,10 @@ import { delayFor } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
 import { IHostService } from "src/platform/host/common/hostService";
 import { StatusKey } from "src/platform/status/common/status";
-import { webFrame } from "src/platform/electron/browser/global";
+import { ipcRenderer, webFrame } from "src/platform/electron/browser/global";
+import { IpcChannel } from "src/platform/ipc/common/channel";
+import { ICommandService } from "src/platform/command/common/commandService";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 export interface IBrowser {
     init(): void;
@@ -29,6 +33,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IHostService private readonly hostService: IHostService,
+        @ICommandService private readonly commandService: ICommandService,
     ) {
         super();
         logService.debug('BrowserInstance', 'BrowserInstance constructed.');
@@ -57,6 +62,16 @@ export class BrowserInstance extends Disposable implements IBrowser {
         this.__register(this.lifecycleService.onWillQuit(e => 
             e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
         ));
+
+        // able to execute command request from main process
+        onMainProcess(ipcRenderer, IpcChannel.runRendererCommand, async request => {
+            try {
+                await this.commandService.executeCommand(request.commandID, ...request.args);
+            } catch (error) {
+                this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
+            }
+        });
+
     }
 
     private setBrowserPhase(): void {
@@ -80,4 +95,13 @@ export class BrowserInstance extends Disposable implements IBrowser {
             });
         });
     }
+}
+
+/**
+ * Listens IPC message from the main process.
+ */
+function onMainProcess<TChannel extends string>(listener: NodeJS.EventEmitter, channel: TChannel, callback: (...args: WindowInstanceIPCMessageMap[TChannel]) => void): void {
+    listener.on(channel, (_e, ...args) => {
+        callback(...args);
+    });
 }
