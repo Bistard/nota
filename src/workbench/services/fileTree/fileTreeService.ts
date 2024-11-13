@@ -644,8 +644,12 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
         // copyGroup
         {
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', key: 'Shift+Alt+C', callback: (ctx) => console.log(ctx) }));
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', key: 'Ctrl+Shift+C', mac: 'Meta+Shift+C', callback: (ctx) => console.log(ctx) }));
+            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', key: 'Shift+Alt+C', callback: (ctx) => {
+                ctx.data && this.commandService.executeCommand(AllCommands.fileTreeCopyPath, ctx.data.uri);
+            } }));
+            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', key: 'Ctrl+Shift+C', mac: 'Meta+Shift+C', callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
+                ctx.data && this.commandService.executeCommand(AllCommands.fileTreeCopyRelativePath, ctx.data.uri);
+            } }));
         }
 
         // add separators

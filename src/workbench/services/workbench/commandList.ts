@@ -52,7 +52,10 @@ export const enum AllCommands {
     fileTreePaste      = 'fileTreePaste',
     fileTreeMove       = 'fileTreeMove', // TODO
     fileTreeDelete     = 'fileTreeDelete', // TODO
-    fileTreeRevealInOS = 'fileTreeRevealInOS',
+    
+    fileTreeRevealInOS         = 'fileTreeRevealInOS',
+    fileTreeCopyPath           = 'fileTreeCopyPath',
+    fileTreeCopyRelativePath   = 'fileTreeCopyRelativePath',
 
     // [Test Commands]
 }
@@ -80,7 +83,10 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.fileTreePaste]:      'Paste the targets from the clipboard to the file tree.',
     [AllCommands.fileTreeMove]:       'Moves the targets from the clipboard to the file tree.',
     [AllCommands.fileTreeDelete]:     'Delete the targets in the file tree.',
-    [AllCommands.fileTreeRevealInOS]: 'Reveal the target in the native file explorer.',
+    
+    [AllCommands.fileTreeRevealInOS]:       'Reveal the target in the native file explorer.',
+    [AllCommands.fileTreeCopyPath]:         'Copy path of active file path.',
+    [AllCommands.fileTreeCopyRelativePath]: 'Copy relative path of active file path.',
 };
 
 /**
@@ -116,7 +122,10 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileTreePaste]     : [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
     [AllCommands.fileTreeMove]      : [];
     [AllCommands.fileTreeDelete]    : [];
-    [AllCommands.fileTreeRevealInOS]: [target: URI];
+
+    [AllCommands.fileTreeRevealInOS]      : [target: URI | string];
+    [AllCommands.fileTreeCopyPath]        : [target: URI | string];
+    [AllCommands.fileTreeCopyRelativePath]: [target: URI | string];
 };
 
 /**
@@ -149,5 +158,8 @@ export type AllCommandsReturnTypes = {
     [AllCommands.fileTreePaste]     : void;
     [AllCommands.fileTreeMove]      : void;
     [AllCommands.fileTreeDelete]    : void;
-    [AllCommands.fileTreeRevealInOS]: void;
+
+    [AllCommands.fileTreeRevealInOS]      : void;
+    [AllCommands.fileTreeCopyPath]        : void;
+    [AllCommands.fileTreeCopyRelativePath]: void;
 };
