@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { Shortcut } from "src/base/common/keyboard";
+import { IS_MAC } from 'src/base/common/platform';
 import { ShortcutRegistrant, ShortcutWeight } from 'src/workbench/services/shortcut/shortcutRegistrant';
 
 suite('ShortcutRegistrant', () => {
@@ -29,6 +30,9 @@ suite('ShortcutRegistrant', () => {
     });
 
     test('registerBasic with mac-specific shortcut', () => {
+        if (!IS_MAC) {
+            return;
+        }
         const commandID = 'macCommand';
         const registration = { key: 'Cmd+Shift+M', mac: 'Cmd+Shift+N', commandArgs: [], when: null, weight: ShortcutWeight.BuiltInExtension };
         
@@ -36,7 +40,6 @@ suite('ShortcutRegistrant', () => {
         const shortcut = Shortcut.fromString('Cmd+Shift+N');
         
         assert.strictEqual(registrant.isRegistered(shortcut, commandID), true);
-
         disposable.dispose();
         assert.strictEqual(registrant.isRegistered(shortcut, commandID), false);
     });
