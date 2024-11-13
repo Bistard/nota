@@ -65,7 +65,6 @@ import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPane
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
 import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
-import { Strings } from "src/base/common/utilities/string";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 
