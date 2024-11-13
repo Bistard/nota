@@ -71,7 +71,7 @@ export class IpcServer extends ServerBase {
                 onClientReconnect.dispose();
             }));
 
-            const [onDataDisposable, onDataRegister]             = scopedOnDataEvent(IpcChannel.DataChannel, clientID);
+            const [onDataDisposable      , onDataRegister]       = scopedOnDataEvent(IpcChannel.DataChannel, clientID);
             const [onDisconnectDisposable, onDisconnectRegister] = scopedOnDataEvent(IpcChannel.Disconnect, clientID);
             const onDisconnect = new SignalEmitter([onDisconnectRegister], noop);
 
