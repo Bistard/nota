@@ -1,5 +1,5 @@
-import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { screen } from "electron";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IMonitorInfo } from "src/platform/screen/common/screen";
 import { Dimension } from "src/base/common/utilities/size";
 import { narrow } from "src/base/common/utilities/panic";

@@ -1,4 +1,5 @@
 import * as electron from "electron";
+import type { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
@@ -18,7 +19,6 @@ import { IMainWindowService, MainWindowService } from "src/platform/window/elect
 import { ILoggerService } from "src/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
-import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { DEFAULT_HTML, INSPECTOR_HTML } from "src/platform/window/common/window";
@@ -83,11 +83,14 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // IPC channel initialization
         this.registerChannels(appInstantiationService, ipcServer);
 
+        // life-cycle-service: READY
+        this.lifecycleService.setPhase(LifecyclePhase.Ready);
+
         // open first window
-        this.openFirstWindow(appInstantiationService);
+        const firstWindow = this.openFirstWindow(appInstantiationService);
 
         // post work
-        this.afterFirstWindow(appInstantiationService);
+        this.afterFirstWindow(appInstantiationService, firstWindow.id);
     }
 
     // [private methods]
@@ -167,9 +170,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
-        // life-cycle-service: READY
-        this.lifecycleService.setPhase(LifecyclePhase.Ready);
-
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
         const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
@@ -193,15 +193,15 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         return window;
     }
 
-    private afterFirstWindow(provider: IServiceProvider): void {
+    private afterFirstWindow(provider: IServiceProvider, windowID: number): void {
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            this.openDebugInspectorWindow(provider);
+            this.openDebugInspectorWindow(provider, windowID);
         }
     }
 
-    private openDebugInspectorWindow(provider: IServiceProvider): void {
+    private openDebugInspectorWindow(provider: IServiceProvider, hostWindowID: number): void {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
         const window: IWindowInstance = mainWindowService.open({
@@ -216,6 +216,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
                 frameless: false,
             },
             "open-devtools": false,
+
+            /**
+             * Bind the lifecycle of the inspector window to the corresponding 
+             * window, make sure they have the same lifecycle.
+             */
+            hostWindowID: hostWindowID,
         });
 
         /**
