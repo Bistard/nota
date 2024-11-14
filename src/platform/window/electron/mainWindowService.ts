@@ -113,8 +113,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         this.logService.debug('MainWindowService', 'trying to open a window...');
 
         const newWindow = this.doOpen(optionalConfiguration);
-
-        this.logService.debug('MainWindowService', 'window opened.');
         return newWindow;
     }
 
@@ -186,10 +184,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         configuration.windowID = window.id;
 
         // load window
-        this.logService.debug('MainWindowService', 'Loading window...');
-        this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
-
-        window.load(configuration).then(() => this.logService.debug('MainWindowService', 'Window loaded successfully.'));
+        window.load(configuration);
 
         return window;
     }
@@ -197,10 +192,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private helper methods]
 
     private __openInNewWindow(configuration: IWindowCreationOptions): IWindowInstance {
-        const newWindow = this.instantiationService.createInstance(
-            WindowInstance,
-            configuration,
-        );
+        const newWindow = this.instantiationService.createInstance(WindowInstance, configuration);
 
         this._windows.push(newWindow);
         this._onDidOpenWindow.fire(newWindow);

@@ -1,3 +1,4 @@
+import type { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { app, BrowserWindow, shell } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, NodeEventEmitter } from "src/base/common/event";
@@ -10,7 +11,6 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { StatusKey } from "src/platform/status/common/status";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
-import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 
 /**
  * An interface only for {@link MainHostService}.

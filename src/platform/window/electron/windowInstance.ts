@@ -3,9 +3,6 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/files/path";
 import { ILogService } from "src/base/common/logger";
-import { IFileService } from "src/platform/files/common/fileService";
-import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, WindowInstanceArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions, WindowInstancePhase, WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
@@ -117,9 +114,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         private readonly configuration: IWindowCreationOptions,
         @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
-        @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IFileService private readonly fileService: IFileService,
-        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
     ) {
         super();
@@ -137,7 +131,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
         
         this.registerListeners();
-        logService.debug('WindowInstance', 'Window constructed.');
     }
 
     // [getter / setter]
@@ -153,21 +146,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [public methods]
 
     public async load(configuration: IWindowConfiguration): Promise<void> {
-        this.logService.debug('WindowInstance', `Loading window (ID: ${this._id})...`);
+        this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading window...`);
+        // this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
 
         this._configurationIpcAccessible.updateData(configuration);
 
         // loading page
         const htmlFile = this.configuration.loadFile;
-        this.logService.debug('WindowInstance', `Loading HTML file (${htmlFile})...`);
-
-        this._window.webContents.once('did-fail-load', (e, errCode, errMsg) => {
-            this.logService.error('WindowInstance', `Loading page failed.`, new Error(), { errCode, errMsg });
-        });
-        
-        this._window.webContents.once('did-finish-load', () => {
-            this.logService.debug('WindowInstance', `Page loaded successfully.`);
-        });
+        this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading HTML file...`);
 
         await this._window.loadFile(htmlFile);
     }
@@ -256,7 +242,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [private methods]
 
     private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
-        this.logService.debug('WindowInstance', 'creating window...');
+        this.logService.debug('WindowInstance', 'Constructing window...');
         const additionalArguments = [
             `--${WindowInstanceArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`,
             `--${WindowInstanceArgumentKey.zoomLevel}=${this.mainStatusService.get<number>(StatusKey.WindowZoomLevel) ?? 0}`
@@ -336,15 +322,19 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.show();
         }
 
-        this.logService.debug('WindowInstance', `window created (ID: ${window.id}).`);
         return window;
     }
 
     private registerListeners(): void {
 
-        this._window.webContents.on('did-finish-load', () => {
-            this.logService.debug('WindowInstance', `load succeeded (ID: ${this._id}).`);
+        this._window.webContents.once('did-fail-load', (e, errCode, errMsg) => {
+            this.logService.error('WindowInstance', `(Window ID: ${this._id}) Loading page failed.`, new Error(), { errCode, errMsg });
+        });
+        
+        this._window.webContents.once('did-finish-load', () => {
+            this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Page loaded successfully.`);
             this._window.show();
+            this._onDidLoad.fire();
         });
 
         // window closed
@@ -375,10 +365,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         
         this._window.on('leave-full-screen', (e: Event) => {
             electron.app.emit(IpcChannel.WindowLeaveFullScreen, e, this._window);
-        });
-
-        this._window.webContents.on('did-finish-load', () => {
-            this._onDidLoad.fire();
         });
     }
 
