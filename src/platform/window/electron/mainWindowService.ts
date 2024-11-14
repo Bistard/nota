@@ -5,7 +5,7 @@ import { isDefined, isNumber, Mutable } from "src/base/common/utilities/type";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState, IWindowConfiguration } from "src/platform/window/common/window";
+import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState, IWindowConfiguration, INSPECTOR_HTML } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
@@ -49,6 +49,12 @@ export interface IMainWindowService extends Disposable, IService {
      * @description Open a window by the given options.
      */
     open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance;
+
+    /**
+     * @description Open an inspector window owned by the given window id.
+     * @param ownerWindow The window id shared with this inspector window.
+     */
+    openInspector(ownerWindow: number): IWindowInstance;
 }
 
 /**
@@ -78,7 +84,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         private readonly machineID: UUID,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
-        @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
+        @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
         @IProductService private readonly productService: IProductService,
     ) {
@@ -124,6 +130,23 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return newWindow;
     }
 
+    public openInspector(ownerWindow: number): IWindowInstance {
+        return this.open({
+            applicationName: `Inspector Process (associated with Window: ${ownerWindow})`,
+            CLIArgv:  { _: [] }, // empty
+            loadFile: INSPECTOR_HTML,
+            displayOptions: {
+                width: 800,
+                height: 600,
+                resizable: true,
+                frameless: false,
+            },
+            "open-devtools": false,
+            hostWindow: ownerWindow,
+            ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
+        });
+    }
+
     public closeWindowByID(id: number): void {
         const window = this.getWindowByID(id);
         if (!window) {
@@ -153,18 +176,18 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         const defaultConfiguration: IWindowCreationOptions = {
             /** part: {@link ICLIArguments} */
-            _: this.mainEnvironmentService.CLIArguments._,
-            log: this.mainEnvironmentService.CLIArguments.log,
-            'open-devtools': this.mainEnvironmentService.CLIArguments['open-devtools'],
+            _: this.environmentService.CLIArguments._,
+            log: this.environmentService.CLIArguments.log,
+            'open-devtools': this.environmentService.CLIArguments['open-devtools'],
             inspector: undefined,
-            ListenerGCedWarning: this.mainEnvironmentService.CLIArguments.ListenerGCedWarning,
+            ListenerGCedWarning: this.environmentService.CLIArguments.ListenerGCedWarning,
 
             /** part: {@link IEnvironmentOpts} */
-            isPackaged: this.mainEnvironmentService.isPackaged,
-            appRootPath: this.mainEnvironmentService.appRootPath,
-            tmpDirPath: this.mainEnvironmentService.tmpDirPath,
-            userDataPath: this.mainEnvironmentService.userDataPath,
-            userHomePath: this.mainEnvironmentService.userHomePath,
+            isPackaged: this.environmentService.isPackaged,
+            appRootPath: this.environmentService.appRootPath,
+            tmpDirPath: this.environmentService.tmpDirPath,
+            userDataPath: this.environmentService.userDataPath,
+            userHomePath: this.environmentService.userHomePath,
 
             /** part: {@link IWindowConfiguration} */
             applicationName: this.productService.profile.applicationName,
@@ -175,7 +198,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
             /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
-            CLIArgv: this.mainEnvironmentService.CLIArguments,
+            CLIArgv: this.environmentService.CLIArguments,
             displayOptions: defaultDisplayState(this.screenMonitorService.getPrimaryMonitorInfo()),
             uriToOpen: [],
             forceNewWindow: false,

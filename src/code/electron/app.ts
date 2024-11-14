@@ -20,7 +20,7 @@ import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
-import { DEFAULT_HTML, INSPECTOR_HTML } from "src/platform/window/common/window";
+import { DEFAULT_HTML } from "src/platform/window/common/window";
 import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
@@ -194,28 +194,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            this.openDebugInspectorWindow(provider, firstWindowID);
+            this.mainWindowService?.openInspector(firstWindowID);
         }
-    }
-
-    private openDebugInspectorWindow(provider: IServiceProvider, ownerWindow: number): void {
-        const mainWindowService = provider.getOrCreateService(IMainWindowService);
-
-        const window: IWindowInstance = mainWindowService.open({
-            applicationName: `Inspector Process (associated with Window: ${ownerWindow})`,
-            CLIArgv:  this.environmentService.CLIArguments, // { _: [] }, // empty
-            loadFile: INSPECTOR_HTML,
-            displayOptions: {
-                width: 800,
-                height: 600,
-                resizable: true,
-                frameless: false,
-            },
-            "open-devtools": false,
-
-            hostWindow: ownerWindow,
-            ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
-        });
     }
 
     // [private helper methods]
