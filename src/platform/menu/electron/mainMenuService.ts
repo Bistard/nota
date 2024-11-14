@@ -41,32 +41,22 @@ export class MainMenuService implements IMenuService {
         return MenuTemplate.map((menuItem) => {
             const { label, submenu } = menuItem;
             const electronMenuItem: MenuItemConstructorOptions = { label };
-
             if (submenu && Array.isArray(submenu)) {
                 electronMenuItem.submenu = submenu.map((subItem) => {
-                    const { label, role, type, commandId } = subItem;
-                    const menuItemOptions: MenuItemConstructorOptions = {};
-
-                    if (role) {
-                        menuItemOptions.role = role;
-                    } else if (type) {
-                        menuItemOptions.type = type as MenuItemConstructorOptions['type'];
-                    } else if (label) {
-                        menuItemOptions.label = label;
-                    }
+                    const { commandId } = subItem;
 
                     if (commandId) {
-                        menuItemOptions.click = () => this.handleMenuClick(commandId);
+                        subItem.click = () => this.handleMenuClick(commandId);
                     }
 
-                    return menuItemOptions;
+                    return subItem;
                 });
             }
             return electronMenuItem;
         });
     }
 
-    private handleMenuClick(commandID: CommandID) {
+    private handleMenuClick(commandID: string) {
         const focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
             focusedWindow.webContents.send(IPC_CHANNEL_MENU_ITEM_CLICKED, commandID);

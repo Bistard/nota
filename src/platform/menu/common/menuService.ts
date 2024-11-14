@@ -11,8 +11,6 @@ export const MenuLabels = {
     Help: 'Help'
 };
 
-export type MenuRole = Electron.MenuItemConstructorOptions['role'];
-
 export const enum CommandID {
     NewFile = 'newFile',
     OpenFile = 'openFile',
@@ -24,9 +22,11 @@ export const enum CommandID {
 
 export interface ISubMenuItem {
     label?: string;
-    role?: MenuRole;
-    type?: string;
-    commandId?: CommandID;
+    role?: Electron.MenuItemConstructorOptions['role'];
+    type?: Electron.MenuItemConstructorOptions['type'];
+    
+    commandId?: string;
+    click?: () => void;
 }
 
 export interface IMenuItem {
