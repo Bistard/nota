@@ -34,7 +34,7 @@ export class MainMenuService implements IMenuService {
             app.dock.setMenu(menu);
         }
 
-        this.logService.trace('MainMenuService', 'Application menu has been set.');
+        this.logService.debug('MainMenuService', 'Application menu has been set.');
     }
 
     private getMenuTemplate(): MenuItemConstructorOptions[] {
