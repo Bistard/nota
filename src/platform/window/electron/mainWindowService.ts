@@ -1,16 +1,18 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { isNumber, Mutable } from "src/base/common/utilities/type";
+import { isDefined, isNumber, Mutable } from "src/base/common/utilities/type";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState } from "src/platform/window/common/window";
+import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState, IWindowConfiguration } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
 import { mixin } from "src/base/common/utilities/object";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
+import { IProductService } from "src/platform/product/common/productService";
+import { panic } from "src/base/common/utilities/panic";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -78,6 +80,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super();
         this.registerListeners();
@@ -108,7 +111,16 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     public open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
         this.logService.debug('MainWindowService', 'trying to open a window...');
 
+        const ownerID = optionalConfiguration.ownerWindow;
+        if (isDefined(ownerID) && !this.getWindowByID(ownerID)) {
+            panic(`Cannot open a window (${optionalConfiguration.applicationName ?? 'unknown name'}) under the owner window (id: ${ownerID}) who is already destroyed.`);
+        }
+        
         const newWindow = this.doOpen(optionalConfiguration);
+        if (ownerID) {
+            this.__bindWindowLifecycle(newWindow, ownerID);
+        }
+
         return newWindow;
     }
 
@@ -140,32 +152,34 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         }
 
         const defaultConfiguration: IWindowCreationOptions = {
-            /** {@link ICLIArguments} */
+            /** part: {@link ICLIArguments} */
             _: this.mainEnvironmentService.CLIArguments._,
             log: this.mainEnvironmentService.CLIArguments.log,
             'open-devtools': this.mainEnvironmentService.CLIArguments['open-devtools'],
             inspector: undefined,
             ListenerGCedWarning: this.mainEnvironmentService.CLIArguments.ListenerGCedWarning,
 
-            /** {@link IEnvironmentOpts} */
+            /** part: {@link IEnvironmentOpts} */
             isPackaged: this.mainEnvironmentService.isPackaged,
             appRootPath: this.mainEnvironmentService.appRootPath,
             tmpDirPath: this.mainEnvironmentService.tmpDirPath,
             userDataPath: this.mainEnvironmentService.userDataPath,
             userHomePath: this.mainEnvironmentService.userHomePath,
 
-            // window configuration
+            /** part: {@link IWindowConfiguration} */
+            applicationName: this.productService.profile.applicationName,
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
+            hostWindow: -1,
 
+            /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
             CLIArgv: this.mainEnvironmentService.CLIArguments,
             displayOptions: defaultDisplayState(this.screenMonitorService.getPrimaryMonitorInfo()),
-            
             uriToOpen: [],
             forceNewWindow: false,
-            hostWindowID: undefined,
+            ownerWindow: undefined,
         };
 
         /**
@@ -180,6 +194,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         configuration.windowID = window.id;
 
         // load window
+        // TODO: only pass the `IWindowConfiguration` part, we are currently passing into everything.
         window.load(configuration);
 
         return window;
@@ -202,6 +217,21 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     private __onWindowDidClose(window: IWindowInstance): void {
         this._windows.splice(this._windows.indexOf(window), 1);
         this._onDidCloseWindow.fire(window);
+    }
+
+    private __bindWindowLifecycle(newWindow: IWindowInstance, ownerID: number): void {
+        const ownerWindow = this.getWindowByID(ownerID);
+        if (!ownerWindow) {
+            this.logService.warn('MainWindowService', `Cannot bind the lifecycle to the window (${ownerID}) because it is already destroyed.`);
+            return;
+        }
+
+        // binding lifecycle
+        Event.once(ownerWindow.onDidClose)(() => {
+            if (newWindow.isClosed() === false) {
+                newWindow.close();
+            }
+        });
     }
 }
 

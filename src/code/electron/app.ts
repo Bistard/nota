@@ -30,6 +30,7 @@ import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { toBoolean } from "src/base/common/utilities/type";
+import { IProductService } from "src/platform/product/common/productService";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -59,6 +60,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         @IMainStatusService private readonly statusService: IMainStatusService,
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super();
         this.registerListeners();
@@ -176,56 +178,43 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
+            applicationName: this.productService.profile.applicationName,
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
             uriToOpen: uriToOpen,
             displayOptions: {
                 frameless: true,
-            }
+            },
         });
 
         return window;
     }
 
-    private afterFirstWindow(provider: IServiceProvider, windowID: number): void {
+    private afterFirstWindow(provider: IServiceProvider, firstWindowID: number): void {
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            this.openDebugInspectorWindow(provider, windowID);
+            this.openDebugInspectorWindow(provider, firstWindowID);
         }
     }
 
-    private openDebugInspectorWindow(provider: IServiceProvider, hostWindowID: number): void {
+    private openDebugInspectorWindow(provider: IServiceProvider, ownerWindow: number): void {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
         const window: IWindowInstance = mainWindowService.open({
-            CLIArgv: this.environmentService.CLIArguments,
+            applicationName: `Inspector Process (associated with Window: ${ownerWindow})`,
+            CLIArgv:  this.environmentService.CLIArguments, // { _: [] }, // empty
             loadFile: INSPECTOR_HTML,
             displayOptions: {
-                width: 600,
-                height: 200,
-                minWidth: 600,
-                minHeight: 200,
+                width: 800,
+                height: 600,
                 resizable: true,
                 frameless: false,
             },
             "open-devtools": false,
 
-            /**
-             * Bind the lifecycle of the inspector window to the corresponding 
-             * window, make sure they have the same lifecycle.
-             */
-            hostWindowID: hostWindowID,
-        });
-
-        /**
-         * Whenever all the other windows are closed, we also need to close the
-         * inspector window.
-         */
-        mainWindowService.onDidCloseWindow(() => {
-            if (mainWindowService.windowCount() === 1) {
-                mainWindowService.closeWindowByID(window.id);
-            }
+            hostWindow: ownerWindow,
+            ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
         });
     }
 

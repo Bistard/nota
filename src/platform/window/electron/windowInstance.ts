@@ -8,7 +8,6 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
-import { IProductService } from "src/platform/product/common/productService";
 import { Callable, isDefined } from "src/base/common/utilities/type";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { StatusKey } from "src/platform/status/common/status";
@@ -113,7 +112,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     constructor(
         private readonly configuration: IWindowCreationOptions,
-        @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
@@ -180,8 +178,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     }
 
     public close(): void {
-        this._window.close();
-        this.dispose();
+        this._window.webContents.close();
     }
 
     public isClosed(): boolean {
@@ -234,13 +231,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
     }
 
-    public override dispose(): void {
-        super.dispose();
-        // issue: https://stackoverflow.com/questions/38309240/object-has-been-destroyed-when-open-secondary-child-window-in-electron-js
-        (<any>this._window) = null;
-        this._phase = WindowInstancePhase.Closed;
-    }
-
     // [private methods]
 
     private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
@@ -252,7 +242,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         const browserOption: electron.BrowserWindowConstructorOptions = {
-            title: this.productService.profile.applicationName,
+            title: this.configuration.applicationName,
             height: displayOpts.height,
             width: displayOpts.width,
             x: displayOpts.x,
@@ -341,6 +331,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         // window closed
         this._window.on('closed', () => {
+            this._phase = WindowInstancePhase.Closed;
             this._onDidClose.fire();
             this.dispose();
         });
