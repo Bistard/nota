@@ -102,7 +102,7 @@ export namespace ProxyChannel {
 
                     let methodsArgs = args;
                     if (typeof opt?.context !== 'undefined') {
-                        methodsArgs = [args, opt.context];
+                        methodsArgs = [...args, opt.context];
                     }
 
                     let result: any = await channel.callCommand(propName, methodsArgs);
