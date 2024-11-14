@@ -8,7 +8,6 @@ import { getUUID } from "src/base/node/uuid";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ProxyChannel } from "src/platform/ipc/common/proxy";
@@ -117,25 +116,20 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
         this.logService.debug('App', 'constructing application services...');
 
-        // instantiation-service (child)
-        const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
-
         // main-window-service
-        appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
+        this.mainInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-service
-        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
+        this.mainInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
-        appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
+        this.mainInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
         // screen-monitor-service
-        appInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
-
-        // ai-service
+        this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
 
         this.logService.debug('App', 'Application services constructed.');
-        return appInstantiationService;
+        return this.mainInstantiationService;
     }
 
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {

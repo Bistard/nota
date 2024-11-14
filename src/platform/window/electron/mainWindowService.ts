@@ -2,11 +2,9 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { isNumber, Mutable } from "src/base/common/utilities/type";
-import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
@@ -78,8 +76,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         private readonly machineID: UUID,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
-        @IFileService private readonly fileService: IFileService,
-        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
     ) {

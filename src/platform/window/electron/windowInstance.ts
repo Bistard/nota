@@ -12,6 +12,7 @@ import { IProductService } from "src/platform/product/common/productService";
 import { Callable, isDefined } from "src/base/common/utilities/type";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { StatusKey } from "src/platform/status/common/status";
+import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -115,6 +116,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
+        @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
     ) {
         super();
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
@@ -147,7 +149,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public async load(configuration: IWindowConfiguration): Promise<void> {
         this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading window...`);
-        // this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
+        this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
 
         this._configurationIpcAccessible.updateData(configuration);
 
