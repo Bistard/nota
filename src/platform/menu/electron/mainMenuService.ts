@@ -1,7 +1,7 @@
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions } from "electron";
+import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { CommandID, IMenuService, IMenuState, MenuTemplate } from "src/platform/menu/common/menuService";
+import { CommandID, IMenuService, MenuTemplate } from "src/platform/menu/common/menuService";
 
 const IPC_CHANNEL_MENU_ITEM_CLICKED = 'menu-item-clicked';
 
@@ -25,21 +25,16 @@ export class MainMenuService implements IMenuService {
 
     private init() {
         this.buildMenu();
-        this.registerIPCEvents();
     }
 
     private buildMenu() {
-        // build menu
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
         Menu.setApplicationMenu(menu);
-        this.logService.trace('MainMenuService', 'Application menu has been set.');
-        
         if (IS_MAC) {
             app.dock.setMenu(menu);
-            this.logService.info('MainMenuService', 'Initialized macOS system menu');
-        } else {
-            this.logService.info('MainMenuService', 'Customized window system menu');
         }
+
+        this.logService.trace('MainMenuService', 'Application menu has been set.');
     }
 
     private getMenuTemplate(): MenuItemConstructorOptions[] {
@@ -54,13 +49,10 @@ export class MainMenuService implements IMenuService {
 
                     if (role) {
                         menuItemOptions.role = role;
-                        this.logService.trace('MainMenuService', `Assigned role '${role}' to menu item '${label}'.`);
                     } else if (type) {
                         menuItemOptions.type = type as MenuItemConstructorOptions['type'];
-                        this.logService.trace('MainMenuService', `Assigned type '${type}' to menu item '${label}'.`);
                     } else if (label) {
                         menuItemOptions.label = label;
-                        this.logService.trace('MainMenuService', `Assigned label '${label}' to menu item.`);
                     }
 
                     if (commandId) {
@@ -78,17 +70,7 @@ export class MainMenuService implements IMenuService {
         const focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
             focusedWindow.webContents.send(IPC_CHANNEL_MENU_ITEM_CLICKED, commandID);
-            this.logService.trace('MainMenuService', `Sent IPC message '${IPC_CHANNEL_MENU_ITEM_CLICKED}' with CommandID '${commandID}' to renderer process.`);
-        } else {
-            this.logService.warn('MainMenuService', 'No focused window to send menu command');
+            this.logService.debug('MainMenuService', `Executing CommandID '${commandID}' to renderer process...`);
         }
-    }
-
-    private registerIPCEvents() {
-        ipcMain.on('menu-request', (event) => {
-            this.logService.debug('MainMenuService', 'Received IPC event \'menu-request\'.');
-            event.reply('menu-response', 'Menu data');
-        });
-        this.logService.trace('MainMenuService', 'IPC events registered.');
     }
 }

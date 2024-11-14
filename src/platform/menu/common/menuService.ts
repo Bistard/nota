@@ -11,27 +11,7 @@ export const MenuLabels = {
     Help: 'Help'
 };
 
-export type MenuRole =
-    | 'undo'
-    | 'redo'
-    | 'cut'
-    | 'copy'
-    | 'paste'
-    | 'pasteAndMatchStyle'
-    | 'delete'
-    | 'selectAll'
-    | 'reload'
-    | 'forceReload'
-    | 'toggleDevTools'
-    | 'resetZoom'
-    | 'zoomIn'
-    | 'zoomOut'
-    | 'togglefullscreen'
-    | 'window'
-    | 'minimize'
-    | 'close'
-    | 'quit'
-    | 'about';
+export type MenuRole = Electron.MenuItemConstructorOptions['role'];
 
 export const enum CommandID {
     NewFile = 'newFile',
