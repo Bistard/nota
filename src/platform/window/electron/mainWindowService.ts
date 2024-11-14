@@ -36,6 +36,16 @@ export interface IMainWindowService extends Disposable, IService {
     getWindowByID(id: number): IWindowInstance | undefined;
 
     /**
+     * @description Returns the current focused window.
+     */
+    getFocusedWindow(): IWindowInstance | undefined;
+
+    /**
+     * @description Get the previous focused window.
+     */
+    getPrevFocusedWindow(): IWindowInstance | undefined;
+
+    /**
      * @description Closes the window with corresponding ID.
      */
     closeWindowByID(id: number): void;
@@ -106,6 +116,30 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             }
         }
         return undefined;
+    }
+
+    public getFocusedWindow(): IWindowInstance | undefined {
+        const window = Electron.BrowserWindow.getFocusedWindow();
+		if (window) {
+			return this.getWindowByID(window.id);
+		}
+		return undefined;
+    }
+
+    public getPrevFocusedWindow(): IWindowInstance | undefined {
+        const windows = this.windows();
+
+        let prevFocusedWindow: IWindowInstance | undefined = undefined;
+        let maxPrevFocusedTime = Number.MIN_VALUE;
+
+        for (const window of windows) {
+            if (window.lastFocusedTime > maxPrevFocusedTime) {
+                maxPrevFocusedTime = window.lastFocusedTime;
+                prevFocusedWindow = window;
+            }
+        }
+
+        return prevFocusedWindow;
     }
 
     // [public methods]

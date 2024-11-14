@@ -46,6 +46,7 @@ export interface IWindowInstance extends Disposable {
 
     readonly id: number;
     readonly browserWindow: electron.BrowserWindow;
+    readonly lastFocusedTime: number;
 
     readonly onDidLoad: Register<void>;
     readonly onDidClose: Register<void>;
@@ -108,6 +109,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private _phase: WindowInstancePhase;
     private readonly _onRendererReadyCallbacks: (Callable<[], void>)[];
 
+    private _lastFocusedTime: number;
+
     // [constructor]
 
     constructor(
@@ -131,17 +134,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
         
         this.registerListeners();
+        this._lastFocusedTime = Date.now();
     }
 
     // [getter / setter]
 
-    get id(): number {
-        return this._id;
-    }
-
-    get browserWindow(): electron.BrowserWindow {
-        return this._window;
-    }
+    get id() { return this._id; }
+    get browserWindow() { return this._window; }
+    get lastFocusedTime() { return this._lastFocusedTime; }
 
     // [public methods]
 
@@ -337,6 +337,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
 
         this._window.on('focus', (e: Event) => {
+            this._lastFocusedTime = Date.now();
             electron.app.emit(IpcChannel.WindowFocused, e, this._window);
         });
 
