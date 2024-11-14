@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { CommandID, IMenuService, MenuTemplate } from "src/platform/menu/common/menuService";
+import { CommandID, IMenuService, IMenuState, MenuTemplate } from "src/platform/menu/common/menuService";
+
+const IPC_CHANNEL_MENU_ITEM_CLICKED = 'menu-item-clicked';
 
 export class MainMenuService implements IMenuService {
 
@@ -27,14 +29,16 @@ export class MainMenuService implements IMenuService {
     }
 
     private buildMenu() {
+        // build menu
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
         Menu.setApplicationMenu(menu);
+        this.logService.trace('MainMenuService', 'Application menu has been set.');
         
         if (IS_MAC) {
             app.dock.setMenu(menu);
             this.logService.info('MainMenuService', 'Initialized macOS system menu');
         } else {
-            this.logService.info('MainMenuService', 'Windows - custom renderer menu');
+            this.logService.info('MainMenuService', 'Customized window system menu');
         }
     }
 
@@ -46,21 +50,24 @@ export class MainMenuService implements IMenuService {
             if (submenu && Array.isArray(submenu)) {
                 electronMenuItem.submenu = submenu.map((subItem) => {
                     const { label, role, type, commandId } = subItem;
-                    const menuItem: MenuItemConstructorOptions = {};
+                    const menuItemOptions: MenuItemConstructorOptions = {};
 
                     if (role) {
-                        menuItem.role = role;
+                        menuItemOptions.role = role;
+                        this.logService.trace('MainMenuService', `Assigned role '${role}' to menu item '${label}'.`);
                     } else if (type) {
-                        menuItem.type = type as MenuItemConstructorOptions['type'];
+                        menuItemOptions.type = type as MenuItemConstructorOptions['type'];
+                        this.logService.trace('MainMenuService', `Assigned type '${type}' to menu item '${label}'.`);
                     } else if (label) {
-                        menuItem.label = label;
+                        menuItemOptions.label = label;
+                        this.logService.trace('MainMenuService', `Assigned label '${label}' to menu item.`);
                     }
 
                     if (commandId) {
-                        menuItem.click = () => this.handleMenuClick(commandId);
+                        menuItemOptions.click = () => this.handleMenuClick(commandId);
                     }
 
-                    return menuItem;
+                    return menuItemOptions;
                 });
             }
             return electronMenuItem;
@@ -70,8 +77,8 @@ export class MainMenuService implements IMenuService {
     private handleMenuClick(commandID: CommandID) {
         const focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
-            focusedWindow.webContents.send('menu-item-clicked', commandID);
-            this.logService.info('MainMenuService', `MenuItem clicked - ${commandID}`);
+            focusedWindow.webContents.send(IPC_CHANNEL_MENU_ITEM_CLICKED, commandID);
+            this.logService.trace('MainMenuService', `Sent IPC message '${IPC_CHANNEL_MENU_ITEM_CLICKED}' with CommandID '${commandID}' to renderer process.`);
         } else {
             this.logService.warn('MainMenuService', 'No focused window to send menu command');
         }
@@ -79,7 +86,9 @@ export class MainMenuService implements IMenuService {
 
     private registerIPCEvents() {
         ipcMain.on('menu-request', (event) => {
+            this.logService.debug('MainMenuService', 'Received IPC event \'menu-request\'.');
             event.reply('menu-response', 'Menu data');
         });
+        this.logService.trace('MainMenuService', 'IPC events registered.');
     }
 }

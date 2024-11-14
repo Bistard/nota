@@ -11,6 +11,28 @@ export const MenuLabels = {
     Help: 'Help'
 };
 
+export type MenuRole =
+    | 'undo'
+    | 'redo'
+    | 'cut'
+    | 'copy'
+    | 'paste'
+    | 'pasteAndMatchStyle'
+    | 'delete'
+    | 'selectAll'
+    | 'reload'
+    | 'forceReload'
+    | 'toggleDevTools'
+    | 'resetZoom'
+    | 'zoomIn'
+    | 'zoomOut'
+    | 'togglefullscreen'
+    | 'window'
+    | 'minimize'
+    | 'close'
+    | 'quit'
+    | 'about';
+
 export const enum CommandID {
     NewFile = 'newFile',
     OpenFile = 'openFile',
@@ -20,7 +42,27 @@ export const enum CommandID {
     About = 'about',
 }
 
-export const MenuTemplate = [
+export interface ISubMenuItem {
+    label?: string;
+    role?: MenuRole;
+    type?: string;
+    commandId?: CommandID;
+}
+
+export interface IMenuItem {
+    label: string;
+    submenu?: ISubMenuItem[];
+}
+
+export interface IMenuState {
+    menuTemplate: IMenuItem[];
+}
+
+export const MenuTemplate: IMenuItem[] = [
+    {
+        label: 'Nota',
+        submenu: [],
+    },
     {
         label: MenuLabels.File,
         submenu: [
