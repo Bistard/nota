@@ -31,7 +31,8 @@ import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { toBoolean } from "src/base/common/utilities/type";
-
+import { MainMenuService } from "src/platform/menu/electron/mainMenuService";
+import { IMenuService } from "src/platform/menu/common/menuService";
 /**
  * An interface only for {@link ApplicationInstance}
  */
@@ -126,6 +127,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // host-service
         appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
+        // menu-service
+        appInstantiationService.register(IMenuService, new ServiceDescriptor(MainMenuService, []));
+
         // screen-monitor-service
         appInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
 
@@ -151,6 +155,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const hostService = provider.getOrCreateService(IHostService);
         const hostChannel = ProxyChannel.wrapService(hostService);
         server.registerChannel(IpcChannel.Host, hostChannel);
+
+        // menu-service-channel
+        const menuService = provider.getOrCreateService(IMenuService);
+        const menuChannel = ProxyChannel.wrapService(menuService);
+        server.registerChannel(IpcChannel.Menu, menuChannel);
 
         // dialog-service-channel
         const dialogService = provider.getService(IMainDialogService);

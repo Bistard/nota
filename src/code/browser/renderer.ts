@@ -67,6 +67,7 @@ import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { Strings } from "src/base/common/utilities/string";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
+import { IMenuService } from "src/platform/menu/common/menuService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -191,6 +192,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // host-service
         const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
         instantiationService.register(IHostService, hostService);
+
+        // menu-service
+        const menuService = ProxyChannel.unwrapChannel<IMenuService>(ipcService.getChannel(IpcChannel.Menu), { context: environmentService.windowID });
+        instantiationService.register(IMenuService, menuService);
 
         // lifecycle-service
         const lifecycleService = new BrowserLifecycleService(logService, hostService);
