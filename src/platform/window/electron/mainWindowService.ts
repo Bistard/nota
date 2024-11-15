@@ -14,6 +14,7 @@ import { IScreenMonitorService } from "src/platform/screen/electron/screenMonito
 import { IProductService } from "src/platform/product/common/productService";
 import { panic } from "src/base/common/utilities/panic";
 import { IMainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
+import { Arrays } from "src/base/common/utilities/array";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -57,7 +58,7 @@ export interface IMainWindowService extends Disposable, IService {
     windowCount(): number;
 
     /**
-     * @description Open a window by the given options.
+     * @description Construct and open a brand new renderer window.
      */
     open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance;
 
@@ -66,6 +67,8 @@ export interface IMainWindowService extends Disposable, IService {
      * @param ownerWindow The window id shared with this inspector window.
      */
     openInspector(ownerWindow: number): IWindowInstance;
+    getInspectorWindowByID(windowID: number): IWindowInstance | undefined;
+    isInspectorWindow(windowID: number): boolean;
 }
 
 /**
@@ -80,6 +83,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [fields]
 
     private readonly _windows: IWindowInstance[] = [];
+    private readonly _inspectorWindowsTrace: Map<number, number>; // mapping from inspectorWindowID to ownerWindowID
 
     // [event]
 
@@ -98,9 +102,9 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
         @IProductService private readonly productService: IProductService,
-        @IMainInspectorService private readonly inspectorService: IMainInspectorService,
     ) {
         super();
+        this._inspectorWindowsTrace = new Map();
         this.registerListeners();
         this.logService.debug('MainWindowService', 'MainWindowService constructed.');
     }
@@ -182,8 +186,24 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
         });
 
-        this.inspectorService.start(window);
+        this._inspectorWindowsTrace.set(window.id, ownerWindow);
+        const inspectorService = this.instantiationService.getOrCreateService(IMainInspectorService);
+        inspectorService.start(window);
+
         return window;
+    }
+
+    public getInspectorWindowByID(id: number): IWindowInstance | undefined {
+        for (const [inspectorID, _ownerID] of this._inspectorWindowsTrace) {
+            if (inspectorID === id) {
+                return this.getWindowByID(inspectorID);
+            }
+        }
+        return undefined;
+    }
+
+    public isInspectorWindow(windowID: number): boolean {
+        return !!this.getInspectorWindowByID(windowID);
     }
 
     public closeWindowByID(id: number): void {
@@ -277,7 +297,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private __onWindowDidClose(window: IWindowInstance): void {
-        this._windows.splice(this._windows.indexOf(window), 1);
+        Arrays.remove(this._windows, window);
+        if (this.isInspectorWindow(window.id)) {
+            this._inspectorWindowsTrace.delete(window.id);
+        }
         this._onDidCloseWindow.fire(window);
     }
 

@@ -48,6 +48,8 @@ export interface IWindowInstance extends Disposable {
     readonly browserWindow: electron.BrowserWindow;
     readonly lastFocusedTime: number;
 
+    readonly configuration: IWindowCreationOptions;
+
     readonly onDidLoad: Register<void>;
     readonly onDidClose: Register<void>;
 
@@ -114,14 +116,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        private readonly configuration: IWindowCreationOptions,
+        public readonly configuration: IWindowCreationOptions,
         @ILogService private readonly logService: ILogService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
     ) {
         super();
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
-        
+
         this._phase = WindowInstancePhase.Initializing;
         this._onRendererReadyCallbacks = [];
         const displayOptions = configuration.displayOptions;
