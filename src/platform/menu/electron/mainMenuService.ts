@@ -7,11 +7,8 @@ const IPC_CHANNEL_MENU_ITEM_CLICKED = 'menu-item-clicked';
 
 export class MainMenuService implements IMenuService {
 
-    // [field]
-
+    // Marker for service injection
     declare _serviceMarker: undefined;
-
-    // [constructor]
 
     constructor(
         @ILogService private readonly logService: ILogService,
@@ -19,14 +16,11 @@ export class MainMenuService implements IMenuService {
         this.init();
     }
 
-    // [public methods]
-
-    // [private methods]
-
     private init() {
         this.buildMenu();
     }
 
+    // Builds and sets the application menu
     private buildMenu() {
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
         Menu.setApplicationMenu(menu);
@@ -37,25 +31,31 @@ export class MainMenuService implements IMenuService {
         this.logService.debug('MainMenuService', 'Application menu has been set.');
     }
 
+    // Creates the menu template with click handlers for each command
     private getMenuTemplate(): MenuItemConstructorOptions[] {
         return MenuTemplate.map((menuItem) => {
             const { label, submenu } = menuItem;
             const electronMenuItem: MenuItemConstructorOptions = { label };
+    
             if (submenu && Array.isArray(submenu)) {
                 electronMenuItem.submenu = submenu.map((subItem) => {
-                    const { commandId } = subItem;
-
-                    if (commandId) {
-                        subItem.click = () => this.handleMenuClick(commandId);
+                    const { label, type, role } = subItem;
+    
+                    // Only add a click handler if commandId is defined and exclude commandId from Electron properties
+                    const electronSubItem: MenuItemConstructorOptions = { label, type, role };
+                    if (subItem.commandId) {
+                        electronSubItem.click = () => this.handleMenuClick(subItem.commandId as string);
                     }
-
-                    return subItem;
+    
+                    return electronSubItem;
                 });
             }
             return electronMenuItem;
         });
     }
+    
 
+    // Handles menu item clicks by sending the command to the focused window
     private handleMenuClick(commandID: string) {
         const focusedWindow = BrowserWindow.getFocusedWindow();
         if (focusedWindow) {
