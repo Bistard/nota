@@ -13,6 +13,7 @@ import { mixin } from "src/base/common/utilities/object";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { IProductService } from "src/platform/product/common/productService";
 import { panic } from "src/base/common/utilities/panic";
+import { IMainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -97,6 +98,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
         @IProductService private readonly productService: IProductService,
+        @IMainInspectorService private readonly inspectorService: IMainInspectorService,
     ) {
         super();
         this.registerListeners();
@@ -165,7 +167,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public openInspector(ownerWindow: number): IWindowInstance {
-        return this.open({
+        const window = this.open({
             applicationName: `Inspector Process (associated with Window: ${ownerWindow})`,
             CLIArgv:  { _: [] }, // empty
             loadFile: INSPECTOR_HTML,
@@ -179,6 +181,9 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             hostWindow: ownerWindow,
             ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
         });
+
+        this.inspectorService.start(window);
+        return window;
     }
 
     public closeWindowByID(id: number): void {

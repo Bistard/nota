@@ -4,12 +4,17 @@ import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
 import { toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
-import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
+import { initExposedElectronAPIs, ipcRenderer, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
+import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
+import { IHostService } from "src/platform/host/common/hostService";
 import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { IpcService, IIpcService } from "src/platform/ipc/browser/ipcService";
+import { IpcChannel } from "src/platform/ipc/common/channel";
+import { ProxyChannel } from "src/platform/ipc/common/proxy";
+import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 /**
@@ -52,16 +57,11 @@ export class InspectorRenderer {
                 waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web environment (DOM content) has been loaded.')),
             ]);
 
-            // TODO: view initialize
+            // view initialization
+            const window = new InspectorWindow(document.body);
+            window.init();
         }
         catch (error: any) {
-            // try to log out the error message
-            if (instantiationService) {
-                try {
-                    const logService = instantiationService.getService(ILogService);
-                    logService.error('renderer', 'error encountered', error);
-                } catch { }
-            }
             ErrorHandler.onUnexpectedError(error);
         }
     }
@@ -90,9 +90,37 @@ export class InspectorRenderer {
         const ipcService = new IpcService(environmentService.windowID, logService);
         instantiationService.register(IIpcService, ipcService);
 
+        // host-service
+        const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
+        instantiationService.register(IHostService, hostService);
+
+        // lifecycle-service
+        const lifecycleService = new BrowserLifecycleService(logService, hostService);
+        instantiationService.register(ILifecycleService, lifecycleService);
 
         return instantiationService;
     }
 }
 
 (new InspectorRenderer()).init();
+
+
+class InspectorWindow {
+
+    // [field]
+
+    private readonly _parent: HTMLElement;
+
+    // [constructor]
+
+    constructor(parent: HTMLElement) {
+        this._parent = parent;
+    }
+
+    // [public methods]
+
+    public init(): void {
+
+        ipcRenderer.send(IpcChannel.InspectorReady);
+    }
+}

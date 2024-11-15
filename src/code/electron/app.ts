@@ -31,6 +31,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { toBoolean } from "src/base/common/utilities/type";
 import { IProductService } from "src/platform/product/common/productService";
+import { IMainInspectorService, MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -44,10 +45,6 @@ export interface IApplicationInstance {
  * application.
  */
 export class ApplicationInstance extends Disposable implements IApplicationInstance {
-
-    // [fields]
-
-    private readonly mainWindowService?: IMainWindowService;
 
     // [constructor]
 
@@ -130,6 +127,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // screen-monitor-service
         this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
 
+        // main-inspector-service
+        this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService,[]));
+
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
     }
@@ -194,7 +194,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            this.mainWindowService?.openInspector(firstWindowID);
+            const mainWindowService = provider.getOrCreateService(IMainWindowService);
+            mainWindowService.openInspector(firstWindowID);
         }
     }
 
