@@ -34,6 +34,7 @@ export class MainMenuService implements IMenuService {
 
     // Creates the menu template with click handlers for each command
     private getMenuTemplate(): MenuItemConstructorOptions[] {
+        // FIX: should recursively construct
         return MenuTemplate.map((menuItem) => {
             const { label, submenu } = menuItem;
             const electronMenuItem: MenuItemConstructorOptions = { label };
@@ -57,8 +58,16 @@ export class MainMenuService implements IMenuService {
 
     // Handles menu item clicks by sending the command to the focused window
     private handleMenuClick(commandID: string) {
-        const window = this.mainWindowService.getFocusedWindow();
+        let window = this.mainWindowService.getFocusedWindow();
         
+        if (!window) {
+			const lastActiveWindow = this.mainWindowService.getPrevFocusedWindow();
+            if (lastActiveWindow) {
+			// if (lastActiveWindow?.isMinimized()) {
+				window = lastActiveWindow;
+			}
+		}
+
         if (window) {
             window.sendIPCMessage(IpcChannel.rendererRunCommand, {
                 commandID: commandID,
