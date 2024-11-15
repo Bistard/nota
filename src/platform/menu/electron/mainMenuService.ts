@@ -58,11 +58,15 @@ export class MainMenuService implements IMenuService {
 
     // Handles menu item clicks by sending the command to the focused window
     private handleMenuClick(commandID: string) {
-        const window: IWindowInstance = this.mainWindowService.open({});
-        window.sendIPCMessage(IpcChannel.rendererRunCommand, {
-            commandID: commandID,
-            args: []
-        });
-        this.logService.debug('MainMenuService', `Executing CommandID '${commandID}' to renderer process`);
+        const window: IWindowInstance | undefined = this.mainWindowService.getFocusedWindow();
+        if (!window) {
+            this.logService.warn('MainMenuService', `No focused window found to execute CommandID '${commandID}'`);
+        } else {
+            window.sendIPCMessage(IpcChannel.rendererRunCommand, {
+                commandID: commandID,
+                args: []
+            });
+            this.logService.debug('MainMenuService', `Executing CommandID '${commandID}' to renderer process`);
+        }
     }
 }
