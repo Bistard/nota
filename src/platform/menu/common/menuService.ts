@@ -27,6 +27,7 @@ export interface ISubMenuItem {
     
     commandId?: string;
     click?: () => void;
+    submenu?: ISubMenuItem[];
 }
 
 export interface IMenuItem {

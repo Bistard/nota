@@ -1,9 +1,10 @@
-import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from "electron";
+import { app, Menu, MenuItemConstructorOptions } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { CommandID, IMenuService, MenuTemplate } from "src/platform/menu/common/menuService";
-
-const IPC_CHANNEL_MENU_ITEM_CLICKED = 'menu-item-clicked';
+import { IpcChannel } from "src/platform/ipc/common/channel";
+import { IMenuService, MenuTemplate } from "src/platform/menu/common/menuService";
+import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
+import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 
 export class MainMenuService implements IMenuService {
 
@@ -12,6 +13,7 @@ export class MainMenuService implements IMenuService {
 
     constructor(
         @ILogService private readonly logService: ILogService,
+        @IMainWindowService private readonly mainWindowService: IMainWindowService
     ) { 
         this.init();
     }
@@ -53,14 +55,14 @@ export class MainMenuService implements IMenuService {
             return electronMenuItem;
         });
     }
-    
 
     // Handles menu item clicks by sending the command to the focused window
     private handleMenuClick(commandID: string) {
-        const focusedWindow = BrowserWindow.getFocusedWindow();
-        if (focusedWindow) {
-            focusedWindow.webContents.send(IPC_CHANNEL_MENU_ITEM_CLICKED, commandID);
-            this.logService.debug('MainMenuService', `Executing CommandID '${commandID}' to renderer process...`);
-        }
+        const window: IWindowInstance = this.mainWindowService.open({});
+        window.sendIPCMessage(IpcChannel.rendererRunCommand, {
+            commandID: commandID,
+            args: []
+        });
+        this.logService.debug('MainMenuService', `Executing CommandID '${commandID}' to renderer process`);
     }
 }
