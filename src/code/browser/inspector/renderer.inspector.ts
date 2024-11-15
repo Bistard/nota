@@ -14,7 +14,7 @@ import { ServiceCollection } from "src/platform/instantiation/common/serviceColl
 import { IpcService, IIpcService } from "src/platform/ipc/browser/ipcService";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ProxyChannel } from "src/platform/ipc/common/proxy";
-import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { BrowserLifecycleService, IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 /**
@@ -58,7 +58,7 @@ export class InspectorRenderer {
             ]);
 
             // view initialization
-            const window = new InspectorWindow(document.body);
+            const window = instantiationService.createInstance(InspectorWindow, document.body);
             window.init();
         }
         catch (error: any) {
@@ -113,14 +113,24 @@ class InspectorWindow {
 
     // [constructor]
 
-    constructor(parent: HTMLElement) {
+    constructor(
+        parent: HTMLElement,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+    ) {
         this._parent = parent;
+        this.registerListeners();
     }
 
     // [public methods]
 
-    public init(): void {
+    private registerListeners(): void {
+        // before quit, notify the main process we are actually closing
+        this.lifecycleService.onWillQuit(e => {
+            ipcRenderer.send(IpcChannel.InspectorClose, WIN_CONFIGURATION.windowID);
+        });
+    }
 
+    public init(): void {
         ipcRenderer.send(IpcChannel.InspectorReady, WIN_CONFIGURATION.windowID);
     }
 }
