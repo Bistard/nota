@@ -48,6 +48,7 @@ export interface IWindowDisplayOpts {
     readonly resizable?: boolean;
     readonly mode?: WindowDisplayMode;
     readonly frameless?: boolean;
+    readonly alwaysOnTop?: boolean;
 }
 
 /**
@@ -122,10 +123,19 @@ export interface IUriToOpenConfiguration {
  */
 export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
 
+    /**
+     * A title name of the application.
+     */
+    readonly applicationName: string;
     readonly machineID: UUID;
     readonly windowID: number;
 
     readonly uriOpenConfiguration: IUriToOpenConfiguration;
+
+    /** 
+     * If under any existed windows operation. If not, this will sets to -1.
+     */
+    readonly hostWindow: number;
 }
 
 /**
@@ -147,12 +157,13 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
      * file.
      */
     readonly uriToOpen: URI[];
-    readonly forceNewWindow: boolean;          // TODO: unused
+    readonly forceNewWindow: boolean; // TODO: unused
     
-    /** 
-     * If under any existed windows operation. 
+    /**
+     * If window id is provided, this new window's lifecycle will bind with the
+     * given window id.
      */
-    readonly hostWindowID: number | undefined; // TODO: unused
+    readonly ownerWindow: number | undefined;
 }
 
 /**

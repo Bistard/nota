@@ -3,18 +3,15 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/files/path";
 import { ILogService } from "src/base/common/logger";
-import { IFileService } from "src/platform/files/common/fileService";
-import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WINDOW_MINIMUM_STATE, IWindowCreationOptions, WindowInstanceArgumentKey, shouldUseWindowControlOverlay, resolveWindowControlOverlayOptions, WindowInstancePhase, WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
-import { IProductService } from "src/platform/product/common/productService";
 import { Callable, isDefined } from "src/base/common/utilities/type";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { StatusKey } from "src/platform/status/common/status";
+import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -49,6 +46,7 @@ export interface IWindowInstance extends Disposable {
 
     readonly id: number;
     readonly browserWindow: electron.BrowserWindow;
+    readonly lastFocusedTime: number;
 
     readonly onDidLoad: Register<void>;
     readonly onDidClose: Register<void>;
@@ -111,16 +109,15 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private _phase: WindowInstancePhase;
     private readonly _onRendererReadyCallbacks: (Callable<[], void>)[];
 
+    private _lastFocusedTime: number;
+
     // [constructor]
 
     constructor(
         private readonly configuration: IWindowCreationOptions,
-        @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
-        @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IFileService private readonly fileService: IFileService,
-        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
+        @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
     ) {
         super();
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
@@ -137,37 +134,26 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
         
         this.registerListeners();
-        logService.debug('WindowInstance', 'Window constructed.');
+        this._lastFocusedTime = Date.now();
     }
 
     // [getter / setter]
 
-    get id(): number {
-        return this._id;
-    }
-
-    get browserWindow(): electron.BrowserWindow {
-        return this._window;
-    }
+    get id() { return this._id; }
+    get browserWindow() { return this._window; }
+    get lastFocusedTime() { return this._lastFocusedTime; }
 
     // [public methods]
 
     public async load(configuration: IWindowConfiguration): Promise<void> {
-        this.logService.debug('WindowInstance', `Loading window (ID: ${this._id})...`);
+        this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading window...`);
+        this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
 
         this._configurationIpcAccessible.updateData(configuration);
 
         // loading page
         const htmlFile = this.configuration.loadFile;
-        this.logService.debug('WindowInstance', `Loading HTML file (${htmlFile})...`);
-
-        this._window.webContents.once('did-fail-load', (e, errCode, errMsg) => {
-            this.logService.error('WindowInstance', `Loading page failed.`, new Error(), { errCode, errMsg });
-        });
-        
-        this._window.webContents.once('did-finish-load', () => {
-            this.logService.debug('WindowInstance', `Page loaded successfully.`);
-        });
+        this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading HTML file...`);
 
         await this._window.loadFile(htmlFile);
     }
@@ -192,8 +178,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     }
 
     public close(): void {
-        this._window.close();
-        this.dispose();
+        this._window.webContents.close();
     }
 
     public isClosed(): boolean {
@@ -246,17 +231,10 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         }
     }
 
-    public override dispose(): void {
-        super.dispose();
-        // issue: https://stackoverflow.com/questions/38309240/object-has-been-destroyed-when-open-secondary-child-window-in-electron-js
-        (<any>this._window) = null;
-        this._phase = WindowInstancePhase.Closed;
-    }
-
     // [private methods]
 
     private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
-        this.logService.debug('WindowInstance', 'creating window...');
+        this.logService.debug('WindowInstance', 'Constructing window...');
         const additionalArguments = [
             `--${WindowInstanceArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`,
             `--${WindowInstanceArgumentKey.zoomLevel}=${this.mainStatusService.get<number>(StatusKey.WindowZoomLevel) ?? 0}`
@@ -264,7 +242,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         const browserOption: electron.BrowserWindowConstructorOptions = {
-            title: this.productService.profile.applicationName,
+            title: this.configuration.applicationName,
             height: displayOpts.height,
             width: displayOpts.width,
             x: displayOpts.x,
@@ -309,6 +287,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             show: false, // to prevent flicker, we will show it later.
             resizable: displayOpts.resizable ?? true,
             frame: !displayOpts.frameless,
+            alwaysOnTop: displayOpts.alwaysOnTop ?? false,
         };
 
         // title bar configuration
@@ -335,24 +314,30 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.show();
         }
 
-        this.logService.debug('WindowInstance', `window created (ID: ${window.id}).`);
         return window;
     }
 
     private registerListeners(): void {
 
-        this._window.webContents.on('did-finish-load', () => {
-            this.logService.debug('WindowInstance', `load succeeded (ID: ${this._id}).`);
+        this._window.webContents.once('did-fail-load', (e, errCode, errMsg) => {
+            this.logService.error('WindowInstance', `(Window ID: ${this._id}) Loading page failed.`, new Error(), { errCode, errMsg });
+        });
+        
+        this._window.webContents.once('did-finish-load', () => {
+            this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Page loaded successfully.`);
             this._window.show();
+            this._onDidLoad.fire();
         });
 
         // window closed
         this._window.on('closed', () => {
+            this._phase = WindowInstancePhase.Closed;
             this._onDidClose.fire();
             this.dispose();
         });
 
         this._window.on('focus', (e: Event) => {
+            this._lastFocusedTime = Date.now();
             electron.app.emit(IpcChannel.WindowFocused, e, this._window);
         });
 
@@ -374,10 +359,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         
         this._window.on('leave-full-screen', (e: Event) => {
             electron.app.emit(IpcChannel.WindowLeaveFullScreen, e, this._window);
-        });
-
-        this._window.webContents.on('did-finish-load', () => {
-            this._onDidLoad.fire();
         });
     }
 
