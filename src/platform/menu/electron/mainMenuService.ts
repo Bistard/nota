@@ -4,7 +4,6 @@ import { IS_MAC } from "src/base/common/platform";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IMenuService, MenuTemplate } from "src/platform/menu/common/menuService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
-import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 
 export class MainMenuService implements IMenuService {
 
@@ -58,10 +57,9 @@ export class MainMenuService implements IMenuService {
 
     // Handles menu item clicks by sending the command to the focused window
     private handleMenuClick(commandID: string) {
-        const window: IWindowInstance | undefined = this.mainWindowService.getFocusedWindow();
-        if (!window) {
-            this.logService.warn('MainMenuService', `No focused window found to execute CommandID '${commandID}'`);
-        } else {
+        const window = this.mainWindowService.getFocusedWindow();
+        
+        if (window) {
             window.sendIPCMessage(IpcChannel.rendererRunCommand, {
                 commandID: commandID,
                 args: []
