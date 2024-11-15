@@ -21,8 +21,10 @@ export const enum IpcChannel {
     rendererRunCommand = 'nota:rendererRunCommand',
 
     // inspector window channel
-    InspectorReady = 'nota:inspectorReady',
-    InspectorClose = 'nota:inspectorClose',
+    InspectorReady       = 'nota:inspectorReady',
+    InspectorClose       = 'nota:inspectorClose',
+    InspectorDataSync    = 'nota:inspectorDataSync',
+    InspectorDataModify  = 'nota:inspectorDataModify',
 
     // Main process internal usage (not actually went through IPC), no need for a `nota:` prefix.
     WindowMaximized = 'window-maximized',

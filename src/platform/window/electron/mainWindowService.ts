@@ -13,8 +13,8 @@ import { mixin } from "src/base/common/utilities/object";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { IProductService } from "src/platform/product/common/productService";
 import { panic } from "src/base/common/utilities/panic";
-import { IMainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { Arrays } from "src/base/common/utilities/array";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -68,6 +68,7 @@ export interface IMainWindowService extends Disposable, IService {
      */
     openInspector(ownerWindow: number): IWindowInstance;
     getInspectorWindowByID(windowID: number): IWindowInstance | undefined;
+    getInspectorWindowByOwnerID(windowID: number): IWindowInstance | undefined;
     isInspectorWindow(windowID: number): boolean;
 }
 
@@ -196,6 +197,15 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     public getInspectorWindowByID(id: number): IWindowInstance | undefined {
         for (const [inspectorID, _ownerID] of this._inspectorWindowsTrace) {
             if (inspectorID === id) {
+                return this.getWindowByID(inspectorID);
+            }
+        }
+        return undefined;
+    }
+
+    public getInspectorWindowByOwnerID(id: number): IWindowInstance | undefined {
+        for (const [inspectorID, ownerID] of this._inspectorWindowsTrace) {
+            if (ownerID === id) {
                 return this.getWindowByID(inspectorID);
             }
         }

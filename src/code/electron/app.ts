@@ -31,7 +31,8 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { toBoolean } from "src/base/common/utilities/type";
 import { IProductService } from "src/platform/product/common/productService";
-import { IMainInspectorService, MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
+import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 
 /**
  * An interface only for {@link ApplicationInstance}

@@ -121,6 +121,6 @@ class InspectorWindow {
 
     public init(): void {
 
-        ipcRenderer.send(IpcChannel.InspectorReady);
+        ipcRenderer.send(IpcChannel.InspectorReady, WIN_CONFIGURATION.windowID);
     }
 }
