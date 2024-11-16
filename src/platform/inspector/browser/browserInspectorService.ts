@@ -1,7 +1,10 @@
 import { Color } from "src/base/common/color";
+import { INSTANT_TIME, Time } from "src/base/common/date";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
+import { Event } from "src/base/common/event";
 import { Shortcut } from "src/base/common/keyboard";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { HashNumber } from "src/base/common/utilities/hash";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
@@ -25,12 +28,13 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     // [field]
 
-    private readonly _initProtector: InitProtector;
-    private _lifecycle: DisposableManager;
-    private _currentListenTo?: InspectorDataType;
-
     private readonly commandRegistrant: ICommandRegistrant;
     private readonly shortcutRegistrant: IShortcutRegistrant;
+
+    private readonly _initProtector: InitProtector;
+    private _currentListenTo?: InspectorDataType;
+    private _lifecycle: DisposableManager;
+    private readonly _syncScheduler: UnbufferedScheduler<InspectorDataType>;
 
     // [constructor]
 
@@ -40,10 +44,14 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IThemeService private readonly themeService: IThemeService,
     ) {
-        this._lifecycle = new DisposableManager();
-        this._initProtector = new InitProtector();
         this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
         this.shortcutRegistrant = this.registrantService.getRegistrant(RegistrantType.Shortcut);
+        this._lifecycle = new DisposableManager();
+        this._initProtector = new InitProtector();
+        this._syncScheduler = new UnbufferedScheduler(Time.ms(500), listenToDataType => {
+            const data = this.__transformData(listenToDataType);
+            ipcRenderer.send(IpcChannel.InspectorDataSync, WIN_CONFIGURATION.windowID, data);
+        });
     }
 
     // [public methods]
@@ -72,7 +80,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         this._currentListenTo = listenToDataType;
         
         // send init data to the inspector for initial rendering
-        this.__sendInitData(listenToDataType);
+        this._syncScheduler.schedule(listenToDataType, INSTANT_TIME);
 
         // register listener for the later data changes
         this._lifecycle.register(this.__registerChangeListeners(listenToDataType));
@@ -86,37 +94,45 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     // [private methods]
 
-    private __sendInitData(listenToDataType: InspectorDataType): void {
-        const data = this.__transformData(listenToDataType);
-        ipcRenderer.send(IpcChannel.InspectorDataSync, WIN_CONFIGURATION.windowID, data);
-    }
-
     private __transformData(listenToDataType: InspectorDataType): InspectorData[] {
-        if (listenToDataType === InspectorDataType.Configuration) {
-            return transformConfigurationToData(this.configurationService.get(undefined));
-        } 
-        else if (listenToDataType === InspectorDataType.ContextKey) {
-            return transformContextKeyToData(this.contextService.getAllContextKeys());
-        }
-        else if (listenToDataType === InspectorDataType.Command) {
-            return transformCommandToData(this.commandRegistrant.getAllCommands());
-        }
-        else if (listenToDataType === InspectorDataType.Shortcut) {
-            return transformShortcutToData(this.shortcutRegistrant.getAllShortcutRegistrations());
-        }
-        else if (listenToDataType === InspectorDataType.Color) {
-            return transformColorToData(this.themeService.getCurrTheme());
-        }
-        else {
-            return [];
+        switch (listenToDataType) {
+            case InspectorDataType.Configuration:
+                return transformConfigurationToData(this.configurationService.get(undefined));
+            case InspectorDataType.ContextKey:
+                return transformContextKeyToData(this.contextService.getAllContextKeys());
+            case InspectorDataType.Command:
+                return transformCommandToData(this.commandRegistrant.getAllCommands());
+            case InspectorDataType.Shortcut:
+                return transformShortcutToData(this.shortcutRegistrant.getAllShortcutRegistrations());
+            case InspectorDataType.Color:
+                return transformColorToData(this.themeService.getCurrTheme());
+            default:
+                return [];
         }
     }
 
     private __registerChangeListeners(listenToDataType: InspectorDataType): IDisposable {
         const listeners = new DisposableManager();
-
-        // TODO: register -> listeners for the followup updates
-
+        const schedule = () => this._syncScheduler.schedule(listenToDataType);
+        switch (listenToDataType) {
+            case InspectorDataType.Configuration:
+                listeners.register(this.configurationService.onDidConfigurationChange(schedule));
+                break;
+            case InspectorDataType.ContextKey:
+                listeners.register(this.contextService.onDidContextChange(schedule));
+                break;
+            case InspectorDataType.Command:
+                listeners.register(Event.any([this.commandRegistrant.onDidRegister, this.commandRegistrant.onDidUnRegister])(schedule));
+                break;
+            case InspectorDataType.Shortcut:
+                listeners.register(Event.any([this.shortcutRegistrant.onDidRegister, this.shortcutRegistrant.onDidUnRegister])(schedule));
+                break;
+            case InspectorDataType.Color:
+                listeners.register(this.themeService.onDidChangeTheme(schedule));
+                break;
+            default:
+                break;
+        }
         return listeners;
     }
 }
