@@ -1,6 +1,5 @@
 import type { IWindowInstance } from "src/platform/window/electron/windowInstance";
-import type { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
-import type { IContextChangeEvent } from "src/platform/context/common/contextService";
+import type { IpcChannel } from "src/platform/ipc/common/channel";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
 
 export const IMainInspectorService = createService<IMainInspectorService>('main-inspector-service');
@@ -15,27 +14,30 @@ export interface IMainInspectorService extends IService {
 }
 
 export interface IBrowserInspectorService extends IService {
+    /**
+     * @description Once invoked, will listen to the following channel:
+     *  1. {@link IpcChannel.InspectorReady}
+     *  2. {@link IpcChannel.InspectorClose}
+     * @note Can only be invoked once.
+     */
     startListening(): void;
-    
-    start(): void;
-    stop(): void;
 }
 
+/**
+ * Indicates what type of data the inspector window might listens to the 
+ * associated renderer process.
+ */
 export const enum InspectorDataType {
-    Configuration = 'configuration',
-    ContextKey = 'contextKey',
+    Configuration = 'Config',
+    ContextKey    = 'Context',
+    Command       = 'Command',
+    Shortcut      = 'Shortcut',
+    Color         = 'Color',
+    Menu          = 'Menu',
 }
 
-export type InspectorDataEvent = 
-    InspectorConfigurationChange 
-    | InspectorContextKeyChange;
-
-type InspectorConfigurationChange = {
-    readonly type: InspectorDataType.Configuration;
-    readonly changes: Exclude<IConfigurationChangeEvent, 'affect' | 'match'>[];
-};
-
-type InspectorContextKeyChange = {
-    readonly type: InspectorDataType.ContextKey;
-    readonly changes: IContextChangeEvent[];
+export type InspectorData = {
+    key: string;
+    value?: any;
+    children?: InspectorData[];
 };

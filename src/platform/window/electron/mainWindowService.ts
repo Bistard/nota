@@ -177,7 +177,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             CLIArgv:  { _: [] }, // empty
             loadFile: INSPECTOR_HTML,
             displayOptions: {
-                width: 800,
+                width: 400,
                 height: 600,
                 resizable: true,
                 frameless: false,

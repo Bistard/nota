@@ -4,7 +4,7 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { DisposableManager } from "src/base/common/dispose";
 import { ILogService } from "src/base/common/logger";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
-import { IMainInspectorService, InspectorDataEvent } from "src/platform/inspector/common/inspector";
+import { IMainInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 
 export class MainInspectorService implements IMainInspectorService {
 
@@ -24,22 +24,28 @@ export class MainInspectorService implements IMainInspectorService {
         this._inspectorLifeCycles = new Map();
         this._activeInspectors = [];
 
-        // notify READY to the associated render process
-        SafeIpcMain.instance.on(IpcChannel.InspectorReady, (e, inspectorID: number) => {
+        /**
+         * Notify READY to the associated render process that the inspector is
+         * ready to listen to the changes with type of `listenToDataType`.
+         */
+        SafeIpcMain.instance.on(IpcChannel.InspectorReady, (_, inspectorID: number, listenToDataType: InspectorDataType) => {
             const inspectorWindow = mainWindowService.getWindowByID(inspectorID)!;
             const ownerWindow = mainWindowService.getWindowByID(inspectorWindow.configuration.ownerWindow!)!;
-            ownerWindow.sendIPCMessage(IpcChannel.InspectorReady);
+            ownerWindow.sendIPCMessage(IpcChannel.InspectorReady, listenToDataType);
         });
 
-        // notify CLOSE to the associated render process
-        SafeIpcMain.instance.on(IpcChannel.InspectorClose, (e, inspectorID: number) => {
+        /**
+         * Notify CLOSE to the associated render process that the inspector is
+         * no longer listening.
+         */
+        SafeIpcMain.instance.on(IpcChannel.InspectorClose, (_, inspectorID: number) => {
             const inspectorWindow = mainWindowService.getWindowByID(inspectorID)!;
             const ownerWindow = mainWindowService.getWindowByID(inspectorWindow.configuration.ownerWindow!)!;
             ownerWindow.sendIPCMessage(IpcChannel.InspectorClose);
         });
 
         // receive DATA from the renderer process
-        SafeIpcMain.instance.on(IpcChannel.InspectorDataSync, (e, ownerID: number, dataEvent: InspectorDataEvent) => {
+        SafeIpcMain.instance.on(IpcChannel.InspectorDataSync, (_, ownerID: number, data: InspectorData[]) => {
             const ownerWindow = mainWindowService.getWindowByID(ownerID)!;
             const inspectorWindow = mainWindowService.getInspectorWindowByOwnerID(ownerWindow.id);
             
@@ -53,7 +59,7 @@ export class MainInspectorService implements IMainInspectorService {
             }
 
             // transfer the latest data to the inspector window
-            inspectorWindow.sendIPCMessage(IpcChannel.InspectorDataSync, dataEvent);
+            inspectorWindow.sendIPCMessage(IpcChannel.InspectorDataSync, data);
         });
     }
 

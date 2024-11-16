@@ -1,14 +1,27 @@
-import { waitDomToBeLoad } from "src/base/browser/basic/dom";
+import { Button } from "src/base/browser/basic/button/button";
+import { addDisposableListener, EventType, Orientation, waitDomToBeLoad } from "src/base/browser/basic/dom";
+import { IWidget } from "src/base/browser/basic/widget";
+import { getIconClass } from "src/base/browser/icon/iconRegistry";
+import { Icons } from "src/base/browser/icon/icons";
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { IListViewMetadata, RendererType } from "src/base/browser/secondary/listView/listRenderer";
+import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
+import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
+import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { monitorEventEmitterListenerGC } from "src/base/common/event";
+import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
+import { FuzzyScore } from "src/base/common/fuzzy";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
-import { toBoolean } from "src/base/common/utilities/type";
+import { PrimitiveType, toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 import { initExposedElectronAPIs, ipcRenderer, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
+import { InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { IpcService, IIpcService } from "src/platform/ipc/browser/ipcService";
@@ -19,9 +32,8 @@ import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 /**
  * InspectorRenderer first entry for inspector window.
- * // TODO
  */
-export class InspectorRenderer {
+new class InspectorRenderer {
     
     // [fields]
 
@@ -29,7 +41,9 @@ export class InspectorRenderer {
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+        this.init();
+    }
     
     // [public methods]
 
@@ -59,7 +73,9 @@ export class InspectorRenderer {
 
             // view initialization
             const window = instantiationService.createInstance(InspectorWindow, document.body);
-            window.init();
+
+            // browser initialization
+            const browser = instantiationService.createInstance(InspectorBrowser, window);
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
@@ -100,37 +116,242 @@ export class InspectorRenderer {
 
         return instantiationService;
     }
-}
+};
 
-(new InspectorRenderer()).init();
-
-
-class InspectorWindow {
-
+class InspectorBrowser {
+    
     // [field]
 
-    private readonly _parent: HTMLElement;
+    private readonly _view: InspectorWindow;
 
     // [constructor]
 
     constructor(
-        parent: HTMLElement,
+        view: InspectorWindow,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IHostService private readonly hostService: IHostService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
-        this._parent = parent;
+        this._view = view;
         this.registerListeners();
+        this.hostService.setWindowAsRendererReady();
     }
 
     // [public methods]
 
     private registerListeners(): void {
-        // before quit, notify the main process we are actually closing
+        // listener: before quit, notify the main process we are actually closing
         this.lifecycleService.onWillQuit(e => {
             ipcRenderer.send(IpcChannel.InspectorClose, WIN_CONFIGURATION.windowID);
         });
+
+        // listener: update view for incoming data
+        ipcRenderer.on(IpcChannel.InspectorDataSync, (e, data: InspectorData[]) => {
+            this._view.onData(data);
+        });
+
+        // auto re-layout
+        {
+            addDisposableListener(window, EventType.resize, () => {
+                this._view.layout();
+            });
+            const anyEvents = Event.any([
+                this.hostService.onDidEnterFullScreenWindow,
+                this.hostService.onDidLeaveFullScreenWindow,
+                this.hostService.onDidMaximizeWindow,
+                this.hostService.onDidUnMaximizeWindow,
+            ]);
+            anyEvents(windowID => {
+                if (windowID === this.environmentService.windowID) {
+                    this._view.layout();
+                }
+            });
+        }
+    }
+}
+
+class InspectorWindow {
+    
+    // [field]
+
+    private readonly _parent: HTMLElement;
+    private readonly _navBar: WidgetBar<IWidget>;
+    private readonly _inspectorViewContainer: HTMLElement;
+    private _tree?: InspectorTree;
+
+    // [constructor]
+
+    constructor(parent: HTMLElement) {
+        this._parent = parent;
+
+        const viewContainer = document.createElement('div');
+        viewContainer.className = 'inspector-view-container';
+
+        this._navBar = this.__buildNavigationBar(viewContainer);
+        this._inspectorViewContainer = this.__buildInspectorView(viewContainer);
+
+        parent.appendChild(viewContainer);
     }
 
-    public init(): void {
-        ipcRenderer.send(IpcChannel.InspectorReady, WIN_CONFIGURATION.windowID);
+    // [public methods]
+
+    public onData(data: InspectorData[]): void {
+        if (this._tree) {
+            this._tree.dispose();
+            this._tree = undefined;
+        }
+        
+        const initTree = transformDataToTree(data);
+        this._tree = new InspectorTree(this._inspectorViewContainer, initTree);
+    }
+
+    public layout(): void {
+        this._tree?.layout();
+    }
+
+    // [private methods]
+
+    private __buildNavigationBar(parent: HTMLElement): WidgetBar<IWidget> {
+        const navBar = new WidgetBar('inspector-bar', { orientation: Orientation.Horizontal, parentContainer: parent });
+
+        const navigation = [
+            { type: InspectorDataType.Configuration },
+            { type: InspectorDataType.ContextKey },
+            { type: InspectorDataType.Command },
+            { type: InspectorDataType.Shortcut },
+            { type: InspectorDataType.Color },
+            { type: InspectorDataType.Menu },
+        ];
+        
+        for (const { type } of navigation) {
+            const button = new Button({ id: type, label: type });
+            navBar.addItem({
+                id: type,
+                data: button,
+                dispose: button.dispose.bind(button),
+            });
+            button.onDidClick(() => this.__onButtonClick(type));
+        }
+        
+        navBar.render();
+        return navBar;
+    }
+
+    private __onButtonClick(listenToType: InspectorDataType): void {
+        ipcRenderer.send(IpcChannel.InspectorReady, WIN_CONFIGURATION.windowID, listenToType);
+    }
+
+    private __buildInspectorView(parent: HTMLElement): HTMLElement {
+        const inspectorView = document.createElement('div');
+        inspectorView.className = 'inspector-view';
+        
+        parent.appendChild(inspectorView);
+        return inspectorView;
+    }
+}
+
+class InspectorTree extends MultiTree<InspectorItem, void> {
+
+    public readonly rootItem: InspectorItem;
+
+    constructor(
+        container: HTMLElement,
+        initData: ITreeNodeItem<InspectorItem>[],
+    ) {
+        const rootItem = new InspectorItem('$_root_', undefined);
+        super(
+            container,
+            rootItem,
+            [new InspectorItemRenderer()],
+            new InspectorItemProvider(),
+            {
+                collapsedByDefault: false,
+                transformOptimization: true,
+                identityProvider: {
+                    getID: configName => configName.key,
+                },
+            }
+        );
+        this.rootItem = rootItem;
+
+        console.log('Inspector on data:', initData);
+        this.splice(this.rootItem, initData);
+        this.layout();
+    }
+}
+
+class InspectorItem {
+    constructor(
+        public readonly key: string,
+        public readonly value: PrimitiveType | undefined,
+    ) {}
+}
+
+function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem>[] {
+    function buildTree(data: InspectorData[]): ITreeNodeItem<InspectorItem>[] {
+        return data.map(item => {
+            const node: ITreeNodeItem<InspectorItem> = {
+                data: new InspectorItem(item.key, item.value !== undefined ? item.value : null),
+                collapsible: !!item.children,
+                children: item.children ? buildTree(item.children) : undefined,
+            };
+            return node;
+        });
+    }
+    return buildTree(data);
+}
+
+interface IInspectorItemMetadata extends IListViewMetadata {}
+const InspectorRendererType = 'inspector-renderer';
+
+class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzyScore, IInspectorItemMetadata> {
+
+    public readonly type: RendererType = InspectorRendererType;
+
+    constructor() {}
+
+    public render(element: HTMLElement): IInspectorItemMetadata {
+        const text = document.createElement('span');
+        text.className = 'inspector-item';
+        text.style.lineHeight = `${InspectorItemProvider.Size}px`;
+
+        element.appendChild(text);
+
+        return {
+            container: text
+        };
+    }
+
+    public update(item: ITreeNode<InspectorItem, void>, index: number, data: IInspectorItemMetadata, size?: number): void {
+        const text = data.container;
+        text.textContent = item.data.key;
+    }
+
+    public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {
+        if (item.collapsible) {
+            indentElement.classList.add(...getIconClass(Icons.ArrowRight));
+        } else {
+            indentElement.classList.remove(...getIconClass(Icons.ArrowRight));
+        }
+    }
+
+    public dispose(data: IInspectorItemMetadata): void {
+        // Dispose logic can be added here if necessary
+    }
+}
+
+class InspectorItemProvider implements IListItemProvider<InspectorItem> {
+
+    /**
+     * The height in pixels for every outline item.
+     */
+    public static readonly Size = 18;
+
+    public getSize(data: InspectorItem): number {
+        return InspectorItemProvider.Size;
+    }
+
+    public getType(data: InspectorItem): RendererType {
+        return InspectorRendererType;
     }
 }
