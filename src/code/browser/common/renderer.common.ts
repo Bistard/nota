@@ -24,7 +24,7 @@ export function initGlobalErrorHandler(getLogService: () => ILogService | undefi
     // case1
     ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
 
-    if (window) {
+    if (typeof window !== 'undefined') {
         // case2
         window.onerror = (message, source, lineno, colno, error) => {
             onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
@@ -38,7 +38,7 @@ export function initGlobalErrorHandler(getLogService: () => ILogService | undefi
         };
     }
 
-    if (process) {
+    if (typeof process !== 'undefined') {
         // case4
         process.on('uncaughtException', (error) => {
             onUnexpectedError(error);
