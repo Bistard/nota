@@ -51,9 +51,6 @@
     box-sizing: border-box !important;
     padding: 2px !important;
     border-radius: 0px !important;
-
-    /* border-bottom: ; */
-    outline: 1px solid #f7f7f7 !important;
 }
 
 .list-view-row:hover {

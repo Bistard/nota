@@ -281,7 +281,6 @@ class InspectorTree extends MultiTree<InspectorItem, void> {
         );
         this.rootItem = rootItem;
 
-        console.log('Inspector on data:', initData);
         this.splice(this.rootItem, initData);
         this.layout();
     }
