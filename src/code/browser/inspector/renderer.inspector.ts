@@ -9,6 +9,7 @@ import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
+import { Color } from "src/base/common/color";
 import { ErrorHandler } from "src/base/common/error";
 import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
 import { FuzzyScore } from "src/base/common/fuzzy";
@@ -290,6 +291,7 @@ class InspectorItem {
     constructor(
         public readonly key: string,
         public readonly value: PrimitiveType | undefined,
+        public readonly isColor?: true,
     ) {}
 }
 
@@ -297,7 +299,7 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
     function buildTree(data: InspectorData[]): ITreeNodeItem<InspectorItem>[] {
         return data.map(item => {
             const node: ITreeNodeItem<InspectorItem> = {
-                data: new InspectorItem(item.key, item.value),
+                data: new InspectorItem(item.key, item.value, item.isColor),
                 collapsible: !!item.children,
                 children: item.children ? buildTree(item.children) : undefined,
             };
@@ -344,7 +346,14 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         keyPart.textContent = item.data.key;
 
         const valuePart = data.valueElement;
+        const textContent = String(item.data.value);
         valuePart.textContent = item.data.value === undefined ? '' : String(item.data.value);
+
+        // color data
+        if (item.data.isColor) {
+            valuePart.style.backgroundColor = `${textContent}`;
+            valuePart.style.color = Color.parseHex(textContent).isDarker() ? 'white' : 'black'; // create contrast text color
+        }
     }
 
     public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {

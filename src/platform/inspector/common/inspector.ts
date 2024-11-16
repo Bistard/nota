@@ -40,4 +40,7 @@ export type InspectorData = {
     key: string;
     value?: any;
     children?: InspectorData[];
+
+    // help to distinguish color item
+    isColor?: true;
 };

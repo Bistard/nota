@@ -78,6 +78,8 @@
 .inspector-item-value {
     position: absolute;
     justify-content: space-between;
+
+    min-width: 80px;
+    text-align: center;
     right: 0;
 }
-

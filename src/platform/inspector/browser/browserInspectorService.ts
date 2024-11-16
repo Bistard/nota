@@ -191,6 +191,7 @@ function transformColorToData(theme: IColorTheme): InspectorData[] {
         data.push({
             key: propName,
             value: propValue.toString(),
+            isColor: true,
         });
     });
     return data;
