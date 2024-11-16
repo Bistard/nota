@@ -39,10 +39,10 @@ export const enum InspectorDataType {
 }
 
 export type InspectorData = {
-    key: string;
-    value?: any;
-    children?: InspectorData[];
+    readonly key: string;
+    readonly value?: any;
+    readonly children?: InspectorData[];
 
-    // help to distinguish color item
-    isColor?: true;
+    readonly isColor?: true;    // help to distinguish color item
+    readonly isEditable?: true; // mark as editable
 };

@@ -144,7 +144,7 @@ function transformConfigurationToData(config: object): InspectorData[] {
             if (isObject(value)) {
                 return { key, children: buildData(value), };
             } else {
-                return { key, value, };
+                return { key, value, isEditable: true, };
             }
         });
     }

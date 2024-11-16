@@ -292,6 +292,7 @@ class InspectorItem {
         public readonly key: string,
         public readonly value: PrimitiveType | undefined,
         public readonly isColor?: true,
+        public readonly isEditable?: true,
     ) {}
 }
 
@@ -299,7 +300,7 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
     function buildTree(data: InspectorData[]): ITreeNodeItem<InspectorItem>[] {
         return data.map(item => {
             const node: ITreeNodeItem<InspectorItem> = {
-                data: new InspectorItem(item.key, item.value, item.isColor),
+                data: new InspectorItem(item.key, item.value, item.isColor, item.isEditable),
                 collapsible: !!item.children,
                 children: item.children ? buildTree(item.children) : undefined,
             };
