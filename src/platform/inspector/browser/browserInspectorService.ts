@@ -2,6 +2,7 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
 import { isObject } from "src/base/common/utilities/type";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { IContextKey } from "src/platform/context/common/contextKey";
 import { IContextService } from "src/platform/context/common/contextService";
 import { ipcRenderer, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
@@ -76,7 +77,9 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         if (listenToDataType === InspectorDataType.Configuration) {
             return transformConfigurationToData(this.configurationService.get(undefined));
         } 
-        // TODO: other types
+        else if (listenToDataType === InspectorDataType.ContextKey) {
+            return transformContextKeyToData(this.contextService.getAllContextKeys());
+        }
         else {
             return [];
         }
@@ -102,4 +105,17 @@ function transformConfigurationToData(config: object): InspectorData[] {
         });
     }
     return buildData(config);
+}
+
+function transformContextKeyToData(contextKeys: readonly IContextKey<any>[]): InspectorData[] {
+    const data: InspectorData[] = [];
+
+    for (const contextKey of contextKeys) {
+        data.push({
+            key: contextKey.key,
+            value: contextKey.get(),
+        });
+    }
+
+    return data;
 }

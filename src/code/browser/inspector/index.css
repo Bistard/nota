@@ -26,8 +26,7 @@
 }
 
 .inspector-bar .button > span {
-    line-height: 24px;
-    /* font: ; */
+    line-height: 28px;
 }
 
 .inspector-bar .button:hover {
