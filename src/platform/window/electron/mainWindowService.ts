@@ -183,7 +183,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 frameless: false,
                 alwaysOnTop: true,
             },
-            "open-devtools": false,
+            "open-devtools": true,
             hostWindow: ownerWindow,
             ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
         });
@@ -213,8 +213,13 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return undefined;
     }
 
-    public isInspectorWindow(windowID: number): boolean {
-        return !!this.getInspectorWindowByID(windowID);
+    public isInspectorWindow(id: number): boolean {
+        for (const [inspectorID, _ownerID] of this._inspectorWindowsTrace) {
+            if (inspectorID === id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public closeWindowByID(id: number): void {
