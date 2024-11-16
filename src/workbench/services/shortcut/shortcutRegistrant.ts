@@ -10,6 +10,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
 import { IS_MAC } from "src/base/common/platform";
+import { Arrays } from "src/base/common/utilities/array";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -143,13 +144,10 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
      * where the set stores all the unique names of each binding command and the
      * array stores all the binding shortcuts.
      */
-    private readonly _shortcuts: Map<HashNumber, {
-        readonly commands: Set<string>;
-        readonly shortcuts: (IShortcutReference & {
-            // A unique ID of the shortcut after registered, auto-generated.
-            readonly uuid: number;
-        })[];
-    }>;
+    private readonly _shortcuts: Map<
+        HashNumber, 
+        Array<(IShortcutReference & { readonly uuid: number; })>
+    >;
 
     // [constructor]
 
@@ -180,10 +178,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
         const hashcode = registration.shortcut.toHashcode();
         let items = this._shortcuts.get(hashcode);
         if (!items) {
-            items = {
-                commands: new Set(),
-                shortcuts: [],
-            };
+            items = [];
             this._shortcuts.set(hashcode, items);
         }
 
@@ -191,26 +186,25 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
          * Checks if there is a same command with the same shortcut that is 
          * registered.
          */
-        if (items.commands.has(commandID)) {
+        if (Arrays.exist2(items, entry => entry.commandID === commandID)) {
             panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
         }
 
         // register the shortcut
         const uuid = ShortcutRegistrant._shortcutUUID++;
-        items.shortcuts.push({
+        items.push({
             uuid: uuid,
             commandID: commandID,
             commandArgs: registration.commandArgs,
             when: registration.when,
             weight: registration.weight,
         });
-        items.commands.add(commandID);
 
         return toDisposable(() => {
             if (items) {
-                const itemIdx = items.shortcuts.findIndex((item) => item.uuid === uuid);
-                items.shortcuts.splice(itemIdx, 1);
-                if (items.shortcuts.length === 0) {
+                const itemIdx = items.findIndex((item) => item.uuid === uuid);
+                items.splice(itemIdx, 1);
+                if (items.length === 0) {
                     this._shortcuts.delete(hashcode);
                 }
             }
@@ -222,26 +216,18 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
             shortcut = shortcut.toHashcode();
         }
         const items = this._shortcuts.get(shortcut);
-        return items?.commands.has(commandID) ?? false;
+        return items ? Arrays.exist2(items, entry => entry.commandID === commandID) : false;
     }
 
     public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutReference[] {
         if (!isNumber(shortcut)) {
             shortcut = shortcut.toHashcode();
         }
-        const registered = this._shortcuts.get(shortcut)?.shortcuts;
+        const registered = this._shortcuts.get(shortcut);
         return registered ?? [];
     }
 
     public getAllShortcutRegistrations(): Map<HashNumber, IShortcutReference[]> {
-        const map = new Map();
-
-        for (const [hashcode, shortcuts] of this._shortcuts) {
-            map.set(hashcode, shortcuts.shortcuts);
-        }
-        return map;
+        return this._shortcuts;
     }
-
-    // [private helper methods]
-
 }
