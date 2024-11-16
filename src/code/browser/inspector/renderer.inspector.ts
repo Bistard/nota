@@ -341,15 +341,16 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         };
     }
 
-    public update(item: ITreeNode<InspectorItem, void>, index: number, data: IInspectorItemMetadata, size?: number): void {
-        const keyPart = data.keyElement;
-        keyPart.textContent = item.data.key;
+    public update(item: ITreeNode<InspectorItem, void>, index: number, metadata: IInspectorItemMetadata, size?: number): void {
+        const data = item.data;
 
-        const valuePart = data.valueElement;
-        let textContent = item.data.value === undefined ? '' : String(item.data.value);
+        const keyPart = metadata.keyElement;
+        keyPart.textContent = data.key;
+        const valuePart = metadata.valueElement;
+        let textContent = data.value === undefined ? '' : String(data.value);
         
         // color data
-        if (item.data.isColor) {
+        if (data.isColor) {
             textContent = textContent.toUpperCase();
             valuePart.style.backgroundColor = `${textContent}`;
             valuePart.style.color = Color.parseHex(textContent).isDarker() ? 'white' : 'black'; // create contrast text color
