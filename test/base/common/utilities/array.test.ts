@@ -81,6 +81,61 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.swap([1, 2, 3], 0, 2), [3, 2, 1]);
     });
 
+    suite('exist', () => {
+        test('should return true when value exists in the array', () => {
+            const result = Arrays.exist([1, 2, 3], 2);
+            assert.strictEqual(result, true);
+        });
+    
+        test('should return false when value does not exist in the array', () => {
+            const result = Arrays.exist([1, 2, 3], 4);
+            assert.strictEqual(result, false);
+        });
+    
+        test('should work with an empty array', () => {
+            const result = Arrays.exist([], 1);
+            assert.strictEqual(result, false);
+        });
+    
+        test('should work with non-primitive values', () => {
+            const obj = { key: 'value' };
+            const result = Arrays.exist([obj, { key: 'another' }], obj);
+            assert.strictEqual(result, true);
+        });
+    });
+    
+    suite('exist2', () => {
+        test('should return true when predicate matches an element', () => {
+            const result = Arrays.exist2([1, 2, 3], value => value > 2);
+            assert.strictEqual(result, true);
+        });
+    
+        test('should return false when predicate does not match any element', () => {
+            const result = Arrays.exist2([1, 2, 3], value => value > 5);
+            assert.strictEqual(result, false);
+        });
+    
+        test('should pass correct parameters to the predicate', () => {
+            const indices: number[] = [];
+            Arrays.exist2([10, 20, 30], (value, index) => {
+                indices.push(index);
+                return false;
+            });
+            assert.deepStrictEqual(indices, [0, 1, 2]);
+        });
+    
+        test('should work with an empty array', () => {
+            const result = Arrays.exist2([], () => true);
+            assert.strictEqual(result, false);
+        });
+    
+        test('should work with non-primitive values', () => {
+            const obj = { key: 'value' };
+            const result = Arrays.exist2([{ key: 'value' }, { key: 'another' }], value => value.key === 'value');
+            assert.strictEqual(result, true);
+        });
+    });
+
     suite('tail', function() {
         
         test('should return the last element of a non-empty array', function() {
