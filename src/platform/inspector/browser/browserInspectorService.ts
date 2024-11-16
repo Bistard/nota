@@ -1,12 +1,16 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
 import { isObject } from "src/base/common/utilities/type";
+import { ICommandBasicSchema, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
+import { ICommandService } from "src/platform/command/common/commandService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IContextService } from "src/platform/context/common/contextService";
 import { ipcRenderer, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IpcChannel } from "src/platform/ipc/common/channel";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export class BrowserInspectorService implements IBrowserInspectorService {
 
@@ -18,14 +22,18 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     private _lifecycle: DisposableManager;
     private _currentListenTo?: InspectorDataType;
 
+    private readonly commandRegistrant: ICommandRegistrant;
+
     // [constructor]
 
     constructor(
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IContextService private readonly contextService: IContextService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         this._lifecycle = new DisposableManager();
         this._initProtector = new InitProtector();
+        this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
     }
 
     // [public methods]
@@ -80,6 +88,9 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         else if (listenToDataType === InspectorDataType.ContextKey) {
             return transformContextKeyToData(this.contextService.getAllContextKeys());
         }
+        else if (listenToDataType === InspectorDataType.Command) {
+            return transformCommandToData(this.commandRegistrant.getAllCommands());
+        }
         else {
             return [];
         }
@@ -117,5 +128,13 @@ function transformContextKeyToData(contextKeys: readonly IContextKey<any>[]): In
         });
     }
 
+    return data;
+}
+
+function transformCommandToData(commandMap: Map<string, ICommandBasicSchema>): InspectorData[] {
+    const data: InspectorData[] = [];
+    for (const [id, schema] of commandMap) {
+        data.push({ key: id, });
+    }
     return data;
 }

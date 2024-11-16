@@ -299,7 +299,7 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
     function buildTree(data: InspectorData[]): ITreeNodeItem<InspectorItem>[] {
         return data.map(item => {
             const node: ITreeNodeItem<InspectorItem> = {
-                data: new InspectorItem(item.key, item.value !== undefined ? item.value : null),
+                data: new InspectorItem(item.key, item.value),
                 collapsible: !!item.children,
                 children: item.children ? buildTree(item.children) : undefined,
             };
@@ -346,7 +346,7 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         keyPart.textContent = item.data.key;
 
         const valuePart = data.valueElement;
-        valuePart.textContent = String(item.data.value);
+        valuePart.textContent = item.data.value === undefined ? '' : String(item.data.value);
     }
 
     public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {
