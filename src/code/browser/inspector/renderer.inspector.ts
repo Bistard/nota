@@ -344,6 +344,10 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
     public update(item: ITreeNode<InspectorItem, void>, index: number, metadata: IInspectorItemMetadata, size?: number): void {
         const data = item.data;
 
+        if (item.depth === 1) {
+            metadata.container.parentElement?.parentElement?.classList.add('top-level');
+        }
+
         const keyPart = metadata.keyElement;
         keyPart.textContent = data.key;
         const valuePart = metadata.valueElement;
