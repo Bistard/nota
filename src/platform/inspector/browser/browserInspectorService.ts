@@ -1,7 +1,9 @@
+import { Color } from "src/base/common/color";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
 import { Shortcut } from "src/base/common/keyboard";
 import { HashNumber } from "src/base/common/utilities/hash";
+import { iterPropEnumerable } from "src/base/common/utilities/object";
 import { isObject } from "src/base/common/utilities/type";
 import { ICommandBasicSchema, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -14,6 +16,8 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IShortcutReference, IShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { IColorTheme } from "src/workbench/services/theme/colorTheme";
+import { IThemeService } from "src/workbench/services/theme/themeService";
 
 export class BrowserInspectorService implements IBrowserInspectorService {
 
@@ -34,6 +38,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IContextService private readonly contextService: IContextService,
         @IRegistrantService private readonly registrantService: IRegistrantService,
+        @IThemeService private readonly themeService: IThemeService,
     ) {
         this._lifecycle = new DisposableManager();
         this._initProtector = new InitProtector();
@@ -99,6 +104,9 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         else if (listenToDataType === InspectorDataType.Shortcut) {
             return transformShortcutToData(this.shortcutRegistrant.getAllShortcutRegistrations());
         }
+        else if (listenToDataType === InspectorDataType.Color) {
+            return transformColorToData(this.themeService.getCurrTheme());
+        }
         else {
             return [];
         }
@@ -158,5 +166,16 @@ function transformShortcutToData(shortcutMap: Map<HashNumber, IShortcutReference
             }))
         });
     }
+    return data;
+}
+
+function transformColorToData(theme: IColorTheme): InspectorData[] {
+    const data: InspectorData[] = [];
+    iterPropEnumerable(theme.getColorMap(), (propName, propValue: Color) => {
+        data.push({
+            key: propName,
+            value: propValue.toString(),
+        });
+    });
     return data;
 }
