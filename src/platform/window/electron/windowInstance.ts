@@ -71,10 +71,14 @@ export interface IWindowInstance extends Disposable {
     isRendererReady(): boolean;
 
     /**
-     * Send IPC message to the renderer process. The message either send 
-     * immediately or wait until the renderer process is ready.
-     * @param channel The channel name.
-     * @param args The arguments.
+     * Sends an IPC message to the renderer process. The message is either sent 
+     * immediately or queued until the renderer process is ready.
+     * @param channel The name of the channel.
+     * @param args The arguments to be sent with the message.
+     * 
+     * @note This method will NOT function unless `setAsRendererReady` is executed. 
+     * Typically, this is triggered by the renderer process using 
+     * `IHostService.setWindowAsRendererReady()`.
      */
     sendIPCMessage<TChannel extends string>(channel: TChannel, ...args: WindowInstanceIPCMessageMap[TChannel]): void;
 
