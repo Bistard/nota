@@ -51,10 +51,22 @@
     box-sizing: border-box !important;
     padding: 2px !important;
     border-radius: 0px !important;
+
+    /* border-bottom: ; */
+    outline: 1px solid #f7f7f7 !important;
 }
 
 .list-view-row:hover {
     background-color: #efefef !important;
+}
+
+.tree-list-row > .tree-list-indent::before {
+    font-size: 12px !important;
+    transition: none !important; /* disable animation */
+}
+
+.scroll-bar > .scroll-slider {
+    background-color: #919191 !important;
 }
 
 .list-view-row.selected {
