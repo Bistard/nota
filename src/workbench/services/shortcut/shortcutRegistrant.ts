@@ -11,6 +11,7 @@ import { IRegistrant, RegistrantType } from "src/platform/registrant/common/regi
 import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
 import { IS_MAC } from "src/base/common/platform";
 import { Arrays } from "src/base/common/utilities/array";
+import { Emitter, Register } from "src/base/common/event";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -98,6 +99,16 @@ export interface IShortcutReference extends IShortcutBase<any[]> {
 export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut> {
 
     /**
+     * Fires whenever a new command is registered.
+     */
+    readonly onDidRegister: Register<Shortcut>;
+
+    /**
+     * Fires whenever a command is un-registered.
+     */
+    readonly onDidUnRegister: Register<Shortcut>;
+
+    /**
      * @description Register a {@link Shortcut} that binds to a command with the
      * given 'commandID'.
      * @param commandID An ID refers to a registered command in the command service.
@@ -131,6 +142,14 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
 }
 
 export class ShortcutRegistrant implements IShortcutRegistrant {
+
+    // [event]
+
+    private readonly _onDidRegister = new Emitter<Shortcut>();
+    public readonly onDidRegister = this._onDidRegister.registerListener;
+
+    private readonly _onDidUnRegister = new Emitter<Shortcut>();
+    public readonly onDidUnRegister = this._onDidUnRegister.registerListener;
 
     // [field]
 
@@ -200,6 +219,8 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
             weight: registration.weight,
         });
 
+        this._onDidRegister.fire(registration.shortcut);
+
         return toDisposable(() => {
             if (items) {
                 const itemIdx = items.findIndex((item) => item.uuid === uuid);
@@ -207,6 +228,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
                 if (items.length === 0) {
                     this._shortcuts.delete(hashcode);
                 }
+                this._onDidUnRegister.fire(registration.shortcut);
             }
         });
     }
