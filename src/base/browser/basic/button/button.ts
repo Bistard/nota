@@ -113,7 +113,9 @@ export class Button extends Widget implements IButton {
         
         // set label if provided
         if (this._opts?.label) {
-            element.textContent = this._opts.label;
+            const label = document.createElement('span');
+            label.textContent = this._opts.label;
+            element.appendChild(label);
         }
 
         // set styles if provided
