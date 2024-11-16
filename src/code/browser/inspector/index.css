@@ -1,10 +1,36 @@
-body {
-    cursor: default;
-    margin: 0px;
-    padding: 0px;
-    background-color: white;
+.inspector-view-container {
+    position: absolute;
+    
+    width:100vw;
+    height:100vh;
+    
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
 
-    font-size: 10pt;
-    font-family: 'harmonyOS sans', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
     overflow: hidden;
+    box-sizing: border-box;
 }
+
+/* navigation bar */
+
+.inspector-bar .widget-item {
+    box-sizing: border-box;
+    border-left: 1px solid rgb(65, 65, 65);
+    border-right: 1px solid rgb(65, 65, 65);
+    border-bottom: 2px solid rgb(65, 65, 65);
+}
+
+.inspector-bar .widget-item:hover {
+    background-color: #d4d4d4;
+}
+
+/* inspector view */
+
+.inspector-view {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+}
+
