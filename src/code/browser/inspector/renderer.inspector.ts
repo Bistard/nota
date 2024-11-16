@@ -59,7 +59,7 @@ new class InspectorRenderer {
             });
 
             // ensure we handle almost every errors properly
-            initGlobalErrorHandler(this.logService, WIN_CONFIGURATION);
+            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
 
             // core service construction
             instantiationService = this.createCoreServices();

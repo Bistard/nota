@@ -3,7 +3,7 @@ import { ILogService } from "src/base/common/logger";
 import { Strings } from "src/base/common/utilities/string";
 import { IWindowConfiguration } from "src/platform/window/common/window";
 
-export function initGlobalErrorHandler(logService: ILogService | undefined, windowConfiguration: IWindowConfiguration): void {
+export function initGlobalErrorHandler(getLogService: () => ILogService | undefined, windowConfiguration: IWindowConfiguration): void {
 
     // only enable infinity stack trace when needed for performance issue.
     if (windowConfiguration.log === 'trace' || windowConfiguration.log === 'debug') {
@@ -12,6 +12,7 @@ export function initGlobalErrorHandler(logService: ILogService | undefined, wind
     
     // universal on unexpected error handling callback
     const onUnexpectedError = (error: any, additionalMessage?: any) => {
+        const logService = getLogService();
         if (logService) {
             const safeAdditional = Strings.stringifySafe(additionalMessage, undefined, undefined, 4);
             logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);

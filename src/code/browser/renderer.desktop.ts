@@ -98,7 +98,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             });
 
             // ensure we handle almost every errors properly
-            initGlobalErrorHandler(this.logService, WIN_CONFIGURATION);
+            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
 
             // register microservices
             this.rendererServiceRegistrations();
