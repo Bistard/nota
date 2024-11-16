@@ -1,5 +1,7 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
+import { Shortcut } from "src/base/common/keyboard";
+import { HashNumber } from "src/base/common/utilities/hash";
 import { isObject } from "src/base/common/utilities/type";
 import { ICommandBasicSchema, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -11,6 +13,7 @@ import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { IShortcutReference, IShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 
 export class BrowserInspectorService implements IBrowserInspectorService {
 
@@ -23,6 +26,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     private _currentListenTo?: InspectorDataType;
 
     private readonly commandRegistrant: ICommandRegistrant;
+    private readonly shortcutRegistrant: IShortcutRegistrant;
 
     // [constructor]
 
@@ -34,6 +38,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         this._lifecycle = new DisposableManager();
         this._initProtector = new InitProtector();
         this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
+        this.shortcutRegistrant = this.registrantService.getRegistrant(RegistrantType.Shortcut);
     }
 
     // [public methods]
@@ -91,6 +96,9 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         else if (listenToDataType === InspectorDataType.Command) {
             return transformCommandToData(this.commandRegistrant.getAllCommands());
         }
+        else if (listenToDataType === InspectorDataType.Shortcut) {
+            return transformShortcutToData(this.shortcutRegistrant.getAllShortcutRegistrations());
+        }
         else {
             return [];
         }
@@ -120,14 +128,12 @@ function transformConfigurationToData(config: object): InspectorData[] {
 
 function transformContextKeyToData(contextKeys: readonly IContextKey<any>[]): InspectorData[] {
     const data: InspectorData[] = [];
-
     for (const contextKey of contextKeys) {
         data.push({
             key: contextKey.key,
             value: contextKey.get(),
         });
     }
-
     return data;
 }
 
@@ -135,6 +141,22 @@ function transformCommandToData(commandMap: Map<string, ICommandBasicSchema>): I
     const data: InspectorData[] = [];
     for (const [id, schema] of commandMap) {
         data.push({ key: id, });
+    }
+    return data;
+}
+
+function transformShortcutToData(shortcutMap: Map<HashNumber, IShortcutReference[]>): InspectorData[] {
+    const data: InspectorData[] = [];
+    for (const [shortcutHash, bindings] of shortcutMap) {
+        const shortcut = Shortcut.fromHashcode(shortcutHash);
+        data.push({
+            key: shortcut.toString(),
+            value: undefined,
+            children: bindings.map(binding => ({
+                key: binding.commandID,
+                value: binding.when?.serialize() ?? null,
+            }))
+        });
     }
     return data;
 }
