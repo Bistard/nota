@@ -24,15 +24,29 @@ export function initGlobalErrorHandler(getLogService: () => ILogService | undefi
     // case1
     ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
 
-    // case2
-    window.onerror = (message, source, lineno, colno, error) => {
-        onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
-        return true; // prevent default handling (log to console)
-    };
+    if (window) {
+        // case2
+        window.onerror = (message, source, lineno, colno, error) => {
+            onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
+            return true; // prevent default handling (log to console)
+        };
 
-    // case3
-    window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-        onUnexpectedError(event.reason, 'unexpected rejection');
-        event.preventDefault(); // prevent default handling (log to console)
-    };
+        // case3
+        window.onunhandledrejection = (event: PromiseRejectionEvent) => {
+            onUnexpectedError(event.reason, 'unhandled promise rejection');
+            event.preventDefault(); // prevent default handling (log to console)
+        };
+    }
+
+    if (process) {
+        // case4
+        process.on('uncaughtException', (error) => {
+            onUnexpectedError(error);
+        });
+    
+        // case5
+        process.on('unhandledRejection', (reason, promise) => {
+            onUnexpectedError(reason, 'unhandled promise rejection');
+        });
+    }
 }
