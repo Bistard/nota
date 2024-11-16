@@ -15,7 +15,8 @@
 /* navigation bar */
 
 .inspector-bar {
-    z-index: 10 !important;
+    z-index: 1000 !important;
+    background-color: white;
 }
 
 .inspector-bar .button {
