@@ -14,7 +14,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
-import { PrimitiveType, toBoolean } from "src/base/common/utilities/type";
+import { isBoolean, isNullable, isNumber, isString, PrimitiveType, toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 import { initExposedElectronAPIs, ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
@@ -358,6 +358,20 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
             textContent = textContent.toUpperCase();
             valuePart.style.backgroundColor = `${textContent}`;
             valuePart.style.color = Color.parseHex(textContent).isDarker() ? 'white' : 'black'; // create contrast text color
+        }
+        // general case
+        else if (isNumber(data.value)) {
+            valuePart.style.color = `#a1f7b5`; // light green
+        }
+        else if (isString(data.value)) {
+            textContent = `"${textContent}"`; // orange
+            valuePart.style.color = '#f28b54';
+        }
+        else if (isBoolean(data.value) || isNullable(data.value)) {
+            valuePart.style.color = '#9980ff'; // purple
+        }
+        else if (Array.isArray(data.value)) {
+            textContent = `[${textContent}]`; // array
         }
 
         valuePart.textContent = textContent;
