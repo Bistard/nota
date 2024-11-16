@@ -109,12 +109,9 @@ export const EDITOR_OPTIONS_DEFAULT = {
 
 export function toJsonEditorOption(options: EditorOptionsType): Record<string, any> {
     const opt = {};
-
-    iterPropEnumerable(options, (propName) => {
-        const optObj = options[propName] as BasicEditorOption<EditorOptionEnum, any>;
-        opt[optObj.name] = optObj.value;
+    iterPropEnumerable(options, (propName, propValue: BasicEditorOption<EditorOptionEnum, any>) => {
+        opt[propValue.name] = propValue.value;
     });
-
     return opt;
 }
 

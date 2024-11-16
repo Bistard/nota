@@ -190,8 +190,7 @@ function getAdditionalString(depth: number, color: boolean, additional: Addition
     let maxKeyLength = 0;
 
     // Iterate every provided property, parse them one by one into string.
-    iterPropEnumerable(additional, key => {
-        const value = additional[key];
+    iterPropEnumerable(additional, (key, value) => {
         const valueStr = tryPaintValue(depth, color, key, value);
 
         keys.push(key);
