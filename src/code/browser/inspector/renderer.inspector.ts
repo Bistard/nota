@@ -15,7 +15,7 @@ import { FuzzyScore } from "src/base/common/fuzzy";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
 import { PrimitiveType, toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
-import { initExposedElectronAPIs, ipcRenderer, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
+import { initExposedElectronAPIs, ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
@@ -66,8 +66,7 @@ new class InspectorRenderer {
 
             // service initialization
             await Promise.all([
-                // this.initServices(instantiationService),
-                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web environment (DOM content) has been loaded.')),
+                waitDomToBeLoad().then(() => this.logService?.info('renderer', 'Web environment (DOM content) has been loaded.')),
             ]);
 
             // view initialization
@@ -145,7 +144,7 @@ class InspectorBrowser {
         });
 
         // listener: update view for incoming data
-        ipcRenderer.on(IpcChannel.InspectorDataSync, (e, data: InspectorData[]) => {
+        safeIpcRendererOn(IpcChannel.InspectorDataSync, (e, data: InspectorData[]) => {
             this._view.onData(data);
         });
 

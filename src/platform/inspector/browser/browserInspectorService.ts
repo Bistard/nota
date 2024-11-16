@@ -10,7 +10,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IContextService } from "src/platform/context/common/contextService";
-import { ipcRenderer, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
+import { ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
@@ -50,10 +50,10 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     public startListening(): void {
         this._initProtector.init('[BrowserInspectorService] Cannot initialize twice').unwrap();
-        ipcRenderer.on(IpcChannel.InspectorReady, (e, listenToDataType: InspectorDataType) => {
+        safeIpcRendererOn(IpcChannel.InspectorReady, (e, listenToDataType: InspectorDataType) => {
             this.startListenTo(listenToDataType);
         });
-        ipcRenderer.on(IpcChannel.InspectorClose, () => {
+        safeIpcRendererOn(IpcChannel.InspectorClose, () => {
             this.stopListenTo();
         });
     }
