@@ -346,7 +346,7 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         keyPart.textContent = item.data.key;
 
         const valuePart = data.valueElement;
-        valuePart.textContent = item.data.value?.toString() ?? '';
+        valuePart.textContent = String(item.data.value);
     }
 
     public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {
