@@ -181,6 +181,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 height: 600,
                 resizable: true,
                 frameless: false,
+                alwaysOnTop: true,
             },
             "open-devtools": false,
             hostWindow: ownerWindow,
