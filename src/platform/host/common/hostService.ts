@@ -42,6 +42,7 @@ export interface IHostService extends IService {
     closeDevTools(id?: number): Promise<void>;
     toggleDevTools(id?: number): Promise<void>;
     reloadWebPage(id?: number): Promise<void>;
+    toggleInspectorWindow(id?: number): Promise<void>;
 
     // status-service (THOSE FUNCTIONS MIGHT THROW WHEN FAILED)
     setApplicationStatus(key: StatusKey, val: any): Promise<void>;

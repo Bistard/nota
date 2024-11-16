@@ -15,6 +15,15 @@ export const rendererWorkbenchShortcutRegister = createRegister(
             when: WorkbenchContextKey.inDevelopContext,
             commandArgs: [],
         });
+
+        registrant.registerBasic(
+            AllCommands.toggleInspector, {
+            key: 'Ctrl+Alt+I',
+            mac: 'Meta+Alt+I',
+            weight: ShortcutWeight.Core,
+            when: WorkbenchContextKey.inDevelopContext,
+            commandArgs: [],
+        });
         
         registrant.registerBasic(
             AllCommands.reloadWindow, {

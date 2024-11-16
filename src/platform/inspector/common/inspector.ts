@@ -21,6 +21,8 @@ export interface IBrowserInspectorService extends IService {
      * @note Can only be invoked once.
      */
     startListening(): void;
+    isListening(): boolean;
+    stopListenTo(): void;
 }
 
 /**

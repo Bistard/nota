@@ -7,9 +7,8 @@ import { Shortcut } from "src/base/common/keyboard";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { HashNumber } from "src/base/common/utilities/hash";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
-import { isObject } from "src/base/common/utilities/type";
+import { isDefined, isObject } from "src/base/common/utilities/type";
 import { ICommandBasicSchema, ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
-import { ICommandService } from "src/platform/command/common/commandService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IContextService } from "src/platform/context/common/contextService";
@@ -66,9 +65,11 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         });
     }
 
-    // [private methods]
+    public isListening(): boolean {
+        return isDefined(this._currentListenTo);
+    }
 
-    private startListenTo(listenToDataType: InspectorDataType): void {
+    public startListenTo(listenToDataType: InspectorDataType): void {
         
         // duplicate listens to the same data, do nothing
         if (this._currentListenTo === listenToDataType) {
@@ -86,7 +87,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         this._lifecycle.register(this.__registerChangeListeners(listenToDataType));
     }
 
-    private stopListenTo(): void {
+    public stopListenTo(): void {
         this._lifecycle.dispose();
         this._lifecycle = new DisposableManager();
         this._currentListenTo = undefined;

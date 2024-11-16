@@ -36,6 +36,7 @@ export const enum AllCommands {
 
     alertError       = 'alertError',
     toggleDevTool    = 'toggle-develop-tool',
+    toggleInspector  = 'toggle-inspector',
     reloadWindow     = 'reload-window',
     closeApplication = 'close-application',
     
@@ -69,6 +70,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
 
     [AllCommands.alertError]:       'Displays error messages in a popup notification.',
     [AllCommands.toggleDevTool]:    'Toggle the developer tool of the whole application.',
+    [AllCommands.toggleInspector]:  'Toggle the inspector window of the whole application.',
     [AllCommands.reloadWindow]:     'Reload the browser entirely.',
     [AllCommands.closeApplication]: 'Close the current window.',
     
@@ -108,6 +110,7 @@ export type AllCommandsArgumentsTypes = {
     
     [AllCommands.alertError]      : [reporter: string, error: any];
     [AllCommands.toggleDevTool]   : [];
+    [AllCommands.toggleInspector] : [];
     [AllCommands.reloadWindow]    : [];
     [AllCommands.closeApplication]: [];
     
@@ -146,6 +149,7 @@ export type AllCommandsReturnTypes = {
     
     [AllCommands.alertError]      : void;
     [AllCommands.toggleDevTool]   : void;
+    [AllCommands.toggleInspector] : void;
     [AllCommands.reloadWindow]    : void;
     [AllCommands.closeApplication]: void;
     
