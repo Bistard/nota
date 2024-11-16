@@ -14,15 +14,24 @@
 
 /* navigation bar */
 
-.inspector-bar .widget-item {
+.inspector-bar .button {
     box-sizing: border-box;
-    border-left: 1px solid rgb(65, 65, 65);
-    border-right: 1px solid rgb(65, 65, 65);
-    border-bottom: 2px solid rgb(65, 65, 65);
+    /* border-left: 1px solid rgb(65, 65, 65); */
+    border-bottom: 1px solid rgb(65, 65, 65);
 }
 
-.inspector-bar .widget-item:hover {
-    background-color: #d4d4d4;
+.inspector-bar .button.focused {
+    color: white;
+    background-color: #1e88d1;
+}
+
+.inspector-bar .button > span {
+    line-height: 24px;
+    /* font: ; */
+}
+
+.inspector-bar .button:hover {
+    background-color: #1e88d1;
 }
 
 /* inspector view */
@@ -32,5 +41,30 @@
 
     width: 100%;
     height: 100%;
+}
+
+.list-view-row {
+    box-sizing: border-box !important;
+    padding: 2px !important;
+    border-radius: 0px !important;
+}
+
+.list-view-row:hover {
+    background-color: #efefef !important;
+}
+
+.list-view-row.selected {
+    color: rgb(255, 255, 255) !important;
+    background-color: #1e88d1 !important;
+}
+
+.list-view-row.focused {
+    outline: 2px solid #1e88d1 !important;
+}
+
+.inspector-item-value {
+    position: absolute;
+    justify-content: space-between;
+    right: 0;
 }
 

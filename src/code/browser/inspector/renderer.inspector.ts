@@ -9,7 +9,6 @@ import { MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
-import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
 import { FuzzyScore } from "src/base/common/fuzzy";
@@ -222,6 +221,8 @@ class InspectorWindow {
             { type: InspectorDataType.Color },
             { type: InspectorDataType.Menu },
         ];
+
+        let currButton: Button | undefined = undefined;
         
         for (const { type } of navigation) {
             const button = new Button({ id: type, label: type });
@@ -230,14 +231,21 @@ class InspectorWindow {
                 data: button,
                 dispose: button.dispose.bind(button),
             });
-            button.onDidClick(() => this.__onButtonClick(type));
+            button.onDidClick(() => {
+                if (currButton) {
+                    currButton.element.classList.toggle('focused');
+                }
+                currButton = button;
+                button.element.classList.toggle('focused');
+                this.__beginListening(type);
+            });
         }
         
         navBar.render();
         return navBar;
     }
 
-    private __onButtonClick(listenToType: InspectorDataType): void {
+    private __beginListening(listenToType: InspectorDataType): void {
         ipcRenderer.send(IpcChannel.InspectorReady, WIN_CONFIGURATION.windowID, listenToType);
     }
 
@@ -301,7 +309,10 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
     return buildTree(data);
 }
 
-interface IInspectorItemMetadata extends IListViewMetadata {}
+interface IInspectorItemMetadata extends IListViewMetadata {
+    readonly keyElement: HTMLElement;
+    readonly valueElement: HTMLElement;
+}
 const InspectorRendererType = 'inspector-renderer';
 
 class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzyScore, IInspectorItemMetadata> {
@@ -311,20 +322,31 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
     constructor() {}
 
     public render(element: HTMLElement): IInspectorItemMetadata {
-        const text = document.createElement('span');
-        text.className = 'inspector-item';
-        text.style.lineHeight = `${InspectorItemProvider.Size}px`;
+        // key part
+        const key = document.createElement('span');
+        key.className = 'inspector-item-key';
+        key.style.lineHeight = `${InspectorItemProvider.Size - 4}px`;
+        element.appendChild(key);
 
-        element.appendChild(text);
+        // value part
+        const value = document.createElement('span');
+        value.className = 'inspector-item-value';
+        value.style.lineHeight = `${InspectorItemProvider.Size - 4}px`;
+        element.appendChild(value);
 
         return {
-            container: text
+            container: element,
+            keyElement: key,
+            valueElement: value,
         };
     }
 
     public update(item: ITreeNode<InspectorItem, void>, index: number, data: IInspectorItemMetadata, size?: number): void {
-        const text = data.container;
-        text.textContent = item.data.key;
+        const keyPart = data.keyElement;
+        keyPart.textContent = item.data.key;
+
+        const valuePart = data.valueElement;
+        valuePart.textContent = item.data.value?.toString() ?? '';
     }
 
     public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {
@@ -345,7 +367,7 @@ class InspectorItemProvider implements IListItemProvider<InspectorItem> {
     /**
      * The height in pixels for every outline item.
      */
-    public static readonly Size = 18;
+    public static readonly Size = 24;
 
     public getSize(data: InspectorItem): number {
         return InspectorItemProvider.Size;
