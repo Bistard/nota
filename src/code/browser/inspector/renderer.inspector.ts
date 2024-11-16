@@ -346,14 +346,16 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         keyPart.textContent = item.data.key;
 
         const valuePart = data.valueElement;
-        const textContent = String(item.data.value);
-        valuePart.textContent = item.data.value === undefined ? '' : String(item.data.value);
-
+        let textContent = item.data.value === undefined ? '' : String(item.data.value);
+        
         // color data
         if (item.data.isColor) {
+            textContent = textContent.toUpperCase();
             valuePart.style.backgroundColor = `${textContent}`;
             valuePart.style.color = Color.parseHex(textContent).isDarker() ? 'white' : 'black'; // create contrast text color
         }
+
+        valuePart.textContent = textContent;
     }
 
     public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {
