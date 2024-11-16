@@ -369,6 +369,9 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         }
         else if (isBoolean(data.value) || isNullable(data.value)) {
             valuePart.style.color = '#9980ff'; // purple
+            if (data.value === true) {
+                valuePart.style.fontWeight = 'bold'; // purple
+            }
         }
         else if (Array.isArray(data.value)) {
             textContent = `[${textContent}]`; // array
