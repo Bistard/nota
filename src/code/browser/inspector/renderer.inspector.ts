@@ -12,13 +12,19 @@ import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Color } from "src/base/common/color";
 import { ErrorHandler } from "src/base/common/error";
 import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
+import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
 import { isBoolean, isNullable, isNumber, isString, PrimitiveType, toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
+import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
+import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { initExposedElectronAPIs, ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
+import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
+import { IFileService } from "src/platform/files/common/fileService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
@@ -27,8 +33,10 @@ import { ServiceCollection } from "src/platform/instantiation/common/serviceColl
 import { IpcService, IIpcService } from "src/platform/ipc/browser/ipcService";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ProxyChannel } from "src/platform/ipc/common/proxy";
+import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { BrowserLifecycleService, IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 
 /**
  * InspectorRenderer first entry for inspector window.
@@ -67,6 +75,7 @@ new class InspectorRenderer {
 
             // service initialization
             await Promise.all([
+                this.initServices(instantiationService),
                 waitDomToBeLoad().then(() => this.logService?.info('renderer', 'Web environment (DOM content) has been loaded.')),
             ]);
 
@@ -101,6 +110,13 @@ new class InspectorRenderer {
         // logger
         logService.setLogger(new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN));
 
+        // registrant-service
+        const registrantService = new RegistrantService(logService);
+        instantiationService.register(IRegistrantService, registrantService);
+        registrantService.registerRegistrant(instantiationService.createInstance(ConfigurationRegistrant));
+        registrantService.registerRegistrant(instantiationService.createInstance(ReviverRegistrant));
+        registrantService.init(instantiationService);
+
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID, logService);
         instantiationService.register(IIpcService, ipcService);
@@ -113,7 +129,22 @@ new class InspectorRenderer {
         const lifecycleService = new BrowserLifecycleService(logService, hostService);
         instantiationService.register(ILifecycleService, lifecycleService);
 
+        // file-service
+        const fileService = instantiationService.createInstance(BrowserFileChannel);
+        instantiationService.register(IFileService, fileService);
+
+        // configuration-service
+        const configurationService = instantiationService.createInstance(BrowserConfigurationService, { 
+            appConfiguration: { path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME) } 
+        });
+        instantiationService.register(IConfigurationService, configurationService);
+
         return instantiationService;
+    }
+
+    private async initServices(instantiationService: IInstantiationService): Promise<any> {
+        const configurationService = instantiationService.getService(IConfigurationService);
+        await configurationService.init().unwrap();
     }
 };
 
