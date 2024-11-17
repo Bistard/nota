@@ -298,8 +298,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         const sorter = this.__assertSorter();
         const success = sorter.switchTo(type, order);
         
-        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.Memory });
-        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.Memory });
+        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.User });
+        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.User });
         return success;
     }
 

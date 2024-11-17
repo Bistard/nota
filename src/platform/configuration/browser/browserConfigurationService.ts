@@ -1,7 +1,7 @@
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
 import { ILogService } from "src/base/common/logger";
-import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { IConfigurationSchema, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileService } from "src/platform/files/common/fileService";
 import { DataBuffer } from "src/base/common/files/buffer";
@@ -11,6 +11,7 @@ import { Arrays } from "src/base/common/utilities/array";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { panic } from "src/base/common/utilities/panic";
+import { isObject } from "src/base/common/utilities/type";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -124,19 +125,36 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
     }
     
     private __validateConfigurationUpdateInValue(section: Section, value: unknown): IJsonSchemaValidateResult {
-        // value validation
-        const getFirstSection = (section: string): string => {
-            const endIdx = section.indexOf('.');
-            return endIdx === -1 ? section : section.substring(0, endIdx);
-        };
-        const firstKey = getFirstSection(section);
-        
+        // overwriting the entire configuration, we check every property of the new configuration
+        if (section === '') {
+            if (!isObject(value)) {
+                return { valid: false, errorMessage: 'invalid configuration' };
+            }
+            for (const [propKey, propValue] of Object.entries(value)) {
+                const result = this.__validateConfigurationUpdateInValue(propKey, propValue);
+                if (!result.valid) {
+                    return result;
+                }
+            }
+            return { valid: true };
+        }
+
         const schemas = this._registrant.getConfigurationSchemas();
-        const correspondingSchema = schemas[firstKey];
-        if (!correspondingSchema) {
+        const sections = section.split('.');
+        const firstSection = sections.splice(0, 1)[0]!;
+        let schema = schemas[firstSection];
+
+        for (const key of sections) {
+            if (!schema || schema.type !== "object") {
+                return { valid: false, errorMessage: 'no corresponding schema' };
+            }
+            schema = schema.properties?.[key];
+        }
+
+        if (!schema) {
             return { valid: false, errorMessage: 'no corresponding schema' };
         }
-        
-        return JsonSchemaValidator.validate(value, correspondingSchema);
+
+        return JsonSchemaValidator.validate(value, schema);
     }
 }

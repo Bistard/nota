@@ -17,10 +17,9 @@ import { BrowserConfigurationService } from 'src/platform/configuration/browser/
 import { delayFor } from 'src/base/common/utilities/async';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
-import { assertAsyncResult } from 'test/utils/helpers';
 import { INSTANT_TIME } from 'src/base/common/date';
 
-suite('MainConfiguratioService-test', () => {
+suite('MainConfigurationService-test', () => {
 
     let registrant: IConfigurationRegistrant;
 
@@ -252,6 +251,15 @@ suite('BrowserConfigurationService', () => {
                 'section': {
                     type: 'string',
                     default: 'default value',
+                },
+                'section1': {
+                    type: 'object',
+                    properties: {
+                        'section2': {
+                            type: 'number',
+                            default: 5,
+                        }
+                    }
                 }
             }
         });
@@ -281,6 +289,20 @@ suite('BrowserConfigurationService', () => {
         // file is not updated
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], 'user value');
+    }));
+    
+    test('set - in memory changes (more path)', () => FakeAsync.run(async () => {
+        const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
+        (await service.init().unwrap());
+        
+        // before set, should equal to default
+        assert.strictEqual(service.get('section1.section2'), 5);
+
+        // set path
+        await service.set('section1.section2', 10, { type: ConfigurationModuleType.Memory });
+
+        // in-memory is updated
+        assert.strictEqual(service.get('section1.section2'), 10);
     }));
 
     test('set - user configuration changes', () => FakeAsync.run(async () => {
@@ -416,11 +438,11 @@ suite('BrowserConfigurationService', () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         
         (await fileService.delete(userConfigURI).unwrap());
-        await assert.rejects(() => assertAsyncResult(fileService.readFile(userConfigURI))); // file does not exist
+        await assert.rejects(() => fileService.readFile(userConfigURI).unwrap()); // file does not exist
         
         (await service.init().unwrap());
         
         const content = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.deepStrictEqual(content, { 'section': 'default value' });
+        assert.deepStrictEqual(content, { 'section': 'default value', 'section1': { 'section2': 5 } });
     }));
 });
