@@ -15,6 +15,7 @@ import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
+import { errorToMessage } from "src/base/common/utilities/panic";
 import { isBoolean, isNullable, isNumber, isString, PrimitiveType, toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
@@ -68,7 +69,16 @@ new class InspectorRenderer {
             });
 
             // ensure we handle almost every errors properly
-            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
+            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION, error => {
+                const hostService = instantiationService!.getOrCreateService(IHostService);
+                hostService.showMessageBox({
+                    type: 'error',
+                    title: 'Unexpected Error',
+                    message: errorToMessage(error),
+                    detail: '',
+                    buttons: ['OK'],
+                });
+            });
 
             // core service construction
             instantiationService = this.createCoreServices();
