@@ -42,6 +42,8 @@ export type InspectorData = {
     readonly key: string;
     readonly value?: any;
     readonly children?: InspectorData[];
+    
+    readonly id?: string; // a unique identifier
 
     readonly isColor?: true;    // help to distinguish color item
     readonly isEditable?: true; // mark as editable

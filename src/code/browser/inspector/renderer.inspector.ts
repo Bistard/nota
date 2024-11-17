@@ -18,7 +18,7 @@ import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
 import { isBoolean, isNullable, isNumber, isString, PrimitiveType, toBoolean } from "src/base/common/utilities/type";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
-import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { APP_CONFIG_NAME, ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { initExposedElectronAPIs, ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
@@ -211,7 +211,10 @@ class InspectorWindow {
 
     // [constructor]
 
-    constructor(parent: HTMLElement) {
+    constructor(
+        parent: HTMLElement,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
+    ) {
         this._parent = parent;
 
         const viewContainer = document.createElement('div');
@@ -232,7 +235,7 @@ class InspectorWindow {
         }
         
         const initTree = transformDataToTree(data);
-        this._tree = new InspectorTree(this._inspectorViewContainer, initTree);
+        this._tree = new InspectorTree(this._inspectorViewContainer, initTree, this.configurationService);
     }
 
     public layout(): void {
@@ -296,12 +299,13 @@ class InspectorTree extends MultiTree<InspectorItem, void> {
     constructor(
         container: HTMLElement,
         initData: ITreeNodeItem<InspectorItem>[],
+        configurationService: IConfigurationService,
     ) {
-        const rootItem = new InspectorItem('$_root_', undefined);
+        const rootItem = new InspectorItem('$_root_', undefined, 'object');
         super(
             container,
             rootItem,
-            [new InspectorItemRenderer()],
+            [new InspectorItemRenderer(configurationService)],
             new InspectorItemProvider(),
             {
                 collapsedByDefault: false,
@@ -315,14 +319,6 @@ class InspectorTree extends MultiTree<InspectorItem, void> {
 
         this.splice(this.rootItem, initData);
         this.layout();
-
-        container.addEventListener('change', e => {
-            const target = e.target as HTMLInputElement | undefined;
-            if (!target) {
-                return;
-            }
-            console.log(target.value);
-        });
     }
 }
 
@@ -330,6 +326,7 @@ class InspectorItem {
     constructor(
         public readonly key: string,
         public readonly value: PrimitiveType | undefined,
+        public readonly id?: string,
         public readonly isColor?: true,
         public readonly isEditable?: true,
     ) {}
@@ -339,7 +336,7 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
     function buildTree(data: InspectorData[]): ITreeNodeItem<InspectorItem>[] {
         return data.map(item => {
             const node: ITreeNodeItem<InspectorItem> = {
-                data: new InspectorItem(item.key, item.value, item.isColor, item.isEditable),
+                data: new InspectorItem(item.key, item.value, item.id, item.isColor, item.isEditable),
                 collapsible: !!item.children,
                 children: item.children ? buildTree(item.children) : undefined,
             };
@@ -359,7 +356,9 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
 
     public readonly type: RendererType = InspectorRendererType;
 
-    constructor() {}
+    constructor(
+        private readonly configurationService: IConfigurationService,
+    ) {}
 
     public render(element: HTMLElement): IInspectorItemMetadata {
         // key part
@@ -400,6 +399,40 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         else if (!data.isEditable) {
             valuePart.readOnly = true;
             valuePart.classList.add('disabled');
+        }
+        // editable
+        else {
+            valuePart.addEventListener('change', e => {
+                const raw = valuePart.value;
+                const rawLower = raw.toLowerCase();
+                let value: any;
+                // string
+                if (raw.startsWith('"') && raw.endsWith('"')) {
+                    value = raw.slice(1, -1);
+                }
+                // boolean
+                else if (rawLower === 'true' || rawLower === 'false') {
+                    value = rawLower === 'true';
+                }
+                // number
+                else if (isNaN(parseInt(raw)) === false) {
+                    value = parseInt(raw);
+                }
+                // null
+                else if (raw === 'null') {
+                    value = null;
+                }
+                // array
+                else if (raw.startsWith('[') && raw.endsWith(']')) {
+                    value = JSON.parse(raw);
+                }
+                // unexpected
+                else {
+                    value = raw;
+                }
+                this.configurationService.set(data.id!, value, { type: ConfigurationModuleType.User });
+                e.stopPropagation();
+            });
         }
 
         // color data

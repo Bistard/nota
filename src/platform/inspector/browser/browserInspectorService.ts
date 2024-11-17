@@ -139,16 +139,17 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 }
 
 function transformConfigurationToData(config: object): InspectorData[] {
-    function buildData(obj: any): InspectorData[] {
+    function buildData(obj: any, currentPath: string = ''): InspectorData[] {
         return Object.entries(obj).map(([key, value]) => {
+            const fullPath = currentPath ? `${currentPath}.${key}` : key;
             if (isObject(value)) {
-                return { key, children: buildData(value), };
+                return <InspectorData>{ key, children: buildData(value, fullPath) };
             } else {
-                return { key, value, isEditable: true, };
+                return <InspectorData>{ key, value, isEditable: true, id: fullPath };
             }
         });
     }
-    return buildData(config);
+    return buildData(config, '');
 }
 
 function transformContextKeyToData(contextKeys: readonly IContextKey<any>[]): InspectorData[] {
