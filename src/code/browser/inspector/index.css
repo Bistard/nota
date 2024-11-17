@@ -1,3 +1,7 @@
+*::selection {
+    background: rgb(136, 186, 255) !important;
+}
+
 .inspector-view-container {
     position: absolute;
     
@@ -78,15 +82,30 @@
     outline: 2px solid #1e88d1 !important;
 }
 
+/** inspector-item-value */
+
+.inspector-item-value.disabled {
+    outline: none;
+    background: none;
+    box-shadow: none;
+    appearance: none;
+    border: none;
+}
+
 .inspector-item-value {
     position: absolute;
     justify-content: space-between;
 
-    min-width: 80px;
+    width: 100px;
     text-align: center;
     right: 0;
+
+    border: 1px solid #ccc;
+    /* border-radius: 5px; */
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.inspector-item-value:hover {
+.inspector-item-value:hover:not(.disabled) {
     background-color: #efefef;
 }

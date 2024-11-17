@@ -284,6 +284,14 @@ class InspectorTree extends MultiTree<InspectorItem, void> {
 
         this.splice(this.rootItem, initData);
         this.layout();
+
+        container.addEventListener('change', e => {
+            const target = e.target as HTMLInputElement | undefined;
+            if (!target) {
+                return;
+            }
+            console.log(target.value);
+        });
     }
 }
 
@@ -312,7 +320,7 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
 
 interface IInspectorItemMetadata extends IListViewMetadata {
     readonly keyElement: HTMLElement;
-    readonly valueElement: HTMLElement;
+    readonly valueElement: HTMLInputElement;
 }
 const InspectorRendererType = 'inspector-renderer';
 
@@ -330,7 +338,7 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         element.appendChild(key);
 
         // value part
-        const value = document.createElement('span');
+        const value = document.createElement('input');
         value.className = 'inspector-item-value';
         value.style.lineHeight = `${InspectorItemProvider.Size - 4}px`;
         element.appendChild(value);
@@ -353,7 +361,16 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         keyPart.textContent = data.key;
         const valuePart = metadata.valueElement;
         let textContent = data.value === undefined ? '' : String(data.value);
-        
+
+        if (data.value === undefined) {
+            valuePart.disabled = true;
+            valuePart.classList.add('disabled');
+        } 
+        else if (!data.isEditable) {
+            valuePart.readOnly = true;
+            valuePart.classList.add('disabled');
+        }
+
         // color data
         if (data.isColor) {
             textContent = textContent.toUpperCase();
@@ -362,20 +379,20 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         }
         // general case
         else if (isNumber(data.value)) {
-            // review: valuePart.style.color = `#a1f7b5`; // light green
+            valuePart.style.color = `#a1f7b5`; // light green
         }
         else if (isString(data.value)) {
+            valuePart.style.color = '#f28b54';
             textContent = `"${textContent}"`; // orange
-            // review: valuePart.style.color = '#f28b54';
         }
         else if (isBoolean(data.value) || isNullable(data.value)) {
-            // review: valuePart.style.color = '#9980ff'; // purple
+            valuePart.style.color = '#9980ff'; // purple
         }
         else if (Array.isArray(data.value)) {
             textContent = `[${textContent}]`; // array
         }
 
-        valuePart.textContent = textContent;
+        valuePart.defaultValue = textContent;
     }
 
     public updateIndent(item: ITreeNode<InspectorItem, FuzzyScore>, indentElement: HTMLElement): void {
