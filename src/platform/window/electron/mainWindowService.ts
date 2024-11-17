@@ -183,7 +183,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 frameless: false,
                 alwaysOnTop: true,
             },
-            "open-devtools": true,
+            "open-devtools": false,
             hostWindow: ownerWindow,
             ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
         });
