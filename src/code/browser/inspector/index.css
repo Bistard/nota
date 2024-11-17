@@ -56,7 +56,7 @@
     border-top: 1px solid rgb(174, 174, 174) !important;
 }
 
-.list-view-row:hover {
+.list-view-row:hover:not(.selected):not(:has(.inspector-item-value:hover)) {
     background-color: #efefef !important;
 }
 
@@ -85,4 +85,8 @@
     min-width: 80px;
     text-align: center;
     right: 0;
+}
+
+.inspector-item-value:hover {
+    background-color: #efefef;
 }
