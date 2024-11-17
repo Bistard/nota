@@ -362,17 +362,14 @@ class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, FuzzySco
         }
         // general case
         else if (isNumber(data.value)) {
-            valuePart.style.color = `#a1f7b5`; // light green
+            // review: valuePart.style.color = `#a1f7b5`; // light green
         }
         else if (isString(data.value)) {
             textContent = `"${textContent}"`; // orange
-            valuePart.style.color = '#f28b54';
+            // review: valuePart.style.color = '#f28b54';
         }
         else if (isBoolean(data.value) || isNullable(data.value)) {
-            valuePart.style.color = '#9980ff'; // purple
-            if (data.value === true) {
-                valuePart.style.fontWeight = 'bold'; // purple
-            }
+            // review: valuePart.style.color = '#9980ff'; // purple
         }
         else if (Array.isArray(data.value)) {
             textContent = `[${textContent}]`; // array
