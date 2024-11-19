@@ -45,7 +45,7 @@ export class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, F
     }
 
     public update(item: ITreeNode<InspectorItem, void>, index: number, metadata: IInspectorItemMetadata, size?: number): void {
-        const data = item.data;
+        const { data } = item;
 
         if (item.depth === 1) {
             metadata.container.parentElement?.parentElement?.classList.add('top-level');

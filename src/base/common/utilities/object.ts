@@ -110,10 +110,8 @@ export function iterPropEnumerable(obj: any, fn: (propName: string, propValue: a
     let idx = 0;
 	for (const [propKey, propValue] of Object.entries(obj)) {
 		fn(propKey, propValue, idx++);
-		if (recursiveLevel) {
-			if (isObject(propValue)) {
-				iterPropEnumerable(propValue, fn, recursiveLevel - 1);
-			}
+		if (recursiveLevel && isObject(propValue)) {
+			iterPropEnumerable(propValue, fn, recursiveLevel - 1);
 		}
 	}
 }
