@@ -1,10 +1,111 @@
-body {
-    cursor: default;
-    margin: 0px;
-    padding: 0px;
-    background-color: white;
+*::selection {
+    background: rgb(136, 186, 255) !important;
+}
 
-    font-size: 10pt;
-    font-family: 'harmonyOS sans', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
+.inspector-view-container {
+    position: absolute;
+    
+    width: 100%;
+    height: 100%;
+    
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+
     overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* navigation bar */
+
+.inspector-bar {
+    z-index: 1000 !important;
+    background-color: white;
+}
+
+.inspector-bar .button {
+    box-sizing: border-box;
+    border-bottom: 1px solid rgb(65, 65, 65);
+}
+
+.inspector-bar .button.focused {
+    color: white;
+    background-color: #1e88d1;
+}
+
+.inspector-bar .button > span {
+    line-height: 28px;
+}
+
+.inspector-bar .button:hover {
+    background-color: #1e88d1;
+}
+
+/* inspector tree */
+
+.inspector-view {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.list-view-row {
+    box-sizing: border-box !important;
+    padding: 2px !important;
+    border-radius: 0px !important;
+}
+
+.list-view-row.top-level {
+    border-top: 1px solid rgb(174, 174, 174) !important;
+}
+
+.list-view-row:hover:not(.selected):not(:has(.inspector-item-value:hover)) {
+    background-color: #efefef !important;
+}
+
+.tree-list-row > .tree-list-indent::before {
+    font-size: 12px !important;
+    transition: none !important; /* disable animation */
+}
+
+.scroll-bar > .scroll-slider {
+    background-color: #919191 !important;
+}
+
+.list-view-row.selected {
+    color: rgb(255, 255, 255) !important;
+    background-color: #1e88d1 !important;
+}
+
+.list-view-row.focused {
+    outline: 2px solid #1e88d1 !important;
+}
+
+/** inspector-item-value */
+
+.inspector-item-value.disabled {
+    outline: none;
+    background: none;
+    box-shadow: none;
+    appearance: none;
+    border: none;
+}
+
+.inspector-item-value {
+    position: absolute;
+    justify-content: space-between;
+
+    width: 100px;
+    text-align: center;
+    right: 0;
+
+    border: 1px solid #ccc;
+    /* border-radius: 5px; */
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.inspector-item-value:hover:not(.disabled) {
+    background-color: #efefef;
 }

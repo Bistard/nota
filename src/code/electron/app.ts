@@ -1,4 +1,5 @@
 import * as electron from "electron";
+import type { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
@@ -7,7 +8,6 @@ import { getUUID } from "src/base/node/uuid";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ProxyChannel } from "src/platform/ipc/common/proxy";
@@ -18,10 +18,9 @@ import { IMainWindowService, MainWindowService } from "src/platform/window/elect
 import { ILoggerService } from "src/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
-import { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
-import { DEFAULT_HTML, INSPECTOR_HTML } from "src/platform/window/common/window";
+import { DEFAULT_HTML } from "src/platform/window/common/window";
 import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
@@ -31,6 +30,9 @@ import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { toBoolean } from "src/base/common/utilities/type";
+import { IProductService } from "src/platform/product/common/productService";
+import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -45,10 +47,6 @@ export interface IApplicationInstance {
  */
 export class ApplicationInstance extends Disposable implements IApplicationInstance {
 
-    // [fields]
-
-    private readonly mainWindowService?: IMainWindowService;
-
     // [constructor]
 
     constructor(
@@ -60,6 +58,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         @IMainStatusService private readonly statusService: IMainStatusService,
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super();
         this.registerListeners();
@@ -83,11 +82,14 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // IPC channel initialization
         this.registerChannels(appInstantiationService, ipcServer);
 
+        // life-cycle-service: READY
+        this.lifecycleService.setPhase(LifecyclePhase.Ready);
+
         // open first window
-        this.openFirstWindow(appInstantiationService);
+        const firstWindow = this.openFirstWindow(appInstantiationService);
 
         // post work
-        this.afterFirstWindow(appInstantiationService);
+        this.afterFirstWindow(appInstantiationService, firstWindow.id);
     }
 
     // [private methods]
@@ -114,25 +116,23 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
         this.logService.debug('App', 'constructing application services...');
 
-        // instantiation-service (child)
-        const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
-
         // main-window-service
-        appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
+        this.mainInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-service
-        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
+        this.mainInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
-        appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
+        this.mainInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
         // screen-monitor-service
-        appInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
+        this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
 
-        // ai-service
+        // main-inspector-service
+        this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService,[]));
 
         this.logService.debug('App', 'Application services constructed.');
-        return appInstantiationService;
+        return this.mainInstantiationService;
     }
 
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
@@ -167,9 +167,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
-        // life-cycle-service: READY
-        this.lifecycleService.setPhase(LifecyclePhase.Ready);
-
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
         const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
@@ -182,51 +179,25 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
+            applicationName: this.productService.profile.applicationName,
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
             uriToOpen: uriToOpen,
             displayOptions: {
                 frameless: true,
-            }
+            },
         });
 
         return window;
     }
 
-    private afterFirstWindow(provider: IServiceProvider): void {
+    private afterFirstWindow(provider: IServiceProvider, firstWindowID: number): void {
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            this.openDebugInspectorWindow(provider);
+            const mainWindowService = provider.getOrCreateService(IMainWindowService);
+            mainWindowService.openInspector(firstWindowID);
         }
-    }
-
-    private openDebugInspectorWindow(provider: IServiceProvider): void {
-        const mainWindowService = provider.getOrCreateService(IMainWindowService);
-
-        const window: IWindowInstance = mainWindowService.open({
-            CLIArgv: this.environmentService.CLIArguments,
-            loadFile: INSPECTOR_HTML,
-            displayOptions: {
-                width: 600,
-                height: 200,
-                minWidth: 600,
-                minHeight: 200,
-                resizable: true,
-                frameless: false,
-            },
-            "open-devtools": false,
-        });
-
-        /**
-         * Whenever all the other windows are closed, we also need to close the
-         * inspector window.
-         */
-        mainWindowService.onDidCloseWindow(() => {
-            if (mainWindowService.windowCount() === 1) {
-                mainWindowService.closeWindowByID(window.id);
-            }
-        });
     }
 
     // [private helper methods]

@@ -13,13 +13,18 @@ export const enum IpcChannel {
     // micro-service channel
     Logger = 'nota:mainLogger',
     DiskFile = 'nota:diskFile',
-    Configuration = 'nota:configuration',
     Host = 'nota:host',
     Dialog = 'nota:dialog',
 
     // main process direct communication to renderer process
     rendererAlertError = 'nota:rendererAlertError',
     rendererRunCommand = 'nota:rendererRunCommand',
+
+    // inspector window channel
+    InspectorReady       = 'nota:inspectorReady',
+    InspectorClose       = 'nota:inspectorClose',
+    InspectorDataSync    = 'nota:inspectorDataSync',
+    InspectorDataModify  = 'nota:inspectorDataModify',
 
     // Main process internal usage (not actually went through IPC), no need for a `nota:` prefix.
     WindowMaximized = 'window-maximized',

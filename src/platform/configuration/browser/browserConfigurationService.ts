@@ -1,16 +1,17 @@
 import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationServiceOptions, IConfigurationUpdateOptions, Section } from "src/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/platform/configuration/common/abstractConfigurationService";
 import { ILogService } from "src/base/common/logger";
-import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
+import { IConfigurationSchema, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IFileService } from "src/platform/files/common/fileService";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { URI } from "src/base/common/files/uri";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { Arrays } from "src/base/common/utilities/array";
-import { JsonSchemaValidator } from "src/base/common/json";
+import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { panic } from "src/base/common/utilities/panic";
+import { isObject } from "src/base/common/utilities/type";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -75,14 +76,14 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         }
 
         // ignore value check when deleting the configuration
-        if (value !== undefined  && !this.__validateConfigurationUpdateInValue(section, value)) {
-            panic(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}`);
+        const updateResult = this.__validateConfigurationUpdateInValue(section, value);
+        if (value !== undefined  && !updateResult.valid) {
+            panic(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}. Reason: ${updateResult.errorMessage}. IsDeprecated: ${updateResult.deprecatedMessage ?? false}`);
         }
         
         /**
          * Updates the configuration based on its target module type.
          */
-
         if (module === ConfigurationModuleType.Memory) {
             this.__updateInMemoryConfiguration(section, value);
         }
@@ -123,21 +124,37 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         return Arrays.exist(validSections, section);
     }
     
-    private __validateConfigurationUpdateInValue(section: Section, value: unknown): boolean {
-        // value validation
-        const getFirstSection = (section: string): string => {
-            const endIdx = section.indexOf('.');
-            return endIdx === -1 ? section : section.substring(0, endIdx);
-        };
-        const firstKey = getFirstSection(section);
-        
-        const schemas = this._registrant.getConfigurationSchemas();
-        const correspondingSchema = schemas[firstKey];
-        if (!correspondingSchema) {
-            return false;
+    private __validateConfigurationUpdateInValue(section: Section, value: unknown): IJsonSchemaValidateResult {
+        // overwriting the entire configuration, we check every property of the new configuration
+        if (section === '') {
+            if (!isObject(value)) {
+                return { valid: false, errorMessage: 'invalid configuration' };
+            }
+            for (const [propKey, propValue] of Object.entries(value)) {
+                const result = this.__validateConfigurationUpdateInValue(propKey, propValue);
+                if (!result.valid) {
+                    return result;
+                }
+            }
+            return { valid: true };
         }
-        
-        const result = JsonSchemaValidator.validate(value, correspondingSchema);
-        return result.valid;
+
+        const schemas = this._registrant.getConfigurationSchemas();
+        const sections = section.split('.');
+        const firstSection = sections.splice(0, 1)[0]!;
+        let schema = schemas[firstSection];
+
+        for (const key of sections) {
+            if (!schema || schema.type !== "object") {
+                return { valid: false, errorMessage: 'no corresponding schema' };
+            }
+            schema = schema.properties?.[key];
+        }
+
+        if (!schema) {
+            return { valid: false, errorMessage: 'no corresponding schema' };
+        }
+
+        return JsonSchemaValidator.validate(value, schema);
     }
 }

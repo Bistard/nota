@@ -13,8 +13,8 @@ import { URI } from "src/base/common/files/uri";
 import { isString } from "src/base/common/utilities/type";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
-import { relative } from "src/base/common/files/path";
 import { IS_WINDOWS } from "src/base/common/platform";
+import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -24,6 +24,19 @@ export const rendererWorkbenchCommandRegister = createRegister(
             {
                 id: AllCommands.toggleDevTool,
                 command: (provider) => { provider.getOrCreateService(IHostService).toggleDevTools(); },
+            },
+        );
+        
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.toggleInspector,
+                command: (provider) => { 
+                    const inspectorService = provider.getOrCreateService(IBrowserInspectorService);
+                    if (inspectorService.isListening()) {
+                        inspectorService.stopListenTo();
+                    }
+                    provider.getOrCreateService(IHostService).toggleInspectorWindow(); 
+                },
             },
         );
     

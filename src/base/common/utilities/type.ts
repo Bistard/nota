@@ -9,6 +9,7 @@ export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;
  */
 export type NonFalsy<T> = T extends Falsy ? never : T;
 
+export type PrimitiveType = number | string | boolean | any[] | null | undefined | symbol | bigint;
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
@@ -486,7 +487,7 @@ export function isFalsy(value: any): boolean {
  * @description Is the given variable is a primitive type: number , string , 
  * boolean , null , undefined , symbol or bigint.
  */
-export function isPrimitive(val: any): boolean {
+export function isPrimitive(val: any): val is PrimitiveType {
     if (val === null) {
         return true;
     }

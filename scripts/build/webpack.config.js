@@ -186,7 +186,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 {
                     target: 'electron-renderer',
                     entry: {
-                        renderer: './src/code/browser/renderer.ts',
+                        renderer: './src/code/browser/renderer.desktop.ts',
                     },
                     output: {
                         filename: '[name]-bundle.js',

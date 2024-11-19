@@ -347,9 +347,9 @@ const main = new class extends class MainProcess implements IMainProcess {
         else {
             code = 1;
             if (error.stack) {
-                this.logService.error('MainProcess', error.message, error);
+                this.logService.fatal('MainProcess', 'Unexpected Error', error);
             } else {
-                this.logService.error('MainProcess', error.message, new Error(`MainProcess process error: ${error.toString()}`));
+                this.logService.fatal('MainProcess', 'Unexpected Error', new Error(`MainProcess process error: ${error.toString()}`));
             }
         }
 
