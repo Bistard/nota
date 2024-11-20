@@ -185,7 +185,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._onDidDirtyChange.fire(value);
     }
 
-    public __onDidStateChange(newState: ProseEditorState): void {
+    public __onDidStateChange(event: IOnDidContentChangeEvent): void {
+        const newState = event.view.state;
         this._editorState = newState;
         this._onDidStateChange.fire();
     }

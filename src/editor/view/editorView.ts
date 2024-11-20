@@ -164,8 +164,7 @@ export class EditorView extends Disposable implements IEditorView {
          * need to inform {@link IEditorModel} to update its state.
          */
         this.__register(this._view.onDidContentChange(e => {
-            const newState = e.view.state;
-            model.__onDidStateChange(newState);
+            model.__onDidStateChange(e);
         }));
     }
 }

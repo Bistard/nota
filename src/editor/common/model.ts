@@ -7,6 +7,7 @@ import { AsyncResult } from "src/base/common/result";
 import { IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorSchema } from "src/editor/model/schema";
 import { IEditorPosition } from "src/editor/common/position";
+import { IOnDidContentChangeEvent } from "src/editor/view/proseEventBroadcaster";
 
 export type EditorToken = marked.Token;
 export type EditorTokenGeneric = marked.Tokens.Generic;
@@ -195,5 +196,5 @@ export interface IEditorModel extends IDisposable {
 
     // internal
 
-    __onDidStateChange(newState: ProseEditorState): void;
+    __onDidStateChange(event: IOnDidContentChangeEvent): void;
 }
