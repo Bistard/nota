@@ -34,36 +34,3 @@ export interface IMenuItem {
     label: string;
     submenu?: ISubMenuItem[];
 }
-
-export interface IMenuState {
-    menuTemplate: IMenuItem[];
-}
-
-export const MenuTemplate: IMenuItem[] = [
-    {
-        label: 'Nota',
-        submenu: [],
-    },
-    {
-        label: MenuLabels.File,
-        submenu: [
-            { label: 'New', commandId: CommandID.NewFile },
-            { label: 'Open', commandId: CommandID.OpenFile },
-            { type: 'separator' },
-            { label: 'Exit', commandId: CommandID.ExitApp, role: 'quit' },
-        ],
-    },
-    {
-        label: MenuLabels.Edit,
-        submenu: [
-            { role: 'undo', commandId: CommandID.Undo },
-            { role: 'redo', commandId: CommandID.Redo },
-        ],
-    },
-    {
-        label: MenuLabels.Help,
-        submenu: [
-            { label: 'About', commandId: CommandID.About },
-        ],
-    },
-];
