@@ -444,6 +444,16 @@ export type TreeLike<T> = {
 };
 
 /**
+ * A utility type for recursively replacing all occurrences of a specific type
+ * (TargetType) within a given type (T) with another type (ReplacementType).
+ */
+export type ReplaceType<T, TargetType, ReplacementType> = T extends TargetType
+    ? ReplacementType
+    : T extends object
+        ? { [K in keyof T]: ReplaceType<T[K], TargetType, ReplacementType> }
+        : T;
+
+/**
  * @description Ensures that the provided type `T` is strictly `true`.
  * @note The function itself doesn't perform any runtime checks. The type 
  * checking is done at compile time.
