@@ -71,6 +71,7 @@ import { BrowserInspectorService } from "src/platform/inspector/browser/browserI
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { rendererMenuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
+import { mainMenuRegister } from "src/platform/menu/common/menu.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -330,6 +331,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 super.initRegistrations(provider);
                 [
                     rendererMenuFileTreeContextRegister,
+                    mainMenuRegister
                 ]
                 .forEach(register => register(provider));
             }
