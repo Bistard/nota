@@ -8,7 +8,7 @@ import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/co
 import { Strings } from 'src/base/common/utilities/string';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
 import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
@@ -33,6 +33,9 @@ import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
+import { ContextService, IContextService } from 'src/platform/context/common/contextService';
+import { MenuRegistrant } from 'src/platform/menu/common/menuRegistrant';
+import { mainMenuRegister } from 'src/platform/menu/common/menu.register';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -147,6 +150,11 @@ const main = new class extends class MainProcess implements IMainProcess {
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
         instantiationService.register(IRegistrantService, registrantService);
+        
+        // context-service
+        const contextService = instantiationService.createInstance(ContextService);
+        instantiationService.register(IContextService, contextService);
+        
         this.initRegistrant(instantiationService, registrantService);
 
         // file-service
@@ -250,8 +258,23 @@ const main = new class extends class MainProcess implements IMainProcess {
          */
         registrant.registerRegistrant(service.createInstance(ConfigurationRegistrant));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
+        registrant.registerRegistrant(this.initMenuRegistrant(service));
 
         registrant.init(service);
+    }
+
+    private initMenuRegistrant(service: IInstantiationService): MenuRegistrant {
+        class MainMenuRegistrant extends MenuRegistrant {
+            public override initRegistrations(provider: IServiceProvider): void {
+                super.initRegistrations(provider);
+                [
+                    mainMenuRegister
+                ]
+                
+                .forEach(register => register(provider));
+            }
+        }
+        return service.createInstance(MainMenuRegistrant);
     }
 
     private async resolveSingleApplication(retry: boolean): Promise<void> {
