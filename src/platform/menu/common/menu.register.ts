@@ -25,6 +25,53 @@ export const mainMenuRegister = createRegister(
                     keybinding: IS_MAC ? 'Cmd+O' : 'Ctrl+O',
                 },
             },
+            // nested submenu examples for testing
+            {
+                group: '1_file_operations',
+                title: 'Recent Files',
+                command: {
+                    commandID: "",
+                },
+                submenu: [
+                    {
+                        group: '1_recent_files',
+                        title: 'file1.txt',
+                        command: {
+                            commandID: "",
+                        },
+                        submenu: [
+                            {
+                                group: '2_file_details',
+                                title: 'View Details',
+                                command: {
+                                    commandID: "",
+                                },
+                            },
+                            {
+                                group: '2_file_details',
+                                title: 'Open in Explorer',
+                                command: {
+                                    commandID: "",
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        group: '1_recent_files',
+                        title: 'file2.txt',
+                        command: {
+                            commandID: "",
+                        },
+                    },
+                    {
+                        group: '1_recent_files',
+                        title: 'file3.txt',
+                        command: {
+                            commandID: "",
+                        },
+                    },
+                ],
+            },
             {
                 group: '2_exit',
                 title: IS_MAC ? 'Quit' : 'Exit',
