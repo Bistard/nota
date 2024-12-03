@@ -67,6 +67,8 @@ import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
+import { rendererMenuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
+import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -137,6 +139,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
         (<any>this.logService) = logService;
+
+        // singleton initializations
+        logService.debug('renderer', 'Registering singleton services descriptors...');
+        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
+            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
+            instantiationService.register(serviceIdentifier, serviceDescriptor);
+        }
+        logService.debug('renderer', 'Singleton services descriptors all registered.');
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -210,14 +220,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         );
         instantiationService.register(II18nService, i18nService);
 
-        // singleton initializations
-        logService.debug('renderer', 'Registering singleton services descriptors...');
-        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
-            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
-            instantiationService.register(serviceIdentifier, serviceDescriptor);
-        }
-        logService.debug('renderer', 'Singleton services descriptors all registered.');
-
         logService.debug('renderer', 'All core renderer services are constructed.');
         return instantiationService;
     }
@@ -288,6 +290,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(this.initCommandRegistrant(service));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
         registrant.registerRegistrant(service.createInstance(ColorRegistrant));
+        registrant.registerRegistrant(this.initMenuRegistrant(service));
 
         // initialize all the registrations
         registrant.init(service);
@@ -316,6 +319,19 @@ const renderer = new class extends class RendererInstance extends Disposable {
         }
         
         return service.createInstance(BrowserCommandRegistrant);
+    }
+
+    private initMenuRegistrant(service: IInstantiationService): MenuRegistrant {
+        class BrowserMenuRegistrant extends MenuRegistrant {
+            public override initRegistrations(provider: IServiceProvider): void {
+                super.initRegistrations(provider);
+                [
+                    rendererMenuFileTreeContextRegister,
+                ]
+                .forEach(register => register(provider));
+            }
+        }
+        return service.createInstance(BrowserMenuRegistrant);
     }
 
     // [end]
