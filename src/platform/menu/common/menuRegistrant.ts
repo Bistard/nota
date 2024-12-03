@@ -8,6 +8,9 @@ import { IRegistrant, RegistrantType } from "src/platform/registrant/common/regi
 export const enum MenuTypes {
     CommandPalette = 'CommandPalette',
     FileTreeContext = 'FileTreeContext',
+    TitleBarFile = 'TitleBarFile',
+    TitleBarEdit = 'TitleBarEdit',
+    TitleBarView = 'TitleBarView',
 }
 
 export interface IMenuItemRegistration {
