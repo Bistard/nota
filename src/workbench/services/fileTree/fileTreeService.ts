@@ -35,6 +35,10 @@ import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPos
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { MenuRegistrant, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IContextService } from "src/platform/context/common/contextService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -67,6 +71,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
         @IClipboardService private readonly clipboardService: IClipboardService,
         @ICommandService private readonly commandService: ICommandService,
+        @IRegistrantService private readonly registrantService: IRegistrantService,
+        @IContextService private readonly contextService: IContextService
     ) {
         super();
         this._treeCleanup = new DisposableManager();
@@ -595,71 +601,107 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     }
 
     private __getContextMenuActions(event: ITreeContextmenuEvent<FileItem>): IMenuAction[] {
-        const data = assert(event.data);
-        const isFile = data.type === FileType.FILE;
-        const isFolder = data.type === FileType.DIRECTORY;
+        const registrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+        const fileTreeMenuItems = registrant.getMenuitems(MenuTypes.FileTreeContext);
 
-        const openGroup: IMenuAction[] = [];
-        const moveGroup: IMenuAction[] = [];
-        const editGroup: IMenuAction[] = [];
-        const copyGroup: IMenuAction[] = [];
+        const actions: IMenuAction[] = fileTreeMenuItems
+            .map((item) => {
+                return new SimpleMenuAction({
+                    enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
+                    id: item.title,
+                    key: item.command.keybinding,
+                    mac: item.command.mac,
+                    callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
+                        this.commandService.executeCommand(item.command.commandID, ctx.data?.uri);
+                    }
+                });
+            });
 
-        // openGroup
-        {
-            if (isFile) {
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open', callback: (ctx) => console.log(ctx) }));
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open in New Tab', callback: (ctx) => console.log(ctx) }));
-            } 
-            else if (isFolder) {
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'New file...', callback: (ctx) => console.log(ctx) }));
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'New folder...', callback: (ctx) => console.log(ctx) }));
+        // add separators between groups
+        const groupedActions = new Map<string, IMenuAction[]>();
+        for (const action of actions) {
+            const group = fileTreeMenuItems.find((item) => item.title === action.id)?.group || '';
+            if (!groupedActions.has(group)) {
+                groupedActions.set(group, []);
             }
-
-            const revealID = 
-                IS_MAC      ? 'Reveal in Finder' : 
-                IS_WINDOWS  ? 'Reveal in File Explorer' 
-                /* Linux */ : 'Reveal in Files';
-            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, key: 'Shift+Alt+R', mac: undefined, callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
-                ctx.data && this.commandService.executeCommand(AllCommands.fileTreeRevealInOS, ctx.data.uri);
-            } }));
+            groupedActions.get(group)!.push(action);
         }
 
-        // moveGroup
-        {
-            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Cut', key: 'Ctrl+X', mac: 'Meta+X', callback: (ctx) => console.log(ctx) }));
-            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy', key: 'Ctrl+C', mac: 'Meta+C', callback: (ctx) => console.log(ctx) }));
-
-            // paste only works for folder
-            if (isFile === false) {
-                const isEnable = this.clipboardService.read(ClipboardType.Resources).length > 0;
-                moveGroup.push(new SimpleMenuAction({ enabled: isEnable, id: 'Paste', key: 'Ctrl+V', mac: 'Meta+V', callback: (ctx) => console.log(ctx) }));
+        const finalActions: IMenuAction[] = [];
+        const groupNames = Array.from(groupedActions.keys());
+        groupNames.forEach((group, index) => {
+            finalActions.push(...groupedActions.get(group)!);
+            if (index < groupNames.length - 1) {
+                finalActions.push(MenuSeparatorAction.instance);
             }
-        }
-        
-        // editGroup
-        {
-            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Rename...', key: 'F2', callback: (ctx) => console.log(ctx) }));
-            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Delete', key: 'Delete', callback: (ctx) => console.log(ctx) }));
-        }
-
-        // copyGroup
-        {
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', key: 'Shift+Alt+C', callback: (ctx) => {
-                ctx.data && this.commandService.executeCommand(AllCommands.fileTreeCopyPath, ctx.data.uri);
-            } }));
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', key: 'Ctrl+Shift+C', mac: 'Meta+Shift+C', callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
-                ctx.data && this.commandService.executeCommand(AllCommands.fileTreeCopyRelativePath, ctx.data.uri);
-            } }));
-        }
-
-        // add separators
-        const groups = [openGroup, moveGroup, editGroup, copyGroup];
-        const actions = groups.flatMap((arr, idx) => {
-            return idx < groups.length - 1
-                ? [...arr, MenuSeparatorAction.instance] 
-                : arr;
         });
 
-        return actions;
+        return finalActions;
+
+        // const isFile = data.type === FileType.FILE;
+        // const isFolder = data.type === FileType.DIRECTORY;
+
+        // const openGroup: IMenuAction[] = [];
+        // const moveGroup: IMenuAction[] = [];
+        // const editGroup: IMenuAction[] = [];
+        // const copyGroup: IMenuAction[] = [];
+
+        // // openGroup
+        // {
+        //     if (isFile) {
+        //         openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open', callback: (ctx) => console.log(ctx) }));
+        //         openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open in New Tab', callback: (ctx) => console.log(ctx) }));
+        //     } 
+        //     else if (isFolder) {
+        //         openGroup.push(new SimpleMenuAction({ enabled: true, id: 'New file...', callback: (ctx) => console.log(ctx) }));
+        //         openGroup.push(new SimpleMenuAction({ enabled: true, id: 'New folder...', callback: (ctx) => console.log(ctx) }));
+        //     }
+
+        //     const revealID = 
+        //         IS_MAC      ? 'Reveal in Finder' : 
+        //         IS_WINDOWS  ? 'Reveal in File Explorer' 
+        //         /* Linux */ : 'Reveal in Files';
+        //     openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, key: 'Shift+Alt+R', mac: undefined, callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
+        //         ctx.data && this.commandService.executeCommand(AllCommands.fileTreeRevealInOS, ctx.data.uri);
+        //     } }));
+        // }
+
+        // // moveGroup
+        // {
+        //     moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Cut', key: 'Ctrl+X', mac: 'Meta+X', callback: (ctx) => console.log(ctx) }));
+        //     moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy', key: 'Ctrl+C', mac: 'Meta+C', callback: (ctx) => console.log(ctx) }));
+
+        //     // paste only works for folder
+        //     if (isFile === false) {
+        //         const isEnable = this.clipboardService.read(ClipboardType.Resources).length > 0;
+        //         moveGroup.push(new SimpleMenuAction({ enabled: isEnable, id: 'Paste', key: 'Ctrl+V', mac: 'Meta+V', callback: (ctx) => console.log(ctx) }));
+        //     }
+        // }
+        
+        // // editGroup
+        // {
+        //     editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Rename...', key: 'F2', callback: (ctx) => console.log(ctx) }));
+        //     editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Delete', key: 'Delete', callback: (ctx) => console.log(ctx) }));
+        // }
+
+        // // copyGroup
+        // {
+        //     copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', key: 'Shift+Alt+C', callback: (ctx) => {
+        //         ctx.data && this.commandService.executeCommand(AllCommands.fileTreeCopyPath, ctx.data.uri);
+        //     } }));
+        //     copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', key: 'Ctrl+Shift+C', mac: 'Meta+Shift+C', callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
+        //         ctx.data && this.commandService.executeCommand(AllCommands.fileTreeCopyRelativePath, ctx.data.uri);
+        //     } }));
+        // }
+
+        // // add separators
+        // const groups = [openGroup, moveGroup, editGroup, copyGroup];
+        // const actions = groups.flatMap((arr, idx) => {
+        //     return idx < groups.length - 1
+        //         ? [...arr, MenuSeparatorAction.instance] 
+        //         : arr;
+        // });
+
+        // return actions;
     }
 }
