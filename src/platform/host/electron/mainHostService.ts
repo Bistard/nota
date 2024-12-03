@@ -173,6 +173,19 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.webContents.reload();
     }
 
+    public async toggleInspectorWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        if (!window) {
+            return;
+        }
+        const inspectorWindow = this.windowService.getInspectorWindowByOwnerID(window.id);
+        if (inspectorWindow) {
+            inspectorWindow.close();
+        } else {
+            this.windowService.openInspector(window.id);
+        }
+    }
+
     public setApplicationStatus(key: StatusKey, val: any): Promise<void> {
         return this.statusService.set(key, val).unwrap();
     }

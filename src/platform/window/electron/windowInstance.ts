@@ -48,6 +48,8 @@ export interface IWindowInstance extends Disposable {
     readonly browserWindow: electron.BrowserWindow;
     readonly lastFocusedTime: number;
 
+    readonly configuration: IWindowCreationOptions;
+
     readonly onDidLoad: Register<void>;
     readonly onDidClose: Register<void>;
 
@@ -69,10 +71,14 @@ export interface IWindowInstance extends Disposable {
     isRendererReady(): boolean;
 
     /**
-     * Send IPC message to the renderer process. The message either send 
-     * immediately or wait until the renderer process is ready.
-     * @param channel The channel name.
-     * @param args The arguments.
+     * Sends an IPC message to the renderer process. The message is either sent 
+     * immediately or queued until the renderer process is ready.
+     * @param channel The name of the channel.
+     * @param args The arguments to be sent with the message.
+     * 
+     * @note This method will NOT function unless `setAsRendererReady` is executed. 
+     * Typically, this is triggered by the renderer process using 
+     * `IHostService.setWindowAsRendererReady()`.
      */
     sendIPCMessage<TChannel extends string>(channel: TChannel, ...args: WindowInstanceIPCMessageMap[TChannel]): void;
 
@@ -114,14 +120,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        private readonly configuration: IWindowCreationOptions,
+        public readonly configuration: IWindowCreationOptions,
         @ILogService private readonly logService: ILogService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
     ) {
         super();
         logService.debug('WindowInstance', 'Constructing a window with the configuration...', { configuration });
-        
+
         this._phase = WindowInstancePhase.Initializing;
         this._onRendererReadyCallbacks = [];
         const displayOptions = configuration.displayOptions;

@@ -1,4 +1,4 @@
-import type { IWindowRunRendererCommandRequest, WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
+import type { WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { ILogService } from "src/base/common/logger";
 import { IShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IFileService } from "src/platform/files/common/fileService";
@@ -16,6 +16,7 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
+import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 
 export interface IBrowser {
     init(): void;
@@ -35,6 +36,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IHostService private readonly hostService: IHostService,
         @ICommandService private readonly commandService: ICommandService,
+        @IBrowserInspectorService private readonly browserInspectorService: IBrowserInspectorService,
     ) {
         super();
         logService.debug('BrowserInstance', 'BrowserInstance constructed.');
@@ -77,6 +79,9 @@ export class BrowserInstance extends Disposable implements IBrowser {
                 this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
             }
         });
+
+        // inspector listener
+        this.browserInspectorService.startListening();
     }
 
     private setBrowserPhase(): void {

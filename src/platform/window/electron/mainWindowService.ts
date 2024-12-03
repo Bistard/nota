@@ -13,6 +13,8 @@ import { mixin } from "src/base/common/utilities/object";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { IProductService } from "src/platform/product/common/productService";
 import { panic } from "src/base/common/utilities/panic";
+import { Arrays } from "src/base/common/utilities/array";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -56,7 +58,7 @@ export interface IMainWindowService extends Disposable, IService {
     windowCount(): number;
 
     /**
-     * @description Open a window by the given options.
+     * @description Construct and open a brand new renderer window.
      */
     open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance;
 
@@ -65,6 +67,9 @@ export interface IMainWindowService extends Disposable, IService {
      * @param ownerWindow The window id shared with this inspector window.
      */
     openInspector(ownerWindow: number): IWindowInstance;
+    getInspectorWindowByID(windowID: number): IWindowInstance | undefined;
+    getInspectorWindowByOwnerID(windowID: number): IWindowInstance | undefined;
+    isInspectorWindow(windowID: number): boolean;
 }
 
 /**
@@ -79,6 +84,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [fields]
 
     private readonly _windows: IWindowInstance[] = [];
+    private readonly _inspectorWindowsTrace: Map<number, number>; // mapping from inspectorWindowID to ownerWindowID
 
     // [event]
 
@@ -99,6 +105,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IProductService private readonly productService: IProductService,
     ) {
         super();
+        this._inspectorWindowsTrace = new Map();
         this.registerListeners();
         this.logService.debug('MainWindowService', 'MainWindowService constructed.');
     }
@@ -165,20 +172,54 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public openInspector(ownerWindow: number): IWindowInstance {
-        return this.open({
+        const window = this.open({
             applicationName: `Inspector Process (associated with Window: ${ownerWindow})`,
             CLIArgv:  { _: [] }, // empty
             loadFile: INSPECTOR_HTML,
             displayOptions: {
-                width: 800,
+                width: 400,
                 height: 600,
                 resizable: true,
                 frameless: false,
+                alwaysOnTop: true,
             },
             "open-devtools": false,
             hostWindow: ownerWindow,
             ownerWindow: ownerWindow, // Bind the lifecycle of the inspector window to the corresponding window
         });
+
+        this._inspectorWindowsTrace.set(window.id, ownerWindow);
+        const inspectorService = this.instantiationService.getOrCreateService(IMainInspectorService);
+        inspectorService.start(window);
+
+        return window;
+    }
+
+    public getInspectorWindowByID(id: number): IWindowInstance | undefined {
+        for (const [inspectorID, _ownerID] of this._inspectorWindowsTrace) {
+            if (inspectorID === id) {
+                return this.getWindowByID(inspectorID);
+            }
+        }
+        return undefined;
+    }
+
+    public getInspectorWindowByOwnerID(id: number): IWindowInstance | undefined {
+        for (const [inspectorID, ownerID] of this._inspectorWindowsTrace) {
+            if (ownerID === id) {
+                return this.getWindowByID(inspectorID);
+            }
+        }
+        return undefined;
+    }
+
+    public isInspectorWindow(id: number): boolean {
+        for (const [inspectorID, _ownerID] of this._inspectorWindowsTrace) {
+            if (inspectorID === id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public closeWindowByID(id: number): void {
@@ -272,7 +313,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private __onWindowDidClose(window: IWindowInstance): void {
-        this._windows.splice(this._windows.indexOf(window), 1);
+        Arrays.remove(this._windows, window);
+        if (this.isInspectorWindow(window.id)) {
+            this._inspectorWindowsTrace.delete(window.id);
+        }
         this._onDidCloseWindow.fire(window);
     }
 

@@ -67,6 +67,8 @@ import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
+import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
+import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { rendererMenuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
 
@@ -98,7 +100,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             });
 
             // ensure we handle almost every errors properly
-            initGlobalErrorHandler(this.logService, WIN_CONFIGURATION);
+            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
 
             // register microservices
             this.rendererServiceRegistrations();
@@ -274,6 +276,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IDialogService            , new ServiceDescriptor(BrowserDialogService     , []));
         registerService(IClipboardService         , new ServiceDescriptor(BrowserClipboardService  , []));
         registerService(IBrowserZoomService       , new ServiceDescriptor(BrowserZoomService       , []));
+        registerService(IBrowserInspectorService  , new ServiceDescriptor(BrowserInspectorService  , []));
     }
 
     // [end]
