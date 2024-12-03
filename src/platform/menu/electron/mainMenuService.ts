@@ -39,11 +39,11 @@ export class MainMenuService implements IMenuService {
     // Builds and sets the application menu
     private buildMenu() {
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
+        // set application menu for the entire app (for MAC)
         Menu.setApplicationMenu(menu);
-        if (IS_MAC) {
-            app.dock.setMenu(menu);
-        }
-
+        // sets the context menu for the macOS dock icon, 
+        // shown when right-clicking the app icon in the dock
+        app.dock.setMenu(menu);
         this.logService.debug('MainMenuService', 'Application menu has been set.');
     }
 
@@ -105,20 +105,9 @@ export class MainMenuService implements IMenuService {
 
             items.forEach((item) => {
                 // Evaluate 'when' conditions
-                    const accelerator = IS_MAC ? item.command.mac || item.command.keybinding : item.command.keybinding;
-                    const enabled = this.contextService.contextMatchExpr(item.command.when ?? null);
+                const accelerator = IS_MAC ? item.command.mac || item.command.keybinding : item.command.keybinding;
+                const enabled = true;
 
-                    const electronMenuItem: MenuItemConstructorOptions = {
-                        label: item.title,
-                        accelerator,
-                        click: () => this.handleMenuClick(item.command.commandID),
-                        enabled,
-                        type: item.command.toggled ? 'checkbox' : undefined,
-                        checked: item.command.toggled ? this.contextService.contextMatchExpr(item.command.toggled) : undefined,
-                    };
-
-                    electronSubmenuItems.push(electronMenuItem);
-                }
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
                 const electronMenuItem: MenuItemConstructorOptions = {
                     label: item.title,

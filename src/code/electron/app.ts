@@ -35,6 +35,7 @@ import { MainMenuService } from "src/platform/menu/electron/mainMenuService";
 import { IMenuService } from "src/platform/menu/common/menuService";
 import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { IS_MAC } from "src/base/common/platform";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -127,11 +128,14 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // host-service
         this.mainInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
 
-        // menu-service
-        this.mainInstantiationService.register(IMenuService, new ServiceDescriptor(MainMenuService, []));
-
         // screen-monitor-service
         this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
+
+        // menu-service
+        if (IS_MAC) {
+            const mainMenuService = this.mainInstantiationService.createInstance(MainMenuService);
+            this.mainInstantiationService.register(IMenuService, mainMenuService); 
+        }
 
         // main-inspector-service
         this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService,[]));
@@ -156,11 +160,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const hostService = provider.getOrCreateService(IHostService);
         const hostChannel = ProxyChannel.wrapService(hostService);
         server.registerChannel(IpcChannel.Host, hostChannel);
-
-        // menu-service-channel
-        const menuService = provider.getOrCreateService(IMenuService);
-        const menuChannel = ProxyChannel.wrapService(menuService);
-        server.registerChannel(IpcChannel.Menu, menuChannel);
 
         // dialog-service-channel
         const dialogService = provider.getService(IMainDialogService);
