@@ -58,6 +58,11 @@ export interface IMenuItemRegistration {
      * the item will not get rendered at all.
      */
     readonly when?: ContextKeyExpr;
+
+    /**
+     * Optional submenu for nested menu items.
+     */
+    readonly submenu?: IMenuItemRegistration[];
 }
 
 export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {

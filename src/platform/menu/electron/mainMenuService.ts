@@ -113,6 +113,8 @@ export class MainMenuService implements IMenuService {
 
                     electronSubmenuItems.push(electronMenuItem);
                 }
+                const hasSubmenu = item.submenu && item.submenu.length > 0;
+                    submenu: hasSubmenu ? this.buildSubmenu(item.submenu!) : undefined
             });
 
             // Add separator between groups if not the last group
