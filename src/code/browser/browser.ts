@@ -17,6 +17,9 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
+import { IMenuItemRegistration, MenuRegistrant, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export interface IBrowser {
     init(): void;
@@ -37,6 +40,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
         @IHostService private readonly hostService: IHostService,
         @ICommandService private readonly commandService: ICommandService,
         @IBrowserInspectorService private readonly browserInspectorService: IBrowserInspectorService,
+        @IRegistrantService private readonly registrantService: IRegistrantService
     ) {
         super();
         logService.debug('BrowserInstance', 'BrowserInstance constructed.');
@@ -78,6 +82,16 @@ export class BrowserInstance extends Disposable implements IBrowser {
             } catch (error) {
                 this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
             }
+        });
+
+        onMainProcess(ipcRenderer, IpcChannel.Menu, (menuTypes: MenuTypes[]) => {
+            const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+            const result: [MenuTypes, IMenuItemRegistration[]][] = [];
+            for (const type of menuTypes) {
+                const menuItems = menuRegistrant.getMenuitems(type);
+                result.push([type, menuItems]);
+            }
+            ipcRenderer.send(IpcChannel.Menu, result);
         });
 
         // inspector listener
