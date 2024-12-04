@@ -5,7 +5,7 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
-import { rendererMenuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
+import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 
 export const enum MenuTypes {
     CommandPalette      = 'CommandPalette',
@@ -85,7 +85,7 @@ export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
     /**
      * @description Returns an array of resolved items of the given menu.
      */
-    returnMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[];
+    getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[];
 }
 
 export class MenuRegistrant implements IMenuRegistrant {
@@ -117,7 +117,7 @@ export class MenuRegistrant implements IMenuRegistrant {
             menuTitleViewRegister,
 
             // file tree
-            rendererMenuFileTreeContextRegister,
+            menuFileTreeContextRegister,
 
             // more ...
         ].forEach(register => register(provider));
@@ -149,7 +149,7 @@ export class MenuRegistrant implements IMenuRegistrant {
         return filtered;
     }
 
-    public returnMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
+    public getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
         const items = this.menus.get(menu) || [];
         const resolvedItems: IMenuItemRegistrationResolved[] = items.map(item => {
             // resolve 'when' and 'toggled' conditions to booleans

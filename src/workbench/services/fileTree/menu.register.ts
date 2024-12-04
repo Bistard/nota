@@ -4,9 +4,9 @@ import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 
-export const rendererMenuFileTreeContextRegister = createRegister(
+export const menuFileTreeContextRegister = createRegister(
     RegistrantType.Menu,
-    'rendererMenuFileTreeContextRegister',
+    'menuFileTreeContextRegister',
     (registrant) => {
         const revealID = 
             IS_MAC      ? 'Reveal in Finder' : 

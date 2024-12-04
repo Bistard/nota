@@ -44,7 +44,6 @@ export class MainMenuService implements IMenuService {
     // Builds and sets the application menu
     private buildMenu() {
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
-        console.log("menu:", menu);
         // set application menu for the entire app
         Menu.setApplicationMenu(menu);
         // set the context menu for the macOS dock icon,
