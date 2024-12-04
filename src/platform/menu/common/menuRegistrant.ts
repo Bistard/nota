@@ -1,17 +1,22 @@
 import { IDisposable } from "src/base/common/dispose";
-import { ILogService } from "src/base/common/logger";
+import { ReplaceType } from "src/base/common/utilities/type";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
+import { rendererMenuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 
 export const enum MenuTypes {
-    CommandPalette = 'CommandPalette',
-    FileTreeContext = 'FileTreeContext',
-    TitleBarFile = 'TitleBarFile',
-    TitleBarEdit = 'TitleBarEdit',
-    TitleBarView = 'TitleBarView',
+    CommandPalette      = 'CommandPalette',
+    FileTreeContext     = 'FileTreeContext',
+    TitleBarApplication = 'TitleBarApplication',
+    TitleBarFile        = 'TitleBarFile',
+    TitleBarEdit        = 'TitleBarEdit',
+    TitleBarView        = 'TitleBarView'
 }
+
+export type IMenuItemRegistrationResolved = ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>;
 
 export interface IMenuItemRegistration {
     readonly group: string;
@@ -24,7 +29,7 @@ export interface IMenuItemRegistration {
          * The command ID to be executed when click the menu.
          */
         readonly commandID: string;
-        
+
         /**
          * Precondition controls enablement (for example for a menu item, show
          * it in grey or for a command, do not allow to invoke it)
@@ -76,28 +81,46 @@ export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
      * @description Returns an array of items of the given menu.
      */
     getMenuitems(menu: MenuTypes): IMenuItemRegistration[];
+
+    /**
+     * @description Returns an array of resolved items of the given menu.
+     */
+    returnMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[];
 }
 
 export class MenuRegistrant implements IMenuRegistrant {
-    
+
     // [fields]
+
     public readonly type = RegistrantType.Menu;
     private readonly menus: Map<MenuTypes, IMenuItemRegistration[]> = new Map();
 
     // [constructor]
+
     constructor(
-        @ILogService private readonly logService: ILogService,
         @IContextService private readonly contextService: IContextService
     ) {}
 
     // [public methods]
+
     public initRegistrations(provider: IServiceProvider): void {
         /**
          * Since the {@link MenuRegistrant} is constructed in both main
-         * and renderer process. Do not register here unless it is shared in 
+         * and renderer process. Do not register here unless it is shared in
          * both processes.
          */
         [
+            // title
+            menuTitleApplicationRegister,
+            menuTitleFileRegister,
+            menuTitleEditRegister,
+            menuTitleViewRegister,
+
+            // file tree
+            rendererMenuFileTreeContextRegister,
+
+            // more ...
+        ].forEach(register => register(provider));
     }
 
     public registerMenuItem(menu: MenuTypes, item: IMenuItemRegistration): IDisposable {

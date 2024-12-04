@@ -3,11 +3,83 @@ import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menuR
 import { IS_MAC } from "src/base/common/platform";
 import { CommandID } from "src/platform/menu/common/menuService";
 
-export const mainMenuRegister = createRegister(
+export const menuTitleApplicationRegister = createRegister(
     RegistrantType.Menu,
-    'mainMenuRegister',
+    'menuTitleApplicationRegister',
     (registrant) => {
-        // Register 'File' menu items
+        const menuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_about',
+                title: 'About Nota',
+                command: {
+                    commandID: "",
+                },
+            },
+            {
+                group: '2_updates',
+                title: 'Check for Updates...',
+                command: {
+                    commandID: "",
+                },
+            },
+            {
+                group: '3_settings',
+                title: 'Settings...',
+                command: {
+                    commandID: "",
+                },
+            },
+            {
+                group: '4_services',
+                title: 'Services',
+                command: {
+                    commandID: "",
+                },
+                submenu: [],
+            },
+            {
+                group: '5_window',
+                title: `Hide Nota`,
+                command: {
+                    commandID: "",
+                    keybinding: IS_MAC ? 'Cmd+H' : undefined,
+                },
+            },
+            {
+                group: '5_window',
+                title: 'Hide Others',
+                command: {
+                    commandID: "",
+                    keybinding: IS_MAC ? 'Cmd+Alt+H' : undefined,
+                },
+            },
+            {
+                group: '5_window',
+                title: 'Show All',
+                command: {
+                    commandID: "",
+                },
+            },
+            {
+                group: '6_quit',
+                title: IS_MAC ? 'Quit Nota' : 'Exit Nota',
+                command: {
+                    commandID: "",
+                    keybinding: IS_MAC ? 'Cmd+Q' : undefined,
+                },
+            },
+        ];
+
+        for (const item of menuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarApplication, item);
+        }
+    }
+);
+
+export const menuTitleFileRegister = createRegister(
+    RegistrantType.Menu,
+    'menuTitleFileRegister',
+    (registrant) => {
         const fileMenuItems: IMenuItemRegistration[] = [
             {
                 group: '1_file_operations',
@@ -25,7 +97,6 @@ export const mainMenuRegister = createRegister(
                     keybinding: IS_MAC ? 'Cmd+O' : 'Ctrl+O',
                 },
             },
-            // nested submenu examples for testing
             {
                 group: '1_file_operations',
                 title: 'Recent Files',
@@ -85,8 +156,13 @@ export const mainMenuRegister = createRegister(
         for (const item of fileMenuItems) {
             registrant.registerMenuItem(MenuTypes.TitleBarFile, item);
         }
+    }
+);
 
-        // Register 'Edit' menu items
+export const menuTitleEditRegister = createRegister(
+    RegistrantType.Menu,
+    'menuTitleEditRegister',
+    (registrant) => {
         const editMenuItems: IMenuItemRegistration[] = [
             {
                 group: '1_undo_redo',
@@ -109,8 +185,13 @@ export const mainMenuRegister = createRegister(
         for (const item of editMenuItems) {
             registrant.registerMenuItem(MenuTypes.TitleBarEdit, item);
         }
+    }
+);
 
-        // Register 'Help' menu items
+export const menuTitleViewRegister = createRegister(
+    RegistrantType.Menu,
+    'menuTitleViewRegister',
+    (registrant) => {
         const helpMenuItems: IMenuItemRegistration[] = [
             {
                 group: '1_about',
