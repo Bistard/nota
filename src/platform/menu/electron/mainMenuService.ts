@@ -108,32 +108,30 @@ export class MainMenuService implements IMenuService {
             group.push(item);
         }
 
-        // Sort groups if necessary
+        // Sort groups
         const groupNames = Array.from(groupedItems.keys()).sort();
 
-        groupNames.forEach((group, index) => {
-            const items = groupedItems.get(group)!;
-
-            items.forEach((item) => {
-                // Evaluate 'when' conditions
+        groupNames.forEach((groupName, index) => {
+            const eachGroup = groupedItems.get(groupName)!;
+            eachGroup.forEach((item) => {
                 const accelerator = item.command.mac || item.command.keybinding;
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
 
                 const electronMenuItem: MenuItemConstructorOptions = {
                     label: item.title,
                     accelerator,
-                    click: () => this.handleMenuClick(item.command.commandID),
+                    click: () => this.onMenuItemClick(item.command.commandID),
                     enabled: item.when ?? true,
                     type: item.command.toggled ? 'checkbox' : undefined,
                     checked: item.command.toggled,
-                    submenu: hasSubmenu ? this.buildSubmenu(item.submenu!) : undefined
+                    submenu: hasSubmenu ? this.buildSubmenu(item.submenu) : undefined
                 };
 
                 electronSubmenuItems.push(electronMenuItem);
             });
 
             // Add separator between groups if not the last group
-            if (index < groupNames.length - 1 && items.length > 0) {
+            if (index < groupNames.length - 1 && eachGroup.length > 0) {
                 electronSubmenuItems.push({ type: 'separator' });
             }
         });
@@ -142,12 +140,13 @@ export class MainMenuService implements IMenuService {
     }
 
     // Handles menu item clicks by sending the command to the focused window
-    private handleMenuClick(commandID: string) {
+    private onMenuItemClick(commandID: string): void {
         let window = this.mainWindowService.getFocusedWindow();
 
         if (!window) {
 			const lastActiveWindow = this.mainWindowService.getPrevFocusedWindow();
-            if (lastActiveWindow) {
+            if (lastActiveWindow?.browserWindow.isMinimized()) {
+                // make sure to run commands when the last active window is minimized
 				window = lastActiveWindow;
 			}
 		}
