@@ -17,8 +17,8 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
-import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
-import { IMenuItemRegistration, MenuRegistrant, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { IMenuItemRegistration, MenuTypes } from "src/platform/menu/common/menuRegistrant";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export interface IBrowser {
@@ -60,13 +60,13 @@ export class BrowserInstance extends Disposable implements IBrowser {
 
     private async registerListeners(): Promise<void> {
         await this.lifecycleService.when(LifecyclePhase.Displayed);
-        
+
         // save user configurations on quit
-        this.__register(this.lifecycleService.onWillQuit(e => 
+        this.__register(this.lifecycleService.onWillQuit(e =>
             e.join(this.configurationService.save())
         ));
 
-        this.__register(this.lifecycleService.onWillQuit(e => 
+        this.__register(this.lifecycleService.onWillQuit(e =>
             e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
         ));
 
@@ -103,9 +103,9 @@ export class BrowserInstance extends Disposable implements IBrowser {
         const workbenchWhenReady = Promise.resolve(); // TODO: should wait for the editor restores to the original state
 
        /**
-         * Initiates the `Restored` phase once the layout is restored, using 
-         * `Promise.race` to balance performance between fast and slow editor 
-         * restorations. The workbench remains functional, allowing `Restored` 
+         * Initiates the `Restored` phase once the layout is restored, using
+         * `Promise.race` to balance performance between fast and slow editor
+         * restorations. The workbench remains functional, allowing `Restored`
          * phase extensions to proceed even if the editor is not yet visible.
          */
         Promise.race([
