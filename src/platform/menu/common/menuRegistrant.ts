@@ -148,4 +148,56 @@ export class MenuRegistrant implements IMenuRegistrant {
         });
         return filtered;
     }
+
+    public returnMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
+        const items = this.menus.get(menu) || [];
+        const resolvedItems: IMenuItemRegistrationResolved[] = items.map(item => {
+            // resolve 'when' and 'toggled' conditions to booleans
+            const whenResolved = this.contextService.contextMatchExpr(item.when ?? null);
+            const toggledResolved = item.command.toggled
+                ? this.contextService.contextMatchExpr(item.command.toggled)
+                : undefined;
+
+            // resolve submenu items recursively
+            const resolvedSubmenu = item.submenu ? item.submenu
+                .map(subItem => this.resolveSubmenuItem(subItem))
+                : undefined;
+
+            return {
+                ...item,
+                command: {
+                    ...item.command,
+                    when: whenResolved,
+                    toggled: toggledResolved
+                },
+                when: whenResolved,
+                submenu: resolvedSubmenu
+            };
+        });
+
+        return resolvedItems;
+    }
+
+    // [private methods]
+
+    private resolveSubmenuItem(subItem: IMenuItemRegistration): IMenuItemRegistrationResolved {
+        const whenResolved = this.contextService.contextMatchExpr(subItem.when ?? null);
+        const toggledResolved = subItem.command.toggled
+            ? this.contextService.contextMatchExpr(subItem.command.toggled)
+            : undefined;
+
+        const resolvedSubmenu = subItem.submenu ? subItem.submenu
+            .map(nestedSubItem => this.resolveSubmenuItem(nestedSubItem)) : undefined;
+
+        return {
+            ...subItem,
+            command: {
+                ...subItem.command,
+                when: this.contextService.contextMatchExpr(subItem.command.when ?? null),
+                toggled: toggledResolved
+            },
+            when: whenResolved,
+            submenu: resolvedSubmenu
+        };
+    }
 }
