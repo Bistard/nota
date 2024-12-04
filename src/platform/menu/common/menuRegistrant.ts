@@ -97,6 +97,7 @@ export class MenuRegistrant implements IMenuRegistrant {
          * and renderer process. Do not register here unless it is shared in 
          * both processes.
          */
+        [
     }
 
     public registerMenuItem(menu: MenuTypes, item: IMenuItemRegistration): IDisposable {

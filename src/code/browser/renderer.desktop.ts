@@ -69,9 +69,7 @@ import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
-import { rendererMenuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
-import { mainMenuRegister } from "src/platform/menu/common/menu.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -294,7 +292,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(this.initCommandRegistrant(service));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
         registrant.registerRegistrant(service.createInstance(ColorRegistrant));
-        registrant.registerRegistrant(this.initMenuRegistrant(service));
+        registrant.registerRegistrant(service.createInstance(MenuRegistrant));
 
         // initialize all the registrations
         registrant.init(service);
@@ -323,20 +321,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         }
         
         return service.createInstance(BrowserCommandRegistrant);
-    }
-
-    private initMenuRegistrant(service: IInstantiationService): MenuRegistrant {
-        class BrowserMenuRegistrant extends MenuRegistrant {
-            public override initRegistrations(provider: IServiceProvider): void {
-                super.initRegistrations(provider);
-                [
-                    rendererMenuFileTreeContextRegister,
-                    mainMenuRegister
-                ]
-                .forEach(register => register(provider));
-            }
-        }
-        return service.createInstance(BrowserMenuRegistrant);
     }
 
     // [end]
