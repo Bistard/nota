@@ -1,24 +1,29 @@
 import { app, Menu, MenuItemConstructorOptions } from "electron";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { IS_MAC } from "src/base/common/platform";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
-import { IMenuItemRegistration, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menuRegistrant";
 import { IMenuService } from "src/platform/menu/common/menuService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
 
-const mainMenuTypes = [MenuTypes.TitleBarFile, MenuTypes.TitleBarEdit, MenuTypes.TitleBarView];
+const mainMenuTypes = [
+    MenuTypes.TitleBarApplication,
+    MenuTypes.TitleBarFile,
+    MenuTypes.TitleBarEdit,
+    MenuTypes.TitleBarView
+];
+
 export class MainMenuService implements IMenuService {
 
     // Marker for service injection
     declare _serviceMarker: undefined;
-    private menuItemsMap: Map<MenuTypes, IMenuItemRegistration[]> = new Map();
+    private menuItemsMap: Map<MenuTypes, IMenuItemRegistrationResolved[]> = new Map();
 
     constructor(
         @ILogService private readonly logService: ILogService,
         @IMainWindowService private readonly mainWindowService: IMainWindowService
-    ) { 
+    ) {
         this.registerListener();
     }
 
@@ -26,7 +31,7 @@ export class MainMenuService implements IMenuService {
         Event.once(this.mainWindowService.onDidOpenWindow)(window => {
             Event.once(window.onRendererReady)(() => {
                 window.sendIPCMessage(IpcChannel.Menu, mainMenuTypes);
-                SafeIpcMain.instance.once(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistration[]][]) => {
+                SafeIpcMain.instance.once(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistrationResolved[]][]) => {
                     for (const [menuType, items] of menuItems) {
                         this.menuItemsMap.set(menuType, items);
                     }
@@ -39,9 +44,10 @@ export class MainMenuService implements IMenuService {
     // Builds and sets the application menu
     private buildMenu() {
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
-        // set application menu for the entire app (for MAC)
+        console.log("menu:", menu);
+        // set application menu for the entire app
         Menu.setApplicationMenu(menu);
-        // sets the context menu for the macOS dock icon, 
+        // set the context menu for the macOS dock icon,
         // shown when right-clicking the app icon in the dock
         app.dock.setMenu(menu);
         this.logService.debug('MainMenuService', 'Application menu has been set.');
@@ -50,6 +56,7 @@ export class MainMenuService implements IMenuService {
     // Creates the menu template with click handlers for each command
     private getMenuTemplate(): MenuItemConstructorOptions[] {
         const topMenus: MenuTypes[] = [
+            MenuTypes.TitleBarApplication,
             MenuTypes.TitleBarFile,
             MenuTypes.TitleBarEdit,
             MenuTypes.TitleBarView,
@@ -73,6 +80,8 @@ export class MainMenuService implements IMenuService {
 
     private getMenuLabelForType(menuType: MenuTypes): string {
         switch (menuType) {
+            case MenuTypes.TitleBarApplication:
+                return 'Nota';
             case MenuTypes.TitleBarFile:
                 return 'File';
             case MenuTypes.TitleBarEdit:
@@ -84,11 +93,11 @@ export class MainMenuService implements IMenuService {
         }
     }
 
-    private buildSubmenu(menuItems: IMenuItemRegistration[]): MenuItemConstructorOptions[] {
+    private buildSubmenu(menuItems: IMenuItemRegistrationResolved[]): MenuItemConstructorOptions[] {
         const electronSubmenuItems: MenuItemConstructorOptions[] = [];
 
         // group the menu items by 'group' and sort them
-        const groupedItems = new Map<string, IMenuItemRegistration[]>();
+        const groupedItems = new Map<string, IMenuItemRegistrationResolved[]>();
         for (const item of menuItems) {
             const group = item.group || '';
             if (!groupedItems.has(group)) {
@@ -105,17 +114,16 @@ export class MainMenuService implements IMenuService {
 
             items.forEach((item) => {
                 // Evaluate 'when' conditions
-                const accelerator = IS_MAC ? item.command.mac || item.command.keybinding : item.command.keybinding;
-                const enabled = true;
-
+                const accelerator = item.command.mac || item.command.keybinding;
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
+
                 const electronMenuItem: MenuItemConstructorOptions = {
                     label: item.title,
                     accelerator,
                     click: () => this.handleMenuClick(item.command.commandID),
-                    enabled,
+                    enabled: item.when ?? true,
                     type: item.command.toggled ? 'checkbox' : undefined,
-                    checked: item.command.toggled ? false : undefined,
+                    checked: item.command.toggled,
                     submenu: hasSubmenu ? this.buildSubmenu(item.submenu!) : undefined
                 };
 
@@ -134,11 +142,10 @@ export class MainMenuService implements IMenuService {
     // Handles menu item clicks by sending the command to the focused window
     private handleMenuClick(commandID: string) {
         let window = this.mainWindowService.getFocusedWindow();
-        
+
         if (!window) {
 			const lastActiveWindow = this.mainWindowService.getPrevFocusedWindow();
             if (lastActiveWindow) {
-			// if (lastActiveWindow?.isMinimized()) {
 				window = lastActiveWindow;
 			}
 		}
