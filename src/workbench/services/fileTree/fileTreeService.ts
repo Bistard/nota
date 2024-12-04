@@ -530,14 +530,12 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         // context menu listener
         cleanup.register(tree.onContextmenu(e => {
             const anchor = this.__getContextMenuAnchor(e);
-            const actions = this.__getContextMenuActions(e);
-
             this.contextMenuService.showContextMenu({
+                menu: MenuTypes.FileTreeContext,
                 primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
                 horizontalPosition: AnchorHorizontalPosition.Right,
                 verticalPosition: AnchorVerticalPosition.Below,
                 getAnchor: () => anchor,
-                getActions: () => actions,
                 getContext: () => e
             }, this.workbenchService.element.raw);
         }));
@@ -598,44 +596,5 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
          * to the entire file tree.
          */
         return tree.DOMElement;
-    }
-
-    private __getContextMenuActions(event: ITreeContextmenuEvent<FileItem>): IMenuAction[] {
-        const registrant = this.registrantService.getRegistrant(RegistrantType.Menu);
-        const fileTreeMenuItems = registrant.getMenuitems(MenuTypes.FileTreeContext);
-
-        const actions: IMenuAction[] = fileTreeMenuItems
-            .map((item) => {
-                return new SimpleMenuAction({
-                    enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
-                    id: item.title,
-                    key: item.command.keybinding,
-                    mac: item.command.mac,
-                    callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
-                        this.commandService.executeCommand(item.command.commandID, ctx.data?.uri);
-                    }
-                });
-            });
-
-        // add separators between groups
-        const groupedActions = new Map<string, IMenuAction[]>();
-        for (const action of actions) {
-            const group = fileTreeMenuItems.find((item) => item.title === action.id)?.group || '';
-            if (!groupedActions.has(group)) {
-                groupedActions.set(group, []);
-            }
-            groupedActions.get(group)!.push(action);
-        }
-
-        const finalActions: IMenuAction[] = [];
-        const groupNames = Array.from(groupedActions.keys());
-        groupNames.forEach((group, index) => {
-            finalActions.push(...groupedActions.get(group)!);
-            if (index < groupNames.length - 1) {
-                finalActions.push(MenuSeparatorAction.instance);
-            }
-        });
-
-        return finalActions;
     }
 }

@@ -8,6 +8,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { isDefined } from "src/base/common/utilities/type";
+import { MenuTypes } from "src/platform/menu/common/menuRegistrant";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
@@ -21,12 +22,7 @@ const DEBUG_MODE: boolean = false;
  * A delegate to provide external data dn functionalities to help to show a 
  * context menu.
  */
-export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
-
-    /**
-     * @description A list of actions for each context menu item.
-     */
-    getActions(): IMenuAction[];
+interface IShowContextMenuDelegateBase extends IContextMenuDelegateBase {
 
     /**
      * @description Returns the running context for all the actions.
@@ -39,6 +35,23 @@ export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
      * named 'context-menu'.
      */
     getExtraContextMenuClassName?(): string;
+} 
+
+export interface IShowContextMenuDelegate extends IShowContextMenuDelegateBase {
+    
+    /**
+     * @description Defines the content of the context menu.
+     */
+    readonly menu: MenuTypes;
+}
+
+export interface IShowContextMenuCustomDelegate extends IShowContextMenuDelegateBase {
+
+    /**
+     * @description Defines the content of the context menu. A list of customizable 
+     * actions for each context menu item.
+     */
+    getActions(): IMenuAction[];
 }
 
 /**
@@ -47,13 +60,23 @@ export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
 export interface IContextMenuService extends IService {
 
     /**
-     * @description Shows up a context menu.
+     * @description Shows up a context menu. the content will be filled with 
+     * exisiting menu.
      * @param delegate The delegate to provide external functionalities.
      * @param container The container that contains the context menu. If not
      *                  provided, it will be positioned under the current active
      *                  element.
      */
-    showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void;
+    showContextMenu(delegate: IShowContextMenuDelegate, container?: HTMLElement): void;
+
+    /**
+     * @description Shows up a context menu. The content is customizable.
+     * @param delegate The delegate to provide external functionalities.
+     * @param container The container that contains the context menu. If not
+     *                  provided, it will be positioned under the current active
+     *                  element.
+     */
+    showContextMenuCustom(delegate: IShowContextMenuCustomDelegate, container?: HTMLElement): void;
 
     /**
      * @description Destroy the current context menu if existed.
@@ -63,7 +86,7 @@ export interface IContextMenuService extends IService {
 
 /**
  * @class A context menu service provides functionality to pop up a context menu 
- * by providing a {@link IContextMenuServiceDelegate} to define how the context 
+ * by providing a {@link IShowContextMenuDelegate} to define how the context 
  * menu should be constructed and rendered.
  */
 export class ContextMenuService extends Disposable implements IContextMenuService {
@@ -93,8 +116,11 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     // [public methods]
 
-    public showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void {
+    public showContextMenu(delegate: IShowContextMenuDelegate, container?: HTMLElement): void {
+        // TODO: @AAsteria
+    }
 
+    public showContextMenuCustom(delegate: IShowContextMenuCustomDelegate, container?: HTMLElement): void {
         // since the delegate provides no actions, we render nothing.
         if (delegate.getActions().length === 0) {
             return;
@@ -146,7 +172,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
     // [fields]
 
     private _menu?: IMenu;
-    private readonly _delegate: IContextMenuServiceDelegate;
+    private readonly _delegate: IShowContextMenuCustomDelegate;
     private readonly _contextMenu: IContextMenu;
     private readonly _onBeforeActionRun: (event: IMenuActionRunEvent) => void;
     private readonly _onDidActionRun: (event: IMenuActionRunEvent) => void;
@@ -154,7 +180,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
     // [constructor]
 
     constructor(
-        delegate: IContextMenuServiceDelegate,
+        delegate: IShowContextMenuCustomDelegate,
         contextMenu: IContextMenu,
         onBeforeActionRun: (event: IMenuActionRunEvent) => void,
         onDidActionRun: (event: IMenuActionRunEvent) => void,
