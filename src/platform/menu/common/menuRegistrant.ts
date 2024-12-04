@@ -3,7 +3,7 @@ import { ReplaceType } from "src/base/common/utilities/type";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
+import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleFormatRegister, menuTitleHelpRegister, menuTitleInsertRegister, menuTitleSelectionRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 
@@ -13,8 +13,13 @@ export const enum MenuTypes {
     TitleBarApplication = 'TitleBarApplication',
     TitleBarFile        = 'TitleBarFile',
     TitleBarEdit        = 'TitleBarEdit',
-    TitleBarView        = 'TitleBarView'
+    TitleBarView        = 'TitleBarView',
+    TitleBarSelection   = 'TitleBarSelection',
+    TitleBarInsert      = 'TitleBarInsert',
+    TitleBarFormat      = 'TitleBarFormat',
+    TitleBarHelp        = 'TitleBarHelp',
 }
+
 
 export type IMenuItemRegistrationResolved = ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>;
 
@@ -116,7 +121,11 @@ export class MenuRegistrant implements IMenuRegistrant {
             menuTitleApplicationRegister,
             menuTitleFileRegister,
             menuTitleEditRegister,
+            menuTitleSelectionRegister,
+            menuTitleInsertRegister,
+            menuTitleFormatRegister,
             menuTitleViewRegister,
+            menuTitleHelpRegister,
 
             // file tree
             menuFileTreeContextRegister,

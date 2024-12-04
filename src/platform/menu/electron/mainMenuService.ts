@@ -11,7 +11,11 @@ const mainMenuTypes = [
     MenuTypes.TitleBarApplication,
     MenuTypes.TitleBarFile,
     MenuTypes.TitleBarEdit,
-    MenuTypes.TitleBarView
+    MenuTypes.TitleBarSelection,
+    MenuTypes.TitleBarInsert,
+    MenuTypes.TitleBarFormat,
+    MenuTypes.TitleBarView,
+    MenuTypes.TitleBarHelp,
 ];
 
 export class MainMenuService implements IMenuService {
@@ -58,7 +62,11 @@ export class MainMenuService implements IMenuService {
             MenuTypes.TitleBarApplication,
             MenuTypes.TitleBarFile,
             MenuTypes.TitleBarEdit,
+            MenuTypes.TitleBarSelection,
+            MenuTypes.TitleBarInsert,
+            MenuTypes.TitleBarFormat,
             MenuTypes.TitleBarView,
+            MenuTypes.TitleBarHelp,
         ];
 
         // Build the menu template
@@ -85,8 +93,16 @@ export class MainMenuService implements IMenuService {
                 return 'File';
             case MenuTypes.TitleBarEdit:
                 return 'Edit';
+            case MenuTypes.TitleBarSelection:
+                return 'Selection';
+            case MenuTypes.TitleBarInsert:
+                return 'Insert';
+            case MenuTypes.TitleBarFormat:
+                return 'Format';
             case MenuTypes.TitleBarView:
                 return 'View';
+            case MenuTypes.TitleBarHelp:
+                return 'Help';
             default:
                 return '';
         }
