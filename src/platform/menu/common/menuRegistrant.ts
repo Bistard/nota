@@ -59,11 +59,6 @@ export interface IMenuItemRegistration {
     };
 
     /**
-     * Defines the rendering order of this item. If not provided, default is 0.
-     */
-    readonly priority?: number;
-
-    /**
      * Precondition controls whether to render the item. If does not satisfy,
      * the item will not get rendered at all.
      */
