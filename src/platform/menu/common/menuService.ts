@@ -24,7 +24,7 @@ export interface ISubMenuItem {
     label?: string;
     role?: Electron.MenuItemConstructorOptions['role'];
     type?: Electron.MenuItemConstructorOptions['type'];
-    
+
     commandId?: string;
     click?: () => void;
     submenu?: ISubMenuItem[];
