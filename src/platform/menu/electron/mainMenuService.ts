@@ -99,11 +99,13 @@ export class MainMenuService implements IMenuService {
         // group the menu items by 'group' and sort them
         const groupedItems = new Map<string, IMenuItemRegistrationResolved[]>();
         for (const item of menuItems) {
-            const group = item.group || '';
-            if (!groupedItems.has(group)) {
-                groupedItems.set(group, []);
+            const groupName = item.group || 'no_groups';
+            let group = groupedItems.get(groupName);
+            if (!group) {
+                group = [];
+                groupedItems.set(groupName, group);
             }
-            groupedItems.get(group)!.push(item);
+            group.push(item);
         }
 
         // Sort groups if necessary
