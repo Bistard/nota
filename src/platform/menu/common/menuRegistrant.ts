@@ -1,4 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
+import { Arrays } from "src/base/common/utilities/array";
 import { ReplaceType } from "src/base/common/utilities/type";
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
@@ -71,6 +73,12 @@ export interface IMenuItemRegistration {
 }
 
 export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
+    
+    /**
+     * Fires when the content of the menu changes.
+     */
+    readonly onDidMenuChange: Register<MenuTypes>;
+    
     /**
      * @description Register a menu item into the given menu.
      * @return Return a disposable that will un-register the item.
@@ -88,6 +96,11 @@ export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
      * and recursively resolves submenu items.
      */
     getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[];
+
+    /**
+     * @description Returns an array of all the registered menu items.
+     */
+    getAllMenus(): [MenuTypes, IMenuItemRegistration[]][];
 }
 
 export class MenuRegistrant implements IMenuRegistrant {
@@ -97,6 +110,11 @@ export class MenuRegistrant implements IMenuRegistrant {
     public readonly type = RegistrantType.Menu;
     private readonly menus: Map<MenuTypes, IMenuItemRegistration[]> = new Map();
 
+    // [event]
+
+    private readonly _onDidMenuChange = new Emitter<MenuTypes>();
+    public readonly onDidMenuChange = this._onDidMenuChange.registerListener;
+    
     // [constructor]
 
     constructor(
@@ -135,14 +153,14 @@ export class MenuRegistrant implements IMenuRegistrant {
             items = [];
             this.menus.set(menu, items);
         }
+
         items.push(item);
+        this._onDidMenuChange.fire(menu);
 
         return {
             dispose: () => {
-                const index = items!.indexOf(item);
-                if (index >= 0) {
-                    items!.splice(index, 1);
-                }
+                Arrays.remove(items, item);
+                this._onDidMenuChange.fire(menu);
             }
         };
     }
@@ -158,6 +176,14 @@ export class MenuRegistrant implements IMenuRegistrant {
     public getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
         const items = this.menus.get(menu) || [];
         return items.map(item => this.__resolveMenuItem(item));
+    }
+
+    public getAllMenus(): [MenuTypes, IMenuItemRegistration[]][] {
+        const result: [MenuTypes, IMenuItemRegistration[]][] = [];
+        for (const [type, registrations] of this.menus) {
+            result.push([type, registrations]);
+        }
+        return result;
     }
 
     // [private helper methods]
