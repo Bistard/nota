@@ -126,7 +126,35 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     // [public methods]
 
     public showContextMenu(delegate: IShowContextMenuDelegate, container?: HTMLElement): void {
-        // TODO: @AAsteria
+        // Get menu actions for specified menu type
+        const actions = this.__getContextMenuActions(delegate.menu);
+
+        if (actions.length === 0) {
+            return;
+        }
+
+        // Determine the container to render the context menu
+        const focusElement = <HTMLElement | undefined>(
+            container ?? DomUtility.Elements.getActiveElement()
+        );
+
+        if (!focusElement) {
+            this._contextMenu.setContainer(this._defaultContainer);
+        } else {
+            this._contextMenu.setContainer(focusElement);
+        }
+
+        this._contextMenu.show(
+            new __ContextMenuDelegate(
+                {
+                    ...delegate,
+                    getActions: () => actions,
+                },
+                this._contextMenu,
+                this.__onBeforeActionRun.bind(this),
+                this.__onDidActionRun.bind(this),
+            ),
+        );
     }
 
     public showContextMenuCustom(delegate: IShowContextMenuCustomDelegate, container?: HTMLElement): void {
@@ -171,6 +199,44 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         if (event.error && !isCancellationError(event.error)) {
             this.notificationService.error(event.error, { actions: [{ label: 'Close', run: 'noop' }] });
         }
+    }
+
+    private __getContextMenuActions(menuType: MenuTypes): IMenuAction[] {
+        const registrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+        const menuItems = registrant.getMenuitems(menuType);
+
+        const actions: IMenuAction[] = menuItems.map((item) => {
+            return new SimpleMenuAction({
+                enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
+                id: item.title,
+                key: item.command.keybinding,
+                mac: item.command.mac,
+                callback: (ctx: ITreeContextmenuEvent<FileItem>) => {
+                    this.commandService.executeCommand(item.command.commandID, ctx.data?.uri);
+                },
+            });
+        });
+
+        // Add separators between groups
+        const groupedActions = new Map<string, IMenuAction[]>();
+        for (const action of actions) {
+            const group = menuItems.find((item) => item.title === action.id)?.group || '';
+            if (!groupedActions.has(group)) {
+                groupedActions.set(group, []);
+            }
+            groupedActions.get(group)!.push(action);
+        }
+
+        const finalActions: IMenuAction[] = [];
+        const groupNames = Array.from(groupedActions.keys());
+        groupNames.forEach((group, index) => {
+            finalActions.push(...groupedActions.get(group)!);
+            if (index < groupNames.length - 1) {
+                finalActions.push(MenuSeparatorAction.instance);
+            }
+        });
+
+        return finalActions;
     }
 }
 
