@@ -1,7 +1,7 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
-import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
+import { IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -9,17 +9,23 @@ import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { isDefined } from "src/base/common/utilities/type";
 import { MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { FileItem } from "src/workbench/services/fileTree/fileItem";
+import { ICommandService } from "src/platform/command/common/commandService";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
+import { IContextService } from "src/platform/context/common/contextService";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
 /**
- * @test Enable this setting to prevent any external actions from closing the 
+ * @test Enable this setting to prevent any external actions from closing the
  * context menu.
  */
 const DEBUG_MODE: boolean = false;
 
 /**
- * A delegate to provide external data dn functionalities to help to show a 
+ * A delegate to provide external data dn functionalities to help to show a
  * context menu.
  */
 interface IShowContextMenuDelegateBase extends IContextMenuDelegateBase {
@@ -31,14 +37,14 @@ interface IShowContextMenuDelegateBase extends IContextMenuDelegateBase {
 
     /**
      * @description Allow the client to customize the style of the context menu.
-     * If the function is not defined, the context menu will only have a class 
+     * If the function is not defined, the context menu will only have a class
      * named 'context-menu'.
      */
     getExtraContextMenuClassName?(): string;
-} 
+}
 
 export interface IShowContextMenuDelegate extends IShowContextMenuDelegateBase {
-    
+
     /**
      * @description Defines the content of the context menu.
      */
@@ -48,7 +54,7 @@ export interface IShowContextMenuDelegate extends IShowContextMenuDelegateBase {
 export interface IShowContextMenuCustomDelegate extends IShowContextMenuDelegateBase {
 
     /**
-     * @description Defines the content of the context menu. A list of customizable 
+     * @description Defines the content of the context menu. A list of customizable
      * actions for each context menu item.
      */
     getActions(): IMenuAction[];
@@ -60,7 +66,7 @@ export interface IShowContextMenuCustomDelegate extends IShowContextMenuDelegate
 export interface IContextMenuService extends IService {
 
     /**
-     * @description Shows up a context menu. the content will be filled with 
+     * @description Shows up a context menu. the content will be filled with
      * exisiting menu.
      * @param delegate The delegate to provide external functionalities.
      * @param container The container that contains the context menu. If not
@@ -85,8 +91,8 @@ export interface IContextMenuService extends IService {
 }
 
 /**
- * @class A context menu service provides functionality to pop up a context menu 
- * by providing a {@link IShowContextMenuDelegate} to define how the context 
+ * @class A context menu service provides functionality to pop up a context menu
+ * by providing a {@link IShowContextMenuDelegate} to define how the context
  * menu should be constructed and rendered.
  */
 export class ContextMenuService extends Disposable implements IContextMenuService {
@@ -107,6 +113,9 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     constructor(
         @ILayoutService private readonly layoutService: ILayoutService,
         @INotificationService private readonly notificationService: INotificationService,
+        @ICommandService private readonly commandService: ICommandService,
+        @IContextService private readonly contextService: IContextService,
+        @IRegistrantService private readonly registrantService: IRegistrantService
     ) {
         super();
         this._defaultContainer = this.layoutService.parentContainer;
@@ -121,7 +130,6 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     }
 
     public showContextMenuCustom(delegate: IShowContextMenuCustomDelegate, container?: HTMLElement): void {
-        // since the delegate provides no actions, we render nothing.
         if (delegate.getActions().length === 0) {
             return;
         }
@@ -130,14 +138,13 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             container ?? DomUtility.Elements.getActiveElement()
         );
 
-        // have to render first (add into a container)
         if (!focusElement) {
             this._contextMenu.setContainer(this._defaultContainer);
         } else {
             this._contextMenu.setContainer(focusElement);
         }
 
-        // show up a context menu
+        // show context menu
         this._contextMenu.show(
             new __ContextMenuDelegate(
                 delegate,
@@ -222,7 +229,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         menu.build(delegate.getActions());
 
         /**
-         * If on debug mode, we do not wish to destroy the context menu 
+         * If on debug mode, we do not wish to destroy the context menu
          * automatically.
          */
         if (DEBUG_MODE) {
@@ -248,7 +255,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
             }
 
             /**
-             * We are likely creating a context menu, let the context 
+             * We are likely creating a context menu, let the context
              * menu service to destroy it.
              */
             if (DomEventHandler.isRightClick(e)) {
