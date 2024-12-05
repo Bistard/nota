@@ -126,24 +126,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     // [public methods]
 
     public showContextMenu(delegate: IShowContextMenuDelegate, container?: HTMLElement): void {
-        // Get menu actions for specified menu type
-        const actions = this.__getContextMenuActions(delegate.menu);
-
-        if (actions.length === 0) {
-            return;
-        }
-
-        // Determine the container to render the context menu
-        const focusElement = <HTMLElement | undefined>(
-            container ?? DomUtility.Elements.getActiveElement()
-        );
-
-        if (!focusElement) {
-            this._contextMenu.setContainer(this._defaultContainer);
-        } else {
-            this._contextMenu.setContainer(focusElement);
-        }
-
+        const actions = this.__getActionsByMenuType(delegate.menu);
         this._contextMenu.show(
             new __ContextMenuDelegate(
                 {
@@ -201,7 +184,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         }
     }
 
-    private __getContextMenuActions(menuType: MenuTypes): IMenuAction[] {
+    private __getActionsByMenuType(menuType: MenuTypes): IMenuAction[] {
         const registrant = this.registrantService.getRegistrant(RegistrantType.Menu);
         const menuItems = registrant.getMenuitems(menuType);
 
