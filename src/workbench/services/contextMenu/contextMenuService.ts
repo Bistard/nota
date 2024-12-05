@@ -126,18 +126,10 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     // [public methods]
 
     public showContextMenu(delegate: IShowContextMenuDelegate, container?: HTMLElement): void {
-        const actions = this.__getActionsByMenuType(delegate.menu);
-        this._contextMenu.show(
-            new __ContextMenuDelegate(
-                {
-                    ...delegate,
-                    getActions: () => actions,
-                },
-                this._contextMenu,
-                this.__onBeforeActionRun.bind(this),
-                this.__onDidActionRun.bind(this),
-            ),
-        );
+        this.showContextMenuCustom({
+            ...delegate,
+            getActions: () => this.__getActionsByMenuType(delegate.menu),
+        }, container);
     }
 
     public showContextMenuCustom(delegate: IShowContextMenuCustomDelegate, container?: HTMLElement): void {
