@@ -34,14 +34,6 @@ export const menuTitleApplicationRegister = createRegister(
                 },
             },
             {
-                group: '4_services',
-                title: 'Services',
-                command: {
-                    commandID: "",
-                },
-                submenu: [], // Services submenu items would be populated here
-            },
-            {
                 group: '5_window',
                 title: `Hide Nota`,
                 command: {
@@ -143,35 +135,7 @@ export const menuTitleFileRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_recent',
-                        title: 'Reopen Recent Closed',
-                        command: {
-                            // commandID: CommandID.ReopenClosedFile,
-                            commandID: "",
-                            keybinding: IS_MAC ? 'Shift+Cmd+T' : 'Ctrl+Shift+T',
-                        },
-                    },
-                    {
-                        group: '2_dynamic',
-                        title: 'DYNAMIC',
-                        command: {
-                            commandID: "",
-                        },
-                        submenu: [
-                            // Recent files dynamically added here
-                        ],
-                    },
-                    {
-                        group: '3_clear',
-                        title: 'Clear Recent Opened',
-                        command: {
-                            // commandID: CommandID.ClearRecentOpened,
-                            commandID: "",
-                        },
-                    },
-                ],
+                submenu: MenuTypes.TitleBarFileOpenRecent,
             },
             // Separator
             // Save Operations
@@ -217,15 +181,7 @@ export const menuTitleFileRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_export_options',
-                        title: 'TBD',
-                        command: {
-                            commandID: "",
-                        },
-                    },
-                ],
+                submenu: MenuTypes.TitleBarFileExportAs,
             },
             {
                 group: '4_export',
@@ -245,7 +201,6 @@ export const menuTitleFileRegister = createRegister(
                     // commandID: CommandID.ToggleAutoSave,
                     commandID: "",
                 },
-                // // checkbox: true,
             },
             // Separator
             // Close Operations
@@ -279,6 +234,72 @@ export const menuTitleFileRegister = createRegister(
         for (const item of fileMenuItems) {
             registrant.registerMenuItem(MenuTypes.TitleBarFile, item);
         }
+
+        // Register 'Open Recent' submenu items
+        const openRecentMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_recent',
+                title: 'Reopen Recent Closed',
+                command: {
+                    // commandID: CommandID.ReopenClosedFile,
+                    commandID: "",
+                    keybinding: IS_MAC ? 'Shift+Cmd+T' : 'Ctrl+Shift+T',
+                },
+            },
+            {
+                group: '2_dynamic',
+                title: 'DYNAMIC',
+                command: {
+                    commandID: "",
+                },
+                submenu: MenuTypes.TitleBarFileOpenRecentDynamic,
+            },
+            {
+                group: '3_clear',
+                title: 'Clear Recent Opened',
+                command: {
+                    // commandID: CommandID.ClearRecentOpened,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of openRecentMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarFileOpenRecent, item);
+        }
+
+        // Register 'Export As' submenu items
+        const exportAsMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_export_options',
+                title: 'Export as PDF',
+                command: {
+                    // commandID: CommandID.ExportAsPDF,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_export_options',
+                title: 'Export as HTML',
+                command: {
+                    // commandID: CommandID.ExportAsHTML,
+                    commandID: "",
+                },
+            },
+            // Add other export options as needed
+        ];
+
+        for (const item of exportAsMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarFileExportAs, item);
+        }
+
+        // Register dynamic recent files if applicable
+        // const dynamicRecentItems: IMenuItemRegistration[] = [
+        //     // Populate dynamically
+        // ];
+        // for (const item of dynamicRecentItems) {
+        //     registrant.registerMenuItem(MenuTypes.TitleBarFileOpenRecentDynamic, item);
+        // }
     }
 );
 
@@ -534,56 +555,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_heading',
-                        title: 'Heading 1',
-                        command: {
-                            // commandID: CommandID.InsertHeading1,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_heading',
-                        title: 'Heading 2',
-                        command: {
-                            // commandID: CommandID.InsertHeading2,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_heading',
-                        title: 'Heading 3',
-                        command: {
-                            // commandID: CommandID.InsertHeading3,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_heading',
-                        title: 'Heading 4',
-                        command: {
-                            // commandID: CommandID.InsertHeading4,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_heading',
-                        title: 'Heading 5',
-                        command: {
-                            // commandID: CommandID.InsertHeading5,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_heading',
-                        title: 'Heading 6',
-                        command: {
-                            // commandID: CommandID.InsertHeading6,
-                            commandID: "",
-                        },
-                    },
-                ],
+                submenu: MenuTypes.TitleBarInsertHeading,
             },
             {
                 group: '1_elements',
@@ -607,32 +579,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_list',
-                        title: 'Ordered List',
-                        command: {
-                            // commandID: CommandID.InsertOrderedList,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_list',
-                        title: 'Unordered List',
-                        command: {
-                            // commandID: CommandID.InsertUnorderedList,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_list',
-                        title: 'Todo List',
-                        command: {
-                            // commandID: CommandID.InsertTodoList,
-                            commandID: "",
-                        },
-                    },
-                ],
+                submenu: MenuTypes.TitleBarInsertList,
             },
             {
                 group: '1_elements',
@@ -656,181 +603,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_image',
-                        title: 'Insert Empty Image',
-                        command: {
-                            // commandID: CommandID.InsertEmptyImage,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_image',
-                        title: 'Insert Local Image…',
-                        command: {
-                            // commandID: CommandID.InsertLocalImage,
-                            commandID: "",
-                        },
-                    },
-                    // Separator
-                    {
-                        group: '2_image_ops',
-                        title: 'Reveal Image In Finder/Explorer',
-                        command: {
-                            // commandID: CommandID.RevealImageInExplorer,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '2_image_ops',
-                        title: 'Zoom Image',
-                        command: {
-                            commandID: "",
-                        },
-                        submenu: [
-                            {
-                                group: '1_zoom_levels',
-                                title: '25%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage25,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '33%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage33,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '50%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage50,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '66%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage66,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '80%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage80,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '100%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage100,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '150%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage150,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '200%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage200,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '500%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage500,
-                                    commandID: "",
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        group: '2_image_ops',
-                        title: 'Switch Image Syntax',
-                        command: {
-                            commandID: "",
-                        },
-                        submenu: [
-                            {
-                                group: '1_syntax',
-                                title: 'Markdown Syntax',
-                                command: {
-                                    // commandID: CommandID.SwitchImageToMarkdown,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_syntax',
-                                title: 'HTML Syntax',
-                                command: {
-                                    // commandID: CommandID.SwitchImageToHTML,
-                                    commandID: "",
-                                },
-                            },
-                        ],
-                    },
-                    // Separator
-                    {
-                        group: '3_image_management',
-                        title: 'Delete Image File…',
-                        command: {
-                            // commandID: CommandID.DeleteImageFile,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '3_image_management',
-                        title: 'Copy Image To…',
-                        command: {
-                            // commandID: CommandID.CopyImageTo,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '3_image_management',
-                        title: 'Move Image To…',
-                        command: {
-                            // commandID: CommandID.MoveImageTo,
-                            commandID: "",
-                        },
-                    },
-                    // Separator
-                    {
-                        group: '4_image_batch',
-                        title: 'Copy All Images to…',
-                        command: {
-                            // commandID: CommandID.CopyAllImagesTo,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '4_image_batch',
-                        title: 'Move All Images to…',
-                        command: {
-                            // commandID: CommandID.MoveAllImagesTo,
-                            commandID: "",
-                        },
-                    },
-                ],
+                submenu: MenuTypes.TitleBarInsertImage,
             },
             {
                 group: '1_elements',
@@ -880,6 +653,289 @@ export const menuTitleInsertRegister = createRegister(
 
         for (const item of insertMenuItems) {
             registrant.registerMenuItem(MenuTypes.TitleBarInsert, item);
+        }
+
+        // Register 'Heading' submenu items
+        const headingMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_heading',
+                title: 'Heading 1',
+                command: {
+                    // commandID: CommandID.InsertHeading1,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_heading',
+                title: 'Heading 2',
+                command: {
+                    // commandID: CommandID.InsertHeading2,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_heading',
+                title: 'Heading 3',
+                command: {
+                    // commandID: CommandID.InsertHeading3,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_heading',
+                title: 'Heading 4',
+                command: {
+                    // commandID: CommandID.InsertHeading4,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_heading',
+                title: 'Heading 5',
+                command: {
+                    // commandID: CommandID.InsertHeading5,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_heading',
+                title: 'Heading 6',
+                command: {
+                    // commandID: CommandID.InsertHeading6,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of headingMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarInsertHeading, item);
+        }
+
+        // Register 'List' submenu items
+        const listMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_list',
+                title: 'Ordered List',
+                command: {
+                    // commandID: CommandID.InsertOrderedList,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_list',
+                title: 'Unordered List',
+                command: {
+                    // commandID: CommandID.InsertUnorderedList,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_list',
+                title: 'Todo List',
+                command: {
+                    // commandID: CommandID.InsertTodoList,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of listMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarInsertList, item);
+        }
+
+        // Register 'Image' submenu items
+        const imageMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_image',
+                title: 'Insert Empty Image',
+                command: {
+                    // commandID: CommandID.InsertEmptyImage,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_image',
+                title: 'Insert Local Image…',
+                command: {
+                    // commandID: CommandID.InsertLocalImage,
+                    commandID: "",
+                },
+            },
+            // Separator
+            {
+                group: '2_image_ops',
+                title: 'Reveal Image In Finder/Explorer',
+                command: {
+                    // commandID: CommandID.RevealImageInExplorer,
+                    commandID: "",
+                },
+            },
+            {
+                group: '2_image_ops',
+                title: 'Zoom Image',
+                command: {
+                    commandID: "",
+                },
+                submenu: MenuTypes.TitleBarInsertImageZoom,
+            },
+            {
+                group: '2_image_ops',
+                title: 'Switch Image Syntax',
+                command: {
+                    commandID: "",
+                },
+                submenu: MenuTypes.TitleBarInsertImageSwitchSyntax,
+            },
+            // Separator
+            {
+                group: '3_image_management',
+                title: 'Delete Image File…',
+                command: {
+                    // commandID: CommandID.DeleteImageFile,
+                    commandID: "",
+                },
+            },
+            {
+                group: '3_image_management',
+                title: 'Copy Image To…',
+                command: {
+                    // commandID: CommandID.CopyImageTo,
+                    commandID: "",
+                },
+            },
+            {
+                group: '3_image_management',
+                title: 'Move Image To…',
+                command: {
+                    // commandID: CommandID.MoveImageTo,
+                    commandID: "",
+                },
+            },
+            // Separator
+            {
+                group: '4_image_batch',
+                title: 'Copy All Images to…',
+                command: {
+                    // commandID: CommandID.CopyAllImagesTo,
+                    commandID: "",
+                },
+            },
+            {
+                group: '4_image_batch',
+                title: 'Move All Images to…',
+                command: {
+                    // commandID: CommandID.MoveAllImagesTo,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of imageMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarInsertImage, item);
+        }
+
+        // Register 'Zoom Image' submenu items
+        const zoomImageMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_zoom_levels',
+                title: '25%',
+                command: {
+                    // commandID: CommandID.ZoomImage25,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '33%',
+                command: {
+                    // commandID: CommandID.ZoomImage33,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '50%',
+                command: {
+                    // commandID: CommandID.ZoomImage50,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '66%',
+                command: {
+                    // commandID: CommandID.ZoomImage66,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '80%',
+                command: {
+                    // commandID: CommandID.ZoomImage80,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '100%',
+                command: {
+                    // commandID: CommandID.ZoomImage100,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '150%',
+                command: {
+                    // commandID: CommandID.ZoomImage150,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '200%',
+                command: {
+                    // commandID: CommandID.ZoomImage200,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_zoom_levels',
+                title: '500%',
+                command: {
+                    // commandID: CommandID.ZoomImage500,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of zoomImageMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarInsertImageZoom, item);
+        }
+
+        // Register 'Switch Image Syntax' submenu items
+        const switchImageSyntaxMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_syntax',
+                title: 'Markdown Syntax',
+                command: {
+                    // commandID: CommandID.SwitchImageToMarkdown,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_syntax',
+                title: 'HTML Syntax',
+                command: {
+                    // commandID: CommandID.SwitchImageToHTML,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of switchImageSyntaxMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarInsertImageSwitchSyntax, item);
         }
     }
 );
@@ -957,80 +1013,44 @@ export const menuTitleFormatRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_image_ops',
-                        title: 'Reveal Image In Finder/Explorer',
-                        command: {
-                            // commandID: CommandID.RevealImageInExplorer,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_image_ops',
-                        title: 'Zoom Image',
-                        command: {
-                            commandID: "",
-                        },
-                        submenu: [
-                            {
-                                group: '1_zoom_levels',
-                                title: '25%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage25,
-                                    commandID: "",
-                                },
-                            },
-                            // Additional zoom levels...
-                            {
-                                group: '1_zoom_levels',
-                                title: '100%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage100,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_zoom_levels',
-                                title: '200%',
-                                command: {
-                                    // commandID: CommandID.ZoomImage200,
-                                    commandID: "",
-                                },
-                            },
-                        ],
-                    },
-                    {
-                        group: '1_image_ops',
-                        title: 'Switch Image Syntax',
-                        command: {
-                            commandID: "",
-                        },
-                        submenu: [
-                            {
-                                group: '1_syntax',
-                                title: 'Markdown Syntax',
-                                command: {
-                                    // commandID: CommandID.SwitchImageToMarkdown,
-                                    commandID: "",
-                                },
-                            },
-                            {
-                                group: '1_syntax',
-                                title: 'HTML Syntax',
-                                command: {
-                                    // commandID: CommandID.SwitchImageToHTML,
-                                    commandID: "",
-                                },
-                            },
-                        ],
-                    },
-                ],
+                submenu: MenuTypes.TitleBarFormatImage,
             },
         ];
 
         for (const item of formatMenuItems) {
             registrant.registerMenuItem(MenuTypes.TitleBarFormat, item);
+        }
+
+        // Register 'Image' submenu items for Format menu
+        const formatImageMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_image_ops',
+                title: 'Reveal Image In Finder/Explorer',
+                command: {
+                    // commandID: CommandID.RevealImageInExplorer,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_image_ops',
+                title: 'Zoom Image',
+                command: {
+                    commandID: "",
+                },
+                submenu: MenuTypes.TitleBarInsertImageZoom, // Reuse existing zoom submenu
+            },
+            {
+                group: '1_image_ops',
+                title: 'Switch Image Syntax',
+                command: {
+                    commandID: "",
+                },
+                submenu: MenuTypes.TitleBarInsertImageSwitchSyntax, // Reuse existing syntax submenu
+            },
+        ];
+
+        for (const item of formatImageMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarFormatImage, item);
         }
     }
 );
@@ -1057,44 +1077,7 @@ export const menuTitleViewRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: [
-                    {
-                        group: '1_themes',
-                        title: 'Light Theme Default',
-                        command: {
-                            // commandID: CommandID.SelectLightTheme,
-                            commandID: "",
-                        },
-                    },
-                    {
-                        group: '1_themes',
-                        title: 'Dark Theme Default',
-                        command: {
-                            // commandID: CommandID.SelectDarkTheme,
-                            commandID: "",
-                        },
-                    },
-                    // Separator
-                    {
-                        group: '2_dynamic',
-                        title: 'DYNAMIC',
-                        command: {
-                            commandID: "",
-                        },
-                        submenu: [
-                            // Additional themes added dynamically
-                        ],
-                    },
-                    // Separator
-                    {
-                        group: '3_folder',
-                        title: 'Open Theme Folder',
-                        command: {
-                            // commandID: CommandID.OpenThemeFolder,
-                            commandID: "",
-                        },
-                    },
-                ],
+                submenu: MenuTypes.TitleBarViewChangeTheme,
             },
             // Separator
             // View Toggles
@@ -1195,6 +1178,56 @@ export const menuTitleViewRegister = createRegister(
         for (const item of viewMenuItems) {
             registrant.registerMenuItem(MenuTypes.TitleBarView, item);
         }
+
+        // Register 'Change Theme' submenu items
+        const changeThemeMenuItems: IMenuItemRegistration[] = [
+            {
+                group: '1_themes',
+                title: 'Light Theme Default',
+                command: {
+                    // commandID: CommandID.SelectLightTheme,
+                    commandID: "",
+                },
+            },
+            {
+                group: '1_themes',
+                title: 'Dark Theme Default',
+                command: {
+                    // commandID: CommandID.SelectDarkTheme,
+                    commandID: "",
+                },
+            },
+            // Separator
+            {
+                group: '2_dynamic',
+                title: 'DYNAMIC',
+                command: {
+                    commandID: "",
+                },
+                submenu: MenuTypes.TitleBarViewChangeThemeDynamic,
+            },
+            // Separator
+            {
+                group: '3_folder',
+                title: 'Open Theme Folder',
+                command: {
+                    // commandID: CommandID.OpenThemeFolder,
+                    commandID: "",
+                },
+            },
+        ];
+
+        for (const item of changeThemeMenuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBarViewChangeTheme, item);
+        }
+
+        // Register dynamic theme items if applicable
+        // const dynamicThemeItems: IMenuItemRegistration[] = [
+        //     // Populate dynamically
+        // ];
+        // for (const item of dynamicThemeItems) {
+        //     registrant.registerMenuItem(MenuTypes.TitleBarViewChangeThemeDynamic, item);
+        // }
     }
 );
 
