@@ -12,6 +12,7 @@ import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/men
 export const enum MenuTypes {
     CommandPalette      = 'CommandPalette',
     FileTreeContext     = 'FileTreeContext',
+    // main menu types
     TitleBarApplication = 'TitleBarApplication',
     TitleBarFile        = 'TitleBarFile',
     TitleBarEdit        = 'TitleBarEdit',
@@ -20,10 +21,23 @@ export const enum MenuTypes {
     TitleBarInsert      = 'TitleBarInsert',
     TitleBarFormat      = 'TitleBarFormat',
     TitleBarHelp        = 'TitleBarHelp',
+    // main sub menu types
+    TitleBarFileOpenRecent = 'TitleBarFileOpenRecent',
+    TitleBarFileOpenRecentDynamic = 'TitleBarFileOpenRecentDynamic',
+    TitleBarFileExportAs = 'TitleBarFileExportAs',
+    TitleBarInsertHeading = 'TitleBarInsertHeading',
+    TitleBarInsertList = 'TitleBarInsertList',
+    TitleBarInsertImage = 'TitleBarInsertImage',
+    TitleBarInsertImageZoom = 'TitleBarInsertImageZoom',
+    TitleBarInsertImageSwitchSyntax = 'TitleBarInsertImageSwitchSyntax',
+    TitleBarFormatImage = 'TitleBarFormatImage',
+    TitleBarViewChangeTheme = 'TitleBarViewChangeTheme',
+    TitleBarViewChangeThemeDynamic = 'TitleBarViewChangeThemeDynamic',
 }
 
-
-export type IMenuItemRegistrationResolved = ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>;
+export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>, 'submenu'> & {
+    readonly submenu?: IMenuItemRegistrationResolved[];
+};
 
 export interface IMenuItemRegistration {
     readonly group: string;
@@ -69,7 +83,7 @@ export interface IMenuItemRegistration {
     /**
      * Optional submenu for nested menu items.
      */
-    readonly submenu?: IMenuItemRegistration[];
+    readonly submenu?: MenuTypes;
 }
 
 export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
@@ -197,7 +211,9 @@ export class MenuRegistrant implements IMenuRegistrant {
             : undefined;
     
         // resolve submenu recursively
-        const resolvedSubmenu = item.submenu?.map(subItem => this.__resolveMenuItem(subItem));
+        const resolvedSubmenu = item.submenu
+            ? this.getMenuItemsResolved(item.submenu)
+            : undefined;
     
         return {
             ...item,
