@@ -7,15 +7,15 @@ import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/comm
 import { IMenuService } from "src/platform/menu/common/menuService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
 
-const mainMenuTypes = [
-    MenuTypes.TitleBarApplication,
-    MenuTypes.TitleBarFile,
-    MenuTypes.TitleBarEdit,
-    MenuTypes.TitleBarSelection,
-    MenuTypes.TitleBarInsert,
-    MenuTypes.TitleBarFormat,
-    MenuTypes.TitleBarView,
-    MenuTypes.TitleBarHelp,
+const mainMenuTypes: { type: MenuTypes; label: string }[] = [
+    { type: MenuTypes.TitleBarApplication, label: 'Nota' },
+    { type: MenuTypes.TitleBarFile, label: 'File' },
+    { type: MenuTypes.TitleBarEdit, label: 'Edit' },
+    { type: MenuTypes.TitleBarSelection, label: 'Selection' },
+    { type: MenuTypes.TitleBarInsert, label: 'Insert' },
+    { type: MenuTypes.TitleBarFormat, label: 'Format' },
+    { type: MenuTypes.TitleBarView, label: 'View' },
+    { type: MenuTypes.TitleBarHelp, label: 'Help' }
 ];
 
 export class MainMenuService implements IMenuService {
@@ -34,7 +34,7 @@ export class MainMenuService implements IMenuService {
     private registerListener() {
         Event.once(this.mainWindowService.onDidOpenWindow)(window => {
             Event.once(window.onRendererReady)(() => {
-                window.sendIPCMessage(IpcChannel.Menu, mainMenuTypes);
+                window.sendIPCMessage(IpcChannel.Menu, mainMenuTypes.map(menu => menu.type));
                 SafeIpcMain.instance.once(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistrationResolved[]][]) => {
                     for (const [menuType, items] of menuItems) {
                         this.menuItemsMap.set(menuType, items);
@@ -58,54 +58,19 @@ export class MainMenuService implements IMenuService {
 
     // Creates the menu template with click handlers for each command
     private getMenuTemplate(): MenuItemConstructorOptions[] {
-        const topMenus: MenuTypes[] = [
-            MenuTypes.TitleBarApplication,
-            MenuTypes.TitleBarFile,
-            MenuTypes.TitleBarEdit,
-            MenuTypes.TitleBarSelection,
-            MenuTypes.TitleBarInsert,
-            MenuTypes.TitleBarFormat,
-            MenuTypes.TitleBarView,
-            MenuTypes.TitleBarHelp,
-        ];
 
         // Build the menu template
-        const menuTemplate: MenuItemConstructorOptions[] = topMenus.map((menuType) => {
-            // retrieve menu items from the map populated via IPC
-            const menuItems = this.menuItemsMap.get(menuType) || [];
-            const menuLabel = this.getMenuLabelForType(menuType);
+        const menuTemplate: MenuItemConstructorOptions[] = mainMenuTypes.map((menu) => {
+            const menuItems = this.menuItemsMap.get(menu.type) || [];
             const submenu = this.buildSubmenu(menuItems);
 
             return {
-                label: menuLabel,
+                label: menu.label,
                 submenu: submenu.length > 0 ? submenu : undefined,
             };
         });
 
         return menuTemplate;
-    }
-
-    private getMenuLabelForType(menuType: MenuTypes): string {
-        switch (menuType) {
-            case MenuTypes.TitleBarApplication:
-                return 'Nota';
-            case MenuTypes.TitleBarFile:
-                return 'File';
-            case MenuTypes.TitleBarEdit:
-                return 'Edit';
-            case MenuTypes.TitleBarSelection:
-                return 'Selection';
-            case MenuTypes.TitleBarInsert:
-                return 'Insert';
-            case MenuTypes.TitleBarFormat:
-                return 'Format';
-            case MenuTypes.TitleBarView:
-                return 'View';
-            case MenuTypes.TitleBarHelp:
-                return 'Help';
-            default:
-                return '';
-        }
     }
 
     private buildSubmenu(menuItems: IMenuItemRegistrationResolved[]): MenuItemConstructorOptions[] {
@@ -115,6 +80,7 @@ export class MainMenuService implements IMenuService {
         const groupedItems = new Map<string, IMenuItemRegistrationResolved[]>();
         for (const item of menuItems) {
             const groupName = item.group || 'no_groups';
+
             let group = groupedItems.get(groupName);
             if (!group) {
                 group = [];
