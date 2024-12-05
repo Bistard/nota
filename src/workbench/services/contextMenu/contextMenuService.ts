@@ -200,16 +200,19 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             });
         });
 
-        // Add separators between groups
+        // group up actions
         const groupedActions = new Map<string, IMenuAction[]>();
         for (const action of actions) {
             const group = menuItems.find((item) => item.title === action.id)?.group || '';
-            if (!groupedActions.has(group)) {
-                groupedActions.set(group, []);
+            let groupActions = groupedActions.get(group);
+            if (!groupActions) {
+                groupActions = [];
+                groupedActions.set(group, groupActions);
             }
-            groupedActions.get(group)!.push(action);
+            groupActions.push(action);
         }
 
+        // Add separators between groups
         const finalActions: IMenuAction[] = [];
         const groupNames = Array.from(groupedActions.keys());
         groupNames.forEach((group, index) => {
