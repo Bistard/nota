@@ -18,7 +18,7 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { IMenuItemRegistration, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menuRegistrant";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export interface IBrowser {
@@ -84,11 +84,12 @@ export class BrowserInstance extends Disposable implements IBrowser {
             }
         });
 
+        // send latest menu data back to the main process if requested
         onMainProcess(ipcRenderer, IpcChannel.Menu, (menuTypes: MenuTypes[]) => {
             const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
-            const result: [MenuTypes, IMenuItemRegistration[]][] = [];
+            const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
             for (const type of menuTypes) {
-                const menuItems = menuRegistrant.getMenuitems(type);
+                const menuItems = menuRegistrant.getMenuItemsResolved(type);
                 result.push([type, menuItems]);
             }
             ipcRenderer.send(IpcChannel.Menu, result);
