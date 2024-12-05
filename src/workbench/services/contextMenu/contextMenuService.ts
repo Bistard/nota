@@ -212,15 +212,17 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             groupActions.push(action);
         }
 
-        // Add separators between groups
         const finalActions: IMenuAction[] = [];
-        const groupNames = Array.from(groupedActions.keys());
-        groupNames.forEach((group, index) => {
-            finalActions.push(...groupedActions.get(group)!);
-            if (index < groupNames.length - 1) {
+        
+        // Add separators between groups
+        let i = 0;
+        for (const [groupName, groups] of groupedActions) {
+            finalActions.push(...groups);
+            if (i < groupedActions.size - 1) {
                 finalActions.push(MenuSeparatorAction.instance);
             }
-        });
+            i++;
+        }
 
         return finalActions;
     }
