@@ -111,7 +111,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
             case InspectorDataType.Color:
                 return transformColorToData(this.themeService.getCurrTheme());
             case InspectorDataType.Menu:
-                return transformMenuToData(this.menuRegistrant.getAllMenus());
+                return transformMenuToData(this.menuRegistrant.getAllMenus(), false);
             default:
                 return [];
         }
@@ -207,22 +207,24 @@ function transformColorToData(theme: IColorTheme): InspectorData[] {
     return data;
 }
 
-function transformMenuToData(menus: [MenuTypes, IMenuItemRegistration[]][]): InspectorData[] {
+function transformMenuToData(menus: [MenuTypes, IMenuItemRegistration[]][], collapsedByDefault: boolean): InspectorData[] {
     const data: InspectorData[] = [];
 
     for (const [menuType, registrations] of menus) {
         const children: InspectorData[] = registrations.map(registration => {
-            const submenu = registration.submenu && transformMenuToData([[menuType, registration.submenu]]);
+            const submenu = registration.submenu && transformMenuToData([[menuType, registration.submenu]], true);
             return {
                 key: registration.title,
                 value: registration.command.commandID,
                 children: submenu,
+                collapsedByDefault: !!submenu,
             };
         });
 
         data.push({
             key: menuType,
             children: children,
+            collapsedByDefault: children && collapsedByDefault,
         });
     }
 

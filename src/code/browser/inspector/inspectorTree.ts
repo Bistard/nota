@@ -52,6 +52,7 @@ function transformDataToTree(data: InspectorData[]): ITreeNodeItem<InspectorItem
             const node: ITreeNodeItem<InspectorItem> = {
                 data: new InspectorItem(item.key, item.value, item.id, item.isColor, item.isEditable),
                 collapsible: !!item.children,
+                collapsed: item.collapsedByDefault,
                 children: item.children ? buildTree(item.children) : undefined,
             };
             return node;

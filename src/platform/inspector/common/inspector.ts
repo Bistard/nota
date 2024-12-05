@@ -42,6 +42,8 @@ export type InspectorData = {
     readonly key: string;
     readonly value?: any;
     readonly children?: InspectorData[];
+
+    readonly collapsedByDefault?: boolean;
     
     readonly id?: string; // a unique identifier
 
