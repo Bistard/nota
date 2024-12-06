@@ -23,7 +23,6 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IHostService } from "src/platform/host/common/hostService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
@@ -70,6 +69,8 @@ import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common"
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
+import { i18nNew, II18nNewService } from "src/platform/i18n/browser/i18nService";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -116,6 +117,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // create workbench UI
             const workbench = instantiationService.createInstance(Workbench);
             workbench.init();
+
+            // TEST:
+            instantiationService.getOrCreateService(II18nNewService).localize("renderer", "renderer default");
 
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
@@ -210,16 +214,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // i18n-service
         // REVIEW: try late initialization
-        const i18nService = new i18n(
-            <II18nOpts>{
-                language: configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
-                localeOpts: {},
+        const i18nNewService = new i18nNew(
+            {
+                language: configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage) as LanguageType,
+                localePath: URI.join(environmentService.appConfigurationPath, "locale")
             },
-            fileService,
             logService,
-            environmentService,
         );
-        instantiationService.register(II18nService, i18nService);
+        instantiationService.register(II18nNewService, i18nNewService);
 
         logService.debug('renderer', 'All core renderer services are constructed.');
         return instantiationService;
@@ -230,16 +232,16 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         const configurationService = instantiationService.getService(IConfigurationService);
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
-        const i18nService          = instantiationService.getService(II18nService);
+        const i18nNewService       = instantiationService.getService(II18nNewService);
         const productService       = instantiationService.getService(IProductService);
         const themeService         = instantiationService.getOrCreateService(IThemeService);
 
         await configurationService.init()
-            .andThen(() => i18nService.init())
+            .andThen(() => i18nNewService.init())
             .andThen(() => productService.init(environmentService.productProfilePath))
             .andThen(() => themeService.init())
             .unwrap();
-        
+
         this.logService.debug('renderer', 'All core renderer services are initialized successfully.');
     }
 

@@ -1,7 +1,6 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { II18nService } from 'src/platform/i18n/common/i18n';
 import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
@@ -62,7 +61,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         parentElement: HTMLElement,
         @IInstantiationService instantiationService: IInstantiationService,
         @IDialogService private readonly dialogService: IBrowserDialogService,
-        @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
@@ -235,7 +233,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
-        tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
         view.appendChild(tag);
 
         return view;
