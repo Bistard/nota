@@ -32,7 +32,7 @@ export interface II18nNewService extends IService {
     setLanguage(lang: LanguageType): Promise<void>;
 
     /**
-     * Translates a key with optional interpolation.
+     * Localize a key with optional interpolation.
      */
     localize(key: string, defaultMessage: string, interpolation?: Record<string, string>): string;
 }
