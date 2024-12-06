@@ -15,6 +15,7 @@ import { IProductService } from "src/platform/product/common/productService";
 import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -100,6 +101,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         private readonly machineID: UUID,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
         @IProductService private readonly productService: IProductService,
@@ -342,13 +344,11 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private __getOSLocale(): string {
-        // TODO: OS language
-        return 'en';
+        return Intl.DateTimeFormat().resolvedOptions().locale || 'en';
     }
 
     private __getUserLocale(): string {
-        // TODO: User preference language
-        return 'en';
+        return this.configurationService.get<string>('workbench.language', 'en');
     }
 
     private __resolveLanguage(userLocale: string, osLocale: string): string {
