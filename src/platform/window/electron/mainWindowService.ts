@@ -270,6 +270,12 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
             hostWindow: -1,
+            nlsConfiguration: {
+                userLocale: this.__getUserLocale(),
+                osLocale: this.__getOSLocale(),
+                resolvedLanguage: this.__resolveLanguage(this.__getUserLocale(), this.__getOSLocale()),
+                defaultMessagesFile: '', // TODO: default english file path
+            },
 
             /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
@@ -333,6 +339,20 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 newWindow.close();
             }
         });
+    }
+
+    private __getOSLocale(): string {
+        // TODO: OS language
+        return 'en';
+    }
+
+    private __getUserLocale(): string {
+        // TODO: User preference language
+        return 'en';
+    }
+
+    private __resolveLanguage(userLocale: string, osLocale: string): string {
+        return userLocale || osLocale || 'en';
     }
 }
 

@@ -117,6 +117,32 @@ export interface IUriToOpenConfiguration {
 }
 
 /**
+ * Determine the language settings and paths to locale resources used by the application.
+ */
+export interface INlsConfiguration {
+    /**
+     * Locale as defined in the application's configuration or defaults.
+     */
+    readonly userLocale: string;
+
+    /**
+     * Locale derived from the operating system's preferences.
+     */
+    readonly osLocale: string;
+
+    /**
+     * The resolved UI language based on user and OS settings.
+     */
+    readonly resolvedLanguage: string;
+
+    /**
+     * Path to the default English message file for fallback purposes.
+     */
+    readonly defaultMessagesFile: string;
+}
+
+
+/**
  * A configuration interface for a renderer process window. Once the renderer 
  * process is constructed. You may access to the window configuration through 
  * the global constant `WIN_CONFIGURATION`.
@@ -131,7 +157,7 @@ export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
     readonly windowID: number;
 
     readonly uriOpenConfiguration: IUriToOpenConfiguration;
-
+    readonly nlsConfiguration: INlsConfiguration;
     /** 
      * If under any existed windows operation. If not, this will sets to -1.
      */

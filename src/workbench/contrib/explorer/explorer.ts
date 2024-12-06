@@ -21,6 +21,7 @@ import { FixedArray } from 'src/base/common/utilities/type';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { II18nNewService } from 'src/platform/i18n/browser/i18nService';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -61,6 +62,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         parentElement: HTMLElement,
         @IInstantiationService instantiationService: IInstantiationService,
         @IDialogService private readonly dialogService: IBrowserDialogService,
+        @II18nNewService private readonly i18nService: II18nNewService,
         @IEditorService private readonly editorService: IEditorService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
@@ -233,6 +235,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
+        tag.textContent = this.i18nService.localize('explorer.openDirectory', 'explorer.openDirectory');
         view.appendChild(tag);
 
         return view;
