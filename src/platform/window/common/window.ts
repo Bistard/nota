@@ -138,7 +138,7 @@ export interface INlsConfiguration {
     /**
      * // TODO: try be detailed. @AAsteria
      */
-    readonly locales: string[];
+    readonly localesLookUpTable: string[];
 }
 
 /**

@@ -372,13 +372,13 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             userLocale: userLocale,
             osLocale: osLocale,
             resolvedLanguage: resolvedLocale,
-            locales: await this.__doLoadLocale(resolvedLocale),
+            localesLookUpTable: await this.__doLoadLocaleLookUpTable(resolvedLocale),
         };
 
         return nlsConfiguration;
     }
 
-    private async __doLoadLocale(localeName: string): Promise<string[]> {
+    private async __doLoadLocaleLookUpTable(localeName: string): Promise<string[]> {
         // TODO
         /**
          * 1. 如果我们支持n种语言

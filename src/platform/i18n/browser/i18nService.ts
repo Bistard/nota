@@ -14,7 +14,7 @@ import { WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 export const II18nNewService = createService<II18nNewService>("i18n-new-service");
 
 export function initNlsDataToGlobal(): void {
-    globalThis.NOTA_I18N_DATA = WIN_CONFIGURATION.nlsConfiguration.locales;
+    globalThis.NOTA_I18N_DATA = WIN_CONFIGURATION.nlsConfiguration.localesLookUpTable;
 }
 
 export interface II18nNewOpts {
