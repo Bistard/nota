@@ -17,20 +17,23 @@ function flattenLocalizationJSON() {
         const inputContent = fs.readFileSync(INPUT_FILE, 'utf-8');
         const localizationData = JSON.parse(inputContent);
 
-        // Extract and flatten all localized strings
-        const flattenedArray = [];
+        if (!localizationData.contents || typeof localizationData.contents !== 'object') {
+            throw new Error("Invalid input JSON structure: Missing or invalid 'contents' field.");
+        }
+
+        const flatArray = [];
+
         Object.entries(localizationData.contents).forEach(([filePath, entries]) => {
             Object.entries(entries).forEach(([key, value]) => {
-                flattenedArray.push(value);
+                flatArray.push(value);
             });
         });
 
-        // Write the flattened array to a new file
         ensureDirectoryExists(OUTPUT_FILE);
-        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(flattenedArray, null, 4), 'utf-8');
+        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(flatArray, null, 4), 'utf-8');
         console.log(`Flattened localization JSON written to ${OUTPUT_FILE}`);
 
-        return flattenedArray;
+        return flatArray;
     } catch (error) {
         console.error('Error flattening localization JSON:', error.message);
         process.exit(1);
@@ -44,5 +47,4 @@ function main() {
     console.log('Flattened Data:', flattenedData);
 }
 
-// Run the script
 main();
