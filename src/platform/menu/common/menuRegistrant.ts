@@ -11,8 +11,7 @@ import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/men
 
 export const enum MenuTypes {
     CommandPalette      = 'CommandPalette',
-    FileTreeContext     = 'FileTreeContext',
-    // main menu types
+    
     TitleBarApplication = 'TitleBarApplication',
     TitleBarFile        = 'TitleBarFile',
     TitleBarEdit        = 'TitleBarEdit',
@@ -21,18 +20,18 @@ export const enum MenuTypes {
     TitleBarInsert      = 'TitleBarInsert',
     TitleBarFormat      = 'TitleBarFormat',
     TitleBarHelp        = 'TitleBarHelp',
-    // main sub menu types
-    TitleBarFileOpenRecent = 'TitleBarFileOpenRecent',
-    TitleBarFileOpenRecentDynamic = 'TitleBarFileOpenRecentDynamic',
-    TitleBarFileExportAs = 'TitleBarFileExportAs',
-    TitleBarInsertHeading = 'TitleBarInsertHeading',
-    TitleBarInsertList = 'TitleBarInsertList',
-    TitleBarInsertImage = 'TitleBarInsertImage',
-    TitleBarInsertImageZoom = 'TitleBarInsertImageZoom',
-    TitleBarInsertImageSwitchSyntax = 'TitleBarInsertImageSwitchSyntax',
-    TitleBarFormatImage = 'TitleBarFormatImage',
-    TitleBarViewChangeTheme = 'TitleBarViewChangeTheme',
-    TitleBarViewChangeThemeDynamic = 'TitleBarViewChangeThemeDynamic',
+    
+    FileOpenRecent = 'FileOpenRecent',
+    FileExportAs = 'FileExportAs',
+    InsertHeading = 'InsertHeading',
+    InsertList = 'InsertList',
+    InsertImage = 'InsertImage',
+    InsertImageZoom = 'InsertImageZoom',
+    InsertImageSwitchSyntax = 'InsertImageSwitchSyntax',
+    FormatImage = 'FormatImage',
+    ViewChangeTheme = 'ViewChangeTheme',
+
+    FileTreeContext     = 'FileTreeContext',
 }
 
 export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>, 'submenu'> & {

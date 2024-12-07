@@ -135,7 +135,7 @@ export const menuTitleFileRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarFileOpenRecent,
+                submenu: MenuTypes.FileOpenRecent,
             },
             // Separator
             // Save Operations
@@ -181,7 +181,7 @@ export const menuTitleFileRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarFileExportAs,
+                submenu: MenuTypes.FileExportAs,
             },
             {
                 group: '4_export',
@@ -252,7 +252,6 @@ export const menuTitleFileRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarFileOpenRecentDynamic,
             },
             {
                 group: '3_clear',
@@ -265,7 +264,7 @@ export const menuTitleFileRegister = createRegister(
         ];
 
         for (const item of openRecentMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarFileOpenRecent, item);
+            registrant.registerMenuItem(MenuTypes.FileOpenRecent, item);
         }
 
         // Register 'Export As' submenu items
@@ -290,16 +289,8 @@ export const menuTitleFileRegister = createRegister(
         ];
 
         for (const item of exportAsMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarFileExportAs, item);
+            registrant.registerMenuItem(MenuTypes.FileExportAs, item);
         }
-
-        // Register dynamic recent files if applicable
-        // const dynamicRecentItems: IMenuItemRegistration[] = [
-        //     // Populate dynamically
-        // ];
-        // for (const item of dynamicRecentItems) {
-        //     registrant.registerMenuItem(MenuTypes.TitleBarFileOpenRecentDynamic, item);
-        // }
     }
 );
 
@@ -555,7 +546,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertHeading,
+                submenu: MenuTypes.InsertHeading,
             },
             {
                 group: '1_elements',
@@ -579,7 +570,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertList,
+                submenu: MenuTypes.InsertList,
             },
             {
                 group: '1_elements',
@@ -603,7 +594,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertImage,
+                submenu: MenuTypes.InsertImage,
             },
             {
                 group: '1_elements',
@@ -708,7 +699,7 @@ export const menuTitleInsertRegister = createRegister(
         ];
 
         for (const item of headingMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarInsertHeading, item);
+            registrant.registerMenuItem(MenuTypes.InsertHeading, item);
         }
 
         // Register 'List' submenu items
@@ -740,7 +731,7 @@ export const menuTitleInsertRegister = createRegister(
         ];
 
         for (const item of listMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarInsertList, item);
+            registrant.registerMenuItem(MenuTypes.InsertList, item);
         }
 
         // Register 'Image' submenu items
@@ -776,7 +767,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertImageZoom,
+                submenu: MenuTypes.InsertImageZoom,
             },
             {
                 group: '2_image_ops',
@@ -784,7 +775,7 @@ export const menuTitleInsertRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertImageSwitchSyntax,
+                submenu: MenuTypes.InsertImageSwitchSyntax,
             },
             // Separator
             {
@@ -831,7 +822,7 @@ export const menuTitleInsertRegister = createRegister(
         ];
 
         for (const item of imageMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarInsertImage, item);
+            registrant.registerMenuItem(MenuTypes.InsertImage, item);
         }
 
         // Register 'Zoom Image' submenu items
@@ -911,7 +902,7 @@ export const menuTitleInsertRegister = createRegister(
         ];
 
         for (const item of zoomImageMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarInsertImageZoom, item);
+            registrant.registerMenuItem(MenuTypes.InsertImageZoom, item);
         }
 
         // Register 'Switch Image Syntax' submenu items
@@ -935,7 +926,7 @@ export const menuTitleInsertRegister = createRegister(
         ];
 
         for (const item of switchImageSyntaxMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarInsertImageSwitchSyntax, item);
+            registrant.registerMenuItem(MenuTypes.InsertImageSwitchSyntax, item);
         }
     }
 );
@@ -1013,7 +1004,7 @@ export const menuTitleFormatRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarFormatImage,
+                submenu: MenuTypes.FormatImage,
             },
         ];
 
@@ -1037,7 +1028,7 @@ export const menuTitleFormatRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertImageZoom, // Reuse existing zoom submenu
+                submenu: MenuTypes.InsertImageZoom,
             },
             {
                 group: '1_image_ops',
@@ -1045,12 +1036,12 @@ export const menuTitleFormatRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarInsertImageSwitchSyntax, // Reuse existing syntax submenu
+                submenu: MenuTypes.InsertImageSwitchSyntax,
             },
         ];
 
         for (const item of formatImageMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarFormatImage, item);
+            registrant.registerMenuItem(MenuTypes.FormatImage, item);
         }
     }
 );
@@ -1077,7 +1068,7 @@ export const menuTitleViewRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarViewChangeTheme,
+                submenu: MenuTypes.ViewChangeTheme,
             },
             // Separator
             // View Toggles
@@ -1204,7 +1195,6 @@ export const menuTitleViewRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.TitleBarViewChangeThemeDynamic,
             },
             // Separator
             {
@@ -1218,16 +1208,8 @@ export const menuTitleViewRegister = createRegister(
         ];
 
         for (const item of changeThemeMenuItems) {
-            registrant.registerMenuItem(MenuTypes.TitleBarViewChangeTheme, item);
+            registrant.registerMenuItem(MenuTypes.ViewChangeTheme, item);
         }
-
-        // Register dynamic theme items if applicable
-        // const dynamicThemeItems: IMenuItemRegistration[] = [
-        //     // Populate dynamically
-        // ];
-        // for (const item of dynamicThemeItems) {
-        //     registrant.registerMenuItem(MenuTypes.TitleBarViewChangeThemeDynamic, item);
-        // }
     }
 );
 
