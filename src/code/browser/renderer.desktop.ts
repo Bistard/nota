@@ -216,10 +216,15 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // REVIEW: try late initialization
         const i18nNewService = new i18nNew(
             {
-                language: configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage) as LanguageType,
-                localePath: URI.join(environmentService.appConfigurationPath, "locale")
+                language: configurationService.get<LanguageType>(
+                    WorkbenchConfiguration.DisplayLanguage,
+                    LanguageType.en
+                ) as LanguageType,
+                localePath: URI.join(environmentService.appConfigurationPath, "locale"),
             },
             logService,
+            fileService,
+            configurationService
         );
         instantiationService.register(II18nNewService, i18nNewService);
 

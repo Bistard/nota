@@ -16,6 +16,8 @@ import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
+import { II18nNewService } from "src/platform/i18n/browser/i18nService";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -246,7 +248,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         let uriToOpenConfiguration: IUriToOpenConfiguration = {};
         if (optionalConfiguration.uriToOpen) {
             uriToOpenConfiguration = UriToOpenResolver.resolve(
-                optionalConfiguration.uriToOpen, 
+                optionalConfiguration.uriToOpen,
                 errorMessage => this.logService.error('MainWindowService', errorMessage),
             );
         }
@@ -276,7 +278,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 userLocale: this.__getUserLocale(),
                 osLocale: this.__getOSLocale(),
                 resolvedLanguage: this.__resolveLanguage(this.__getUserLocale(), this.__getOSLocale()),
-                defaultMessagesFile: '', // TODO: default english file path
+                defaultMessagesFile: '.wisp/locale/en.json'
             },
 
             /** part: {@link IWindowCreationOptions} */

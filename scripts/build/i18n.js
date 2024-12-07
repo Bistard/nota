@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DIRECTORY_PATH = path.join(__dirname, '../../src');
-const OUTPUT_FILE = path.join(__dirname, '../../.wisp/locales/locales.en.json');
+const OUTPUT_FILE = path.join(__dirname, '../../.wisp/locale/en.json');
 const PACKAGE_JSON_PATH = path.join(__dirname, '../../package.json');
 
 // Helper to ensure a directory exists
