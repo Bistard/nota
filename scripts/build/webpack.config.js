@@ -1,6 +1,8 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const webpack = require('webpack');
 const path = require('path');
+const fs = require('fs');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper } = require('../utility');
 
@@ -79,6 +81,23 @@ class WebpackPluginProvider {
                 }
             ));
         }
+
+        // DefinePlugin for NOTA_I18N_DATA
+        const i18nDataPath = path.resolve(cwd, '.wisp/locale/en_flat.json');
+        let i18nData = [];
+        if (fs.existsSync(i18nDataPath)) {
+            try {
+                i18nData = JSON.parse(fs.readFileSync(i18nDataPath, 'utf-8'));
+            } catch (err) {
+                console.error(`[WebpackPluginProvider] Failed to load i18n data from ${i18nDataPath}:`, err.message);
+            }
+        } else {
+            console.warn(`[WebpackPluginProvider] Localization data file not found at ${i18nDataPath}. Using empty data.`);
+        }
+
+        plugins.push(new webpack.DefinePlugin({
+            'global.NOTA_I18N_DATA': JSON.stringify(i18nData),
+        }));
         
         return plugins;
     }
