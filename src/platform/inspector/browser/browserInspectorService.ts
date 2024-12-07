@@ -216,7 +216,7 @@ function transformMenuToData(
 
     for (const [menuType, registrations] of menus) {
         const children: InspectorData[] = registrations.map(registration => {
-            let submenu = registration.submenu 
+            const submenu = registration.submenu 
                 && transformMenuToData(
                     menuRegistrant, 
                     [[registration.submenu, menuRegistrant.getMenuitems(registration.submenu)]], 
