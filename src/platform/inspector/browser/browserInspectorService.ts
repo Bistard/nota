@@ -216,18 +216,18 @@ function transformMenuToData(
 
     for (const [menuType, registrations] of menus) {
         const children: InspectorData[] = registrations.map(registration => {
-            let submenu: InspectorData[] | undefined;
-
-            if (registration.submenu) {
-                const submenuItems = menuRegistrant.getMenuitems(registration.submenu);
-                submenu = transformMenuToData(menuRegistrant, [[registration.submenu, submenuItems]], true);
-            }
+            let submenu = registration.submenu 
+                && transformMenuToData(
+                    menuRegistrant, 
+                    [[registration.submenu, menuRegistrant.getMenuitems(registration.submenu)]], 
+                    true,
+                );
 
             return {
                 key: registration.title,
                 value: registration.command.commandID,
                 children: submenu,
-                collapsedByDefault: !!submenu,
+                collapsedByDefault: true,
             };
         });
 
