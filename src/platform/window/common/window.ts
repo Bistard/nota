@@ -136,11 +136,10 @@ export interface INlsConfiguration {
     readonly resolvedLanguage: string;
 
     /**
-     * Path to the default English message file for fallback purposes.
+     * // TODO: try be detailed. @AAsteria
      */
-    readonly defaultMessagesFile: string;
+    readonly locales: string[];
 }
-
 
 /**
  * A configuration interface for a renderer process window. Once the renderer 

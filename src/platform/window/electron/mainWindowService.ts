@@ -5,7 +5,7 @@ import { isDefined, isNumber, Mutable } from "src/base/common/utilities/type";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState, IWindowConfiguration, INSPECTOR_HTML } from "src/platform/window/common/window";
+import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState, IWindowConfiguration, INSPECTOR_HTML, INlsConfiguration } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
@@ -18,6 +18,7 @@ import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { II18nNewService } from "src/platform/i18n/browser/i18nService";
+import { app } from "electron";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -63,13 +64,13 @@ export interface IMainWindowService extends Disposable, IService {
     /**
      * @description Construct and open a brand new renderer window.
      */
-    open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance;
+    open(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance>;
 
     /**
      * @description Open an inspector window owned by the given window id.
      * @param ownerWindow The window id shared with this inspector window.
      */
-    openInspector(ownerWindow: number): IWindowInstance;
+    openInspector(ownerWindow: number): Promise<IWindowInstance>;
     getInspectorWindowByID(windowID: number): IWindowInstance | undefined;
     getInspectorWindowByOwnerID(windowID: number): IWindowInstance | undefined;
     isInspectorWindow(windowID: number): boolean;
@@ -159,7 +160,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return this._windows.length;
     }
 
-    public open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
+    public async open(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance> {
         this.logService.debug('MainWindowService', 'trying to open a window...');
 
         const ownerID = optionalConfiguration.ownerWindow;
@@ -167,7 +168,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             panic(`Cannot open a window (${optionalConfiguration.applicationName ?? 'unknown name'}) under the owner window (id: ${ownerID}) who is already destroyed.`);
         }
         
-        const newWindow = this.doOpen(optionalConfiguration);
+        const newWindow = await this.doOpen(optionalConfiguration);
         if (ownerID) {
             this.__bindWindowLifecycle(newWindow, ownerID);
         }
@@ -175,8 +176,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return newWindow;
     }
 
-    public openInspector(ownerWindow: number): IWindowInstance {
-        const window = this.open({
+    public async openInspector(ownerWindow: number): Promise<IWindowInstance> {
+        const window = await this.open({
             applicationName: `Inspector Process (associated with Window: ${ownerWindow})`,
             CLIArgv:  { _: [] }, // empty
             loadFile: INSPECTOR_HTML,
@@ -241,7 +242,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // noop
     }
 
-    private doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
+    private async doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance> {
         let window: IWindowInstance | undefined = undefined;
 
         // get opening URIs configuration
@@ -274,12 +275,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
             hostWindow: -1,
-            nlsConfiguration: {
-                userLocale: this.__getUserLocale(),
-                osLocale: this.__getOSLocale(),
-                resolvedLanguage: this.__resolveLanguage(this.__getUserLocale(), this.__getOSLocale()),
-                defaultMessagesFile: '.wisp/locale/en.json'
-            },
+            nlsConfiguration: await this.__loadLocale(),
 
             /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
@@ -346,7 +342,52 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private __getOSLocale(): string {
-        return Intl.DateTimeFormat().resolvedOptions().locale || 'en';
+        const osLocale = app.getPreferredSystemLanguages()?.[0] || 'en';
+        if (osLocale.startsWith('zh')) {
+            const region = osLocale.split('-')[1]!;
+            /**
+             * On Windows and macOS, Chinese languages returned by
+             * app.getPreferredSystemLanguages() start with zh-hans
+             * for Simplified Chinese or zh-hant for Traditional Chinese,
+             * so we can easily determine whether to use Simplified or Traditional.
+             * However, on Linux, Chinese languages returned by that same API
+             * are of the form zh-XY, where XY is a country code.
+             * For China (CN), Singapore (SG), and Malaysia (MY)
+             * country codes, assume they use Simplified Chinese.
+             * For other cases, assume they use Traditional.
+             */
+            if (['hans', 'cn', 'sg', 'my'].includes(region)) {
+                return 'zh-cn';
+            }
+            return 'zh-tw';
+        }
+        return osLocale;
+    }
+
+    private async __loadLocale(): Promise<INlsConfiguration> {
+        const userLocale = this.__getUserLocale();
+        const osLocale = this.__getOSLocale();
+        const resolvedLocale = this.__resolveLanguage(userLocale, osLocale);
+        const nlsConfiguration: INlsConfiguration = {
+            userLocale: userLocale,
+            osLocale: osLocale,
+            resolvedLanguage: resolvedLocale,
+            locales: await this.__doLoadLocale(resolvedLocale),
+        };
+
+        return nlsConfiguration;
+    }
+
+    private async __doLoadLocale(localeName: string): Promise<string[]> {
+        // TODO
+        /**
+         * 1. 如果我们支持n种语言
+         * 2. 我们在编译阶段就创建对应的n种语言的flat.json
+         * 3. 然后在runtime中的主进程阶段，读取对应的flat.json。 ⭐ // TODO
+         * 4. 读取flat.json之后，将该array储存到渲染进程的全局变量里。
+         */
+
+        return [];
     }
 
     private __getUserLocale(): string {

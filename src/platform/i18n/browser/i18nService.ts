@@ -9,8 +9,13 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { Strings } from "src/base/common/utilities/string";
+import { WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 
 export const II18nNewService = createService<II18nNewService>("i18n-new-service");
+
+export function initNlsDataToGlobal(): void {
+    globalThis.NOTA_I18N_DATA = WIN_CONFIGURATION.nlsConfiguration.locales;
+}
 
 export interface II18nNewOpts {
     language: LanguageType;
