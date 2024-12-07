@@ -275,7 +275,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
             hostWindow: -1,
-            nlsConfiguration: await this.__loadLocale(),
+            nlsConfiguration: await this.__resolveNlsConfiguration(),
 
             /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
@@ -364,7 +364,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return osLocale;
     }
 
-    private async __loadLocale(): Promise<INlsConfiguration> {
+    private async __resolveNlsConfiguration(): Promise<INlsConfiguration> {
         const userLocale = this.__getUserLocale();
         const osLocale = this.__getOSLocale();
         const resolvedLocale = this.__resolveLanguage(userLocale, osLocale);
@@ -372,22 +372,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             userLocale: userLocale,
             osLocale: osLocale,
             resolvedLanguage: resolvedLocale,
-            localesLookUpTable: await this.__doLoadLocaleLookUpTable(resolvedLocale),
         };
-
         return nlsConfiguration;
-    }
-
-    private async __doLoadLocaleLookUpTable(localeName: string): Promise<string[]> {
-        // TODO
-        /**
-         * 1. 如果我们支持n种语言
-         * 2. 我们在编译阶段就创建对应的n种语言的flat.json
-         * 3. 然后在runtime中的主进程阶段，读取对应的flat.json。 ⭐ // TODO
-         * 4. 读取flat.json之后，将该array储存到渲染进程的全局变量里。
-         */
-
-        return [];
     }
 
     private __getUserLocale(): string {

@@ -69,7 +69,7 @@ import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common"
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
-import { i18nNew, II18nNewService, initNlsDataToGlobal } from "src/platform/i18n/browser/i18nService";
+import { i18nNew, II18nNewService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 /**
@@ -95,7 +95,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
-            initNlsDataToGlobal();
             monitorEventEmitterListenerGC({
                 ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
             });

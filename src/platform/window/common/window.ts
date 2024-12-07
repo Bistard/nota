@@ -134,11 +134,6 @@ export interface INlsConfiguration {
      * The resolved UI language based on user and OS settings.
      */
     readonly resolvedLanguage: string;
-
-    /**
-     * // TODO: try be detailed. @AAsteria
-     */
-    readonly localesLookUpTable: string[];
 }
 
 /**
