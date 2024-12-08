@@ -215,16 +215,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
-        const i18nNewService = new i18nNew(
-            {
-                language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
-                localePath: URI.join(environmentService.appConfigurationPath, "locale"),
-            },
-            logService,
-            fileService,
-            configurationService
-        );
-        instantiationService.register(II18nNewService, i18nNewService);
+        const i18nService = instantiationService.createInstance(i18n, {
+            language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
+            localePath: URI.join(environmentService.appConfigurationPath, "locale"),
+        });
+        instantiationService.register(II18nService, i18nService);
 
         logService.debug('renderer', 'All core renderer services are constructed.');
         return instantiationService;
