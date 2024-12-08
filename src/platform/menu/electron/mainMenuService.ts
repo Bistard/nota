@@ -18,11 +18,16 @@ const mainMenuTypes: { type: MenuTypes; label: string }[] = [
     { type: MenuTypes.TitleBarHelp, label: 'Help' }
 ];
 
+
+/**
+ * @description A macOS-specific service responsible for managing the menu bar in the 
+ * main process. This service handles the construction, updating, and event handling 
+ * of the application menu located in the top-left corner of the macOS interface.
+ */
 export class MainMenuService implements IMenuService {
 
-    // Marker for service injection
     declare _serviceMarker: undefined;
-    private menuItemsMap: Map<MenuTypes, IMenuItemRegistrationResolved[]> = new Map();
+    private readonly menuItemsMap: Map<MenuTypes, IMenuItemRegistrationResolved[]> = new Map();
 
     constructor(
         @ILogService private readonly logService: ILogService,
@@ -48,15 +53,18 @@ export class MainMenuService implements IMenuService {
     // Builds and sets the application menu
     private buildMenu() {
         const menu = Menu.buildFromTemplate(this.getMenuTemplate());
+        
         // set application menu for the entire app
         Menu.setApplicationMenu(menu);
-        // set the context menu for the macOS dock icon,
-        // shown when right-clicking the app icon in the dock
+
+        /**
+         * Set the context menu for the macOS dock icon, shown when 
+         * right-clicking the app icon in the dock.
+         */
         app.dock.setMenu(menu);
         this.logService.debug('MainMenuService', 'Application menu has been set.');
     }
 
-    // Creates the menu template with click handlers for each command
     private getMenuTemplate(): MenuItemConstructorOptions[] {
 
         // Build the menu template
@@ -120,7 +128,6 @@ export class MainMenuService implements IMenuService {
         return electronSubmenuItems;
     }
 
-    // Handles menu item clicks by sending the command to the focused window
     private onMenuItemClick(commandID: string): void {
         let window = this.mainWindowService.getFocusedWindow();
 
