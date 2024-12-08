@@ -119,7 +119,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             workbench.init();
 
             // TEST:
-            instantiationService.getOrCreateService(II18nNewService).localize('renderer', 'renderer default');
+            instantiationService.getOrCreateService(II18nNewService).localize('renderer', 'Open a Folder');
             /*
             instantiationService.getOrCreateService(II18nNewService).localize('renderer2', 'renderer default2');
             */
@@ -214,9 +214,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
-        console.log("NOTA_I18N_DATA:", global.NOTA_I18N_DATA);
         // i18n-service
-        // REVIEW: try late initialization
         const i18nNewService = new i18nNew(
             {
                 language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,

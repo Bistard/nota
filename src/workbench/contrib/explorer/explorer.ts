@@ -234,7 +234,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
-        tag.textContent = this.i18nService.localize('explorer.openDirectory', 'explorer.openDirectory default');
+        tag.textContent = this.i18nService.localize('explorer.openDirectory', 'Open a Folder');
         view.appendChild(tag);
 
         return view;

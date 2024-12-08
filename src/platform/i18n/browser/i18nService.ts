@@ -54,15 +54,19 @@ export interface II18nNewService extends IService {
 }
 
 /**
- * @class The new i18n service for managing and translating locales.
+ * @class The i18n (internationalization) service for loading and translating 
+ * locales.
  */
 export class i18nNew implements II18nNewService {
+    
     // [fields]
 
     declare _serviceMarker: undefined;
 
     private _language: LanguageType;
     private _table?: II18nLookUpTable;
+
+    // [event]
 
     private readonly _onDidChange = new Emitter<void>();
     public readonly onDidChange = this._onDidChange.registerListener;

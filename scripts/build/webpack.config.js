@@ -198,9 +198,9 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         console.log(`   🌍 Webpack environments: ${JSON.stringify(env)}`);
 
         // init environment constant
-        this.#buildMode = env.BUILD_MODE;
-        this.#isWatchMode = env.WATCH_MODE === 'true';
-        this.#isCircular = env.CIRCULAR === 'true';
+        this.#buildMode   = env.BUILD_MODE;
+        this.#isWatchMode = env.WATCH_MODE == 'true';
+        this.#isCircular  = env.CIRCULAR == 'true';
     }
 
     // [public - configuration initialization]

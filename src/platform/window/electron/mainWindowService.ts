@@ -16,8 +16,6 @@ import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { LanguageType } from "src/platform/i18n/common/localeTypes";
-import { II18nNewService } from "src/platform/i18n/browser/i18nService";
 import { app } from "electron";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
@@ -275,7 +273,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
             hostWindow: -1,
-            nlsConfiguration: await this.__resolveNlsConfiguration(),
+            nlsConfiguration: this.__resolveNlsConfiguration(),
 
             /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
@@ -364,7 +362,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return osLocale;
     }
 
-    private async __resolveNlsConfiguration(): Promise<INlsConfiguration> {
+    private __resolveNlsConfiguration(): INlsConfiguration {
         const userLocale = this.__getUserLocale();
         const osLocale = this.__getOSLocale();
         const resolvedLocale = this.__resolveLanguage(userLocale, osLocale);
