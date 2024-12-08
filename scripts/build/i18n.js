@@ -6,6 +6,78 @@ const OUTPUT_FILE = path.join(__dirname, '../../.wisp/locale/en_flat.json');
 const DIRECTORY_PATH = path.join(__dirname, '../../src');
 const PACKAGE_JSON_PATH = path.join(__dirname, '../../package.json');
 
+class KeyToIndexTransformPlugin {
+    constructor(localeFilePath) {
+        this.localeFilePath = localeFilePath;
+        this.keyMap = {};
+        this.loadKeyMap();
+    }
+
+    loadKeyMap() {
+        console.log(`[KeyToIndexTransformPlugin] Loading locale file from: ${this.localeFilePath}`);
+
+        if (fs.existsSync(this.localeFilePath)) {
+            try {
+                const rawData = fs.readFileSync(this.localeFilePath, 'utf-8');
+                const jsonData = JSON.parse(rawData);
+
+                if (Array.isArray(jsonData)) {
+                    jsonData.forEach((key, index) => {
+                        this.keyMap[key] = index;
+                    });
+                    console.log(`[KeyToIndexTransformPlugin] Loaded key map: ${JSON.stringify(this.keyMap, null, 2)}`);
+                } else {
+                    throw new Error('Locale file JSON is not an array of keys.');
+                }
+            } catch (error) {
+                console.error(`[KeyToIndexTransformPlugin] Error loading locale file: ${error.message}`);
+            }
+        } else {
+            console.error(`[KeyToIndexTransformPlugin] Locale file not found at: ${this.localeFilePath}`);
+        }
+    }
+
+    transformSource(source) {
+        let transformed = source;
+        for (const [key, index] of Object.entries(this.keyMap)) {
+            const regex = new RegExp(`'${key}'`, 'g');
+            transformed = transformed.replace(regex, index.toString());
+        }
+        return transformed;
+    }
+
+    apply(compiler) {
+        compiler.hooks.thisCompilation.tap('KeyToIndexTransformPlugin', (compilation) => {
+            compilation.hooks.processAssets.tap(
+                {
+                    name: 'KeyToIndexTransformPlugin',
+                    stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
+                },
+                (assets) => {
+                    Object.keys(assets).forEach((filename) => {
+                        if (filename === 'renderer-bundle.js') {
+                            console.log(`[KeyToIndexTransformPlugin] Transforming file: ${filename}`);
+                            const asset = compilation.getAsset(filename);
+                            const source = asset.source.source().toString();
+                            const transformed = this.transformSource(source);
+
+                            if (transformed !== source) {
+                                compilation.updateAsset(
+                                    filename,
+                                    new compiler.webpack.sources.RawSource(transformed)
+                                );
+                                console.log(`[KeyToIndexTransformPlugin] Successfully transformed ${filename}`);
+                            } else {
+                                console.log(`[KeyToIndexTransformPlugin] No transformations applied to ${filename}`);
+                            }
+                        }
+                    });
+                }
+            );
+        });
+    }
+}
+
 function ensureDirectoryExists(filePath) {
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
@@ -141,3 +213,5 @@ function main() {
 }
 
 main();
+
+module.exports = { KeyToIndexTransformPlugin };
