@@ -74,7 +74,7 @@ export interface IMenuItemRegistration {
          * Define the item as a toggle item. Define the context key expression
          * that reflects its toggle-state.
          */
-        readonly toggled?: ContextKeyExpr;
+        readonly checked?: ContextKeyExpr;
 
         /**
          * Keybinding for the command.

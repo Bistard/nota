@@ -111,8 +111,8 @@ export class MainMenuService implements IMenuService {
                     accelerator,
                     click: () => this.onMenuItemClick(item.command.commandID),
                     enabled: item.when ?? true,
-                    type: item.command.toggled ? 'checkbox' : undefined,
-                    checked: item.command.toggled,
+                    type: item.command.checked ? 'checkbox' : undefined,
+                    checked: item.command.checked,
                     submenu: hasSubmenu ? this.buildSubmenu(item.submenu) : undefined
                 };
 

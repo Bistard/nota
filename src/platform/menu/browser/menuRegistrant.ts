@@ -125,8 +125,8 @@ export class MenuRegistrant implements IMenuRegistrant {
         
         // resolve conditions from `ContextKeyExpr` to actual `boolean`
         const whenResolved = this.contextService.contextMatchExpr(item.when ?? null);
-        const toggledResolved = item.command.toggled
-            ? this.contextService.contextMatchExpr(item.command.toggled)
+        const toggledResolved = item.command.checked
+            ? this.contextService.contextMatchExpr(item.command.checked)
             : undefined;
     
         // resolve submenu recursively
@@ -139,7 +139,7 @@ export class MenuRegistrant implements IMenuRegistrant {
             command: {
                 ...item.command,
                 when: whenResolved,
-                toggled: toggledResolved
+                checked: toggledResolved
             },
             when: whenResolved,
             submenu: resolvedSubmenu
