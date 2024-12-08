@@ -2,14 +2,13 @@ import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
-import { AsyncResult, Result } from "src/base/common/result";
-import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
+import { AsyncResult } from "src/base/common/result";
+import { FileOperationError } from "src/base/common/files/file";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { Strings } from "src/base/common/utilities/string";
-import { WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 
 export const II18nNewService = createService<II18nNewService>("i18n-new-service");
 
@@ -19,14 +18,12 @@ export interface II18nNewOpts {
 }
 
 export interface II18nModel {
-    readonly version: string,
+    readonly version: string;
     readonly content: II18nLookUpTable;
 }
 
 export interface II18nLookUpTable {
-    [path: string]: {
-        [key: string]: string;
-    }
+    [index: number]: string;
 }
 
 export interface II18nNewService extends IService {
@@ -36,7 +33,6 @@ export interface II18nNewService extends IService {
     readonly language: LanguageType;
 
     /**
-     * // FIX: delete
      * Fires when the language changes.
      */
     readonly onDidChange: Register<void>;
@@ -61,13 +57,11 @@ export interface II18nNewService extends IService {
  * @class The new i18n service for managing and translating locales.
  */
 export class i18nNew implements II18nNewService {
-
     // [fields]
 
     declare _serviceMarker: undefined;
 
     private _language: LanguageType;
-
     private _table?: II18nLookUpTable;
 
     private readonly _onDidChange = new Emitter<void>();
@@ -102,14 +96,23 @@ export class i18nNew implements II18nNewService {
             this.logService.info("i18nNew", `Language already set to: ${lang}`);
             return;
         }
-        
         // TODO: should reload the renderer page entirely
     }
 
     public localize(key: string, defaultMessage: string, interpolation?: Record<string, string>): string {
-        // FIX: big fix
-        const value = this._table?.['need_some_file_path']![key] || defaultMessage;
-        return this.__insertToTranslation(value, interpolation);
+        if (!this._table) {
+            this.logService.warn("i18nNew", "Localization table is not loaded, returning default message.");
+            return defaultMessage;
+        }
+
+        // Find the index of the key in the table
+        const index = parseInt(key, 10);
+        if (isNaN(index) || this._table[index] === undefined) {
+            this.logService.warn("i18nNew", `Localization key '${key}' not found, returning default message.`);
+            return defaultMessage;
+        }
+
+        return this.__insertToTranslation(this._table[index], interpolation);
     }
 
     // [private methods]
@@ -129,21 +132,23 @@ export class i18nNew implements II18nNewService {
             if (insertion[key] !== undefined) {
                 return insertion[key];
             }
-            // TODO: this.logService.warn
+            this.logService.warn("i18nNew", `Missing interpolation value for key: ${key}`);
             return `{${key}}`;
         });
     }
 
     private __getLocaleFilePath(language: LanguageType): URI {
-        return URI.join(this.opts.localePath, `${language}.json`);
+        return URI.join(this.opts.localePath, `${language}_flat.json`);
     }
 
     private __loadLocaleFile(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
-        this.logService.debug("i18nNew", `Loading locale file: ${uri.toString()}`);
+        this.logService.debug("i18nNew", `Loading flattened locale file: ${uri.toString()}`);
 
         return this.fileService.readFile(uri)
-            .andThen(buffer => Strings.jsonParseSafe<II18nModel>(buffer.toString()).map(data => {
-                this._table = data.content;
-            }));
+            .andThen(buffer =>
+                Strings.jsonParseSafe<string[]>(buffer.toString()).map(data => {
+                    this._table = data; // Directly assign the array to the lookup table
+                })
+            );
     }
 }
