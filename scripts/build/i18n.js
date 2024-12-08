@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
+const INPUT_FILE = path.join(__dirname, '../../.wisp/locale/en.json');
+const OUTPUT_FILE = path.join(__dirname, '../../.wisp/locale/en_flat.json');
 const DIRECTORY_PATH = path.join(__dirname, '../../src');
-const OUTPUT_FILE = path.join(__dirname, '../../.wisp/locale/en.json');
 const PACKAGE_JSON_PATH = path.join(__dirname, '../../package.json');
 
-// Helper to ensure a directory exists
 function ensureDirectoryExists(filePath) {
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
@@ -14,8 +14,15 @@ function ensureDirectoryExists(filePath) {
     }
 }
 
-// Function to read package.json version
+function removeComments(content) {
+    // This function removes multi-line and single-line comments from the given content string
+    return content
+        .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+        .replace(/\/\/.*$/gm, ''); // Remove single-line comments
+}
+
 function getPackageVersion() {
+    // Reads the package.json file to extract the current project version
     try {
         const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf-8'));
         return packageJson.version;
@@ -25,8 +32,38 @@ function getPackageVersion() {
     }
 }
 
-// Function to generate localization JSON
+function flattenLocalizationKeys() {
+    // This function processes en.json to extract and flatten all localization keys into en_flat.json
+    try {
+        const inputContent = fs.readFileSync(INPUT_FILE, 'utf-8');
+        const cleanedContent = removeComments(inputContent); // Remove comments to ensure clean JSON parsing
+        const localizationData = JSON.parse(cleanedContent);
+
+        if (!localizationData.contents || typeof localizationData.contents !== 'object') {
+            throw new Error("Invalid input JSON structure: Missing or invalid 'contents' field.");
+        }
+
+        const flatKeys = [];
+
+        Object.entries(localizationData.contents).forEach(([filePath, entries]) => {
+            Object.keys(entries).forEach(key => {
+                flatKeys.push(key);
+            });
+        });
+
+        ensureDirectoryExists(OUTPUT_FILE);
+        fs.writeFileSync(OUTPUT_FILE, JSON.stringify(flatKeys, null, 4), 'utf-8');
+        console.log(`Flattened localization keys written to ${OUTPUT_FILE}`);
+
+        return flatKeys;
+    } catch (error) {
+        console.error('Error flattening localization JSON:', error.message);
+        process.exit(1);
+    }
+}
+
 function generateLocalizationJSON() {
+    // Generates a complete localization JSON file by parsing source files for localize calls
     const version = getPackageVersion();
     const allFiles = getAllFiles(DIRECTORY_PATH);
     const localizationData = {
@@ -50,16 +87,13 @@ function generateLocalizationJSON() {
         }
     });
 
-    // Ensure the directory exists
-    ensureDirectoryExists(OUTPUT_FILE);
-
-    // Write the output file
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(localizationData, null, 4), 'utf-8');
-    console.log(`Localization JSON written to ${OUTPUT_FILE}`);
+    ensureDirectoryExists(INPUT_FILE);
+    fs.writeFileSync(INPUT_FILE, JSON.stringify(localizationData, null, 4), 'utf-8');
+    console.log(`Localization JSON written to ${INPUT_FILE}`);
 }
 
-// Recursively get all .ts files
 function getAllFiles(dirPath, arrayOfFiles) {
+    // Recursively retrieves all TypeScript files in the given directory
     const files = fs.readdirSync(dirPath);
 
     arrayOfFiles = arrayOfFiles || [];
@@ -75,10 +109,10 @@ function getAllFiles(dirPath, arrayOfFiles) {
     return arrayOfFiles;
 }
 
-// Parse a file for localize calls
 function parseFile(filePath) {
+    // Parses a single file to extract localization keys and their default messages
     const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const cleanedContent = removeMultilineComments(fileContent); // Preprocess content to remove multiline comments
+    const cleanedContent = removeComments(fileContent); // Preprocess content to remove comments
     const lines = cleanedContent.split('\n');
 
     const entries = {};
@@ -96,13 +130,14 @@ function parseFile(filePath) {
     return entries;
 }
 
-// Function to strip multiline comments
-function removeMultilineComments(content) {
-    return content.replace(/\/\*[\s\S]*?\*\//g, '');
-}
-
-// Main Regex for localization
 const LOCALIZE_REGEX = /(?<!\/\/.*)localize\s*\(\s*["'`](.*?)["'`]\s*,\s*["'`](.*?)["'`]/g;
 
-// Run the script
-generateLocalizationJSON();
+function main() {
+    console.log('Generating full localization JSON...');
+    generateLocalizationJSON();
+
+    console.log('Flattening localization JSON keys...');
+    flattenLocalizationKeys();
+}
+
+main();
