@@ -18,7 +18,7 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/browser/menuRegistrant";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export interface IBrowser {

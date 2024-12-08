@@ -69,7 +69,7 @@ import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/
 import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
-import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
+import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.

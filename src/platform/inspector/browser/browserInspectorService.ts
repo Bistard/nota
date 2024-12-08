@@ -15,7 +15,7 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IpcChannel } from "src/platform/ipc/common/channel";
-import { IMenuItemRegistration, IMenuRegistrant, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IMenuItemRegistration, IMenuRegistrant, MenuTypes } from "src/platform/menu/browser/menuRegistrant";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IShortcutReference, IShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";

@@ -3,7 +3,7 @@ import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
-import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/browser/menuRegistrant";
 import { IMenuService } from "src/platform/menu/common/menuService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
 

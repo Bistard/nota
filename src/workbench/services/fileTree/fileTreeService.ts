@@ -32,7 +32,7 @@ import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { MenuTypes } from "src/platform/menu/browser/menuRegistrant";
 import { IContextService } from "src/platform/context/common/contextService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {

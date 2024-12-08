@@ -1,5 +1,5 @@
 import { createRegister, RegistrantType } from "src/platform/registrant/common/registrant";
-import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menuRegistrant";
+import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/browser/menuRegistrant";
 import { IS_MAC } from "src/base/common/platform";
 import { CommandID } from "src/platform/menu/common/menuService";
 
