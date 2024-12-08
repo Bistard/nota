@@ -41,11 +41,16 @@ export class MainMenuService implements IMenuService {
             Event.once(window.onRendererReady)(() => {
                 window.sendIPCMessage(IpcChannel.Menu, mainMenuTypes.map(menu => menu.type));
                 SafeIpcMain.instance.once(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistrationResolved[]][]) => {
+                    clearTimeout(maxDelay);
                     for (const [menuType, items] of menuItems) {
                         this.menuItemsMap.set(menuType, items);
                     }
                     this.buildMenu();
                 });
+
+                const maxDelay = setTimeout(() => {
+                    this.logService.error('MainMenuService', `Loading menu items failed: Cannot receive response from the renderer process (${window.id}). Reaching maximum loading time.`);
+                }, 5000);
             });
         });
     }
