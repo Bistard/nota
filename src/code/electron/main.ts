@@ -8,7 +8,7 @@ import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/co
 import { Strings } from 'src/base/common/utilities/string';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
 import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
@@ -147,6 +147,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
         instantiationService.register(IRegistrantService, registrantService);
+
         this.initRegistrant(instantiationService, registrantService);
 
         // file-service

@@ -15,6 +15,8 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IpcChannel } from "src/platform/ipc/common/channel";
+import { IMenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
+import { IMenuItemRegistration, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IShortcutReference, IShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
@@ -29,6 +31,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     private readonly commandRegistrant: ICommandRegistrant;
     private readonly shortcutRegistrant: IShortcutRegistrant;
+    private readonly menuRegistrant: IMenuRegistrant;
 
     private readonly _initProtector: InitProtector;
     private _currentListenTo?: InspectorDataType;
@@ -45,6 +48,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     ) {
         this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
         this.shortcutRegistrant = this.registrantService.getRegistrant(RegistrantType.Shortcut);
+        this.menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
         this._lifecycle = new DisposableManager();
         this._initProtector = new InitProtector();
         this._syncScheduler = new UnbufferedScheduler(Time.ms(500), listenToDataType => {
@@ -107,6 +111,8 @@ export class BrowserInspectorService implements IBrowserInspectorService {
                 return transformShortcutToData(this.shortcutRegistrant.getAllShortcutRegistrations());
             case InspectorDataType.Color:
                 return transformColorToData(this.themeService.getCurrTheme());
+            case InspectorDataType.Menu:
+                return transformMenuToData(this.menuRegistrant, this.menuRegistrant.getAllMenus(), false);
             default:
                 return [];
         }
@@ -130,6 +136,9 @@ export class BrowserInspectorService implements IBrowserInspectorService {
                 break;
             case InspectorDataType.Color:
                 listeners.register(this.themeService.onDidChangeTheme(schedule));
+                break;
+            case InspectorDataType.Menu:
+                listeners.register(this.menuRegistrant.onDidMenuChange(schedule));
                 break;
             default:
                 break;
@@ -196,5 +205,39 @@ function transformColorToData(theme: IColorTheme): InspectorData[] {
             isColor: true,
         });
     });
+    return data;
+}
+
+function transformMenuToData(
+    menuRegistrant: IMenuRegistrant,
+    menus: [MenuTypes, IMenuItemRegistration[]][],
+    collapsedByDefault: boolean
+): InspectorData[] {
+    const data: InspectorData[] = [];
+
+    for (const [menuType, registrations] of menus) {
+        const children: InspectorData[] = registrations.map(registration => {
+            const submenu = registration.submenu 
+                && transformMenuToData(
+                    menuRegistrant, 
+                    [[registration.submenu, menuRegistrant.getMenuitems(registration.submenu)]], 
+                    true,
+                );
+
+            return {
+                key: registration.title,
+                value: registration.command.commandID,
+                children: submenu,
+                collapsedByDefault: true,
+            };
+        });
+
+        data.push({
+            key: menuType,
+            children: children,
+            collapsedByDefault: collapsedByDefault,
+        });
+    }
+
     return data;
 }

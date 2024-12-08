@@ -17,6 +17,9 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menu";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
 
 export interface IBrowser {
     init(): void;
@@ -37,6 +40,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
         @IHostService private readonly hostService: IHostService,
         @ICommandService private readonly commandService: ICommandService,
         @IBrowserInspectorService private readonly browserInspectorService: IBrowserInspectorService,
+        @IRegistrantService private readonly registrantService: IRegistrantService
     ) {
         super();
         logService.debug('BrowserInstance', 'BrowserInstance constructed.');
@@ -56,13 +60,13 @@ export class BrowserInstance extends Disposable implements IBrowser {
 
     private async registerListeners(): Promise<void> {
         await this.lifecycleService.when(LifecyclePhase.Displayed);
-        
+
         // save user configurations on quit
-        this.__register(this.lifecycleService.onWillQuit(e => 
+        this.__register(this.lifecycleService.onWillQuit(e =>
             e.join(this.configurationService.save())
         ));
 
-        this.__register(this.lifecycleService.onWillQuit(e => 
+        this.__register(this.lifecycleService.onWillQuit(e =>
             e.join(this.hostService.setApplicationStatus(StatusKey.WindowZoomLevel, webFrame.getZoomLevel()))
         ));
 
@@ -80,6 +84,17 @@ export class BrowserInstance extends Disposable implements IBrowser {
             }
         });
 
+        // send latest menu data back to the main process if requested
+        onMainProcess(ipcRenderer, IpcChannel.Menu, (menuTypes: MenuTypes[]) => {
+            const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+            const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
+            for (const type of menuTypes) {
+                const menuItems = menuRegistrant.getMenuItemsResolved(type);
+                result.push([type, menuItems]);
+            }
+            ipcRenderer.send(IpcChannel.Menu, result);
+        });
+
         // inspector listener
         this.browserInspectorService.startListening();
     }
@@ -89,9 +104,9 @@ export class BrowserInstance extends Disposable implements IBrowser {
         const workbenchWhenReady = Promise.resolve(); // TODO: should wait for the editor restores to the original state
 
        /**
-         * Initiates the `Restored` phase once the layout is restored, using 
-         * `Promise.race` to balance performance between fast and slow editor 
-         * restorations. The workbench remains functional, allowing `Restored` 
+         * Initiates the `Restored` phase once the layout is restored, using
+         * `Promise.race` to balance performance between fast and slow editor
+         * restorations. The workbench remains functional, allowing `Restored`
          * phase extensions to proceed even if the editor is not yet visible.
          */
         Promise.race([

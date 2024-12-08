@@ -11,7 +11,7 @@ import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 
-export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeparatorAction | CheckMenuAction;
+export type MenuAction = SimpleMenuAction | MenuSeparatorAction | SubmenuAction | CheckMenuAction;
 
 export const enum MenuItemType {
     General,

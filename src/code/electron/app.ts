@@ -31,8 +31,11 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { toBoolean } from "src/base/common/utilities/type";
 import { IProductService } from "src/platform/product/common/productService";
+import { MainMenuService } from "src/platform/menu/electron/mainMenuService";
+import { IMenuService } from "src/platform/menu/common/menu";
 import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { IS_MAC } from "src/base/common/platform";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -127,6 +130,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // screen-monitor-service
         this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
+
+        // menu-service
+        if (IS_MAC) {
+            const mainMenuService = this.mainInstantiationService.createInstance(MainMenuService);
+            this.mainInstantiationService.register(IMenuService, mainMenuService); 
+        }
 
         // main-inspector-service
         this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService,[]));
