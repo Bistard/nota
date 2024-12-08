@@ -100,10 +100,10 @@ export class MenuRegistrant implements IMenuRegistrant {
 
     public getMenuitems(menu: MenuTypes): IMenuItemRegistration[] {
         const result = this.menus.get(menu) || [];
-        const filtered = result.filter(item => {
-            return this.contextService.contextMatchExpr(item.when ?? null);
-        });
-        return filtered;
+        return result.filter(item => {
+                    return this.contextService.contextMatchExpr(item.when ?? null);
+                });
+
     }
 
     public getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
