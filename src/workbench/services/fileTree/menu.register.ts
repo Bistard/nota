@@ -1,5 +1,5 @@
 import { createRegister, RegistrantType } from "src/platform/registrant/common/registrant";
-import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/browser/menuRegistrant";
+import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menu";
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";

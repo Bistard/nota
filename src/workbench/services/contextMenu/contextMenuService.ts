@@ -8,7 +8,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { isDefined } from "src/base/common/utilities/type";
-import { MenuTypes } from "src/platform/menu/browser/menuRegistrant";
+import { MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { ICommandService } from "src/platform/command/common/commandService";
