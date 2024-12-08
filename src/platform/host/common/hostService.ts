@@ -20,6 +20,7 @@ export interface IHostService extends IService {
     readonly onDidLeaveFullScreenWindow: Register<number>;
 
     // window-service
+    setWindowAsRendererReady(id?: number): Promise<void>;
     focusWindow(id?: number): Promise<void>;
     maximizeWindow(id?: number): Promise<void>;
     minimizeWindow(id?: number): Promise<void>;
@@ -41,11 +42,15 @@ export interface IHostService extends IService {
     closeDevTools(id?: number): Promise<void>;
     toggleDevTools(id?: number): Promise<void>;
     reloadWebPage(id?: number): Promise<void>;
+    toggleInspectorWindow(id?: number): Promise<void>;
 
     // status-service (THOSE FUNCTIONS MIGHT THROW WHEN FAILED)
     setApplicationStatus(key: StatusKey, val: any): Promise<void>;
     setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void>;
     deleteApplicationStatus(key: StatusKey): Promise<boolean>;
+
+    // OS
+    showItemInFolder(path: string): Promise<void>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {

@@ -1,5 +1,5 @@
 import { Mutable } from "src/base/common/utilities/type";
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Command, CommandImplementation } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
@@ -8,6 +8,7 @@ import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegi
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { AllCommandsDescriptions } from "src/workbench/services/workbench/commandList";
 import { ILogService } from "src/base/common/logger";
+import { Emitter, Register } from "src/base/common/event";
 
 /**
  * An event fired whenever a command is executed.
@@ -54,6 +55,16 @@ export interface ICommandBasicSchema {
 export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> {
 
     /**
+     * Fires whenever a new command is registered.
+     */
+    readonly onDidRegister: Register<string>;
+
+    /**
+     * Fires whenever a command is un-registered.
+     */
+    readonly onDidUnRegister: Register<string>;
+
+    /**
      * @description Registers a {@link ICommandBasicSchema} which includes a set 
      * of basic metadata to describe a command.
      * @param schema A set of metadata that describes the command.
@@ -96,6 +107,14 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
  */
 export class CommandRegistrant implements ICommandRegistrant {
 
+    // [event]
+
+    private readonly _onDidRegister = new Emitter<string>();
+    public readonly onDidRegister = this._onDidRegister.registerListener;
+
+    private readonly _onDidUnRegister = new Emitter<string>();
+    public readonly onDidUnRegister = this._onDidUnRegister.registerListener;
+
     // [fields]
 
     public readonly type = RegistrantType.Command;
@@ -136,9 +155,11 @@ export class CommandRegistrant implements ICommandRegistrant {
         if (cmd.overwrite === true || !this._commands.has(id)) {
             this._commands.set(id, cmd);
             this.logService.trace('CommandRegistrant', `Command registered: '${id}'`);
+            this._onDidRegister.fire(id);
+            return this.__toUnregister(id);
         }
 
-        return this.__toUnregister(id);
+        return Disposable.NONE;
     }
 
     public registerCommand(command: Command): IDisposable {
@@ -164,6 +185,7 @@ export class CommandRegistrant implements ICommandRegistrant {
     public unregisterCommand(id: string): void {
         if (this._commands.delete(id)) {
             this.logService.trace('CommandRegistrant', `Command un-registered: '${id}'`);
+            this._onDidUnRegister.fire(id);
         }
     }
 

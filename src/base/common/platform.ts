@@ -24,10 +24,10 @@ export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
         let isLinux = false;
         let nodeProcess: INodeProcess | undefined;
 
-        if (isDefined(globalThis) && isDefined(globalThis.nota) && isDefined(globalThis.nota.process)) {
+        if ((typeof globalThis !== 'undefined') && isDefined(globalThis.nota) && isDefined(globalThis.nota.process)) {
             // Native environment (sandboxed)
             nodeProcess = globalThis.nota.process;
-        } else if (isDefined(process)) {
+        } else if (typeof process !== 'undefined') {
             // Native environment (non-sandboxed)
             nodeProcess = process;
         }

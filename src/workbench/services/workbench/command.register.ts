@@ -9,6 +9,12 @@ import { INotificationService } from "src/workbench/services/notification/notifi
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
+import { URI } from "src/base/common/files/uri";
+import { isString } from "src/base/common/utilities/type";
+import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { IS_WINDOWS } from "src/base/common/platform";
+import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -18,6 +24,19 @@ export const rendererWorkbenchCommandRegister = createRegister(
             {
                 id: AllCommands.toggleDevTool,
                 command: (provider) => { provider.getOrCreateService(IHostService).toggleDevTools(); },
+            },
+        );
+        
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.toggleInspector,
+                command: (provider) => { 
+                    const inspectorService = provider.getOrCreateService(IBrowserInspectorService);
+                    if (inspectorService.isListening()) {
+                        inspectorService.stopListenTo();
+                    }
+                    provider.getOrCreateService(IHostService).toggleInspectorWindow(); 
+                },
             },
         );
     
@@ -57,7 +76,47 @@ export const rendererWorkbenchCommandRegister = createRegister(
         );
         
         registrant.registerCommand(new AlertError());
+        registrant.registerCommand(new FileCommands.FileCut());
+        registrant.registerCommand(new FileCommands.FileCopy());
         registrant.registerCommand(new FileCommands.FilePaste());
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeRevealInOS,
+                command: (provider, source: URI | string) => provider.getOrCreateService(IHostService).showItemInFolder(isString(source) ? source : URI.toFsPath(source))
+            }
+        );
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeCopyPath,
+                command: (provider, source: URI | string) => {
+                    const clipboardService = provider.getOrCreateService(IClipboardService);
+                    clipboardService.write(ClipboardType.Text, isString(source) ? source : URI.toFsPath(source));
+                }
+            }
+        );
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeCopyRelativePath,
+                command: (provider, source: URI | string) => {
+                    const clipboardService = provider.getOrCreateService(IClipboardService);
+                    const fileTreeService = provider.getOrCreateService(IFileTreeService);
+                    
+                    if (!fileTreeService.root) {
+                        return;
+                    }
+
+                    let relativePath = isString(source) 
+                        ? URI.relative(fileTreeService.root, URI.fromFile(source))
+                        : URI.relative(fileTreeService.root, source);
+
+                    if (IS_WINDOWS) {
+                        relativePath = relativePath?.replaceAll('/', '\\');
+                    }
+
+                    clipboardService.write(ClipboardType.Text, relativePath ?? 'RelativePath Error');
+                }
+            }
+        );
     },
 );
 
