@@ -32,7 +32,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { toBoolean } from "src/base/common/utilities/type";
 import { IProductService } from "src/platform/product/common/productService";
 import { MainMenuService } from "src/platform/menu/electron/mainMenuService";
-import { IMenuService } from "src/platform/menu/common/menuService";
+import { IMenuService } from "src/platform/menu/common/menu";
 import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IS_MAC } from "src/base/common/platform";
