@@ -181,10 +181,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         const menuItems = registrant.getMenuitems(menuType);
 
         const actions: IMenuAction[] = menuItems.map((item) => {
-            const isToggleAction = typeof item.command.checked !== 'undefined';
-            const hasSubmenu = typeof item.submenu !== 'undefined';
-
-            if (isToggleAction) {
+            // check box
+            if (item.command.checked !== undefined) {
                 return new CheckMenuAction({
                     id: item.title,
                     enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
@@ -198,7 +196,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                 });
             }
 
-            if (hasSubmenu) {
+            // submenu
+            if (item.submenu !== undefined) {
                 const submenuActions = this.__getActionsByMenuType(item.submenu);
                 return new SubmenuAction(submenuActions, {
                     id: item.title,
@@ -207,6 +206,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                 });
             }
 
+            // default
             return new SimpleMenuAction({
                 enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
                 id: item.title,

@@ -52,24 +52,6 @@ export const menuFileTreeContextRegister = createRegister(
                     keybinding: 'Shift+Alt+R',
                 },
             },
-            // TODO: remove the test when completed
-            {
-                group: 'advanced',
-                title: 'Advanced Options',
-                command: {
-                    commandID: "", // Placeholder command ID
-                },
-                submenu: MenuTypes.FileExportAs,
-            },
-            {
-                group: 'settings',
-                title: 'Enable Feature',
-                command: {
-                    commandID: 'toggleFeature',
-                    checked: CreateContextKeyExpr.True(),
-                    when: WorkbenchContextKey.inReleaseContext,
-                },
-            },
             {
                 group: 'move',
                 title: 'Cut',
