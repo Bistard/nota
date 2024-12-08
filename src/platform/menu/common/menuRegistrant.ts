@@ -9,6 +9,9 @@ import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegis
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 
+/**
+ * Represents different types of menus used in the application. 
+ */
 export const enum MenuTypes {
     CommandPalette      = 'CommandPalette',
     
@@ -34,16 +37,28 @@ export const enum MenuTypes {
     FileTreeContext     = 'FileTreeContext',
 }
 
-export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>, 'submenu'> & {
-    readonly submenu?: IMenuItemRegistrationResolved[];
-};
-
+/**
+ * Represents the structure for a menu item registration. This interface 
+ * defines all the properties needed to register a menu item.
+ * 
+ * This is used when to register a menu item into a {@link MenuTypes}.
+ */
 export interface IMenuItemRegistration {
+    
+    /**
+     * This item will be displayed in the items with the same group id.
+     * Different groups meant to be separated by separator.
+     */
     readonly group: string;
+    
     /**
      * Defines the display name of this item.
      */
     readonly title: string;
+
+    /**
+     * Defines the behaviour when the item is interacted.
+     */
     readonly command: {
         /**
          * The command ID to be executed when click the menu.
@@ -85,6 +100,20 @@ export interface IMenuItemRegistration {
     readonly submenu?: MenuTypes;
 }
 
+/**
+ * Similar to {@link IMenuItemRegistration}.
+ * This is an enhanced version of `IMenuItemRegistration` where:
+ *  1. context-based expressions (e.g., `when`, `toggled`) are resolved 
+ *     into boolean values.
+ *  2. Submenus are also recursively resolved into a recursive array of items.
+ */
+export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>, 'submenu'> & {
+    readonly submenu?: IMenuItemRegistrationResolved[];
+};
+
+/**
+ * An interface only for {@link MenuRegistrant}.
+ */
 export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
     
     /**
@@ -137,11 +166,6 @@ export class MenuRegistrant implements IMenuRegistrant {
     // [public methods]
 
     public initRegistrations(provider: IServiceProvider): void {
-        /**
-         * Since the {@link MenuRegistrant} is constructed in both main
-         * and renderer process. Do not register here unless it is shared in
-         * both processes.
-         */
         [
             // title
             menuTitleApplicationRegister,
@@ -155,9 +179,8 @@ export class MenuRegistrant implements IMenuRegistrant {
 
             // file tree
             menuFileTreeContextRegister,
-
-            // more ...
-        ].forEach(register => register(provider));
+        ]
+        .forEach(register => register(provider));
     }
 
     public registerMenuItem(menu: MenuTypes, item: IMenuItemRegistration): IDisposable {
