@@ -1,7 +1,7 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
-import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -182,6 +182,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
         const actions: IMenuAction[] = menuItems.map((item) => {
             const isToggleAction = typeof item.command.checked !== 'undefined';
+            const hasSubmenu = typeof item.submenu !== 'undefined';
 
             if (isToggleAction) {
                 return new CheckMenuAction({
@@ -194,6 +195,15 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                     onChecked: (checked) => {
                         this.commandService.executeCommand(item.command.commandID, { checked });
                     },
+                });
+            }
+
+            if (hasSubmenu) {
+                const submenuActions = this.__getActionsByMenuType(item.submenu);
+                return new SubmenuAction(submenuActions, {
+                    id: item.title,
+                    enabled: this.contextService.contextMatchExpr(item.when ?? null),
+                    extraClassName: 'submenu-item',
                 });
             }
 

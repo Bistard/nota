@@ -54,6 +54,14 @@ export const menuFileTreeContextRegister = createRegister(
             },
             // TODO: remove the test when completed
             {
+                group: 'advanced',
+                title: 'Advanced Options',
+                command: {
+                    commandID: "", // Placeholder command ID
+                },
+                submenu: MenuTypes.FileExportAs,
+            },
+            {
                 group: 'settings',
                 title: 'Enable Feature',
                 command: {
@@ -122,6 +130,7 @@ export const menuFileTreeContextRegister = createRegister(
                     mac: 'Meta+Shift+C',
                 },
             },
+            
         ];
 
         for (const item of menuItems) {
