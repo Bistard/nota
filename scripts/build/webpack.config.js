@@ -6,26 +6,95 @@ const fs = require('fs');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper } = require('../utility');
 
+class KeyToIndexTransformPlugin {
+    constructor(localeFilePath) {
+        this.localeFilePath = localeFilePath;
+        this.keyMap = {};
+        this.loadKeyMap();
+    }
+
+    apply(compiler) {
+        compiler.hooks.thisCompilation.tap('KeyToIndexTransformPlugin', (compilation) => {
+            compilation.hooks.processAssets.tap(
+                {
+                    name: 'KeyToIndexTransformPlugin',
+                    stage: webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
+                },
+                (assets) => {
+                    Object.keys(assets).forEach((filename) => {
+                        // Only process renderer-bundle.js
+                        if (filename === 'renderer-bundle.js') {
+                            console.log(`[KeyToIndexTransformPlugin] Transforming file: ${filename}`);
+                            const asset = compilation.getAsset(filename);
+                            const source = asset.source.source().toString();
+                            const transformed = this.transformSource(source);
+
+                            if (transformed !== source) {
+                                compilation.updateAsset(
+                                    filename,
+                                    new webpack.sources.RawSource(transformed)
+                                );
+                                console.log(`[KeyToIndexTransformPlugin] Successfully transformed ${filename}`);
+                            } else {
+                                console.log(`[KeyToIndexTransformPlugin] No transformations applied to ${filename}`);
+                            }
+                        }
+                    });
+                }
+            );
+        });
+    }
+
+    loadKeyMap() {
+        console.log(`[KeyToIndexTransformPlugin] Loading locale file from: ${this.localeFilePath}`);
+
+        if (fs.existsSync(this.localeFilePath)) {
+            try {
+                const rawData = fs.readFileSync(this.localeFilePath, 'utf-8');
+                const jsonData = JSON.parse(rawData);
+
+                if (Array.isArray(jsonData)) {
+                    jsonData.forEach((key, index) => {
+                        this.keyMap[key] = index;
+                    });
+                    console.log(`[KeyToIndexTransformPlugin] Loaded key map: ${JSON.stringify(this.keyMap, null, 2)}`);
+                } else {
+                    throw new Error('Locale file JSON is not an array of keys.');
+                }
+            } catch (error) {
+                console.error(`[KeyToIndexTransformPlugin] Error loading locale file: ${error.message}`);
+            }
+        } else {
+            console.error(`[KeyToIndexTransformPlugin] Locale file not found at: ${this.localeFilePath}`);
+        }
+    }
+
+    transformSource(source) {
+        let transformed = source;
+        // Replace all occurrences of 'key' with their index.
+        // Note the single quotes around the keys.
+        for (const [key, index] of Object.entries(this.keyMap)) {
+            const regex = new RegExp(`'${key}'`, 'g');
+            transformed = transformed.replace(regex, index.toString());
+        }
+        return transformed;
+    }
+}
+
 class WebpackPluginProvider {
-
-    // [constructor]
-
     constructor() {}
-
-    // [public methods]
 
     /**
      * @param {{
-     *      cwd: string;
-     *      circular?: boolean;
-     * } | undefined} opts 
-     */
+    *      cwd: string;
+    *      circular?: boolean;
+    * } | undefined} opts 
+    */
     getPlugins(opts) {
-
         const plugins = [];
-        
         const cwd = opts.cwd;
-        if (!cwd || typeof cwd != 'string') {
+
+        if (!cwd || typeof cwd !== 'string') {
             console.log(`[WebpackPluginProvider] CWD is not provided or provided with wrong type: '${typeof cwd}'!`);
         }
 
@@ -39,24 +108,19 @@ class WebpackPluginProvider {
         plugins.push(new MiniCssExtractPlugin({
             filename: 'index.css',
         }));
-    
-        /**
-         * circular dependency plugin
-         */
 
         const MAX_CYCLES = 0;
         let detectedCycleCount = 0;
 
         if (opts && opts.circular) {
-            plugins.push(new CircularDependencyPlugin(
-                {
+            plugins.push(
+                new CircularDependencyPlugin({
                     exclude: /a\.js|node_modules/,
                     include: /src/,
                     cwd: cwd,
-
                     failOnError: true,
                     allowAsyncCycles: false,
-                    
+
                     // `onStart` is called before the cycle detection starts
                     onStart({ _compilation }) {
                         console.log('start detecting webpack modules cycles');
@@ -70,7 +134,7 @@ class WebpackPluginProvider {
                         console.log(`detecting webpack modules cycle:\n${paths.join(' -> ')}`);
                         compilation.warnings.push(new Error(paths.join(' -> ')));
                     },
-                    
+
                     // `onEnd` is called before the cycle detection ends
                     onEnd({ compilation }) {
                         console.log('end detecting webpack modules cycles');
@@ -78,16 +142,19 @@ class WebpackPluginProvider {
                             compilation.errors.push(new Error(`Detected ${detectedCycleCount} cycles which exceeds configured limit of ${MAX_CYCLES}`));
                         }
                     },
-                }
-            ));
+                })
+            );
         }
 
         // DefinePlugin for NOTA_I18N_DATA
         const i18nDataPath = path.resolve(cwd, '.wisp/locale/en_flat.json');
+        plugins.push(new KeyToIndexTransformPlugin(i18nDataPath));
+
         let i18nData = [];
         if (fs.existsSync(i18nDataPath)) {
             try {
-                i18nData = JSON.parse(fs.readFileSync(i18nDataPath, 'utf-8'));
+                const rawData = JSON.parse(fs.readFileSync(i18nDataPath, 'utf-8'));
+                i18nData = rawData;
             } catch (err) {
                 console.error(`[WebpackPluginProvider] Failed to load i18n data from ${i18nDataPath}:`, err.message);
             }
@@ -95,10 +162,12 @@ class WebpackPluginProvider {
             console.warn(`[WebpackPluginProvider] Localization data file not found at ${i18nDataPath}. Using empty data.`);
         }
 
-        plugins.push(new webpack.DefinePlugin({
-            'global.NOTA_I18N_DATA': JSON.stringify(i18nData),
-        }));
-        
+        plugins.push(
+            new webpack.DefinePlugin({
+                'global.NOTA_I18N_DATA': JSON.stringify(i18nData),
+            })
+        );
+
         return plugins;
     }
 }
@@ -107,10 +176,9 @@ class WebpackPluginProvider {
  * @description The general webpack configuration of the application compilation.
  */
 class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
-
     #distPath = './dist';
     #minNodeJsVer = '16.7.0';
-    
+
     /** @type {string} Current working directory */
     #cwd;
 
@@ -128,15 +196,14 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         const env = ScriptHelper.getEnv(envList);
 
         console.log(`   🌍 Webpack environments: ${JSON.stringify(env)}`);
-        
+
         // init environment constant
-        this.#buildMode     =  env.BUILD_MODE;
-        this.#isWatchMode = (env.WATCH_MODE == 'true');
-        this.#isCircular  = (env.CIRCULAR === 'true');
+        this.#buildMode = env.BUILD_MODE;
+        this.#isWatchMode = env.WATCH_MODE === 'true';
+        this.#isCircular = env.CIRCULAR === 'true';
     }
 
     // [public - configuration initialization]
-
     construct() {
         this.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
 
@@ -147,27 +214,27 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 mode: this.#buildMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
-                plugins: (new WebpackPluginProvider()).getPlugins({ 
+                plugins: new WebpackPluginProvider().getPlugins({
                     cwd: this.#cwd,
-                    circular: this.#isCircular, 
+                    circular: this.#isCircular,
                 }),
-            }),
+            })
         );
-        
+
         // compiles SCSS files to CSS files
         baseConfiguration.module.rules.push({
             test: /\.(css|scss|sass)$/,
             use: [
-                MiniCssExtractPlugin.loader, 
-                'css-loader', 
+                MiniCssExtractPlugin.loader,
+                'css-loader',
                 {
                     loader: 'sass-loader',
                     options: {
                         sassOptions: {
                             includePaths: [path.resolve(this.#cwd, 'src/')],
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             ],
         });
 
@@ -178,60 +245,37 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         ];
     }
 
-    // [private - configuration construction]
-
     #constructMainProcess(baseConfiguration) {
-        const mainConfiguration = 
-            Object.assign(
-                baseConfiguration, 
-                {
-                    target: 'electron-main',
-                    entry: {
-                        main: './src/main.js',
-                    },
-                    output: {
-                        filename: '[name]-bundle.js',
-                        path: path.resolve(this.#cwd, this.#distPath)
-                    },
-                },
-            );
-        return mainConfiguration;
+        return Object.assign(baseConfiguration, {
+            target: 'electron-main',
+            entry: { main: './src/main.js' },
+            output: {
+                filename: '[name]-bundle.js',
+                path: path.resolve(this.#cwd, this.#distPath),
+            },
+        });
     }
 
     #constructRendererProcess(baseConfiguration) {
-        const rendererConfiguration = 
-            Object.assign(
-                baseConfiguration, 
-                {
-                    target: 'electron-renderer',
-                    entry: {
-                        renderer: './src/code/browser/renderer.desktop.ts',
-                    },
-                    output: {
-                        filename: '[name]-bundle.js',
-                        path: path.resolve(this.#cwd, this.#distPath)
-                    },
-                },
-            );
-        return rendererConfiguration;
+        return Object.assign(baseConfiguration, {
+            target: 'electron-renderer',
+            entry: { renderer: './src/code/browser/renderer.desktop.ts' },
+            output: {
+                filename: '[name]-bundle.js',
+                path: path.resolve(this.#cwd, this.#distPath),
+            },
+        });
     }
 
     #constructInspectorProcess(baseConfiguration) {
-        const lookupConfiguration = 
-            Object.assign(
-                baseConfiguration, 
-                {
-                    target: 'electron-renderer',
-                    entry: {
-                        renderer: './src/code/browser/inspector/renderer.inspector.ts',
-                    },
-                    output: {
-                        filename: '[name]-inspector-bundle.js',
-                        path: path.resolve(this.#cwd, this.#distPath)
-                    },
-                },
-            );
-        return lookupConfiguration;
+        return Object.assign(baseConfiguration, {
+            target: 'electron-renderer',
+            entry: { renderer: './src/code/browser/inspector/renderer.inspector.ts' },
+            output: {
+                filename: '[name]-inspector-bundle.js',
+                path: path.resolve(this.#cwd, this.#distPath),
+            },
+        });
     }
 }
 
