@@ -1,7 +1,7 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
-import { IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -181,6 +181,22 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         const menuItems = registrant.getMenuitems(menuType);
 
         const actions: IMenuAction[] = menuItems.map((item) => {
+            const isToggleAction = typeof item.command.checked !== 'undefined';
+
+            if (isToggleAction) {
+                return new CheckMenuAction({
+                    id: item.title,
+                    enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
+                    checked: this.contextService.contextMatchExpr(item.command.checked),
+                    key: item.command.keybinding,
+                    mac: item.command.mac,
+                    extraClassName: 'toggle-item',
+                    onChecked: (checked) => {
+                        this.commandService.executeCommand(item.command.commandID, { checked });
+                    },
+                });
+            }
+
             return new SimpleMenuAction({
                 enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
                 id: item.title,
@@ -205,7 +221,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         }
 
         const finalActions: IMenuAction[] = [];
-        
+
         // Add separators between groups
         let i = 0;
         for (const [groupName, groups] of groupedActions) {
