@@ -3,6 +3,7 @@ import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menu"
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
+import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 
 export const menuFileTreeContextRegister = createRegister(
     RegistrantType.Menu,
@@ -49,6 +50,16 @@ export const menuFileTreeContextRegister = createRegister(
                 command: {
                     commandID: AllCommands.fileTreeRevealInOS,
                     keybinding: 'Shift+Alt+R',
+                },
+            },
+            // TODO: remove the test when completed
+            {
+                group: 'settings',
+                title: 'Enable Feature',
+                command: {
+                    commandID: 'toggleFeature',
+                    checked: CreateContextKeyExpr.True(),
+                    when: WorkbenchContextKey.inReleaseContext,
                 },
             },
             {
