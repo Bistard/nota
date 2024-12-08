@@ -17,6 +17,7 @@ import { Arrays } from "src/base/common/utilities/array";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { app } from "electron";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -375,7 +376,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private __getUserLocale(): string {
-        return this.configurationService.get<string>('workbench.language', 'en');
+        return this.configurationService.get<string>(WorkbenchConfiguration.DisplayLanguage, 'en');
     }
 
     private __resolveLanguage(userLocale: string, osLocale: string): string {
