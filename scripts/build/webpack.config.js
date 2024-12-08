@@ -9,7 +9,7 @@ const { ScriptHelper } = require('../utility');
 class KeyToIndexTransformPlugin {
     constructor(localeFilePath) {
         this.localeFilePath = localeFilePath;
-        this.keyMap = {};
+        this.keyMap = {}; 
         this.loadKeyMap();
     }
 

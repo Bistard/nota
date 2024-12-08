@@ -14,7 +14,7 @@ import { Disposable } from "src/base/common/dispose";
 
 export const II18nService = createService<II18nService>("i18n-new-service");
 
-export interface Ii18nOptions {
+export interface II18nOptions {
     readonly language: LanguageType;
     readonly localePath: URI;
 }
@@ -77,7 +77,7 @@ export class i18n extends Disposable implements II18nService {
     // [constructor]
 
     constructor(
-        opts: Ii18nOptions,
+        opts: II18nOptions,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IConfigurationService private readonly configurationService: IConfigurationService
