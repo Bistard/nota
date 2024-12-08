@@ -7,7 +7,7 @@ import { CommandRegistrant } from "src/platform/command/common/commandRegistrant
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { ReviverRegistrant } from "src/platform/ipc/common/revive";
-import { MenuRegistrant } from "src/platform/menu/common/menuRegistrant";
+import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { ColorRegistrant} from "src/workbench/services/theme/colorRegistrant";

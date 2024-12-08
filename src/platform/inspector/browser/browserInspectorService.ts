@@ -15,7 +15,8 @@ import { IContextService } from "src/platform/context/common/contextService";
 import { ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IpcChannel } from "src/platform/ipc/common/channel";
-import { IMenuItemRegistration, IMenuRegistrant, MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { IMenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
+import { IMenuItemRegistration, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IShortcutReference, IShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
@@ -216,18 +217,18 @@ function transformMenuToData(
 
     for (const [menuType, registrations] of menus) {
         const children: InspectorData[] = registrations.map(registration => {
-            let submenu: InspectorData[] | undefined;
-
-            if (registration.submenu) {
-                const submenuItems = menuRegistrant.getMenuitems(registration.submenu);
-                submenu = transformMenuToData(menuRegistrant, [[registration.submenu, submenuItems]], true);
-            }
+            const submenu = registration.submenu 
+                && transformMenuToData(
+                    menuRegistrant, 
+                    [[registration.submenu, menuRegistrant.getMenuitems(registration.submenu)]], 
+                    true,
+                );
 
             return {
                 key: registration.title,
                 value: registration.command.commandID,
                 children: submenu,
-                collapsedByDefault: !!submenu,
+                collapsedByDefault: true,
             };
         });
 

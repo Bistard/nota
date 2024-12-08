@@ -1,8 +1,9 @@
 import { createRegister, RegistrantType } from "src/platform/registrant/common/registrant";
-import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menuRegistrant";
+import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menu";
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
+import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 
 export const menuFileTreeContextRegister = createRegister(
     RegistrantType.Menu,
@@ -111,6 +112,7 @@ export const menuFileTreeContextRegister = createRegister(
                     mac: 'Meta+Shift+C',
                 },
             },
+            
         ];
 
         for (const item of menuItems) {

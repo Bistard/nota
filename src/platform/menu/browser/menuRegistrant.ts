@@ -1,91 +1,16 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
-import { ReplaceType } from "src/base/common/utilities/type";
-import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleFormatRegister, menuTitleHelpRegister, menuTitleInsertRegister, menuTitleSelectionRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
+import { MenuTypes, IMenuItemRegistration, IMenuItemRegistrationResolved } from "src/platform/menu/common/menu";
 
-export const enum MenuTypes {
-    CommandPalette      = 'CommandPalette',
-    FileTreeContext     = 'FileTreeContext',
-    // main menu types
-    TitleBarApplication = 'TitleBarApplication',
-    TitleBarFile        = 'TitleBarFile',
-    TitleBarEdit        = 'TitleBarEdit',
-    TitleBarView        = 'TitleBarView',
-    TitleBarSelection   = 'TitleBarSelection',
-    TitleBarInsert      = 'TitleBarInsert',
-    TitleBarFormat      = 'TitleBarFormat',
-    TitleBarHelp        = 'TitleBarHelp',
-    // main sub menu types
-    TitleBarFileOpenRecent = 'TitleBarFileOpenRecent',
-    TitleBarFileOpenRecentDynamic = 'TitleBarFileOpenRecentDynamic',
-    TitleBarFileExportAs = 'TitleBarFileExportAs',
-    TitleBarInsertHeading = 'TitleBarInsertHeading',
-    TitleBarInsertList = 'TitleBarInsertList',
-    TitleBarInsertImage = 'TitleBarInsertImage',
-    TitleBarInsertImageZoom = 'TitleBarInsertImageZoom',
-    TitleBarInsertImageSwitchSyntax = 'TitleBarInsertImageSwitchSyntax',
-    TitleBarFormatImage = 'TitleBarFormatImage',
-    TitleBarViewChangeTheme = 'TitleBarViewChangeTheme',
-    TitleBarViewChangeThemeDynamic = 'TitleBarViewChangeThemeDynamic',
-}
-
-export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>, 'submenu'> & {
-    readonly submenu?: IMenuItemRegistrationResolved[];
-};
-
-export interface IMenuItemRegistration {
-    readonly group: string;
-    /**
-     * Defines the display name of this item.
-     */
-    readonly title: string;
-    readonly command: {
-        /**
-         * The command ID to be executed when click the menu.
-         */
-        readonly commandID: string;
-
-        /**
-         * Precondition controls enablement (for example for a menu item, show
-         * it in grey or for a command, do not allow to invoke it)
-         */
-        readonly when?: ContextKeyExpr;
-
-        /**
-         * Define the item as a toggle item. Define the context key expression 
-         * that reflects its toggle-state.
-         */
-        readonly toggled?: ContextKeyExpr;
-
-        /**
-         * Keybinding for the command.
-         */
-        readonly keybinding?: string;
-
-        /**
-         * If it is for macos system.
-         */
-        readonly mac?: string;
-    };
-
-    /**
-     * Precondition controls whether to render the item. If does not satisfy,
-     * the item will not get rendered at all.
-     */
-    readonly when?: ContextKeyExpr;
-
-    /**
-     * Optional submenu for nested menu items.
-     */
-    readonly submenu?: MenuTypes;
-}
-
+/**
+ * An interface only for {@link MenuRegistrant}.
+ */
 export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
     
     /**
@@ -138,11 +63,6 @@ export class MenuRegistrant implements IMenuRegistrant {
     // [public methods]
 
     public initRegistrations(provider: IServiceProvider): void {
-        /**
-         * Since the {@link MenuRegistrant} is constructed in both main
-         * and renderer process. Do not register here unless it is shared in
-         * both processes.
-         */
         [
             // title
             menuTitleApplicationRegister,
@@ -156,9 +76,8 @@ export class MenuRegistrant implements IMenuRegistrant {
 
             // file tree
             menuFileTreeContextRegister,
-
-            // more ...
-        ].forEach(register => register(provider));
+        ]
+        .forEach(register => register(provider));
     }
 
     public registerMenuItem(menu: MenuTypes, item: IMenuItemRegistration): IDisposable {
@@ -181,10 +100,10 @@ export class MenuRegistrant implements IMenuRegistrant {
 
     public getMenuitems(menu: MenuTypes): IMenuItemRegistration[] {
         const result = this.menus.get(menu) || [];
-        const filtered = result.filter(item => {
-            return this.contextService.contextMatchExpr(item.when ?? null);
-        });
-        return filtered;
+        return result.filter(item => {
+                    return this.contextService.contextMatchExpr(item.when ?? null);
+                });
+
     }
 
     public getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
@@ -206,8 +125,8 @@ export class MenuRegistrant implements IMenuRegistrant {
         
         // resolve conditions from `ContextKeyExpr` to actual `boolean`
         const whenResolved = this.contextService.contextMatchExpr(item.when ?? null);
-        const toggledResolved = item.command.toggled
-            ? this.contextService.contextMatchExpr(item.command.toggled)
+        const toggledResolved = item.command.checked
+            ? this.contextService.contextMatchExpr(item.command.checked)
             : undefined;
     
         // resolve submenu recursively
@@ -220,7 +139,7 @@ export class MenuRegistrant implements IMenuRegistrant {
             command: {
                 ...item.command,
                 when: whenResolved,
-                toggled: toggledResolved
+                checked: toggledResolved
             },
             when: whenResolved,
             submenu: resolvedSubmenu

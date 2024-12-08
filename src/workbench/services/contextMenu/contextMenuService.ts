@@ -1,14 +1,14 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
-import { IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { isDefined } from "src/base/common/utilities/type";
-import { MenuTypes } from "src/platform/menu/common/menuRegistrant";
+import { MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -181,6 +181,32 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         const menuItems = registrant.getMenuitems(menuType);
 
         const actions: IMenuAction[] = menuItems.map((item) => {
+            // check box
+            if (item.command.checked !== undefined) {
+                return new CheckMenuAction({
+                    id: item.title,
+                    enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
+                    checked: this.contextService.contextMatchExpr(item.command.checked),
+                    key: item.command.keybinding,
+                    mac: item.command.mac,
+                    extraClassName: 'toggle-item',
+                    onChecked: (checked) => {
+                        this.commandService.executeCommand(item.command.commandID, { checked });
+                    },
+                });
+            }
+
+            // submenu
+            if (item.submenu !== undefined) {
+                const submenuActions = this.__getActionsByMenuType(item.submenu);
+                return new SubmenuAction(submenuActions, {
+                    id: item.title,
+                    enabled: this.contextService.contextMatchExpr(item.when ?? null),
+                    extraClassName: 'submenu-item',
+                });
+            }
+
+            // default
             return new SimpleMenuAction({
                 enabled: this.contextService.contextMatchExpr(item.command.when ?? null),
                 id: item.title,
@@ -205,7 +231,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         }
 
         const finalActions: IMenuAction[] = [];
-        
+
         // Add separators between groups
         let i = 0;
         for (const [groupName, groups] of groupedActions) {
