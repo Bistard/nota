@@ -78,7 +78,8 @@ function getAllFiles(dirPath, arrayOfFiles) {
 // Parse a file for localize calls
 function parseFile(filePath) {
     const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const lines = fileContent.split('\n');
+    const cleanedContent = removeMultilineComments(fileContent); // Preprocess content to remove multiline comments
+    const lines = cleanedContent.split('\n');
 
     const entries = {};
     lines.forEach((line) => {
@@ -95,8 +96,13 @@ function parseFile(filePath) {
     return entries;
 }
 
+// Function to strip multiline comments
+function removeMultilineComments(content) {
+    return content.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
 // Main Regex for localization
-const LOCALIZE_REGEX = /(?<!\/\/.*)(?<!\/\*.*)localize\s*\(\s*["'`](.*?)["'`]\s*,\s*["'`](.*?)["'`]/g;
+const LOCALIZE_REGEX = /(?<!\/\/.*)localize\s*\(\s*["'`](.*?)["'`]\s*,\s*["'`](.*?)["'`]/g;
 
 // Run the script
 generateLocalizationJSON();
