@@ -9,12 +9,14 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { Strings } from "src/base/common/utilities/string";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { Disposable } from "src/base/common/dispose";
 
 export const II18nNewService = createService<II18nNewService>("i18n-new-service");
 
-export interface II18nNewOpts {
-    language: LanguageType;
-    localePath: URI;
+export interface II18nNewOptions {
+    readonly language: LanguageType;
+    readonly localePath: URI;
 }
 
 export interface II18nModel {
@@ -57,30 +59,33 @@ export interface II18nNewService extends IService {
  * @class The i18n (internationalization) service for loading and translating 
  * locales.
  */
-export class i18nNew implements II18nNewService {
+export class i18nNew extends Disposable implements II18nNewService {
     
     // [fields]
 
     declare _serviceMarker: undefined;
 
-    private _language: LanguageType;
+    private readonly _language: LanguageType;
+    private readonly _localeRootPath: URI; // the root that contains all the locales
     private _table?: II18nLookUpTable;
 
     // [event]
 
-    private readonly _onDidChange = new Emitter<void>();
+    private readonly _onDidChange = this.__register(new Emitter<void>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     // [constructor]
 
     constructor(
-        private readonly opts: II18nNewOpts,
+        opts: II18nNewOptions,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IConfigurationService private readonly configurationService: IConfigurationService
     ) {
+        super();
         this._language = opts.language;
-        this.configurationService.onDidConfigurationChange(this.__onConfigurationChange.bind(this));
+        this._localeRootPath = opts.localePath;
+        this.__register(this.configurationService.onDidConfigurationChange(this.__onConfigurationChange.bind(this)));
     }
 
     // [public methods]
@@ -91,39 +96,40 @@ export class i18nNew implements II18nNewService {
 
     public init(): AsyncResult<void, FileOperationError | SyntaxError> {
         this.logService.debug("i18nNew", "Initializing...");
-        const uri = this.__getLocaleFilePath(this._language);
-        return this.__loadLocaleFile(uri);
+        
+        // load the look up table from the disk
+        const uri = URI.join(this._localeRootPath, `${this._language}_flat.json`);
+        return this.fileService.readFile(uri)
+            .andThen(buffer => Strings.jsonParseSafe<II18nLookUpTable>(buffer.toString()))
+            .map(table => { 
+                this._table = table;
+                this.logService.debug("i18nNew", "Initialized successfully.");
+            });
     }
 
     public setLanguage(lang: LanguageType): void {
         if (lang === this._language) {
-            this.logService.info("i18nNew", `Language already set to: ${lang}`);
             return;
         }
-        // TODO: should reload the renderer page entirely
+        // @Bistard
+        // TODO: should reload the renderer page entirely:
     }
 
-    public localize(key: string, defaultMessage: string, interpolation?: Record<string, string>): string {
+    public localize(key: string /** | number (after built) */, defaultMessage: string, interpolation?: Record<string, string>): string {
         if (!this._table) {
             this.logService.warn("i18nNew", "Localization table is not loaded, returning default message.");
             return defaultMessage;
         }
-
-        // Find the index of the key in the table
-        const index = parseInt(key, 10);
-        if (isNaN(index) || this._table[index] === undefined) {
-            this.logService.warn("i18nNew", `Localization key '${key}' not found, returning default message.`);
-            return defaultMessage;
-        }
-
-        return this.__insertToTranslation(this._table[index], interpolation);
+        const value = this._table[key as unknown as number] || defaultMessage;
+        return this.__insertToTranslation(value, interpolation);
     }
 
     // [private methods]
 
     private __onConfigurationChange(event: IConfigurationChangeEvent): void {
-        if (event.affect("workbench.language")) {
-            const newLanguage = this.configurationService.get<LanguageType>("workbench.language", LanguageType.en);
+        const language = WorkbenchConfiguration.DisplayLanguage;
+        if (event.affect(language)) {
+            const newLanguage = this.configurationService.get<LanguageType>(language, LanguageType.en);
             this.setLanguage(newLanguage);
         }
     }
@@ -139,20 +145,5 @@ export class i18nNew implements II18nNewService {
             this.logService.warn("i18nNew", `Missing interpolation value for key: ${key}`);
             return `{${key}}`;
         });
-    }
-
-    private __getLocaleFilePath(language: LanguageType): URI {
-        return URI.join(this.opts.localePath, `${language}_flat.json`);
-    }
-
-    private __loadLocaleFile(uri: URI): AsyncResult<void, FileOperationError | SyntaxError> {
-        this.logService.debug("i18nNew", `Loading flattened locale file: ${uri.toString()}`);
-
-        return this.fileService.readFile(uri)
-            .andThen(buffer =>
-                Strings.jsonParseSafe<string[]>(buffer.toString()).map(data => {
-                    this._table = data; // Directly assign the array to the lookup table
-                })
-            );
     }
 }
