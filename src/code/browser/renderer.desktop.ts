@@ -69,7 +69,7 @@ import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common"
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
-import { i18nNew, II18nNewService } from "src/platform/i18n/browser/i18nService";
+import { i18n, II18nService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 /**
@@ -119,9 +119,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
             workbench.init();
 
             // TEST:
-            instantiationService.getOrCreateService(II18nNewService).localize('renderer', 'Open a Folder');
+            instantiationService.getOrCreateService(II18nService).localize('renderer', 'Open a Folder');
             /*
-            instantiationService.getOrCreateService(II18nNewService).localize('renderer2', 'renderer default2');
+            instantiationService.getOrCreateService(II18nService).localize('renderer2', 'renderer default2');
             */
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
@@ -235,12 +235,12 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         const configurationService = instantiationService.getService(IConfigurationService);
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
-        const i18nNewService       = instantiationService.getService(II18nNewService);
+        const i18nService       = instantiationService.getService(II18nService);
         const productService       = instantiationService.getService(IProductService);
         const themeService         = instantiationService.getOrCreateService(IThemeService);
 
         await configurationService.init()
-            .andThen(() => i18nNewService.init())
+            .andThen(() => i18nService.init())
             .andThen(() => productService.init(environmentService.productProfilePath))
             .andThen(() => themeService.init())
             .unwrap();

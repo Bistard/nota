@@ -12,9 +12,9 @@ import { Strings } from "src/base/common/utilities/string";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { Disposable } from "src/base/common/dispose";
 
-export const II18nNewService = createService<II18nNewService>("i18n-new-service");
+export const II18nService = createService<II18nService>("i18n-new-service");
 
-export interface II18nNewOptions {
+export interface Ii18nOptions {
     readonly language: LanguageType;
     readonly localePath: URI;
 }
@@ -28,7 +28,7 @@ export interface II18nLookUpTable {
     [index: number]: string;
 }
 
-export interface II18nNewService extends IService {
+export interface II18nService extends IService {
     /**
      * Current language.
      */
@@ -59,7 +59,7 @@ export interface II18nNewService extends IService {
  * @class The i18n (internationalization) service for loading and translating 
  * locales.
  */
-export class i18nNew extends Disposable implements II18nNewService {
+export class i18n extends Disposable implements II18nService {
     
     // [fields]
 
@@ -77,7 +77,7 @@ export class i18nNew extends Disposable implements II18nNewService {
     // [constructor]
 
     constructor(
-        opts: II18nNewOptions,
+        opts: Ii18nOptions,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IConfigurationService private readonly configurationService: IConfigurationService
@@ -95,7 +95,7 @@ export class i18nNew extends Disposable implements II18nNewService {
     }
 
     public init(): AsyncResult<void, FileOperationError | SyntaxError> {
-        this.logService.debug("i18nNew", "Initializing...");
+        this.logService.debug("i18n", "Initializing...");
         
         // load the look up table from the disk
         const uri = URI.join(this._localeRootPath, `${this._language}_flat.json`);
@@ -103,7 +103,7 @@ export class i18nNew extends Disposable implements II18nNewService {
             .andThen(buffer => Strings.jsonParseSafe<II18nLookUpTable>(buffer.toString()))
             .map(table => { 
                 this._table = table;
-                this.logService.debug("i18nNew", "Initialized successfully.");
+                this.logService.debug("i18n", "Initialized successfully.");
             });
     }
 
@@ -117,7 +117,7 @@ export class i18nNew extends Disposable implements II18nNewService {
 
     public localize(key: string /** | number (after built) */, defaultMessage: string, interpolation?: Record<string, string>): string {
         if (!this._table) {
-            this.logService.warn("i18nNew", "Localization table is not loaded, returning default message.");
+            this.logService.warn("i18n", "Localization table is not loaded, returning default message.");
             return defaultMessage;
         }
         const value = this._table[key as unknown as number] || defaultMessage;
@@ -142,7 +142,7 @@ export class i18nNew extends Disposable implements II18nNewService {
             if (insertion[key] !== undefined) {
                 return insertion[key];
             }
-            this.logService.warn("i18nNew", `Missing interpolation value for key: ${key}`);
+            this.logService.warn("i18n", `Missing interpolation value for key: ${key}`);
             return `{${key}}`;
         });
     }
