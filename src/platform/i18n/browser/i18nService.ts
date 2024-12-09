@@ -47,7 +47,7 @@ export interface II18nService extends IService {
     /**
      * Localize a key with optional interpolation.
      */
-    localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, string>): string;
+    localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string;
 }
 
 /**
@@ -110,7 +110,7 @@ export class I18nService extends Disposable implements II18nService {
         // TODO: should reload the renderer page entirely:
     }
 
-    public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, string>): string {
+    public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string {
         if (!this._table) {
             this.logService.warn("i18n", "Localization table is not loaded, returning default message.");
             return defaultMessage;
@@ -131,13 +131,13 @@ export class I18nService extends Disposable implements II18nService {
         }
     }
 
-    private __insertToLocalize(value: string, interpolation?: Record<string, string>): string {
+    private __insertToLocalize(value: string, interpolation?: Record<string, any>): string {
         if (!interpolation) {
             return value;
         }
         return value.replace(/\{(\w+)\}/g, (_, key) => {
             if (interpolation[key] !== undefined) {
-                return interpolation[key];
+                return String(interpolation[key]);
             }
             this.logService.warn("i18n", `Missing interpolation value for key: ${key}`);
             return `{${key}}`;
