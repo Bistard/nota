@@ -3,6 +3,12 @@ const path = require('path');
 
 class KeyToIndexTransformPlugin {
     
+    /**
+     * @param {string} options.sourceCodePath Path to the source code directory to scan for localization keys.
+     * @param {string} options.localeOutputPath Path to output the localization files.
+     * @param {string} options.localizationFileName Name of the localization file to generate.
+     * @param {string} options.lookupFileName Name of the lookup table file to generate.
+     */
     constructor({ 
             sourceCodePath, 
             localeOutputPath, 
@@ -23,6 +29,10 @@ class KeyToIndexTransformPlugin {
         console.log('localeOutputPath', this.localeOutputPath);
     }
 
+    /**
+     * Main Entry.
+     * registers the plugin with Webpack's compiler hooks.
+     */
     apply(compiler) {
         compiler.hooks.thisCompilation.tap('KeyToIndexTransformPlugin', (compilation) => {
             compilation.hooks.processAssets.tap(
@@ -31,11 +41,22 @@ class KeyToIndexTransformPlugin {
                     stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
                 },
                 (assets) => {
+                    /**
+                     * Scans all the source files for localization keys and 
+                     * builds the localization data.
+                     */
                     this.buildLocalizationData();
 
-                    this.replaceKeysWithIndexes(compilation, assets);
-
+                    /**
+                     * Writes the localization data and lookup table to files.
+                     */
                     this.writeLocalizationFiles();
+
+                    /**
+                     * Replaces localization keys with corresponding indices in 
+                     * the source code (Webpack assets).
+                     */
+                    this.replaceKeysWithIndexes(compilation, assets);
                 }
             );
         });
