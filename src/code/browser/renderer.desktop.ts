@@ -218,7 +218,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // i18n-service
         const i18nService = instantiationService.createInstance(i18n, {
             language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
-            localePath: URI.join(environmentService.appConfigurationPath, "locale"),
+            localePath: URI.join(environmentService.appRootPath, 'assets', 'locale'),
         });
         instantiationService.register(II18nService, i18nService);
 

@@ -168,7 +168,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
             },
             plugins: [...baseConfiguration.plugins, new KeyToIndexTransformPlugin({
                 sourceCodePath: path.resolve(this.#cwd, './src'),
-                localeOutputPath: path.resolve(this.#cwd, '.wisp/locale'),
+                localeOutputPath: path.resolve(this.#cwd, './assets/locale'),
                 localizationFileName: 'en.json',
                 lookupFileName: 'en_lookup_table.json',
             })]

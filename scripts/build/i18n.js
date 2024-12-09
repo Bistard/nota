@@ -75,12 +75,6 @@ class KeyToIndexTransformPlugin {
         this.localeOutputPath = localeOutputPath;
         this.localizationData = {}; // mapping: filePath => entires of localization pairs
         this.localizationKeys = []; // an array that stores all the localization keys found in source code
-        
-
-        console.log('sourceCodePath', this.sourceCodePath);
-        console.log('localizationFilePath', this.localizationFilePath);
-        console.log('lookupTableFilePath', this.lookupTableFilePath);
-        console.log('localeOutputPath', this.localeOutputPath);
     }
 
     /**
