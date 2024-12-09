@@ -19,11 +19,6 @@ export interface II18nOptions {
     readonly localePath: URI;
 }
 
-export interface II18nModel {
-    readonly version: string;
-    readonly content: II18nLookUpTable;
-}
-
 export interface II18nLookUpTable {
     [index: number]: string;
 }
@@ -59,7 +54,7 @@ export interface II18nService extends IService {
  * @class The i18n (internationalization) service for loading and translating 
  * locales.
  */
-export class i18n extends Disposable implements II18nService {
+export class I18nService extends Disposable implements II18nService {
     
     // [fields]
 

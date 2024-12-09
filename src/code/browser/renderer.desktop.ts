@@ -69,7 +69,7 @@ import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common"
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
-import { i18n, II18nService } from "src/platform/i18n/browser/i18nService";
+import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 /**
@@ -216,7 +216,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
-        const i18nService = instantiationService.createInstance(i18n, {
+        const i18nService = instantiationService.createInstance(I18nService, {
             language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
             localePath: URI.join(environmentService.appRootPath, 'assets', 'locale'),
         });
