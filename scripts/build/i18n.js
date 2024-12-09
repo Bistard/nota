@@ -73,8 +73,8 @@ class KeyToIndexTransformPlugin {
         this.localizationFilePath = path.join(localeOutputPath, localizationFileName);
         this.lookupTableFilePath = path.join(localeOutputPath, lookupFileName);
         this.localeOutputPath = localeOutputPath;
-        this.localizationData = {};
-        this.keyMap = [];
+        this.localizationData = {}; // mapping: filePath => entires of localization pairs
+        this.localizationKeys = []; // an array that stores all the localization keys found in source code
         
 
         console.log('sourceCodePath', this.sourceCodePath);
@@ -120,19 +120,35 @@ class KeyToIndexTransformPlugin {
         const files = this.getAllFiles(this.sourceCodePath);
 
         files.forEach((filePath) => {
+            const relativePath = path.relative(this.sourceCodePath, filePath)
+                .replace(/\\/g, '/')       // standardize forward slash
+                .replace(/\.[^/.]+$/, ''); // remove file extension
+            
+            /**
+             * Parse the entire file and try to find `localize`.
+             */
             const localizedEntries = this.parseFile(filePath);
+
+            // Only include files with localize calls
+            const hasAnyLocalize = Object.keys(localizedEntries).length > 0;
+            if (!hasAnyLocalize) {
+                return;
+            }
+            
+            this.localizationData[relativePath] = localizedEntries;
             Object.entries(localizedEntries).forEach(([key, defaultMessage]) => {
-                if (!this.localizationData[key]) {
-                    this.localizationData[key] = defaultMessage;
-                    this.keyMap.push(key);
+                const uniqueKey = `${relativePath}|${key}`;
+                if (!this.localizationKeys.includes(uniqueKey)) {
+                    this.localizationKeys.push(uniqueKey);
                 }
             });
         });
     }
 
     replaceKeysWithIndexes(compilation, assets) {
-        const keyToIndexMap = this.keyMap.reduce((map, key, index) => {
-            map[key] = index;
+        const keyToIndexMap = this.localizationKeys.reduce((map, key, index) => {
+            const originalKey = key.split('|')[1];
+            map[originalKey] = index;
             return map;
         }, {});
 
@@ -160,7 +176,10 @@ class KeyToIndexTransformPlugin {
     }
 
     writeLocalizationFiles() {
-        const lookupTable = this.keyMap.map((key) => this.localizationData[key]);
+        const lookupTable = this.localizationKeys.map((key) => {
+            const [relativePath, realKey] = key.split('|');
+            return this.localizationData[relativePath][realKey];
+        });
 
         this.ensureDirectoryExists(this.localizationFilePath);
         this.ensureDirectoryExists(this.localeOutputPath);
