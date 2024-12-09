@@ -1,11 +1,10 @@
+const path = require('path');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const webpack = require('webpack');
-const path = require('path');
-const fs = require('fs');
 const { KeyToIndexTransformPlugin } = require('./i18n');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper } = require('../utility');
+
 class WebpackPluginProvider {
     constructor() {}
 
@@ -70,9 +69,6 @@ class WebpackPluginProvider {
                 })
             );
         }
-
-        const i18nDataPath = path.resolve(cwd, '.wisp/locale/en_flat.json');
-        plugins.push(new KeyToIndexTransformPlugin(i18nDataPath));
 
         return plugins;
     }
@@ -170,6 +166,12 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 filename: '[name]-bundle.js',
                 path: path.resolve(this.#cwd, this.#distPath),
             },
+            plugins: [...baseConfiguration.plugins, new KeyToIndexTransformPlugin({
+                sourceCodePath: path.resolve(this.#cwd, './src'),
+                localeOutputPath: path.resolve(this.#cwd, '.wisp/locale'),
+                localizationFileName: 'en.json',
+                lookupFileName: 'en_lookup_table.json',
+            })]
         });
     }
 

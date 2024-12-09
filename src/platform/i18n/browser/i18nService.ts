@@ -52,7 +52,7 @@ export interface II18nService extends IService {
     /**
      * Localize a key with optional interpolation.
      */
-    localize(key: string, defaultMessage: string, interpolation?: Record<string, string>): string;
+    localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, string>): string;
 }
 
 /**
@@ -98,7 +98,7 @@ export class i18n extends Disposable implements II18nService {
         this.logService.debug("i18n", "Initializing...");
         
         // load the look up table from the disk
-        const uri = URI.join(this._localeRootPath, `${this._language}_flat.json`);
+        const uri = URI.join(this._localeRootPath, `${this._language}_lookup_table.json`);
         return this.fileService.readFile(uri)
             .andThen(buffer => Strings.jsonParseSafe<II18nLookUpTable>(buffer.toString()))
             .map(table => { 
@@ -115,13 +115,15 @@ export class i18n extends Disposable implements II18nService {
         // TODO: should reload the renderer page entirely:
     }
 
-    public localize(key: string /** | number (after built) */, defaultMessage: string, interpolation?: Record<string, string>): string {
+    public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, string>): string {
         if (!this._table) {
             this.logService.warn("i18n", "Localization table is not loaded, returning default message.");
             return defaultMessage;
         }
-        const value = this._table[key as unknown as number] || defaultMessage;
-        return this.__insertToTranslation(value, interpolation);
+        const value    = this._table[key as unknown as number] || defaultMessage;
+        const resolved = this.__insertToLocalize(value, interpolation);
+        
+        return resolved;
     }
 
     // [private methods]
@@ -134,13 +136,13 @@ export class i18n extends Disposable implements II18nService {
         }
     }
 
-    private __insertToTranslation(value: string, insertion?: Record<string, string>): string {
-        if (!insertion) {
+    private __insertToLocalize(value: string, interpolation?: Record<string, string>): string {
+        if (!interpolation) {
             return value;
         }
         return value.replace(/\{(\w+)\}/g, (_, key) => {
-            if (insertion[key] !== undefined) {
-                return insertion[key];
+            if (interpolation[key] !== undefined) {
+                return interpolation[key];
             }
             this.logService.warn("i18n", `Missing interpolation value for key: ${key}`);
             return `{${key}}`;
