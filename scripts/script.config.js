@@ -157,6 +157,11 @@ const configuration = {
         command: "node benchmark/benchmark.js",
         description: 'Run the benchmark tests.'
     },
+
+    "i18n_integration_test": {
+        command: "node ./test/build/i18n/testRunner.js",
+        description: "Run the i18n integration test."
+    },
 }
 
 module.exports = configuration;

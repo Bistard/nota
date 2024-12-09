@@ -65,9 +65,9 @@ export class i18n extends Disposable implements II18nService {
 
     declare _serviceMarker: undefined;
 
-    private readonly _language: LanguageType;
-    private readonly _localeRootPath: URI; // the root that contains all the locales
-    private _table?: II18nLookUpTable;
+    protected readonly _language: LanguageType;
+    protected readonly _localeRootPath: URI; // the root that contains all the locales
+    protected _table?: II18nLookUpTable;
 
     // [event]
 

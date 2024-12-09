@@ -246,7 +246,7 @@ class KeyToIndexTransformPlugin {
             const packageJson = JSON.parse(fs.readFileSync(rootPath, 'utf-8'));
             return packageJson.version;
         } catch (error) {
-            console.error('Error reading package.json:', error.message);
+            console.warn('Error reading package.json:', error.message);
             return '0.0.0';
         }
     }
