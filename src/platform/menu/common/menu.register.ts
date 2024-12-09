@@ -1,6 +1,7 @@
 import { createRegister, RegistrantType } from "src/platform/registrant/common/registrant";
 import { IS_MAC } from "src/base/common/platform";
 import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menu";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 // Application Menu (For macOS)
 export const menuTitleApplicationRegister = createRegister(
@@ -216,8 +217,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '6_close',
                 title: 'Close Current Folder',
                 command: {
-                    // commandID: CommandID.CloseFolder,
-                    commandID: "",
+                    commandID: AllCommands.fileTreeCloseCurrentFolder,
                 },
             },
             {

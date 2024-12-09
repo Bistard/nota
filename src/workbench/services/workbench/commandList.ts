@@ -57,6 +57,7 @@ export const enum AllCommands {
     fileTreeRevealInOS         = 'fileTreeRevealInOS',
     fileTreeCopyPath           = 'fileTreeCopyPath',
     fileTreeCopyRelativePath   = 'fileTreeCopyRelativePath',
+    fileTreeCloseCurrentFolder = 'fileTreeCloseCurrentFolder'
 
     // [Test Commands]
 }
@@ -86,9 +87,10 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.fileTreeMove]:       'Moves the targets from the clipboard to the file tree.',
     [AllCommands.fileTreeDelete]:     'Delete the targets in the file tree.',
     
-    [AllCommands.fileTreeRevealInOS]:       'Reveal the target in the native file explorer.',
-    [AllCommands.fileTreeCopyPath]:         'Copy path of active file path.',
-    [AllCommands.fileTreeCopyRelativePath]: 'Copy relative path of active file path.',
+    [AllCommands.fileTreeRevealInOS]:         'Reveal the target in the native file explorer.',
+    [AllCommands.fileTreeCopyPath]:           'Copy path of active file path.',
+    [AllCommands.fileTreeCopyRelativePath]:   'Copy relative path of active file path.',
+    [AllCommands.fileTreeCloseCurrentFolder]: 'Close current file tree folder.'
 };
 
 /**
@@ -126,9 +128,10 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileTreeMove]      : [];
     [AllCommands.fileTreeDelete]    : [];
 
-    [AllCommands.fileTreeRevealInOS]      : [target: URI | string];
-    [AllCommands.fileTreeCopyPath]        : [target: URI | string];
-    [AllCommands.fileTreeCopyRelativePath]: [target: URI | string];
+    [AllCommands.fileTreeRevealInOS]        : [target: URI | string];
+    [AllCommands.fileTreeCopyPath]          : [target: URI | string];
+    [AllCommands.fileTreeCopyRelativePath]  : [target: URI | string];
+    [AllCommands.fileTreeCloseCurrentFolder]: [];
 
     [key: string]: any[];
 };
@@ -165,9 +168,10 @@ export type AllCommandsReturnTypes = {
     [AllCommands.fileTreeMove]      : void;
     [AllCommands.fileTreeDelete]    : void;
 
-    [AllCommands.fileTreeRevealInOS]      : void;
-    [AllCommands.fileTreeCopyPath]        : void;
-    [AllCommands.fileTreeCopyRelativePath]: void;
+    [AllCommands.fileTreeRevealInOS]        : void;
+    [AllCommands.fileTreeCopyPath]          : void;
+    [AllCommands.fileTreeCopyRelativePath]  : void;
+    [AllCommands.fileTreeCloseCurrentFolder]: void;
 
     [key: string]: any | Promise<any>;
 };
