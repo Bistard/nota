@@ -39,27 +39,6 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
         process.exit(1);
     }
 
-    // Output raw i18n locale JSON file, and
-    // convert raw JSON locale file into 1D array and write into compiled file
-    const i18n = new ScriptProcess(
-        'i18n',
-        'node',
-        ['scripts/build/i18n.js'],
-        [],
-        {
-            env: process.env,
-            cwd: cwd,
-            shell: true,
-            stdio: "inherit",
-        }
-    );
-
-    try {
-        await i18n.waiting();
-    } catch (err) {
-        process.exit(1);
-    }
-
     // build with webpack
     const webpack = new ScriptProcess(
         'webpack',
