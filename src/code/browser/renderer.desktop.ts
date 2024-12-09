@@ -119,7 +119,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             workbench.init();
 
             // TEST:
-            instantiationService.getOrCreateService(II18nService).localize('renderer', 'Open a Folder');
+            instantiationService.getOrCreateService(II18nService).localize('renderer', 'some english text');
             /*
             instantiationService.getOrCreateService(II18nService).localize('renderer2', 'renderer default2');
             */
