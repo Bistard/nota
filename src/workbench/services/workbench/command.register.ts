@@ -15,6 +15,9 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
+import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
+import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -114,6 +117,18 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     }
 
                     clipboardService.write(ClipboardType.Text, relativePath ?? 'RelativePath Error');
+                }
+            }
+        );
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeCloseCurrentFolder,
+                command: (provider) => {
+                    const navViewService = provider.getOrCreateService(INavigationViewService);
+                    const currentView = navViewService.currView();
+                    if (currentView && currentView.id === ExplorerViewID) {
+                        (<ExplorerView>currentView).close();
+                    }
                 }
             }
         );
