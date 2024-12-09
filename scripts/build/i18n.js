@@ -1,6 +1,60 @@
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * {@link KeyToIndexTransformPlugin}
+ * 
+ * This Webpack plugin streamlines the internationalization (i18n) process 
+ * by transforming human-readable localization keys in source code into numeric 
+ * indices, reducing bundle size and improving runtime performance.
+ * 
+ * Key Features:
+ * 1. Categorized Localization Data Extraction:
+ *    - Scans the source code for calls to `localize(key, message)`.
+ *    - Extracts localization keys (`key`) and their associated default messages (`message`).
+ *    - Groups extracted localization keys by file paths, maintaining a hierarchical structure.
+ * 
+ * 2. Key-to-Index Transformation:
+ *    - Replaces the `key` parameter in `localize` calls with numeric indices.
+ *    - Ensures consistent mapping between keys and indices across all source files.
+ * 
+ * 3. Output of Localization:
+ *    - Generates two files:
+ *        - `*.json`: A JSON file categorizing all extracted localization keys 
+ *                    and their default messages under file paths.
+ *        - `*_lookup_table.json`: A JSON array mapping numeric indices to the 
+ *                    corresponding default messages.
+ * 
+ * 4. Webpack Integration:
+ *    - Hooks into Webpack's asset optimization stage (`PROCESS_ASSETS_STAGE_OPTIMIZE`).
+ * 
+ * ## Example
+ * ```ts
+ * // src/dir1/file1.ts
+ * const name    = localize('displayName', 'default english name');
+ * const content = localize('content', 'default english content');
+ * 
+ * // Generated en.json
+ * {
+ *     "contents": {
+ *         "src/dir1/file1": {
+ *             "displayName": "default english name",
+ *             "content": "default english content"
+ *         }
+ *     }
+ * }
+ * 
+ * // Generated en_lookup_table.json
+ * [
+ *     "default english name",
+ *     "default english content"
+ * ]
+ * 
+ * // Transformed source
+ * const name    = localize(0, 'default english name');
+ * const content = localize(1, 'default english content');
+ * ```
+ */
 class KeyToIndexTransformPlugin {
     
     /**
