@@ -15,6 +15,7 @@ import { IProductService } from "src/platform/product/common/productService";
 import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { BrowserWindow } from "electron";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -126,7 +127,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public getFocusedWindow(): IWindowInstance | undefined {
-        const window = Electron.BrowserWindow.getFocusedWindow();
+        const window = BrowserWindow.getFocusedWindow();
 		if (window) {
 			return this.getWindowByID(window.id);
 		}
