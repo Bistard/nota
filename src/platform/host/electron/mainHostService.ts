@@ -186,6 +186,10 @@ export class MainHostService extends Disposable implements IMainHostService {
         }
     }
 
+    public async getApplicationStatus<T>(key: StatusKey): Promise<T | undefined> {
+        return this.statusService.get<T>(key);
+    }
+
     public setApplicationStatus(key: StatusKey, val: any): Promise<void> {
         return this.statusService.set(key, val).unwrap();
     }

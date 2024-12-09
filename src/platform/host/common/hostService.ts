@@ -45,6 +45,7 @@ export interface IHostService extends IService {
     toggleInspectorWindow(id?: number): Promise<void>;
 
     // status-service (THOSE FUNCTIONS MIGHT THROW WHEN FAILED)
+    getApplicationStatus<T>(key: StatusKey): Promise<T | undefined>;
     setApplicationStatus(key: StatusKey, val: any): Promise<void>;
     setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void>;
     deleteApplicationStatus(key: StatusKey): Promise<boolean>;
