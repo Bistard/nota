@@ -50,18 +50,6 @@ export namespace Context {
 }
 
 /**
- * @deprecated This function acts exactly like `.unwrap()` method.
- */
-export async function assertAsyncResult<T, E>(result: AsyncResult<T, E>): Promise<T> {
-    const res = await result;
-    if (res.isErr()) {
-        // eslint-disable-next-line local/code-no-throw
-        throw res.error;
-    }
-    return res.data;
-}
-
-/**
  * @description Returns a useless but simple object except that whatever you do 
  * to it will not throw any errors.
  */

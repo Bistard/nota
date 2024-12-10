@@ -34,6 +34,9 @@ export interface IActionOptions {
     readonly id: string;
     readonly enabled: boolean;
     readonly tip?: string;
+    /**
+     * Any context will be passed as this function first argument.
+     */
     readonly callback: Callable<any[], any>;
 }
 
