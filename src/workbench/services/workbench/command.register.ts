@@ -18,7 +18,9 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
-import { IMainDialogService } from "src/platform/dialog/electron/mainDialogService";
+import { StatusKey } from "src/platform/status/common/status";
+import { IBrowserService } from "src/code/browser/browser";
+import { MenuTypes } from "src/platform/menu/common/menu";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -148,6 +150,17 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 (<ExplorerView>currentView).open(folderURI);
             }
         });
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeClearRecentOpened,
+                command: async (provider) => {
+                    const hostService = provider.getOrCreateService(IHostService);
+                    await hostService.setApplicationStatus(StatusKey.OpenRecent, []);
+                    const browserService = provider.getOrCreateService(IBrowserService);
+                    browserService.updateMacOSMenu();
+                }
+            }
+        );
     },
 );
 
