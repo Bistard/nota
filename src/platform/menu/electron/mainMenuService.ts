@@ -3,21 +3,9 @@ import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
-import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menu";
+import { IMenuItemRegistrationResolved, mainMenuTypes, MenuTypes } from "src/platform/menu/common/menu";
 import { IMenuService } from "src/platform/menu/common/menu";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
-
-const mainMenuTypes: { type: MenuTypes; label: string }[] = [
-    { type: MenuTypes.TitleBarApplication, label: 'Nota' },
-    { type: MenuTypes.TitleBarFile, label: 'File' },
-    { type: MenuTypes.TitleBarEdit, label: 'Edit' },
-    { type: MenuTypes.TitleBarSelection, label: 'Selection' },
-    { type: MenuTypes.TitleBarInsert, label: 'Insert' },
-    { type: MenuTypes.TitleBarFormat, label: 'Format' },
-    { type: MenuTypes.TitleBarView, label: 'View' },
-    { type: MenuTypes.TitleBarHelp, label: 'Help' }
-];
-
 
 /**
  * @description A macOS-specific service responsible for managing the menu bar in the 
@@ -153,3 +141,5 @@ export class MainMenuService implements IMenuService {
         }
     }
 }
+export { mainMenuTypes };
+
