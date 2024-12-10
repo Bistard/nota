@@ -15,6 +15,12 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
+import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
+import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
+import { StatusKey } from "src/platform/status/common/status";
+import { IBrowserService } from "src/code/browser/browser";
+import { MenuTypes } from "src/platform/menu/common/menu";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -114,6 +120,44 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     }
 
                     clipboardService.write(ClipboardType.Text, relativePath ?? 'RelativePath Error');
+                }
+            }
+        );
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeCloseCurrentFolder,
+                command: (provider) => {
+                    const navViewService = provider.getOrCreateService(INavigationViewService);
+                    const currentView = navViewService.currView();
+                    if (currentView && currentView.id === ExplorerViewID) {
+                        (<ExplorerView>currentView).close();
+                    }
+                }
+            }
+        );
+        registrant.registerCommandBasic({
+            id: AllCommands.fileTreeOpenFolder,
+            command: (provider, folderPath: string) => {
+                console.log("fileTreeOpenFolder invoked with folderPath:", folderPath); // Log folderPath
+                if (!folderPath) {
+                    console.error("Folder path is undefined or empty.");
+                    return;
+                }
+
+                const navViewService = provider.getOrCreateService(INavigationViewService);
+                const currentView = navViewService.currView();
+                const folderURI = URI.parse(folderPath);
+                (<ExplorerView>currentView).open(folderURI);
+            }
+        });
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeClearRecentOpened,
+                command: async (provider) => {
+                    const hostService = provider.getOrCreateService(IHostService);
+                    await hostService.setApplicationStatus(StatusKey.OpenRecent, []);
+                    const browserService = provider.getOrCreateService(IBrowserService);
+                    browserService.updateMacOSMenu();
                 }
             }
         );

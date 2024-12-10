@@ -18,14 +18,20 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menu";
+import { IMenuItemRegistrationResolved, mainMenuTypes, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { createService, IService } from "src/platform/instantiation/common/decorator";
 
-export interface IBrowser {
+export const IBrowserService = createService<IBrowserService>('browser-service');
+export interface IBrowserService extends IService {
     init(): void;
+    updateMacOSMenu(): Promise<void>;
 }
 
-export class BrowserInstance extends Disposable implements IBrowser {
+export class BrowserInstance extends Disposable implements IBrowserService {
+
+    declare _serviceMarker: undefined;
 
     // [constructor]
 
@@ -56,6 +62,19 @@ export class BrowserInstance extends Disposable implements IBrowser {
         this.hostService.setWindowAsRendererReady();
     }
 
+    public async updateMacOSMenu(): Promise<void> {
+        // Update recent paths menu items each time main requests them
+        await this.updateRecentPathsMenu(this.registrantService);
+
+        const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+        const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
+        for (const {type} of mainMenuTypes) {
+            const menuItems = menuRegistrant.getMenuItemsResolved(type);
+            result.push([type, menuItems]);
+        }
+        ipcRenderer.send(IpcChannel.Menu, result);
+    }
+
     // [private helper methods]
 
     private async registerListeners(): Promise<void> {
@@ -77,26 +96,57 @@ export class BrowserInstance extends Disposable implements IBrowser {
 
         // execute command request from main process
         onMainProcess(ipcRenderer, IpcChannel.rendererRunCommand, async request => {
+            console.log("Command execution request:", request.commandID, "with args:", request.args); // Add this
             try {
                 await this.commandService.executeCommand(request.commandID, ...request.args);
             } catch (error) {
+                console.error("Error executing command:", error);
                 this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
             }
         });
 
-        // send latest menu data back to the main process if requested
-        onMainProcess(ipcRenderer, IpcChannel.Menu, (menuTypes: MenuTypes[]) => {
-            const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
-            const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
-            for (const type of menuTypes) {
-                const menuItems = menuRegistrant.getMenuItemsResolved(type);
-                result.push([type, menuItems]);
-            }
-            ipcRenderer.send(IpcChannel.Menu, result);
+        // Handle menu requests from main process
+        onMainProcess(ipcRenderer, IpcChannel.Menu, async () => {
+            this.updateMacOSMenu();
         });
-
         // inspector listener
         this.browserInspectorService.startListening();
+    }
+
+    private async updateRecentPathsMenu(menuRegistrant: IRegistrantService) {
+        const reg = menuRegistrant.getRegistrant(RegistrantType.Menu);
+        reg.clearMenuItems(MenuTypes.FileOpenRecent);
+
+        const fileTreeService = this.instantiationService.getOrCreateService(IFileTreeService);
+        const recentPaths: string[] = await fileTreeService.getRecentPaths();
+
+        if (recentPaths.length === 0) {
+            reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+                group: '1_recent',
+                title: 'No Recent Files',
+                command: { commandID: "" },
+            });
+        } else {
+            for (const p of recentPaths) {
+                reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+                    group: '1_recent',
+                    title: p,
+                    command: {
+                        commandID: AllCommands.fileTreeOpenFolder,
+                        args: [p],
+                    },
+                });
+            }
+        }
+
+        // Add the "Clear Recent Files" option
+        reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+            group: '2_clear',
+            title: 'Clear Recent Files',
+            command: {
+                commandID: AllCommands.fileTreeClearRecentOpened,
+            },
+        });
     }
 
     private setBrowserPhase(): void {

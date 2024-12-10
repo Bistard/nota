@@ -176,8 +176,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
 
+        const rawRecentPath = this.statusService.get<string[]>(StatusKey.OpenRecent, []);
+        const recentPath = Array.isArray(rawRecentPath) ? rawRecentPath : [];
+
         // retrieve last saved opened window status
-        const uriToOpen: URI[] = [];
+        const uriToOpen: URI[] = recentPath.map(path => URI.fromFile(path));
+
         const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
         if (shouldRestore) {
             const lastOpened = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);

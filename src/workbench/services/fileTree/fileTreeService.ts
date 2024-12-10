@@ -11,10 +11,10 @@ import { ILogService, defaultLog } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { FileItemFilter as FileItemFilter } from "src/workbench/services/fileTree/fileItemFilter";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
-import { AsyncResult } from "src/base/common/result";
+import { AsyncResult, Result } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter, defaultFileItemCompareFnAsc, defaultFileItemCompareFnDesc } from "src/workbench/services/fileTree/fileTreeSorter";
-import { FileOperationError, FileType } from "src/base/common/files/file";
+import { FileOperationError } from "src/base/common/files/file";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { Scheduler } from "src/base/common/utilities/async";
@@ -34,6 +34,9 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { MenuTypes } from "src/platform/menu/common/menu";
 import { IContextService } from "src/platform/context/common/contextService";
+import { IHostService } from "src/platform/host/common/hostService";
+import { StatusKey } from "src/platform/status/common/status";
+import { ErrorHandler } from "src/base/common/error";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -67,7 +70,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IClipboardService private readonly clipboardService: IClipboardService,
         @ICommandService private readonly commandService: ICommandService,
         @IRegistrantService private readonly registrantService: IRegistrantService,
-        @IContextService private readonly contextService: IContextService
+        @IContextService private readonly contextService: IContextService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
@@ -116,8 +120,9 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                 this._onSelect.setInput(tree.onSelect);
                 this._onDidChangeFocus.setInput(tree.onDidChangeFocus);
 
+                await this.updateOpenRecent(root);
                 /**
-                 * After the tree is constructed, refresh tree to fetch the 
+                 * After the tree is constructed, refresh tree to fetch the
                  * latest data for the first time.
                  */
                 await tree.refresh();
@@ -330,6 +335,20 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     public updateCustomSortingMetadataLot(type: any, parent: any, items: any, indice: any, destination?: any): AsyncResult<void, FileOperationError | Error> {
         const controller = this.__assertController();
         return controller.updateCustomSortingMetadataLot(type, parent, items, indice, destination);
+    }
+
+    public async getRecentPaths(): Promise<string[]> {
+        try {
+            const recentPaths = await this.hostService.getApplicationStatus<string[]>(StatusKey.OpenRecent);
+            return recentPaths || [];
+        } catch (error) {
+            this.logService.error(
+                '[FileTreeService]',
+                'Failed to retrieve recent paths.',
+                error instanceof Error ? error.message : String(error)
+            );
+            return [];
+        }
     }
 
     public override dispose(): void {
@@ -591,5 +610,31 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
          * to the entire file tree.
          */
         return tree.DOMElement;
+    }
+
+    private updateOpenRecent(root: URI): Promise<void> {
+        const rootPath = URI.toFsPath(root);
+
+        return this.hostService
+            .getApplicationStatus<string[]>(StatusKey.OpenRecent)
+            .then((recentPaths) => {
+                let paths = recentPaths || [];
+
+                // Remove duplicates
+                paths = paths.filter((path) => path !== rootPath);
+
+                // Add new path and limit the cache to 10 items
+                paths.unshift(rootPath);
+                const updatedRecentPaths = paths.slice(0, 10);
+
+                return this.hostService
+                    .setApplicationStatus(StatusKey.OpenRecent, updatedRecentPaths)
+                    .then((updatedPaths) => {
+                        console.log('Updated recent paths:', updatedPaths);
+                    });
+            })
+            .catch((error) => {
+                ErrorHandler.onUnexpectedError(new Error(`[FileTreeService] Failed to update openRecent: ${error}`));
+            });
     }
 }

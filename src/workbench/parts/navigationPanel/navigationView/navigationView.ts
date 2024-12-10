@@ -106,7 +106,7 @@ export class NavigationView extends Component implements INavigationViewService 
     public registerView(id: string, viewCtor: Constructor<INavView>): void {
         this.logService.debug('NavigationViewService', `registers a view with ID: ${id}`);
 
-        if (this.hasComponent(id)) {
+        if (this._viewCtors.get(id)) {
             this.logService.warn('NavigationViewService', `The navigation view with ID is already registered: ${id}`);
             return;
         }
@@ -169,16 +169,6 @@ export class NavigationView extends Component implements INavigationViewService 
     }
 
     public getView<T extends INavView>(id: string): T | undefined {
-        const view = this.getComponent<T>(id);
-        if (view) {
-            return view;
-        }
-
-        const ctor = this._viewCtors.get(id);
-        if (!ctor) {
-            return undefined;
-        }
-
         const newView = this.__getOrConstructView<T>(id);
         return newView;
     }

@@ -65,6 +65,11 @@ export interface IMenuItemRegistration {
         readonly commandID: string;
 
         /**
+         * Optional arguments to pass along when executing the command.
+         */
+        readonly args?: any[];
+
+        /**
          * Precondition controls enablement (for example for a menu item, show
          * it in grey or for a command, do not allow to invoke it)
          */
@@ -109,3 +114,14 @@ export interface IMenuItemRegistration {
 export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistration, ContextKeyExpr, boolean>, 'submenu'> & {
     readonly submenu?: IMenuItemRegistrationResolved[];
 };
+
+export const mainMenuTypes: { type: MenuTypes; label: string }[] = [
+    { type: MenuTypes.TitleBarApplication, label: 'Nota' },
+    { type: MenuTypes.TitleBarFile, label: 'File' },
+    { type: MenuTypes.TitleBarEdit, label: 'Edit' },
+    { type: MenuTypes.TitleBarSelection, label: 'Selection' },
+    { type: MenuTypes.TitleBarInsert, label: 'Insert' },
+    { type: MenuTypes.TitleBarFormat, label: 'Format' },
+    { type: MenuTypes.TitleBarView, label: 'View' },
+    { type: MenuTypes.TitleBarHelp, label: 'Help' }
+];
