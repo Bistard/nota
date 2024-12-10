@@ -244,11 +244,6 @@ class KeyToIndexTransformPlugin {
             return '0.0.0';
         }
     }
-
-    #getChangedFiles(compiler) {
-        const changedFiles = Array.from(compiler.modifiedFiles || []);
-        return changedFiles;
-    }
 }
 
 function removeComments(content) {

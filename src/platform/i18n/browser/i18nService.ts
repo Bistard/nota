@@ -115,10 +115,8 @@ export class I18nService extends Disposable implements II18nService {
             this.logService.warn("i18n", "Localization table is not loaded, returning default message.");
             return defaultMessage;
         }
-        const value    = this._table[key as unknown as number] || defaultMessage;
-        const resolved = this.__insertToLocalize(value, interpolation);
-        
-        return resolved;
+        const value = this._table[key as unknown as number] || defaultMessage;
+        return this.__insertToLocalize(value, interpolation);
     }
 
     // [private methods]
