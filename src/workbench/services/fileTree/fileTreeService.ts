@@ -613,7 +613,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     }
 
     private updateOpenRecent(root: URI): Promise<void> {
-        const rootPath = URI.toString(root);
+        const rootPath = URI.toFsPath(root);
 
         return this.hostService
             .getApplicationStatus<string[]>(StatusKey.OpenRecent)
@@ -629,9 +629,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
                 return this.hostService
                     .setApplicationStatus(StatusKey.OpenRecent, updatedRecentPaths)
-                    .then(() => {
-                        return this.hostService.getApplicationStatus(StatusKey.OpenRecent);
-                    })
                     .then((updatedPaths) => {
                         console.log('Updated recent paths:', updatedPaths);
                     });

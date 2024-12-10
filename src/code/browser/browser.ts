@@ -94,7 +94,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
             const recentPaths: string[] = await fileTreeService.getRecentPaths();
             if (recentPaths.length === 0) {
                 menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
-                    group: '1_recent',
+                    group: '2_recent',
                     title: 'No Recent Files',
                     command: { commandID: "" },
                 });
@@ -102,7 +102,7 @@ export class BrowserInstance extends Disposable implements IBrowser {
                 for (const p of recentPaths) {
                     console.log("Registering recent path:", p);
                     menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
-                        group: '1_recent',
+                        group: '2_recent',
                         title: p,
                         command: {
                             commandID: "fileTreeOpenFolder",
