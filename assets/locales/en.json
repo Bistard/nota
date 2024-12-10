@@ -1,9 +1,0 @@
-{
-    "src/workbench/navigationView": {
-        
-    },
-    "src/workbench/navigationView/explorer": {
-        "file": "FILE",
-        "openDirectory": "OPEN A FOLDER"
-    }
-}

@@ -92,7 +92,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const firstWindow = await this.openFirstWindow(appInstantiationService);
 
         // post work
-        this.afterFirstWindow(appInstantiationService, firstWindow.id);
+        await this.afterFirstWindow(appInstantiationService, firstWindow.id);
     }
 
     // [private methods]
@@ -182,7 +182,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // retrieve last saved opened window status
         const uriToOpen: URI[] = recentPath.map(path => URI.fromFile(path));
 
-        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
+        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious); // FIX: should be status
         if (shouldRestore) {
             const lastOpened = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
             if (lastOpened) {
@@ -191,7 +191,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         }
 
         // open the first window
-        const window: IWindowInstance = mainWindowService.open({
+        const window: IWindowInstance = await mainWindowService.open({
             applicationName: this.productService.profile.applicationName,
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
@@ -204,11 +204,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         return window;
     }
 
-    private afterFirstWindow(provider: IServiceProvider, firstWindowID: number): void {
+    private async afterFirstWindow(provider: IServiceProvider, firstWindowID: number): Promise<void> {
+        
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
             const mainWindowService = provider.getOrCreateService(IMainWindowService);
-            mainWindowService.openInspector(firstWindowID);
+            await mainWindowService.openInspector(firstWindowID);
         }
     }
 

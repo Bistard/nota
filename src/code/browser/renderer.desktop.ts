@@ -23,7 +23,6 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IHostService } from "src/platform/host/common/hostService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance, IBrowserService } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
@@ -70,6 +69,8 @@ import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common"
 import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
+import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -97,7 +98,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             monitorEventEmitterListenerGC({
                 ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
             });
-
+            
             // ensure we handle almost every errors properly
             initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
 
@@ -117,6 +118,12 @@ const renderer = new class extends class RendererInstance extends Disposable {
             const workbench = instantiationService.createInstance(Workbench);
             workbench.init();
 
+            // TEST:
+            instantiationService.getOrCreateService(II18nService).localize('renderer', 'some english text');
+            instantiationService.getOrCreateService(II18nService).localize('renderer', 'some english text');
+            /*
+            instantiationService.getOrCreateService(II18nService).localize('renderer2', 'renderer default2');
+            */
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
             browser.init();
@@ -210,16 +217,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
-        // REVIEW: try late initialization
-        const i18nService = new i18n(
-            <II18nOpts>{
-                language: configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
-                localeOpts: {},
-            },
-            fileService,
-            logService,
-            environmentService,
-        );
+        const i18nService = instantiationService.createInstance(I18nService, {
+            language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
+            localePath: URI.join(environmentService.appRootPath, 'assets', 'locale'),
+        });
         instantiationService.register(II18nService, i18nService);
 
         logService.debug('renderer', 'All core renderer services are constructed.');
@@ -231,7 +232,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         const configurationService = instantiationService.getService(IConfigurationService);
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
-        const i18nService          = instantiationService.getService(II18nService);
+        const i18nService       = instantiationService.getService(II18nService);
         const productService       = instantiationService.getService(IProductService);
         const themeService         = instantiationService.getOrCreateService(IThemeService);
 
@@ -240,7 +241,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             .andThen(() => productService.init(environmentService.productProfilePath))
             .andThen(() => themeService.init())
             .unwrap();
-        
+
         this.logService.debug('renderer', 'All core renderer services are initialized successfully.');
     }
 
