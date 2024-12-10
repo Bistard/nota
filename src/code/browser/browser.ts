@@ -20,6 +20,7 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 
 export interface IBrowser {
     init(): void;
@@ -85,8 +86,28 @@ export class BrowserInstance extends Disposable implements IBrowser {
         });
 
         // send latest menu data back to the main process if requested
-        onMainProcess(ipcRenderer, IpcChannel.Menu, (menuTypes: MenuTypes[]) => {
+        onMainProcess(ipcRenderer, IpcChannel.Menu, async (menuTypes: MenuTypes[]) => {
             const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+            const fileTreeService = this.instantiationService.getOrCreateService(IFileTreeService);
+            const recentPaths: string[] = await fileTreeService.getRecentPaths();
+            if (recentPaths.length === 0) {
+                menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
+                    group: '1_recent',
+                    title: 'No Recent Files',
+                    command: { commandID: "" },
+                });
+            } else {
+                for (const p of recentPaths) {
+                    menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
+                        group: '1_recent',
+                        title: p,
+                        command: {
+                            commandID: "fileTreeDynamicRecentPath"
+                        },
+                    });
+                }
+            }
+
             const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
             for (const type of menuTypes) {
                 const menuItems = menuRegistrant.getMenuItemsResolved(type);
