@@ -618,10 +618,10 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         return this.hostService
             .getApplicationStatus<string[]>(StatusKey.OpenRecent)
             .then((recentPaths) => {
-                const paths = recentPaths || [];
-                if (paths.includes(rootPath)) {
-                    return;
-                }
+                let paths = recentPaths || [];
+
+                // Remove duplicates
+                paths = paths.filter((path) => path !== rootPath);
 
                 // Add new path and limit the cache to 10 items
                 paths.unshift(rootPath);
