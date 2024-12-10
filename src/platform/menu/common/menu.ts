@@ -65,6 +65,11 @@ export interface IMenuItemRegistration {
         readonly commandID: string;
 
         /**
+         * Optional arguments to pass along when executing the command.
+         */
+        readonly args?: any[];
+
+        /**
          * Precondition controls enablement (for example for a menu item, show
          * it in grey or for a command, do not allow to invoke it)
          */

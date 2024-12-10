@@ -114,7 +114,7 @@ export class MainMenuService implements IMenuService {
                 const electronMenuItem: MenuItemConstructorOptions = {
                     label: item.title,
                     accelerator,
-                    click: () => this.onMenuItemClick(item.command.commandID),
+                    click: () => this.onMenuItemClick(item.command.commandID, item.command.args),
                     enabled: item.when ?? true,
                     type: item.command.checked ? 'checkbox' : undefined,
                     checked: item.command.checked,
@@ -133,7 +133,7 @@ export class MainMenuService implements IMenuService {
         return electronSubmenuItems;
     }
 
-    private onMenuItemClick(commandID: string): void {
+    private onMenuItemClick(commandID: string, args?: any[]): void {
         let window = this.mainWindowService.getFocusedWindow();
 
         if (!window) {
@@ -147,7 +147,7 @@ export class MainMenuService implements IMenuService {
         if (window) {
             window.sendIPCMessage(IpcChannel.rendererRunCommand, {
                 commandID: commandID,
-                args: []
+                args: args || []
             });
             this.logService.debug('MainMenuService', `Executing CommandID '${commandID}' to renderer process`);
         }

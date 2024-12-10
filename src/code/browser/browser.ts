@@ -78,9 +78,11 @@ export class BrowserInstance extends Disposable implements IBrowser {
 
         // execute command request from main process
         onMainProcess(ipcRenderer, IpcChannel.rendererRunCommand, async request => {
+            console.log("Command execution request:", request.commandID, "with args:", request.args); // Add this
             try {
                 await this.commandService.executeCommand(request.commandID, ...request.args);
             } catch (error) {
+                console.error("Error executing command:", error);
                 this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
             }
         });
@@ -98,11 +100,13 @@ export class BrowserInstance extends Disposable implements IBrowser {
                 });
             } else {
                 for (const p of recentPaths) {
+                    console.log("Registering recent path:", p);
                     menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
                         group: '1_recent',
                         title: p,
                         command: {
-                            commandID: "fileTreeDynamicRecentPath"
+                            commandID: "fileTreeOpenFolder",
+                            args: [p],
                         },
                     });
                 }
