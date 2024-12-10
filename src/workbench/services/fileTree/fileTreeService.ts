@@ -337,6 +337,20 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         return controller.updateCustomSortingMetadataLot(type, parent, items, indice, destination);
     }
 
+    public async getRecentPaths(): Promise<string[]> {
+        try {
+            const recentPaths = await this.hostService.getApplicationStatus<string[]>(StatusKey.OpenRecent);
+            return recentPaths || [];
+        } catch (error) {
+            this.logService.error(
+                '[FileTreeService]',
+                'Failed to retrieve recent paths.',
+                error instanceof Error ? error.message : String(error)
+            );
+            return [];
+        }
+    }
+
     public override dispose(): void {
         super.dispose();
         this.close();
