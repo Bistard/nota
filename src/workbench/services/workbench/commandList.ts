@@ -58,6 +58,7 @@ export const enum AllCommands {
     fileTreeCopyPath           = 'fileTreeCopyPath',
     fileTreeCopyRelativePath   = 'fileTreeCopyRelativePath',
     fileTreeCloseCurrentFolder = 'fileTreeCloseCurrentFolder'
+    fileTreeOpenFolder         = 'fileTreeOpenFolder',
 
     // [Test Commands]
 }
@@ -91,6 +92,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.fileTreeCopyPath]:           'Copy path of active file path.',
     [AllCommands.fileTreeCopyRelativePath]:   'Copy relative path of active file path.',
     [AllCommands.fileTreeCloseCurrentFolder]: 'Close current file tree folder.'
+    [AllCommands.fileTreeOpenFolder]:         'Dynamically handles recent paths.',
 };
 
 /**
@@ -132,6 +134,7 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileTreeCopyPath]          : [target: URI | string];
     [AllCommands.fileTreeCopyRelativePath]  : [target: URI | string];
     [AllCommands.fileTreeCloseCurrentFolder]: [];
+    [AllCommands.fileTreeOpenFolder]        : [recentPath: string];
 
     [key: string]: any[];
 };
@@ -173,5 +176,6 @@ export type AllCommandsReturnTypes = {
     [AllCommands.fileTreeCopyRelativePath]  : void;
     [AllCommands.fileTreeCloseCurrentFolder]: void;
 
+    [AllCommands.fileTreeOpenFolder]: void;
     [key: string]: any | Promise<any>;
 };
