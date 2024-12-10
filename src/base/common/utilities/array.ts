@@ -87,6 +87,18 @@ export namespace Arrays {
     export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {
         return array.indexOf(value) >= 0;
     }
+    
+    /**
+     * @description Checks if any element in the array satisfies the provided 
+     * predicate.
+     *
+     * @param array The array to search through.
+     * @param predicate A function that tests each element, returning `true` to 
+     *                  indicate a match.
+     */
+    export function exist2<T>(array: ReadonlyArray<T>, predicate: (value: T, index: number) => boolean): boolean {
+        return array.findIndex(predicate) !== -1;
+    }
 
     /**
      * @description Returns the last element of an array.

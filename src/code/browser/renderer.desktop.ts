@@ -24,7 +24,7 @@ import { IHostService } from "src/platform/host/common/hostService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
-import { BrowserInstance } from "src/code/browser/browser";
+import { BrowserInstance, IBrowserService } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
@@ -65,8 +65,11 @@ import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPane
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
 import { monitorEventEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
-import { Strings } from "src/base/common/utilities/string";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
+import { initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
+import { BrowserInspectorService } from "src/platform/inspector/browser/browserInspectorService";
+import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
+import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -96,7 +99,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             });
 
             // ensure we handle almost every errors properly
-            this.initErrorHandler();
+            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
 
             // register microservices
             this.rendererServiceRegistrations();
@@ -117,47 +120,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
             browser.init();
+            instantiationService.register(IBrowserService, browser);
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
         }
-    }
-
-    // [private methods]
-
-    // [error handling]
-
-    private initErrorHandler(): void {
-
-        // only enable infinity stack trace when needed for performance issue.
-        if (WIN_CONFIGURATION.log === 'trace' || WIN_CONFIGURATION.log === 'debug') {
-            Error.stackTraceLimit = Infinity;
-        }
-        
-        // universal on unexpected error handling callback
-        const onUnexpectedError = (error: any, additionalMessage?: any) => {
-            if (this.logService) {
-                const safeAdditional = Strings.stringifySafe(additionalMessage, undefined, undefined, 4);
-                this.logService.error('Renderer', `On unexpected error!!! ${safeAdditional}`, error);
-            } else {
-                console.error(error);
-            }
-        };
-
-        // case1
-        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => onUnexpectedError(error));
-
-        // case2
-        window.onerror = (message, source, lineno, colno, error) => {
-            onUnexpectedError(error, { message, source, lineNumber: lineno, columnNumber: colno });
-            return true; // prevent default handling (log to console)
-        };
-
-        // case3
-        window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-            onUnexpectedError(event.reason, 'unexpected rejection');
-            event.preventDefault(); // prevent default handling (log to console)
-        };
     }
 
     // [end]
@@ -174,6 +141,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
         const logService = new BufferLogger();
         instantiationService.register(ILogService, logService);
         (<any>this.logService) = logService;
+
+        // singleton initializations
+        logService.debug('renderer', 'Registering singleton services descriptors...');
+        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
+            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
+            instantiationService.register(serviceIdentifier, serviceDescriptor);
+        }
+        logService.debug('renderer', 'Singleton services descriptors all registered.');
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -247,14 +222,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         );
         instantiationService.register(II18nService, i18nService);
 
-        // singleton initializations
-        logService.debug('renderer', 'Registering singleton services descriptors...');
-        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
-            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
-            instantiationService.register(serviceIdentifier, serviceDescriptor);
-        }
-        logService.debug('renderer', 'Singleton services descriptors all registered.');
-
         logService.debug('renderer', 'All core renderer services are constructed.');
         return instantiationService;
     }
@@ -309,6 +276,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IDialogService            , new ServiceDescriptor(BrowserDialogService     , []));
         registerService(IClipboardService         , new ServiceDescriptor(BrowserClipboardService  , []));
         registerService(IBrowserZoomService       , new ServiceDescriptor(BrowserZoomService       , []));
+        registerService(IBrowserInspectorService  , new ServiceDescriptor(BrowserInspectorService  , []));
     }
 
     // [end]
@@ -325,6 +293,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(this.initCommandRegistrant(service));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
         registrant.registerRegistrant(service.createInstance(ColorRegistrant));
+        registrant.registerRegistrant(service.createInstance(MenuRegistrant));
 
         // initialize all the registrations
         registrant.init(service);

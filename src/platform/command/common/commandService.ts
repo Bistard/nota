@@ -40,25 +40,7 @@ export interface ICommandService extends IService {
      * // Execute a command without arguments
      * commandService.executeCommand(AllCommands.reloadWindow);
      */
-    executeCommand<ID extends AllCommands>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): Promise<AllCommandsReturnTypes[ID]>;
-    
-    /**
-     * @description Executes a command that may not be predefined in the 
-     * application. 
-     * 
-     * @note This method is more flexible and accepts any command ID as a string 
-     *       along with any number of arguments.
-     * 
-     * @param id The arbitrary string ID of the command.
-     * @param args Any number of arguments for the command.
-     * @returns A {@link Promise} resolving with the command's result, or 
-     *          rejects if an error occurs.
-     * 
-     * @example
-     * // Execute a custom command with arbitrary arguments
-     * commandService.executeCommand('customCommand', customArg1, customArg2);
-     */
-    executeCommand<T>(id: string, ...args: any[]): T;
+    executeCommand<ID extends string>(id: ID, ...args: AllCommandsArgumentsTypes[ID]): AllCommandsReturnTypes[ID];
 }
 
 /**

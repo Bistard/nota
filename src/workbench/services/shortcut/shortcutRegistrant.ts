@@ -9,6 +9,9 @@ import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbench/shortcut.register";
+import { IS_MAC } from "src/base/common/platform";
+import { Arrays } from "src/base/common/utilities/array";
+import { Emitter, Register } from "src/base/common/event";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -44,19 +47,37 @@ interface IShortcutBase<TArgs extends any[]> {
     // TODO: description?: string;
 }
 
+type IShortcutRegistrationBase<ID extends string> = ID extends AllCommands
+    ? IShortcutBase<AllCommandsArgumentsTypes[ID]>
+    : IShortcutBase<any[]>;
+
 /**
  * An interface describes the shortcut for register programmatically.
  */
-export type IShortcutRegistration<ID extends string> = (
-    ID extends AllCommands
-     ? IShortcutBase<AllCommandsArgumentsTypes[ID]>
-     : IShortcutBase<any[]>
-) & {
+export type IShortcutRegistration<ID extends string> = IShortcutRegistrationBase<ID> & {
 
     /**
      * The shortcut of the given command.
      */
     readonly shortcut: Shortcut;
+};
+
+/**
+ * An interface describes the shortcut for register programmatically.
+ */
+export type IShortcutRegistration2<ID extends string> = IShortcutRegistrationBase<ID> & {
+
+    /**
+     * The shortcut of the given command in string format. Check the format 
+     * details at {@link Shortcut.fromString}.
+     */
+    readonly key: string;
+
+    /**
+     * If provided, this will be the shortcut only in MacOS. Check the format 
+     * details at {@link Shortcut.fromString}.
+     */
+    readonly mac?: string;
 };
 
 /**
@@ -78,6 +99,16 @@ export interface IShortcutReference extends IShortcutBase<any[]> {
 export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut> {
 
     /**
+     * Fires whenever a new command is registered.
+     */
+    readonly onDidRegister: Register<Shortcut>;
+
+    /**
+     * Fires whenever a command is un-registered.
+     */
+    readonly onDidUnRegister: Register<Shortcut>;
+
+    /**
      * @description Register a {@link Shortcut} that binds to a command with the
      * given 'commandID'.
      * @param commandID An ID refers to a registered command in the command service.
@@ -85,6 +116,7 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
      * @returns A disposable to unregister the shortcut.
      */
     register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable;
+    registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable;
 
     /**
      * @description Check if the command is already registered with the given
@@ -111,6 +143,14 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
 
 export class ShortcutRegistrant implements IShortcutRegistrant {
 
+    // [event]
+
+    private readonly _onDidRegister = new Emitter<Shortcut>();
+    public readonly onDidRegister = this._onDidRegister.registerListener;
+
+    private readonly _onDidUnRegister = new Emitter<Shortcut>();
+    public readonly onDidUnRegister = this._onDidUnRegister.registerListener;
+
     // [field]
 
     public readonly type = RegistrantType.Shortcut;
@@ -123,13 +163,10 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
      * where the set stores all the unique names of each binding command and the
      * array stores all the binding shortcuts.
      */
-    private readonly _shortcuts: Map<HashNumber, {
-        readonly commands: Set<string>;
-        readonly shortcuts: (IShortcutReference & {
-            // A unique ID of the shortcut after registered, auto-generated.
-            readonly uuid: number;
-        })[];
-    }>;
+    private readonly _shortcuts: Map<
+        HashNumber, 
+        Array<(IShortcutReference & { readonly uuid: number; })>
+    >;
 
     // [constructor]
 
@@ -143,15 +180,24 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
         rendererWorkbenchShortcutRegister(provider);
     }
 
+    public registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable {
+        const shortcut = (IS_MAC && registration.mac) 
+            ? Shortcut.fromString(registration.mac) 
+            : Shortcut.fromString(registration.key);
+        
+        const resolved: IShortcutRegistration<ID> = {
+            ...registration,
+            shortcut: shortcut,
+        };
+        return this.register(commandID, resolved);
+    }
+
     public register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable {
 
         const hashcode = registration.shortcut.toHashcode();
         let items = this._shortcuts.get(hashcode);
         if (!items) {
-            items = {
-                commands: new Set(),
-                shortcuts: [],
-            };
+            items = [];
             this._shortcuts.set(hashcode, items);
         }
 
@@ -159,28 +205,30 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
          * Checks if there is a same command with the same shortcut that is 
          * registered.
          */
-        if (items.commands.has(commandID)) {
+        if (Arrays.exist2(items, entry => entry.commandID === commandID)) {
             panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
         }
 
         // register the shortcut
         const uuid = ShortcutRegistrant._shortcutUUID++;
-        items.shortcuts.push({
+        items.push({
             uuid: uuid,
             commandID: commandID,
             commandArgs: registration.commandArgs,
             when: registration.when,
             weight: registration.weight,
         });
-        items.commands.add(commandID);
+
+        this._onDidRegister.fire(registration.shortcut);
 
         return toDisposable(() => {
             if (items) {
-                const itemIdx = items.shortcuts.findIndex((item) => item.uuid === uuid);
-                items.shortcuts.splice(itemIdx, 1);
-                if (items.shortcuts.length === 0) {
+                const itemIdx = items.findIndex((item) => item.uuid === uuid);
+                items.splice(itemIdx, 1);
+                if (items.length === 0) {
                     this._shortcuts.delete(hashcode);
                 }
+                this._onDidUnRegister.fire(registration.shortcut);
             }
         });
     }
@@ -190,26 +238,18 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
             shortcut = shortcut.toHashcode();
         }
         const items = this._shortcuts.get(shortcut);
-        return items?.commands.has(commandID) ?? false;
+        return items ? Arrays.exist2(items, entry => entry.commandID === commandID) : false;
     }
 
     public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutReference[] {
         if (!isNumber(shortcut)) {
             shortcut = shortcut.toHashcode();
         }
-        const registered = this._shortcuts.get(shortcut)?.shortcuts;
+        const registered = this._shortcuts.get(shortcut);
         return registered ?? [];
     }
 
     public getAllShortcutRegistrations(): Map<HashNumber, IShortcutReference[]> {
-        const map = new Map();
-
-        for (const [hashcode, shortcuts] of this._shortcuts) {
-            map.set(hashcode, shortcuts.shortcuts);
-        }
-        return map;
+        return this._shortcuts;
     }
-
-    // [private helper methods]
-
 }

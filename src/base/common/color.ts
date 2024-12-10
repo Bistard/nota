@@ -231,6 +231,10 @@ export class Color implements IColor {
 
 	// [public methods]
 
+	/**
+	 * @description Build a {@link Color} from the hexadecimal string. If the 
+	 * string is invalid, {@link RGBA.RED} is returned.
+	 */
 	public static parseHex(str: string): Color {
 		return new Color(RGBA.parse(str) ?? RGBA.RED);
 	}
