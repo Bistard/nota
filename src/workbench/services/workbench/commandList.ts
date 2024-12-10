@@ -59,6 +59,7 @@ export const enum AllCommands {
     fileTreeCopyRelativePath   = 'fileTreeCopyRelativePath',
     fileTreeCloseCurrentFolder = 'fileTreeCloseCurrentFolder',
     fileTreeOpenFolder         = 'fileTreeOpenFolder',
+    fileTreeClearRecentOpened  = 'fileTreeClearRecentOpened'
 
     // [Test Commands]
 }
@@ -93,6 +94,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.fileTreeCopyRelativePath]:   'Copy relative path of active file path.',
     [AllCommands.fileTreeCloseCurrentFolder]: 'Close current file tree folder.',
     [AllCommands.fileTreeOpenFolder]:         'Dynamically handles recent paths.',
+    [AllCommands.fileTreeClearRecentOpened]:  'Clear recent opened file and folder paths.',
 };
 
 /**
@@ -135,6 +137,7 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileTreeCopyRelativePath]  : [target: URI | string];
     [AllCommands.fileTreeCloseCurrentFolder]: [];
     [AllCommands.fileTreeOpenFolder]        : [recentPath: string];
+    [AllCommands.fileTreeClearRecentOpened] : [];
 
     [key: string]: any[];
 };
@@ -142,7 +145,7 @@ export type AllCommandsArgumentsTypes = {
 /**
  * @description Defines the return types for each command in {@link AllCommands}. 
  * @note This provides type safety for the outcomes of command executions. 
- * 
+ *
  * @example
  * ```ts
  * async function toggleDevTools() {
@@ -152,17 +155,17 @@ export type AllCommandsArgumentsTypes = {
  * ```
  */
 export type AllCommandsReturnTypes = {
-    
+
     [AllCommands.alertError]      : void;
     [AllCommands.toggleDevTool]   : void;
     [AllCommands.toggleInspector] : void;
     [AllCommands.reloadWindow]    : void;
     [AllCommands.closeApplication]: void;
-    
+
     [AllCommands.zoomIn]:  void;
     [AllCommands.zoomOut]: void;
     [AllCommands.zoomSet]: void;
- 
+
     [AllCommands.fileTreeNewFile]   : void;
     [AllCommands.fileTreeNewFolder] : void;
     [AllCommands.fileTreeCut]       : void;
@@ -175,7 +178,8 @@ export type AllCommandsReturnTypes = {
     [AllCommands.fileTreeCopyPath]          : void;
     [AllCommands.fileTreeCopyRelativePath]  : void;
     [AllCommands.fileTreeCloseCurrentFolder]: void;
-    [AllCommands.fileTreeOpenFolder]: void;
-    
+    [AllCommands.fileTreeOpenFolder]        : void;
+    [AllCommands.fileTreeClearRecentOpened] : void;
+
     [key: string]: any | Promise<any>;
 };

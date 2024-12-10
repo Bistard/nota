@@ -247,7 +247,7 @@ export const menuTitleFileRegister = createRegister(
             {
                 group: '3_clear',
                 title: 'Clear Recent Opened',
-                command: { commandID: "" },
+                command: { commandID: AllCommands.fileTreeClearRecentOpened },
             },
         ];
 
