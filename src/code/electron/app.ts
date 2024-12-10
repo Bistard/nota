@@ -182,7 +182,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // retrieve last saved opened window status
         const uriToOpen: URI[] = recentPath.map(path => URI.fromFile(path));
 
-        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
+        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious); // FIX: should be status
         if (shouldRestore) {
             const lastOpened = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
             if (lastOpened) {

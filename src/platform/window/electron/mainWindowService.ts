@@ -243,6 +243,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     private async doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance> {
         let window: IWindowInstance | undefined = undefined;
+        
+        const nlsConfiguration = LocaleResolver.resolveNlsConfiguration(this.configurationService);
 
         // get opening URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = {};
@@ -274,7 +276,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             windowID: -1, // will be update once window is loaded
             uriOpenConfiguration: uriToOpenConfiguration,
             hostWindow: -1,
-            nlsConfiguration: this.__resolveNlsConfiguration(),
+            nlsConfiguration: nlsConfiguration,
 
             /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
@@ -338,49 +340,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
                 newWindow.close();
             }
         });
-    }
-
-    private __getOSLocale(): string {
-        const osLocale = app.getPreferredSystemLanguages()?.[0] || 'en';
-        if (osLocale.startsWith('zh')) {
-            const region = osLocale.split('-')[1]!;
-            /**
-             * On Windows and macOS, Chinese languages returned by
-             * app.getPreferredSystemLanguages() start with zh-hans
-             * for Simplified Chinese or zh-hant for Traditional Chinese,
-             * so we can easily determine whether to use Simplified or Traditional.
-             * However, on Linux, Chinese languages returned by that same API
-             * are of the form zh-XY, where XY is a country code.
-             * For China (CN), Singapore (SG), and Malaysia (MY)
-             * country codes, assume they use Simplified Chinese.
-             * For other cases, assume they use Traditional.
-             */
-            if (['hans', 'cn', 'sg', 'my'].includes(region)) {
-                return 'zh-cn';
-            }
-            return 'zh-tw';
-        }
-        return osLocale;
-    }
-
-    private __resolveNlsConfiguration(): INlsConfiguration {
-        const userLocale = this.__getUserLocale();
-        const osLocale = this.__getOSLocale();
-        const resolvedLocale = this.__resolveLanguage(userLocale, osLocale);
-        const nlsConfiguration: INlsConfiguration = {
-            userLocale: userLocale,
-            osLocale: osLocale,
-            resolvedLanguage: resolvedLocale,
-        };
-        return nlsConfiguration;
-    }
-
-    private __getUserLocale(): string {
-        return this.configurationService.get<string>(WorkbenchConfiguration.DisplayLanguage, 'en');
-    }
-
-    private __resolveLanguage(userLocale: string, osLocale: string): string {
-        return userLocale || osLocale || 'en';
     }
 }
 
@@ -470,5 +429,51 @@ namespace UriToOpenResolver {
             gotoLine: gotoLine,
             fail: fail,
         };
+    }
+}
+
+namespace LocaleResolver {
+
+    // [public]
+
+    export function resolveNlsConfiguration(configurationService: IConfigurationService): INlsConfiguration {
+        const userLocale = __getUserLocale(configurationService);
+        const osLocale = __getOSLocale();
+        const resolvedLocale = userLocale || osLocale || 'en';
+        const nlsConfiguration: INlsConfiguration = {
+            userLocale: userLocale,
+            osLocale: osLocale,
+            resolvedLanguage: resolvedLocale,
+        };
+        return nlsConfiguration;
+    }
+
+    // [private]
+
+    function __getOSLocale(): string {
+        const osLocale = app.getPreferredSystemLanguages()?.[0] || 'en';
+        if (osLocale.startsWith('zh')) {
+            const region = osLocale.split('-')[1]!;
+            /**
+             * On Windows and macOS, Chinese languages returned by
+             * app.getPreferredSystemLanguages() start with zh-hans
+             * for Simplified Chinese or zh-hant for Traditional Chinese,
+             * so we can easily determine whether to use Simplified or Traditional.
+             * However, on Linux, Chinese languages returned by that same API
+             * are of the form zh-XY, where XY is a country code.
+             * For China (CN), Singapore (SG), and Malaysia (MY)
+             * country codes, assume they use Simplified Chinese.
+             * For other cases, assume they use Traditional.
+             */
+            if (['hans', 'cn', 'sg', 'my'].includes(region)) {
+                return 'zh-cn';
+            }
+            return 'zh-tw';
+        }
+        return osLocale;
+    }
+
+    function __getUserLocale(configurationService: IConfigurationService): string {
+        return configurationService.get<string>(WorkbenchConfiguration.DisplayLanguage);
     }
 }
