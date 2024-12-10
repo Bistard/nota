@@ -62,6 +62,19 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         this.hostService.setWindowAsRendererReady();
     }
 
+    public async updateMacOSMenu(): Promise<void> {
+        // Update recent paths menu items each time main requests them
+        await this.updateRecentPathsMenu(this.registrantService);
+
+        const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
+        const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
+        for (const {type} of mainMenuTypes) {
+            const menuItems = menuRegistrant.getMenuItemsResolved(type);
+            result.push([type, menuItems]);
+        }
+        ipcRenderer.send(IpcChannel.Menu, result);
+    }
+
     // [private helper methods]
 
     private async registerListeners(): Promise<void> {
@@ -92,40 +105,48 @@ export class BrowserInstance extends Disposable implements IBrowserService {
             }
         });
 
-        // send latest menu data back to the main process if requested
-        onMainProcess(ipcRenderer, IpcChannel.Menu, async (menuTypes: MenuTypes[]) => {
-            const menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
-            const fileTreeService = this.instantiationService.getOrCreateService(IFileTreeService);
-            const recentPaths: string[] = await fileTreeService.getRecentPaths();
-            if (recentPaths.length === 0) {
-                menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
-                    group: '2_recent',
-                    title: 'No Recent Files',
-                    command: { commandID: "" },
-                });
-            } else {
-                for (const p of recentPaths) {
-                    console.log("Registering recent path:", p);
-                    menuRegistrant.registerMenuItem(MenuTypes.FileOpenRecent, {
-                        group: '2_recent',
-                        title: p,
-                        command: {
-                            commandID: "fileTreeOpenFolder",
-                            args: [p],
-                        },
-                    });
-                }
-            }
-
-            const result: [MenuTypes, IMenuItemRegistrationResolved[]][] = [];
-            for (const type of menuTypes) {
-                const menuItems = menuRegistrant.getMenuItemsResolved(type);
-                result.push([type, menuItems]);
-            }
-            ipcRenderer.send(IpcChannel.Menu, result);
+        // Handle menu requests from main process
+        onMainProcess(ipcRenderer, IpcChannel.Menu, async () => {
+            this.updateMacOSMenu();
         });
         // inspector listener
         this.browserInspectorService.startListening();
+    }
+
+    private async updateRecentPathsMenu(menuRegistrant: IRegistrantService) {
+        const reg = menuRegistrant.getRegistrant(RegistrantType.Menu);
+        reg.clearMenuItems(MenuTypes.FileOpenRecent);
+
+        const fileTreeService = this.instantiationService.getOrCreateService(IFileTreeService);
+        const recentPaths: string[] = await fileTreeService.getRecentPaths();
+
+        if (recentPaths.length === 0) {
+            reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+                group: '1_recent',
+                title: 'No Recent Files',
+                command: { commandID: "" },
+            });
+        } else {
+            for (const p of recentPaths) {
+                reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+                    group: '1_recent',
+                    title: p,
+                    command: {
+                        commandID: AllCommands.fileTreeOpenFolder,
+                        args: [p],
+                    },
+                });
+            }
+        }
+
+        // Add the "Clear Recent Files" option
+        reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+            group: '2_clear',
+            title: 'Clear Recent Files',
+            command: {
+                commandID: AllCommands.fileTreeClearRecentOpened,
+            },
+        });
     }
 
     private setBrowserPhase(): void {

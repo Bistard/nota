@@ -40,6 +40,12 @@ export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
      * @description Returns an array of all the registered menu items.
      */
     getAllMenus(): [MenuTypes, IMenuItemRegistration[]][];
+
+    /**
+     * Removes all menu items registered under the specified menu type.
+     * @param The menu type for which all registered items will be removed.
+     */
+    clearMenuItems(menu: MenuTypes): void;
 }
 
 export class MenuRegistrant implements IMenuRegistrant {
@@ -119,8 +125,15 @@ export class MenuRegistrant implements IMenuRegistrant {
         return result;
     }
 
+    public clearMenuItems(menu: MenuTypes): void {
+        if (this.menus.has(menu)) {
+            this.menus.delete(menu);
+            this._onDidMenuChange.fire(menu);
+        }
+    }
+
     // [private helper methods]
-    
+
     private __resolveMenuItem(item: IMenuItemRegistration): IMenuItemRegistrationResolved {
         
         // resolve conditions from `ContextKeyExpr` to actual `boolean`

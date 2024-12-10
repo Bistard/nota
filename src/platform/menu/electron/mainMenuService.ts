@@ -27,8 +27,8 @@ export class MainMenuService implements IMenuService {
     private registerListener() {
         Event.once(this.mainWindowService.onDidOpenWindow)(window => {
             Event.once(window.onRendererReady)(() => {
-                window.sendIPCMessage(IpcChannel.Menu, mainMenuTypes.map(menu => menu.type));
-                SafeIpcMain.instance.once(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistrationResolved[]][]) => {
+                window.sendIPCMessage(IpcChannel.Menu);
+                SafeIpcMain.instance.on(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistrationResolved[]][]) => {
                     clearTimeout(maxDelay);
                     for (const [menuType, items] of menuItems) {
                         this.menuItemsMap.set(menuType, items);
