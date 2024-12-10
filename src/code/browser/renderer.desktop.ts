@@ -24,7 +24,7 @@ import { IHostService } from "src/platform/host/common/hostService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { i18n, II18nOpts, II18nService, LanguageType } from "src/platform/i18n/common/i18n";
-import { BrowserInstance } from "src/code/browser/browser";
+import { BrowserInstance, IBrowserService } from "src/code/browser/browser";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IProductService, ProductService } from "src/platform/product/common/productService";
@@ -120,6 +120,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
             browser.init();
+            instantiationService.register(IBrowserService, browser);
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);

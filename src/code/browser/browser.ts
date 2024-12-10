@@ -18,15 +18,20 @@ import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { ErrorHandler } from "src/base/common/error";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { IMenuItemRegistrationResolved, MenuTypes } from "src/platform/menu/common/menu";
+import { IMenuItemRegistrationResolved, mainMenuTypes, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
+import { createService, IService } from "src/platform/instantiation/common/decorator";
 
-export interface IBrowser {
+export const IBrowserService = createService<IBrowserService>('browser-service');
+export interface IBrowserService extends IService {
     init(): void;
+    updateMacOSMenu(): Promise<void>;
 }
 
-export class BrowserInstance extends Disposable implements IBrowser {
+export class BrowserInstance extends Disposable implements IBrowserService {
+
+    declare _serviceMarker: undefined;
 
     // [constructor]
 
@@ -119,7 +124,6 @@ export class BrowserInstance extends Disposable implements IBrowser {
             }
             ipcRenderer.send(IpcChannel.Menu, result);
         });
-
         // inspector listener
         this.browserInspectorService.startListening();
     }
