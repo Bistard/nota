@@ -13,7 +13,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '1_about',
                 title: 'About Nota',
                 command: {
-                    // commandID: CommandID.About,
+                    // commandID: AllCommands.About,
                     commandID: "",
                 },
             },
@@ -21,7 +21,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '2_updates',
                 title: 'Check for Updates...',
                 command: {
-                    // commandID: CommandID.CheckForUpdates,
+                    // commandID: AllCommands.CheckForUpdates,
                     commandID: "",
                 },
             },
@@ -29,7 +29,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '3_settings',
                 title: 'Settings...',
                 command: {
-                    // commandID: CommandID.OpenSettings,
+                    // commandID: AllCommands.OpenSettings,
                     commandID: "",
                 },
             },
@@ -37,7 +37,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '5_window',
                 title: `Hide Nota`,
                 command: {
-                    // commandID: CommandID.HideApp,
+                    // commandID: AllCommands.HideApp,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+H' : undefined,
                 },
@@ -46,7 +46,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '5_window',
                 title: 'Hide Others',
                 command: {
-                    // commandID: CommandID.HideOthers,
+                    // commandID: AllCommands.HideOthers,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Alt+H' : undefined,
                 },
@@ -55,7 +55,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '5_window',
                 title: 'Show All',
                 command: {
-                    // commandID: CommandID.ShowAll,
+                    // commandID: AllCommands.ShowAll,
                     commandID: "",
                 },
             },
@@ -63,7 +63,7 @@ export const menuTitleApplicationRegister = createRegister(
                 group: '6_quit',
                 title: IS_MAC ? 'Quit Nota' : 'Exit Nota',
                 command: {
-                    // commandID: CommandID.ExitApp,
+                    // commandID: AllCommands.ExitApp,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Q' : undefined,
                 },
@@ -87,7 +87,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '1_new',
                 title: 'New File',
                 command: {
-                    // commandID: CommandID.NewFile,
+                    // commandID: AllCommands.NewFile,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+N' : 'Ctrl+N',
                 },
@@ -96,7 +96,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '1_new',
                 title: 'New Tab',
                 command: {
-                    // commandID: CommandID.NewTab,
+                    // commandID: AllCommands.NewTab,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+T' : 'Ctrl+T',
                 },
@@ -105,7 +105,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '1_new',
                 title: 'New Window',
                 command: {
-                    // commandID: CommandID.NewWindow,
+                    // commandID: AllCommands.NewWindow,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Shift+N' : 'Ctrl+Shift+N',
                 },
@@ -116,7 +116,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '2_open',
                 title: 'Open File…',
                 command: {
-                    // commandID: CommandID.OpenFile,
+                    // commandID: AllCommands.OpenFile,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+O' : 'Ctrl+O',
                 },
@@ -125,7 +125,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '2_open',
                 title: 'Open Folder…',
                 command: {
-                    // commandID: CommandID.OpenFolder,
+                    // commandID: AllCommands.OpenFolder,
                     commandID: "",
                 },
             },
@@ -143,7 +143,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '3_save',
                 title: 'Save',
                 command: {
-                    // commandID: CommandID.Save,
+                    // commandID: AllCommands.Save,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+S' : 'Ctrl+S',
                 },
@@ -152,7 +152,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '3_save',
                 title: 'Save As…',
                 command: {
-                    // commandID: CommandID.SaveAs,
+                    // commandID: AllCommands.SaveAs,
                     commandID: "",
                     keybinding: IS_MAC ? 'Shift+Cmd+S' : 'Ctrl+Shift+S',
                 },
@@ -161,7 +161,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '3_save',
                 title: 'Save All',
                 command: {
-                    // commandID: CommandID.SaveAll,
+                    // commandID: AllCommands.SaveAll,
                     commandID: "",
                 },
             },
@@ -169,7 +169,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '3_save',
                 title: 'Reveal In Explorer/Finder',
                 command: {
-                    // commandID: CommandID.RevealInExplorer,
+                    // commandID: AllCommands.RevealInExplorer,
                     commandID: "",
                 },
             },
@@ -187,7 +187,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '4_export',
                 title: 'Print…',
                 command: {
-                    // commandID: CommandID.Print,
+                    // commandID: AllCommands.Print,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+P' : 'Ctrl+P',
                 },
@@ -198,7 +198,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '5_auto_save',
                 title: 'Auto Save',
                 command: {
-                    // commandID: CommandID.ToggleAutoSave,
+                    // commandID: AllCommands.ToggleAutoSave,
                     commandID: "",
                 },
             },
@@ -208,7 +208,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '6_close',
                 title: 'Close Current File',
                 command: {
-                    // commandID: CommandID.CloseFile,
+                    // commandID: AllCommands.CloseFile,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+W' : 'Ctrl+W',
                 },
@@ -224,7 +224,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '6_close',
                 title: 'Close Current Window',
                 command: {
-                    // commandID: CommandID.CloseWindow,
+                    // commandID: AllCommands.CloseWindow,
                     commandID: "",
                 },
             },
@@ -240,25 +240,14 @@ export const menuTitleFileRegister = createRegister(
                 group: '1_recent',
                 title: 'Reopen Recent Closed',
                 command: {
-                    // commandID: CommandID.ReopenClosedFile,
                     commandID: "",
                     keybinding: IS_MAC ? 'Shift+Cmd+T' : 'Ctrl+Shift+T',
                 },
             },
             {
-                group: '2_dynamic',
-                title: 'DYNAMIC',
-                command: {
-                    commandID: "",
-                },
-            },
-            {
                 group: '3_clear',
                 title: 'Clear Recent Opened',
-                command: {
-                    // commandID: CommandID.ClearRecentOpened,
-                    commandID: "",
-                },
+                command: { commandID: "" },
             },
         ];
 
@@ -272,7 +261,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '1_export_options',
                 title: 'Export as PDF',
                 command: {
-                    // commandID: CommandID.ExportAsPDF,
+                    // commandID: AllCommands.ExportAsPDF,
                     commandID: "",
                 },
             },
@@ -280,7 +269,7 @@ export const menuTitleFileRegister = createRegister(
                 group: '1_export_options',
                 title: 'Export as HTML',
                 command: {
-                    // commandID: CommandID.ExportAsHTML,
+                    // commandID: AllCommands.ExportAsHTML,
                     commandID: "",
                 },
             },
@@ -304,7 +293,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '1_undo_redo',
                 title: 'Undo',
                 command: {
-                    // commandID: CommandID.Undo,
+                    // commandID: AllCommands.Undo,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Z' : 'Ctrl+Z',
                 },
@@ -313,7 +302,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '1_undo_redo',
                 title: 'Redo',
                 command: {
-                    // commandID: CommandID.Redo,
+                    // commandID: AllCommands.Redo,
                     commandID: "",
                     keybinding: IS_MAC ? 'Shift+Cmd+Z' : 'Ctrl+Y',
                 },
@@ -324,7 +313,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '2_clipboard',
                 title: 'Cut',
                 command: {
-                    // commandID: CommandID.Cut,
+                    // commandID: AllCommands.Cut,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+X' : 'Ctrl+X',
                 },
@@ -333,7 +322,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '2_clipboard',
                 title: 'Copy',
                 command: {
-                    // commandID: CommandID.Copy,
+                    // commandID: AllCommands.Copy,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+C' : 'Ctrl+C',
                 },
@@ -342,7 +331,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '2_clipboard',
                 title: 'Paste',
                 command: {
-                    // commandID: CommandID.Paste,
+                    // commandID: AllCommands.Paste,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+V' : 'Ctrl+V',
                 },
@@ -353,7 +342,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '3_find',
                 title: 'Find',
                 command: {
-                    // commandID: CommandID.Find,
+                    // commandID: AllCommands.Find,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+F' : 'Ctrl+F',
                 },
@@ -362,7 +351,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '3_find',
                 title: 'Replace',
                 command: {
-                    // commandID: CommandID.Replace,
+                    // commandID: AllCommands.Replace,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Alt+F' : 'Ctrl+H',
                 },
@@ -372,7 +361,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '4_find_in_files',
                 title: 'Find In Files',
                 command: {
-                    // commandID: CommandID.FindInFiles,
+                    // commandID: AllCommands.FindInFiles,
                     commandID: "",
                     keybinding: IS_MAC ? 'Shift+Cmd+F' : 'Ctrl+Shift+F',
                 },
@@ -381,7 +370,7 @@ export const menuTitleEditRegister = createRegister(
                 group: '4_find_in_files',
                 title: 'Replace In Files',
                 command: {
-                    // commandID: CommandID.ReplaceInFiles,
+                    // commandID: AllCommands.ReplaceInFiles,
                     commandID: "",
                     keybinding: IS_MAC ? 'Shift+Cmd+H' : 'Ctrl+Shift+H',
                 },
@@ -405,7 +394,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '1_select',
                 title: 'Select All',
                 command: {
-                    // commandID: CommandID.SelectAll,
+                    // commandID: AllCommands.SelectAll,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+A' : 'Ctrl+A',
                 },
@@ -414,7 +403,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '1_select',
                 title: 'Select Block',
                 command: {
-                    // commandID: CommandID.SelectBlock,
+                    // commandID: AllCommands.SelectBlock,
                     commandID: "",
                 },
             },
@@ -422,7 +411,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '1_select',
                 title: 'Select Line',
                 command: {
-                    // commandID: CommandID.SelectLine,
+                    // commandID: AllCommands.SelectLine,
                     commandID: "",
                 },
             },
@@ -430,7 +419,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '1_select',
                 title: 'Select Word',
                 command: {
-                    // commandID: CommandID.SelectWord,
+                    // commandID: AllCommands.SelectWord,
                     commandID: "",
                 },
             },
@@ -440,7 +429,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '2_move',
                 title: 'Move Line Up',
                 command: {
-                    // commandID: CommandID.MoveLineUp,
+                    // commandID: AllCommands.MoveLineUp,
                     commandID: "",
                     keybinding: IS_MAC ? 'Option+Up' : 'Alt+Up',
                 },
@@ -449,7 +438,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '2_move',
                 title: 'Move Line Down',
                 command: {
-                    // commandID: CommandID.MoveLineDown,
+                    // commandID: AllCommands.MoveLineDown,
                     commandID: "",
                     keybinding: IS_MAC ? 'Option+Down' : 'Alt+Down',
                 },
@@ -458,7 +447,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '2_move',
                 title: 'Move Block Up',
                 command: {
-                    // commandID: CommandID.MoveBlockUp,
+                    // commandID: AllCommands.MoveBlockUp,
                     commandID: "",
                 },
             },
@@ -466,7 +455,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '2_move',
                 title: 'Move Block Down',
                 command: {
-                    // commandID: CommandID.MoveBlockDown,
+                    // commandID: AllCommands.MoveBlockDown,
                     commandID: "",
                 },
             },
@@ -476,7 +465,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '3_jump',
                 title: 'Jump To Top',
                 command: {
-                    // commandID: CommandID.JumpToTop,
+                    // commandID: AllCommands.JumpToTop,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Up' : 'Ctrl+Home',
                 },
@@ -485,7 +474,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '3_jump',
                 title: 'Jump To Bottom',
                 command: {
-                    // commandID: CommandID.JumpToBottom,
+                    // commandID: AllCommands.JumpToBottom,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Down' : 'Ctrl+End',
                 },
@@ -494,7 +483,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '3_jump',
                 title: 'Jump To Selection',
                 command: {
-                    // commandID: CommandID.JumpToSelection,
+                    // commandID: AllCommands.JumpToSelection,
                     commandID: "",
                 },
             },
@@ -502,7 +491,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '3_jump',
                 title: 'Jump to Line Start',
                 command: {
-                    // commandID: CommandID.JumpToLineStart,
+                    // commandID: AllCommands.JumpToLineStart,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Left' : 'Home',
                 },
@@ -511,7 +500,7 @@ export const menuTitleSelectionRegister = createRegister(
                 group: '3_jump',
                 title: 'Jump to Line End',
                 command: {
-                    // commandID: CommandID.JumpToLineEnd,
+                    // commandID: AllCommands.JumpToLineEnd,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+Right' : 'End',
                 },
@@ -535,7 +524,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_elements',
                 title: 'Paragraph',
                 command: {
-                    // commandID: CommandID.InsertParagraph,
+                    // commandID: AllCommands.InsertParagraph,
                     commandID: "",
                 },
             },
@@ -551,7 +540,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_elements',
                 title: 'BlockQuote',
                 command: {
-                    // commandID: CommandID.InsertBlockQuote,
+                    // commandID: AllCommands.InsertBlockQuote,
                     commandID: "",
                 },
             },
@@ -559,7 +548,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_elements',
                 title: 'CodeBlock',
                 command: {
-                    // commandID: CommandID.InsertCodeBlock,
+                    // commandID: AllCommands.InsertCodeBlock,
                     commandID: "",
                 },
             },
@@ -575,7 +564,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_elements',
                 title: 'Table',
                 command: {
-                    // commandID: CommandID.InsertTable,
+                    // commandID: AllCommands.InsertTable,
                     commandID: "",
                 },
             },
@@ -583,7 +572,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_elements',
                 title: 'Math Block',
                 command: {
-                    // commandID: CommandID.InsertMathBlock,
+                    // commandID: AllCommands.InsertMathBlock,
                     commandID: "",
                 },
             },
@@ -599,7 +588,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_elements',
                 title: 'Footnote',
                 command: {
-                    // commandID: CommandID.InsertFootnote,
+                    // commandID: AllCommands.InsertFootnote,
                     commandID: "",
                 },
             },
@@ -609,7 +598,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '2_lines',
                 title: 'Horizontal Line',
                 command: {
-                    // commandID: CommandID.InsertHorizontalLine,
+                    // commandID: AllCommands.InsertHorizontalLine,
                     commandID: "",
                 },
             },
@@ -617,7 +606,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '2_lines',
                 title: 'Line Break',
                 command: {
-                    // commandID: CommandID.InsertLineBreak,
+                    // commandID: AllCommands.InsertLineBreak,
                     commandID: "",
                 },
             },
@@ -627,7 +616,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '3_paragraph',
                 title: 'New Paragraph Before Cursor',
                 command: {
-                    // commandID: CommandID.NewParagraphBefore,
+                    // commandID: AllCommands.NewParagraphBefore,
                     commandID: "",
                 },
             },
@@ -635,7 +624,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '3_paragraph',
                 title: 'New Paragraph After Cursor',
                 command: {
-                    // commandID: CommandID.NewParagraphAfter,
+                    // commandID: AllCommands.NewParagraphAfter,
                     commandID: "",
                 },
             },
@@ -645,13 +634,14 @@ export const menuTitleInsertRegister = createRegister(
             registrant.registerMenuItem(MenuTypes.TitleBarInsert, item);
         }
 
+
         // Register 'Heading' submenu items
         const headingMenuItems: IMenuItemRegistration[] = [
             {
                 group: '1_heading',
                 title: 'Heading 1',
                 command: {
-                    // commandID: CommandID.InsertHeading1,
+                    // commandID: AllCommands.InsertHeading1,
                     commandID: "",
                 },
             },
@@ -659,7 +649,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_heading',
                 title: 'Heading 2',
                 command: {
-                    // commandID: CommandID.InsertHeading2,
+                    // commandID: AllCommands.InsertHeading2,
                     commandID: "",
                 },
             },
@@ -667,7 +657,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_heading',
                 title: 'Heading 3',
                 command: {
-                    // commandID: CommandID.InsertHeading3,
+                    // commandID: AllCommands.InsertHeading3,
                     commandID: "",
                 },
             },
@@ -675,7 +665,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_heading',
                 title: 'Heading 4',
                 command: {
-                    // commandID: CommandID.InsertHeading4,
+                    // commandID: AllCommands.InsertHeading4,
                     commandID: "",
                 },
             },
@@ -683,7 +673,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_heading',
                 title: 'Heading 5',
                 command: {
-                    // commandID: CommandID.InsertHeading5,
+                    // commandID: AllCommands.InsertHeading5,
                     commandID: "",
                 },
             },
@@ -691,7 +681,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_heading',
                 title: 'Heading 6',
                 command: {
-                    // commandID: CommandID.InsertHeading6,
+                    // commandID: AllCommands.InsertHeading6,
                     commandID: "",
                 },
             },
@@ -707,7 +697,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_list',
                 title: 'Ordered List',
                 command: {
-                    // commandID: CommandID.InsertOrderedList,
+                    // commandID: AllCommands.InsertOrderedList,
                     commandID: "",
                 },
             },
@@ -715,7 +705,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_list',
                 title: 'Unordered List',
                 command: {
-                    // commandID: CommandID.InsertUnorderedList,
+                    // commandID: AllCommands.InsertUnorderedList,
                     commandID: "",
                 },
             },
@@ -723,7 +713,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_list',
                 title: 'Todo List',
                 command: {
-                    // commandID: CommandID.InsertTodoList,
+                    // commandID: AllCommands.InsertTodoList,
                     commandID: "",
                 },
             },
@@ -739,7 +729,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_image',
                 title: 'Insert Empty Image',
                 command: {
-                    // commandID: CommandID.InsertEmptyImage,
+                    // commandID: AllCommands.InsertEmptyImage,
                     commandID: "",
                 },
             },
@@ -747,7 +737,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_image',
                 title: 'Insert Local Image…',
                 command: {
-                    // commandID: CommandID.InsertLocalImage,
+                    // commandID: AllCommands.InsertLocalImage,
                     commandID: "",
                 },
             },
@@ -756,7 +746,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '2_image_ops',
                 title: 'Reveal Image In Finder/Explorer',
                 command: {
-                    // commandID: CommandID.RevealImageInExplorer,
+                    // commandID: AllCommands.RevealImageInExplorer,
                     commandID: "",
                 },
             },
@@ -781,7 +771,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '3_image_management',
                 title: 'Delete Image File…',
                 command: {
-                    // commandID: CommandID.DeleteImageFile,
+                    // commandID: AllCommands.DeleteImageFile,
                     commandID: "",
                 },
             },
@@ -789,7 +779,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '3_image_management',
                 title: 'Copy Image To…',
                 command: {
-                    // commandID: CommandID.CopyImageTo,
+                    // commandID: AllCommands.CopyImageTo,
                     commandID: "",
                 },
             },
@@ -797,7 +787,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '3_image_management',
                 title: 'Move Image To…',
                 command: {
-                    // commandID: CommandID.MoveImageTo,
+                    // commandID: AllCommands.MoveImageTo,
                     commandID: "",
                 },
             },
@@ -806,7 +796,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '4_image_batch',
                 title: 'Copy All Images to…',
                 command: {
-                    // commandID: CommandID.CopyAllImagesTo,
+                    // commandID: AllCommands.CopyAllImagesTo,
                     commandID: "",
                 },
             },
@@ -814,7 +804,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '4_image_batch',
                 title: 'Move All Images to…',
                 command: {
-                    // commandID: CommandID.MoveAllImagesTo,
+                    // commandID: AllCommands.MoveAllImagesTo,
                     commandID: "",
                 },
             },
@@ -830,7 +820,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '25%',
                 command: {
-                    // commandID: CommandID.ZoomImage25,
+                    // commandID: AllCommands.ZoomImage25,
                     commandID: "",
                 },
             },
@@ -838,7 +828,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '33%',
                 command: {
-                    // commandID: CommandID.ZoomImage33,
+                    // commandID: AllCommands.ZoomImage33,
                     commandID: "",
                 },
             },
@@ -846,7 +836,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '50%',
                 command: {
-                    // commandID: CommandID.ZoomImage50,
+                    // commandID: AllCommands.ZoomImage50,
                     commandID: "",
                 },
             },
@@ -854,7 +844,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '66%',
                 command: {
-                    // commandID: CommandID.ZoomImage66,
+                    // commandID: AllCommands.ZoomImage66,
                     commandID: "",
                 },
             },
@@ -862,7 +852,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '80%',
                 command: {
-                    // commandID: CommandID.ZoomImage80,
+                    // commandID: AllCommands.ZoomImage80,
                     commandID: "",
                 },
             },
@@ -870,7 +860,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '100%',
                 command: {
-                    // commandID: CommandID.ZoomImage100,
+                    // commandID: AllCommands.ZoomImage100,
                     commandID: "",
                 },
             },
@@ -878,7 +868,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '150%',
                 command: {
-                    // commandID: CommandID.ZoomImage150,
+                    // commandID: AllCommands.ZoomImage150,
                     commandID: "",
                 },
             },
@@ -886,7 +876,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '200%',
                 command: {
-                    // commandID: CommandID.ZoomImage200,
+                    // commandID: AllCommands.ZoomImage200,
                     commandID: "",
                 },
             },
@@ -894,7 +884,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_zoom_levels',
                 title: '500%',
                 command: {
-                    // commandID: CommandID.ZoomImage500,
+                    // commandID: AllCommands.ZoomImage500,
                     commandID: "",
                 },
             },
@@ -910,7 +900,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_syntax',
                 title: 'Markdown Syntax',
                 command: {
-                    // commandID: CommandID.SwitchImageToMarkdown,
+                    // commandID: AllCommands.SwitchImageToMarkdown,
                     commandID: "",
                 },
             },
@@ -918,7 +908,7 @@ export const menuTitleInsertRegister = createRegister(
                 group: '1_syntax',
                 title: 'HTML Syntax',
                 command: {
-                    // commandID: CommandID.SwitchImageToHTML,
+                    // commandID: AllCommands.SwitchImageToHTML,
                     commandID: "",
                 },
             },
@@ -941,7 +931,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Strong',
                 command: {
-                    // commandID: CommandID.FormatStrong,
+                    // commandID: AllCommands.FormatStrong,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+B' : 'Ctrl+B',
                 },
@@ -950,7 +940,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Emphasis',
                 command: {
-                    // commandID: CommandID.FormatEmphasis,
+                    // commandID: AllCommands.FormatEmphasis,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+I' : 'Ctrl+I',
                 },
@@ -959,7 +949,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Underline',
                 command: {
-                    // commandID: CommandID.FormatUnderline,
+                    // commandID: AllCommands.FormatUnderline,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+U' : 'Ctrl+U',
                 },
@@ -968,7 +958,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Inline Code',
                 command: {
-                    // commandID: CommandID.FormatInlineCode,
+                    // commandID: AllCommands.FormatInlineCode,
                     commandID: "",
                 },
             },
@@ -976,7 +966,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Inline Math',
                 command: {
-                    // commandID: CommandID.FormatInlineMath,
+                    // commandID: AllCommands.FormatInlineMath,
                     commandID: "",
                 },
             },
@@ -984,7 +974,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Strike',
                 command: {
-                    // commandID: CommandID.FormatStrike,
+                    // commandID: AllCommands.FormatStrike,
                     commandID: "",
                 },
             },
@@ -992,7 +982,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_text',
                 title: 'Hyperlink',
                 command: {
-                    // commandID: CommandID.InsertHyperlink,
+                    // commandID: AllCommands.InsertHyperlink,
                     commandID: "",
                 },
             },
@@ -1017,7 +1007,7 @@ export const menuTitleFormatRegister = createRegister(
                 group: '1_image_ops',
                 title: 'Reveal Image In Finder/Explorer',
                 command: {
-                    // commandID: CommandID.RevealImageInExplorer,
+                    // commandID: AllCommands.RevealImageInExplorer,
                     commandID: "",
                 },
             },
@@ -1056,7 +1046,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '1_tools',
                 title: 'Command Palette',
                 command: {
-                    // commandID: CommandID.CommandPalette,
+                    // commandID: AllCommands.CommandPalette,
                     commandID: "",
                     keybinding: IS_MAC ? 'Shift+Cmd+P' : 'Ctrl+Shift+P',
                 },
@@ -1075,7 +1065,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '2_view',
                 title: 'Always On Top',
                 command: {
-                    // commandID: CommandID.ToggleAlwaysOnTop,
+                    // commandID: AllCommands.ToggleAlwaysOnTop,
                     commandID: "",
                 },
                 // // checkbox: true,
@@ -1084,7 +1074,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '2_view',
                 title: 'Toggle Full Screen',
                 command: {
-                    // commandID: CommandID.ToggleFullScreen,
+                    // commandID: AllCommands.ToggleFullScreen,
                     commandID: "",
                     keybinding: IS_MAC ? 'Ctrl+Cmd+F' : 'F11',
                 },
@@ -1093,7 +1083,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '2_view',
                 title: 'Toggle Outline',
                 command: {
-                    // commandID: CommandID.ToggleOutline,
+                    // commandID: AllCommands.ToggleOutline,
                     commandID: "",
                 },
             },
@@ -1101,7 +1091,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '2_view',
                 title: 'Toggle Typewriter Mode',
                 command: {
-                    // commandID: CommandID.ToggleTypewriterMode,
+                    // commandID: AllCommands.ToggleTypewriterMode,
                     commandID: "",
                 },
             },
@@ -1111,7 +1101,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '3_mode',
                 title: 'Source Code Mode',
                 command: {
-                    // commandID: CommandID.ToggleSourceCodeMode,
+                    // commandID: AllCommands.ToggleSourceCodeMode,
                     commandID: "",
                 },
                 // checkbox: true,
@@ -1120,7 +1110,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '3_mode',
                 title: 'Split View Mode',
                 command: {
-                    // commandID: CommandID.ToggleSplitViewMode,
+                    // commandID: AllCommands.ToggleSplitViewMode,
                     commandID: "",
                 },
                 // checkbox: true,
@@ -1129,7 +1119,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '3_mode',
                 title: 'Rich Text Mode',
                 command: {
-                    // commandID: CommandID.ToggleRichTextMode,
+                    // commandID: AllCommands.ToggleRichTextMode,
                     commandID: "",
                 },
                 // checkbox: true,
@@ -1140,7 +1130,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '4_zoom',
                 title: 'Zoom In',
                 command: {
-                    // commandID: CommandID.ZoomIn,
+                    // commandID: AllCommands.ZoomIn,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+=' : 'Ctrl+=',
                 },
@@ -1149,7 +1139,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '4_zoom',
                 title: 'Zoom Out',
                 command: {
-                    // commandID: CommandID.ZoomOut,
+                    // commandID: AllCommands.ZoomOut,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+-' : 'Ctrl+-',
                 },
@@ -1158,7 +1148,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '4_zoom',
                 title: 'Zoom Reset',
                 command: {
-                    // commandID: CommandID.ZoomReset,
+                    // commandID: AllCommands.ZoomReset,
                     commandID: "",
                     keybinding: IS_MAC ? 'Cmd+0' : 'Ctrl+0',
                 },
@@ -1175,7 +1165,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '1_themes',
                 title: 'Light Theme Default',
                 command: {
-                    // commandID: CommandID.SelectLightTheme,
+                    // commandID: AllCommands.SelectLightTheme,
                     commandID: "",
                 },
             },
@@ -1183,7 +1173,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '1_themes',
                 title: 'Dark Theme Default',
                 command: {
-                    // commandID: CommandID.SelectDarkTheme,
+                    // commandID: AllCommands.SelectDarkTheme,
                     commandID: "",
                 },
             },
@@ -1200,7 +1190,7 @@ export const menuTitleViewRegister = createRegister(
                 group: '3_folder',
                 title: 'Open Theme Folder',
                 command: {
-                    // commandID: CommandID.OpenThemeFolder,
+                    // commandID: AllCommands.OpenThemeFolder,
                     commandID: "",
                 },
             },
@@ -1223,7 +1213,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '1_resources',
                 title: 'Home Page',
                 command: {
-                    // commandID: CommandID.OpenHomePage,
+                    // commandID: AllCommands.OpenHomePage,
                     commandID: "",
                 },
             },
@@ -1231,7 +1221,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '1_resources',
                 title: 'Get Started',
                 command: {
-                    // commandID: CommandID.GetStarted,
+                    // commandID: AllCommands.GetStarted,
                     commandID: "",
                 },
             },
@@ -1239,7 +1229,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '1_resources',
                 title: 'Tips and Tricks',
                 command: {
-                    // commandID: CommandID.TipsAndTricks,
+                    // commandID: AllCommands.TipsAndTricks,
                     commandID: "",
                 },
             },
@@ -1247,7 +1237,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '1_resources',
                 title: 'Show Release Notes',
                 command: {
-                    // commandID: CommandID.ShowReleaseNotes,
+                    // commandID: AllCommands.ShowReleaseNotes,
                     commandID: "",
                 },
             },
@@ -1257,7 +1247,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '2_feedback',
                 title: 'Report Issues or Bugs',
                 command: {
-                    // commandID: CommandID.ReportIssue,
+                    // commandID: AllCommands.ReportIssue,
                     commandID: "",
                 },
             },
@@ -1265,7 +1255,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '2_feedback',
                 title: 'Request New Feature',
                 command: {
-                    // commandID: CommandID.RequestFeature,
+                    // commandID: AllCommands.RequestFeature,
                     commandID: "",
                 },
             },
@@ -1275,7 +1265,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '3_info',
                 title: 'View License',
                 command: {
-                    // commandID: CommandID.ViewLicense,
+                    // commandID: AllCommands.ViewLicense,
                     commandID: "",
                 },
             },
@@ -1284,7 +1274,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '4_tools',
                 title: 'Toggle Developer Tool',
                 command: {
-                    // commandID: CommandID.ToggleDevTools,
+                    // commandID: AllCommands.ToggleDevTools,
                     commandID: "",
                     keybinding: IS_MAC ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
                 },
@@ -1293,7 +1283,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '4_tools',
                 title: 'Toggle Inspector Tool',
                 command: {
-                    // commandID: CommandID.ToggleInspectorTool,
+                    // commandID: AllCommands.ToggleInspectorTool,
                     commandID: "",
                 },
             },
@@ -1303,7 +1293,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '5_updates',
                 title: 'Check For Updates…',
                 command: {
-                    // commandID: CommandID.CheckForUpdates,
+                    // commandID: AllCommands.CheckForUpdates,
                     commandID: "",
                 },
             },
@@ -1311,7 +1301,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '5_updates',
                 title: 'About…',
                 command: {
-                    // commandID: CommandID.About,
+                    // commandID: AllCommands.About,
                     commandID: "",
                 },
             },
