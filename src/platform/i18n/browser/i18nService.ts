@@ -6,7 +6,7 @@ import { AsyncResult } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IFileService } from "src/platform/files/common/fileService";
-import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { Strings } from "src/base/common/utilities/string";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
@@ -42,7 +42,7 @@ export interface II18nService extends IService {
     /**
      * Sets the language and reloads the locale file.
      */
-    setLanguage(lang: LanguageType): void;
+    setLanguage(lang: LanguageType): Promise<void>;
 
     /**
      * Localize a key with optional interpolation.
@@ -102,12 +102,12 @@ export class I18nService extends Disposable implements II18nService {
             });
     }
 
-    public setLanguage(lang: LanguageType): void {
+    public async setLanguage(lang: LanguageType): Promise<void> {
         if (lang === this._language) {
             return;
         }
-        // @Bistard
-        // TODO: should reload the renderer page entirely:
+        await this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
+        // TODO: should reload the renderer page entirely
     }
 
     public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string {
