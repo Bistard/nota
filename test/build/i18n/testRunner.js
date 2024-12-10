@@ -3,20 +3,8 @@ const fs = require('fs');
 const { Times, Loggers, ScriptProcess } = require("../../../scripts/utility");
 
 (async () => {
+    let errCode = 0;
     const cwd = process.cwd();
-
-    /**
-     * Cleans up the generated files by removing the `/dist` directory.
-     * This ensures that the environment is reset for subsequent test runs.
-     */
-    async function cleanup() {
-        try {
-            await fs.promises.rm(path.resolve(cwd, './test/build/i18n/dist'), { recursive: true, force: true });
-            console.log('Cleanup completed: /dist directory removed.');
-        } catch (error) {
-            console.error('Cleanup failed:', error);
-        }
-    }
 
     try {
         // build with webpack
@@ -86,10 +74,23 @@ const { Times, Loggers, ScriptProcess } = require("../../../scripts/utility");
         })();
 
     } catch (err) {
+        errCode = 1;
         console.error('Error encountered during the script execution:', err);
-    } finally {
-        // Ensure cleanup always runs
-        await cleanup();
-        process.exit(1);
     }
+    
+    await cleanup(cwd);
+    process.exit(errCode);
 })();
+
+/**
+ * Cleans up the generated files by removing the `/dist` directory.
+ * This ensures that the environment is reset for subsequent test runs.
+ */
+async function cleanup(cwd) {
+    try {
+        await fs.promises.rm(path.resolve(cwd, './test/build/i18n/dist'), { recursive: true, force: true });
+        console.log('Cleanup completed: /dist directory removed.');
+    } catch (error) {
+        console.error('Cleanup failed:', error);
+    }
+}
