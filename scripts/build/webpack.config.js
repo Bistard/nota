@@ -1,29 +1,24 @@
+const path = require('path');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const path = require('path');
+const { KeyToIndexTransformPlugin } = require('./i18n');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper } = require('../utility');
 
 class WebpackPluginProvider {
-
-    // [constructor]
-
     constructor() {}
-
-    // [public methods]
 
     /**
      * @param {{
-     *      cwd: string;
-     *      circular?: boolean;
-     * } | undefined} opts 
-     */
+    *      cwd: string;
+    *      circular?: boolean;
+    * } | undefined} opts 
+    */
     getPlugins(opts) {
-
         const plugins = [];
-        
         const cwd = opts.cwd;
-        if (!cwd || typeof cwd != 'string') {
+
+        if (!cwd || typeof cwd !== 'string') {
             console.log(`[WebpackPluginProvider] CWD is not provided or provided with wrong type: '${typeof cwd}'!`);
         }
 
@@ -37,24 +32,19 @@ class WebpackPluginProvider {
         plugins.push(new MiniCssExtractPlugin({
             filename: 'index.css',
         }));
-    
-        /**
-         * circular dependency plugin
-         */
 
         const MAX_CYCLES = 0;
         let detectedCycleCount = 0;
 
         if (opts && opts.circular) {
-            plugins.push(new CircularDependencyPlugin(
-                {
+            plugins.push(
+                new CircularDependencyPlugin({
                     exclude: /a\.js|node_modules/,
                     include: /src/,
                     cwd: cwd,
-
                     failOnError: true,
                     allowAsyncCycles: false,
-                    
+
                     // `onStart` is called before the cycle detection starts
                     onStart({ _compilation }) {
                         console.log('start detecting webpack modules cycles');
@@ -68,7 +58,7 @@ class WebpackPluginProvider {
                         console.log(`detecting webpack modules cycle:\n${paths.join(' -> ')}`);
                         compilation.warnings.push(new Error(paths.join(' -> ')));
                     },
-                    
+
                     // `onEnd` is called before the cycle detection ends
                     onEnd({ compilation }) {
                         console.log('end detecting webpack modules cycles');
@@ -76,10 +66,10 @@ class WebpackPluginProvider {
                             compilation.errors.push(new Error(`Detected ${detectedCycleCount} cycles which exceeds configured limit of ${MAX_CYCLES}`));
                         }
                     },
-                }
-            ));
+                })
+            );
         }
-        
+
         return plugins;
     }
 }
@@ -88,10 +78,9 @@ class WebpackPluginProvider {
  * @description The general webpack configuration of the application compilation.
  */
 class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
-
     #distPath = './dist';
     #minNodeJsVer = '16.7.0';
-    
+
     /** @type {string} Current working directory */
     #cwd;
 
@@ -109,15 +98,14 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         const env = ScriptHelper.getEnv(envList);
 
         console.log(`   🌍 Webpack environments: ${JSON.stringify(env)}`);
-        
+
         // init environment constant
-        this.#buildMode     =  env.BUILD_MODE;
-        this.#isWatchMode = (env.WATCH_MODE == 'true');
-        this.#isCircular  = (env.CIRCULAR === 'true');
+        this.#buildMode   = env.BUILD_MODE;
+        this.#isWatchMode = env.WATCH_MODE == 'true';
+        this.#isCircular  = env.CIRCULAR == 'true';
     }
 
     // [public - configuration initialization]
-
     construct() {
         this.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
 
@@ -128,27 +116,27 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 mode: this.#buildMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
-                plugins: (new WebpackPluginProvider()).getPlugins({ 
+                plugins: new WebpackPluginProvider().getPlugins({
                     cwd: this.#cwd,
-                    circular: this.#isCircular, 
+                    circular: this.#isCircular,
                 }),
-            }),
+            })
         );
-        
+
         // compiles SCSS files to CSS files
         baseConfiguration.module.rules.push({
             test: /\.(css|scss|sass)$/,
             use: [
-                MiniCssExtractPlugin.loader, 
-                'css-loader', 
+                MiniCssExtractPlugin.loader,
+                'css-loader',
                 {
                     loader: 'sass-loader',
                     options: {
                         sassOptions: {
                             includePaths: [path.resolve(this.#cwd, 'src/')],
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             ],
         });
 
@@ -159,60 +147,43 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         ];
     }
 
-    // [private - configuration construction]
-
     #constructMainProcess(baseConfiguration) {
-        const mainConfiguration = 
-            Object.assign(
-                baseConfiguration, 
-                {
-                    target: 'electron-main',
-                    entry: {
-                        main: './src/main.js',
-                    },
-                    output: {
-                        filename: '[name]-bundle.js',
-                        path: path.resolve(this.#cwd, this.#distPath)
-                    },
-                },
-            );
-        return mainConfiguration;
+        return Object.assign(baseConfiguration, {
+            target: 'electron-main',
+            entry: { main: './src/main.js' },
+            output: {
+                filename: '[name]-bundle.js',
+                path: path.resolve(this.#cwd, this.#distPath),
+            },
+        });
     }
 
     #constructRendererProcess(baseConfiguration) {
-        const rendererConfiguration = 
-            Object.assign(
-                baseConfiguration, 
-                {
-                    target: 'electron-renderer',
-                    entry: {
-                        renderer: './src/code/browser/renderer.desktop.ts',
-                    },
-                    output: {
-                        filename: '[name]-bundle.js',
-                        path: path.resolve(this.#cwd, this.#distPath)
-                    },
-                },
-            );
-        return rendererConfiguration;
+        return Object.assign(baseConfiguration, {
+            target: 'electron-renderer',
+            entry: { renderer: './src/code/browser/renderer.desktop.ts' },
+            output: {
+                filename: '[name]-bundle.js',
+                path: path.resolve(this.#cwd, this.#distPath),
+            },
+            plugins: [...baseConfiguration.plugins, new KeyToIndexTransformPlugin({
+                sourceCodePath: path.resolve(this.#cwd, './src'),
+                localeOutputPath: path.resolve(this.#cwd, './assets/locale'),
+                localizationFileName: 'en.json',
+                lookupFileName: 'en_lookup_table.json',
+            })]
+        });
     }
 
     #constructInspectorProcess(baseConfiguration) {
-        const lookupConfiguration = 
-            Object.assign(
-                baseConfiguration, 
-                {
-                    target: 'electron-renderer',
-                    entry: {
-                        renderer: './src/code/browser/inspector/renderer.inspector.ts',
-                    },
-                    output: {
-                        filename: '[name]-inspector-bundle.js',
-                        path: path.resolve(this.#cwd, this.#distPath)
-                    },
-                },
-            );
-        return lookupConfiguration;
+        return Object.assign(baseConfiguration, {
+            target: 'electron-renderer',
+            entry: { renderer: './src/code/browser/inspector/renderer.inspector.ts' },
+            output: {
+                filename: '[name]-inspector-bundle.js',
+                path: path.resolve(this.#cwd, this.#distPath),
+            },
+        });
     }
 }
 

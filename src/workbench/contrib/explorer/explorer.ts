@@ -1,8 +1,6 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { II18nService } from 'src/platform/i18n/common/i18n';
-import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
@@ -22,6 +20,7 @@ import { FixedArray } from 'src/base/common/utilities/type';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { II18nService } from 'src/platform/i18n/browser/i18nService';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -235,7 +234,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
-        tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
+        tag.textContent = this.i18nService.localize('openDirectory', 'Open a Folder');
         view.appendChild(tag);
 
         return view;

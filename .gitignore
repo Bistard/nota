@@ -1,7 +1,7 @@
 .DS_Store
 
 /node_modules
-/dist
+**/dist
 
 /.nota
 /.wisp
@@ -11,6 +11,7 @@
 
 /assets/src-svg
 /assets/codicons/**/*
+/assets/locale/**/*_lookup_table.json
 /src/**/*.ttf
 /src/**/*.woff
 /src/**/*.woff2
