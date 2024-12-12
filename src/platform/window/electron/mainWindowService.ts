@@ -200,12 +200,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public getInspectorWindowByID(id: number): IWindowInstance | undefined {
-        for (const [inspectorID, _ownerID] of this._inspectorWindowsTrace) {
-            if (inspectorID === id) {
-                return this.getWindowByID(inspectorID);
-            }
-        }
-        return undefined;
+        return this._inspectorWindowsTrace.has(id) ? this.getWindowByID(id) : undefined;
     }
 
     public getInspectorWindowByOwnerID(id: number): IWindowInstance | undefined {
