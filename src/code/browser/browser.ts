@@ -11,7 +11,7 @@ import { delayFor } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
 import { IHostService } from "src/platform/host/common/hostService";
 import { StatusKey } from "src/platform/status/common/status";
-import { ipcRenderer, webFrame } from "src/platform/electron/browser/global";
+import { ipcRenderer, safeIpcRendererOn, webFrame } from "src/platform/electron/browser/global";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
@@ -84,12 +84,12 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         ));
 
         // alert error from main process
-        onMainProcess(ipcRenderer, IpcChannel.rendererAlertError, error => {
+        onMainProcess(IpcChannel.rendererAlertError, error => {
             ErrorHandler.onUnexpectedError(error);
         });
 
         // execute command request from main process
-        onMainProcess(ipcRenderer, IpcChannel.rendererRunCommand, async request => {
+        onMainProcess(IpcChannel.rendererRunCommand, async request => {
             console.log("Command execution request:", request.commandID, "with args:", request.args); // Add this
             try {
                 await this.commandService.executeCommand(request.commandID, ...request.args);
@@ -100,7 +100,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         });
 
         // Handle menu requests from main process
-        onMainProcess(ipcRenderer, IpcChannel.Menu, async () => {
+        onMainProcess(IpcChannel.Menu, async () => {
             this.updateMacOSMenu();
         });
         // inspector listener
@@ -168,15 +168,11 @@ export class BrowserInstance extends Disposable implements IBrowserService {
 
 /**
  * Listens IPC message from the main process. Default avoiding the first 
- * parameter from the callback, if you need the first parameter, listen to 
- * `ipcRenderer` directly.
+ * parameter from the callback, if you need the first parameter, invoke
+ * `safeIpcRendererOn` directly.
  */
-function onMainProcess<TChannel extends string>(listener: NodeJS.EventEmitter, channel: TChannel, callback: (...args: WindowInstanceIPCMessageMap[TChannel]) => void): void {
-    listener.on(channel, (_e, ...args) => {
-
-        /**
-         * 
-         */
+function onMainProcess<TChannel extends string>(channel: TChannel, callback: (...args: WindowInstanceIPCMessageMap[TChannel]) => void): void {
+    safeIpcRendererOn(channel, (e, ...args) => {
         callback(...args);
     });
 }

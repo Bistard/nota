@@ -43,7 +43,7 @@ export const initExposedElectronAPIs = executeOnce(function () {
  * instead of `preload.js`. See: https://github.com/electron/electron/issues/43705
  * @note This function should only be used in the renderer process.
  */
-export function safeIpcRendererOn(channel: IpcChannel, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void | Promise<void>): void {
+export function safeIpcRendererOn(channel: string, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void | Promise<void>): void {
     ipcRenderer.on(channel, async (e, ...args) => {
         try {
             await listener(e, ...args);
