@@ -168,6 +168,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         }
         
         const newWindow = await this.doOpen(optionalConfiguration);
+        
+        // If provided, this new window's lifecycle will bind with the given window id.
         if (ownerID) {
             this.__bindWindowLifecycle(newWindow, ownerID);
         }
@@ -195,6 +197,9 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         this._inspectorWindowsTrace.set(window.id, ownerWindow);
         const inspectorService = this.instantiationService.getOrCreateService(IMainInspectorService);
         inspectorService.start(window);
+        Event.once(window.onDidClose)(() => {
+            inspectorService.stop(window);
+        });
 
         return window;
     }

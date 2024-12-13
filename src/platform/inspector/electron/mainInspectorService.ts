@@ -12,8 +12,7 @@ export class MainInspectorService implements IMainInspectorService {
 
     // [field]
 
-    private readonly _inspectorLifeCycles: Map<number, DisposableManager>;
-    private readonly _activeInspectors: number[];
+    private readonly _activeInspectors: Set<number>;
 
     // [constructor]
 
@@ -21,8 +20,7 @@ export class MainInspectorService implements IMainInspectorService {
         @ILogService private readonly logService: ILogService,
         @IMainWindowService mainWindowService: IMainWindowService,
     ) {
-        this._inspectorLifeCycles = new Map();
-        this._activeInspectors = [];
+        this._activeInspectors = new Set();
 
         /**
          * Notify READY to the associated render process that the inspector is
@@ -66,18 +64,18 @@ export class MainInspectorService implements IMainInspectorService {
     // [public methods]
 
     public start(window: IWindowInstance): void {
-        if (this._inspectorLifeCycles.get(window.id)) {
+        if (this._activeInspectors.has(window.id)) {
             this.logService.warn('MainInspectorService', `Cannot start inspector window (${window.id}) twice.`);
             return;
         }
-
-        this._activeInspectors.push(window.id);
+        this._activeInspectors.add(window.id);
     }
 
     public stop(window: IWindowInstance): void {
-
+        if (!this._activeInspectors.has(window.id)) {
+            this.logService.warn('MainInspectorService', `Cannot stop inspector window (${window.id}) that does not exists.`);
+            return;
+        }
+        this._activeInspectors.delete(window.id);
     }
-
-    // [private methods]
-
 }
