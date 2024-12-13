@@ -21,13 +21,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { IMenuItemRegistrationResolved, mainMenuTypes, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
-import { createService, IService } from "src/platform/instantiation/common/decorator";
-
-export const IBrowserService = createService<IBrowserService>('browser-service');
-export interface IBrowserService extends IService {
-    init(): void;
-    updateMacOSMenu(): Promise<void>;
-}
+import { IBrowserService } from "src/code/browser/common/renderer.common";
 
 export class BrowserInstance extends Disposable implements IBrowserService {
 

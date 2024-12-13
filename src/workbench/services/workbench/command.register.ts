@@ -19,8 +19,7 @@ import { INavigationViewService } from "src/workbench/parts/navigationPanel/navi
 import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { StatusKey } from "src/platform/status/common/status";
-import { IBrowserService } from "src/code/browser/browser";
-import { MenuTypes } from "src/platform/menu/common/menu";
+import { IBrowserService } from "src/code/browser/common/renderer.common";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
