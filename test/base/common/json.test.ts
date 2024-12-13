@@ -17,7 +17,7 @@ suite('json-test', function () {
                 
                 result = JsonSchemaValidator.validate('testing', schema);
                 assert.ok(result.valid);
-                assert.strictEqual(result.errorMessage, undefined);
+                assert.strictEqual(result['errorMessage'], undefined);
             });
 
             test('deprecatedMessage', () => {
