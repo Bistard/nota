@@ -148,13 +148,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(ILogService, logService);
         (<any>this.logService) = logService;
 
-        // singleton initializations
-        logService.debug('renderer', 'Registering singleton services descriptors...');
-        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
-            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
-            instantiationService.register(serviceIdentifier, serviceDescriptor);
-        }
-        logService.debug('renderer', 'Singleton services descriptors all registered.');
+        // context-service
+        const contextService = new ContextService();
+        instantiationService.register(IContextService, contextService);
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -222,6 +218,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
         });
         instantiationService.register(II18nService, i18nService);
 
+        // singleton initializations
+        logService.debug('renderer', 'Registering singleton services descriptors...');
+        for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
+            logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
+            instantiationService.register(serviceIdentifier, serviceDescriptor);
+        }
+
         logService.debug('renderer', 'All core renderer services are constructed.');
         return instantiationService;
     }
@@ -231,7 +234,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         const configurationService = instantiationService.getService(IConfigurationService);
         const environmentService   = instantiationService.getService(IBrowserEnvironmentService);
-        const i18nService       = instantiationService.getService(II18nService);
+        const i18nService          = instantiationService.getService(II18nService);
         const productService       = instantiationService.getService(IProductService);
         const themeService         = instantiationService.getOrCreateService(IThemeService);
 
@@ -271,7 +274,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IOutlineService           , new ServiceDescriptor(OutlineService           , []));
     
         // utilities && tools
-        registerService(IContextService           , new ServiceDescriptor(ContextService           , []));
         registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
         registerService(IDialogService            , new ServiceDescriptor(BrowserDialogService     , []));
         registerService(IClipboardService         , new ServiceDescriptor(BrowserClipboardService  , []));
