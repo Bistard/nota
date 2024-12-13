@@ -47,7 +47,7 @@ export interface IConfigurationService extends IDisposable, IService {
      * @param defaultValue Default value will be returned if the section is not 
      * provided.
      * 
-     * @throws An `undefined` will be returned if the section is invalid and the 
+     * @panic An `undefined` will be returned if the section is invalid and the 
      * default is not provided.
      * @note If section is not provided, the whole configuration will be returned.
      * @note You may not change the value of the return value directly. Use `set` 
@@ -62,8 +62,11 @@ export interface IConfigurationService extends IDisposable, IService {
      * @param value The new value of the configuration.
      * @param options The options for update.
      * 
-     * @throws An exception will be thrown if the section is invalid.
+     * @panic If the section is invalid.
+     * 
      * @note If section is null, it overrides the entire configuration.
+     * @note If value is `Undefined` and the section corresponding schema 
+     * provides a default value will be used for set.
      */
     set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
 
@@ -72,7 +75,7 @@ export interface IConfigurationService extends IDisposable, IService {
      * @param section The {@link Section} string of the required configuration.
      * @param options The options for update.
      * 
-     * @throws An exception will be thrown if the section is invalid.
+     * @panic If the section is invalid.
      */
     delete(section: Section, options: IConfigurationUpdateOptions): Promise<void>;
 

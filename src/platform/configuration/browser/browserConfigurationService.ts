@@ -11,7 +11,7 @@ import { Arrays } from "src/base/common/utilities/array";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { panic } from "src/base/common/utilities/panic";
-import { isObject } from "src/base/common/utilities/type";
+import { isDefined, isObject } from "src/base/common/utilities/type";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -71,14 +71,20 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
          *   1. The section is valid.
          *   2. The value is valid.
          */
+
+        // section validate
         if (!this.__validateConfigurationUpdateInSection(section)) {
             panic(`[BrowserConfigurationService] cannot update the configuration because the section is invalid: ${section}`);
         }
 
-        // ignore value check when deleting the configuration
-        const updateResult = this.__validateConfigurationUpdateInValue(section, value);
-        if (!updateResult.valid) {
-            panic(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}. Reason: ${updateResult.errorMessage}. IsDeprecated: ${updateResult.deprecatedMessage ?? false}`);
+        // value validate
+        const validation = this.__validateConfigurationUpdateInValue(section, value);
+        if (!validation.valid) {
+            if (value === undefined && validation.schema && isDefined(validation.schema.default)) {
+                value = validation.schema.default;
+            } else {
+                panic(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}. Reason: ${validation.errorMessage}. IsDeprecated: ${validation.deprecatedMessage ?? false}`);
+            }
         }
         
         /**
