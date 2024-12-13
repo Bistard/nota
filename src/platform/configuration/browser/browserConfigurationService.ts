@@ -77,7 +77,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
         // ignore value check when deleting the configuration
         const updateResult = this.__validateConfigurationUpdateInValue(section, value);
-        if (value !== undefined  && !updateResult.valid) {
+        if (!updateResult.valid) {
             panic(`[BrowserConfigurationService] cannot update the configuration because the value does not match its schema: ${value}. Reason: ${updateResult.errorMessage}. IsDeprecated: ${updateResult.deprecatedMessage ?? false}`);
         }
         
@@ -128,7 +128,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
         // overwriting the entire configuration, we check every property of the new configuration
         if (section === '') {
             if (!isObject(value)) {
-                return { valid: false, errorMessage: 'invalid configuration' };
+                return { valid: false, errorMessage: 'Cannot set the entire configuration with a non-object value.' };
             }
             for (const [propKey, propValue] of Object.entries(value)) {
                 const result = this.__validateConfigurationUpdateInValue(propKey, propValue);
@@ -146,13 +146,13 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 
         for (const key of sections) {
             if (!schema || schema.type !== "object") {
-                return { valid: false, errorMessage: 'no corresponding schema' };
+                return { valid: false, errorMessage: 'No Corresponding Schemas Found' };
             }
             schema = schema.properties?.[key];
         }
 
         if (!schema) {
-            return { valid: false, errorMessage: 'no corresponding schema' };
+            return { valid: false, errorMessage: 'No Corresponding Schemas Found' };
         }
 
         return JsonSchemaValidator.validate(value, schema);

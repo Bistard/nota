@@ -25,7 +25,7 @@ import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString }
  * 
  * ## The Schema Example
  * ```ts
- * let userSchema: IJSONSchema = {
+ * let userSchema: IJsonSchema = {
  *   type: 'object',
  *   properties: {
  *       name: { type: 'string' },
@@ -193,20 +193,20 @@ interface IJsonSchemaForObject extends IJsonSchemaBase<'object'> {
     required?: string[];
 }
 
-export interface IJsonSchemaValidateResult {
+export type IJsonSchemaValidateResult = { readonly valid: true } | {
+    readonly valid: false;
+    readonly errorMessage: string;
     
-    /** If the data is valid. */
-    readonly valid: boolean;
-
-    /** The schema will be given if it is invalid. */
+    /**
+     * Will be given if error is caused by un-matching schema.
+     */
     readonly schema?: IJsonSchema;
-
-    /** An error message will be given if the data is invalid. */
-    readonly errorMessage?: string;
-
-    /** A message will be given if the data should be deprecated. */
+    
+    /**
+     * Will be given when the schema is deprecated.
+     */
     readonly deprecatedMessage?: string;
-}
+};
 
 export class JsonSchemaValidator {
 
@@ -227,8 +227,7 @@ export class JsonSchemaValidator {
 
     private static __validate(data: any, schema: IJsonSchema, result: Mutable<IJsonSchemaValidateResult>): void {
         if (schema.deprecated === true) {
-            result.valid = false;
-            result.deprecatedMessage = schema.deprecatedMessage;
+            this.__setValid(false, result, schema);
             return;
         }
 
@@ -340,7 +339,10 @@ export class JsonSchemaValidator {
         result.valid = valid;
         if (!result.valid) {
             result.schema = schema;
-            result.errorMessage = schema.errorMessage;
+            result.errorMessage = schema.errorMessage ?? 'No Error Messages';
+            if (schema.deprecated) {
+                result.deprecatedMessage = schema.deprecatedMessage ?? 'No Deprecated Messages';
+            }
         }
     }
 }
