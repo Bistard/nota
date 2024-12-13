@@ -19,9 +19,10 @@ export interface II18nOptions {
     readonly localePath: URI;
 }
 
-export interface II18nLookUpTable {
-    [index: number]: string;
-}
+/**
+ * This data structure is constructed during compiled time.
+ */
+export type II18nLookUpTable = string[];
 
 export interface II18nService extends IService {
     /**
