@@ -107,7 +107,7 @@ export class I18nService extends Disposable implements II18nService {
         if (lang === this._language) {
             return;
         }
-        await this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
+        this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
         // TODO: should reload the renderer page entirely
     }
 
@@ -124,8 +124,8 @@ export class I18nService extends Disposable implements II18nService {
 
     private __onConfigurationChange(event: IConfigurationChangeEvent): void {
         const language = WorkbenchConfiguration.DisplayLanguage;
-        if (event.affect(language)) {
-            const newLanguage = this.configurationService.get<LanguageType>(language, LanguageType.en);
+        if (event.match(language)) {
+            const newLanguage = this.configurationService.get<LanguageType>(language, LanguageType.preferOS);
             this.setLanguage(newLanguage);
         }
     }

@@ -56,8 +56,8 @@ export const sharedWorkbenchConfigurationRegister = createRegister(
                     properties: {
                         ['language']: {
                             type: 'string',
-                            enum: [LanguageType.en, LanguageType.zhCN, LanguageType.zhTW],
-                            default: LanguageType.en,
+                            enum: [LanguageType.preferOS, LanguageType.en, LanguageType.zhCN, LanguageType.zhTW],
+                            default: LanguageType.preferOS,
                         },
                         ['colorTheme']: {
                             type: 'string',

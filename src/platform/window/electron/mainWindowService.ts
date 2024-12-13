@@ -17,6 +17,7 @@ import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -374,7 +375,8 @@ namespace LocaleResolver {
     export function resolveNlsConfiguration(configurationService: IConfigurationService): INlsConfiguration {
         const userLocale = __getUserLocale(configurationService);
         const osLocale = __getOSLocale();
-        const resolvedLocale = userLocale || osLocale || 'en';
+
+        const resolvedLocale = (userLocale === LanguageType.preferOS) ? osLocale : (userLocale || osLocale);
         const nlsConfiguration: INlsConfiguration = {
             userLocale: userLocale,
             osLocale: osLocale,
@@ -405,10 +407,15 @@ namespace LocaleResolver {
             }
             return 'zh-tw';
         }
+
+        if (osLocale.startsWith('en')) {
+            return 'en';
+        }
+
         return osLocale;
     }
 
-    function __getUserLocale(configurationService: IConfigurationService): string {
-        return configurationService.get<string>(WorkbenchConfiguration.DisplayLanguage);
+    function __getUserLocale(configurationService: IConfigurationService): LanguageType {
+        return configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage, LanguageType.preferOS);
     }
 }
