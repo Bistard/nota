@@ -29,6 +29,11 @@ export interface IMainWindowService extends Disposable, IService {
     readonly onDidCloseWindow: Register<IWindowInstance>;
 
     /**
+     * @description Construct and open a brand new renderer window.
+     */
+    open(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance>;
+
+    /**
      * @description Returns all the running windows.
      */
     windows(): ReadonlyArray<IWindowInstance>;
@@ -57,11 +62,6 @@ export interface IMainWindowService extends Disposable, IService {
      * @description Returns the number of running window.
      */
     windowCount(): number;
-
-    /**
-     * @description Construct and open a brand new renderer window.
-     */
-    open(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance>;
 }
 
 /**
@@ -151,7 +151,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         const ownerID = optionalConfiguration.ownerWindow;
         if (isDefined(ownerID) && !this.getWindowByID(ownerID)) {
-            panic(`Cannot open a window (${optionalConfiguration.applicationName ?? 'unknown name'}) under the owner window (id: ${ownerID}) who is already destroyed.`);
+            panic(`Cannot open a window (${optionalConfiguration.applicationName ?? 'unknown name'}) under the owner window (id: ${ownerID}) which is already destroyed.`);
         }
         
         const newWindow = await this.doOpen(optionalConfiguration);

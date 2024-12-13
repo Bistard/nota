@@ -56,7 +56,7 @@ export interface IMenuItemRegistration {
     readonly title: string;
 
     /**
-     * Defines the behaviour when the item is interacted.
+     * Defines the behavior when the item is interacted.
      */
     readonly command: {
         /**
@@ -115,6 +115,9 @@ export type IMenuItemRegistrationResolved = Omit<ReplaceType<IMenuItemRegistrati
     readonly submenu?: IMenuItemRegistrationResolved[];
 };
 
+/**
+ * An array of menu for OS-related menu.
+ */
 export const mainMenuTypes: { type: MenuTypes; label: string }[] = [
     { type: MenuTypes.TitleBarApplication, label: 'Nota' },
     { type: MenuTypes.TitleBarFile, label: 'File' },

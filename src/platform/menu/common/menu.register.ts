@@ -1274,8 +1274,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '4_tools',
                 title: 'Toggle Developer Tool',
                 command: {
-                    // commandID: AllCommands.ToggleDevTools,
-                    commandID: "",
+                    commandID: AllCommands.toggleDevTool,
                     keybinding: IS_MAC ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
                 },
             },
@@ -1283,8 +1282,7 @@ export const menuTitleHelpRegister = createRegister(
                 group: '4_tools',
                 title: 'Toggle Inspector Tool',
                 command: {
-                    // commandID: AllCommands.ToggleInspectorTool,
-                    commandID: "",
+                    commandID: AllCommands.toggleInspector,
                 },
             },
             // Separator

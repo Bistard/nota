@@ -173,17 +173,17 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
     readonly displayOptions: IWindowDisplayOpts;
 
     /**
-     * URIs to be opened in the window, might be either workspace, directory or 
-     * file.
+     * URIs to be opened in the window, might be either directory or file.
      */
     readonly uriToOpen: URI[];
-    readonly forceNewWindow: boolean; // TODO: unused
     
     /**
      * If window id is provided, this new window's lifecycle will bind with the
      * given window id.
-     */
-    readonly ownerWindow: number | undefined;
+    */
+   readonly ownerWindow: number | undefined;
+   
+   readonly forceNewWindow: boolean; // TODO: unused
 }
 
 /**

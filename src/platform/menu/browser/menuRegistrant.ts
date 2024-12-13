@@ -109,7 +109,6 @@ export class MenuRegistrant implements IMenuRegistrant {
         return result.filter(item => {
                     return this.contextService.contextMatchExpr(item.when ?? null);
                 });
-
     }
 
     public getMenuItemsResolved(menu: MenuTypes): IMenuItemRegistrationResolved[] {
