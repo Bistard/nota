@@ -173,10 +173,16 @@ export class BrowserInstance extends Disposable implements IBrowserService {
 }
 
 /**
- * Listens IPC message from the main process.
+ * Listens IPC message from the main process. Default avoiding the first 
+ * parameter from the callback, if you need the first parameter, listen to 
+ * `ipcRenderer` directly.
  */
 function onMainProcess<TChannel extends string>(listener: NodeJS.EventEmitter, channel: TChannel, callback: (...args: WindowInstanceIPCMessageMap[TChannel]) => void): void {
     listener.on(channel, (_e, ...args) => {
+
+        /**
+         * 
+         */
         callback(...args);
     });
 }
