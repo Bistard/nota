@@ -138,7 +138,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         }
 
         // main-inspector-service
-        this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService,[]));
+        this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
 
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
@@ -208,8 +208,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            const mainWindowService = provider.getOrCreateService(IMainWindowService);
-            await mainWindowService.openInspector(firstWindowID);
+            const mainInspectorService = provider.getOrCreateService(IMainInspectorService);
+            await mainInspectorService.start(firstWindowID);
         }
     }
 

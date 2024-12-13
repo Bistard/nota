@@ -172,6 +172,7 @@ class InspectorBrowser {
     // [public methods]
 
     private registerListeners(): void {
+
         // listener: before quit, notify the main process we are actually closing
         this.lifecycleService.onWillQuit(e => {
             ipcRenderer.send(IpcChannel.InspectorClose, WIN_CONFIGURATION.windowID);

@@ -11,6 +11,7 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { StatusKey } from "src/platform/status/common/status";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 
 /**
  * An interface only for {@link MainHostService}.
@@ -66,14 +67,15 @@ export class MainHostService extends Disposable implements IMainHostService {
     public readonly onDidLeaveFullScreenWindow = this._onDidLeaveFullScreenWindow.registerListener;
 
     @memoize
-    public get onDidOpenWindow() { return Event.map(this.windowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
+    public get onDidOpenWindow() { return Event.map(this.mainWindowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
 
     // [constructor]
 
     constructor(
-        @IMainWindowService private readonly windowService: IMainWindowService,
+        @IMainWindowService private readonly mainWindowService: IMainWindowService,
         @IMainDialogService private readonly dialogService: IMainDialogService,
         @IMainStatusService private readonly statusService: IMainStatusService,
+        @IMainInspectorService private readonly mainInspectorService: IMainInspectorService,
     ) {
         super();
     }
@@ -178,11 +180,11 @@ export class MainHostService extends Disposable implements IMainHostService {
         if (!window) {
             return;
         }
-        const inspectorWindow = this.windowService.getInspectorWindowByOwnerID(window.id);
+        const inspectorWindow = this.mainInspectorService.getInspectorWindowByOwnerID(window.id);
         if (inspectorWindow) {
             inspectorWindow.close();
         } else {
-            this.windowService.openInspector(window.id);
+            this.mainInspectorService.start(window.id);
         }
     }
 
@@ -212,7 +214,7 @@ export class MainHostService extends Disposable implements IMainHostService {
         if (typeof id === 'undefined') {
             return undefined;
         }
-        return this.windowService.getWindowByID(id);
+        return this.mainWindowService.getWindowByID(id);
     }
 
     private async __openDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
@@ -220,7 +222,7 @@ export class MainHostService extends Disposable implements IMainHostService {
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
         const uriToOpen = picked.map(path => URI.fromFile(path));
 
-        this.windowService.open({
+        this.mainWindowService.open({
             uriToOpen: uriToOpen,
             forceNewWindow: opts.forceNewWindow,
             hostWindow: windowID ?? -1,
