@@ -104,9 +104,9 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     private async __transformData(listenToDataType: InspectorDataType): Promise<InspectorData[]> {
         switch (listenToDataType) {
             case InspectorDataType.Configuration:
-                return transformJsonToData(this.configurationService.get(undefined));
+                return transformJsonToData(this.configurationService.get(undefined), true);
             case InspectorDataType.Status:
-                return transformJsonToData(await this.hostService.getAllApplicationStatus());
+                return transformJsonToData(await this.hostService.getAllApplicationStatus(), true);
             case InspectorDataType.ContextKey:
                 return transformContextKeyToData(this.contextService.getAllContextKeys());
             case InspectorDataType.Command:
@@ -151,14 +151,14 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     }
 }
 
-function transformJsonToData(config: object): InspectorData[] {
+function transformJsonToData(config: object, isEditable: boolean): InspectorData[] {
     function buildData(obj: any, currentPath: string = ''): InspectorData[] {
         return Object.entries(obj).map(([key, value]) => {
             const fullPath = currentPath ? `${currentPath}.${key}` : key;
             if (isObject(value)) {
                 return <InspectorData>{ key, children: buildData(value, fullPath) };
             } else {
-                return <InspectorData>{ key, value, isEditable: true, id: fullPath };
+                return <InspectorData>{ key, value, isEditable: isEditable, id: fullPath };
             }
         });
     }
