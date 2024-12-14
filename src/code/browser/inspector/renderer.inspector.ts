@@ -250,6 +250,7 @@ class InspectorWindow {
 
         const navigation = [
             { type: InspectorDataType.Configuration },
+            { type: InspectorDataType.Status },
             { type: InspectorDataType.ContextKey },
             { type: InspectorDataType.Command },
             { type: InspectorDataType.Shortcut },

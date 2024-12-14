@@ -1,5 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
+import { Dictionary } from "src/base/common/utilities/type";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { StatusKey } from "src/platform/status/common/status";
 
@@ -49,6 +50,7 @@ export interface IHostService extends IService {
     setApplicationStatus(key: StatusKey, val: any): Promise<void>;
     setApplicationStatusLot(items: readonly { key: StatusKey, val: any; }[]): Promise<void>;
     deleteApplicationStatus(key: StatusKey): Promise<boolean>;
+    getAllApplicationStatus(): Promise<Dictionary<string, any>>;
 
     // OS
     showItemInFolder(path: string): Promise<void>;

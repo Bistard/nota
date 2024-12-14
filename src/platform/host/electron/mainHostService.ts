@@ -12,6 +12,7 @@ import { StatusKey } from "src/platform/status/common/status";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { Dictionary } from "src/base/common/utilities/type";
 
 /**
  * An interface only for {@link MainHostService}.
@@ -202,6 +203,10 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     public deleteApplicationStatus(key: StatusKey): Promise<boolean> {
         return this.statusService.delete(key).unwrap();
+    }
+
+    public async getAllApplicationStatus(): Promise<Dictionary<string, any>> {
+        return this.statusService.getAllStatus();
     }
 
     public async showItemInFolder(path: string): Promise<void> {

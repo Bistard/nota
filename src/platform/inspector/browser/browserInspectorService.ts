@@ -13,6 +13,7 @@ import { IConfigurationService } from "src/platform/configuration/common/configu
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IContextService } from "src/platform/context/common/contextService";
 import { ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
+import { IHostService } from "src/platform/host/common/hostService";
 import { IBrowserInspectorService, InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IMenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
@@ -45,14 +46,15 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         @IContextService private readonly contextService: IContextService,
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IThemeService private readonly themeService: IThemeService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
         this.shortcutRegistrant = this.registrantService.getRegistrant(RegistrantType.Shortcut);
         this.menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
         this._lifecycle = new DisposableManager();
         this._initProtector = new InitProtector();
-        this._syncScheduler = new UnbufferedScheduler(Time.ms(500), listenToDataType => {
-            const data = this.__transformData(listenToDataType);
+        this._syncScheduler = new UnbufferedScheduler(Time.ms(500), async listenToDataType => {
+            const data = await this.__transformData(listenToDataType);
             ipcRenderer.send(IpcChannel.InspectorDataSync, WIN_CONFIGURATION.windowID, data);
         });
     }
@@ -99,10 +101,12 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     // [private methods]
 
-    private __transformData(listenToDataType: InspectorDataType): InspectorData[] {
+    private async __transformData(listenToDataType: InspectorDataType): Promise<InspectorData[]> {
         switch (listenToDataType) {
             case InspectorDataType.Configuration:
-                return transformConfigurationToData(this.configurationService.get(undefined));
+                return transformJsonToData(this.configurationService.get(undefined));
+            case InspectorDataType.Status:
+                return transformJsonToData(await this.hostService.getAllApplicationStatus());
             case InspectorDataType.ContextKey:
                 return transformContextKeyToData(this.contextService.getAllContextKeys());
             case InspectorDataType.Command:
@@ -147,7 +151,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     }
 }
 
-function transformConfigurationToData(config: object): InspectorData[] {
+function transformJsonToData(config: object): InspectorData[] {
     function buildData(obj: any, currentPath: string = ''): InspectorData[] {
         return Object.entries(obj).map(([key, value]) => {
             const fullPath = currentPath ? `${currentPath}.${key}` : key;

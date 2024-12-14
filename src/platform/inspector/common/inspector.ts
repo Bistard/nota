@@ -49,6 +49,7 @@ export interface IBrowserInspectorService extends IService {
  */
 export const enum InspectorDataType {
     Configuration = 'Config',
+    Status        = 'Status',
     ContextKey    = 'Context',
     Command       = 'Command',
     Shortcut      = 'Shortcut',

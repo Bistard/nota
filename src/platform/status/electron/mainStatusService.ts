@@ -11,6 +11,7 @@ import { StatusKey } from "src/platform/status/common/status";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { FileOperationError } from "src/base/common/files/file";
 import { AsyncResult, ok } from "src/base/common/result";
+import { Dictionary } from "src/base/common/utilities/type";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
@@ -28,6 +29,7 @@ export interface IMainStatusService extends Disposable, IService {
     has(key: StatusKey): boolean;
     init(): AsyncResult<void, FileOperationError>;
     close(): AsyncResult<void, FileOperationError>;
+    getAllStatus(): Dictionary<string, any>;
 }
 
 /**
@@ -111,6 +113,10 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     public close(): AsyncResult<void, FileOperationError> {
         return this._storage.close();
+    }
+
+    public getAllStatus(): Dictionary<string, any> {
+        return this._storage.getStorage();
     }
 
     private __registerListeners(): void {

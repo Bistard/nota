@@ -13,7 +13,7 @@ import { Strings } from "src/base/common/utilities/string";
 export interface IDiskStorage {
 
     /**
-     * The resource of the storage.
+     * The resource file linked to this storage.
      */
     readonly resource: URI;
 
@@ -75,25 +75,30 @@ export interface IDiskStorage {
      * @note Any operations after `close()` will be ignored except `init()` again.
      */
     close(): AsyncResult<void, FileOperationError>;
+
+    /**
+     * @description Returns the in-memory reference of the storage.
+     */
+    getStorage(): Dictionary<string, any>;
 }
 
-export class DiskStorage {
+export class DiskStorage implements IDiskStorage {
     
     // [fields]
 
-    protected _storage: Dictionary<string, any> = Object.create(null);
+    private _storage: Dictionary<string, any> = Object.create(null);
     
     /**
      * Indicating if the storage is currently working. Represents the current
      * operation.
      */
-    protected _operating?: AsyncResult<void, FileOperationError>;
+    private _operating?: AsyncResult<void, FileOperationError>;
 
     // [constructor]
 
     constructor(
-        protected readonly path: URI,
-        @IFileService protected readonly fileService: IFileService,
+        private readonly path: URI,
+        @IFileService private readonly fileService: IFileService,
     ) { }
 
     // [public methods]
@@ -175,19 +180,25 @@ export class DiskStorage {
         if (this._operating === undefined) {
             return AsyncResult.ok();
         }
-        return this._operating.andThen(() => this.__close());
+        return this._operating
+            .andThen(() => this.__save()
+            .map(() => this._operating = undefined));
     }
 
-    // [protected helper methods]
+    public getStorage(): Dictionary<string, any> {
+        return this._storage;
+    }
 
-    protected __init(): AsyncResult<void, FileOperationError> {
+    // [private helper methods]
+
+    private __init(): AsyncResult<void, FileOperationError> {
         return this.fileService.readFile(this.path)
             .andThen(buffer => this.__onInitFileRead(buffer))
             .orElse(error => this.__onInitReadError(error))
             .andThen(reinitialize => reinitialize ? this.__init() : AsyncResult.ok());
     }
 
-    protected __save(): AsyncResult<void, FileOperationError> {
+    private __save(): AsyncResult<void, FileOperationError> {
 
         // never got initialized or already closed, we should never save.
         if (!this._operating) {
@@ -203,12 +214,6 @@ export class DiskStorage {
             return this._operating;
         });
     }
-
-    protected __close(): AsyncResult<void, FileOperationError> {
-        return this.__save().map(() => this._operating = undefined);
-    }
-
-    // [private helper methods]
 
     private __onInitFileRead(buffer: DataBuffer): AsyncResult<boolean, FileOperationError> {
         const raw = buffer.toString();
@@ -244,19 +249,3 @@ export class DiskStorage {
             .map(() => true);
     }
 }
-
-/**
- * @class The `DiskStorage` class provide an asynchronous interface for 
- * disk storage operations. It implements the `IDiskStorage` interface with a 
- * focus on asynchronous behavior, allowing for non-blocking I/O operations.
- *
- * Internally, it utilizes a dictionary-like structure for storing data in 
- * memory, allowing for rapid access and modification of key-value pairs. The 
- * asynchronous nature of the class enables operations such as reading from and 
- * writing to the disk without blocking the main execution thread, thus 
- * enhancing performance for applications that require high responsiveness.
- *
- * Features:
- * - Efficient in-memory storage using a dictionary for key-value pairs.
- * - Asynchronous disk I/O, allowing non-blocking read and write operations.
- */
