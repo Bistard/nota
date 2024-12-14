@@ -15,6 +15,7 @@ import { IList } from "src/base/browser/secondary/listView/list";
 import { assert, check, panic } from "src/base/common/utilities/panic";
 import { ILog, LogLevel } from "src/base/common/logger";
 import { Iterable } from "src/base/common/utilities/iterable";
+import { RequestAnimateController } from "src/base/browser/basic/animation";
 
 /**
  * The constructor options for {@link ListView}.
@@ -293,6 +294,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     private readonly _scrollable: Scrollable;
     private readonly _scrollableWidget: ScrollableWidget;
+    /** Invoked when every scroll happens */
+    private readonly _scrollAnimate: RequestAnimateController<{}>;
 
     private _rangeTable: RangeTable;
 
@@ -390,6 +393,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
                 scrollbarType: ScrollbarType.vertical,
             },
         );
+
+        this._scrollAnimate = this.__register(new RequestAnimateController(() => {
+            this._scrollable.setScrollSize(this._rangeTable.size());
+        }));
         
         // scroll rendering
         this.__register(this._scrollableWidget.onDidScroll((e: IScrollEvent) => {
@@ -958,9 +965,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 		}
 
         this._listContainer.style.height = `${this._rangeTable.size()}px`;
-        
-        // TODO: request at next animation frame
-        this._scrollable.setScrollSize(this._rangeTable.size());
+        this._scrollAnimate.request({});
         
         return waitToDelete.map(item => item.data);
     }
