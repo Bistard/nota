@@ -14,8 +14,18 @@ import { Disposable } from "src/base/common/dispose";
 
 export const II18nService = createService<II18nService>("i18n-new-service");
 
+/**
+ * A option for {@link I18nService} construction.
+ */
 export interface II18nOptions {
+    /**
+     * The language specified for i18n.
+     */
     readonly language: LanguageType;
+
+    /**
+     * Determines the root of the locale files.
+     */
     readonly localePath: URI;
 }
 
@@ -24,6 +34,9 @@ export interface II18nOptions {
  */
 export type II18nLookUpTable = string[];
 
+/**
+ * An interface only for {@link I18nService}.
+ */
 export interface II18nService extends IService {
     /**
      * Current language.
