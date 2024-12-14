@@ -4,7 +4,7 @@ import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { panic } from "src/base/common/utilities/panic";
 import { Dimension, IDomBox } from "src/base/common/utilities/size";
-import { Pair } from "src/base/common/utilities/type";
+import { If, Pair } from "src/base/common/utilities/type";
 
 const BODY = document.body;
 const DocElement = document.documentElement;
@@ -617,126 +617,111 @@ export interface IDomEvent<IfUseElement extends boolean> {
 	 * Fired when a pointing device button (e.g., a mouse's primary button) is 
 	 * pressed and released on a single element.
 	 */
-	onClick: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onClick: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable, 
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * Fired when a pointing device button (e.g., a mouse's primary button) is 
 	 * clicked twice on a single element.
 	 */
-	onDoubleClick: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onDoubleClick: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * Fired when a pointing device is moved onto the element to which the 
 	 * listener is attached or onto one of its children.
 	 */
-	onMouseover: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onMouseover: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * Fired when a pointing device (usually a mouse) is moved off the element 
 	 * to which the listener is attached or off one of its children.
 	 */
-	onMouseout: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
-    
+	onMouseout: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;    
 	/**
 	 * Fired when a pointing device (usually a mouse) is moved over the element 
 	 * that has the listener attached.
 	 */
-	onMouseenter: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onMouseenter: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * Fired when the pointer of a pointing device (usually a mouse) is moved 
 	 * out of an element that has the listener attached to it.
 	 */
-	onMouseleave: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onMouseleave: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
 	
 	/**
 	 * Fired when a pointing device button is pressed on an element.
 	 */
-	onMousedown: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onMousedown: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * Fired when a pointing device button is released on an element.
 	 */
-	onMouseup: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onMouseup: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * Fired when a pointing device (usually a mouse) is moved while over an 
 	 * element.
 	 */
-	onMousemove: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onMousemove: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
     
 	/**
 	 * The `wheel` event fires when the user rotates a wheel button on a 
 	 * pointing device (typically a mouse).
 	 */
-	onWheel: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: WheelEvent) => void) => IDisposable
-		: (callback: (event: WheelEvent) => void) => IDisposable
-	;
+	onWheel: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: WheelEvent) => void) => IDisposable,
+		(callback: (event: WheelEvent) => void) => IDisposable>;
     
 	/**
 	 * The `touchstart` event is fired when one or more touch points are placed 
 	 * on the touch surface.
 	 */
-	onTouchstart: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
-		: (callback: (event: TouchEvent) => void) => IDisposable
-	;
+	onTouchstart: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable,
+		(callback: (event: TouchEvent) => void) => IDisposable>;
     
 	/**
 	 * The `touchmove` event is fired when one or more touch points are moved 
 	 * along the touch surface.
 	 */
-	onTouchmove: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
-		: (callback: (event: TouchEvent) => void) => IDisposable
-	;
+	onTouchmove: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable,
+		(callback: (event: TouchEvent) => void) => IDisposable>;
     
 	/**
 	 * The `touchend` event fires when one or more touch points are removed from 
 	 * the touch surface.
 	 */
-	onTouchend: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
-		: (callback: (event: TouchEvent) => void) => IDisposable
-	;
+	onTouchend: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable,
+		(callback: (event: TouchEvent) => void) => IDisposable>;
     
 	/**
 	 * The `touchcancel` event is fired when one or more touch points have been 
 	 * disrupted in an implementation-specific manner (for example, too many 
 	 * touch points are created).
 	 */
-	onTouchcancel: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
-		: (callback: (event: TouchEvent) => void) => IDisposable
-	;
+	onTouchcancel: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable,
+		(callback: (event: TouchEvent) => void) => IDisposable>;
 	
 	/**
 	 * The `contextmenu` event fires when the user attempts to open a context 
@@ -751,66 +736,59 @@ export interface IDomEvent<IfUseElement extends boolean> {
 	 * preventDefault() method) will result in a `contextmenu` event being fired 
 	 * at the targeted element.
 	 */
-	onContextmenu: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
-		: (callback: (event: MouseEvent) => void) => IDisposable
-	;
+	onContextmenu: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable,
+		(callback: (event: MouseEvent) => void) => IDisposable>;
 	
 	/**
 	 * The `focusin` event fires when an element has received focus, after the 
 	 * `focus` event. The two events differ in that `focusin` bubbles, while 
 	 * `focus` does not.
 	 */
-	onFocusin: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
-		: (callback: (event: FocusEvent) => void) => IDisposable
-	;
+	onFocusin: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable,
+		(callback: (event: FocusEvent) => void) => IDisposable>;
 	
 	/**
 	 * The `focusout` event fires when an element has lost focus, after the 
 	 * `blur` event. The two events differ in that `focusout` bubbles, while 
 	 * `blur` does not.
 	 */
-	onFocusout: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
-		: (callback: (event: FocusEvent) => void) => IDisposable
-	;
+	onFocusout: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable,
+		(callback: (event: FocusEvent) => void) => IDisposable>;
 
 	/**
 	 * The `focus` event fires when an element has received focus. The event 
 	 * does not bubble, but the related `focusin` event that follows does bubble.
 	 */
-	onFocus: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
-		: (callback: (event: FocusEvent) => void) => IDisposable
-	;
+	onFocus: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable,
+		(callback: (event: FocusEvent) => void) => IDisposable>;
 
 	/**
 	 * The `blur` event fires when an element has lost focus. The event does not 
 	 * bubble, but the related `focusout` event that follows does bubble.
 	 */
-	onBlur: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
-		: (callback: (event: FocusEvent) => void) => IDisposable
-	;
+	onBlur: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable,
+		(callback: (event: FocusEvent) => void) => IDisposable>;
 
 	/**
 	 * The `keydown` event is fired when a key is pressed. The event is fired 
 	 * for all keys, regardless of whether they produce a character value.
 	 */
-	onKeydown: IfUseElement extends	true
-		? (element: HTMLElement, callback: (event: KeyboardEvent) => void) => IDisposable
-		: (callback: (event: KeyboardEvent) => void) => IDisposable
-	;
+	onKeydown: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: KeyboardEvent) => void) => IDisposable,
+		(callback: (event: KeyboardEvent) => void) => IDisposable>;
 	
 	/**
 	 * The `keyup` event is fired when a key is released. The event is fired 
 	 * for all keys, regardless of whether they produce a character value.
 	 */
-	onKeyup: IfUseElement extends true
-		? (element: HTMLElement, callback: (event: KeyboardEvent) => void) => IDisposable
-		: (callback: (event: KeyboardEvent) => void) => IDisposable
-	;
+	onKeyup: If<IfUseElement, 
+		(element: HTMLElement, callback: (event: KeyboardEvent) => void) => IDisposable,
+		(callback: (event: KeyboardEvent) => void) => IDisposable>;
 }
 
 /**
