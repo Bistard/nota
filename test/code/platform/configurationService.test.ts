@@ -460,7 +460,7 @@ suite('BrowserConfigurationService', () => {
 
         // file is also updated
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.strictEqual(configuration['section'], undefined);
+        assert.strictEqual(configuration['section'], 'default value');
 
         await resetUserConfiguration();
     }));
@@ -485,7 +485,7 @@ suite('BrowserConfigurationService', () => {
 
         // file is also updated (browser-side)
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.strictEqual(configuration['section'], undefined);
+        assert.strictEqual(configuration['section'], 'default value');
 
         // in-memory is updated (main-side)
         await delayFor(INSTANT_TIME);
