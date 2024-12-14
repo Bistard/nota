@@ -81,7 +81,6 @@ export class I18nService extends Disposable implements II18nService {
         super();
         this._language = opts.language;
         this._localeRootPath = opts.localePath;
-        this.__register(this.configurationService.onDidConfigurationChange(this.__onConfigurationChange.bind(this)));
     }
 
     // [public methods]
@@ -91,19 +90,23 @@ export class I18nService extends Disposable implements II18nService {
     }
 
     public init(): AsyncResult<void, FileOperationError | SyntaxError> {
-        this.logService.debug("i18n", "Initializing...");
+        this.logService.debug("I18nService", "Initializing...");
+        const uri = URI.join(this._localeRootPath, `${this._language}_lookup_table.json`);
         
         // load the look up table from the disk
-        const uri = URI.join(this._localeRootPath, `${this._language}_lookup_table.json`);
         return this.fileService.readFile(uri)
+            // parse as array
             .andThen(buffer => Strings.jsonParseSafe<II18nLookUpTable>(buffer.toString()))
+            // store in memory and start register listeners.
             .map(table => { 
                 this._table = table;
-                this.logService.debug("i18n", "Initialized successfully.");
+                this.__register(this.configurationService.onDidConfigurationChange(this.__onConfigurationChange.bind(this)));
+                this.logService.debug("I18nService", "Initialized successfully.");
             });
     }
 
     public async setLanguage(lang: LanguageType): Promise<void> {
+        console.log('setLanguage');
         if (lang === this._language) {
             return;
         }
@@ -113,7 +116,7 @@ export class I18nService extends Disposable implements II18nService {
 
     public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string {
         if (!this._table) {
-            this.logService.warn("i18n", "Localization table is not loaded, returning default message.");
+            this.logService.warn("I18nService", "Localization table is not loaded, returning default message.");
             return defaultMessage;
         }
         const value = this._table[key as unknown as number] || defaultMessage;
@@ -124,7 +127,7 @@ export class I18nService extends Disposable implements II18nService {
 
     private __onConfigurationChange(event: IConfigurationChangeEvent): void {
         const language = WorkbenchConfiguration.DisplayLanguage;
-        if (event.match(language)) {
+        if (event.affect(language)) {
             const newLanguage = this.configurationService.get<LanguageType>(language, LanguageType.preferOS);
             this.setLanguage(newLanguage);
         }
@@ -138,7 +141,7 @@ export class I18nService extends Disposable implements II18nService {
             if (interpolation[key] !== undefined) {
                 return String(interpolation[key]);
             }
-            this.logService.warn("i18n", `Missing interpolation value for key: ${key}`);
+            this.logService.warn("I18nService", `Missing interpolation value for key: ${key}`);
             return `{${key}}`;
         });
     }
