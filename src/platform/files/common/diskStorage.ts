@@ -1,8 +1,8 @@
-import { AsyncResult, err, ok } from "src/base/common/result";
+import { AsyncResult, err } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { Dictionary, If } from "src/base/common/utilities/type";
+import { Dictionary, isObject } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { Strings } from "src/base/common/utilities/string";
@@ -10,7 +10,7 @@ import { Strings } from "src/base/common/utilities/string";
 /**
  * An interface only for {@link DiskStorage}.
  */
-export interface IDiskStorage<TSync extends boolean> {
+export interface IDiskStorage {
 
     /**
      * The resource of the storage.
@@ -22,25 +22,25 @@ export interface IDiskStorage<TSync extends boolean> {
      * storage is sync, the storage will start writing to disk asynchronously.
      * @note If `val` is null, it will be stored and replaced with `undefined`.
      */
-    set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): If<TSync, AsyncResult<void, FileOperationError>, void>;
+    set<K extends string, V = any>(key: K, val: V): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Sets pairs of key and value into the storage.
      */
-    setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): If<TSync, AsyncResult<void, FileOperationError>, void>;
+    setLot<K extends string, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Try to get the corresponding value of the given key.
      * @param key The given key.
      * @param defaultVal If key is `undefined`, this value will be returned.
      */
-    get<K extends PropertyKey = PropertyKey, V = any>(key: K, defaultVal?: V): V | undefined;
+    get<K extends string, V = any>(key: K, defaultVal?: V): V | undefined;
 
     /**
      * @description Try to get the corresponding values of the given keys. Works
      * the same as {@link IDiskStorage.get}.
      */
-    getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
+    getLot<K extends string, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
 
     /**
      * @description Try to delete a corresponding value with the given key. The 
@@ -48,13 +48,13 @@ export interface IDiskStorage<TSync extends boolean> {
      * @param key The given key.
      * @returns Returns a boolean to tell if the deletion is taken.
      */
-    delete<K extends PropertyKey = PropertyKey>(key: K): If<TSync, AsyncResult<boolean, FileOperationError>, boolean>;
+    delete<K extends string>(key: K): AsyncResult<boolean, FileOperationError>;
 
     /**
      * @description Check if storage has a corresponding value of the given key.
      * @param key The given key.
      */
-    has<K extends PropertyKey = PropertyKey>(key: K): boolean;
+    has<K extends string>(key: K): boolean;
 
     /**
      * @description Initialize the storage and will read the file content into
@@ -81,8 +81,12 @@ class DiskStorageBase {
     
     // [fields]
 
-    protected _storage: Dictionary<PropertyKey, Omit<any, 'null'>> = Object.create(null);
-    protected _lastSaveStorage: string = '';
+    protected _storage: Dictionary<string, any> = Object.create(null);
+    
+    /**
+     * Indicating if the storage is currently working. Represents the current
+     * operation.
+     */
     protected _operating?: AsyncResult<void, FileOperationError>;
 
     // [constructor]
@@ -96,11 +100,11 @@ class DiskStorageBase {
 
     get resource(): URI { return this.path; }
 
-    public get<K extends PropertyKey = PropertyKey, V = any>(key: K, defaultVal?: V): V | undefined {
-        return this.getLot([key], [defaultVal!!])[0];
+    public get<K extends string, V = any>(key: K, defaultVal?: V): V | undefined {
+        return this.getLot([key], [defaultVal!!])[0]; // REVIEW
     }
 
-    public getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
+    public getLot<K extends string, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
         const result: (V | undefined)[] = [];
 
         let i = 0;
@@ -112,7 +116,7 @@ class DiskStorageBase {
         return result;
     }
 
-    public has<K extends PropertyKey = PropertyKey>(key: K): boolean {
+    public has<K extends string>(key: K): boolean {
         return !!this.get(key);
     }
 
@@ -132,7 +136,6 @@ class DiskStorageBase {
         if (this._operating === undefined) {
             return AsyncResult.ok();
         }
-
         return this.__save();
     }
 
@@ -141,9 +144,7 @@ class DiskStorageBase {
         if (this._operating === undefined) {
             return AsyncResult.ok();
         }
-
-        return this._operating
-            .andThen(() => this.__close());
+        return this._operating.andThen(() => this.__close());
     }
 
     // [protected helper methods]
@@ -157,57 +158,45 @@ class DiskStorageBase {
 
     protected __save(): AsyncResult<void, FileOperationError> {
 
-        return new AsyncResult((async () => {
-            // never got initialized or already closed, we should never save.
-            if (this._operating === undefined) {
-                return ok();
-            }
+        // never got initialized or already closed, we should never save.
+        if (!this._operating) {
+            return AsyncResult.ok();
+        }
 
-            // ensure 'init', 'close' or 'save' are completed
-            const success = await this._operating;
-            if (success.isErr()) {
-                return err(success.error);
-            }
-
+        // ensure 'init', 'close' or previous 'save' are completed
+        return this._operating.andThen(() => {
             const serialized = Strings.stringifySafe(this._storage, undefined, undefined, 4);
-            if (this._lastSaveStorage === serialized) {
-                // no diff, we quit in advance.
-                return ok();
-            }
 
-            // writing work
             // eslint-disable-next-line local/code-must-handle-result
-            this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
-            this._lastSaveStorage = serialized;
-
+            this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: true, overwrite: true, unlock: false });
             return this._operating;
-        })());
+        });
     }
 
     protected __close(): AsyncResult<void, FileOperationError> {
-        return this.__save()
-        .andThen(() => { 
-            this._operating = undefined; 
-            return ok(); 
-        });
+        return this.__save().map(() => this._operating = undefined);
     }
 
     // [private helper methods]
 
     private __onInitFileRead(buffer: DataBuffer): AsyncResult<boolean, FileOperationError> {
-        this._lastSaveStorage = buffer.toString();
-    
-        // If the file is empty, no further action is needed
-        if (!this._lastSaveStorage.length) {
+        const raw = buffer.toString();
+
+        // If the file is empty, no further action is needed.
+        if (!raw.length) {
             return AsyncResult.ok(false);
         }
     
         // Parse the file content
-        return Strings.jsonParseSafe<any>(this._lastSaveStorage)
+        return Strings.jsonParseSafe<any>(raw)
             .toAsync()
-            .andThen(parsed => {
+            .map(parsed => {
+                // invalid reading data, reinitialize it.
+                if (isObject(parsed) === false) {
+                    return true;
+                }
                 this._storage = parsed;
-                return ok(false);
+                return false;
             })
             .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
     }
@@ -240,7 +229,7 @@ class DiskStorageBase {
  * - Efficient in-memory storage using a dictionary for key-value pairs.
  * - Asynchronous disk I/O, allowing non-blocking read and write operations.
  */
-export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage<true> {
+export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage {
 
     // [constructor]
 
@@ -253,18 +242,18 @@ export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage<tr
 
     // [public methods]
 
-    public set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): AsyncResult<void, FileOperationError> {
+    public set<K extends string, V = any>(key: K, val: V): AsyncResult<void, FileOperationError> {
         return this.setLot([{ key, val }]);
     }
 
-    public setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError> {
+    public setLot<K extends string, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError> {
         let save = false;
 
         for (const { key, val } of items) {
             if (this._storage[key] === val) {
                 return AsyncResult.ok();
             }
-            this._storage[key] = val ?? undefined!;
+            this._storage[key] = val;
             save = true;
         }
 
@@ -275,12 +264,12 @@ export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage<tr
         return AsyncResult.ok();
     }
 
-    public delete<K extends PropertyKey = PropertyKey>(key: K): AsyncResult<boolean, FileOperationError> {
+    public delete<K extends string>(key: K): AsyncResult<boolean, FileOperationError> {
         if (this._storage[key] === undefined) {
             return AsyncResult.ok(false);
         }
 
-        this._storage[key] = undefined!;
+        delete this._storage[key];
         return this.__save().map(() => true);
     }
 }
