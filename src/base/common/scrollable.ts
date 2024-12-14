@@ -1,5 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 
 /**
  * @readonly Scroll wheel event type.
@@ -22,8 +22,10 @@ import { Emitter } from "src/base/common/event";
 /**
  * An interface only for {@link Scrollable}.
  */
-export interface IScrollable {
+export interface IScrollable extends IDisposable {
 	
+    readonly onDidScroll: Register<IScrollEvent>;
+
 	setScrollbarSize(size: number): void;
 	setViewportSize(size: number): void;
 	setScrollSize(size: number): void;
@@ -51,6 +53,12 @@ export interface IScrollable {
      * @description Returns a clone of itself.
      */
     clone():  Scrollable;
+
+    /**
+     * @description Manually construct a scroll event.
+     * @note The `prev`-related data will be the same as the current data.
+     */
+    getScrollEvent(): IScrollEvent;
 }
 
 const MIN_SLIDER_SIZE = 20; // pixels
@@ -232,6 +240,10 @@ export class Scrollable implements IScrollable, IDisposable {
 
     public getScrollPositionFromDelta(delta: number): number {
         return Math.round((this._sliderPosition + delta) / this._sliderRatio);
+    }
+
+    public getScrollEvent(): IScrollEvent {
+        return this.__createScrollEvent(this);
     }
 
     // [private methods]
