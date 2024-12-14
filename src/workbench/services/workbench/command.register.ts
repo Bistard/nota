@@ -16,7 +16,6 @@ import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
-import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { StatusKey } from "src/platform/status/common/status";
 import { IBrowserService } from "src/code/browser/common/renderer.common";
@@ -128,8 +127,9 @@ export const rendererWorkbenchCommandRegister = createRegister(
                 command: (provider) => {
                     const navViewService = provider.getOrCreateService(INavigationViewService);
                     const currentView = navViewService.currView();
-                    if (currentView && currentView.id === ExplorerViewID) {
-                        (<ExplorerView>currentView).close();
+
+                    if (currentView && ExplorerView.is(currentView)) {
+                        currentView.close();
                     }
                 }
             }

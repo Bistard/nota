@@ -10,7 +10,7 @@ import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
 import { Disposable, DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
-import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
+import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
@@ -86,6 +86,12 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     get root(): URI | undefined {
         return this.fileTreeService.root;
+    }
+
+    // [static methods]
+
+    public static is(view: INavView): view is ExplorerView {
+        return view.id === ExplorerViewID;
     }
 
     // [public method]

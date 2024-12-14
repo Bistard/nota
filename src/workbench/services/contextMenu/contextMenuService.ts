@@ -67,7 +67,7 @@ export interface IContextMenuService extends IService {
 
     /**
      * @description Shows up a context menu. the content will be filled with
-     * exisiting menu.
+     * existing menu.
      * @param delegate The delegate to provide external functionalities.
      * @param container The container that contains the context menu. If not
      *                  provided, it will be positioned under the current active

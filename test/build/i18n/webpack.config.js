@@ -16,9 +16,8 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     }
 
     // [public - configuration initialization]
-    construct() {
 
-        // base configuration
+    construct() {
         const baseConfiguration = Object.assign(
             {},
             super.construct({
