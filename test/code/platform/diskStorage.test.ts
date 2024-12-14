@@ -3,13 +3,13 @@ import { after, afterEach, before } from 'mocha';
 import { join } from 'src/base/common/files/path';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { AsyncDiskStorage } from 'src/platform/files/common/diskStorage';
+import { DiskStorage } from 'src/platform/files/common/diskStorage';
 import { NullLogger } from 'test/utils/testService';
 import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
 import { DataBuffer } from 'src/base/common/files/buffer';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
-suite('AsyncDiskStorage-test', () => {
+suite('DiskStorage-test', () => {
     let dir: URI;
     let path: URI;
     let fileService: IFileService;
@@ -35,7 +35,7 @@ suite('AsyncDiskStorage-test', () => {
     }));
 
     test('basic - set / get / has', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
+        const storage = new DiskStorage(path, fileService);
         (await storage.init().unwrap());
 
         await storage.set('key1', 'value1').unwrap();
@@ -64,8 +64,14 @@ suite('AsyncDiskStorage-test', () => {
         assert.strictEqual(storage.has('key7'), false);
     }));
 
+    test('get with no value - replace with default', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, fileService);
+        (await storage.init().unwrap());
+        assert.strictEqual(storage.get('key1', 'default1'), 'default1');
+    }));
+
     test('used before init', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
+        const storage = new DiskStorage(path, fileService);
 
         await storage.set('key1', 'value1').unwrap();
         await storage.delete('key2').unwrap();
@@ -80,7 +86,7 @@ suite('AsyncDiskStorage-test', () => {
     }));
 
     test('used after close', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
+        const storage = new DiskStorage(path, fileService);
         (await storage.init().unwrap());
 
         await storage.set('key1', 'value1').unwrap();
@@ -100,7 +106,7 @@ suite('AsyncDiskStorage-test', () => {
     }));
 
     test('Closed before init', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
+        const storage = new DiskStorage(path, fileService);
 
         await storage.set('key1', 'value1').unwrap();
         await storage.set('key2', 'value2').unwrap();
@@ -114,7 +120,7 @@ suite('AsyncDiskStorage-test', () => {
     }));
 
     test('re-init', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
+        const storage = new DiskStorage(path, fileService);
         (await storage.init().unwrap());
 
         (await storage.close().unwrap());
@@ -130,7 +136,7 @@ suite('AsyncDiskStorage-test', () => {
     }));
 
     test('manually saving', () => FakeAsync.run(async () => {
-        const storage = new AsyncDiskStorage(path, fileService);
+        const storage = new DiskStorage(path, fileService);
         (await storage.init().unwrap());
 
         await storage.set('key1', 'value1').unwrap();

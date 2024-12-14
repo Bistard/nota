@@ -77,7 +77,7 @@ export interface IDiskStorage {
     close(): AsyncResult<void, FileOperationError>;
 }
 
-class DiskStorageBase {
+export class DiskStorage {
     
     // [fields]
 
@@ -101,7 +101,7 @@ class DiskStorageBase {
     get resource(): URI { return this.path; }
 
     public get<K extends string, V = any>(key: K, defaultVal?: V): V | undefined {
-        return this.getLot([key], [defaultVal!!])[0]; // REVIEW
+        return this.getLot([key], [defaultVal])[0];
     }
 
     public getLot<K extends string, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
@@ -118,6 +118,37 @@ class DiskStorageBase {
 
     public has<K extends string>(key: K): boolean {
         return !!this.get(key);
+    }
+
+    public set<K extends string, V = any>(key: K, val: V): AsyncResult<void, FileOperationError> {
+        return this.setLot([{ key, val }]);
+    }
+
+    public setLot<K extends string, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError> {
+        let save = false;
+
+        for (const { key, val } of items) {
+            if (this._storage[key] === val) {
+                return AsyncResult.ok();
+            }
+            this._storage[key] = val;
+            save = true;
+        }
+
+        if (save) {
+            return this.__save();
+        }
+
+        return AsyncResult.ok();
+    }
+
+    public delete<K extends string>(key: K): AsyncResult<boolean, FileOperationError> {
+        if (this._storage[key] === undefined) {
+            return AsyncResult.ok(false);
+        }
+
+        delete this._storage[key];
+        return this.__save().map(() => true);
     }
 
     public init(): AsyncResult<void, FileOperationError> {
@@ -215,7 +246,7 @@ class DiskStorageBase {
 }
 
 /**
- * @class The `AsyncDiskStorage` class provide an asynchronous interface for 
+ * @class The `DiskStorage` class provide an asynchronous interface for 
  * disk storage operations. It implements the `IDiskStorage` interface with a 
  * focus on asynchronous behavior, allowing for non-blocking I/O operations.
  *
@@ -229,47 +260,3 @@ class DiskStorageBase {
  * - Efficient in-memory storage using a dictionary for key-value pairs.
  * - Asynchronous disk I/O, allowing non-blocking read and write operations.
  */
-export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage {
-
-    // [constructor]
-
-    constructor(
-        path: URI,
-        @IFileService fileService: IFileService,
-    ) {
-        super(path, fileService);
-    }
-
-    // [public methods]
-
-    public set<K extends string, V = any>(key: K, val: V): AsyncResult<void, FileOperationError> {
-        return this.setLot([{ key, val }]);
-    }
-
-    public setLot<K extends string, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError> {
-        let save = false;
-
-        for (const { key, val } of items) {
-            if (this._storage[key] === val) {
-                return AsyncResult.ok();
-            }
-            this._storage[key] = val;
-            save = true;
-        }
-
-        if (save) {
-            return this.__save();
-        }
-
-        return AsyncResult.ok();
-    }
-
-    public delete<K extends string>(key: K): AsyncResult<boolean, FileOperationError> {
-        if (this._storage[key] === undefined) {
-            return AsyncResult.ok(false);
-        }
-
-        delete this._storage[key];
-        return this.__save().map(() => true);
-    }
-}
