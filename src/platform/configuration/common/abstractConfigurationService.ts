@@ -162,18 +162,30 @@ export interface IConfigurationChangeEvent {
     readonly properties: Set<Section>;
 
     /**
-     * @description Check if the given section finds an exact match or find a 
-     * child of the section in the changing events.
-     * @param section The given section.
-     */
-    affect(section: Section): boolean;
-
-    /**
      * @description Check if the given section finds an exact match in the 
      * changing events.
      * @param section The given section.
+     * 
+     * @example
+     * // changed properties: ['section1.section2']
+     * // match('section1') => false
+     * // match('section1.section2') => true
+     * // match('section1.section2.section3') => false
      */
     match(section: Section): boolean;
+
+    /**
+     * @description Check if the given section finds an exact match or find a 
+     * parent of the section in the changing events.
+     * @param section The given section.
+     * 
+     * @example
+     * // changed properties: ['section1.section2']
+     * // match('section1') => false
+     * // match('section1.section2') => true
+     * // match('section1.section2.section3') => true
+     */
+    affect(section: Section): boolean;
 }
 
 export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
