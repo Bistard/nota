@@ -7,9 +7,6 @@
     ],
     "version": "0.6.2",
     "contents": {
-        "code/browser/renderer.desktop": {
-            "renderer": "some english text"
-        },
         "workbench/contrib/explorer/explorer": {
             "openDirectory": "Open a Folder"
         }

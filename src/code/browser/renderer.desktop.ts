@@ -116,13 +116,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // create workbench UI
             const workbench = instantiationService.createInstance(Workbench);
             workbench.init();
-
-            // TEST:
-            instantiationService.getOrCreateService(II18nService).localize('renderer', 'some english text');
-            instantiationService.getOrCreateService(II18nService).localize('renderer', 'some english text');
-            /*
-            instantiationService.getOrCreateService(II18nService).localize('renderer2', 'renderer default2');
-            */
+            
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
             browser.init();
