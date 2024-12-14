@@ -103,6 +103,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         onMainProcess(IpcChannel.Menu, async () => {
             this.updateMacOSMenu();
         });
+        
         // inspector listener
         this.browserInspectorService.startListening();
     }

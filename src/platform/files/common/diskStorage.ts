@@ -82,6 +82,19 @@ export interface IDiskStorage {
     getStorage(): Dictionary<string, any>;
 }
 
+/**
+ * @class A class that represents a disk-based key-value storage system. It is 
+ * designed to persistently manage key-value pairs in a file, with support for 
+ * asynchronous operations and in-memory caching. This class provides methods 
+ * for storing, retrieving, deleting, and managing data, as well as initializing 
+ * and saving the storage to disk.
+ *
+ * Constraints:
+ * - All operations must be preceded by a call to `init()` to ensure the storage 
+ *      is ready.
+ * - After invoking `close()`, operations are ignored until reinitialized using 
+ *      `init()`.
+ */
 export class DiskStorage implements IDiskStorage {
     
     // [fields]

@@ -141,5 +141,4 @@ export class MainMenuService implements IMenuService {
         }
     }
 }
-export { mainMenuTypes };
 

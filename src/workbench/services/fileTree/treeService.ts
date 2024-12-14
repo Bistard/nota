@@ -265,7 +265,7 @@ export interface IFileTreeService extends IDisposable, IService {
     setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean>;
 
     /**
-     * Get recent opened file tree folders' paths
+     * @description Get recent opened directory paths.
      */
     getRecentPaths(): Promise<string[]>;
 }
