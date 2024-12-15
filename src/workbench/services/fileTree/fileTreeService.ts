@@ -14,13 +14,13 @@ import { ConfigurationModuleType, IConfigurationService } from "src/platform/con
 import { AsyncResult } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { FileSortOrder, FileSortType, FileTreeSorter, defaultFileItemCompareFnAsc, defaultFileItemCompareFnDesc } from "src/workbench/services/fileTree/fileTreeSorter";
-import { FileOperationError } from "src/base/common/files/file";
+import { FileOperationError, FileType } from "src/base/common/files/file";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { Scheduler } from "src/base/common/utilities/async";
 import { IResourceChangeEvent } from "src/platform/files/common/resourceChangeEvent";
 import { Time } from "src/base/common/date";
-import { assert, errorToMessage, panic } from "src/base/common/utilities/panic";
+import { assert, panic } from "src/base/common/utilities/panic";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { noop } from "src/base/common/performance";
@@ -30,11 +30,8 @@ import { IContextMenuService } from "src/workbench/services/contextMenu/contextM
 import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuTypes } from "src/platform/menu/common/menu";
-import { IHostService } from "src/platform/host/common/hostService";
-import { StatusKey } from "src/platform/status/common/status";
-import { ErrorHandler } from "src/base/common/error";
-import { Arrays } from "src/base/common/utilities/array";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { IRecentOpenService } from "src/platform/app/common/recentOpenService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -66,6 +63,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IRecentOpenService private readonly recentOpenService: IRecentOpenService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
@@ -116,7 +114,11 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                 this._onSelect.setInput(tree.onSelect);
                 this._onDidChangeFocus.setInput(tree.onDidChangeFocus);
 
-                this._recentPathController.addToOpenRecent(root);
+                await this.recentOpenService.addToRecentOpened({ 
+                    target: root,
+                    targetType: FileType.DIRECTORY,
+                    pinned: false,
+                });
                 
                 /**
                  * After the tree is constructed, refresh tree to fetch the
@@ -366,8 +368,13 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
         // save the last opened workspace root path.
         this.__register(this.lifecycleService.onWillQuit(e => e.join((async () => {
-            const openedWorkspace = this.root ? URI.toString(URI.join(this.root, '|directory')) : '';
-            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
+            if (this.root) {
+                await this.recentOpenService.addToRecentOpened({ 
+                    target: this.root,
+                    targetType: FileType.DIRECTORY,
+                    pinned: false,
+                });
+            }
         })())));
     }
 

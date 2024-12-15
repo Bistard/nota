@@ -1,12 +1,9 @@
 import type { WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { ILogService } from "src/base/common/logger";
-import { IShortcutService } from "src/workbench/services/shortcut/shortcutService";
-import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { Disposable } from "src/base/common/dispose";
-import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { delayFor } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
 import { IHostService } from "src/platform/host/common/hostService";
@@ -20,8 +17,9 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IMenuItemRegistrationResolved, mainMenuTypes, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
-import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IBrowserService } from "src/code/browser/common/renderer.common";
+import { IRecentOpenService } from "src/platform/app/common/recentOpenService";
+import { URI } from "src/base/common/files/uri";
 
 export class BrowserInstance extends Disposable implements IBrowserService {
 
@@ -32,15 +30,13 @@ export class BrowserInstance extends Disposable implements IBrowserService {
     constructor(
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
-        @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
-        @IShortcutService private readonly shortcutService: IShortcutService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
-        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IHostService private readonly hostService: IHostService,
         @ICommandService private readonly commandService: ICommandService,
         @IBrowserInspectorService private readonly browserInspectorService: IBrowserInspectorService,
-        @IRegistrantService private readonly registrantService: IRegistrantService
+        @IRegistrantService private readonly registrantService: IRegistrantService,
+        @IRecentOpenService private readonly recentOpenService: IRecentOpenService,
     ) {
         super();
         logService.debug('BrowserInstance', 'BrowserInstance constructed.');
@@ -103,7 +99,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         onMainProcess(IpcChannel.Menu, async () => {
             this.updateMacOSMenu();
         });
-        
+
         // inspector listener
         this.browserInspectorService.startListening();
     }
@@ -112,8 +108,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         const reg = menuRegistrant.getRegistrant(RegistrantType.Menu);
         reg.clearMenuItems(MenuTypes.FileOpenRecent);
 
-        const fileTreeService = this.instantiationService.getOrCreateService(IFileTreeService);
-        const recentPaths: string[] = await fileTreeService.getRecentPaths();
+        const recentPaths = await this.recentOpenService.getRecentOpenedAll();
 
         if (recentPaths.length === 0) {
             reg.registerMenuItem(MenuTypes.FileOpenRecent, {
@@ -122,13 +117,14 @@ export class BrowserInstance extends Disposable implements IBrowserService {
                 command: { commandID: "" },
             });
         } else {
-            for (const p of recentPaths) {
+            for (const { target } of recentPaths) {
+                const path = URI.toFsPath(target);
                 reg.registerMenuItem(MenuTypes.FileOpenRecent, {
                     group: '1_recent',
-                    title: p,
+                    title: path,
                     command: {
                         commandID: AllCommands.fileTreeOpenFolder,
-                        args: [p],
+                        args: [path],
                     },
                 });
             }
