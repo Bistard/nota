@@ -63,7 +63,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IProductService private readonly productService: IProductService,
-        @IHostService private readonly hostService: IHostService,
     ) {
         super();
         this.registerListeners();
@@ -177,12 +176,13 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private async openFirstWindow(provider: IServiceProvider): Promise<IWindowInstance> {
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
+        const hostService = provider.getOrCreateService(IHostService);
 
         // retrieve last saved opened window status
         const uriOpen: Mutable<IUriToOpenConfiguration> = { directory: undefined, files: undefined, };
         const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
         if (shouldRestore) {
-            uriOpen.directory = await RecentOpenUtility.getRecentOpenedDirectory(this.hostService);
+            uriOpen.directory = await RecentOpenUtility.getRecentOpenedDirectory(hostService);
         }
 
         // open the first window
