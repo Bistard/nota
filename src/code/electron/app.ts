@@ -36,6 +36,7 @@ import { IMenuService } from "src/platform/menu/common/menu";
 import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IS_MAC } from "src/base/common/platform";
+import { IRecentOpenService, RecentOpenService } from "src/platform/app/common/recentOpenService";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -139,6 +140,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // main-inspector-service
         this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
+
+        // recent-open-service
+        this.mainInstantiationService.register(IRecentOpenService, new ServiceDescriptor(RecentOpenService, []));
 
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
