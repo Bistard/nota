@@ -3,6 +3,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { FileType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
+import { noop } from "src/base/common/performance";
 import { Result } from "src/base/common/result";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
@@ -77,6 +78,12 @@ export interface IRecentOpenService extends IService {
      * opened list. or undefined if the list is empty.
      */
     getRecentOpenedFile(): Promise<IRecentOpenedTarget | undefined>;
+
+    /**
+     * @description Clears all the recent opened list.
+     * @returns A boolean indicates if the operation succeed.
+     */
+    clearRecentOpened(): Promise<boolean>;
 }
 
 /**
@@ -170,6 +177,18 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
                 ErrorHandler.onUnexpectedError(err);
                 return [];
             }
+        );
+    }
+
+    public async clearRecentOpened(): Promise<boolean> {
+        return Result.fromPromise(
+            () => this.hostService.setApplicationStatus(StatusKey.OpenRecent, [])
+        ).match(
+            () => true, 
+            err => {
+                ErrorHandler.onUnexpectedError(err);
+                return false;
+            },
         );
     }
 

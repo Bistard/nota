@@ -17,8 +17,7 @@ import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
-import { StatusKey } from "src/platform/status/common/status";
-import { IBrowserService } from "src/code/browser/common/renderer.common";
+import { IRecentOpenService } from "src/platform/app/common/recentOpenService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -153,10 +152,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
             {
                 id: AllCommands.fileTreeClearRecentOpened,
                 command: async (provider) => {
-                    const hostService = provider.getOrCreateService(IHostService);
-                    await hostService.setApplicationStatus(StatusKey.OpenRecent, []);
-                    const browserService = provider.getOrCreateService(IBrowserService);
-                    browserService.updateMacOSMenu();
+                    const recentOpenService = provider.getOrCreateService(IRecentOpenService);
+                    recentOpenService.clearRecentOpened();
                 }
             }
         );
