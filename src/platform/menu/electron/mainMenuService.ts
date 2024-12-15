@@ -28,6 +28,11 @@ export class MainMenuService implements IMenuService {
         Event.once(this.mainWindowService.onDidOpenWindow)(window => {
             Event.once(window.onRendererReady)(() => {
                 window.sendIPCMessage(IpcChannel.Menu);
+                
+                /**
+                 * Whenever receive data at the channel from the renderer process, 
+                 * we refresh the content of the menu.
+                 */
                 SafeIpcMain.instance.on(IpcChannel.Menu, (_, menuItems: [MenuTypes, IMenuItemRegistrationResolved[]][]) => {
                     clearTimeout(maxDelay);
                     for (const [menuType, items] of menuItems) {

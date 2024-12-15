@@ -63,5 +63,4 @@ export const IBrowserService = createService<IBrowserService>('browser-service')
  */
 export interface IBrowserService extends IService {
     init(): void;
-    updateMacOSMenu(): Promise<void>;
 }

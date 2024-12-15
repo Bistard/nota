@@ -1,11 +1,15 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { URI } from "src/base/common/files/uri";
+import { createMenuRecentOpenTemplate } from "src/platform/app/common/menu.register";
 import { IRecentOpenedTarget, RecentOpenUtility } from "src/platform/app/common/recentOpen";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
 import { IMenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
+import { MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 export const IRecentOpenService = createService<IRecentOpenService>('recent-open-service');
 
@@ -17,9 +21,8 @@ export interface IRecentOpenService extends IService {
     /**
      * Fires whenever any new recent opened added. Event will be `undefined` if
      * the recent opened list is cleared.
-     * // FIX: this only get triggered when the changes happens in the same process.
      */
-    readonly recentOpenedChange: Register<IRecentOpenedTarget | undefined>;
+    readonly onRecentOpenedChange: Register<IRecentOpenedTarget | undefined>;
 
     /**
      * @description Adds a target to the recently opened list. This target will 
@@ -89,8 +92,8 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
 
     // [field]
 
-    private readonly _recentOpenedChange = this.__register(new Emitter<IRecentOpenedTarget | undefined>());
-    public readonly recentOpenedChange = this._recentOpenedChange.registerListener;
+    private readonly _onRecentOpenedChange = this.__register(new Emitter<IRecentOpenedTarget | undefined>());
+    public readonly onRecentOpenedChange = this._onRecentOpenedChange.registerListener;
 
     private readonly _menuRegistrant: IMenuRegistrant;
 
@@ -109,7 +112,7 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     public async addToRecentOpened(target: IRecentOpenedTarget): Promise<boolean> {
         const taken = await RecentOpenUtility.addToRecentOpened(this.hostService, target);
         if (taken) {
-
+            await this.__onRecentOpenChange(target);
         }
         return taken;
     }
@@ -133,8 +136,38 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     public async clearRecentOpened(): Promise<boolean> {
         const taken = await RecentOpenUtility.clearRecentOpened(this.hostService);
         if (taken) {
-            
+            await this.__onRecentOpenChange(undefined);
         }
         return taken;
+    }
+
+    // [private helper methods]
+
+    private async __onRecentOpenChange(target?: IRecentOpenedTarget): Promise<void> {
+        await this.__refreshMenuOpenRecent();
+        this._onRecentOpenedChange.fire(target);
+    }
+
+    private async __refreshMenuOpenRecent(): Promise<void> {
+        this._menuRegistrant.clearMenuItems(MenuTypes.FileRecentOpen);
+        const recentOpened = await this.getRecentOpenedAll();
+        
+        // fixed (basic)
+        for (const item of createMenuRecentOpenTemplate()) {
+            this._menuRegistrant.registerMenuItem(MenuTypes.FileRecentOpen, item);
+        }
+
+        // dynamic (recent opened)
+        for (const { target } of recentOpened) {
+            const name = URI.toFsPath(target);
+            this._menuRegistrant.registerMenuItem(MenuTypes.FileRecentOpen, {
+                group: '2_recent_open',
+                title: name,
+                command: {
+                    commandID: AllCommands.fileTreeOpenFolder,
+                    args: [name],
+                },
+            });
+        }
     }
 }
