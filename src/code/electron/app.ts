@@ -199,7 +199,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
             applicationName: this.productService.profile.applicationName,
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
-            uriToOpen: uriToOpen,
+            uriOpenConfiguration: uriOpen,
             displayOptions: {
                 frameless: true,
             },

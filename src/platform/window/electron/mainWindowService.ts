@@ -213,7 +213,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             applicationName: this.productService.profile.applicationName,
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
-            uriOpenConfiguration: uriToOpenConfiguration,
+            uriOpenConfiguration: {
+                directory: undefined,
+                files: undefined
+            },
             hostWindow: -1,
             nlsConfiguration: nlsConfiguration,
 
@@ -221,7 +224,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             loadFile: DEFAULT_HTML,
             CLIArgv: this.environmentService.CLIArguments,
             displayOptions: defaultDisplayState(this.screenMonitorService.getPrimaryMonitorInfo()),
-            uriToOpen: [],
             forceNewWindow: false,
             ownerWindow: undefined,
         };

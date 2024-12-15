@@ -1,6 +1,7 @@
 import { URI } from "src/base/common/files/uri";
 import { IS_MAC } from "src/base/common/platform";
 import { UUID } from "src/base/common/utilities/string";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpenService";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
 import { IpcChannel } from "src/platform/ipc/common/channel";
@@ -103,17 +104,12 @@ export const enum ToOpenType {
     File,
 }
 
-export interface IFileToOpen {
-    readonly uri: URI;
-    readonly gotoLine?: number;
-}
-
 /**
  * Determines what type of URIs are about to be opened in the window.
  */
 export interface IUriToOpenConfiguration {
-    readonly directory?: URI;
-    readonly filesToOpen?: IFileToOpen[];
+    readonly directory?: IRecentOpenedTarget;
+    readonly files?: IRecentOpenedTarget[]; // TODO: unused
 }
 
 /**
@@ -172,11 +168,6 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
     readonly CLIArgv: ICLIArguments;
     readonly displayOptions: IWindowDisplayOpts;
 
-    /**
-     * URIs to be opened in the window, might be either directory or file.
-     */
-    readonly uriToOpen: URI[];
-    
     /**
      * If window id is provided, this new window's lifecycle will bind with the
      * given window id.

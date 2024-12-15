@@ -13,6 +13,8 @@ import { IMainStatusService } from "src/platform/status/electron/mainStatusServi
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { Dictionary } from "src/base/common/utilities/type";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpenService";
+import { FileType } from "src/base/common/files/file";
 
 /**
  * An interface only for {@link MainHostService}.
@@ -225,10 +227,17 @@ export class MainHostService extends Disposable implements IMainHostService {
     private async __openDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
-        const uriToOpen = picked.map(path => URI.fromFile(path));
+        const filesToOpen = picked.map<IRecentOpenedTarget>(path => ({
+            target: URI.fromFile(path),
+            targetType: FileType.FILE,
+            pinned: false,
+        }));
 
         this.mainWindowService.open({
-            uriToOpen: uriToOpen,
+            uriOpenConfiguration: {
+                directory: undefined,
+                files: filesToOpen,
+            },
             forceNewWindow: opts.forceNewWindow,
             hostWindow: windowID ?? -1,
         });

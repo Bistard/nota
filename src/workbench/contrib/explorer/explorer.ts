@@ -129,7 +129,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
          */
         const uriToOpen = this.environmentService.configuration.uriOpenConfiguration;
         if (uriToOpen.directory) {
-            this.open(uriToOpen.directory);
+            this.open(uriToOpen.directory.target);
         }
         // we simply put an empty view
         else {
