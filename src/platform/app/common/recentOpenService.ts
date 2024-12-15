@@ -3,10 +3,9 @@ import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { FileType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { noop } from "src/base/common/performance";
 import { Result } from "src/base/common/result";
 import { Arrays } from "src/base/common/utilities/array";
-import { Strings } from "src/base/common/utilities/string";
+import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
 import { StatusKey } from "src/platform/status/common/status";
@@ -44,16 +43,18 @@ export interface IRecentOpenedTarget {
 export interface IRecentOpenService extends IService {
 
     /**
-     * Fires whenever any new recent opened added.
+     * Fires whenever any new recent opened added. Event will be `undefined` if
+     * the recent opened list is cleared.
      * // FIX: this only get triggered when the changes happens in the same process.
      */
-    readonly recentOpenedChange: Register<IRecentOpenedTarget>;
+    readonly recentOpenedChange: Register<IRecentOpenedTarget | undefined>;
 
     /**
-     * Adds a target to the recently opened list. This target will be treated
-     * as the most recent opened.
+     * @description Adds a target to the recently opened list. This target will 
+     * be treated as the most recent opened.
+     * @returns A boolean indicates if the operation succeed.
      */
-    addToRecentOpened(target: IRecentOpenedTarget): Promise<void>;
+    addToRecentOpened(target: IRecentOpenedTarget): Promise<boolean>;
 
     /**
      * @description Retrieves all items from the recently opened list. The most
@@ -116,10 +117,8 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
 
     // [field]
 
-    private readonly _recentOpenedChange = this.__register(new Emitter<IRecentOpenedTarget>());
+    private readonly _recentOpenedChange = this.__register(new Emitter<IRecentOpenedTarget | undefined>());
     public readonly recentOpenedChange = this._recentOpenedChange.registerListener;
-
-    public static readonly MAX_SIZE = 100;
 
     // [constructor]
 
@@ -131,23 +130,8 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
 
     // [public methods]
 
-    public async addToRecentOpened(target: IRecentOpenedTarget): Promise<void> {
-        let recentOpened = await this.getRecentOpenedAll();
-
-        // append to the first then remove duplicate
-        recentOpened.unshift(target);
-        recentOpened = Arrays.unique(recentOpened, each => URI.toString(each.target));
-        recentOpened = recentOpened.slice(0, RecentOpenService.MAX_SIZE);
-
-        // write back to disk
-        const serialization = recentOpened.map(each => this.__serialize(each));
-        
-        return Result.fromPromise(
-            () => this.hostService.setApplicationStatus(StatusKey.OpenRecent, serialization),
-        ).match(
-            () => this._recentOpenedChange.fire(target),
-            err => ErrorHandler.onUnexpectedError(err),
-        );
+    public async addToRecentOpened(target: IRecentOpenedTarget): Promise<boolean> {
+        return RecentOpenUtility.addToRecentOpened(this.hostService, target);
     }
 
     public async getRecentOpened(): Promise<IRecentOpenedTarget | undefined> {
@@ -155,100 +139,18 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     }
 
     public async getRecentOpenedDirectory(): Promise<IRecentOpenedTarget | undefined> {
-        return (await this.getRecentOpenedAll()).find(each => each.targetType === FileType.DIRECTORY);
+        return RecentOpenUtility.getRecentOpenedDirectory(this.hostService);
     }
 
     public async getRecentOpenedFile(): Promise<IRecentOpenedTarget | undefined> {
-        return (await this.getRecentOpenedAll()).find(each => each.targetType === FileType.FILE);
+        return RecentOpenUtility.getRecentOpenedFile(this.hostService);
     }
 
     public async getRecentOpenedAll(): Promise<IRecentOpenedTarget[]> {
-        return Result.fromPromise(
-            () => this.hostService.getApplicationStatus(StatusKey.OpenRecent)
-        ).match(
-            recentOpened => {
-                if (!Array.isArray(recentOpened)) {
-                    return [];
-                }
-                const deserialization = recentOpened.map(raw => this.__deserialize(raw));
-                return Arrays.coalesce(deserialization);
-            }, 
-            err => {
-                ErrorHandler.onUnexpectedError(err);
-                return [];
-            }
-        );
+        return RecentOpenUtility.getRecentOpenedAll(this.hostService);
     }
 
     public async clearRecentOpened(): Promise<boolean> {
-        return Result.fromPromise(
-            () => this.hostService.setApplicationStatus(StatusKey.OpenRecent, [])
-        ).match(
-            () => true, 
-            err => {
-                ErrorHandler.onUnexpectedError(err);
-                return false;
-            },
-        );
-    }
-
-    // [private methods]
-
-    private __deserialize(raw: string): IRecentOpenedTarget | undefined {
-        const parts = raw.split('|');
-
-        const [target, attributes] = parts;
-
-        // target and target type cannot be undefined or empty.
-        if (!target || !attributes) {
-            return undefined;
-        }
-
-        return Strings.jsonParseSafe<object>(attributes)
-            .match<IRecentOpenedTarget | undefined>(
-                attribute => {
-                    const type = attribute['targetType'];
-                    if (type !== 'directory' && type !== 'file') {
-                        return undefined;
-                    }
-
-                    const isDir =  (type === 'directory') ? FileType.DIRECTORY : FileType.UNKNOWN;
-                    const isFile = (type === 'file')      ? FileType.FILE      : FileType.UNKNOWN;
-                    const isPinned = attribute['pinned'] === true;
-
-                    const lineNumber = attribute['gotoLine'];
-                    const gotoLine = lineNumber || parseInt(lineNumber);
-
-                    return {
-                        target: URI.fromFile(target),
-                        targetType: isDir | isFile,
-                        pinned: isPinned,
-                        gotoLine: gotoLine,
-                    };
-                }, 
-                error => {
-                    ErrorHandler.onUnexpectedError(error);
-                    return undefined;
-                }
-            );
-    }
-
-    private __serialize(target: IRecentOpenedTarget): string {
-        const type = target.targetType === FileType.DIRECTORY 
-            ? 'directory' 
-            : target.targetType === FileType.FILE 
-                ? 'file' 
-                : 'unknown';
-        
-        const attributes = {
-            targetType: type,
-            pinned: target.pinned,
-            gotoLine: target.gotoLine,
-        };
-
-        const attributesRaw = Strings.stringifySafe(attributes, err => ErrorHandler.onUnexpectedError(err), undefined, '');
-        const serialized = `${URI.toFsPath(target.target)}|${attributesRaw}`;
-
-        return serialized;
+        return RecentOpenUtility.clearRecentOpened(this.hostService);
     }
 }
