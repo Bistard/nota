@@ -43,7 +43,7 @@ export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
     getAllMenus(): [MenuTypes, IMenuItemRegistration[]][];
 
     /**
-     * Removes all menu items registered under the specified menu type.
+     * @description Removes all menu items registered under the specified menu type.
      * @param The menu type for which all registered items will be removed.
      */
     clearMenuItems(menu: MenuTypes): void;

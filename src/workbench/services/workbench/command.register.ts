@@ -135,17 +135,12 @@ export const rendererWorkbenchCommandRegister = createRegister(
         );
         registrant.registerCommandBasic({
             id: AllCommands.fileTreeOpenFolder,
-            command: (provider, folderPath: string) => {
-                console.log("fileTreeOpenFolder invoked with folderPath:", folderPath); // Log folderPath
-                if (!folderPath) {
-                    console.error("Folder path is undefined or empty.");
-                    return;
-                }
-
+            command: (provider, target: URI) => {
                 const navViewService = provider.getOrCreateService(INavigationViewService);
                 const currentView = navViewService.currView();
-                const folderURI = URI.parse(folderPath);
-                (<ExplorerView>currentView).open(folderURI);
+                if (currentView && ExplorerView.is(currentView)) {
+                    currentView.open(target);
+                }
             }
         });
         registrant.registerCommandBasic(

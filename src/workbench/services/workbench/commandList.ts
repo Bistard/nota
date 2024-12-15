@@ -93,7 +93,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.fileTreeCopyPath]:           'Copy path of active file path.',
     [AllCommands.fileTreeCopyRelativePath]:   'Copy relative path of active file path.',
     [AllCommands.fileTreeCloseCurrentFolder]: 'Close current file tree folder.',
-    [AllCommands.fileTreeOpenFolder]:         'Dynamically handles recent paths.',
+    [AllCommands.fileTreeOpenFolder]:         'Open a new directory for file tree.',
     [AllCommands.fileTreeClearRecentOpened]:  'Clear recent opened file and folder paths.',
 };
 
@@ -136,7 +136,7 @@ export type AllCommandsArgumentsTypes = {
     [AllCommands.fileTreeCopyPath]          : [target: URI | string];
     [AllCommands.fileTreeCopyRelativePath]  : [target: URI | string];
     [AllCommands.fileTreeCloseCurrentFolder]: [];
-    [AllCommands.fileTreeOpenFolder]        : [recentPath: string];
+    [AllCommands.fileTreeOpenFolder]        : [target: URI];
     [AllCommands.fileTreeClearRecentOpened] : [];
 
     [key: string]: any[];
