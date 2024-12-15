@@ -4,9 +4,33 @@ import { URI } from "src/base/common/files/uri";
 import { Result } from "src/base/common/result";
 import { Arrays } from "src/base/common/utilities/array";
 import { Strings } from "src/base/common/utilities/string";
-import { IRecentOpenedTarget } from "src/platform/app/common/recentOpenService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { StatusKey } from "src/platform/status/common/status";
+
+/**
+ * Represents an entry in the recently opened list.
+ */
+export interface IRecentOpenedTarget {
+    /**
+     * The resource of the recently opened target.
+     */
+    readonly target: URI;
+    /**
+     * If the target is a file or directory.
+     */
+    readonly targetType: FileType;
+    /**
+     * Specifies whether the target should be pinned in the recently opened list.
+     * @default false
+     */
+    readonly pinned: boolean;
+    /**
+     * Optional. Specifies the line number to navigate to when reopening the
+     * target.
+     * @note Only support when the target is a file.
+     */
+    readonly gotoLine?: number;
+}
 
 /**
  * Consist of common utility functions that can be used across different process

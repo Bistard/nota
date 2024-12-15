@@ -17,7 +17,7 @@ import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
-import { IRecentOpenService } from "src/platform/app/common/recentOpenService";
+import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 

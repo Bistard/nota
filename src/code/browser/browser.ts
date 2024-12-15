@@ -18,7 +18,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { IMenuItemRegistrationResolved, mainMenuTypes, MenuTypes } from "src/platform/menu/common/menu";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IBrowserService } from "src/code/browser/common/renderer.common";
-import { IRecentOpenService } from "src/platform/app/common/recentOpenService";
+import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { URI } from "src/base/common/files/uri";
 
 export class BrowserInstance extends Disposable implements IBrowserService {

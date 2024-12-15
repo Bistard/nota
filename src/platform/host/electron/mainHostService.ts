@@ -13,7 +13,7 @@ import { IMainStatusService } from "src/platform/status/electron/mainStatusServi
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { Dictionary } from "src/base/common/utilities/type";
-import { IRecentOpenedTarget } from "src/platform/app/common/recentOpenService";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpen";
 import { FileType } from "src/base/common/files/file";
 
 /**

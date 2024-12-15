@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/files/uri";
 import { IS_MAC } from "src/base/common/platform";
 import { UUID } from "src/base/common/utilities/string";
-import { IRecentOpenedTarget } from "src/platform/app/common/recentOpenService";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpen";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
 import { IpcChannel } from "src/platform/ipc/common/channel";

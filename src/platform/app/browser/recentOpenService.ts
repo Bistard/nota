@@ -1,41 +1,10 @@
 import { Disposable } from "src/base/common/dispose";
-import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
-import { FileType } from "src/base/common/files/file";
-import { URI } from "src/base/common/files/uri";
-import { Result } from "src/base/common/result";
-import { Arrays } from "src/base/common/utilities/array";
-import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
+import { IRecentOpenedTarget, RecentOpenUtility } from "src/platform/app/common/recentOpen";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
-import { StatusKey } from "src/platform/status/common/status";
 
 export const IRecentOpenService = createService<IRecentOpenService>('recent-open-service');
-
-/**
- * Represents an entry in the recently opened list.
- */
-export interface IRecentOpenedTarget {
-    /**
-     * The resource of the recently opened target.
-     */
-    readonly target: URI;
-    /**
-     * If the target is a file or directory.
-     */
-    readonly targetType: FileType;
-    /**
-     * Specifies whether the target should be pinned in the recently opened list.
-     * @default false
-     */
-    readonly pinned: boolean;
-    /**
-     * Optional. Specifies the line number to navigate to when reopening the 
-     * target.
-     * @note Only support when the target is a file.
-     */
-    readonly gotoLine?: number;
-}
 
 /**
  * An interface only for {@link RecentOpenService}.

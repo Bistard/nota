@@ -31,7 +31,7 @@ import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuTypes } from "src/platform/menu/common/menu";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { IRecentOpenService } from "src/platform/app/common/recentOpenService";
+import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 

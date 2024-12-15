@@ -70,7 +70,7 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
-import { IRecentOpenService, RecentOpenService } from "src/platform/app/common/recentOpenService";
+import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 /**
  * @class This is the main entry of the renderer process.
