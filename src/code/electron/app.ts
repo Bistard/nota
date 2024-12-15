@@ -36,7 +36,7 @@ import { IMenuService } from "src/platform/menu/common/menu";
 import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IS_MAC } from "src/base/common/platform";
-import { IRecentOpenService, RecentOpenService } from "src/platform/app/common/recentOpenService";
+import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -63,6 +63,7 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         @IRegistrantService private readonly registrantService: IRegistrantService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IProductService private readonly productService: IProductService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         super();
         this.registerListeners();
@@ -141,9 +142,6 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // main-inspector-service
         this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
 
-        // recent-open-service
-        this.mainInstantiationService.register(IRecentOpenService, new ServiceDescriptor(RecentOpenService, []));
-
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
     }
@@ -179,13 +177,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private async openFirstWindow(provider: IServiceProvider): Promise<IWindowInstance> {
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
-        const recentOpenService = provider.getOrCreateService(IRecentOpenService);
 
         // retrieve last saved opened window status
         const uriOpen: Mutable<IUriToOpenConfiguration> = { directory: undefined, files: undefined, };
         const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
         if (shouldRestore) {
-            uriOpen.directory = await recentOpenService.getRecentOpenedDirectory();
+            uriOpen.directory = await RecentOpenUtility.getRecentOpenedDirectory(this.hostService);
         }
 
         // open the first window
