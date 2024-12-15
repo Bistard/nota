@@ -135,7 +135,7 @@ export const menuTitleFileRegister = createRegister(
                 command: {
                     commandID: "",
                 },
-                submenu: MenuTypes.FileOpenRecent,
+                submenu: MenuTypes.FileRecentOpen,
             },
             // Separator
             // Save Operations

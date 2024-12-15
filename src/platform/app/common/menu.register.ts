@@ -21,13 +21,13 @@ export function createMenuRecentOpenTemplate(): IMenuItemRegistration[] {
     ];
 }
 
-// MenuTypes.FileOpenRecent
+// MenuTypes.FileRecentOpen
 export const menuRecentOpenRegister = createRegister(
     RegistrantType.Menu,
     '',
     registrant => {
         for (const item of createMenuRecentOpenTemplate()) {
-            registrant.registerMenuItem(MenuTypes.FileOpenRecent, item);
+            registrant.registerMenuItem(MenuTypes.FileRecentOpen, item);
         }
     }
 );

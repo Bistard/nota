@@ -106,12 +106,12 @@ export class BrowserInstance extends Disposable implements IBrowserService {
 
     private async updateRecentPathsMenu(menuRegistrant: IRegistrantService) {
         const registrant = menuRegistrant.getRegistrant(RegistrantType.Menu);
-        registrant.clearMenuItems(MenuTypes.FileOpenRecent);
+        registrant.clearMenuItems(MenuTypes.FileRecentOpen);
 
         const recentPaths = await this.recentOpenService.getRecentOpenedAll();
 
         if (recentPaths.length === 0) {
-            registrant.registerMenuItem(MenuTypes.FileOpenRecent, {
+            registrant.registerMenuItem(MenuTypes.FileRecentOpen, {
                 group: '1_recent',
                 title: 'No Recent Files',
                 command: { commandID: "" },
@@ -119,7 +119,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         } else {
             for (const { target } of recentPaths) {
                 const path = URI.toFsPath(target);
-                registrant.registerMenuItem(MenuTypes.FileOpenRecent, {
+                registrant.registerMenuItem(MenuTypes.FileRecentOpen, {
                     group: '1_recent',
                     title: path,
                     command: {
@@ -131,7 +131,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         }
 
         // Add the "Clear Recent Files" option
-        registrant.registerMenuItem(MenuTypes.FileOpenRecent, {
+        registrant.registerMenuItem(MenuTypes.FileRecentOpen, {
             group: '2_clear',
             title: 'Clear Recent Files',
             command: {

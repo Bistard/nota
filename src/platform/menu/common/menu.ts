@@ -23,7 +23,7 @@ export const enum MenuTypes {
     TitleBarFormat = 'TitleBarFormat',
     TitleBarHelp = 'TitleBarHelp',
 
-    FileOpenRecent = 'FileOpenRecent',
+    FileRecentOpen = 'FileRecentOpen',
     FileExportAs = 'FileExportAs',
     InsertHeading = 'InsertHeading',
     InsertList = 'InsertList',
