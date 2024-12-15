@@ -3,6 +3,9 @@ import { Emitter, Register } from "src/base/common/event";
 import { IRecentOpenedTarget, RecentOpenUtility } from "src/platform/app/common/recentOpen";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
+import { IMenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 
 export const IRecentOpenService = createService<IRecentOpenService>('recent-open-service');
 
@@ -89,18 +92,26 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     private readonly _recentOpenedChange = this.__register(new Emitter<IRecentOpenedTarget | undefined>());
     public readonly recentOpenedChange = this._recentOpenedChange.registerListener;
 
+    private readonly _menuRegistrant: IMenuRegistrant;
+
     // [constructor]
 
     constructor(
         @IHostService private readonly hostService: IHostService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
+        this._menuRegistrant = registrantService.getRegistrant(RegistrantType.Menu);
     }
 
     // [public methods]
 
     public async addToRecentOpened(target: IRecentOpenedTarget): Promise<boolean> {
-        return RecentOpenUtility.addToRecentOpened(this.hostService, target);
+        const taken = await RecentOpenUtility.addToRecentOpened(this.hostService, target);
+        if (taken) {
+
+        }
+        return taken;
     }
 
     public async getRecentOpened(): Promise<IRecentOpenedTarget | undefined> {
@@ -120,6 +131,10 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     }
 
     public async clearRecentOpened(): Promise<boolean> {
-        return RecentOpenUtility.clearRecentOpened(this.hostService);
+        const taken = await RecentOpenUtility.clearRecentOpened(this.hostService);
+        if (taken) {
+            
+        }
+        return taken;
     }
 }
