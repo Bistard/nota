@@ -20,7 +20,7 @@ import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
-import { DEFAULT_HTML } from "src/platform/window/common/window";
+import { DEFAULT_HTML, IUriToOpenConfiguration } from "src/platform/window/common/window";
 import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
@@ -29,7 +29,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
-import { toBoolean } from "src/base/common/utilities/type";
+import { Mutable, toBoolean } from "src/base/common/utilities/type";
 import { IProductService } from "src/platform/product/common/productService";
 import { MainMenuService } from "src/platform/menu/electron/mainMenuService";
 import { IMenuService } from "src/platform/menu/common/menu";
@@ -179,19 +179,13 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
     private async openFirstWindow(provider: IServiceProvider): Promise<IWindowInstance> {
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
-
-        const rawRecentPath = this.statusService.get<string[]>(StatusKey.OpenRecent, []);
-        const recentPath = Array.isArray(rawRecentPath) ? rawRecentPath : [];
+        const recentOpenService = provider.getOrCreateService(IRecentOpenService);
 
         // retrieve last saved opened window status
-        const uriToOpen: URI[] = recentPath.map(path => URI.fromFile(path));
-
-        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious); // FIX: should be status
+        const uriOpen: Mutable<IUriToOpenConfiguration> = { directory: undefined, files: undefined, };
+        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
         if (shouldRestore) {
-            const lastOpened = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
-            if (lastOpened) {
-                uriToOpen.push(URI.parse(lastOpened));
-            }
+            uriOpen.directory = await recentOpenService.getRecentOpenedDirectory();
         }
 
         // open the first window
