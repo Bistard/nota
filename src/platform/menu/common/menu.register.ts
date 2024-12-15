@@ -234,27 +234,6 @@ export const menuTitleFileRegister = createRegister(
             registrant.registerMenuItem(MenuTypes.TitleBarFile, item);
         }
 
-        // Register 'Open Recent' submenu items
-        const openRecentMenuItems: IMenuItemRegistration[] = [
-            {
-                group: '1_recent',
-                title: 'Reopen Recent Closed',
-                command: {
-                    commandID: "",
-                    keybinding: IS_MAC ? 'Shift+Cmd+T' : 'Ctrl+Shift+T',
-                },
-            },
-            {
-                group: '3_clear',
-                title: 'Clear Recent Opened',
-                command: { commandID: AllCommands.fileTreeClearRecentOpened },
-            },
-        ];
-
-        for (const item of openRecentMenuItems) {
-            registrant.registerMenuItem(MenuTypes.FileOpenRecent, item);
-        }
-
         // Register 'Export As' submenu items
         const exportAsMenuItems: IMenuItemRegistration[] = [
             {

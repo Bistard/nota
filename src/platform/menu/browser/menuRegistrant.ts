@@ -7,6 +7,7 @@ import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegis
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 import { MenuTypes, IMenuItemRegistration, IMenuItemRegistrationResolved } from "src/platform/menu/common/menu";
+import { menuRecentOpenRegister } from "src/platform/app/common/menu.register";
 
 /**
  * An interface only for {@link MenuRegistrant}.
@@ -80,7 +81,7 @@ export class MenuRegistrant implements IMenuRegistrant {
             menuTitleViewRegister,
             menuTitleHelpRegister,
 
-            // file tree
+            menuRecentOpenRegister,
             menuFileTreeContextRegister,
         ]
         .forEach(register => register(provider));
