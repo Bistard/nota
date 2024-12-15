@@ -165,7 +165,7 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
                 title: name,
                 command: {
                     commandID: AllCommands.fileTreeOpenFolder,
-                    args: [name],
+                    args: [target],
                 },
             });
         }

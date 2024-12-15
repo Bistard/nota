@@ -73,11 +73,9 @@ export class BrowserInstance extends Disposable implements IBrowserService {
 
         // execute command request from main process
         onMainProcess(IpcChannel.rendererRunCommand, async request => {
-            console.log("Command execution request:", request.commandID, "with args:", request.args); // Add this
             try {
                 await this.commandService.executeCommand(request.commandID, ...request.args);
             } catch (error) {
-                console.error("Error executing command:", error);
                 this.commandService.executeCommand(AllCommands.alertError, 'BrowserInstance', error);
             }
         });
