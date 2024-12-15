@@ -263,11 +263,6 @@ export interface IFileTreeService extends IDisposable, IService {
      * @note This will not trigger rerendering.
      */
     setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean>;
-
-    /**
-     * @description Get recent opened directory paths.
-     */
-    getRecentPaths(): Promise<string[]>;
 }
 
 /**

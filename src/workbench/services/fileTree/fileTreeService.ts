@@ -46,9 +46,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     private _sorter?: FileTreeSorter<FileItem>;
     private _metadataController?: FileTreeMetadataController;
 
-    /** functionality integration */
-    private readonly _recentPathController: RecentPathController;
-
     /**
      * Able to pause and resume the refresh event. The refresh event will be 
      * combined into a single one during the pause state.
@@ -68,12 +65,10 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        @IHostService private readonly hostService: IHostService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
-        this._recentPathController = new RecentPathController(hostService);
         this.__registerListeners();
 
         this.logService.debug('FileTreeService', 'FileTreeService constructed.');
@@ -337,10 +332,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     public updateCustomSortingMetadataLot(type: any, parent: any, items: any, indice: any, destination?: any): AsyncResult<void, FileOperationError | Error> {
         const controller = this.__assertController();
         return controller.updateCustomSortingMetadataLot(type, parent, items, indice, destination);
-    }
-
-    public async getRecentPaths(): Promise<string[]> {
-        return this._recentPathController.getRecentPaths();
     }
 
     public override dispose(): void {
@@ -614,31 +605,3 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     }
 }
 
-class RecentPathController {
-    
-    constructor(private readonly hostService: IHostService) {}
-
-    public async getRecentPaths(): Promise<string[]> {
-        return await this.hostService.getApplicationStatus(StatusKey.OpenRecent) ?? [];
-    }
-
-    public async addToOpenRecent(newSource: URI): Promise<void> {
-        try {
-            const path = URI.toFsPath(newSource);
-            let recentPaths = await this.hostService.getApplicationStatus<string[]>(StatusKey.OpenRecent);
-            if (!Array.isArray(recentPaths)) {
-                recentPaths = [];
-            }
-
-            // remove duplicate
-            recentPaths.unshift(path);
-            recentPaths = Arrays.unique(recentPaths);
-
-            // write back to the disk
-            await this.hostService.setApplicationStatus(StatusKey.OpenRecent, recentPaths);
-        } 
-        catch (error) {
-            ErrorHandler.onUnexpectedError(new Error(`[FileTreeService] Failed to update openRecent to status: ${errorToMessage(error)}`));
-        }
-    }
-}
