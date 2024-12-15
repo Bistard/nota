@@ -34,6 +34,7 @@ import { IHostService } from "src/platform/host/common/hostService";
 import { StatusKey } from "src/platform/status/common/status";
 import { ErrorHandler } from "src/base/common/error";
 import { Arrays } from "src/base/common/utilities/array";
+import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -67,11 +68,13 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        @IHostService hostService: IHostService,
+        @IHostService private readonly hostService: IHostService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
         this._recentPathController = new RecentPathController(hostService);
+        this.__registerListeners();
 
         this.logService.debug('FileTreeService', 'FileTreeService constructed.');
     }
@@ -366,6 +369,15 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             panic('[FileTreeService] file tree is not initialized yet.');
         }
         return this._metadataController;
+    }
+
+    private __registerListeners(): void {
+
+        // save the last opened workspace root path.
+        this.__register(this.lifecycleService.onWillQuit(e => e.join((async () => {
+            const openedWorkspace = this.root ? URI.toString(URI.join(this.root, '|directory')) : '';
+            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
+        })())));
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {

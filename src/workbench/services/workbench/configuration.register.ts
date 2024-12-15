@@ -153,6 +153,7 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
                         ['restorePrevious']: {
                             type: 'boolean',
                             default: true,
+                            description: 'Whether application should restore to previous opened directory.'
                         },
                         ['outline']: {
                             type: 'object',
