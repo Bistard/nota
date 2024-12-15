@@ -134,9 +134,13 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
 
         // write back to disk
         const serialization = recentOpened.map(each => this.__serialize(each));
-        await this.hostService.setApplicationStatus(StatusKey.OpenRecent, serialization);
-
-        this._recentOpenedChange.fire(target);
+        
+        return Result.fromPromise(
+            () => this.hostService.setApplicationStatus(StatusKey.OpenRecent, serialization),
+        ).match(
+            () => this._recentOpenedChange.fire(target),
+            err => ErrorHandler.onUnexpectedError(err),
+        );
     }
 
     public async getRecentOpened(): Promise<IRecentOpenedTarget | undefined> {

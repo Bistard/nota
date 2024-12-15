@@ -95,7 +95,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
             }
         });
 
-        // Handle menu requests from main process
+        // Handle menu data request from main process
         onMainProcess(IpcChannel.Menu, async () => {
             this.updateMacOSMenu();
         });
@@ -105,13 +105,13 @@ export class BrowserInstance extends Disposable implements IBrowserService {
     }
 
     private async updateRecentPathsMenu(menuRegistrant: IRegistrantService) {
-        const reg = menuRegistrant.getRegistrant(RegistrantType.Menu);
-        reg.clearMenuItems(MenuTypes.FileOpenRecent);
+        const registrant = menuRegistrant.getRegistrant(RegistrantType.Menu);
+        registrant.clearMenuItems(MenuTypes.FileOpenRecent);
 
         const recentPaths = await this.recentOpenService.getRecentOpenedAll();
 
         if (recentPaths.length === 0) {
-            reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+            registrant.registerMenuItem(MenuTypes.FileOpenRecent, {
                 group: '1_recent',
                 title: 'No Recent Files',
                 command: { commandID: "" },
@@ -119,7 +119,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         } else {
             for (const { target } of recentPaths) {
                 const path = URI.toFsPath(target);
-                reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+                registrant.registerMenuItem(MenuTypes.FileOpenRecent, {
                     group: '1_recent',
                     title: path,
                     command: {
@@ -131,7 +131,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
         }
 
         // Add the "Clear Recent Files" option
-        reg.registerMenuItem(MenuTypes.FileOpenRecent, {
+        registrant.registerMenuItem(MenuTypes.FileOpenRecent, {
             group: '2_clear',
             title: 'Clear Recent Files',
             command: {
