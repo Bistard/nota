@@ -159,7 +159,7 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
 
         // dynamic (recent opened)
         for (const { target } of recentOpened) {
-            const name = URI.toFsPath(target);
+            const name = URI.toFsPath(target).replace(/^\/Users\/[^/]+/, '~');
             this._menuRegistrant.registerMenuItem(MenuTypes.FileRecentOpen, {
                 group: '2_recent_open',
                 title: name,
