@@ -27,12 +27,11 @@ import { noop } from "src/base/common/performance";
 import { FileTreeMetadataController, IFileTreeMetadataControllerOptions, OrderChangeType } from "src/workbench/services/fileTree/fileTreeMetadataController";
 import { IFileTreeCustomSorterOptions } from "src/workbench/services/fileTree/fileTreeCustomSorter";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { IMenuAction, MenuSeparatorAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
-import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
-import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
-import { KeyCode, Shortcut } from "src/base/common/keyboard";
+import { MenuTypes } from "src/platform/menu/common/menu";
+import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
 
@@ -43,7 +42,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     private _tree?: IFileTree<FileItem, void>;
     private _sorter?: FileTreeSorter<FileItem>;
     private _metadataController?: FileTreeMetadataController;
-    
+
     /**
      * Able to pause and resume the refresh event. The refresh event will be 
      * combined into a single one during the pause state.
@@ -63,10 +62,13 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        @IClipboardService private readonly clipboardService: IClipboardService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IRecentOpenService private readonly recentOpenService: IRecentOpenService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
+        this.__registerListeners();
+
         this.logService.debug('FileTreeService', 'FileTreeService constructed.');
     }
 
@@ -74,13 +76,13 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
     private readonly _onSelect = this.__register(new RelayEmitter<IFileTreeOpenEvent<FileItem>>());
     public readonly onSelect = this._onSelect.registerListener;
-    
+
     private readonly _onDidChangeFocus = this.__register(new RelayEmitter<boolean>());
     public readonly onDidChangeFocus = this._onDidChangeFocus.registerListener;
 
     private readonly _onDidInitOrClose = this.__register(new Emitter<boolean>());
     public readonly onDidInitOrClose = this._onDidInitOrClose.registerListener;
-    
+
     // [getter]
 
     get container(): HTMLElement | undefined {
@@ -112,8 +114,14 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                 this._onSelect.setInput(tree.onSelect);
                 this._onDidChangeFocus.setInput(tree.onDidChangeFocus);
 
+                await this.recentOpenService.addToRecentOpened({ 
+                    target: root,
+                    targetType: FileType.DIRECTORY,
+                    pinned: false,
+                });
+                
                 /**
-                 * After the tree is constructed, refresh tree to fetch the 
+                 * After the tree is constructed, refresh tree to fetch the
                  * latest data for the first time.
                  */
                 await tree.refresh();
@@ -136,7 +144,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     public freeze(): void {
         this._toRefresh?.pause();
     }
-    
+
     public unfreeze(): void {
         this._toRefresh?.resume();
     }
@@ -155,7 +163,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         const tree = this.__assertTree();
         await tree.expandAll();
     }
-    
+
     public async collapseAll(): Promise<void> {
         const tree = this.__assertTree();
         await tree.collapseAll();
@@ -185,7 +193,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         const tree = this.__assertTree();
         return tree.isCollapsible(item);
     }
-    
+
     public isCollapsed(item: FileItem): boolean {
         const tree = this.__assertTree();
         return tree.isCollapsed(item);
@@ -230,12 +238,12 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         }
         return tree.getItem(anchor);
     }
-    
+
     public getSelections(): FileItem[] {
         const tree = this.__assertTree();
         return tree.getViewSelections().map(idx => tree.getItem(idx));
     }
-    
+
     public getHover(): FileItem[] {
         const tree = this.__assertTree();
         return tree.getViewHover().map(idx => tree.getItem(idx));
@@ -255,7 +263,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         const tree = this.__assertTree();
         tree.setSelections(items);
     }
-    
+
     public setHover(item: null): void;
     public setHover(item: FileItem, recursive: boolean): void;
     public setHover(item: FileItem | null, recursive?: boolean): void {
@@ -276,7 +284,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         // TODO: find a way to render the cut item
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, false);
     }
-    
+
     public simulateSelectionCutOrCopy(isCutOrCopy: boolean): void {
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnCutKey, isCutOrCopy);
     }
@@ -294,9 +302,9 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     public async setFileSorting(type: FileSortType, order: FileSortOrder): Promise<boolean> {
         const sorter = this.__assertSorter();
         const success = sorter.switchTo(type, order);
-        
-        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.Memory });
-        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.Memory });
+
+        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortType, type, { type: ConfigurationModuleType.User });
+        await this.configurationService.set(WorkbenchConfiguration.ExplorerFileSortOrder, order, { type: ConfigurationModuleType.User });
         return success;
     }
 
@@ -332,7 +340,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         super.dispose();
         this.close();
     }
-    
+
     // [private helper methods]
 
     private __assertTree(): IFileTree<FileItem, void> {
@@ -341,7 +349,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         }
         return this._tree;
     }
-    
+
     private __assertSorter(): FileTreeSorter<FileItem> {
         if (!this._sorter) {
             panic('[FileTreeService] file tree is not initialized yet.');
@@ -354,6 +362,20 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             panic('[FileTreeService] file tree is not initialized yet.');
         }
         return this._metadataController;
+    }
+
+    private __registerListeners(): void {
+
+        // save the last opened workspace root path.
+        this.__register(this.lifecycleService.onWillQuit(e => e.join((async () => {
+            if (this.root) {
+                await this.recentOpenService.addToRecentOpened({ 
+                    target: this.root,
+                    targetType: FileType.DIRECTORY,
+                    pinned: false,
+                });
+            }
+        })())));
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {
@@ -371,7 +393,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
         // start building the tree
         .andThen(async rootStat => {
-            
+
             // retrieve tree configurations
             const filterOpts: IFilterOpts = {
                 exclude: this.configurationService.get<string[]>(WorkbenchConfiguration.ExplorerViewExclude, []).filter(s => !!s).map(s => new RegExp(s)),
@@ -411,7 +433,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                     collapsedByDefault: true,
                     filter: new FileItemFilter(),
                     dnd: dndProvider,
-                    
+
                     transformOptimization: true,
                     touchSupport: true,
                     mouseSupport: true,
@@ -435,21 +457,21 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             this._tree = cleanup.register(tree);
             return tree;
         });
-    }   
+    }
 
     private __initSorter(): [sorter: FileTreeSorter<FileItem>, register: (tree: IFileTree<FileItem, void>) => IDisposable] {
         const fileSortType = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
         const fileSortOrder = this.configurationService.get<FileSortOrder>(WorkbenchConfiguration.ExplorerFileSortOrder);
 
         const sorter = this.instantiationService.createInstance(
-            FileTreeSorter, 
-            fileSortType, 
-            fileSortOrder, 
+            FileTreeSorter,
+            fileSortType,
+            fileSortOrder,
             this.__createCustomSorterOptions(),
         );
 
         const register = (tree: IFileTree<FileItem, void>) => {
-            
+
             /**
              * Configuration auto update - only update on user configuration 
              * change from the disk.
@@ -458,7 +480,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
                 if (e.type !== ConfigurationModuleType.User) {
                     return;
                 }
-                
+
                 if (e.affect(WorkbenchConfiguration.ExplorerFileSortType) ||
                     e.affect(WorkbenchConfiguration.ExplorerFileSortOrder)
                 ) {
@@ -520,12 +542,13 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
         // context menu listener
         cleanup.register(tree.onContextmenu(e => {
+            const anchor = this.__getContextMenuAnchor(e);
             this.contextMenuService.showContextMenu({
+                menu: MenuTypes.FileTreeContext,
                 primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
                 horizontalPosition: AnchorHorizontalPosition.Right,
                 verticalPosition: AnchorVerticalPosition.Below,
-                getAnchor: () => this.__getContextMenuAnchor(e),
-                getActions: () => this.__getContextMenuActions(e),
+                getAnchor: () => anchor,
                 getContext: () => e
             }, this.workbenchService.element.raw);
         }));
@@ -587,62 +610,5 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
          */
         return tree.DOMElement;
     }
-
-    private __getContextMenuActions(event: ITreeContextmenuEvent<FileItem>): IMenuAction[] {
-        const data = assert(event.data);
-        const isFile = data.type === FileType.FILE;
-
-        const openGroup: IMenuAction[] = [];
-        const moveGroup: IMenuAction[] = [];
-        const editGroup: IMenuAction[] = [];
-        const copyGroup: IMenuAction[] = [];
-
-        // openGroup
-        {
-            if (isFile) {
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open', callback: () => console.log('"Open" clicked') }));
-                openGroup.push(new SimpleMenuAction({ enabled: true, id: 'Open In New Tab', callback: () => console.log('"Open In New Tab" clicked') }));
-            }
-
-            const revealID = 
-                IS_MAC      ? 'Reveal In Finder' : 
-                IS_WINDOWS  ? 'Reveal In File Explorer' 
-                /* Linux */ : 'Reveal In Files';
-            openGroup.push(new SimpleMenuAction({ enabled: true, id: revealID, shortcut: new Shortcut(false, true, true, false, KeyCode.KeyR), callback: () => console.log(`"${revealID}" clicked`) }));
-        }
-
-        // moveGroup
-        {
-            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Cut', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyX), callback: () => console.log('"Cut" clicked') }));
-            moveGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyC), callback: () => console.log('"Copy" clicked') }));
-
-            // paste only works for folder
-            if (isFile === false) {
-                const isEnable = this.clipboardService.read(ClipboardType.Resources).length > 0;
-                moveGroup.push(new SimpleMenuAction({ enabled: isEnable, id: 'Paste', shortcut: new Shortcut(true, false, false, false, KeyCode.KeyV), callback: () => console.log('"Paste" clicked') }));
-            }
-        }
-        
-        // editGroup
-        {
-            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Rename', shortcut: new Shortcut(false, false, false, false, KeyCode.F2), callback: () => console.log('"Rename" clicked') }));
-            editGroup.push(new SimpleMenuAction({ enabled: true, id: 'Delete', shortcut: new Shortcut(false, false, false, false, KeyCode.Delete), callback: () => console.log('"Delete" clicked') }));
-        }
-
-        // copyGroup
-        {
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Path', shortcut: new Shortcut(false, true, true, false, KeyCode.KeyC), callback: () => console.log('"Copy Path" clicked') }));
-            copyGroup.push(new SimpleMenuAction({ enabled: true, id: 'Copy Relative Path', shortcut: new Shortcut(true, true, false, false, KeyCode.KeyC), callback: () => console.log('"Copy Relative Path" clicked') }));
-        }
-
-        // add separators
-        const groups = [openGroup, moveGroup, editGroup, copyGroup];
-        const actions = groups.flatMap((arr, idx) => {
-            return idx < groups.length - 1
-                ? [...arr, MenuSeparatorAction.instance] 
-                : arr;
-        });
-
-        return actions;
-    }
 }
+

@@ -106,16 +106,13 @@ export function iterProp(obj: any, fn: (propName: string, index: number) => any,
  * @param recursiveLevel How deep you want for recursive iteration. Default is 0. 
  * 						 Set to -1 if you need iterate to the deepest.
  */
-export function iterPropEnumerable(obj: any, fn: (propName: string, index: number) => any, recursiveLevel: number = 0): void {
+export function iterPropEnumerable(obj: any, fn: (propName: string, propValue: any, index: number) => any, recursiveLevel: number = 0): void {
     let idx = 0;
-	for (const propName of Object.keys(obj)) {
-		if (recursiveLevel) {
-			const value = obj[propName];
-			if (isObject(value)) {
-				iterPropEnumerable(value, fn, recursiveLevel - 1);
-			}
+	for (const [propKey, propValue] of Object.entries(obj)) {
+		fn(propKey, propValue, idx++);
+		if (recursiveLevel && isObject(propValue)) {
+			iterPropEnumerable(propValue, fn, recursiveLevel - 1);
 		}
-		fn(propName, idx++);
 	}
 }
 

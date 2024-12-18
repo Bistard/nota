@@ -27,7 +27,7 @@ suite('menu-test', () => {
                 callback: (ctx: any) => {
                     cnt += ctx;
                 },
-                shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
+                key: new Shortcut(true, false, false, false, KeyCode.KeyA).toString(),
             }),
             MenuSeparatorAction.instance,
             new SimpleMenuAction({
@@ -37,7 +37,7 @@ suite('menu-test', () => {
                 callback: (ctx: any) => {
                     cnt += ctx + 1;
                 },
-                shortcut: new Shortcut(true, true, false, false, KeyCode.KeyA),
+                key: new Shortcut(true, true, false, false, KeyCode.KeyA).toString(),
             }),
             MenuSeparatorAction.instance,
             new SimpleMenuAction({
@@ -47,7 +47,7 @@ suite('menu-test', () => {
                 callback: (ctx: any) => {
                     cnt += ctx + 2;
                 },
-                shortcut: new Shortcut(true, true, true, false, KeyCode.KeyA),
+                key: new Shortcut(true, true, true, false, KeyCode.KeyA).toString(),
             }),
         ]);
 
@@ -84,7 +84,7 @@ suite('menu-test', () => {
                     id: 'simple action 1',
                     tip: 'simple action 1 tip',
                     extraClassName: 'action1',
-                    shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
+                    key: new Shortcut(true, false, false, false, KeyCode.KeyA).toString(),
                 }),
                 MenuSeparatorAction.instance,
                 new SimpleMenuAction({
@@ -93,7 +93,7 @@ suite('menu-test', () => {
                     id: 'simple action 2',
                     tip: 'simple action 2 tip',
                     extraClassName: 'action2',
-                    shortcut: new Shortcut(true, false, false, true, KeyCode.KeyD),
+                    key: new Shortcut(true, false, false, true, KeyCode.KeyD).toString(),
                 }),
                 new SimpleMenuAction({
                     callback: () => console.log('action 3 executed'),
@@ -109,7 +109,7 @@ suite('menu-test', () => {
                     id: 'simple action 4',
                     tip: 'simple action 4 tip',
                     extraClassName: 'action4',
-                    shortcut: new Shortcut(false, false, false, false, KeyCode.F12),
+                    key: new Shortcut(false, false, false, false, KeyCode.F12).toString(),
                 }),
                 new SubmenuAction(
                     [

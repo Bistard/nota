@@ -6,7 +6,7 @@ import { DataBuffer } from 'src/base/common/files/buffer';
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
-import { ConfigurationRegistrant, IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ConfigurationRegistrant, IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
 import { FileService, IFileService } from "src/platform/files/common/fileService";
@@ -17,10 +17,9 @@ import { BrowserConfigurationService } from 'src/platform/configuration/browser/
 import { delayFor } from 'src/base/common/utilities/async';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
-import { assertAsyncResult } from 'test/utils/helpers';
 import { INSTANT_TIME } from 'src/base/common/date';
 
-suite('MainConfiguratioService-test', () => {
+suite('MainConfigurationService-test', () => {
 
     let registrant: IConfigurationRegistrant;
 
@@ -196,7 +195,20 @@ suite('MainConfiguratioService-test', () => {
 
     suite('ConfigurationChangeEvent', () => {
 
-        test('Should correctly initialize and check `affect` / `match` method', () => {
+        suite('constructor', () => {
+            test('should initialize properties correctly from IRawConfigurationChangeEvent', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.properties.size, 2);
+                assert.ok(event.properties.has('section1'));
+                assert.ok(event.properties.has('section2'));
+            });
+        });
+
+        test('simple case', () => {
             const changeEvent = new ConfigurationChangeEvent({ properties: ["section1.section2"] }, ConfigurationModuleType.Default);
             assert.ok(changeEvent);
 
@@ -207,6 +219,62 @@ suite('MainConfiguratioService-test', () => {
             assert.strictEqual(changeEvent.match("section1"), false);
             assert.strictEqual(changeEvent.match("section1.section2"), true);
             assert.strictEqual(changeEvent.match("section1.section2.section3"), false);
+        });
+
+        suite('match', () => {
+            test('should return true if section matches exactly in properties', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.match('section1'), true);
+                assert.strictEqual(event.match('section2'), true);
+            });
+    
+            test('should return false if section does not match exactly in properties', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.match(''), false);
+                assert.strictEqual(event.match('section3'), false);
+                assert.strictEqual(event.match('section1.section2'), false);
+                assert.strictEqual(event.match('section1.section3'), false);
+            });
+        });
+    
+        suite('affect', () => {
+            test('should return true if section starts with any property key', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.affect('section1.subsection'), true);
+                assert.strictEqual(event.affect('section2.subsection'), true);
+            });
+    
+            test('should return false if section does not start with any property key', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.affect('section3.subsection'), false);
+                assert.strictEqual(event.affect('unrelatedSection'), false);
+            });
+    
+            test('should return true if section matches exactly with any property key', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.affect('section1'), true);
+                assert.strictEqual(event.affect('section2'), true);
+            });
         });
     });
 });
@@ -252,6 +320,15 @@ suite('BrowserConfigurationService', () => {
                 'section': {
                     type: 'string',
                     default: 'default value',
+                },
+                'section1': {
+                    type: 'object',
+                    properties: {
+                        'section2': {
+                            type: 'number',
+                            default: 5,
+                        }
+                    }
                 }
             }
         });
@@ -281,6 +358,20 @@ suite('BrowserConfigurationService', () => {
         // file is not updated
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
         assert.strictEqual(configuration['section'], 'user value');
+    }));
+    
+    test('set - in memory changes (more path)', () => FakeAsync.run(async () => {
+        const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
+        (await service.init().unwrap());
+        
+        // before set, should equal to default
+        assert.strictEqual(service.get('section1.section2'), 5);
+
+        // set path
+        await service.set('section1.section2', 10, { type: ConfigurationModuleType.Memory });
+
+        // in-memory is updated
+        assert.strictEqual(service.get('section1.section2'), 10);
     }));
 
     test('set - user configuration changes', () => FakeAsync.run(async () => {
@@ -369,7 +460,7 @@ suite('BrowserConfigurationService', () => {
 
         // file is also updated
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.strictEqual(configuration['section'], undefined);
+        assert.strictEqual(configuration['section'], 'default value');
 
         await resetUserConfiguration();
     }));
@@ -394,7 +485,7 @@ suite('BrowserConfigurationService', () => {
 
         // file is also updated (browser-side)
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.strictEqual(configuration['section'], undefined);
+        assert.strictEqual(configuration['section'], 'default value');
 
         // in-memory is updated (main-side)
         await delayFor(INSTANT_TIME);
@@ -416,11 +507,11 @@ suite('BrowserConfigurationService', () => {
         const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: userConfigURI } });
         
         (await fileService.delete(userConfigURI).unwrap());
-        await assert.rejects(() => assertAsyncResult(fileService.readFile(userConfigURI))); // file does not exist
+        await assert.rejects(() => fileService.readFile(userConfigURI).unwrap()); // file does not exist
         
         (await service.init().unwrap());
         
         const content = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.deepStrictEqual(content, { 'section': 'default value' });
+        assert.deepStrictEqual(content, { 'section': 'default value', 'section1': { 'section2': 5 } });
     }));
 });

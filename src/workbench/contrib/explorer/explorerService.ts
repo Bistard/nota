@@ -31,7 +31,7 @@ export interface IExplorerViewService extends INavView {
     open(root: URI): Promise<void>;
 
     /**
-     * Close the explorer view if any path is opened.
+     * Close the explorer view if a directory is opened.
      */
     close(): Promise<void>;
 }

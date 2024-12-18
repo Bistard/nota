@@ -1,17 +1,17 @@
-import { Register } from "src/base/common/event";
-import { CharCode } from "src/base/common/utilities/char";
-import { Dictionary } from "src/base/common/utilities/type";
-import { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
-import { IReviverRegistrant } from "src/platform/ipc/common/revive";
+import type { IService } from "src/platform/instantiation/common/decorator";
 import type { ServerBase } from "src/platform/ipc/common/net";
-import { IService } from "src/platform/instantiation/common/decorator";
+import type { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
+import type { Dictionary } from "src/base/common/utilities/type";
+import type { Register } from "src/base/common/event";
+import type { IReviverRegistrant } from "src/platform/ipc/common/revive";
+import { CharCode } from "src/base/common/utilities/char";
 import { panic } from "src/base/common/utilities/panic";
 
 /**
  * A namespace that provide functionalities to proxy microservices into different
  * {@link IServerChannel} which can be registered into {@link ServerBase}.
  * 
- * You may also to unproxy channel to microservice (notice that the returned
+ * You may also to un-proxy channel to microservice (notice that the returned
  * object is not the actual microservice, it is a {@link Proxy}).
  */
 export namespace ProxyChannel {
@@ -133,7 +133,8 @@ export namespace ProxyChannel {
     export interface IUnwrapChannelOpt {
 
         /**
-         * In our case, it will be window ID.
+         * Context is any data that will always be passed as the last argument
+         * whenever a function is invoked from the result of {@link ProxyChannel.unwrapChannel}.
          */
         readonly context?: any;
 
@@ -166,6 +167,5 @@ export namespace ProxyChannel {
     
     interface IDisableReviverOptions extends IReviverOptions {
         readonly enableReviver: false;
-        readonly reviverRegistrant?: undefined;
     }
 }

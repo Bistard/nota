@@ -480,7 +480,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // tell the program we are doing insertion
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, true);
         this.fileTreeService.simulateSelectionCutOrCopy(__isCutOperation(event));
-        await this.commandService.executeCommand(AllCommands.filePaste, resolvedDir, resolvedIdx, currentDragItems);
+        await this.commandService.executeCommand(AllCommands.fileTreePaste, resolvedDir, resolvedIdx, currentDragItems);
 
         // make sure the insert finishes no matter what
         this.workbenchService.updateContext(WorkbenchContextKey.fileTreeOnInsertKey, false);
@@ -490,14 +490,14 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
         // simulate drop action (copy) as copy, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(false);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems);
+        await this.commandService.executeCommand(AllCommands.fileTreePaste, targetOver, undefined, currentDragItems);
     }
     
     private async __performDropMove(currentDragItems: FileItem[], targetOver: FileItem): Promise<void> {
         
         // simulate drop action (move) as cut, so that we can able to paste.
         this.fileTreeService.simulateSelectionCutOrCopy(true);
-        await this.commandService.executeCommand(AllCommands.filePaste, targetOver, undefined, currentDragItems);
+        await this.commandService.executeCommand(AllCommands.fileTreePaste, targetOver, undefined, currentDragItems);
     }
 }
 

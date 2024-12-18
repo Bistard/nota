@@ -1,27 +1,21 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { II18nService } from 'src/platform/i18n/common/i18n';
-import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
-import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
-import { IHostService } from 'src/platform/host/common/hostService';
-import { StatusKey } from 'src/platform/status/common/status';
 import { Disposable, DisposableManager } from 'src/base/common/dispose';
 import { Icons } from 'src/base/browser/icon/icons';
-import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
+import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
 import { FixedArray } from 'src/base/common/utilities/type';
-import { IConfigurationService } from 'src/platform/configuration/common/configuration';
-import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { II18nService } from 'src/platform/i18n/browser/i18nService';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -65,18 +59,12 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @II18nService private readonly i18nService: II18nService,
         @IEditorService private readonly editorService: IEditorService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
-        @ILifecycleService lifecycleService: IBrowserLifecycleService,
-        @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
-        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super(ExplorerViewID, parentElement, instantiationService);
-
         this._actionBar = new FileActionBar();
         this.__register(this._actionBar);
-
-        this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
     }
 
     // [getter]
@@ -87,6 +75,12 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     get root(): URI | undefined {
         return this.fileTreeService.root;
+    }
+
+    // [static methods]
+
+    public static is(view: INavView): view is ExplorerView {
+        return view.id === ExplorerViewID;
     }
 
     // [public method]
@@ -135,7 +129,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
          */
         const uriToOpen = this.environmentService.configuration.uriOpenConfiguration;
         if (uriToOpen.directory) {
-            this.open(uriToOpen.directory);
+            this.open(uriToOpen.directory.target);
         }
         // we simply put an empty view
         else {
@@ -154,16 +148,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
     }
 
     // [private helper method]
-
-    private async __onApplicationClose(): Promise<void> {
-        
-        // save the last opened workspace root path.
-        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
-        const openedWorkspace = (this.fileTreeService.root && shouldRestore) 
-            ? URI.toString(URI.join(this.fileTreeService.root, '|directory'))
-            : '';
-        await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
-    }
 
     private __unloadCurrentView(): void {
         if (this._currentView) {
@@ -235,7 +219,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
-        tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
+        tag.textContent = this.i18nService.localize('openDirectory', 'Open a Folder');
         view.appendChild(tag);
 
         return view;

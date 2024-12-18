@@ -15,6 +15,7 @@ import { IList } from "src/base/browser/secondary/listView/list";
 import { assert, check, panic } from "src/base/common/utilities/panic";
 import { ILog, LogLevel } from "src/base/common/logger";
 import { Iterable } from "src/base/common/utilities/iterable";
+import { RequestAnimateController } from "src/base/browser/basic/animation";
 
 /**
  * The constructor options for {@link ListView}.
@@ -46,6 +47,18 @@ export interface IListViewOpts extends Omit<IScrollableWidgetExtensionOpts, 'scr
      * @default 10
      */
     readonly scrollbarSize?: number;
+
+    /**
+     * Indicates whether to enable the scroll edge gradient indicator.
+     * 
+     * When enabled, a gradient effect is displayed at the top and/or bottom 
+     * edges of the list view to indicate that additional content is available 
+     * for scrolling. The gradient disappears when the view is scrolled to the 
+     * respective edge.
+     * 
+     * @default true
+     */
+    readonly scrollEdgeGradientIndicator?: boolean;
 
     /**
      * If provided, log messages will be reported.
@@ -281,6 +294,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     private readonly _scrollable: Scrollable;
     private readonly _scrollableWidget: ScrollableWidget;
+    /** Invoked when every scroll happens */
+    private readonly _scrollAnimate: RequestAnimateController<{}>;
 
     private _rangeTable: RangeTable;
 
@@ -348,10 +363,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         container: HTMLElement, 
         renderers: IListViewRenderer<any, any>[], 
         itemProvider: IListItemProvider<T>,
-        opts: IListViewOpts,
+        private readonly options: IListViewOpts,
     ) {
         super();
-        this.log = opts.log;
+        this.log = options.log;
         this.log?.(LogLevel.DEBUG, 'ListView', 'ListView Constructing...');
 
         this._element = document.createElement('div');
@@ -367,17 +382,21 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         this._listContainer = document.createElement('div');
         this._listContainer.className = 'list-view-container';
-        if (opts.transformOptimization) {
+        if (options.transformOptimization) {
             this._listContainer.style.transform = 'translate3d(0px, 0px, 0px)';
         }
         
-        this._scrollable = new Scrollable(opts.scrollbarSize ?? 10, 0, 0, 0);
+        this._scrollable = new Scrollable(options.scrollbarSize ?? 10, 0, 0, 0);
         this._scrollableWidget = new ScrollableWidget(
             this._scrollable, {
-                ...opts,
+                ...options,
                 scrollbarType: ScrollbarType.vertical,
             },
         );
+
+        this._scrollAnimate = this.__register(new RequestAnimateController(() => {
+            this._scrollable.setScrollSize(this._rangeTable.size());
+        }));
         
         // scroll rendering
         this.__register(this._scrollableWidget.onDidScroll((e: IScrollEvent) => {
@@ -392,6 +411,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
             const prevRenderRange = this.__getRenderRange(this._prevRenderTop, this._prevRenderHeight);
             this.render(prevRenderRange, e.scrollPosition, e.viewportSize, false);
+
+            if (options.scrollEdgeGradientIndicator ?? true) {
+                this.__updateScrollableGradientIndicator(e);
+            }
         }));
 
         // integrates all the renderers
@@ -413,7 +436,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         container.appendChild(this._element);
 
         // optional rendering
-        if (opts.layout) {
+        if (options.layout) {
             this.layout();
         }
 
@@ -451,6 +474,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     public layout(height?: number): void {
         height = height ?? DomUtility.Attrs.getContentHeight(this._element);
         this._scrollable.setViewportSize(height);
+        
+        if (this.options.scrollEdgeGradientIndicator ?? true) {
+            this.__updateScrollableGradientIndicator(this._scrollable.getScrollEvent());
+        }
     }
 
     public render(prevRenderRange: IRange, renderTop: number, renderHeight: number, updateItemsInDOM: boolean): void {
@@ -938,10 +965,15 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 		}
 
         this._listContainer.style.height = `${this._rangeTable.size()}px`;
-        
-        // TODO: request at next animation frame
-        this._scrollable.setScrollSize(this._rangeTable.size());
+        this._scrollAnimate.request({});
         
         return waitToDelete.map(item => item.data);
+    }
+
+    private __updateScrollableGradientIndicator(e: IScrollEvent): void {
+        const atTop = (e.scrollPosition === 0);
+        const atBottom = (e.scrollPosition + e.viewportSize === e.scrollSize);
+        this.DOMElement.style.setProperty('--nota-file-tree-gradient-top', atTop ? 'none' : 'block');
+        this.DOMElement.style.setProperty('--nota-file-tree-gradient-bottom', atBottom ? 'none' : 'block');
     }
 }

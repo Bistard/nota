@@ -219,6 +219,83 @@ suite('result-test', () => {
                 checkTrue<AreEqual<typeof elseResult.error, Error>>();
             }
         });
+
+        test('Chained andThen with Ok results', () => {
+            const result = ok(2)
+                .andThen((data) => ok(data * 2))
+                .andThen((data) => ok(data + 3))
+                .andThen((data) => ok(data.toString()));
+    
+            assert.strictEqual(result.isOk(), true);
+            assert.strictEqual(result.unwrap(), '7');
+        });
+    
+        test('Chained andThen stops on Err', () => {
+            const result = ok(2)
+                .andThen((data) => ok(data * 2))
+                .andThen(() => err<string, string>('Error occurred'))
+                .andThen((data) => ok(data + 3));
+    
+            assert.strictEqual(result.isErr(), true);
+            assert.strictEqual(result.unwrapErr(), 'Error occurred');
+        });
+    
+        test('Chained orElse recovers from Err', () => {
+            const result = err<number, string>('Initial error')
+                .orElse((error) => ok(error.length))
+                .andThen((data) => ok(data * 2))
+                .andThen((data) => ok(data + 1));
+    
+            assert.strictEqual(result.isOk(), true);
+            assert.strictEqual(result.unwrap(), 27); // Length of "Initial error" is 13; 13 * 2 + 1 = 27
+        });
+    
+        test('Chained orElse maintains original Ok', () => {
+            const result = ok(5)
+                .orElse(() => ok(0))
+                .andThen((data) => ok(data * 2));
+    
+            assert.strictEqual(result.isOk(), true);
+            assert.strictEqual(result.unwrap(), 10);
+        });
+    
+        test('Mixed andThen and orElse chains', () => {
+            const result = ok<number, string>(3)
+                .andThen<number, string>((data) => ok(data * 3)) // 3 * 3 = 9
+                .andThen<number, string>(() => err('Mid-chain error'))
+                .orElse((error) => ok(error.length)) // Length of 'Mid-chain error' = 15
+                .andThen((data) => ok(data - 5)); // 15 - 5 = 10
+    
+            assert.strictEqual(result.isOk(), true);
+            assert.strictEqual(result.unwrap(), 10);
+        });
+
+        test('Chained andThen and orElse 2', () => {
+            const result = ok<number, null>(0)
+                .orElse(() => ok(1))
+                .andThen(num => ok(num + 1));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), 1);
+        });
+        
+        test('Chained andThen and orElse 3', () => {
+            const result = err<number, null>(null)
+                .orElse(() => ok(1))
+                .andThen(num => ok(num + 1));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), 2);
+        });
+        
+        test('Chained andThen and orElse 4', () => {
+            const result = err<number, null>(null)
+                .orElse(() => ok(1))
+                .orElse(() => ok(2))
+                .orElse(() => ok(3))
+                .orElse(() => ok(4))
+                .andThen(num => ok(num + 1));
+            assert.ok(result.isOk());
+            assert.strictEqual(result.unwrap(), 2);
+        });
     });
 
     suite('panic', () => {

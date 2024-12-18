@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from "electron";
+import type { IWindowInstance } from "src/platform/window/electron/windowInstance";
+import { app, BrowserWindow, shell } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, NodeEventEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
@@ -10,7 +11,10 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { StatusKey } from "src/platform/status/common/status";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
-import { IWindowInstance } from "src/platform/window/electron/windowInstance";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { Dictionary } from "src/base/common/utilities/type";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpen";
+import { FileType } from "src/base/common/files/file";
 
 /**
  * An interface only for {@link MainHostService}.
@@ -66,19 +70,25 @@ export class MainHostService extends Disposable implements IMainHostService {
     public readonly onDidLeaveFullScreenWindow = this._onDidLeaveFullScreenWindow.registerListener;
 
     @memoize
-    public get onDidOpenWindow() { return Event.map(this.windowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
+    public get onDidOpenWindow() { return Event.map(this.mainWindowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
 
     // [constructor]
 
     constructor(
-        @IMainWindowService private readonly windowService: IMainWindowService,
+        @IMainWindowService private readonly mainWindowService: IMainWindowService,
         @IMainDialogService private readonly dialogService: IMainDialogService,
         @IMainStatusService private readonly statusService: IMainStatusService,
+        @IMainInspectorService private readonly mainInspectorService: IMainInspectorService,
     ) {
         super();
     }
 
     // [public methods]
+
+    public async setWindowAsRendererReady(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.setAsRendererReady();
+    }
 
     public async focusWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
@@ -118,7 +128,7 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     public async closeWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
-        window?.browserWindow.close();
+        window?.close();
     }
 
     public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
@@ -168,6 +178,23 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.webContents.reload();
     }
 
+    public async toggleInspectorWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        if (!window) {
+            return;
+        }
+        const inspectorWindow = this.mainInspectorService.getInspectorWindowByOwnerID(window.id);
+        if (inspectorWindow) {
+            inspectorWindow.close();
+        } else {
+            this.mainInspectorService.start(window.id);
+        }
+    }
+
+    public async getApplicationStatus<T>(key: StatusKey): Promise<T | undefined> {
+        return this.statusService.get<T>(key);
+    }
+
     public setApplicationStatus(key: StatusKey, val: any): Promise<void> {
         return this.statusService.set(key, val).unwrap();
     }
@@ -180,27 +207,39 @@ export class MainHostService extends Disposable implements IMainHostService {
         return this.statusService.delete(key).unwrap();
     }
 
+    public async getAllApplicationStatus(): Promise<Dictionary<string, any>> {
+        return this.statusService.getAllStatus();
+    }
+
+    public async showItemInFolder(path: string): Promise<void> {
+        shell.showItemInFolder(path);
+    }
+
     // [private helper methods]
 
     private __tryGetWindow(id?: number): IWindowInstance | undefined {
         if (typeof id === 'undefined') {
             return undefined;
         }
-        return this.windowService.getWindowByID(id);
+        return this.mainWindowService.getWindowByID(id);
     }
 
     private async __openDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
-        const uriToOpen = picked.map(path => URI.fromFile(path));
-        this.__openPicked(uriToOpen, windowID, opts);
-    }
+        const filesToOpen = picked.map<IRecentOpenedTarget>(path => ({
+            target: URI.fromFile(path),
+            targetType: FileType.FILE,
+            pinned: false,
+        }));
 
-    private __openPicked(uriToOpen: URI[], windowID: number | undefined, opts: IOpenDialogOptions): void {
-        this.windowService.open({
-            uriToOpen: uriToOpen,
+        this.mainWindowService.open({
+            uriOpenConfiguration: {
+                directory: undefined,
+                files: filesToOpen,
+            },
             forceNewWindow: opts.forceNewWindow,
-            hostWindowID: windowID,
+            hostWindow: windowID ?? -1,
         });
     }
 }

@@ -11,7 +11,7 @@ import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 
-export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeparatorAction | CheckMenuAction;
+export type MenuAction = SimpleMenuAction | MenuSeparatorAction | SubmenuAction | CheckMenuAction;
 
 export const enum MenuItemType {
     General,
@@ -46,9 +46,16 @@ export interface IMenuAction extends IAction {
 export interface IMenuActionOptions extends IActionOptions {
     
     /**
-     * If the menu action has a shortcut.
+     * If the menu action has a shortcut. The shortcut is in string format. 
+     * Details see {@link Shortcut.fromString}.
      */
-    readonly shortcut?: Shortcut;
+    readonly key?: string;
+
+    /**
+     * If the menu action has a shortcut for MacOS. The shortcut is in string 
+     * format. Details see {@link Shortcut.fromString}.
+     */
+    readonly mac?: string;
 
     /**
      * A optional class name to customize the style of the corresponding item in
@@ -93,7 +100,11 @@ class __BaseMenuAction<TType extends MenuItemType> extends Action implements IMe
     constructor(type: TType, opts: IMenuActionOptions) {
         super(opts);
         this.type = type;
-        this.shortcut = opts.shortcut;
+        this.shortcut = (IS_MAC && opts.mac)
+            ? Shortcut.fromString(opts.mac)
+            : opts.key 
+                ? Shortcut.fromString(opts.key) 
+                : undefined;
         this.extraClassName = opts.extraClassName;
     }
 }

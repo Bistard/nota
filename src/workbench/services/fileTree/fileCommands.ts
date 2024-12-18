@@ -33,7 +33,7 @@ export namespace FileCommands {
 
         constructor() {
             super({
-                id: AllCommands.fileCut,
+                id: AllCommands.fileTreeCut,
                 when: WorkbenchContextKey.focusedFileTree,
             });
         }
@@ -47,7 +47,7 @@ export namespace FileCommands {
     
         constructor() {
             super({
-                id: AllCommands.fileCopy,
+                id: AllCommands.fileTreeCopy,
                 when: WorkbenchContextKey.focusedFileTree,
             });
         }
@@ -90,7 +90,7 @@ export namespace FileCommands {
 
         constructor() {
             super({
-                id: AllCommands.filePaste,
+                id: AllCommands.fileTreePaste,
                 when: WorkbenchContextKey.focusedFileTree,
             });
         }
@@ -501,7 +501,9 @@ export namespace FileCommands {
                     message: `Cannot ${operation} ${targetName} to ${destinName}. Reason: ${errorToMessage(error)}`,
                     actions: [
                         { label: 'Ok', run: noop },
-                        { label: 'Retry', run: () => this.commandService.executeCommand(AllCommands.filePaste, destination, [failed]) }
+
+                        // FIX: parameter wrong
+                        // { label: 'Retry', run: () => this.commandService.executeCommand(AllCommands.fileTreePaste, destination, [failed]) }
                     ]
                 });
             });

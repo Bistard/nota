@@ -1,11 +1,25 @@
 import { URI } from "src/base/common/files/uri";
 import { IS_MAC } from "src/base/common/platform";
 import { UUID } from "src/base/common/utilities/string";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpen";
 import { ICLIArguments } from "src/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/platform/environment/common/environment";
+import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IMonitorInfo } from "src/platform/screen/common/screen";
 
-export const enum ArgumentKey {
+/**
+ * Indicates the lifecycle of {@link WindowInstance}.
+ */
+export const enum WindowInstancePhase {
+    Initializing,
+    RendererReady,
+    Closed,
+}
+
+/**
+ * Argument names of {@link WindowInstance}.
+ */
+export const enum WindowInstanceArgumentKey {
     configuration = 'window-configuration',
     zoomLevel = 'window-zoom-level',
 }
@@ -35,6 +49,7 @@ export interface IWindowDisplayOpts {
     readonly resizable?: boolean;
     readonly mode?: WindowDisplayMode;
     readonly frameless?: boolean;
+    readonly alwaysOnTop?: boolean;
 }
 
 /**
@@ -89,17 +104,32 @@ export const enum ToOpenType {
     File,
 }
 
-export interface IFileToOpen {
-    readonly uri: URI;
-    readonly gotoLine?: number;
-}
-
 /**
  * Determines what type of URIs are about to be opened in the window.
  */
 export interface IUriToOpenConfiguration {
-    readonly directory?: URI;
-    readonly filesToOpen?: IFileToOpen[];
+    readonly directory?: IRecentOpenedTarget;
+    readonly files?: IRecentOpenedTarget[]; // TODO: unused
+}
+
+/**
+ * Determine the language settings and paths to locale resources used by the application.
+ */
+export interface INlsConfiguration {
+    /**
+     * Locale as defined in the application's configuration or defaults.
+     */
+    readonly userLocale: string;
+
+    /**
+     * Locale derived from the operating system's preferences.
+     */
+    readonly osLocale: string;
+
+    /**
+     * The resolved UI language based on user and OS settings.
+     */
+    readonly resolvedLanguage: string;
 }
 
 /**
@@ -109,10 +139,19 @@ export interface IUriToOpenConfiguration {
  */
 export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
 
+    /**
+     * A title name of the application.
+     */
+    readonly applicationName: string;
     readonly machineID: UUID;
     readonly windowID: number;
 
     readonly uriOpenConfiguration: IUriToOpenConfiguration;
+    readonly nlsConfiguration: INlsConfiguration;
+    /** 
+     * If under any existed windows operation. If not, this will sets to -1.
+     */
+    readonly hostWindow: number;
 }
 
 /**
@@ -130,14 +169,26 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
     readonly displayOptions: IWindowDisplayOpts;
 
     /**
-     * URIs to be opened in the window, might be either workspace, directory or 
-     * file.
-     */
-    readonly uriToOpen: URI[];
-    readonly forceNewWindow: boolean;          // TODO: unused
+     * If window id is provided, this new window's lifecycle will bind with the
+     * given window id.
+    */
+   readonly ownerWindow: number | undefined;
+   
+   readonly forceNewWindow: boolean; // TODO: unused
+}
+
+/**
+ * This is mapping type for {@link WindowInstance} IPC channel communication.
+ */
+export type WindowInstanceIPCMessageMap = {
+    [IpcChannel.rendererAlertError]: [error: any];
+    [IpcChannel.rendererRunCommand]: [request: IWindowRunRendererCommandRequest];
     
-    /** 
-     * If under any existed windows operation. 
-     */
-    readonly hostWindowID: number | undefined; // TODO: unused
+    // if not predefined, fallback to general case.
+    [key: string]: any[];
+};
+
+export interface IWindowRunRendererCommandRequest {
+    readonly commandID: string;
+    readonly args: any[];
 }

@@ -1,5 +1,5 @@
 import { CollapseState } from "src/base/browser/basic/dom";
-import { LanguageType } from "src/platform/i18n/common/i18n";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
@@ -56,8 +56,8 @@ export const sharedWorkbenchConfigurationRegister = createRegister(
                     properties: {
                         ['language']: {
                             type: 'string',
-                            enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
-                            default: LanguageType.en,
+                            enum: [LanguageType.preferOS, LanguageType.en, LanguageType.zhCN, LanguageType.zhTW],
+                            default: LanguageType.preferOS,
                         },
                         ['colorTheme']: {
                             type: 'string',
@@ -153,6 +153,7 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
                         ['restorePrevious']: {
                             type: 'boolean',
                             default: true,
+                            description: 'Whether application should restore to previous opened directory.'
                         },
                         ['outline']: {
                             type: 'object',

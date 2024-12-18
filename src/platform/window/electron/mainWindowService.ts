@@ -1,18 +1,23 @@
+import { app, BrowserWindow } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { isNumber, Mutable } from "src/base/common/utilities/type";
-import { IFileService } from "src/platform/files/common/fileService";
+import { isDefined, isNumber, Mutable } from "src/base/common/utilities/type";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState } from "src/platform/window/common/window";
+import { ToOpenType, IUriToOpenConfiguration, IWindowCreationOptions, DEFAULT_HTML, defaultDisplayState, INlsConfiguration } from "src/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/files/uri";
 import { UUID } from "src/base/common/utilities/string";
 import { mixin } from "src/base/common/utilities/object";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
+import { IProductService } from "src/platform/product/common/productService";
+import { panic } from "src/base/common/utilities/panic";
+import { Arrays } from "src/base/common/utilities/array";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -22,8 +27,12 @@ export const IMainWindowService = createService<IMainWindowService>('main-window
 export interface IMainWindowService extends Disposable, IService {
 
     readonly onDidOpenWindow: Register<IWindowInstance>;
-
     readonly onDidCloseWindow: Register<IWindowInstance>;
+
+    /**
+     * @description Construct and open a brand new renderer window.
+     */
+    open(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance>;
 
     /**
      * @description Returns all the running windows.
@@ -36,6 +45,16 @@ export interface IMainWindowService extends Disposable, IService {
     getWindowByID(id: number): IWindowInstance | undefined;
 
     /**
+     * @description Returns the current focused window.
+     */
+    getFocusedWindow(): IWindowInstance | undefined;
+
+    /**
+     * @description Get the previous focused window.
+     */
+    getPrevFocusedWindow(): IWindowInstance | undefined;
+
+    /**
      * @description Closes the window with corresponding ID.
      */
     closeWindowByID(id: number): void;
@@ -44,11 +63,6 @@ export interface IMainWindowService extends Disposable, IService {
      * @description Returns the number of running window.
      */
     windowCount(): number;
-
-    /**
-     * @description Open a window by the given options.
-     */
-    open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance;
 }
 
 /**
@@ -78,10 +92,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         private readonly machineID: UUID,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
-        @IFileService private readonly fileService: IFileService,
-        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
-        @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super();
         this.registerListeners();
@@ -103,18 +117,51 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         return undefined;
     }
 
+    public getFocusedWindow(): IWindowInstance | undefined {
+        const window = BrowserWindow.getFocusedWindow();
+		if (window) {
+			return this.getWindowByID(window.id);
+		}
+		return undefined;
+    }
+
+    public getPrevFocusedWindow(): IWindowInstance | undefined {
+        const windows = this.windows();
+
+        let prevFocusedWindow: IWindowInstance | undefined = undefined;
+        let maxPrevFocusedTime = Number.MIN_VALUE;
+
+        for (const window of windows) {
+            if (window.lastFocusedTime > maxPrevFocusedTime) {
+                maxPrevFocusedTime = window.lastFocusedTime;
+                prevFocusedWindow = window;
+            }
+        }
+
+        return prevFocusedWindow;
+    }
+
     // [public methods]
 
     public windowCount(): number {
         return this._windows.length;
     }
 
-    public open(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
+    public async open(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance> {
         this.logService.debug('MainWindowService', 'trying to open a window...');
 
-        const newWindow = this.doOpen(optionalConfiguration);
+        const ownerID = optionalConfiguration.ownerWindow;
+        if (isDefined(ownerID) && !this.getWindowByID(ownerID)) {
+            panic(`Cannot open a window (${optionalConfiguration.applicationName ?? 'unknown name'}) under the owner window (id: ${ownerID}) which is already destroyed.`);
+        }
+        
+        const newWindow = await this.doOpen(optionalConfiguration);
+        
+        // If provided, this new window's lifecycle will bind with the given window id.
+        if (ownerID) {
+            this.__bindWindowLifecycle(newWindow, ownerID);
+        }
 
-        this.logService.debug('MainWindowService', 'window opened.');
         return newWindow;
     }
 
@@ -133,45 +180,43 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // noop
     }
 
-    private doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): IWindowInstance {
+    private async doOpen(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<IWindowInstance> {
         let window: IWindowInstance | undefined = undefined;
-
-        // get opening URIs configuration
-        let uriToOpenConfiguration: IUriToOpenConfiguration = {};
-        if (optionalConfiguration.uriToOpen) {
-            uriToOpenConfiguration = UriToOpenResolver.resolve(
-                optionalConfiguration.uriToOpen, 
-                errorMessage => this.logService.error('MainWindowService', errorMessage),
-            );
-        }
+        
+        const nlsConfiguration = LocaleResolver.resolveNlsConfiguration(this.configurationService);
 
         const defaultConfiguration: IWindowCreationOptions = {
-            /** {@link ICLIArguments} */
-            _: this.mainEnvironmentService.CLIArguments._,
-            log: this.mainEnvironmentService.CLIArguments.log,
-            'open-devtools': this.mainEnvironmentService.CLIArguments['open-devtools'],
+            /** part: {@link ICLIArguments} */
+            _: this.environmentService.CLIArguments._,
+            log: this.environmentService.CLIArguments.log,
+            'open-devtools': this.environmentService.CLIArguments['open-devtools'],
             inspector: undefined,
-            ListenerGCedWarning: this.mainEnvironmentService.CLIArguments.ListenerGCedWarning,
+            ListenerGCedWarning: this.environmentService.CLIArguments.ListenerGCedWarning,
 
-            /** {@link IEnvironmentOpts} */
-            isPackaged: this.mainEnvironmentService.isPackaged,
-            appRootPath: this.mainEnvironmentService.appRootPath,
-            tmpDirPath: this.mainEnvironmentService.tmpDirPath,
-            userDataPath: this.mainEnvironmentService.userDataPath,
-            userHomePath: this.mainEnvironmentService.userHomePath,
+            /** part: {@link IEnvironmentOpts} */
+            isPackaged: this.environmentService.isPackaged,
+            appRootPath: this.environmentService.appRootPath,
+            tmpDirPath: this.environmentService.tmpDirPath,
+            userDataPath: this.environmentService.userDataPath,
+            userHomePath: this.environmentService.userHomePath,
 
-            // window configuration
+            /** part: {@link IWindowConfiguration} */
+            applicationName: this.productService.profile.applicationName,
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
-            uriOpenConfiguration: uriToOpenConfiguration,
+            uriOpenConfiguration: {
+                directory: undefined,
+                files: undefined
+            },
+            hostWindow: -1,
+            nlsConfiguration: nlsConfiguration,
 
+            /** part: {@link IWindowCreationOptions} */
             loadFile: DEFAULT_HTML,
-            CLIArgv: this.mainEnvironmentService.CLIArguments,
+            CLIArgv: this.environmentService.CLIArguments,
             displayOptions: defaultDisplayState(this.screenMonitorService.getPrimaryMonitorInfo()),
-            
-            uriToOpen: [],
             forceNewWindow: false,
-            hostWindowID: undefined,
+            ownerWindow: undefined,
         };
 
         /**
@@ -186,10 +231,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         configuration.windowID = window.id;
 
         // load window
-        this.logService.debug('MainWindowService', 'Loading window...');
-        this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
-
-        window.load(configuration).then(() => this.logService.debug('MainWindowService', 'Window loaded successfully.'));
+        // TODO: only pass the `IWindowConfiguration` part, we are currently passing into everything.
+        window.load(configuration);
 
         return window;
     }
@@ -197,10 +240,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private helper methods]
 
     private __openInNewWindow(configuration: IWindowCreationOptions): IWindowInstance {
-        const newWindow = this.instantiationService.createInstance(
-            WindowInstance,
-            configuration,
-        );
+        const newWindow = this.instantiationService.createInstance(WindowInstance, configuration);
 
         this._windows.push(newWindow);
         this._onDidOpenWindow.fire(newWindow);
@@ -212,96 +252,74 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private __onWindowDidClose(window: IWindowInstance): void {
-        this._windows.splice(this._windows.indexOf(window), 1);
+        Arrays.remove(this._windows, window);
         this._onDidCloseWindow.fire(window);
+    }
+
+    private __bindWindowLifecycle(newWindow: IWindowInstance, ownerID: number): void {
+        const ownerWindow = this.getWindowByID(ownerID);
+        if (!ownerWindow) {
+            this.logService.warn('MainWindowService', `Cannot bind the lifecycle to the window (${ownerID}) because it is already destroyed.`);
+            return;
+        }
+
+        // binding lifecycle
+        Event.once(ownerWindow.onDidClose)(() => {
+            if (newWindow.isClosed() === false) {
+                newWindow.close();
+            }
+        });
     }
 }
 
-namespace UriToOpenResolver {
+namespace LocaleResolver {
 
-    export function resolve(uriToOpen: URI[], onError: (message: string) => void): IUriToOpenConfiguration {
-        const resolveResult = __parse(uriToOpen);
-        const uriToOpenConfiguration = resolveResult[0];
+    // [public]
 
-        // logging any errored opening URIs
-        const errorURIs = resolveResult[1];
-        if (errorURIs.length) {
-            let message = 'Invalid URI when opening in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`. The erroring URIs are: ';
-            for (const uri of errorURIs) {
-                message += '\n\t' + URI.toString(uri);
-            }
-            onError(message);
-        }
+    export function resolveNlsConfiguration(configurationService: IConfigurationService): INlsConfiguration {
+        const userLocale = __getUserLocale(configurationService);
+        const osLocale = __getOSLocale();
 
-        return uriToOpenConfiguration;
-    }
-
-    /**
-     * @description Given an array of URIs, resolves the ones that follow the
-     * following parsing rule.
-     * ```txt
-     * Parsing rule:
-     *      Directory - directory_path|directory
-     *      Workspace - workspace_path|workspace
-     *      File      - file_path|file(|gotoLine)
-     * ```
-     */
-    function __parse(uris: URI[]): [IUriToOpenConfiguration, URI[]] {
-        const config: Mutable<IUriToOpenConfiguration> = {};
-        const errorURIs: URI[] = [];
-
-        for (const uri of uris) {
-            const parseResult = __parseURI(uri);
-
-            // the parsing fails, we record this URI and continue.
-            if (parseResult.fail) {
-                errorURIs.push(uri);
-                continue;
-            }
-
-            if (parseResult.type === ToOpenType.Directory) {
-                config.directory = URI.fromFile(parseResult.resource);
-            }
-            else if (parseResult.type === ToOpenType.File) {
-                if (!config.filesToOpen) {
-                    config.filesToOpen = [];
-                }
-                config.filesToOpen.push({
-                    uri: URI.fromFile(parseResult.resource),
-                    gotoLine: parseResult.gotoLine
-                });
-            }
-        }
-
-        return [config, errorURIs];
-    }
-
-    // [private helper methods]
-
-    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean; } {
-        const sections = URI.toFsPath(uri).split('|');
-
-        const resource = sections[0];
-        const type = sections[1];
-        const gotoLine = isNumber(sections[2]) ? Number(sections[2]) : undefined;
-        let fail: boolean | undefined;
-
-        if (!resource || !type) {
-            fail = true;
-        }
-
-        const isDir =  (type === 'directory') ? ToOpenType.Directory : ToOpenType.Unknown;
-        const isFile = (type === 'file')      ? ToOpenType.File      : ToOpenType.Unknown;
-
-        if (isDir === ToOpenType.Unknown && isFile === ToOpenType.Unknown) {
-            fail = true;
-        }
-
-        return {
-            resource: resource!,
-            type: isDir | isFile,
-            gotoLine: gotoLine,
-            fail: fail,
+        const resolvedLocale = (userLocale === LanguageType.preferOS) ? osLocale : (userLocale || osLocale);
+        const nlsConfiguration: INlsConfiguration = {
+            userLocale: userLocale,
+            osLocale: osLocale,
+            resolvedLanguage: resolvedLocale,
         };
+        return nlsConfiguration;
+    }
+
+    // [private]
+
+    function __getOSLocale(): string {
+        const osLocale = app.getPreferredSystemLanguages()?.[0] || 'en';
+        if (osLocale.startsWith('zh')) {
+            const region = osLocale.split('-')[1]!;
+            /**
+             * On Windows and macOS, Chinese languages returned by
+             * app.getPreferredSystemLanguages() start with zh-hans
+             * for Simplified Chinese or zh-hant for Traditional Chinese,
+             * so we can easily determine whether to use Simplified or Traditional.
+             * However, on Linux, Chinese languages returned by that same API
+             * are of the form zh-XY, where XY is a country code.
+             * For China (CN), Singapore (SG), and Malaysia (MY)
+             * country codes, assume they use Simplified Chinese.
+             * For other cases, assume they use Traditional.
+             */
+            if (['hans', 'cn', 'sg', 'my'].includes(region)) {
+                return 'zh-cn';
+            }
+            return 'zh-tw';
+        }
+
+        if (osLocale.startsWith('en')) {
+            return 'en';
+        }
+
+        return osLocale;
+    }
+
+    function __getUserLocale(configurationService: IConfigurationService): LanguageType {
+        return configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage, LanguageType.preferOS);
     }
 }

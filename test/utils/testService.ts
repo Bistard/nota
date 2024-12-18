@@ -4,18 +4,26 @@ import { tmpdir } from "os";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { join } from "src/base/common/files/path";
-import { URI } from "src/base/common/files/uri";
+import { Schemas, URI } from "src/base/common/files/uri";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ContextService } from "src/platform/context/common/contextService";
 import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
-import { IBrowserEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";
+import { IBrowserEnvironmentService, IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
 import { ClientBase, IClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
 import { IProtocol } from "src/platform/ipc/common/protocol";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { IWindowConfiguration } from "src/platform/window/common/window";
 import { nullObject } from "test/utils/helpers";
+import { IHostService } from "src/platform/host/common/hostService";
+import { Dictionary } from "src/base/common/utilities/type";
+import { StatusKey } from "src/platform/status/common/status";
+import { panic } from "src/base/common/utilities/panic";
+import { IMainStatusService, MainStatusService } from "src/platform/status/electron/mainStatusService";
+import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
+import { FileService } from "src/platform/files/common/fileService";
+import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
@@ -128,6 +136,21 @@ export class NullLifecycleService extends AbstractLifecycleService<number, numbe
         this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
 }
+export class NullMainLifecycleService extends AbstractLifecycleService<number, number> implements IMainLifecycleService {
+
+    constructor() {
+        super('Test', 0, () => '', new NullLogger());
+    }
+
+    public override async quit(): Promise<void> {
+        this._onBeforeQuit.fire();
+        this._onWillQuit.fire({ reason: 1, join: () => { } });
+    }
+
+    public async kill(exitcode?: number): Promise<void> {
+        return;
+    }
+}
 
 export class NullEnvironmentService extends DiskEnvironmentService implements IEnvironmentService {
     constructor() {
@@ -143,6 +166,24 @@ export class NullEnvironmentService extends DiskEnvironmentService implements IE
         new NullLogger(),
         );
     }
+}
+
+export class NullMainEnvironmentService extends DiskEnvironmentService implements IMainEnvironmentService {
+    constructor() {
+        super({
+            _: [],
+        }, {
+            appRootPath: 'temp/',
+            isPackaged: false,
+            tmpDirPath: 'temp/',
+            userDataPath: 'temp/',
+            userHomePath: 'temp/',
+        },
+        new NullLogger(),
+        );
+    }
+
+    get mainIpcHandle(): string { return 'temp/pipe/main.sock'; }
 }
 
 export class NullBrowserEnvironmentService extends DiskEnvironmentService implements IBrowserEnvironmentService {
@@ -246,4 +287,57 @@ export class TestKeyboardService implements IKeyboardService {
     public dispose(): void {
         this._emitter.dispose();
     }
+}
+
+export class NullHostService implements IHostService {
+    
+    public declare _serviceMarker: undefined;
+    
+    constructor(
+        @IMainStatusService private readonly statusService: IMainStatusService,
+    ) {}
+
+    public readonly onDidMaximizeWindow: Register<number> = undefined!;
+    public readonly onDidUnMaximizeWindow: Register<number> = undefined!;
+    public readonly onDidFocusWindow: Register<number> = undefined!;
+    public readonly onDidBlurWindow: Register<number> = undefined!;
+    public readonly onDidOpenWindow: Register<number> = undefined!;
+    public readonly onDidEnterFullScreenWindow: Register<number> = undefined!;
+    public readonly onDidLeaveFullScreenWindow: Register<number> = undefined!;
+
+    public async setWindowAsRendererReady(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async focusWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async maximizeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async minimizeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async unMaximizeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async toggleMaximizeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async toggleFullScreenWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async closeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue> { panic("Method not implemented."); }
+    public async showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue> { panic("Method not implemented."); }
+    public async showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue> { panic("Method not implemented."); }
+    public async openFileDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void> { panic("Method not implemented."); }
+    public async openDirectoryDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void> { panic("Method not implemented."); }
+    public async openFileOrDirectoryDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void> { panic("Method not implemented."); }
+    public async openDevTools(options?: Electron.OpenDevToolsOptions, id?: number): Promise<void> { panic("Method not implemented."); }
+    public async closeDevTools(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async toggleDevTools(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async reloadWebPage(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async toggleInspectorWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async getApplicationStatus<T>(key: StatusKey): Promise<T | undefined> { return this.statusService.get(key); }
+    public async setApplicationStatus(key: StatusKey, val: any): Promise<void> { return this.statusService.set(key, val).unwrap(); }
+    public async setApplicationStatusLot(items: readonly { key: StatusKey; val: any; }[]): Promise<void> { return this.statusService.setLot(items).unwrap(); }
+    public async deleteApplicationStatus(key: StatusKey): Promise<boolean> { return this.statusService.delete(key).unwrap(); }
+    public async getAllApplicationStatus(): Promise<Dictionary<string, any>> { panic("Method not implemented."); }
+    public async showItemInFolder(path: string): Promise<void> { panic("Method not implemented."); }
+}
+
+export function createNullHostService(): IHostService {
+    const logService = new NullLogger();
+    const fileService = new FileService(logService);
+    fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
+    const envService = new NullMainEnvironmentService();
+    const lifecycleService = new NullMainLifecycleService();
+    const statusService = new MainStatusService(fileService, logService, envService, lifecycleService);
+    return new NullHostService(statusService);
 }

@@ -1,8 +1,8 @@
-import { AsyncResult, err, ok } from "src/base/common/result";
+import { AsyncResult, err } from "src/base/common/result";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/files/file";
 import { URI } from "src/base/common/files/uri";
-import { Dictionary, If } from "src/base/common/utilities/type";
+import { Dictionary, isObject } from "src/base/common/utilities/type";
 import { IFileService } from "src/platform/files/common/fileService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { Strings } from "src/base/common/utilities/string";
@@ -10,10 +10,10 @@ import { Strings } from "src/base/common/utilities/string";
 /**
  * An interface only for {@link DiskStorage}.
  */
-export interface IDiskStorage<TSync extends boolean> {
+export interface IDiskStorage {
 
     /**
-     * The resource of the storage.
+     * The resource file linked to this storage.
      */
     readonly resource: URI;
 
@@ -22,25 +22,25 @@ export interface IDiskStorage<TSync extends boolean> {
      * storage is sync, the storage will start writing to disk asynchronously.
      * @note If `val` is null, it will be stored and replaced with `undefined`.
      */
-    set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): If<TSync, AsyncResult<void, FileOperationError>, void>;
+    set<K extends string, V = any>(key: K, val: V): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Sets pairs of key and value into the storage.
      */
-    setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): If<TSync, AsyncResult<void, FileOperationError>, void>;
+    setLot<K extends string, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError>;
 
     /**
      * @description Try to get the corresponding value of the given key.
      * @param key The given key.
      * @param defaultVal If key is `undefined`, this value will be returned.
      */
-    get<K extends PropertyKey = PropertyKey, V = any>(key: K, defaultVal?: V): V | undefined;
+    get<K extends string, V = any>(key: K, defaultVal?: V): V | undefined;
 
     /**
      * @description Try to get the corresponding values of the given keys. Works
      * the same as {@link IDiskStorage.get}.
      */
-    getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
+    getLot<K extends string, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
 
     /**
      * @description Try to delete a corresponding value with the given key. The 
@@ -48,13 +48,13 @@ export interface IDiskStorage<TSync extends boolean> {
      * @param key The given key.
      * @returns Returns a boolean to tell if the deletion is taken.
      */
-    delete<K extends PropertyKey = PropertyKey>(key: K): If<TSync, AsyncResult<boolean, FileOperationError>, boolean>;
+    delete<K extends string>(key: K): AsyncResult<boolean, FileOperationError>;
 
     /**
      * @description Check if storage has a corresponding value of the given key.
      * @param key The given key.
      */
-    has<K extends PropertyKey = PropertyKey>(key: K): boolean;
+    has<K extends string>(key: K): boolean;
 
     /**
      * @description Initialize the storage and will read the file content into
@@ -75,32 +75,54 @@ export interface IDiskStorage<TSync extends boolean> {
      * @note Any operations after `close()` will be ignored except `init()` again.
      */
     close(): AsyncResult<void, FileOperationError>;
+
+    /**
+     * @description Returns the in-memory reference of the storage.
+     */
+    getStorage(): Dictionary<string, any>;
 }
 
-class DiskStorageBase {
+/**
+ * @class A class that represents a disk-based key-value storage system. It is 
+ * designed to persistently manage key-value pairs in a file, with support for 
+ * asynchronous operations and in-memory caching. This class provides methods 
+ * for storing, retrieving, deleting, and managing data, as well as initializing 
+ * and saving the storage to disk.
+ *
+ * Constraints:
+ * - All operations must be preceded by a call to `init()` to ensure the storage 
+ *      is ready.
+ * - After invoking `close()`, operations are ignored until reinitialized using 
+ *      `init()`.
+ */
+export class DiskStorage implements IDiskStorage {
     
     // [fields]
 
-    protected _storage: Dictionary<PropertyKey, Omit<any, 'null'>> = Object.create(null);
-    protected _lastSaveStorage: string = '';
-    protected _operating?: AsyncResult<void, FileOperationError>;
+    private _storage: Dictionary<string, any> = Object.create(null);
+    
+    /**
+     * Indicating if the storage is currently working. Represents the current
+     * operation.
+     */
+    private _operating?: AsyncResult<void, FileOperationError>;
 
     // [constructor]
 
     constructor(
-        protected readonly path: URI,
-        @IFileService protected readonly fileService: IFileService,
+        private readonly path: URI,
+        @IFileService private readonly fileService: IFileService,
     ) { }
 
     // [public methods]
 
     get resource(): URI { return this.path; }
 
-    public get<K extends PropertyKey = PropertyKey, V = any>(key: K, defaultVal?: V): V | undefined {
-        return this.getLot([key], [defaultVal!!])[0];
+    public get<K extends string, V = any>(key: K, defaultVal?: V): V | undefined {
+        return this.getLot([key], [defaultVal])[0];
     }
 
-    public getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
+    public getLot<K extends string, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
         const result: (V | undefined)[] = [];
 
         let i = 0;
@@ -112,8 +134,39 @@ class DiskStorageBase {
         return result;
     }
 
-    public has<K extends PropertyKey = PropertyKey>(key: K): boolean {
+    public has<K extends string>(key: K): boolean {
         return !!this.get(key);
+    }
+
+    public set<K extends string, V = any>(key: K, val: V): AsyncResult<void, FileOperationError> {
+        return this.setLot([{ key, val }]);
+    }
+
+    public setLot<K extends string, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError> {
+        let save = false;
+
+        for (const { key, val } of items) {
+            if (this._storage[key] === val) {
+                return AsyncResult.ok();
+            }
+            this._storage[key] = val;
+            save = true;
+        }
+
+        if (save) {
+            return this.__save();
+        }
+
+        return AsyncResult.ok();
+    }
+
+    public delete<K extends string>(key: K): AsyncResult<boolean, FileOperationError> {
+        if (this._storage[key] === undefined) {
+            return AsyncResult.ok(false);
+        }
+
+        delete this._storage[key];
+        return this.__save().map(() => true);
     }
 
     public init(): AsyncResult<void, FileOperationError> {
@@ -132,7 +185,6 @@ class DiskStorageBase {
         if (this._operating === undefined) {
             return AsyncResult.ok();
         }
-
         return this.__save();
     }
 
@@ -141,73 +193,59 @@ class DiskStorageBase {
         if (this._operating === undefined) {
             return AsyncResult.ok();
         }
-
         return this._operating
-            .andThen(() => this.__close());
+            .andThen(() => this.__save()
+            .map(() => this._operating = undefined));
     }
 
-    // [protected helper methods]
+    public getStorage(): Dictionary<string, any> {
+        return this._storage;
+    }
 
-    protected __init(): AsyncResult<void, FileOperationError> {
+    // [private helper methods]
+
+    private __init(): AsyncResult<void, FileOperationError> {
         return this.fileService.readFile(this.path)
             .andThen(buffer => this.__onInitFileRead(buffer))
             .orElse(error => this.__onInitReadError(error))
             .andThen(reinitialize => reinitialize ? this.__init() : AsyncResult.ok());
     }
 
-    protected __save(): AsyncResult<void, FileOperationError> {
+    private __save(): AsyncResult<void, FileOperationError> {
 
-        return new AsyncResult((async () => {
-            // never got initialized or already closed, we should never save.
-            if (this._operating === undefined) {
-                return ok();
-            }
+        // never got initialized or already closed, we should never save.
+        if (!this._operating) {
+            return AsyncResult.ok();
+        }
 
-            // ensure 'init', 'close' or 'save' are completed
-            const success = await this._operating;
-            if (success.isErr()) {
-                return err(success.error);
-            }
-
+        // ensure 'init', 'close' or previous 'save' are completed
+        return this._operating.andThen(() => {
             const serialized = Strings.stringifySafe(this._storage, undefined, undefined, 4);
-            if (this._lastSaveStorage === serialized) {
-                // no diff, we quit in advance.
-                return ok();
-            }
 
-            // writing work
             // eslint-disable-next-line local/code-must-handle-result
-            this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
-            this._lastSaveStorage = serialized;
-
+            this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: true, overwrite: true, unlock: false });
             return this._operating;
-        })());
-    }
-
-    protected __close(): AsyncResult<void, FileOperationError> {
-        return this.__save()
-        .andThen(() => { 
-            this._operating = undefined; 
-            return ok(); 
         });
     }
 
-    // [private helper methods]
-
     private __onInitFileRead(buffer: DataBuffer): AsyncResult<boolean, FileOperationError> {
-        this._lastSaveStorage = buffer.toString();
-    
-        // If the file is empty, no further action is needed
-        if (!this._lastSaveStorage.length) {
+        const raw = buffer.toString();
+
+        // If the file is empty, no further action is needed.
+        if (!raw.length) {
             return AsyncResult.ok(false);
         }
     
         // Parse the file content
-        return Strings.jsonParseSafe<any>(this._lastSaveStorage)
+        return Strings.jsonParseSafe<any>(raw)
             .toAsync()
-            .andThen(parsed => {
+            .map(parsed => {
+                // invalid reading data, reinitialize it.
+                if (isObject(parsed) === false) {
+                    return true;
+                }
                 this._storage = parsed;
-                return ok(false);
+                return false;
             })
             .orElse(error => err(new FileOperationError(`Cannot parse the file correctly. Reason: ${errorToMessage(error)}`, FileOperationErrorType.OTHERS)));
     }
@@ -222,117 +260,5 @@ class DiskStorageBase {
         // file does not exist, try to create an empty one and re-initialize.
         return this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false })
             .map(() => true);
-    }
-}
-
-/**
- * @class The `AsyncDiskStorage` class provide an asynchronous interface for 
- * disk storage operations. It implements the `IDiskStorage` interface with a 
- * focus on asynchronous behavior, allowing for non-blocking I/O operations.
- *
- * Internally, it utilizes a dictionary-like structure for storing data in 
- * memory, allowing for rapid access and modification of key-value pairs. The 
- * asynchronous nature of the class enables operations such as reading from and 
- * writing to the disk without blocking the main execution thread, thus 
- * enhancing performance for applications that require high responsiveness.
- *
- * Features:
- * - Efficient in-memory storage using a dictionary for key-value pairs.
- * - Asynchronous disk I/O, allowing non-blocking read and write operations.
- */
-export class AsyncDiskStorage extends DiskStorageBase implements IDiskStorage<true> {
-
-    // [constructor]
-
-    constructor(
-        path: URI,
-        @IFileService fileService: IFileService,
-    ) {
-        super(path, fileService);
-    }
-
-    // [public methods]
-
-    public set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): AsyncResult<void, FileOperationError> {
-        return this.setLot([{ key, val }]);
-    }
-
-    public setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): AsyncResult<void, FileOperationError> {
-        let save = false;
-
-        for (const { key, val } of items) {
-            if (this._storage[key] === val) {
-                return AsyncResult.ok();
-            }
-            this._storage[key] = val ?? undefined!;
-            save = true;
-        }
-
-        if (save) {
-            return this.__save();
-        }
-
-        return AsyncResult.ok();
-    }
-
-    public delete<K extends PropertyKey = PropertyKey>(key: K): AsyncResult<boolean, FileOperationError> {
-        if (this._storage[key] === undefined) {
-            return AsyncResult.ok(false);
-        }
-
-        this._storage[key] = undefined!;
-        return this.__save().map(() => true);
-    }
-}
-
-/**
- * @class The `SyncDiskStorage` class is a synchronous version of disk storage. 
- * It is designed for scenarios where synchronous, blocking operations are 
- * suitable.
- *
- * Like its asynchronous counterpart, it uses a dictionary-like structure in 
- * memory for storing data. This approach facilitates quick retrieval and 
- * updating of key-value pairs. However, unlike the {@link AsyncDiskStorage}, 
- * all operations are blocking.
- *
- * Features:
- * - Synchronous disk I/O operations, blocking the execution thread during read 
- *   and write operations.
- * - Utilizes an in-memory dictionary for storing and managing key-value pairs, 
- *   optimizing data access and modification.
- */
-export class SyncDiskStorage extends DiskStorageBase implements IDiskStorage<false> {
-
-    // [constructor]
-
-    constructor(
-        path: URI,
-        @IFileService fileService: IFileService,
-    ) {
-        super(path, fileService);
-    }
-
-    // [public methods]
-
-    public set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): void {
-        return this.setLot([{ key, val }]);
-    }
-
-    public setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V; }[]): void {
-        for (const { key, val } of items) {
-            if (this._storage[key] === val) {
-                return;
-            }
-            this._storage[key] = val ?? undefined!;
-        }
-    }
-
-    public delete<K extends PropertyKey = PropertyKey>(key: K): boolean {
-        if (this._storage[key] === undefined) {
-            return false;
-        }
-
-        this._storage[key] = undefined!;
-        return true;
     }
 }

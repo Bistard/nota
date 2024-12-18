@@ -153,9 +153,9 @@ const configuration = {
         description: 'Compiles the all project-related icons from svg format into a font file. All the icons are stored at "https://github.com/Bistard/nota-codicons.git". The command will fetch the latest version and compile them. The more detailed configuration is at "src/base/browser/icon/.fantasticonrc.js".'
     },
 
-    "benchmark": {
-        command: "node benchmark/benchmark.js",
-        description: 'Run the benchmark tests.'
+    "i18n_integration_test": {
+        command: "node ./test/build/i18n/testRunner.js",
+        description: "Run the i18n integration test."
     },
 }
 

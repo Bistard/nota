@@ -309,7 +309,6 @@ export interface IFileTreeMetadataService extends IDisposable, IService {
     updateCustomSortingMetadata(type: OrderChangeType.Remove, item: FileItem, index1?: number                ): AsyncResult<void, FileOperationError | Error>;
     updateCustomSortingMetadata(type: OrderChangeType.Update, item: FileItem, index1:  number                ): AsyncResult<void, FileOperationError | Error>;
     updateCustomSortingMetadata(type: OrderChangeType.Swap  , item: FileItem, index1:  number, index2: number): AsyncResult<void, FileOperationError | Error>;
-    
 
     /**
      * @description This method provides a way to programmatically update the 

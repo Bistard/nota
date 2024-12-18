@@ -36,6 +36,7 @@ export const enum AllCommands {
 
     alertError       = 'alertError',
     toggleDevTool    = 'toggle-develop-tool',
+    toggleInspector  = 'toggle-inspector',
     reloadWindow     = 'reload-window',
     closeApplication = 'close-application',
     
@@ -45,12 +46,20 @@ export const enum AllCommands {
 
     // [FileTree]
 
-    newFile   = 'newFile', // TODO
-    newFolder = 'newFolder', // TODO
-    fileCut   = 'fileCut',
-    fileCopy  = 'fileCopy',
-    filePaste = 'filePaste',
-    fileMove  = 'fileMove', // TODO
+    fileTreeNewFile    = 'fileTreeNewFile', // TODO
+    fileTreeNewFolder  = 'fileTreeNewFolder', // TODO
+    fileTreeCut        = 'fileTreeCut',
+    fileTreeCopy       = 'fileTreeCopy',
+    fileTreePaste      = 'fileTreePaste',
+    fileTreeMove       = 'fileTreeMove', // TODO
+    fileTreeDelete     = 'fileTreeDelete', // TODO
+    
+    fileTreeRevealInOS         = 'fileTreeRevealInOS',
+    fileTreeCopyPath           = 'fileTreeCopyPath',
+    fileTreeCopyRelativePath   = 'fileTreeCopyRelativePath',
+    fileTreeCloseCurrentFolder = 'fileTreeCloseCurrentFolder',
+    fileTreeOpenFolder         = 'fileTreeOpenFolder',
+    fileTreeClearRecentOpened  = 'fileTreeClearRecentOpened'
 
     // [Test Commands]
 }
@@ -64,6 +73,7 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
 
     [AllCommands.alertError]:       'Displays error messages in a popup notification.',
     [AllCommands.toggleDevTool]:    'Toggle the developer tool of the whole application.',
+    [AllCommands.toggleInspector]:  'Toggle the inspector window of the whole application.',
     [AllCommands.reloadWindow]:     'Reload the browser entirely.',
     [AllCommands.closeApplication]: 'Close the current window.',
     
@@ -71,12 +81,20 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
     [AllCommands.zoomOut]:          'Zoom out the entire program to the next level.',
     [AllCommands.zoomSet]:          'Set the zoom level to the given number. In the range of -8 to 8. 0 means default.',
 
-    [AllCommands.newFile]:          '',
-    [AllCommands.newFolder]:        '',
-    [AllCommands.fileCut]:          'Sets selected files in the file tree as ready to be cut.',
-    [AllCommands.fileCopy]:         'Sets selected files in the file tree as ready to be copied.',
-    [AllCommands.filePaste]:        'Paste the given targets to the file tree.',
-    [AllCommands.fileMove]:         'Moves selected explorer files.',
+    [AllCommands.fileTreeNewFile]:    'Create a new file in the file tree.',
+    [AllCommands.fileTreeNewFolder]:  'Create a new folder in the file tree.',
+    [AllCommands.fileTreeCut]:        'Sets selected files in the file tree as ready to be cut.',
+    [AllCommands.fileTreeCopy]:       'Sets selected files in the file tree as ready to be copied.',
+    [AllCommands.fileTreePaste]:      'Paste the targets from the clipboard to the file tree.',
+    [AllCommands.fileTreeMove]:       'Moves the targets from the clipboard to the file tree.',
+    [AllCommands.fileTreeDelete]:     'Delete the targets in the file tree.',
+    
+    [AllCommands.fileTreeRevealInOS]:         'Reveal the target in the native file explorer.',
+    [AllCommands.fileTreeCopyPath]:           'Copy path of active file path.',
+    [AllCommands.fileTreeCopyRelativePath]:   'Copy relative path of active file path.',
+    [AllCommands.fileTreeCloseCurrentFolder]: 'Close current file tree folder.',
+    [AllCommands.fileTreeOpenFolder]:         'Open a new directory for file tree.',
+    [AllCommands.fileTreeClearRecentOpened]:  'Clear recent opened file and folder paths.',
 };
 
 /**
@@ -96,27 +114,38 @@ export const AllCommandsDescriptions: { [key in AllCommands]: string } = {
  */
 export type AllCommandsArgumentsTypes = {
     
-    [AllCommands.alertError]      : [reporter: string, error: Error];
+    [AllCommands.alertError]      : [reporter: string, error: any];
     [AllCommands.toggleDevTool]   : [];
+    [AllCommands.toggleInspector] : [];
     [AllCommands.reloadWindow]    : [];
     [AllCommands.closeApplication]: [];
     
-    [AllCommands.zoomIn]: [];
+    [AllCommands.zoomIn]:  [];
     [AllCommands.zoomOut]: [];
     [AllCommands.zoomSet]: [level?: number];
     
-    [AllCommands.newFile]  : [];
-    [AllCommands.newFolder]: [];
-    [AllCommands.fileCut]  : [];
-    [AllCommands.fileCopy] : [];
-    [AllCommands.filePaste]: [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
-    [AllCommands.fileMove] : [];
+    [AllCommands.fileTreeNewFile]   : [];
+    [AllCommands.fileTreeNewFolder] : [];
+    [AllCommands.fileTreeCut]       : [];
+    [AllCommands.fileTreeCopy]      : [];
+    [AllCommands.fileTreePaste]     : [destination: FileItem, destinationIdx?: number, resources?: URI[] | FileItem[]];
+    [AllCommands.fileTreeMove]      : [];
+    [AllCommands.fileTreeDelete]    : [];
+
+    [AllCommands.fileTreeRevealInOS]        : [target: URI | string];
+    [AllCommands.fileTreeCopyPath]          : [target: URI | string];
+    [AllCommands.fileTreeCopyRelativePath]  : [target: URI | string];
+    [AllCommands.fileTreeCloseCurrentFolder]: [];
+    [AllCommands.fileTreeOpenFolder]        : [target: URI];
+    [AllCommands.fileTreeClearRecentOpened] : [];
+
+    [key: string]: any[];
 };
 
 /**
  * @description Defines the return types for each command in {@link AllCommands}. 
  * @note This provides type safety for the outcomes of command executions. 
- * 
+ *
  * @example
  * ```ts
  * async function toggleDevTools() {
@@ -126,20 +155,31 @@ export type AllCommandsArgumentsTypes = {
  * ```
  */
 export type AllCommandsReturnTypes = {
-    
+
     [AllCommands.alertError]      : void;
     [AllCommands.toggleDevTool]   : void;
+    [AllCommands.toggleInspector] : void;
     [AllCommands.reloadWindow]    : void;
     [AllCommands.closeApplication]: void;
-    
-    [AllCommands.zoomIn]: void;
+
+    [AllCommands.zoomIn]:  void;
     [AllCommands.zoomOut]: void;
     [AllCommands.zoomSet]: void;
 
-    [AllCommands.newFile]  : void;
-    [AllCommands.newFolder]: void;
-    [AllCommands.fileCut]  : void;
-    [AllCommands.fileCopy] : void;
-    [AllCommands.filePaste]: void;
-    [AllCommands.fileMove] : void;
+    [AllCommands.fileTreeNewFile]   : void;
+    [AllCommands.fileTreeNewFolder] : void;
+    [AllCommands.fileTreeCut]       : void;
+    [AllCommands.fileTreeCopy]      : void;
+    [AllCommands.fileTreePaste]     : void;
+    [AllCommands.fileTreeMove]      : void;
+    [AllCommands.fileTreeDelete]    : void;
+
+    [AllCommands.fileTreeRevealInOS]        : void;
+    [AllCommands.fileTreeCopyPath]          : void;
+    [AllCommands.fileTreeCopyRelativePath]  : void;
+    [AllCommands.fileTreeCloseCurrentFolder]: void;
+    [AllCommands.fileTreeOpenFolder]        : void;
+    [AllCommands.fileTreeClearRecentOpened] : void;
+
+    [key: string]: any | Promise<any>;
 };

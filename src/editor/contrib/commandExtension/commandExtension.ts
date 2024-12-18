@@ -77,7 +77,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
              * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
              */
             trySafe(
-                () => commandService.executeCommand<boolean | Promise<boolean>>(commandID, editorWidget, event.view.state, event.view.dispatch, event.view),
+                () => commandService.executeCommand(commandID, editorWidget, event.view.state, event.view.dispatch, event.view),
                 {
                     onError: () => false,
                     onThen: (anyExecuted) => {
