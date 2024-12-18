@@ -5,7 +5,7 @@ import { FileType } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
-import { createNullHostService, NullLogger } from 'test/utils/testService';
+import { createNullHostService, NullBrowserEnvironmentService, NullLogger } from 'test/utils/testService';
 import { IRecentOpenService, RecentOpenService } from 'src/platform/app/browser/recentOpenService';
 import { IRegistrantService, RegistrantService } from 'src/platform/registrant/common/registrantService';
 import { IMenuRegistrant, MenuRegistrant } from 'src/platform/menu/browser/menuRegistrant';
@@ -129,7 +129,7 @@ suite('RecentOpenService', () => {
         registrantService.registerRegistrant(menuRegistrant);
         registrantService.init(di);
 
-        recentOpenService = new RecentOpenService(hostService, registrantService);
+        recentOpenService = new RecentOpenService(hostService, registrantService, new NullBrowserEnvironmentService());
     });
 
     test('getRecentOpened should return the most recent opened item', async () => {
