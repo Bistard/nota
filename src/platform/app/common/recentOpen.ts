@@ -128,7 +128,8 @@ function __deserialize(raw: string): IRecentOpenedTarget | undefined {
                 const isPinned = attribute['pinned'] === true;
 
                 const lineNumber = attribute['gotoLine'];
-                const gotoLine = lineNumber || parseInt(lineNumber);
+                const parsedLine = Number(lineNumber);
+                const gotoLine = !isNaN(parsedLine) && parsedLine > 0 ? parsedLine : undefined;
 
                 return {
                     target: URI.fromFile(target),
