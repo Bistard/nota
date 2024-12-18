@@ -118,8 +118,8 @@ export function tildify(path: string, userHome: string, os: Platform): string {
 	}
 
 	// Linux: case sensitive, macOS: case insensitive
-	if (os === Platform.Linux ? normalizedPath.startsWith(normalizedUserHome) : Strings.IgnoreCase.startsWith(normalizedPath, normalizedUserHome)) {
-		return `~/${normalizedPath.substr(normalizedUserHome.length)}`;
+	if (Strings.Smart.startsWith(normalizedPath, normalizedUserHome)) {
+		return `~/${normalizedPath.substring(normalizedUserHome.length)}`;
 	}
 
 	return path;
