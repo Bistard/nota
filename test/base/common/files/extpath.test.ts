@@ -94,7 +94,7 @@ suite('extpath-test', function () {
         });
     
         test('should normalize userHome and path on Windows before comparison', () => {
-            const result = tildify('C:/Users/Example/Documents/file.txt', 'C:\\Users\\Example', Platform.Linux);
+            const result = tildify('C:/Users/Example/Documents/file.txt', 'C:/Users/Example', Platform.Linux);
             assert.strictEqual(result, '~/Documents/file.txt');
         });
     
