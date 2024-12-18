@@ -1,4 +1,4 @@
-import { ILogService } from "src/base/common/logger";
+import { ILogService, LogLevel } from "src/base/common/logger";
 import { WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
@@ -20,13 +20,11 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
             appRootPath: WIN_CONFIGURATION.appRootPath,
             tmpDirPath: WIN_CONFIGURATION.tmpDirPath,
             userDataPath: WIN_CONFIGURATION.userDataPath,
-            userHomePath: WIN_CONFIGURATION.userDataPath,
+            userHomePath: WIN_CONFIGURATION.userHomePath,
         }, logService);
 
         this._configuration = WIN_CONFIGURATION;
-        if (this._configuration.log === 'trace') {
-            this.inspect();
-        }
+        logService.debug("browserEnvironmentService", "Environment loaded",  this.inspect());
 
         logService.debug('BrowserEnvironmentService', 'BrowserEnvironmentService constructed.');
     }
