@@ -20,6 +20,7 @@ import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IBrowserService } from "src/code/browser/common/renderer.common";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { IS_MAC } from "src/base/common/platform";
+import { IShortcutService } from "src/workbench/services/shortcut/shortcutService";
 
 export class BrowserInstance extends Disposable implements IBrowserService {
 
@@ -29,6 +30,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
 
     constructor(
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IShortcutService shortcutService: IShortcutService, // chris: do not remove. By 0.6.4, since no any services depends on this, we need manually depends on it.
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @ILogService private readonly logService: ILogService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
