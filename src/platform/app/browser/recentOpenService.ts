@@ -118,7 +118,7 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     }
 
     public async getRecentOpened(): Promise<IRecentOpenedTarget | undefined> {
-        return (await this.getRecentOpenedAll())[0];
+        return RecentOpenUtility.getRecentOpened(this.hostService);
     }
 
     public async getRecentOpenedDirectory(): Promise<IRecentOpenedTarget | undefined> {

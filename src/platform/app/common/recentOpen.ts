@@ -41,7 +41,7 @@ export namespace RecentOpenUtility {
     export const MAX_SIZE = 100;
 
     export async function getRecentOpened(hostService: IHostService): Promise<IRecentOpenedTarget | undefined> {
-        return getRecentOpenedAll(hostService)[0];
+        return (await getRecentOpenedAll(hostService))[0];
     }
 
     export async function getRecentOpenedDirectory(hostService: IHostService): Promise<IRecentOpenedTarget | undefined> {
