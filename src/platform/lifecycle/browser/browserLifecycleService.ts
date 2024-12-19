@@ -144,6 +144,8 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
     private _preventedOnce = false;
     private __registerListeners(): void {
+
+        // FIX: this method is piece of shit, conflicts with new api: reload(), should report an issue to Electron team.
         window.addEventListener('beforeunload', e => {
             if (!this._preventedOnce) {
                 this._preventedOnce = true;

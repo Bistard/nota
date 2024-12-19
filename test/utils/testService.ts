@@ -14,7 +14,7 @@ import { IBrowserEnvironmentService, IEnvironmentService, IMainEnvironmentServic
 import { ClientBase, IClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
 import { IProtocol } from "src/platform/ipc/common/protocol";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
-import { IWindowConfiguration } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowCreationOptions } from "src/platform/window/common/window";
 import { nullObject } from "test/utils/helpers";
 import { IHostService } from "src/platform/host/common/hostService";
 import { Dictionary } from "src/base/common/utilities/type";
@@ -313,6 +313,7 @@ export class NullHostService implements IHostService {
     public async toggleMaximizeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
     public async toggleFullScreenWindow(id?: number): Promise<void> { panic("Method not implemented."); }
     public async closeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async reloadWindow(optionalConfiguration: Partial<IWindowCreationOptions>, id?: number): Promise<void> { panic("Method not implemented."); }
     public async showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue> { panic("Method not implemented."); }
     public async showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue> { panic("Method not implemented."); }
     public async showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue> { panic("Method not implemented."); }

@@ -232,7 +232,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         // load window
         // TODO: only pass the `IWindowConfiguration` part, we are currently passing into everything.
-        window.load(configuration);
+        window.load({});
 
         return window;
     }
