@@ -207,10 +207,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
-        const i18nService = instantiationService.createInstance(I18nService, {
-            language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
-            localePath: URI.join(environmentService.appRootPath, 'assets', 'locale'),
-        });
+        const i18nService = instantiationService.createInstance(I18nService, 
+            WIN_CONFIGURATION.nlsConfiguration, 
+            URI.join(environmentService.appRootPath, 'assets', 'locale'),
+        );
         instantiationService.register(II18nService, i18nService);
 
         // singleton initializations

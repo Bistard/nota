@@ -4,30 +4,17 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { ILogService } from "src/base/common/logger";
 import { AsyncResult } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
-import { LanguageType } from "src/platform/i18n/common/localeTypes";
+import { LanguageType, validateLanguageType } from "src/platform/i18n/common/localeTypes";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { Strings } from "src/base/common/utilities/string";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { Disposable } from "src/base/common/dispose";
+import { IHostService } from "src/platform/host/common/hostService";
+import { INlsConfiguration } from "src/platform/window/common/window";
 
 export const II18nService = createService<II18nService>("i18n-new-service");
-
-/**
- * A option for {@link I18nService} construction.
- */
-export interface II18nOptions {
-    /**
-     * The language specified for i18n.
-     */
-    readonly language: LanguageType;
-
-    /**
-     * Determines the root of the locale files.
-     */
-    readonly localePath: URI;
-}
 
 /**
  * This data structure is constructed during compiled time.
@@ -86,14 +73,16 @@ export class I18nService extends Disposable implements II18nService {
     // [constructor]
 
     constructor(
-        opts: II18nOptions,
+        nlsConfiguration: INlsConfiguration,
+        localeRootPath: URI,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IConfigurationService private readonly configurationService: IConfigurationService
+        @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         super();
-        this._language = opts.language;
-        this._localeRootPath = opts.localePath;
+        this._localeRootPath = localeRootPath;
+        this._language = validateLanguageType(nlsConfiguration.resolvedLanguage);
     }
 
     // [public methods]
@@ -107,6 +96,7 @@ export class I18nService extends Disposable implements II18nService {
         const uri = URI.join(this._localeRootPath, `${this._language}_lookup_table.json`);
         
         // load the look up table from the disk
+        this.logService.debug('i18nService', `Loading lookup table at: ${URI.toString(uri)}`);
         return this.fileService.readFile(uri)
             // parse as array
             .andThen(buffer => Strings.jsonParseSafe<II18nLookUpTable>(buffer.toString()))
@@ -123,8 +113,10 @@ export class I18nService extends Disposable implements II18nService {
         if (lang === this._language) {
             return;
         }
-        this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
-        // TODO: should reload the renderer page entirely
+        await this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
+        
+        // TODO: reload window
+        // this.hostService.
     }
 
     public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string {
