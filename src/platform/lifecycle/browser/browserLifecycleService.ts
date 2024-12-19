@@ -1,5 +1,7 @@
 import { ILogService } from "src/base/common/logger";
 import { JoinablePromise } from "src/base/common/utilities/async";
+import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
+import { IContextService } from "src/platform/context/common/contextService";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService } from "src/platform/instantiation/common/decorator";
@@ -8,7 +10,7 @@ import { ILifecycleService as ILifecycleServiceInterface } from "src/platform/li
 
 export const ILifecycleService = createService<IBrowserLifecycleService>('browser-lifecycle-service');
 
-export interface IBrowserLifecycleService extends ILifecycleServiceInterface<LifecyclePhase, QuitReason> { }
+export interface IBrowserLifecycleService extends ILifecycleServiceInterface<LifecyclePhase, QuitReason> {}
 
 /**
  * Represents the different phases of the whole window (renderer process). 
@@ -77,6 +79,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     constructor(
         @ILogService logService: ILogService,
         @IHostService private readonly hostService: IBrowserHostService,
+        @IContextService private readonly contextService: IContextService,
     ) {
         super('Browser', LifecyclePhase.Starting, parsePhaseToString, logService);
         this.__registerListeners();
@@ -85,21 +88,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
-        this.logService.debug('BrowserLifecycleService', 'quit');
-
-        this.logService.debug('BrowserLifecycleService', 'beforeQuit');
-        this._onBeforeQuit.fire();
-
-        await this.__fireWillQuit();
-
-        this.logService.debug('BrowserLifecycleService', 'Broadcasting the application is about to quit...');
-
-        /**
-         * Making sure all the logging message from the browser side is 
-         * correctly sending to the main process.
-         */
-        await this.logService.flush();
-
+        await this.__onBeforeQuit();
         return this.hostService.closeWindow();
     }
 
@@ -112,7 +101,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         }
 
         // notify all listeners
-        this.logService.debug('BrowserLifecycleService', 'willQuit');
+        this.logService.debug('BrowserLifecycleService', 'willQuit...');
         const participants = new JoinablePromise();
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
@@ -136,13 +125,46 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         this._ongoingQuitParticipants = undefined;
     }
 
+    private async __onBeforeQuit(): Promise<void> {
+        this.logService.debug('BrowserLifecycleService', 'quit...');
+
+        this.logService.debug('BrowserLifecycleService', 'beforeQuit...');
+        this._onBeforeQuit.fire();
+
+        await this.__fireWillQuit();
+
+        this.logService.debug('BrowserLifecycleService', 'Application is about to quit...');
+
+        /**
+         * Making sure all the logging message from the browser side is 
+         * correctly sending to the main process.
+         */
+        await this.logService.flush();
+    }
+
     private _preventedOnce = false;
     private __registerListeners(): void {
         window.addEventListener('beforeunload', e => {
             if (!this._preventedOnce) {
-                e.preventDefault();
                 this._preventedOnce = true;
-                this.quit();
+                e.preventDefault();
+                
+                /**
+                 * When listening to 'beforeunload' event, the browser cannot
+                 * distinguish between 'reloadWebPage' and 'process quitting'.
+                 * 
+                 * We need to manually check which is which.
+                 */
+                this.__onBeforeQuit().then(() => {
+                    const isReloadExpr = CreateContextKeyExpr.Equal('reloadWeb', true);
+                    const reloading = this.contextService.contextMatchExpr(isReloadExpr);
+
+                    if (reloading) {
+                        this.hostService.reloadWebPage();
+                    } else {
+                        this.hostService.closeWindow();
+                    }
+                });
             }
         });
     }

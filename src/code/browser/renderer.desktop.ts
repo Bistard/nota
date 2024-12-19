@@ -165,7 +165,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IHostService, hostService);
 
         // lifecycle-service
-        const lifecycleService = new BrowserLifecycleService(logService, hostService);
+        const lifecycleService = instantiationService.createInstance(BrowserLifecycleService);
         instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-logger-service

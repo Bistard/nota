@@ -18,6 +18,7 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { IContextService } from "src/platform/context/common/contextService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -46,7 +47,10 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.reloadWindow,
-                command: (provider) => { provider.getOrCreateService(IHostService).reloadWebPage(); },
+                command: (provider) => { 
+                    provider.getOrCreateService(IContextService).createContextKey('reloadWeb', true);
+                    provider.getOrCreateService(IHostService).reloadWebPage(); 
+                },
             },
         );
     
