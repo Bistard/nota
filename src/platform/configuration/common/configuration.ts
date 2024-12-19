@@ -8,7 +8,7 @@ import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/
 import { URI } from "src/base/common/files/uri";
 import { AsyncResult, Result } from "src/base/common/result";
 
-export const APP_DIR_NAME = '.wisp';
+export const APP_DIR_NAME = '.nota';
 export const APP_CONFIG_NAME = 'app.config.json';
 
 /**
