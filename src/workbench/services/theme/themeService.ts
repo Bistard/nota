@@ -31,7 +31,7 @@ export interface IThemeService extends Disposable, IService {
 
     /**
      * The root path that stores all the theme files (JSON files).
-     * @example .wisp/theme/
+     * @example .appConfigDir/theme/
      */
     readonly themeRootPath: URI;
 

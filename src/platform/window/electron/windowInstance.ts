@@ -12,6 +12,7 @@ import { Callable, isDefined } from "src/base/common/utilities/type";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { StatusKey } from "src/platform/status/common/status";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
+import { mixin } from "src/base/common/utilities/object";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -58,7 +59,7 @@ export interface IWindowInstance extends Disposable {
      */
     readonly onRendererReady: Register<void>;
 
-    load(configuration: IWindowConfiguration): Promise<void>;
+    load(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void>;
     close(): void;
     isClosed(): boolean;
 
@@ -106,6 +107,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     private readonly _window: electron.BrowserWindow;
     private readonly _id: number;
+    private _configuration: IWindowCreationOptions;
 
     /**
      * It is still required for potential reloading request so that it cannot
@@ -120,7 +122,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        public readonly configuration: IWindowCreationOptions,
+        configuration: IWindowCreationOptions,
         @ILogService private readonly logService: ILogService,
         @IMainStatusService private readonly mainStatusService: IMainStatusService,
         @IScreenMonitorService private readonly screenMonitorService: IScreenMonitorService,
@@ -130,6 +132,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         this._phase = WindowInstancePhase.Initializing;
         this._onRendererReadyCallbacks = [];
+        this._configuration = configuration;
         const displayOptions = configuration.displayOptions;
 
         this._window = this.doCreateWindow(displayOptions);
@@ -147,19 +150,23 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     get id() { return this._id; }
     get browserWindow() { return this._window; }
+    get configuration() { return this._configuration; }
     get lastFocusedTime() { return this._lastFocusedTime; }
 
     // [public methods]
 
-    public async load(configuration: IWindowConfiguration): Promise<void> {
+    public async load(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void> {
         this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading window...`);
         this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
 
-        this._configurationIpcAccessible.updateData(configuration);
+        const resolvedConfiguration = mixin<IWindowCreationOptions>(this.configuration, optionalConfiguration, true);
+        this._configuration = resolvedConfiguration;
+
+        this._configurationIpcAccessible.updateData(this.configuration);
 
         // loading page
         const htmlFile = this.configuration.loadFile;
-        this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading HTML file...`);
+        this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading HTML file (${htmlFile})...`);
 
         await this._window.loadFile(htmlFile);
     }

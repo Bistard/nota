@@ -23,10 +23,11 @@ class TestI18nService extends I18nService {
     const fileService = new FileService(logService);
     fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
 
-    const i18n = new TestI18nService({
-        language: LanguageType.en,
-        localePath: URI.join(URI.fromFile(process.cwd()), './test/build/i18n/dist/locale/'),
-    }, logService, fileService, nullObject());
+    const i18n = new TestI18nService(
+        { osLocale: LanguageType.en, resolvedLanguage: LanguageType.en, userLocale: LanguageType.en }, 
+        URI.join(URI.fromFile(process.cwd()), './test/build/i18n/dist/locale/'), 
+        logService, fileService, nullObject(), nullObject(),
+    );
     await i18n.init().unwrap();
 
     i18n.localize('key1', 'value1');

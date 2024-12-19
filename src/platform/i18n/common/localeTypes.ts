@@ -9,3 +9,14 @@ export const enum LanguageType {
     zhTW = "zh-tw",        // Chinese (Traditional)
 }
 
+export function validateLanguageType(raw: string): LanguageType {
+    switch (raw) {
+        case LanguageType.preferOS:
+        case LanguageType.en:
+        case LanguageType.zhCN:
+        case LanguageType.zhTW:
+            return raw;
+        default:
+            return LanguageType.preferOS;
+    }
+}

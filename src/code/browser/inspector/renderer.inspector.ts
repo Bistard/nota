@@ -13,6 +13,7 @@ import { InspectorTree } from "src/code/browser/inspector/inspectorTree";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ContextService } from "src/platform/context/common/contextService";
 import { initExposedElectronAPIs, ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
@@ -128,7 +129,7 @@ new class InspectorRenderer {
         instantiationService.register(IHostService, hostService);
 
         // lifecycle-service
-        const lifecycleService = new BrowserLifecycleService(logService, hostService);
+        const lifecycleService = new BrowserLifecycleService(logService, hostService, new ContextService());
         instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-service
