@@ -11,7 +11,7 @@
             "relaunchDisplayLanguageMessage": "重新启动 {name} 以切换到语言：{languageName}?"
         },
         "workbench/contrib/explorer/explorer": {
-            "openDirectory": ""
+            "openDirectory": "打开文件夹"
         }
     }
 }
