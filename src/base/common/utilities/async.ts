@@ -10,6 +10,7 @@ import { isNullable } from "src/base/common/utilities/type";
 /**
  * @function {@link repeat} 
  * @function {@link delayFor} 
+ * @class    {@link OngoingPromise}
  * @class    {@link JoinablePromise}
  * @class 	 {@link CancellablePromise}
  * @function {@link cancellableTimeout}
@@ -63,6 +64,38 @@ export async function delayFor(time: Time, callback?: ITask<void>): Promise<void
 			resolve();
 		}, time.toMs().time)
 	);
+}
+
+/**
+ * @class Ensures that only one promise task is executed at a time.
+ */
+export class OngoingPromise<T> {
+    
+	private _task?: Promise<T>;
+	constructor() {}
+
+    /**
+     * @description Executes the task if it's not already pending. If a task is 
+	 * already pending, returns the pending task.
+     * 
+     * @param taskFn A function that returns a promise.
+     * @returns The promise of the task.
+     */
+    public execute(taskFn: () => Promise<T>): Promise<T> {
+        if (!this._task) {
+            this._task = taskFn().finally(() => {
+                this._task = undefined;
+            });
+        }
+        return this._task;
+    }
+
+    /**
+     * @description Checks if a task is currently pending.
+     */
+    public isPending(): boolean {
+        return !!this._task;
+    }
 }
 
 /**
