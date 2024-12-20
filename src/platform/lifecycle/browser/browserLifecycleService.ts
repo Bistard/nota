@@ -1,5 +1,5 @@
 import { ILogService } from "src/base/common/logger";
-import { JoinablePromise } from "src/base/common/utilities/async";
+import { JoinablePromise, OngoingPromise } from "src/base/common/utilities/async";
 import { ipcRenderer, safeIpcRendererOn } from "src/platform/electron/browser/global";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
@@ -72,7 +72,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
     // [field]
 
-    private _ongoingQuitParticipants?: Promise<void>;
+    private readonly _ongoingQuitParticipants = new OngoingPromise<void>();
 
     // [constructor]
 
@@ -95,21 +95,18 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [private helper methods]
 
     private async __fireOnWillQuit(): Promise<void> {
-        if (this._ongoingQuitParticipants) {
-            return this._ongoingQuitParticipants;
-        }
+        return this._ongoingQuitParticipants.execute(async () => {
+            
+            // notify all listeners
+            this.logService.debug('BrowserLifecycleService', 'onWillQuit...');
+            const participants = new JoinablePromise();
+            this._onWillQuit.fire({
+                reason: QuitReason.Quit,
+                join: participant => participants.join(participant),
+            });
 
-        // notify all listeners
-        this.logService.debug('BrowserLifecycleService', 'onWillQuit...');
-        const participants = new JoinablePromise();
-        this._onWillQuit.fire({
-            reason: QuitReason.Quit,
-            join: participant => participants.join(participant),
-        });
-
-        this._ongoingQuitParticipants = (async () => {
+            // settling all participants
             this.logService.debug('BrowserLifecycleService', '"onWillQuit" settling ongoing participants before quit...');
-        
             const results = await participants.allSettled();
             results.forEach(res => {
                 if (res.status === 'rejected') {
@@ -118,10 +115,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
             });
 
             this.logService.debug('BrowserLifecycleService', '"onWillQuit" participants all settled.');
-        })();
-
-        await this._ongoingQuitParticipants;
-        this._ongoingQuitParticipants = undefined;
+        });
     }
 
     private async __fireOnBeforeQuit(reason: QuitReason): Promise<boolean> {
