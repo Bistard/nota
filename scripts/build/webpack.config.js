@@ -88,13 +88,14 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     #buildMode;
     #isWatchMode;
     #isCircular;
+    #i18n_error;
 
     constructor(cwd) {
         super();
         this.#cwd = cwd;
 
         /** @type {['BUILD_MODE', 'WATCH_MODE', 'CIRCULAR']} */
-        const envList = ['BUILD_MODE', 'WATCH_MODE', 'CIRCULAR'];
+        const envList = ['BUILD_MODE', 'WATCH_MODE', 'CIRCULAR', 'i18n_error'];
         const env = ScriptHelper.getEnv(envList);
 
         console.log(`   🌍 Webpack environments: ${JSON.stringify(env)}`);
@@ -103,6 +104,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         this.#buildMode   = env.BUILD_MODE;
         this.#isWatchMode = env.WATCH_MODE == 'true';
         this.#isCircular  = env.CIRCULAR == 'true';
+        this.#i18n_error  = env.i18n_error == 'true';
     }
 
     // [public - configuration initialization]
@@ -166,13 +168,17 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 filename: '[name]-bundle.js',
                 path: path.resolve(this.#cwd, this.#distPath),
             },
-            plugins: [...baseConfiguration.plugins, new KeyToIndexTransformPlugin({
-                sourceCodePath: path.resolve(this.#cwd, './src'),
-                localeOutputPath: path.resolve(this.#cwd, './assets/locale'),
-                localizationFileName: 'en.json',
-                lookupFileName: 'en_lookup_table.json',
-                otherLocales: ['zh-cn']
-            })]
+            plugins: [
+                ...baseConfiguration.plugins, 
+                new KeyToIndexTransformPlugin({
+                    logLevel: this.#i18n_error === true ? 'error' : 'warn',
+                    sourceCodePath: path.resolve(this.#cwd, './src'),
+                    localeOutputPath: path.resolve(this.#cwd, './assets/locale'),
+                    localizationFileName: 'en.json',
+                    lookupFileName: 'en_lookup_table.json',
+                    otherLocales: ['zh-cn']
+                }),
+            ]
         });
     }
 

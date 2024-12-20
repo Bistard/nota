@@ -57,6 +57,7 @@ const path = require('path');
  */
 class KeyToIndexTransformPlugin {
     /**
+     * @param {'warn' | 'error'} options.logLevel 
      * @param {string} options.sourceCodePath Path to the source code directory to scan for localization keys.
      * @param {string} options.localeOutputPath Path to output the localization files.
      * @param {string} options.localizationFileName Name of the localization file to generate.
@@ -64,12 +65,15 @@ class KeyToIndexTransformPlugin {
      * @param {string[]} options.otherLocales Array of other locales that need to validate.
      */
     constructor({ 
+        logLevel,
         sourceCodePath,
         localeOutputPath,
         localizationFileName = 'en.json', 
         lookupFileName = 'en_lookup_table.json',
         otherLocales = []
     }) {
+        console.log(`[KeyToIndexTransformPlugin] logLevel: ${logLevel}`);
+        this.logLevel = logLevel;
         this.sourceCodePath = sourceCodePath;
         this.localizationFilePath = path.join(localeOutputPath, localizationFileName);
         this.lookupTableFilePath = path.join(localeOutputPath, lookupFileName);
@@ -146,9 +150,10 @@ class KeyToIndexTransformPlugin {
                      */
                     this.#replaceKeysWithIndexes(compilation, assets);
 
-                    // notify Webpack of any errors
+                    // notify Webpack of any errors/warnings
                     if (this.errors.length > 0) {
-                        this.errors.forEach(error => compilation.errors.push(new Error(error)));
+                        const resolvedArr = this.logLevel === 'error' ? compilation.errors : compilation.warnings;
+                        this.errors.forEach(error => resolvedArr.push(new Error(error)));
                     }
                 }
             );

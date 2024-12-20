@@ -79,6 +79,13 @@ const configuration = {
                     'Choose the building mode. The value can be either "development", "production" or "none".',
                     'default = "development"',
                 ]
+            },
+            {
+                flags: ['--i18nError'],
+                descriptions: [
+                    'Turn on localization validation as necessary check during compilation.',
+                    'default = false'
+                ]
             }
         ]
     },

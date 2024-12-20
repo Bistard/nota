@@ -16,6 +16,10 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
         BUILD_MODE: {
             value: CLIArgv.mode,
             defaultValue: 'development',
+        },
+        i18n_error: {
+            value: CLIArgv.i18nError,
+            defaultValue: 'false',
         }
     });
 
