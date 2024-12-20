@@ -1,4 +1,4 @@
-name: Localization Validation
+name: Localization
 on: [push]
 jobs:
   validation:
