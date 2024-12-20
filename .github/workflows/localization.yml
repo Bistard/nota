@@ -12,4 +12,4 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build
-        run: npm run script build --- --i18nError
+        run: npm run script validate-i18n
