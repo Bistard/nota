@@ -276,13 +276,14 @@ class KeyToIndexTransformPlugin {
                     localeData = JSON.parse(JSON.stringify(enData));
                     this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "failed to parse existing file.");
                     fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
+                    return; // Note: return here after recreation
                 }
 
                 localeData.contents ??= {};
 
                 // If we successfully parsed existing localeData above:
                 if (localeData && localeData.contents) {
-                    // Compare keys
+                    // Compare keys for missing entries
                     let missingFound = false;
                     for (const [filePath, enKeys] of Object.entries(enContents)) {
                         localeData.contents[filePath] ??= {};
@@ -302,6 +303,34 @@ class KeyToIndexTransformPlugin {
                         console.log(`Updated ${localeFileName} with missing keys placeholders.`);
                     } else {
                         console.log(`[KeyToIndexTransformPlugin] Validated ${localeFileName} localization file.`);
+                    }
+
+                    /**
+                     * check for extra keys in localeData that do not exist in enData.
+                     */
+                    let extraFound = false;
+                    for (const [localeFilePathKey, localeKeys] of Object.entries(localeData.contents)) {
+                        // If the filePath doesn't exist in enContents, remove entire block
+                        if (!enContents.hasOwnProperty(localeFilePathKey)) {
+                            delete localeData.contents[localeFilePathKey];
+                            console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
+                            extraFound = true;
+                            continue; // move to next filePath
+                        }
+
+                        // Otherwise, check individual keys
+                        for (const localeKey of Object.keys(localeKeys)) {
+                            if (!enContents[localeFilePathKey].hasOwnProperty(localeKey)) {
+                                delete localeData.contents[localeFilePathKey][localeKey];
+                                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
+                                extraFound = true;
+                            }
+                        }
+                    }
+
+                    if (extraFound) {
+                        fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
+                        console.log(`[KeyToIndexTransformPlugin] Updated ${localeFileName} by removing extra keys.`);
                     }
                 }
             }
