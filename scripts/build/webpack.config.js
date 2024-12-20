@@ -1,7 +1,7 @@
 const path = require('path');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { KeyToIndexTransformPlugin } = require('./i18n');
+const { KeyToIndexTransformPlugin } = require('./i18n.plugin');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper } = require('../utility');
 

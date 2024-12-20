@@ -1,7 +1,7 @@
 /* eslint-disable */
 const path = require('path');
 const WebpackBaseConfigurationProvider = require('../../../scripts/webpack/webpack.config.base');
-const { KeyToIndexTransformPlugin } = require('../../../scripts/build/i18n');
+const { KeyToIndexTransformPlugin } = require('../../../scripts/build/i18n.plugin');
 const { ScriptHelper } = require("../../../scripts/utility");
 
 
