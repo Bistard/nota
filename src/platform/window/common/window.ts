@@ -183,7 +183,8 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
 export type WindowInstanceIPCMessageMap = {
     [IpcChannel.rendererAlertError]: [error: any];
     [IpcChannel.rendererRunCommand]: [request: IWindowRunRendererCommandRequest];
-    
+    [IpcChannel.windowOnBeforeUnload]: [channels: { okChannel: string; vetoChannel: string; }];
+
     // if not predefined, fallback to general case.
     [key: string]: any[];
 };
