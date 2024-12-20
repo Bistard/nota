@@ -13,6 +13,7 @@ import { IMainStatusService } from "src/platform/status/electron/mainStatusServi
 import { StatusKey } from "src/platform/status/common/status";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { mixin } from "src/base/common/utilities/object";
+import { OngoingPromise } from "src/base/common/utilities/async";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -51,15 +52,38 @@ export interface IWindowInstance extends Disposable {
 
     readonly configuration: IWindowCreationOptions;
 
-    readonly onDidLoad: Register<void>;
-    readonly onDidClose: Register<void>;
-
     /**
      * Fires whenever the renderer process of this window is ready.
      */
     readonly onRendererReady: Register<void>;
+    readonly onDidLoad: Register<void>;
+    readonly onDidClose: Register<void>;
 
+    /**
+     * @description Loads content into the window with optional configuration 
+     * overrides.
+     * @param optionalConfiguration Optional configuration to override the 
+     *                              existing one.
+     */
     load(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void>;
+    /**
+     * @description Reloads the window content with optional configuration 
+     * overrides.
+     * @param optionalConfiguration Optional configuration to override the 
+     *                              existing one.
+     */
+    reload(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void>;
+    /**
+     * @description Unloads the window, allowing the renderer process to veto 
+     * the unload request.
+     * @returns A promise that resolves to `true` if the unload was vetoed, 
+     *          `false` otherwise.
+     */
+    unload(): Promise<boolean>;
+    /**
+     * @description Closes the window. The window's `onDidClose` event will fire 
+     * once closed.
+     */
     close(): void;
     isClosed(): boolean;
 
@@ -119,6 +143,10 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     private _lastFocusedTime: number;
 
+    /** Make sure only one unloading request at the time. */
+    private readonly _ongoingUnloading = new OngoingPromise<boolean>();
+    private _ongoingUnloadingToken = 0;
+
     // [constructor]
 
     constructor(
@@ -169,6 +197,38 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading HTML file (${htmlFile})...`);
 
         await this._window.loadFile(htmlFile);
+    }
+
+    public async reload(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void> {
+        const veto = await this.unload();
+        if (veto) {
+            return;
+        }
+        await this.load(optionalConfiguration);
+    }
+
+    public async unload(): Promise<boolean> {
+        return this._ongoingUnloading.execute(async () => {
+            this.logService.debug('WindowInstance', `(Window ID: ${this._id}) unloading...`);
+            
+            // Always allow to unload a window that is not yet ready
+            if (this.isRendererReady() === false) {
+                return false;
+            }
+
+            /**
+             * Notify the renderer, see if they decide to veto or not.
+             */
+            const veto = await this.__notifyRendererOnBeforeUnload();
+            if (veto) {
+                this.logService.debug('WindowInstance', `(Window ID: ${this._id}) unloading failed: veto by renderer.`);
+                return true;
+            }
+
+            // no veto from renderer
+            this.logService.debug('WindowInstance', `(Window ID: ${this._id}) unloading success: no veto by renderer.`);
+            return false;
+        });
     }
 
     public toggleFullScreen(force?: boolean): void {
@@ -375,11 +435,29 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
     }
 
+    // [private helper methods]
+
     private __doSendIPC(channel: string, ...args: any[]): void {
         try {
             this._window.webContents.send(channel, ...args);
         } catch (error) {
             this.logService.error('WindowInstance', `Error sending IPC message to channel (${channel}) with window id (${this.id})`, error);
         }
+    }
+
+    private __notifyRendererOnBeforeUnload(): Promise<boolean> {
+        return new Promise<boolean>(resolve => {
+			const uniqueToken = this._ongoingUnloadingToken++;
+			const okChannel = `nota:ok${uniqueToken}`;
+			const vetoChannel = `nota:veto${uniqueToken}`;
+
+			/** no veto from renderer */
+            SafeIpcMain.instance.once(okChannel, () => resolve(false));
+			/** veto from renderer */
+            SafeIpcMain.instance.once(vetoChannel, () => resolve(true));
+
+            // notify renderer: onBeforeUnload
+			this.sendIPCMessage(IpcChannel.windowOnBeforeUnload, { okChannel, vetoChannel });
+		});
     }
 }

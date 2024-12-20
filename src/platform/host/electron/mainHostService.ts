@@ -134,7 +134,7 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     public async reloadWindow(optionalConfiguration: Partial<IWindowCreationOptions>, id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
-        window?.load(optionalConfiguration);
+        window?.reload(optionalConfiguration);
     }
 
     public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
