@@ -156,7 +156,7 @@ class localizationGenerator {
         };
         
         fs.writeFileSync(this.localizationFilePath, JSON.stringify(enData, null, 4), 'utf-8');
-        console.log(`[KeyToIndexTransformPlugin] Localization JSON written to ${this.localizationFilePath}`);
+        console.log(`[Localization] Localization JSON written to ${this.localizationFilePath}`);
 
         this.#createLocaleLookupTable(this.localizationData, 'en');
     }
@@ -174,7 +174,7 @@ class localizationGenerator {
     #validateOtherLocalizationFiles() {
         const enFilePath = this.localizationFilePath;
         if (!fs.existsSync(enFilePath)) {
-            this.logError(`[KeyToIndexTransformPlugin] EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
+            this.logError(`[Localization] EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
             return;
         }
     
@@ -200,7 +200,7 @@ class localizationGenerator {
                 const extraFound = this.#removeExtraKeys(localeData, enContents, localeFileName);
                 if (extraFound) {
                     fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                    this.logError(`[KeyToIndexTransformPlugin] Updated ${localeFileName} by removing extra keys.`);
+                    this.logError(`[Localization] Updated ${localeFileName} by removing extra keys.`);
                 }
             }
         });
@@ -220,7 +220,7 @@ class localizationGenerator {
             const localeFileName = `${locale}.json`;
             const localeFilePath = path.join(this.localeOutputPath, localeFileName);
             if (!fs.existsSync(localeFilePath)) {
-                this.logError(`[KeyToIndexTransformPlugin] Cannot create lookup table for ${locale}, file not found.`);
+                this.logError(`[Localization] Cannot create lookup table for ${locale}, file not found.`);
                 return;
             }
 
@@ -236,7 +236,7 @@ class localizationGenerator {
         const localeData = JSON.parse(JSON.stringify(enData));
         this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "file does not exist.");
         fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-        this.logError(`[KeyToIndexTransformPlugin] Created ${localeFileName} with placeholder translations because it did not exist.`);
+        this.logError(`[Localization] Created ${localeFileName} with placeholder translations because it did not exist.`);
         return localeData;
     }
     
@@ -259,7 +259,7 @@ class localizationGenerator {
                     || localeData.contents[filePath][key] === ''       // empty value
                 ) {
                     localeData.contents[filePath][key] = "";
-                    this.logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
+                    this.logError(`[Localization] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
                     missingFound = true;
                 }
             }
@@ -267,9 +267,9 @@ class localizationGenerator {
     
         if (missingFound) {
             fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-            console.log(`[KeyToIndexTransformPlugin] Updated ${localeFileName} with missing keys placeholders.`);
+            console.log(`[Localization] Updated ${localeFileName} with missing keys placeholders.`);
         } else {
-            console.log(`[KeyToIndexTransformPlugin] Validated ${localeFileName} localization file.`);
+            console.log(`[Localization] Validated ${localeFileName} localization file.`);
         }
     
         return localeData;
@@ -282,7 +282,7 @@ class localizationGenerator {
             // If the filePath doesn't exist in enContents, remove entire block
             if (!enContents.hasOwnProperty(localeFilePathKey)) {
                 delete localeData.contents[localeFilePathKey];
-                this.logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
+                this.logError(`[Localization] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
                 extraFound = true;
                 continue;
             }
@@ -291,7 +291,7 @@ class localizationGenerator {
             for (const localeKey of Object.keys(localeKeys)) {
                 if (!enContents[localeFilePathKey].hasOwnProperty(localeKey)) {
                     delete localeData.contents[localeFilePathKey][localeKey];
-                    this.logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
+                    this.logError(`[Localization] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
                     extraFound = true;
                 }
             }
@@ -310,7 +310,7 @@ class localizationGenerator {
         const localeLookupTableFilePath = path.join(this.localeOutputPath, `${locale}_lookup_table.json`);
         this.#ensureDirectoryExists(localeLookupTableFilePath);
         fs.writeFileSync(localeLookupTableFilePath, JSON.stringify(lookupTable, null, 4), 'utf-8');
-        console.log(`[KeyToIndexTransformPlugin] Lookup table written to ${localeLookupTableFilePath}`);
+        console.log(`[Localization] Lookup table written to ${localeLookupTableFilePath}`);
     }
 
     #fillDataWithPlaceholders(localeData, enContents, localeFileName, warningReason) {
@@ -324,7 +324,7 @@ class localizationGenerator {
             }
             for (const [key] of Object.entries(enKeys)) {
                 localeData.contents[filePath][key] = "";
-                this.logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
+                this.logError(`[Localization] In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
             }
         }
     }

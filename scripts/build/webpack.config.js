@@ -4,6 +4,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { KeyToIndexTransformPlugin } = require('../i18n/i18n.plugin');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper } = require('../utility');
+const { SUPPORT_LOCALIZATION_LIST } = require('../i18n/localization');
 
 class WebpackPluginProvider {
     constructor() {}
@@ -176,7 +177,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                     localeOutputPath: path.resolve(this.#cwd, './assets/locale'),
                     localizationFileName: 'en.json',
                     lookupFileName: 'en_lookup_table.json',
-                    otherLocales: ['zh-cn']
+                    otherLocales: SUPPORT_LOCALIZATION_LIST
                 }),
             ]
         });
