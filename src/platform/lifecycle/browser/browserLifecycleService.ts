@@ -87,20 +87,20 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
-        await this.__onBeforeQuit();
+        this.logService.debug('BrowserLifecycleService', 'quit...');
+        await this.__fireOnBeforeQuit(QuitReason.Quit);
         return this.hostService.closeWindow();
     }
 
     // [private helper methods]
 
-    private async __fireWillQuit(): Promise<void> {
-
+    private async __fireOnWillQuit(): Promise<void> {
         if (this._ongoingQuitParticipants) {
             return this._ongoingQuitParticipants;
         }
 
         // notify all listeners
-        this.logService.debug('BrowserLifecycleService', 'willQuit...');
+        this.logService.debug('BrowserLifecycleService', 'onWillQuit...');
         const participants = new JoinablePromise();
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
@@ -108,37 +108,48 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         });
 
         this._ongoingQuitParticipants = (async () => {
-            this.logService.debug('BrowserLifecycleService', 'willQuit settling ongoing participants before quit...');
+            this.logService.debug('BrowserLifecycleService', '"onWillQuit" settling ongoing participants before quit...');
         
             const results = await participants.allSettled();
             results.forEach(res => {
                 if (res.status === 'rejected') {
-                    this.logService.error('BrowserLifecycleService', '`onWillQuit` participant fails.', res.reason);
+                    this.logService.error('BrowserLifecycleService', '"onWillQuit" participant fails.', res.reason);
                 }
             });
 
-            this.logService.debug('BrowserLifecycleService', 'willQuit participants all settled.');
+            this.logService.debug('BrowserLifecycleService', '"onWillQuit" participants all settled.');
         })();
 
         await this._ongoingQuitParticipants;
         this._ongoingQuitParticipants = undefined;
     }
 
-    private async __onBeforeQuit(): Promise<void> {
-        this.logService.debug('BrowserLifecycleService', 'quit...');
+    private async __fireOnBeforeQuit(reason: QuitReason): Promise<boolean> {
 
-        this.logService.debug('BrowserLifecycleService', 'beforeQuit...');
-        this._onBeforeQuit.fire();
+        // fire onBeforeQuit, see anyone will veto the decision.
+        let veto = false;
+        this.logService.debug('BrowserLifecycleService', 'onBeforeQuit...');
+        this._onBeforeQuit.fire({
+            reason: reason,
+            veto: (anyVeto) => veto ||= anyVeto,
+        });
 
-        await this.__fireWillQuit();
+        // vetoed by someone, we do nothing.
+        if (veto) {
+            this.logService.debug('BrowserLifecycleService', 'onBeforeQuit vetoed.');
+            return true;
+        }
 
-        this.logService.debug('BrowserLifecycleService', 'Application is about to quit...');
+        // not vetoed, we continue to notify will quit event.
+        await this.__fireOnWillQuit();
 
         /**
          * Making sure all the logging message from the browser side is 
          * correctly sending to the main process.
          */
+        this.logService.debug('BrowserLifecycleService', 'Application is about to quit...');
         await this.logService.flush();
+        return false;
     }
 
     private __registerListeners(): void {
@@ -149,8 +160,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
          * before quit.
          */
         safeIpcRendererOn(IpcChannel.windowOnBeforeUnload, async (_, { okChannel, vetoChannel }) => {
-            // TODO: add veto functionality
-            const veto = (await this.__onBeforeQuit()) as any as boolean;
+            const veto = await this.__fireOnBeforeQuit(QuitReason.Reload);
             if (veto) {
                 ipcRenderer.send(vetoChannel, 'veto');
             } else {

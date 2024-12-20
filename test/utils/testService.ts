@@ -24,6 +24,7 @@ import { IMainStatusService, MainStatusService } from "src/platform/status/elect
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { FileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
+import { QuitReason } from "src/platform/lifecycle/browser/browserLifecycleService";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
@@ -132,7 +133,7 @@ export class NullLifecycleService extends AbstractLifecycleService<number, numbe
     }
 
     public override async quit(): Promise<void> {
-        this._onBeforeQuit.fire();
+        this._onBeforeQuit.fire({ reason: QuitReason.Quit, veto: () => {} });
         this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
 }
@@ -143,7 +144,7 @@ export class NullMainLifecycleService extends AbstractLifecycleService<number, n
     }
 
     public override async quit(): Promise<void> {
-        this._onBeforeQuit.fire();
+        this._onBeforeQuit.fire({ reason: QuitReason.Quit, veto: () => {} });
         this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
 
