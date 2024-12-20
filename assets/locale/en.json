@@ -7,6 +7,9 @@
     ],
     "version": "0.6.4",
     "contents": {
+        "platform/i18n/browser/i18nService": {
+            "relaunchDisplayLanguageMessage": "Restart {name} to switch to language: {languageName}?"
+        },
         "workbench/contrib/explorer/explorer": {
             "openDirectory": "Open a Folder"
         }

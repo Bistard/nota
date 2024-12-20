@@ -13,6 +13,7 @@ import { WorkbenchConfiguration } from "src/workbench/services/workbench/configu
 import { Disposable } from "src/base/common/dispose";
 import { IHostService } from "src/platform/host/common/hostService";
 import { INlsConfiguration } from "src/platform/window/common/window";
+import { IProductService } from "src/platform/product/common/productService";
 
 export const II18nService = createService<II18nService>("i18n-new-service");
 
@@ -79,6 +80,7 @@ export class I18nService extends Disposable implements II18nService {
         @IFileService private readonly fileService: IFileService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
         @IHostService private readonly hostService: IHostService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super();
         this._localeRootPath = localeRootPath;
@@ -109,14 +111,29 @@ export class I18nService extends Disposable implements II18nService {
     }
 
     public async setLanguage(lang: LanguageType): Promise<void> {
-        console.log('setLanguage');
         if (lang === this._language) {
             return;
         }
+
+        const dialogResult = await this.hostService.showMessageBox({
+            message: this.localize('relaunchDisplayLanguageMessage', 'Restart {name} to switch to language: {languageName}?', { 
+                    name: this.productService.profile.applicationName, 
+                    languageName: lang,
+                }
+            ),
+            type: 'info',
+            noLink: true,
+            buttons: ['Restart', 'Cancel'],
+        });
+
+        // clicked cancel
+        if (dialogResult.response !== 0) {
+            return;
+        }
+
+        // TODO: chris: i think a RestoreService is required in renderer process
         await this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
-        
-        // TODO: reload window
-        // this.hostService.
+        // this.hostService.reloadWindow({ nlsConfiguration: { resolvedLanguage: lang, osLocale: undefined!, userLocale: undefined!, } });
     }
 
     public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string {
