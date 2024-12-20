@@ -83,6 +83,9 @@ class KeyToIndexTransformPlugin {
         this.localizationKeys = [];
         this.otherLocales = otherLocales;
         this.localizationFileName = localizationFileName;
+
+        // collects all errors
+        this.errors = [];
     }
 
     apply(compiler) {
@@ -142,6 +145,11 @@ class KeyToIndexTransformPlugin {
                      * the bundle size and improves runtime performance.
                      */
                     this.#replaceKeysWithIndexes(compilation, assets);
+
+                    // notify Webpack of any errors
+                    if (this.errors.length > 0) {
+                        this.errors.forEach(error => compilation.errors.push(new Error(error)));
+                    }
                 }
             );
         });
@@ -184,7 +192,7 @@ class KeyToIndexTransformPlugin {
             const localeFileName = `${locale}.json`;
             const localeFilePath = path.join(this.localeOutputPath, localeFileName);
             if (!fs.existsSync(localeFilePath)) {
-                console.warn(`[KeyToIndexTransformPlugin] Cannot create lookup table for ${locale}, file not found.`);
+                this.#logError(`[KeyToIndexTransformPlugin] Cannot create lookup table for ${locale}, file not found.`);
                 return;
             }
 
@@ -238,7 +246,7 @@ class KeyToIndexTransformPlugin {
         };
         
         fs.writeFileSync(this.localizationFilePath, JSON.stringify(enData, null, 4), 'utf-8');
-        console.log(`Localization JSON written to ${this.localizationFilePath}`);
+        console.log(`[KeyToIndexTransformPlugin] Localization JSON written to ${this.localizationFilePath}`);
 
         this.#createLocaleLookupTable(this.localizationData, 'en');
     }
@@ -246,7 +254,7 @@ class KeyToIndexTransformPlugin {
     #validateOtherLocalizationFiles() {
         const enFilePath = this.localizationFilePath;
         if (!fs.existsSync(enFilePath)) {
-            console.warn(`EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
+            this.#logError(`[KeyToIndexTransformPlugin] EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
             return;
         }
     
@@ -272,7 +280,7 @@ class KeyToIndexTransformPlugin {
                 const extraFound = this.#removeExtraKeys(localeData, enContents, localeFileName);
                 if (extraFound) {
                     fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                    console.log(`[KeyToIndexTransformPlugin] Updated ${localeFileName} by removing extra keys.`);
+                    this.#logError(`[KeyToIndexTransformPlugin] Updated ${localeFileName} by removing extra keys.`);
                 }
             }
         });
@@ -282,7 +290,7 @@ class KeyToIndexTransformPlugin {
         const localeData = JSON.parse(JSON.stringify(enData));
         this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "file does not exist.");
         fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-        console.log(`Created ${localeFileName} with placeholder translations because it did not exist.`);
+        this.#logError(`[KeyToIndexTransformPlugin] Created ${localeFileName} with placeholder translations because it did not exist.`);
         return localeData;
     }
     
@@ -292,7 +300,6 @@ class KeyToIndexTransformPlugin {
         try {
             localeData = JSON.parse(fs.readFileSync(localeFilePath, 'utf-8'));
         } catch (e) {
-            console.warn(`Failed to read or parse ${localeFileName}. Recreating from en.json with placeholders.`);
             return this.#createLocaleFileWithPlaceholders(enData, enContents, localeFileName, localeFilePath);
         }
     
@@ -306,7 +313,7 @@ class KeyToIndexTransformPlugin {
                     || localeData.contents[filePath][key] === ''       // empty value
                 ) {
                     localeData.contents[filePath][key] = "";
-                    console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
+                    this.#logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
                     missingFound = true;
                 }
             }
@@ -314,7 +321,7 @@ class KeyToIndexTransformPlugin {
     
         if (missingFound) {
             fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-            console.log(`Updated ${localeFileName} with missing keys placeholders.`);
+            console.log(`[KeyToIndexTransformPlugin] Updated ${localeFileName} with missing keys placeholders.`);
         } else {
             console.log(`[KeyToIndexTransformPlugin] Validated ${localeFileName} localization file.`);
         }
@@ -329,7 +336,7 @@ class KeyToIndexTransformPlugin {
             // If the filePath doesn't exist in enContents, remove entire block
             if (!enContents.hasOwnProperty(localeFilePathKey)) {
                 delete localeData.contents[localeFilePathKey];
-                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
+                this.#logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
                 extraFound = true;
                 continue;
             }
@@ -338,7 +345,7 @@ class KeyToIndexTransformPlugin {
             for (const localeKey of Object.keys(localeKeys)) {
                 if (!enContents[localeFilePathKey].hasOwnProperty(localeKey)) {
                     delete localeData.contents[localeFilePathKey][localeKey];
-                    console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
+                    this.#logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
                     extraFound = true;
                 }
             }
@@ -377,7 +384,7 @@ class KeyToIndexTransformPlugin {
             }
             for (const [key] of Object.entries(enKeys)) {
                 localeData.contents[filePath][key] = "";
-                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
+                this.#logError(`[KeyToIndexTransformPlugin] In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
             }
         }
     }
@@ -429,6 +436,11 @@ class KeyToIndexTransformPlugin {
             console.warn('Error reading package.json:', error.message);
             return '0.0.0';
         }
+    }
+
+    #logError(err) {
+        console.error(err);
+        this.errors.push(err);
     }
 }
 
