@@ -71,6 +71,11 @@ export interface IHostService extends IService {
     getAllApplicationStatus(): Promise<Dictionary<string, any>>;
 
     // [OS]
+    /**
+     * @description Reveals the target (file or folder) with given path in the 
+     * File Explorer/Finder.
+     * @param path The path of the target.
+     */
     showItemInFolder(path: string): Promise<void>;
 }
 
