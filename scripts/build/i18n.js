@@ -56,31 +56,30 @@ const path = require('path');
  * ```
  */
 class KeyToIndexTransformPlugin {
-    
     /**
      * @param {string} options.sourceCodePath Path to the source code directory to scan for localization keys.
      * @param {string} options.localeOutputPath Path to output the localization files.
      * @param {string} options.localizationFileName Name of the localization file to generate.
      * @param {string} options.lookupFileName Name of the lookup table file to generate.
+     * @param {string[]} options.otherLocales Array of other locales that need to validate.
      */
     constructor({ 
-            sourceCodePath, 
-            localeOutputPath, 
-            localizationFileName = 'en.json', 
-            lookupFileName = 'en_lookup_table.json',
+        sourceCodePath,
+        localeOutputPath,
+        localizationFileName = 'en.json', 
+        lookupFileName = 'en_lookup_table.json',
+        otherLocales = []
     }) {
         this.sourceCodePath = sourceCodePath;
         this.localizationFilePath = path.join(localeOutputPath, localizationFileName);
         this.lookupTableFilePath = path.join(localeOutputPath, lookupFileName);
         this.localeOutputPath = localeOutputPath;
-        this.localizationData = {}; // mapping: filePath => entires of localization pairs
-        this.localizationKeys = []; // an array that stores all the localization keys found in source code
+        this.localizationData = {};
+        this.localizationKeys = [];
+        this.otherLocales = otherLocales;
+        this.localizationFileName = localizationFileName;
     }
 
-    /**
-     * Main Entry.
-     * registers the plugin with Webpack's compiler hooks.
-     */
     apply(compiler) {
         compiler.hooks.thisCompilation.tap('KeyToIndexTransformPlugin', (compilation) => {
             compilation.hooks.processAssets.tap(
@@ -101,6 +100,11 @@ class KeyToIndexTransformPlugin {
                     this.#writeLocalizationFiles();
 
                     /**
+                     * // TODO: doc
+                     */
+                    this.#handleOtherLocales();
+
+                    /**
                      * Replaces localization keys with corresponding indices in 
                      * the source code (Webpack assets).
                      */
@@ -117,7 +121,6 @@ class KeyToIndexTransformPlugin {
             const relativePath = path.relative(this.sourceCodePath, filePath)
                 .replace(/\\/g, '/')       // standardize forward slash
                 .replace(/\.[^/.]+$/, ''); // remove file extension
-            
             /**
              * Parse the entire file and try to find `localize`.
              */
@@ -130,7 +133,7 @@ class KeyToIndexTransformPlugin {
             }
             
             this.localizationData[relativePath] = localizedEntries;
-            Object.entries(localizedEntries).forEach(([key, defaultMessage]) => {
+            Object.entries(localizedEntries).forEach(([key]) => {
                 const uniqueKey = `${relativePath}|${key}`;
                 if (!this.localizationKeys.includes(uniqueKey)) {
                     this.localizationKeys.push(uniqueKey);
@@ -178,7 +181,7 @@ class KeyToIndexTransformPlugin {
         this.#ensureDirectoryExists(this.localizationFilePath);
         this.#ensureDirectoryExists(this.localeOutputPath);
 
-        fs.writeFileSync(this.localizationFilePath, JSON.stringify({ 
+        const enData = {
             "": [
                 "--------------------------------------------------------------------------------------------",
                 "Copyright (c) Nota. All rights reserved.",
@@ -187,11 +190,102 @@ class KeyToIndexTransformPlugin {
             ],
             version: this.#getPackageVersion(),
             contents: this.localizationData,
-        }, null, 4), 'utf-8');
+        };
+        
+        fs.writeFileSync(this.localizationFilePath, JSON.stringify(enData, null, 4), 'utf-8');
         console.log(`Localization JSON written to ${this.localizationFilePath}`);
 
         fs.writeFileSync(this.lookupTableFilePath, JSON.stringify(lookupTable, null, 4), 'utf-8');
         console.log(`Lookup table written to ${this.lookupTableFilePath}`);
+    }
+
+    #handleOtherLocales() {
+        const enFilePath = this.localizationFilePath;
+        if (!fs.existsSync(enFilePath)) {
+            console.warn(`EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
+            return;
+        }
+
+        const enData = JSON.parse(fs.readFileSync(enFilePath, 'utf-8'));
+        const enContents = enData.contents || {};
+
+        this.otherLocales.forEach((locale) => {
+            const localeFileName = locale + '.json';
+            const localeFilePath = path.join(this.localeOutputPath, localeFileName);
+
+            /**
+             * If locale file doesn't exist, create it based on en.json,
+             * but replace all values with empty string "".
+             */
+            if (!fs.existsSync(localeFilePath)) {
+                const newLocaleData = JSON.parse(JSON.stringify(enData));
+                this.#fillDataWithPlaceholders(newLocaleData, enContents, localeFileName, "file does not exist.");
+                fs.writeFileSync(localeFilePath, JSON.stringify(newLocaleData, null, 4), 'utf-8');
+                console.log(`Created ${localeFileName} with placeholder translations because it did not exist.`);
+                return;
+            } 
+
+            // If exists, check for missing keys.
+            let localeData;
+            try {
+                localeData = JSON.parse(fs.readFileSync(localeFilePath, 'utf-8'));
+            } catch (e) {
+                console.warn(`Failed to read or parse ${localeFileName}. Recreating from en.json with placeholders.`);
+                const newLocaleData = JSON.parse(JSON.stringify(enData));
+                this.#fillDataWithPlaceholders(newLocaleData, enContents, localeFileName, "failed to parse existing file.");
+                fs.writeFileSync(localeFilePath, JSON.stringify(newLocaleData, null, 4), 'utf-8');
+                return;
+            }
+
+            localeData.contents ??= {};
+
+            // Compare keys
+            let missingFound = false;
+            for (const [filePath, enKeys] of Object.entries(enContents)) {
+                localeData.contents[filePath] ??= {};
+                for (const [key, enValue] of Object.entries(enKeys)) {
+                    if (!localeData.contents[filePath].hasOwnProperty(key) // missing key
+                        || localeData.contents[filePath][key] === ''       // empty value
+                    ) {
+                        localeData.contents[filePath][key] = "";
+                        console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
+                        missingFound = true;
+                    }
+                }
+            }
+
+            if (missingFound) {
+                fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
+                console.log(`Updated ${localeFileName} with missing keys placeholders.`);
+            } 
+            // successful case
+            else {
+                console.log(`[KeyToIndexTransformPlugin] Validated ${localeFileName} localization file.`);
+            }
+        });
+    }
+
+    /**
+     * Helper method to fill localeData with placeholders for all keys found in enContents.
+     * @param {object} localeData 
+     * @param {object} enContents 
+     * @param {string} localeFileName 
+     * @param {string} warningReason - a short reason phrase to include in the warning messages
+     */
+    #fillDataWithPlaceholders(localeData, enContents, localeFileName, warningReason) {
+        if (!localeData.contents) {
+            localeData.contents = {};
+        }
+
+        for (const [filePath, enKeys] of Object.entries(enContents)) {
+            if (!localeData.contents[filePath]) {
+                localeData.contents[filePath] = {};
+            }
+            for (const [key] of Object.entries(enKeys)) {
+                localeData.contents[filePath][key] = "";
+                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
+            }
+        }
     }
 
     #getAllFiles(dirPath, arrayOfFiles = []) {
@@ -212,10 +306,9 @@ class KeyToIndexTransformPlugin {
     #parseFile(filePath) {
         const LOCALIZE_REGEX = /localize\s*\(\s*["'`](.*?)["'`]\s*,\s*["'`](.*?)["'`]/g;
         let fileContent = fs.readFileSync(filePath, 'utf-8');
-        const entries = {};
-
         fileContent = removeComments(fileContent);
 
+        const entries = {};
         let match;
         while ((match = LOCALIZE_REGEX.exec(fileContent)) !== null) {
             const [_, key, defaultMessage] = match;
@@ -223,7 +316,6 @@ class KeyToIndexTransformPlugin {
                 entries[key] = defaultMessage;
             }
         }
-
         return entries;
     }
 

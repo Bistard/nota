@@ -171,6 +171,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 localeOutputPath: path.resolve(this.#cwd, './assets/locale'),
                 localizationFileName: 'en.json',
                 lookupFileName: 'en_lookup_table.json',
+                otherLocales: ['zh-cn']
             })]
         });
     }
