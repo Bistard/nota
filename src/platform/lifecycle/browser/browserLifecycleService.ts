@@ -1,10 +1,10 @@
 import { ILogService } from "src/base/common/logger";
 import { JoinablePromise } from "src/base/common/utilities/async";
-import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
-import { IContextService } from "src/platform/context/common/contextService";
+import { ipcRenderer, safeIpcRendererOn } from "src/platform/electron/browser/global";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService } from "src/platform/instantiation/common/decorator";
+import { IpcChannel } from "src/platform/ipc/common/channel";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { ILifecycleService as ILifecycleServiceInterface } from "src/platform/lifecycle/common/lifecycle";
 
@@ -79,7 +79,6 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     constructor(
         @ILogService logService: ILogService,
         @IHostService private readonly hostService: IBrowserHostService,
-        @IContextService private readonly contextService: IContextService,
     ) {
         super('Browser', LifecyclePhase.Starting, parsePhaseToString, logService);
         this.__registerListeners();
@@ -142,31 +141,20 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         await this.logService.flush();
     }
 
-    private _preventedOnce = false;
     private __registerListeners(): void {
 
-        // FIX: this method is piece of shit, conflicts with new api: reload(), should report an issue to Electron team.
-        window.addEventListener('beforeunload', e => {
-            if (!this._preventedOnce) {
-                this._preventedOnce = true;
-                e.preventDefault();
-                
-                /**
-                 * When listening to 'beforeunload' event, the browser cannot
-                 * distinguish between 'reloadWebPage' and 'process quitting'.
-                 * 
-                 * We need to manually check which is which.
-                 */
-                this.__onBeforeQuit().then(() => {
-                    const isReloadExpr = CreateContextKeyExpr.Equal('reloadWeb', true);
-                    const reloading = this.contextService.contextMatchExpr(isReloadExpr);
-
-                    if (reloading) {
-                        this.hostService.reloadWebPage();
-                    } else {
-                        this.hostService.closeWindow();
-                    }
-                });
+        /**
+         * Listener 'onBeforeUnload', renderer has a chance to decide to veto
+         * this decision. Renderer also has a chance to save all the process
+         * before quit.
+         */
+        safeIpcRendererOn(IpcChannel.windowOnBeforeUnload, async (_, { okChannel, vetoChannel }) => {
+            // TODO: add veto functionality
+            const veto = (await this.__onBeforeQuit()) as any as boolean;
+            if (veto) {
+                ipcRenderer.send(vetoChannel, 'veto');
+            } else {
+                ipcRenderer.send(okChannel, 'ok');
             }
         });
     }
