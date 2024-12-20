@@ -164,6 +164,11 @@ const configuration = {
         command: "node ./test/build/i18n/testRunner.js",
         description: "Run the i18n integration test."
     },
+
+    "validate-i18n": {
+        command: "node ./scripts/i18n/validate-i18n.js",
+        description: "Generate and validate localization files and lookup tables."
+    }
 }
 
 module.exports = configuration;
