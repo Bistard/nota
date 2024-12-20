@@ -43,7 +43,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     #constructI18nIntegrationTest(baseConfiguration) {
         return Object.assign(baseConfiguration, {
             target: 'node',
-            entry: './test/build/i18n/src/main.ts',
+            entry: './test/build/i18n/src/i18nTestMain.ts',
             output: {
                 filename: '[name]-bundle.js',
                 path: path.resolve(this.#cwd, './test/build/i18n/dist/'),
