@@ -37,17 +37,19 @@ export interface II18nService extends IService {
     readonly onDidChange: Register<void>;
 
     /**
-     * Initializes the service, loading the default language's locale file.
+     * @description Initializes the service, loading the default language's 
+     * locale file.
      */
     init(): AsyncResult<void, FileOperationError | SyntaxError>;
 
     /**
-     * Sets the language and reloads the locale file.
+     * @description Sets the display language. This will try to reload the 
+     * window.
      */
     setLanguage(lang: LanguageType): Promise<void>;
 
     /**
-     * Localize a key with optional interpolation.
+     * @description Localize a key with optional interpolation.
      */
     localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string;
 }
@@ -133,7 +135,7 @@ export class I18nService extends Disposable implements II18nService {
 
         // TODO: chris: i think a RestoreService is required in renderer process
         await this.configurationService.set(WorkbenchConfiguration.DisplayLanguage, lang, { type: ConfigurationModuleType.User });
-        // this.hostService.reloadWindow({ nlsConfiguration: { resolvedLanguage: lang, osLocale: undefined!, userLocale: undefined!, } });
+        this.hostService.reloadWindow({ nlsConfiguration: { resolvedLanguage: lang } });
     }
 
     public localize(key: string /** | number (in runtime) */, defaultMessage: string, interpolation?: Record<string, any>): string {
