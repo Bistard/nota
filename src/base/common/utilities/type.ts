@@ -376,6 +376,18 @@ export type DeepMutable<Immutable> = {
 };
 
 /**
+ * Make all the properties optional recursively.
+ */
+export type DeepPartial<T> = T extends Callable
+    ? T
+    : T extends any[]
+        ? T
+        : T extends object
+            ? { [P in keyof T]?: DeepPartial<T[P]> }
+            : T;
+
+
+/**
  * Given a type T, maps each property with type `from` to type `to` that are
  * defined in the given type R.
  */

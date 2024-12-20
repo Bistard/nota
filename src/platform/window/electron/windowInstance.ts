@@ -8,7 +8,7 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/platform/ipc/electron/safeIpcMain";
-import { Callable, isDefined } from "src/base/common/utilities/type";
+import { Callable, DeepPartial, isDefined } from "src/base/common/utilities/type";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { StatusKey } from "src/platform/status/common/status";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
@@ -65,14 +65,14 @@ export interface IWindowInstance extends Disposable {
      * @param optionalConfiguration Optional configuration to override the 
      *                              existing one.
      */
-    load(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void>;
+    load(optionalConfiguration: DeepPartial<IWindowCreationOptions>): Promise<void>;
     /**
      * @description Reloads the window content with optional configuration 
      * overrides.
      * @param optionalConfiguration Optional configuration to override the 
      *                              existing one.
      */
-    reload(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void>;
+    reload(optionalConfiguration: DeepPartial<IWindowCreationOptions>): Promise<void>;
     /**
      * @description Unloads the window, allowing the renderer process to veto 
      * the unload request.
@@ -183,7 +183,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [public methods]
 
-    public async load(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void> {
+    public async load(optionalConfiguration: DeepPartial<IWindowCreationOptions>): Promise<void> {
         this.logService.debug('WindowInstance', `(Window ID: ${this._id}) Loading window...`);
         this.logService.debug('MainWindowService', 'Primary monitor information:', { information: this.screenMonitorService.getPrimaryMonitorInfo() });
 
@@ -199,7 +199,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         await this._window.loadFile(htmlFile);
     }
 
-    public async reload(optionalConfiguration: Partial<IWindowCreationOptions>): Promise<void> {
+    public async reload(optionalConfiguration: DeepPartial<IWindowCreationOptions>): Promise<void> {
         const veto = await this.unload();
         if (veto) {
             return;

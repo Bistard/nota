@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { Dictionary } from "src/base/common/utilities/type";
+import { DeepPartial, Dictionary } from "src/base/common/utilities/type";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { StatusKey } from "src/platform/status/common/status";
 import { IWindowCreationOptions } from "src/platform/window/common/window";
@@ -46,7 +46,7 @@ export interface IHostService extends IService {
      *                              the initial window configuration when 
      *                              constructing the window.
      */
-    reloadWindow(optionalConfiguration: Partial<IWindowCreationOptions>, id?: number): Promise<void>;
+    reloadWindow(optionalConfiguration: DeepPartial<IWindowCreationOptions>, id?: number): Promise<void>;
 
     // [dialog-service]
     showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue>;
