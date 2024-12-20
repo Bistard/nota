@@ -249,92 +249,102 @@ class KeyToIndexTransformPlugin {
             console.warn(`EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
             return;
         }
-
+    
         const enData = JSON.parse(fs.readFileSync(enFilePath, 'utf-8'));
         const enContents = enData.contents || {};
-
+    
         this.otherLocales.forEach((locale) => {
-            const localeFileName = locale + '.json';
+            const localeFileName = `${locale}.json`;
             const localeFilePath = path.join(this.localeOutputPath, localeFileName);
-
-            /**
-             * If locale file doesn't exist, create it based on en.json,
-             * but replace all values with empty string "".
-             */
+    
             let localeData;
+    
             if (!fs.existsSync(localeFilePath)) {
-                localeData = JSON.parse(JSON.stringify(enData));
-                this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "file does not exist.");
-                fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                console.log(`Created ${localeFileName} with placeholder translations because it did not exist.`);
+                // Locale file doesn't exist; create it with placeholders
+                localeData = this.#createLocaleFileWithPlaceholders(enData, enContents, localeFileName, localeFilePath);
             } else {
-                // If exists, check for missing keys.
-                try {
-                    localeData = JSON.parse(fs.readFileSync(localeFilePath, 'utf-8'));
-                } catch (e) {
-                    console.warn(`Failed to read or parse ${localeFileName}. Recreating from en.json with placeholders.`);
-                    localeData = JSON.parse(JSON.stringify(enData));
-                    this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "failed to parse existing file.");
+                // Locale file exists; validate and update it
+                localeData = this.#validateAndUpdateLocaleFile(enData, enContents, localeFileName, localeFilePath);
+            }
+    
+            if (localeData) {
+                // Check and remove extra keys
+                const extraFound = this.#removeExtraKeys(localeData, enContents, localeFileName);
+                if (extraFound) {
                     fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                    return; // Note: return here after recreation
-                }
-
-                localeData.contents ??= {};
-
-                // If we successfully parsed existing localeData above:
-                if (localeData && localeData.contents) {
-                    // Compare keys for missing entries
-                    let missingFound = false;
-                    for (const [filePath, enKeys] of Object.entries(enContents)) {
-                        localeData.contents[filePath] ??= {};
-                        for (const [key, enValue] of Object.entries(enKeys)) {
-                            if (!localeData.contents[filePath].hasOwnProperty(key) // missing key
-                                || localeData.contents[filePath][key] === ''       // empty value
-                            ) {
-                                localeData.contents[filePath][key] = "";
-                                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
-                                missingFound = true;
-                            }
-                        }
-                    }
-
-                    if (missingFound) {
-                        fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                        console.log(`Updated ${localeFileName} with missing keys placeholders.`);
-                    } else {
-                        console.log(`[KeyToIndexTransformPlugin] Validated ${localeFileName} localization file.`);
-                    }
-
-                    /**
-                     * check for extra keys in localeData that do not exist in enData.
-                     */
-                    let extraFound = false;
-                    for (const [localeFilePathKey, localeKeys] of Object.entries(localeData.contents)) {
-                        // If the filePath doesn't exist in enContents, remove entire block
-                        if (!enContents.hasOwnProperty(localeFilePathKey)) {
-                            delete localeData.contents[localeFilePathKey];
-                            console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
-                            extraFound = true;
-                            continue; // move to next filePath
-                        }
-
-                        // Otherwise, check individual keys
-                        for (const localeKey of Object.keys(localeKeys)) {
-                            if (!enContents[localeFilePathKey].hasOwnProperty(localeKey)) {
-                                delete localeData.contents[localeFilePathKey][localeKey];
-                                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
-                                extraFound = true;
-                            }
-                        }
-                    }
-
-                    if (extraFound) {
-                        fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                        console.log(`[KeyToIndexTransformPlugin] Updated ${localeFileName} by removing extra keys.`);
-                    }
+                    console.log(`[KeyToIndexTransformPlugin] Updated ${localeFileName} by removing extra keys.`);
                 }
             }
         });
+    }
+    
+    #createLocaleFileWithPlaceholders(enData, enContents, localeFileName, localeFilePath) {
+        const localeData = JSON.parse(JSON.stringify(enData));
+        this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "file does not exist.");
+        fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
+        console.log(`Created ${localeFileName} with placeholder translations because it did not exist.`);
+        return localeData;
+    }
+    
+    #validateAndUpdateLocaleFile(enData, enContents, localeFileName, localeFilePath) {
+        let localeData;
+    
+        try {
+            localeData = JSON.parse(fs.readFileSync(localeFilePath, 'utf-8'));
+        } catch (e) {
+            console.warn(`Failed to read or parse ${localeFileName}. Recreating from en.json with placeholders.`);
+            return this.#createLocaleFileWithPlaceholders(enData, enContents, localeFileName, localeFilePath);
+        }
+    
+        localeData.contents ??= {};
+    
+        let missingFound = false;
+        for (const [filePath, enKeys] of Object.entries(enContents)) {
+            localeData.contents[filePath] ??= {};
+            for (const [key, enValue] of Object.entries(enKeys)) {
+                if (!localeData.contents[filePath].hasOwnProperty(key) // missing key
+                    || localeData.contents[filePath][key] === ''       // empty value
+                ) {
+                    localeData.contents[filePath][key] = "";
+                    console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
+                    missingFound = true;
+                }
+            }
+        }
+    
+        if (missingFound) {
+            fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
+            console.log(`Updated ${localeFileName} with missing keys placeholders.`);
+        } else {
+            console.log(`[KeyToIndexTransformPlugin] Validated ${localeFileName} localization file.`);
+        }
+    
+        return localeData;
+    }
+    
+    #removeExtraKeys(localeData, enContents, localeFileName) {
+        let extraFound = false;
+    
+        for (const [localeFilePathKey, localeKeys] of Object.entries(localeData.contents)) {
+            // If the filePath doesn't exist in enContents, remove entire block
+            if (!enContents.hasOwnProperty(localeFilePathKey)) {
+                delete localeData.contents[localeFilePathKey];
+                console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
+                extraFound = true;
+                continue;
+            }
+    
+            // Otherwise, check individual keys
+            for (const localeKey of Object.keys(localeKeys)) {
+                if (!enContents[localeFilePathKey].hasOwnProperty(localeKey)) {
+                    delete localeData.contents[localeFilePathKey][localeKey];
+                    console.warn(`[KeyToIndexTransformPlugin] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
+                    extraFound = true;
+                }
+            }
+        }
+    
+        return extraFound;
     }
 
     /**
