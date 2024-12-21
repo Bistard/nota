@@ -157,7 +157,7 @@ class localizationGenerator {
         };
         
         fs.writeFileSync(this.localizationFilePath, JSON.stringify(enData, null, 4), 'utf-8');
-        log('info', `[Localization] Localization JSON written to ${this.localizationFilePath}`);
+        log('info', `[Localization] file written: Localization JSON (en) at ${this.localizationFilePath}`);
     }
 
     /**
@@ -173,7 +173,7 @@ class localizationGenerator {
     #validateOtherLocalizationFiles() {
         const enFilePath = this.localizationFilePath;
         if (!fs.existsSync(enFilePath)) {
-            this.logError(`[Localization] EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
+            this.logError(`[Localization] error: EN localization file not found at ${enFilePath}. Skipping other locales processing.`);
             return;
         }
     
@@ -199,7 +199,7 @@ class localizationGenerator {
                 const extraFound = this.#removeExtraKeys(localeData, enContents, localeFileName);
                 if (extraFound) {
                     fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-                    this.logError(`[Localization] Updated ${localeFileName} by removing extra keys.`);
+                    this.logError(`[Localization] file update: Updated ${localeFileName} by removing extra keys.`);
                 }
             }
         });
@@ -219,7 +219,7 @@ class localizationGenerator {
             const localeFileName = `${locale}.json`;
             const localeFilePath = path.join(this.localeOutputPath, localeFileName);
             if (!fs.existsSync(localeFilePath)) {
-                this.logError(`[Localization] Cannot create lookup table for ${locale}, file not found.`);
+                this.logError(`[Localization] error: Cannot create lookup table for ${locale}, file not found.`);
                 return;
             }
 
@@ -235,7 +235,7 @@ class localizationGenerator {
         const localeData = JSON.parse(JSON.stringify(enData));
         this.#fillDataWithPlaceholders(localeData, enContents, localeFileName, "file does not exist.");
         fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-        this.logError(`[Localization] Created ${localeFileName} with placeholder translations because it did not exist.`);
+        this.logError(`[Localization] error: Created ${localeFileName} with placeholder translations because it did not exist.`);
         return localeData;
     }
     
@@ -258,7 +258,7 @@ class localizationGenerator {
                     || localeData.contents[filePath][key] === ''       // empty value
                 ) {
                     localeData.contents[filePath][key] = "";
-                    this.logError(`[Localization] In ${localeFileName}, missing translation for key: "${key}" under "${filePath}". Placeholder inserted.`);
+                    this.logError(`[Localization] error (missing translation): In ${localeFileName}, missing key: "${key}" under "${filePath}". Placeholder inserted.`);
                     missingFound = true;
                 }
             }
@@ -266,9 +266,9 @@ class localizationGenerator {
     
         if (missingFound) {
             fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-            log('info', `[Localization] Updated ${localeFileName} with missing keys placeholders.`);
+            log('info', `[Localization] file update: Updated ${localeFileName} with missing keys placeholders.`);
         } else {
-            log('info', `[Localization] Validated ${localeFileName} localization file.`);
+            log('info', `[Localization] validation: ${localeFileName} localization file.`);
         }
     
         return localeData;
@@ -281,7 +281,7 @@ class localizationGenerator {
             // If the filePath doesn't exist in enContents, remove entire block
             if (!enContents.hasOwnProperty(localeFilePathKey)) {
                 delete localeData.contents[localeFilePathKey];
-                this.logError(`[Localization] In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
+                this.logError(`[Localization] error: In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);
                 extraFound = true;
                 continue;
             }
@@ -290,7 +290,7 @@ class localizationGenerator {
             for (const localeKey of Object.keys(localeKeys)) {
                 if (!enContents[localeFilePathKey].hasOwnProperty(localeKey)) {
                     delete localeData.contents[localeFilePathKey][localeKey];
-                    this.logError(`[Localization] In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
+                    this.logError(`[Localization] error: In ${localeFileName}, found extra key "${localeKey}" under "${localeFilePathKey}" not present in EN. Removed this key.`);
                     extraFound = true;
                 }
             }
@@ -309,7 +309,7 @@ class localizationGenerator {
         const localeLookupTableFilePath = path.join(this.localeOutputPath, `${locale}_lookup_table.json`);
         this.#ensureDirectoryExists(localeLookupTableFilePath);
         fs.writeFileSync(localeLookupTableFilePath, JSON.stringify(lookupTable, null, 4), 'utf-8');
-        log('info', `[Localization] Lookup table written to ${localeLookupTableFilePath}`);
+        log('info', `[Localization] file written: Lookup table at ${localeLookupTableFilePath}`);
     }
 
     #fillDataWithPlaceholders(localeData, enContents, localeFileName, warningReason) {
@@ -323,7 +323,7 @@ class localizationGenerator {
             }
             for (const [key] of Object.entries(enKeys)) {
                 localeData.contents[filePath][key] = "";
-                this.logError(`[Localization] In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
+                this.logError(`[Localization] error: In ${localeFileName}, ${warningReason} Inserted placeholder for key: "${key}" under "${filePath}".`);
             }
         }
     }
@@ -372,7 +372,7 @@ class localizationGenerator {
             const packageJson = JSON.parse(fs.readFileSync(rootPath, 'utf-8'));
             return packageJson.version;
         } catch (error) {
-            log('warn', 'Error reading package.json:', error.message);
+            log('warn', '[Localization] Error reading package.json:', error.message);
             return '0.0.0';
         }
     }
