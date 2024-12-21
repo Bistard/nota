@@ -7,7 +7,7 @@
  * scripts. The script configurations can be found at {@link SCRIPT_CONFIG_PATH}.
  */
 const path = require("path");
-const { Colors, ScriptProcess, Loggers } = require('./utility');
+const { Colors, ScriptProcess, log } = require('./utility');
 
 /**
  * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfigurationType
@@ -83,7 +83,7 @@ Quick Tips:
 function validateCLI(args) {
     const command = args[0];
     if (!command) {
-        Loggers.printRed(`Invalid Script Command\n${INVALID_SCRIPT_COMMAND}`);
+        log('error', `Invalid Script Command\n${INVALID_SCRIPT_COMMAND}`);
         process.exit(1);
     }
     return [command, args.slice(1)];
@@ -147,7 +147,7 @@ function executeScript(script, args, configurations) {
         process.exit(code);
     })
     .catch(error => {
-        Loggers.printRed(`Executing script "${script}" encounters error: ${JSON.stringify(error)}`);
+        log('error', `Executing script "${script}" encounters error: ${JSON.stringify(error)}`);
         process.exit(1);
     })
 }

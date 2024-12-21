@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { log } = require('../utility');
 
 /**
  * {@link localizationGenerator}
@@ -156,7 +157,7 @@ class localizationGenerator {
         };
         
         fs.writeFileSync(this.localizationFilePath, JSON.stringify(enData, null, 4), 'utf-8');
-        console.log(`[Localization] Localization JSON written to ${this.localizationFilePath}`);
+        log('info', `[Localization] Localization JSON written to ${this.localizationFilePath}`);
 
         this.#createLocaleLookupTable(this.localizationData, 'en');
     }
@@ -267,9 +268,9 @@ class localizationGenerator {
     
         if (missingFound) {
             fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
-            console.log(`[Localization] Updated ${localeFileName} with missing keys placeholders.`);
+            log('info', `[Localization] Updated ${localeFileName} with missing keys placeholders.`);
         } else {
-            console.log(`[Localization] Validated ${localeFileName} localization file.`);
+            log('info', `[Localization] Validated ${localeFileName} localization file.`);
         }
     
         return localeData;
@@ -310,7 +311,7 @@ class localizationGenerator {
         const localeLookupTableFilePath = path.join(this.localeOutputPath, `${locale}_lookup_table.json`);
         this.#ensureDirectoryExists(localeLookupTableFilePath);
         fs.writeFileSync(localeLookupTableFilePath, JSON.stringify(lookupTable, null, 4), 'utf-8');
-        console.log(`[Localization] Lookup table written to ${localeLookupTableFilePath}`);
+        log('info', `[Localization] Lookup table written to ${localeLookupTableFilePath}`);
     }
 
     #fillDataWithPlaceholders(localeData, enContents, localeFileName, warningReason) {
@@ -373,7 +374,7 @@ class localizationGenerator {
             const packageJson = JSON.parse(fs.readFileSync(rootPath, 'utf-8'));
             return packageJson.version;
         } catch (error) {
-            console.warn('Error reading package.json:', error.message);
+            log('warn', 'Error reading package.json:', error.message);
             return '0.0.0';
         }
     }

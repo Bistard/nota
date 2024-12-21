@@ -4,15 +4,15 @@ const childProcess = require("child_process");
 function log(type, message) {
     const color = (function getColor() {
         switch (type) {
-            case 'info': return fgColor.Gray;
-            case 'warn': return fgColor.Yellow;
-            case 'error': return fgColor.Red;
-            case 'ok': return fgColor.Green;
-            default: return fgColor.Gray;
+            case 'info': return '';
+            case 'warn': return fgColor.LightYellow;
+            case 'error': return fgColor.LightRed;
+            case 'ok': return fgColor.LightGreen;
+            default: return '';
         }
     })();
     const strType = Colors.setANSIColor(centerAlign(type, 6), color);
-    console.log(`[${strType}] ${Times.getTime()} ${message}`);
+    console.log(`[${strType}] ${Times.getTime()} ${color}${message}\x1b[0m`);
 }
 
 function centerAlign(str, totalLength) {
@@ -177,7 +177,7 @@ class ScriptHelper {
      * @return {import('minimist').ParsedArgs}
      */
     static init(name) {
-        Loggers.print(`🚀 Executing '${name}'...`);
+        log('info', `🚀 Executing '${name}'...`);
         const args = this.parseCLI();
         console.log(`   📝 Script arguments: ${JSON.stringify(args)}`);
         return args;
@@ -277,7 +277,7 @@ class ScriptProcess {
         const procArgsString = procArgs.join(' ');
         const actualCommand = `${scriptCommand} ${cmdArgsString}`;
 
-        Loggers.print(`\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
+        log('info', `\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
         console.log(`   🔧 Script: ${scriptCommand}`);
         console.log(`   🔨 Argument: ${cmdArgsString || 'N/A'}`);
         console.log(`   🛠️ Command: ${actualCommand}`);
@@ -316,16 +316,18 @@ class ScriptProcess {
              * process have been closed.
              */
             p.on('close', code => {
+                const type = code ? 'error' : 'ok';
                 let finishMessage = code
-                    ? `❌ The script '${scriptName}' exits with error code ${code}.`
-                    : `✅ The script '${scriptName}' finished.`;
+                    ? `The script '${scriptName}' exits with error code ${code}.`
+                    : `The script '${scriptName}' finished.`;
 
                 // perf log
                 const endTime = performance.now();
                 const spentInSec = (endTime - startTime) / 1000;
                 finishMessage += ` Executed in ${Math.round(spentInSec * 100) / 100} seconds.`;
 
-                Loggers.print(`${finishMessage}\n\n`, code ? fgColor.Red : '');
+
+                log(type, `${finishMessage}\n\n`);
                 if (code) {
                     procReject(code);
                 } else {
@@ -341,7 +343,7 @@ class ScriptProcess {
              *  - The child proc was aborted via the `signal` option.
              */
             p.on('error', error => {
-                Loggers.printRed(`⚠️ Script error encounters:`);
+                log('warn', `Script error encounters:`);
                 console.log(error);
             });
 

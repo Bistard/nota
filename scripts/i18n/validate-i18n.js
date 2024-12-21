@@ -1,6 +1,7 @@
 const path = require('path');
 const { localizationGenerator } = require("./i18n");
 const { SUPPORT_LOCALIZATION_LIST } = require('./localization');
+const { log } = require('../utility');
 
 const cwd = process.cwd();
 const sourceCodePath = path.resolve(cwd, './src');
@@ -21,12 +22,11 @@ let anyError = false;
         localizationData: localizationData,
         logError: message => {
             anyError = true;
-            console.error('[ERR]', message);
+            log('error', message);
         },
     });
 
     localization.generateAndValidate();
-
 
     if (anyError) {
         process.exit(1);

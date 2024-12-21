@@ -1,5 +1,6 @@
 const path = require('path');
 const { localizationGenerator } = require('./i18n');
+const { log } = require('../utility');
 
 /**
  * {@link KeyToIndexTransformPlugin}
@@ -46,7 +47,7 @@ class KeyToIndexTransformPlugin {
         lookupFileName = 'en_lookup_table.json',
         otherLocales = []
     }) {
-        console.log(`[KeyToIndexTransformPlugin] logLevel: ${logLevel}`);
+        log('info', `[KeyToIndexTransformPlugin] logLevel: ${logLevel}`);
         this.logLevel = logLevel;
         this.sourceCodePath = sourceCodePath;
         this.localizationFilePath = path.join(localeOutputPath, localizationFileName);
