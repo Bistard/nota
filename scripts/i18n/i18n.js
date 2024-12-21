@@ -158,8 +158,6 @@ class localizationGenerator {
         
         fs.writeFileSync(this.localizationFilePath, JSON.stringify(enData, null, 4), 'utf-8');
         log('info', `[Localization] Localization JSON written to ${this.localizationFilePath}`);
-
-        this.#createLocaleLookupTable(this.localizationData, 'en');
     }
 
     /**
