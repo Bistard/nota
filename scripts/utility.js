@@ -142,11 +142,13 @@ class ScriptHelper {
     /**
      * @param {string} name The script name
      * @return {import('minimist').ParsedArgs}
+     * 
+     * @deprecated
      */
     static init(name) {
-        log('info', `🚀 Executing '${name}'...`);
+        log('info', `Executing '${name}'...`);
         const args = this.parseCLI();
-        console.log(`   📝 Script arguments: ${JSON.stringify(args)}`);
+        log('info', `Script arguments: ${JSON.stringify(args)}`);
         return args;
     }
 
@@ -244,19 +246,21 @@ class ScriptProcess {
         const procArgsString = procArgs.join(' ');
         const actualCommand = `${scriptCommand} ${cmdArgsString}`;
 
-        log('info', `\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
-        console.log(`   🔧 Script: ${scriptCommand}`);
-        console.log(`   🔨 Argument: ${cmdArgsString || 'N/A'}`);
-        console.log(`   🛠️ Command: ${actualCommand}`);
-        console.log(`   📦 Process argument: ${procArgsString || 'N/A'}`);
-        console.log(`   🌍 Process configuration`);
-        console.log(`       📂 CWD: ${procOpts.cwd || 'N/A'}`);
-        console.log(`       📂 shell: ${procOpts.shell || 'N/A'}`);
-        console.log(`       📂 stdio: ${procOpts.stdio || 'N/A'}`);
+        console.log('===========================================================');
+        console.log(`\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
+        console.log(this.#formatKeyValue('Script', scriptCommand));
+        console.log(this.#formatKeyValue('Argument', cmdArgsString || 'N/A'));
+        console.log(this.#formatKeyValue('Command', actualCommand));
+        console.log(this.#formatKeyValue('Process argument', procArgsString || 'N/A'));
+        console.log('   Process Environment:');
+        console.log(this.#formatKeyValue('CWD', procOpts.cwd || 'N/A', 22));
+        console.log(this.#formatKeyValue('shell', procOpts.shell || 'N/A', 22));
+        console.log(this.#formatKeyValue('stdio', procOpts.stdio || 'N/A', 22));
+
         for (const [configName, configValue] of procOpts.logConfiguration ?? []) {
-            console.log(`       📂 ${configName}: ${configValue || 'N/A'}`);
+            console.log(this.#formatKeyValue(configName, configValue || 'N/A', 22));
         }
-        console.log('\n');
+        console.log('');
 
         // create the actual process
         const startTime = performance.now();
@@ -294,7 +298,7 @@ class ScriptProcess {
                 finishMessage += ` Executed in ${Math.round(spentInSec * 100) / 100} seconds.`;
 
 
-                log(type, `${finishMessage}\n\n`);
+                log(type, `${finishMessage}`);
                 if (code) {
                     procReject(code);
                 } else {
@@ -354,6 +358,10 @@ class ScriptProcess {
         if (this.#spawned) {
             this.#proc.kill();
         }
+    }
+
+    #formatKeyValue(key, value, width = 18) {
+        return `   ${key.padEnd(width, ' ')}: ${value}`;
     }
 }
 
