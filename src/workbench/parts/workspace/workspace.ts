@@ -6,6 +6,8 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
 import { Orientation } from 'src/base/browser/basic/dom';
+import { Priority } from 'src/base/common/event';
+import { DashboardView } from 'src/workbench/services/dashboard/dashboardView';
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -52,8 +54,20 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
             });
         }
 
+        // layout.push({
+        //     component: this.editorService,
+        //     initSize: null,
+        //     maximumSize: null,
+        //     minimumSize: null,
+        // });
+        const dashboardView = this.instantiationService.createInstance(DashboardView, {
+            id: 'workspace-dashboard',
+            priority: Priority.Low,
+            content: ["Pinned Notes", "Recent Items", "What's New"],
+        });
+
         layout.push({
-            component: this.editorService,
+            component: dashboardView,
             initSize: null,
             maximumSize: null,
             minimumSize: null,
