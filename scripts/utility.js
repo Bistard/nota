@@ -137,39 +137,6 @@ class Times {
     }
 }
 
-/**
- * @deprecated
- */
-class Loggers {
-
-    /**
-     * @description Print the given text with the color (if provided) with a 
-     * time prefix.
-     * @param {string} text
-     * @param {string} fgColor 
-     * @param {string} bgColor 
-     */
-    static print(text, fgColor, bgColor) {
-        console.log(`${Times.getTime()} ${fgColor ?? ''}${bgColor ?? ''}${text}\x1b[0m`);
-    }
-
-    static printGreen(text) {
-        this.print(text, fgColor.Green);
-    }
-
-    static printRed(text) {
-        this.print(text, fgColor.Red);
-    }
-
-    static printYellow(text) {
-        this.print(text, fgColor.Yellow);
-    }
-
-    static printGray(text) {
-        this.print(text, fgColor.Gray);
-    }
-}
-
 class ScriptHelper {
     
     /**
@@ -419,5 +386,5 @@ class Git {
 // export
 module.exports = { 
     log, fgColor, bgColor, 
-    Colors, Times, Loggers, ScriptProcess, ScriptHelper, Git 
+    Colors, Times, ScriptProcess, ScriptHelper, Git 
 };
