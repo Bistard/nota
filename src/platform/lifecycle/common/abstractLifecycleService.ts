@@ -3,8 +3,7 @@ import { Emitter } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/utilities/async";
 import { panic } from "src/base/common/utilities/panic";
-import { ILifecycleService } from "src/platform/lifecycle/common/lifecycle";
-import { IBeforeQuitEvent } from "src/platform/lifecycle/electron/mainLifecycleService";
+import { IWillQuitEvent, ILifecycleService, IOnBeforeQuitEvent } from "src/platform/lifecycle/common/lifecycle";
 
 export abstract class AbstractLifecycleService<Phase extends number, QuitReason extends number> extends Disposable implements ILifecycleService<Phase, QuitReason> {
 
@@ -17,10 +16,10 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
 
     // [event]
 
-    protected readonly _onBeforeQuit = this.__register(new Emitter<void>());
+    protected readonly _onBeforeQuit = this.__register(new Emitter<IOnBeforeQuitEvent<QuitReason>>());
     public readonly onBeforeQuit = this._onBeforeQuit.registerListener;
 
-    protected readonly _onWillQuit = this.__register(new Emitter<IBeforeQuitEvent<QuitReason>>());
+    protected readonly _onWillQuit = this.__register(new Emitter<IWillQuitEvent<QuitReason>>());
     public readonly onWillQuit = this._onWillQuit.registerListener;
 
     // [constructor]

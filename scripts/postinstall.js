@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require('fs');
-const { ScriptProcess, Loggers, fgColor } = require('./utility');
+const { ScriptProcess, fgColor, log } = require('./utility');
 
 /**
  * Main entrance
@@ -35,11 +35,11 @@ async function linkModuleAlias() {
 }
 
 async function removeTypesGlob() {
-    Loggers.print(`\x1B[4m${fgColor.LightGreen}remove-types-glob\x1b[0m`);
-    Loggers.print('Removing `node_modules/@types/glob`...');
+    log('info', `\x1B[4m${fgColor.LightGreen}remove-types-glob\x1b[0m`);
+    log('info', 'Removing `node_modules/@types/glob`...');
 
     const globPath = path.join(process.cwd(), 'node_modules', '@types', 'glob')
     await fs.promises.rm(globPath, { recursive: true, force: true, maxRetries: 2, retryDelay: 50, });
 
-    Loggers.print('Removed `node_modules/@types/glob`.');
+    log('info', 'Removed `node_modules/@types/glob`.');
 }

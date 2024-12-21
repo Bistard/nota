@@ -20,7 +20,7 @@ export const enum IpcChannel {
     // main process direct communication to renderer process
     rendererAlertError = 'nota:rendererAlertError',
     rendererRunCommand = 'nota:rendererRunCommand',
-
+    
     // inspector window channel
     InspectorReady       = 'nota:inspectorReady',
     InspectorClose       = 'nota:inspectorClose',
@@ -34,6 +34,7 @@ export const enum IpcChannel {
     WindowBlurred = 'window-blurred',
     WindowEnterFullScreen = 'window-enter-full-screen',
     WindowLeaveFullScreen = 'window-leave-full-screen',
+    windowOnBeforeUnload = 'nota:windowOnBeforeUnload',
 }
 
 /**

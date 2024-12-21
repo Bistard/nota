@@ -1,5 +1,5 @@
 const path = require("path");
-const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
+const { ScriptProcess, ScriptHelper } = require("../utility");
 
 (async () => {
     const cwd     = process.cwd();
@@ -16,6 +16,10 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
         BUILD_MODE: {
             value: CLIArgv.mode,
             defaultValue: 'development',
+        },
+        i18n_error: {
+            value: CLIArgv.i18nError,
+            defaultValue: 'false',
         }
     });
 
@@ -56,13 +60,7 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
                 ['NODE_VER', process.versions.node ?? 'N/A'],
                 ...envPair,
             ],
-            // stdio: "inherit"
-            onStdout: (output) => {
-                process.stdout.write(`${Times.getTime()} ${output}`);
-            },
-            onStderr: (error) => {
-                Loggers.printRed(`${error}`);
-            }
+            stdio: "inherit"
         },
     );
 

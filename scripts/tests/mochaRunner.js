@@ -10,7 +10,7 @@ const { ScriptProcess } = require("../utility");
 async function runI18nIntegrationTest() {
     const i18n = new ScriptProcess(
         'i18nIntegrationTest',
-        `npm run script i18n_integration_test`,
+        `npm run script test-i18n`,
         [],
         [],
         {

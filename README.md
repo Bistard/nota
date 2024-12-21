@@ -12,7 +12,7 @@
 
 <br>
 
-Wisp is a next-gen Markdown note-taking desktop application designed for both education and professional development. It leverages generative AI for enriched note creation, organization, and suggestions.
+Nota is a next-gen Markdown note-taking desktop application designed for both education and professional development. It leverages generative AI for enriched note creation, organization, and suggestions.
 
 ## 🚪Portals
 - [🌎Why Us?](#🌎Why-Us?)

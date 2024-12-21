@@ -17,7 +17,7 @@ import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
-import { LanguageType } from "src/platform/i18n/common/localeTypes";
+import { LanguageType, validateLanguageType } from "src/platform/i18n/common/localeTypes";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -232,7 +232,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         // load window
         // TODO: only pass the `IWindowConfiguration` part, we are currently passing into everything.
-        window.load(configuration);
+        window.load({});
 
         return window;
     }
@@ -320,6 +320,8 @@ namespace LocaleResolver {
     }
 
     function __getUserLocale(configurationService: IConfigurationService): LanguageType {
-        return configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage, LanguageType.preferOS);
+        return validateLanguageType(
+            configurationService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage, LanguageType.preferOS)
+        );
     }
 }
