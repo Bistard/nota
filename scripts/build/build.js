@@ -60,13 +60,7 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
                 ['NODE_VER', process.versions.node ?? 'N/A'],
                 ...envPair,
             ],
-            // stdio: "inherit"
-            onStdout: (output) => {
-                process.stdout.write(`${Times.getTime()} ${output}`);
-            },
-            onStderr: (error) => {
-                Loggers.printRed(`${error}`);
-            }
+            stdio: "inherit"
         },
     );
 

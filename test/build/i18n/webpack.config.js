@@ -26,10 +26,12 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 watchMode: false,
                 plugins: [
                     new KeyToIndexTransformPlugin({
+                        logLevel: 'error',
                         sourceCodePath: path.resolve(this.#cwd, './test/build/i18n/src/'),
                         localeOutputPath: path.resolve(this.#cwd, './test/build/i18n/dist/locale/'),
                         localizationFileName: 'en.json',
                         lookupFileName: 'en_lookup_table.json',
+                        otherLocales: [],
                     })
                 ],
             })

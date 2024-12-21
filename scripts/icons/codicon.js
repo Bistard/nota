@@ -1,6 +1,6 @@
 const path =  require('path');
 const fs = require('fs');
-const { ScriptHelper, ScriptProcess, Times, Git, Loggers } = require("../utility");
+const { ScriptHelper, ScriptProcess, Times, Git, Loggers, log } = require("../utility");
 
 
 
@@ -39,15 +39,10 @@ async function run() {
             shell: true,
             logConfiguration: [
                 ...envList
-            ]
+            ],
+            stdio: "inherit",
         }
     );
-    codiconProc.proc.stdout.on('data', (output) => {
-        process.stdout.write(`${Times.getTime()} ${output}`);
-    });
-    codiconProc.proc.stderr.on('data', (error) => {
-        console.error(`${Times.getTime()} ${error}`);
-    });
     try {
         await codiconProc.waiting();
     } catch (exitcode) {
@@ -62,12 +57,12 @@ async function run() {
  * @param {string} outputRoot 
  */
 async function repair(outputRoot) {
-    Loggers.print(`Start repairing the generated Icon Fonts at '${outputRoot}'...`);
+    log('info', `Start repairing the generated Icon Fonts at '${outputRoot}'...`);
 
     // icons.ts (replace with 'const enum' keyword)
     await (async function fixIconTs() {
         const fileName = 'icons.ts';
-        Loggers.print(`Start repairing '${fileName}'...`);
+        log('info', `Start repairing '${fileName}'...`);
         
         const expectedFirstLine = 'export enum Icons {';
         const revisedFirstLine = 'export const enum Icons {';
@@ -85,26 +80,26 @@ async function repair(outputRoot) {
         }
 
         // if the first line is not what we expected, we do nothing.
-        Loggers.print(`The first line of ${fileName} is '${firstLine}'.`);
+        log('info', `The first line of ${fileName} is '${firstLine}'.`);
         if (firstLine !== expectedFirstLine) {
-            Loggers.print(`The first line is not the same as '${expectedFirstLine}' as expected. Thus we fix nothing for safety purpose.`);
+            log('info', `The first line is not the same as '${expectedFirstLine}' as expected. Thus we fix nothing for safety purpose.`);
             return;
         }
 
-        Loggers.print(`The first line will be replace by '${revisedFirstLine}'`);
+        log('info', `The first line will be replace by '${revisedFirstLine}'`);
         while (content[i] == '\n' || content[i] == '\r') {
             i++;
         }
 
         const newContent = revisedFirstLine + '\n' + content.substring(i, undefined);
         await fs.promises.writeFile(filePath, newContent);
-        Loggers.print(`✅ Repairing '${fileName}' completed.`);
+        log('ok', `Repairing '${fileName}' completed.`);
     })();
 
     // icons.css (remove the postfix hexDecimal when loading the font file)
     await (async function fixIconCss() {
         const fileName = 'icons.css';
-        Loggers.print(`Start repairing '${fileName}'...`);
+        log('info', `Start repairing '${fileName}'...`);
 
         const filePath = path.resolve(outputRoot, fileName);
         const content = (await fs.promises.readFile(filePath)).toString();
@@ -113,6 +108,6 @@ async function repair(outputRoot) {
         const newContent = content.replace(regexp, '$1');
         
         await fs.promises.writeFile(filePath, newContent);
-        Loggers.print(`✅ Repairing '${fileName}' completed.`);
+        log('ok', `Repairing '${fileName}' completed.`);
     })();
 }

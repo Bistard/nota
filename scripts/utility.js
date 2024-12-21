@@ -408,6 +408,7 @@ class Git {
                     env: process.env,
                     cwd: process.cwd(),
                     shell: true,
+                    stdio: "inherit",
                 }
             );
             return proc.waiting();
