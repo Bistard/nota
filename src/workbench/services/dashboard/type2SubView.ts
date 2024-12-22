@@ -1,11 +1,13 @@
 import { IDashboardSubView, IDashboardSubViewOpts } from "src/workbench/services/dashboard/dashboardSubView";
 import { Disposable } from "src/base/common/dispose";
+import { addDisposableListener } from "src/base/browser/basic/dom";
 
 export class Type2SubView extends Disposable implements IDashboardSubView {
 
     // [fields]
 
     public id: string = 'type2';
+    private _subViewContainer: HTMLElement;
 
     // [constructor]
 
@@ -13,14 +15,15 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
         private opts: IDashboardSubViewOpts
     ) {
         super();
+        this._subViewContainer = document.createElement("div");
+        this._subViewContainer.classList.add("type2-subview");
+        this._subViewContainer.setAttribute("data-id", this.opts.id);
     }
 
     // [public methods]
 
     public render(): HTMLElement {
-        const subViewContainer = document.createElement("div");
-        subViewContainer.classList.add("type2-subview");
-        subViewContainer.setAttribute("data-id", this.opts.id);
+        this._subViewContainer.innerHTML = "";
 
         const header = document.createElement("div");
         header.classList.add("section-header");
@@ -34,7 +37,7 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
         const sortDropdown = this.__createSortDropdown();
         header.appendChild(sortDropdown);
 
-        subViewContainer.appendChild(header);
+        this._subViewContainer.appendChild(header);
 
         // Create the content items
         const contentContainer = document.createElement("div");
@@ -46,16 +49,22 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
             contentContainer.appendChild(itemElement);
         });
 
-        subViewContainer.appendChild(contentContainer);
-        return subViewContainer;
+        this._subViewContainer.appendChild(contentContainer);
+
+        return this._subViewContainer;
     }
 
     public registerListeners(): void {
         if (this.isDisposed()) {
             return;
         }
+    }
 
-        // this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
+    // [protected methods]
+
+    public override dispose(): void {
+        super.dispose();
+        this._subViewContainer.remove();
     }
 
     // [private methods]
@@ -74,6 +83,10 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
         dropdownText.classList.add("dropdown-text");
         dropdownText.textContent = "Last modified";
         sortDropdown.appendChild(dropdownText);
+
+        this.__register(addDisposableListener(sortDropdown, "click", () => {
+            console.log("Sort dropdown clicked");
+        }));
 
         return sortDropdown;
     }

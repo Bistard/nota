@@ -28,6 +28,7 @@ export class DashboardView extends Component {
             .sort((a, b) => (a.priority || Priority.Low) - (b.priority || Priority.Low))
             .forEach((subView) => {
                 container.appendChild(subView.render(container));
+                this.__register(subView);
             });
 
         return container;

@@ -1,11 +1,13 @@
 import { IDashboardSubView, IDashboardSubViewOpts } from "src/workbench/services/dashboard/dashboardSubView";
 import { Disposable } from "src/base/common/dispose";
+import { addDisposableListener } from "src/base/browser/basic/dom";
 
 export class Type1SubView extends Disposable implements IDashboardSubView {
 
     // [fields]
 
     public id: string = 'type1';
+    private _subViewContainer: HTMLElement;
 
     // [constructor]
 
@@ -13,14 +15,16 @@ export class Type1SubView extends Disposable implements IDashboardSubView {
         private opts: IDashboardSubViewOpts
     ) {
         super();
+        this._subViewContainer = document.createElement("div");
+        this._subViewContainer.classList.add("type1-subview");
+        this._subViewContainer.setAttribute("data-id", this.opts.id);
     }
 
     // [public methods]
 
     public render(): HTMLElement {
-        const subViewContainer = document.createElement("div");
-        subViewContainer.classList.add("type1-subview");
-        subViewContainer.setAttribute("data-id", this.opts.id);
+
+        this._subViewContainer.innerHTML = "";
 
         // Create section header
         const header = document.createElement("div");
@@ -31,21 +35,20 @@ export class Type1SubView extends Disposable implements IDashboardSubView {
         title.textContent = this.opts.title || "Welcome to the Dashboard";
         header.appendChild(title);
 
-        subViewContainer.appendChild(header);
+        this._subViewContainer.appendChild(header);
 
         // Add the New Note button
         const newNoteButton = this.__createNewNoteButton();
-        subViewContainer.appendChild(newNoteButton);
+        this._subViewContainer.appendChild(newNoteButton);
 
-        return subViewContainer;
+        return this._subViewContainer;
     }
 
-    public registerListeners(): void {
-        if (this.isDisposed()) {
-            return;
-        }
+    // [protected methods]
 
-        // this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
+    public override dispose(): void {
+        super.dispose();
+        this._subViewContainer.remove();
     }
 
     // [private methods]
@@ -53,10 +56,10 @@ export class Type1SubView extends Disposable implements IDashboardSubView {
     private __createNewNoteButton(): HTMLElement {
         const button = document.createElement("button");
         button.classList.add("new-note-btn");
-        button.textContent = "New Note";
-        button.addEventListener("click", () => {
+        button.textContent = "+ New Note";
+        this.__register(addDisposableListener(button, "click", () => {
             console.log("New Note button clicked");
-        });
+        }));
         return button;
     }
 }
