@@ -2,10 +2,11 @@ import "src/workbench/services/dashboard/media/dashboard.scss";
 import { Priority } from "src/base/common/event";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { Component } from "src/workbench/services/component/component";
-import { DashboardSubView } from "src/workbench/services/dashboard/dashboardSubView";
+import { Type1SubView } from "src/workbench/services/dashboard/type1SubView";
+import { Type2SubView } from "src/workbench/services/dashboard/type2SubView";
+import { IDashboardSubView } from "src/workbench/services/dashboard/dashboardSubView";
 
 export interface IDashboardViewOpts {
-
     /**
      * The unique identifier of the dashboard view.
      */
@@ -18,81 +19,28 @@ export interface IDashboardViewOpts {
      */
     priority?: Priority;
 
-    /**
-     * An array of content items (e.g., strings or identifiers) to be displayed within the view.
-     * Each item represents a sinågle content block to be rendered in the dashboard subview.
-     * @optional
-     */
-    content?: string[];
-
-    /**
-     * The title for a dashboard view (especially used in subviews)
-     */
-    title?: string;
+    subViews?: IDashboardSubView[];
 }
 
 export class DashboardView extends Component {
-
-    // [fields]
-
-    private subViews: DashboardSubView[] = [];
-
-    // [constructor]
+    private subViews: IDashboardSubView[] = [];
 
     constructor(
-        opts: IDashboardViewOpts,
+        private opts: IDashboardViewOpts,
         @IInstantiationService instantiationService: IInstantiationService
     ) {
-        super('dashboard-view', null, instantiationService);
+        super("dashboard-view", null, instantiationService);
     }
-
-    // [public methods]
 
     public createView(): HTMLElement {
         const container = document.createElement("div");
         container.classList.add("dashboard-view");
 
         // Create SubViews for each section
-        const sections: IDashboardViewOpts[] = [
-            {
-                id: "welcome-section",
-                priority: Priority.High,
-                title: "Hello,"
-            },
-            {
-                id: "pinned-notes",
-                priority: Priority.High,
-                title: "Pinned",
-                content: this.generatePlaceholderItems("Pinned"),
-            },
-            {
-                id: "recent-items",
-                priority: Priority.Normal,
-                title: "Recent",
-                content: this.generatePlaceholderItems("Recent"),
-            },
-            {
-                id: "new-features",
-                priority: Priority.Low,
-                title: "New Features",
-                content: this.generatePlaceholderItems("New Features"),
-            },
-        ];
+        this.subViews = this.createSubViews();
 
-        sections.forEach((sectionOpts) => {
-            if (sectionOpts.id === "welcome-section") {
-                // TODO: prepare some welcome sentences
-                const welcomeSection = this.createWelcomeSection(sectionOpts.title || "Hello, user!");
-                container.appendChild(welcomeSection);
-            } else {
-                // Create other subviews
-                const subView = new DashboardSubView(
-                    this.instantiationService,
-                    sectionOpts
-                );
-                container.appendChild(subView.render()); // Append the rendered subview to the container
-                this.subViews.push(subView); // Store for future use
-            }
+        this.subViews.forEach((subView) => {
+            container.appendChild(subView.render(container)); // Render and append subviews
         });
 
         return container;
@@ -104,25 +52,37 @@ export class DashboardView extends Component {
     }
 
     protected override _registerListeners(): void {
-
+        // No listeners required in this class
     }
 
-    // [private methods]
-    private createWelcomeSection(title: string): HTMLElement {
-        const welcomeSection = document.createElement("div");
-        welcomeSection.classList.add("welcome-section");
-        welcomeSection.innerHTML = `
-            <h1>${title}</h1>
-            <button class="new-note-btn">+ New Note</button>
-        `;
-        return welcomeSection;
-    }
+    private createSubViews(): IDashboardSubView[] {
+        const subViews: IDashboardSubView[] = [];
 
-    private generatePlaceholderItems(sectionId: string): string[] {
-        const items: string[] = [];
-        for (let i = 1; i <= 10; i++) {
-            items.push(`${sectionId} Item ${i}`);
-        }
-        return items;
+        // Add the welcome section (Type1)
+        subViews.push(new Type1SubView({
+            id: 'type1',
+            title: 'Welcome to the Dashboard'
+        }));
+
+        // Add other sections (Type2)
+        subViews.push(new Type2SubView({
+            id: 'type2',
+            title: 'Pinned Notes',
+            content: ["Pinned Note 1", "Pinned Note 2"]
+        }));
+
+        subViews.push(new Type2SubView({
+            id: 'type3',
+            title: 'Recent Items',
+            content: ["Recent Item 1", "Recent Item 2"]
+        }));
+
+        subViews.push(new Type2SubView({
+            id: 'type4',
+            title: "What's New",
+            content: ["New Feature 1", "New Feature 2"]
+        }));
+
+        return subViews;
     }
 }

@@ -5,12 +5,13 @@
     height: 100vh;
     overflow-y: auto;
 
-    .welcome-section {
+    // Targeting type1-subview for the welcome section
+    .type1-subview {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
 
-        h1 {
+        h2 {
             font-size: 28px;
             font-weight: bolder;
             color: #211F27;
@@ -34,7 +35,8 @@
         }
     }
 
-    .dashboard-subview {
+    // Updated for all subviews
+    .type2-subview {
         padding: 1rem 0;
 
         .section-header {
@@ -76,7 +78,7 @@
             }
         }
 
-        .slider {
+        .content-container {
             display: flex;
             overflow-x: auto;
             gap: 1rem;
@@ -102,6 +104,7 @@
                 font-weight: 500;
                 color: #495057;
                 transition: transform 0.2s ease;
+                scroll-behavior: smooth;
 
                 &:hover {
                     cursor: pointer;

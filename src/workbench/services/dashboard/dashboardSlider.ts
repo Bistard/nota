@@ -23,10 +23,6 @@ export class DashboardSlider extends Component {
             itemContainer.appendChild(item);
             sliderContainer.appendChild(itemContainer);
         });
-
-        // Add smooth scrolling
-        sliderContainer.style.scrollBehavior = 'smooth';
-
         return sliderContainer;
     }
 
@@ -36,6 +32,6 @@ export class DashboardSlider extends Component {
     }
 
     protected override _registerListeners(): void {
-        // Additional listeners (if needed)
+
     }
 }

@@ -1,17 +1,28 @@
 import { DashboardSlider } from "./dashboardSlider";
 import { Component } from "src/workbench/services/component/component";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IDashboardViewOpts } from "src/workbench/services/dashboard/dashboardView";
 
-export class DashboardSubView extends Component {
+export interface IDashboardSubView {
+    readonly id: string;
+    render(parentElement: HTMLElement): HTMLElement;
+    dispose(): void;
+}
+
+export interface IDashboardSubViewOpts {
+    id: string;
+    title?: string;
+    content?: string[]
+}
+
+export class DashboardSubView extends Component implements IDashboardSubView {
     private slider: DashboardSlider;
-    private opts: IDashboardViewOpts;
+    private opts: IDashboardSubViewOpts;
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        opts: IDashboardViewOpts
+        opts: IDashboardSubViewOpts
     ) {
-        super("navigation-view", null, instantiationService);
+        super("dashboard-subview", null, instantiationService);
         this.opts = opts;
         this.slider = new DashboardSlider(
             instantiationService,
@@ -19,7 +30,7 @@ export class DashboardSubView extends Component {
         );
     }
 
-    public render(): HTMLElement {
+    public render(parentElement: HTMLElement): HTMLElement {
         const subViewContainer = document.createElement("div");
         subViewContainer.classList.add("dashboard-subview");
         subViewContainer.setAttribute("data-id", this.opts.id);
@@ -28,47 +39,24 @@ export class DashboardSubView extends Component {
         const header = document.createElement("div");
         header.classList.add("section-header");
 
-        // Append title and dropdown to the header
         const title = this.__createSubViewTitle(this.opts.title || "Default Title");
-        const sortDropdown = this.__createSortDropdown();
-
         header.appendChild(title);
-        header.appendChild(sortDropdown);
-
-        // Append header to container
         subViewContainer.appendChild(header);
 
         // Add slider content
         const sliderElement = this.slider.createView();
         subViewContainer.appendChild(sliderElement);
 
+        parentElement.appendChild(subViewContainer);
         return subViewContainer;
     }
 
     protected override _createContent(): void {
-        this.render();
+        // Content is already handled in the render method
     }
 
     protected override _registerListeners(): void {
-        // Add event listeners here if necessary
-    }
-
-    private __createSortDropdown(): HTMLElement {
-        const sortDropdown = document.createElement("div");
-        sortDropdown.classList.add("sort-dropdown");
-
-        // Add triangle icon
-        const triangleIcon = document.createElement("div");
-        triangleIcon.classList.add("triangle-icon");
-        sortDropdown.appendChild(triangleIcon);
-
-        // Add text
-        const dropdownText = document.createElement("div");
-        dropdownText.classList.add("dropdown-text");
-        dropdownText.textContent = "Last modified";
-        sortDropdown.appendChild(dropdownText);
-
-        return sortDropdown;
+        // Register event listeners if needed
     }
 
     private __createSubViewTitle(titleText: string): HTMLElement {

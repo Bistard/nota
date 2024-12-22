@@ -8,6 +8,7 @@ import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Priority } from 'src/base/common/event';
 import { DashboardView } from 'src/workbench/services/dashboard/dashboardView';
+import { Type1SubView } from 'src/workbench/services/dashboard/type1SubView';
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -62,8 +63,6 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         // });
         const dashboardView = this.instantiationService.createInstance(DashboardView, {
             id: 'workspace-dashboard',
-            priority: Priority.Low,
-            content: ["Pinned Notes", "Recent Items", "What's New"],
         });
 
         layout.push({
