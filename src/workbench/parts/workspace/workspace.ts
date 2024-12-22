@@ -62,7 +62,11 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         //     minimumSize: null,
         // });
         const dashboardView = this.instantiationService.createInstance(DashboardView, {
-            id: 'workspace-dashboard',
+            subViews: [
+                { id: 'type1', title: 'Hello,' },
+                { id: 'type2', title: 'Pinned', content: ["Note 1", "Note 2"] },
+                { id: 'type3', title: 'Recent', content: ["Item 1", "Item 2"] },
+            ],
         });
 
         layout.push({

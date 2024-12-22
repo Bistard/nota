@@ -1,6 +1,7 @@
 import { IDashboardSubView, IDashboardSubViewOpts } from "src/workbench/services/dashboard/dashboardSubView";
+import { Disposable } from "src/base/common/dispose";
 
-export class Type1SubView implements IDashboardSubView {
+export class Type1SubView extends Disposable implements IDashboardSubView {
 
     // [fields]
 
@@ -10,7 +11,9 @@ export class Type1SubView implements IDashboardSubView {
 
     constructor(
         private opts: IDashboardSubViewOpts
-    ) {}
+    ) {
+        super();
+    }
 
     // [public methods]
 
@@ -37,8 +40,12 @@ export class Type1SubView implements IDashboardSubView {
         return subViewContainer;
     }
 
-    public dispose(): void {
+    public registerListeners(): void {
+        if (this.isDisposed()) {
+            return;
+        }
 
+        // this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
     }
 
     // [private methods]
