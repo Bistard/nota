@@ -48,7 +48,7 @@ export class DashboardView extends Component {
                 case 'type1':
                     return new Type1SubView(opts);
                 case 'type2':
-                    return new Type2SubView(opts);
+                    return new Type2SubView(this.instantiationService, opts);
                 default:
                     panic(`Unsupported subview type: ${opts.id}`);
             }

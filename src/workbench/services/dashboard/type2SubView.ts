@@ -1,6 +1,8 @@
 import { IDashboardSubView, IDashboardSubViewOpts } from "src/workbench/services/dashboard/dashboardSubView";
 import { Disposable } from "src/base/common/dispose";
 import { addDisposableListener } from "src/base/browser/basic/dom";
+import { DashboardSlider } from "src/workbench/services/dashboard/dashboardSlider";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export class Type2SubView extends Disposable implements IDashboardSubView {
 
@@ -8,16 +10,23 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
 
     public id: string = 'type2';
     private _subViewContainer: HTMLElement;
+    private _slider: DashboardSlider;
 
     // [constructor]
 
     constructor(
+        @IInstantiationService instantiationService: IInstantiationService,
         private opts: IDashboardSubViewOpts
     ) {
         super();
+        this.opts = opts;
         this._subViewContainer = document.createElement("div");
         this._subViewContainer.classList.add("type2-subview");
         this._subViewContainer.setAttribute("data-id", this.opts.id);
+        this._slider = new DashboardSlider(
+            instantiationService,
+            this.__createSliderItems(this.opts.content || [])
+        );
     }
 
     // [public methods]
@@ -39,17 +48,9 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
 
         this._subViewContainer.appendChild(header);
 
-        // Create the content items
-        const contentContainer = document.createElement("div");
-        contentContainer.classList.add("content-container");
-        this.opts.content?.forEach(itemText => {
-            const itemElement = document.createElement("div");
-            itemElement.textContent = itemText;
-            itemElement.classList.add("content-item");
-            contentContainer.appendChild(itemElement);
-        });
-
-        this._subViewContainer.appendChild(contentContainer);
+        // Add slider to the subview container
+        const sliderElement = this._slider.createView();
+        this._subViewContainer.appendChild(sliderElement);
 
         return this._subViewContainer;
     }
@@ -89,5 +90,14 @@ export class Type2SubView extends Disposable implements IDashboardSubView {
         }));
 
         return sortDropdown;
+    }
+
+    private __createSliderItems(content: string[]): HTMLElement[] {
+        return content.map((itemText) => {
+            const itemElement = document.createElement("div");
+            itemElement.textContent = itemText;
+            itemElement.classList.add("slider-item");
+            return itemElement;
+        });
     }
 }
