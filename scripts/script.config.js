@@ -43,7 +43,16 @@ const configuration = {
             {
                 flags: ['--listenerGCedWarning'],
                 descriptions: [
-                    'Print warnings whenever a listener is garbage-collected without being disposed, indicating a potential memory leak.',
+                    'Print warnings whenever a listener is garbage-collected without being disposed.',
+                    'Indicating a memory LEAK',
+                    'default = false'
+                ]
+            },
+            {
+                flags: ['--disposableLeakWarning'],
+                descriptions: [
+                    'Print warnings (after the first 5 seconds) whenever a `IDisposable` is either: "not disposed" or "not bound to a parent IDisposable"',
+                    'It only means **POTENTIAL** memory leak.',
                     'default = false'
                 ]
             }
