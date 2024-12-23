@@ -10,6 +10,14 @@ export interface IDisposable {
 	dispose(): void;
 }
 
+export let disposableMonitor: IDisposableMonitor | undefined = undefined;
+export function monitorPotentialDisposableLeak(enable?: boolean): void {
+	if (!enable) {
+		return;
+    }
+	disposableMonitor = new DisposableMonitor();
+}
+
 export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
 /**
@@ -241,5 +249,114 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	private __cleanChildren(): void {
 		disposeAll(this._children);
 		this._children.length = 0;
+	}
+}
+
+/**
+ * A basic monitor to help detect potential memory leaks of {@link IDisposable} 
+ * objects.
+ * 
+ * By default, when an {@link IDisposable} is tracked via {@link track}, we 
+ * record its creation stack trace and schedule a check 5 seconds later. If at 
+ * that time the disposable has not been:
+ *   1. Marked as disposed (via {@link markAsDisposed}), or
+ *   2. Bound to a parent disposable (via {@link bindToParent}),
+ * we log the original stack trace to indicate a possible leaking disposable.
+ * 
+ * # Why Use a Delay?
+ * In many cases, disposables are properly bound or disposed shortly after they 
+ * are created. This may occur asynchronously or in a deferred manner. Using a 
+ * small time delay (5 seconds) helps avoid noisy false positives for cases 
+ * where we know the disposable will soon be disposed or registered under a parent.
+ * 
+ * # Tree-Like Hierarchy
+ * We can think of disposables forming a tree where each disposable may have 
+ * multiple child disposables that it manages. For instance:
+ * ```
+ *  rootDisposable
+ *  ├─ childDisposable1
+ *  │   └─ grandchildDisposable
+ *  ├─ childDisposable2
+ *  └─ childDisposable3
+ * ```
+ * - If the `rootDisposable` is disposed, all its children (and grandchildren, etc.) 
+ * 		are also disposed.
+ * - If a disposable is never attached to a parent and never disposed, it remains 
+ * 		“rooted” in memory and thus might cause a memory leak. This monitor 
+ * 		attempts to detect **EXACTLY** that scenario.
+ * - An untracked disposable doesn’t ALWAYS mean a true leak — sometimes it’s 
+ * 		expected that it lives for the duration of the application. You should 
+ * 		review all warnings manually.
+ * 
+ * @example
+ * // Usage:
+ * const monitor = new DisposableMonitor();
+ * 
+ * const d = toDisposable(() => console.log('clean up resources'));
+ * monitor.track(d); // start monitoring
+ * 
+ * // If d is not disposed or bound to a parent within 5s, a potential leak warning is logged.
+ */
+export interface IDisposableMonitor {
+	/**
+	 * Is called on construction of a disposable.
+	 */
+	track(disposable: IDisposable): void;
+
+	/**
+	 * Is called when a disposable is registered as child of another disposable (e.g. {@link DisposableStore}).
+	 */
+	bindToParent(child: IDisposable, parent: IDisposable | null): void;
+
+	/**
+	 * Is called after a disposable is disposed.
+	 */
+	markAsDisposed(disposable: IDisposable): void;
+}
+
+/**
+ * @internal
+ */
+class DisposableMonitor implements IDisposableMonitor {
+	
+	private readonly _is_tracked = '$_is_disposable_tracked_';
+
+	public track(disposable: IDisposable): void {
+		const stack = new Error('[DisposableMonitor] POTENTIAL memory leak ()').stack;
+		setTimeout(() => {
+			if (<any>disposable[this._is_tracked] === false) {
+				console.log(stack);
+			}
+		}, Time.sec(5).toMin().time);
+	}
+	
+	public bindToParent(child: IDisposable, parent: IDisposable | null): void {
+		this.__tryMarkTracked(child);
+	}
+	
+	public markAsDisposed(disposable: IDisposable): void {
+		this.__tryMarkTracked(disposable);
+	}
+
+	private __tryMarkTracked(disposable: IDisposable): void {
+		if (!disposable || disposable === Disposable.NONE) {
+			return;
+		}
+		
+		try {
+			(<any>disposable)[this._is_tracked] = true;
+		} catch {
+			/**
+			 * Sometimes, assigning a new property to an object can throw errors:
+			 *   - The object sealed/frozen (`Object.freeze`/`Object.seal`).
+			 *   - A native object or proxy that disallows new properties.
+			 *   - etc...
+			 * 
+			 * We use try/catch to ensure our diagnostic code doesn’t break the
+			 * application if assignment fails. If this property can’t be set,
+			 * we silently ignore it—this just means we might not be able to 
+			 * track this particular disposable’s status.
+			 */
+		}
 	}
 }
