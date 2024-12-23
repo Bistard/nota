@@ -192,6 +192,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             'open-devtools': this.environmentService.CLIArguments['open-devtools'],
             inspector: undefined,
             ListenerGCedWarning: this.environmentService.CLIArguments.ListenerGCedWarning,
+            disposableLeakWarning: this.environmentService.CLIArguments.disposableLeakWarning,
 
             /** part: {@link IEnvironmentOpts} */
             isPackaged: this.environmentService.isPackaged,

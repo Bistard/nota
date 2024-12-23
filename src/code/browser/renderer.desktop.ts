@@ -4,7 +4,7 @@ import { IInstantiationService, IServiceProvider, InstantiationService } from "s
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, monitorPotentialDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
@@ -95,6 +95,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
+            monitorPotentialDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
             monitorEventEmitterListenerGC({
                 ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
             });

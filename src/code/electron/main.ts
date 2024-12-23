@@ -33,6 +33,7 @@ import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
+import { monitorPotentialDisposableLeak } from 'src/base/common/dispose';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -87,6 +88,7 @@ const main = new class extends class MainProcess implements IMainProcess {
          * necessary for future works.
          */
 
+        monitorPotentialDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
         monitorEventEmitterListenerGC({
             ListenerGCedWarning: toBoolean(this.CLIArgv.ListenerGCedWarning),
         });
