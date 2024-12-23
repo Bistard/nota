@@ -90,7 +90,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         monitorPotentialDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
         monitorEventEmitterListenerGC({
-            ListenerGCedWarning: toBoolean(this.CLIArgv.ListenerGCedWarning),
+            listenerGCedWarning: toBoolean(this.CLIArgv.listenerGCedWarning),
         });
 
         // core services

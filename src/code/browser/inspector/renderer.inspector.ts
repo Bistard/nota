@@ -57,7 +57,7 @@ new class InspectorRenderer {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
             monitorEventEmitterListenerGC({
-                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
             });
 
             // ensure we handle almost every errors properly

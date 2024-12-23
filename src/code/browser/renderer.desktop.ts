@@ -97,7 +97,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             initExposedElectronAPIs();
             monitorPotentialDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
             monitorEventEmitterListenerGC({
-                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
             });
             
             // ensure we handle almost every errors properly

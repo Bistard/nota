@@ -41,7 +41,7 @@ const configuration = {
                 ]
             },
             {
-                flags: ['--ListenerGCedWarning'],
+                flags: ['--listenerGCedWarning'],
                 descriptions: [
                     'Print warnings whenever a listener is garbage-collected without being disposed, indicating a potential memory leak.',
                     'default = false'

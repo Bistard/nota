@@ -21,8 +21,8 @@ import { Time } from "src/base/common/date";
  ******************************************************************************/
 
 let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
-export function monitorEventEmitterListenerGC(opts: { ListenerGCedWarning: boolean }): void {
-    if (opts.ListenerGCedWarning) {
+export function monitorEventEmitterListenerGC(opts: { listenerGCedWarning: boolean }): void {
+    if (opts.listenerGCedWarning) {
         console.warn('[monitorEventEmitterListenerGC] enabled');
         _listenerFinalizer = createFinalizationRegistry({
             onGarbageCollectedInterval: (stacks: string[]) => {
