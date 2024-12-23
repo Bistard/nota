@@ -1,3 +1,4 @@
+import { Time } from "src/base/common/date";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { isFunction, isObject } from "src/base/common/utilities/type";
 
@@ -15,6 +16,7 @@ export function monitorPotentialDisposableLeak(enable?: boolean): void {
 	if (!enable) {
 		return;
     }
+	console.warn('[monitorPotentialDisposableLeak] enabled');
 	disposableMonitor = new DisposableMonitor();
 }
 
@@ -41,13 +43,17 @@ export class Disposable implements IDisposable {
 
 	private readonly _disposableManager = new DisposableManager();
 
-	constructor() {}
+	constructor() {
+		disposableMonitor?.track(this);
+		disposableMonitor?.bindToParent(this._disposableManager, this);
+	}
 
 	/** 
 	 * @description Disposes all the registered objects. If the object is already 
 	 * disposed, nothing will happen.
 	 */
 	public dispose(): void {
+		disposableMonitor?.markAsDisposed(this);
 		this._disposableManager.dispose();
 	}
 
@@ -79,17 +85,20 @@ export class DisposableManager implements IDisposable {
 	private readonly _disposables = new Set<IDisposable>();
 	private _disposed = false;
 
-	constructor() {}
+	constructor() {
+		disposableMonitor?.track(this);
+	}
 
 	/** 
 	 * @description Disposes all the registered objects and the current object. 
 	 */
 	public dispose(): void {
-		
 		// prevent double disposing
 		if (this._disposed) {
 			return;
 		}
+
+		disposableMonitor?.markAsDisposed(this);
 
 		// actual disposing
 		this._disposed = true;
@@ -114,6 +123,7 @@ export class DisposableManager implements IDisposable {
 			panic('cannot register the disposable object to itself');
 		}
 
+		disposableMonitor?.bindToParent(obj, this);
 		if (this._disposed) {
 			console.warn('cannot register a disposable object to a object which is already disposed');
 			return obj;
@@ -148,9 +158,14 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 }
 
 export function toDisposable(fn: () => any): IDisposable {
-	return {
-		dispose: fn
+	const disposable = {
+		dispose: () => {
+			disposableMonitor?.markAsDisposed(disposable);
+			fn();
+		}
 	};
+	disposableMonitor?.track(disposable);
+	return disposable;
 }
 
 export function isDisposable(obj: any): obj is IDisposable {
@@ -191,6 +206,9 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this._object = object ?? undefined;
 		this._children = children ?? [];
 		this._disposed = false;
+		
+		disposableMonitor?.track(this);
+		this.__trackDisposable(object, children);
 	}
 
 	// [public methods]
@@ -204,6 +222,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this._object = object;
 		
 		this.__cleanChildren();
+		this.__trackDisposable(object, undefined);
 	}
 
 	public get(): T {
@@ -223,6 +242,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		}
 
 		this._children.push(...children);
+		this.__trackDisposable(undefined, children);
 	}
 
 	public detach(): { obj: T, children: IDisposable[] } | undefined {
@@ -237,6 +257,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 			return;
 		}
 		this._disposed = true;
+		disposableMonitor?.markAsDisposed(this);
 		
 		this._object?.dispose();
 		this._object = undefined;
@@ -249,6 +270,11 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	private __cleanChildren(): void {
 		disposeAll(this._children);
 		this._children.length = 0;
+	}
+
+	private __trackDisposable(object?: any, children?: any[]): void {
+		object && disposableMonitor?.bindToParent(object, this);
+		children && disposableMonitor && children.forEach(child => disposableMonitor!.bindToParent(child, this));
 	}
 }
 
@@ -324,10 +350,10 @@ class DisposableMonitor implements IDisposableMonitor {
 	public track(disposable: IDisposable): void {
 		const stack = new Error('[DisposableMonitor] POTENTIAL memory leak ()').stack;
 		setTimeout(() => {
-			if (<any>disposable[this._is_tracked] === false) {
-				console.log(stack);
+			if (!(<any>disposable[this._is_tracked])) {
+				console.warn(stack);
 			}
-		}, Time.sec(5).toMin().time);
+		}, Time.sec(5).toMs().time);
 	}
 	
 	public bindToParent(child: IDisposable, parent: IDisposable | null): void {
