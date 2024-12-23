@@ -3,7 +3,7 @@ import { addDisposableListener, EventType, Orientation, waitDomToBeLoad } from "
 import { IWidget } from "src/base/browser/basic/widget";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { ErrorHandler } from "src/base/common/error";
-import { Event, monitorEventEmitterListenerGC } from "src/base/common/event";
+import { Event, monitorEmitterListenerGC } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
 import { ILogService, BufferLogger, LogLevel } from "src/base/common/logger";
 import { errorToMessage } from "src/base/common/utilities/panic";
@@ -56,7 +56,7 @@ new class InspectorRenderer {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
-            monitorEventEmitterListenerGC({
+            monitorEmitterListenerGC({
                 listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
             });
 

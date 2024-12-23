@@ -21,9 +21,9 @@ import { Time } from "src/base/common/date";
  ******************************************************************************/
 
 let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
-export function monitorEventEmitterListenerGC(opts: { listenerGCedWarning: boolean }): void {
+export function monitorEmitterListenerGC(opts: { listenerGCedWarning: boolean }): void {
     if (opts.listenerGCedWarning) {
-        console.warn('[monitorEventEmitterListenerGC] enabled');
+        console.warn('[monitorEmitterListenerGC] enabled');
         _listenerFinalizer = createFinalizationRegistry({
             onGarbageCollectedInterval: (stacks: string[]) => {
                 console.warn('[MEMORY LEAKING] GC\'ed these event listeners that were NOT yet disposed:');

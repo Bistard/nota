@@ -2,7 +2,7 @@ import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir, unlink } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
-import { Event, monitorEventEmitterListenerGC } from 'src/base/common/event';
+import { Event, monitorEmitterListenerGC } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/utilities/string';
@@ -33,7 +33,7 @@ import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
-import { monitorPotentialDisposableLeak } from 'src/base/common/dispose';
+import { monitorDisposableLeak } from 'src/base/common/dispose';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -88,8 +88,8 @@ const main = new class extends class MainProcess implements IMainProcess {
          * necessary for future works.
          */
 
-        monitorPotentialDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
-        monitorEventEmitterListenerGC({
+        monitorDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
+        monitorEmitterListenerGC({
             listenerGCedWarning: toBoolean(this.CLIArgv.listenerGCedWarning),
         });
 

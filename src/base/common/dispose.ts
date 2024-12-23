@@ -12,11 +12,11 @@ export interface IDisposable {
 }
 
 export let disposableMonitor: IDisposableMonitor | undefined = undefined;
-export function monitorPotentialDisposableLeak(enable?: boolean): void {
+export function monitorDisposableLeak(enable?: boolean): void {
 	if (!enable) {
 		return;
     }
-	console.warn('[monitorPotentialDisposableLeak] enabled');
+	console.warn('[monitorDisposableLeak] enabled');
 	disposableMonitor = new DisposableMonitor();
 }
 

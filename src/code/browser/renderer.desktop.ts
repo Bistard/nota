@@ -4,7 +4,7 @@ import { IInstantiationService, IServiceProvider, InstantiationService } from "s
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
-import { Disposable, monitorPotentialDisposableLeak } from "src/base/common/dispose";
+import { Disposable, monitorDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
@@ -61,7 +61,7 @@ import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/na
 import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
-import { monitorEventEmitterListenerGC } from "src/base/common/event";
+import { monitorEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { IBrowserService, initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
@@ -95,8 +95,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
-            monitorPotentialDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
-            monitorEventEmitterListenerGC({
+            monitorDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
+            monitorEmitterListenerGC({
                 listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
             });
             
