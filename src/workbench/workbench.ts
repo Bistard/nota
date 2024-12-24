@@ -4,7 +4,6 @@ import { IComponentService } from "src/workbench/services/component/componentSer
 import { WorkbenchLayout } from "src/workbench/layout";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
-import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { Disposable } from 'src/base/common/dispose';
 import { IContextService } from 'src/platform/context/common/contextService';
 import { IContextKey } from 'src/platform/context/common/contextKey';
@@ -27,6 +26,7 @@ import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navig
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
 import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 
 /**
  * @class Workbench represents all the Components in the web browser.

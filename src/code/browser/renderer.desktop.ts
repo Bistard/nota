@@ -38,7 +38,8 @@ import { IContextService, ContextService } from "src/platform/context/common/con
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
 import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IWorkspaceService, WorkspaceView } from "src/workbench/parts/workspace/workspace";
+import { WorkspaceView } from "src/workbench/parts/workspace/workspace";
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";

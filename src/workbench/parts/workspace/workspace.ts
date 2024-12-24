@@ -1,19 +1,10 @@
 import 'src/workbench/parts/workspace/workspace.scss';
-import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
+import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
 import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
-import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { Orientation } from 'src/base/browser/basic/dom';
-
-export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
-
-/**
- * An interface only for {@link WorkspaceView}.
- */
-export interface IWorkspaceService extends IComponent, IService {
-
-}
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 
 export class WorkspaceView extends Component implements IWorkspaceService {
 
