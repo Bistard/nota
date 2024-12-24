@@ -9,13 +9,13 @@ import { Orientation } from 'src/base/browser/basic/dom';
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
 /**
- * An interface only for {@link WorkspaceComponent}.
+ * An interface only for {@link WorkspaceView}.
  */
 export interface IWorkspaceService extends IComponent, IService {
 
 }
 
-export class WorkspaceComponent extends Component implements IWorkspaceService {
+export class WorkspaceView extends Component implements IWorkspaceService {
 
     declare _serviceMarker: undefined;
 
