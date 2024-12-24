@@ -8,6 +8,9 @@ import { isFunction, isObject } from "src/base/common/utilities/type";
  * functional.
  */
 export interface IDisposable {
+	/**
+	 * Ideally, this method should release all the memory hold by this object.
+	 */
 	dispose(): void;
 }
 
