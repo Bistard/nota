@@ -1,10 +1,9 @@
 import 'src/workbench/parts/workspace/workspace.scss';
 import { Component, IAssembleComponentOpts, IComponent } from "src/workbench/services/component/component";
-import { IWindowsTitleBarService, WindowsTitleBar } from "src/workbench/parts/workspace/titleBar/titleBar";
+import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
 import { Orientation } from 'src/base/browser/basic/dom';
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
@@ -35,22 +34,22 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         this.__assembleParts();
     }
 
-    protected override _registerListeners(): void { /** noop */ }
+    protected override _registerListeners(): void { 
+        /** noop */ 
+    }
     
     // [private helper methods]
 
     private __assembleParts(): void {
         const layout: IAssembleComponentOpts[] = [];
 
-        if (OPERATING_SYSTEM === Platform.Windows) {
-            const windowsTitleBar = this.instantiationService.createInstance(WindowsTitleBar);
-            this.instantiationService.register(IWindowsTitleBarService, windowsTitleBar);
-            layout.push({
-                component: windowsTitleBar,
-                fixed: true,
-                fixedSize: WindowsTitleBar.TITLE_BAR_HEIGHT,
-            });
-        }
+        const tabBar = this.instantiationService.createInstance(TabBarView);
+        this.instantiationService.register(ITabBarService, tabBar);
+        layout.push({
+            component: tabBar,
+            fixed: true,
+            fixedSize: TabBarView.TAB_BAR_HEIGHT,
+        });
 
         layout.push({
             component: this.editorService,
