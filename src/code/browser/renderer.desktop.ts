@@ -71,6 +71,7 @@ import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -260,7 +261,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
-        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceView       , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceView            , []));
+        registerService(ITabBarService            , new ServiceDescriptor(TabBarView               , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));

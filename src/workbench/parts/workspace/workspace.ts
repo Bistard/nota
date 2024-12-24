@@ -23,6 +23,7 @@ export class WorkspaceView extends Component implements IWorkspaceService {
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
+        @ITabBarService private readonly tabBarService: ITabBarService,
         @IEditorService private readonly editorService: IEditorService,
     ) {
         super('workspace', null, instantiationService);
@@ -42,15 +43,11 @@ export class WorkspaceView extends Component implements IWorkspaceService {
 
     private __assembleParts(): void {
         const layout: IAssembleComponentOpts[] = [];
-
-        const tabBar = this.instantiationService.createInstance(TabBarView);
-        this.instantiationService.register(ITabBarService, tabBar);
         layout.push({
-            component: tabBar,
+            component: this.tabBarService,
             fixed: true,
             fixedSize: TabBarView.TAB_BAR_HEIGHT,
         });
-
         layout.push({
             component: this.editorService,
             initSize: null,
