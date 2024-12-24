@@ -5,6 +5,9 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { Orientation } from 'src/base/browser/basic/dom';
+import { Priority } from 'src/base/common/event';
+import { DashboardView } from 'src/workbench/services/dashboard/dashboardView';
+import { Type1SubView } from 'src/workbench/services/dashboard/type1SubView';
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -51,8 +54,22 @@ export class WorkspaceView extends Component implements IWorkspaceService {
             fixedSize: TabBarView.TAB_BAR_HEIGHT,
         });
 
+        // layout.push({
+        //     component: this.editorService,
+        //     initSize: null,
+        //     maximumSize: null,
+        //     minimumSize: null,
+        // });
+        const dashboardView = this.instantiationService.createInstance(DashboardView, {
+            subViews: [
+                { id: 'type1', title: 'Hello,' },
+                { id: 'type2', title: 'Pinned', content: ["Note 1", "Note 2"] },
+                { id: 'type2', title: 'Recent', content: ["Item 1", "Item 2"] },
+            ],
+        });
+
         layout.push({
-            component: this.editorService,
+            component: dashboardView,
             initSize: null,
             maximumSize: null,
             minimumSize: null,

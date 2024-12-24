@@ -1,0 +1,126 @@
+.dashboard-view {
+    display: flex;
+    flex-direction: column;
+    padding: 100px 65px;
+    height: 100vh;
+    overflow-y: auto;
+
+    // Targeting type1-subview for the welcome section
+    .type1-subview {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        h2 {
+            font-size: 28px;
+            font-weight: bolder;
+            color: #211F27;
+            margin-bottom: 24px;
+        }
+
+        .new-note-btn {
+            background-color: #2aa882;
+            color: #ffffff;
+            border: none;
+            border-radius: 2px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                background-color: #249372;
+            }
+        }
+    }
+
+    // Updated for all subviews
+    .type2-subview {
+        padding: 1rem 0;
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+
+            h2 {
+                font-size: 1.2rem;
+                font-weight: 900;
+                color: #211F27;
+                margin: 0;
+            }
+
+            .sort-dropdown {
+                display: flex;
+                align-items: center;
+                font-size: 12px;
+                color: #5A564D;
+                cursor: pointer;
+                background-color: #F0F8F5;
+                border: 2px;
+                margin-left: 8px;
+                padding: 4px 8px;
+                border-radius: 2px;
+
+                .triangle-icon {
+                    width: 4px;
+                    height: 6px;
+                    background-color: #2aa882;
+                    clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+                    margin-right: 6px;
+                }
+
+                .dropdown-text {
+                    font-weight: 500;
+                    color: #5A564D;
+                }
+            }
+        }
+
+        .slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding-bottom: 1rem; // Add padding for smooth scrolling
+
+            scrollbar-color: #D9D9D9 transparent;
+
+            &::-webkit-scrollbar {
+                height: 3.2px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #D9D9D9;
+            }
+
+            .slider-item {
+                flex: 0 0 calc((100% - 3rem) / 5);
+                background-color: transparent;
+                border: 1px solid #e6e6e6;
+                padding: 10px;
+                text-align: left;
+                font-size: 10px;
+                font-weight: 500;
+                color: #495057;
+                transition: transform 0.2s ease;
+                scroll-behavior: smooth;
+
+                &:hover {
+                    cursor: pointer;
+                }
+
+                .item-title {
+                    font-weight: bold;
+                    color: #211F27;
+                    margin-bottom: 0.5rem;
+                }
+
+                .item-meta {
+                    font-size: 0.8rem;
+                    color: #5A564D;
+                }
+            }
+        }
+    }
+}
