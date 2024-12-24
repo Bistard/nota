@@ -30,7 +30,6 @@ import { IContextMenuService } from "src/workbench/services/contextMenu/contextM
 import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuTypes } from "src/platform/menu/common/menu";
-import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
@@ -62,12 +61,10 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IRecentOpenService private readonly recentOpenService: IRecentOpenService,
     ) {
         super();
         this._treeCleanup = new DisposableManager();
-        this.__registerListeners();
 
         this.logService.debug('FileTreeService', 'FileTreeService constructed.');
     }
@@ -362,20 +359,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             panic('[FileTreeService] file tree is not initialized yet.');
         }
         return this._metadataController;
-    }
-
-    private __registerListeners(): void {
-
-        // save the last opened workspace root path.
-        this.__register(this.lifecycleService.onWillQuit(e => e.join((async () => {
-            if (this.root) {
-                await this.recentOpenService.addToRecentOpened({ 
-                    target: this.root,
-                    targetType: FileType.DIRECTORY,
-                    pinned: false,
-                });
-            }
-        })())));
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {

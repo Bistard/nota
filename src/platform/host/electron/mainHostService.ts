@@ -15,6 +15,7 @@ import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { Dictionary } from "src/base/common/utilities/type";
 import { IRecentOpenedTarget } from "src/platform/app/common/recentOpen";
 import { FileType } from "src/base/common/files/file";
+import { IWindowCreationOptions } from "src/platform/window/common/window";
 
 /**
  * An interface only for {@link MainHostService}.
@@ -129,6 +130,11 @@ export class MainHostService extends Disposable implements IMainHostService {
     public async closeWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
         window?.close();
+    }
+
+    public async reloadWindow(optionalConfiguration: Partial<IWindowCreationOptions>, id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.reload(optionalConfiguration);
     }
 
     public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {

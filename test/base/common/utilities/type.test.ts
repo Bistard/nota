@@ -4,7 +4,7 @@
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean, ReplaceType } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean, ReplaceType, DeepPartial } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -858,4 +858,59 @@ suite('typescript-types-test', () => {
             };
         });
     });
+
+    test('DeepPartial type', () => {
+        type OriginalType = {
+            a: number;
+            b: {
+                c: string;
+                d: {
+                    e: boolean;
+                };
+            };
+            f: () => void;
+        };
+    
+        type ExpectedType = {
+            a?: number;
+            b?: {
+                c?: string;
+                d?: {
+                    e?: boolean;
+                };
+            };
+            f?: () => void;
+        };
+
+        checkTrue<AreEqual<DeepPartial<OriginalType>, ExpectedType>>();
+        checkTrue<AreEqual<DeepPartial<{ a: string }>, { a?: string }>>();
+        checkTrue<AreEqual<DeepPartial<{ a: string }[]>, { a: string }[]>>();
+        checkTrue<AreEqual<DeepPartial<string>, string>>();
+        checkTrue<AreEqual<DeepPartial<number>, number>>();
+        checkTrue<AreEqual<DeepPartial<undefined>, undefined>>();
+        checkTrue<AreEqual<DeepPartial<null>, null>>();
+        checkTrue<AreEqual<DeepPartial<never>, never>>();
+    
+        type ComplexType = {
+            arr: { id: number; name: string }[];
+            nested: {
+                optional?: {
+                    inner: string;
+                };
+            };
+        };
+    
+        type ExpectedComplexType = {
+            arr?: { id: number; name: string }[];
+            nested?: {
+                optional?: {
+                    inner?: string;
+                };
+            };
+        };
+    
+        checkTrue<AreEqual<DeepPartial<ComplexType>, ExpectedComplexType>>();
+        checkTrue<AreEqual<DeepPartial<number[][]>, number[][]>>();
+    });
+    
 });

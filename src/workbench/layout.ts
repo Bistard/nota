@@ -1,6 +1,5 @@
 import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
-import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
@@ -18,6 +17,7 @@ import { Priority } from "src/base/common/event";
 import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of

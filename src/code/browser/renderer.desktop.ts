@@ -4,7 +4,7 @@ import { IInstantiationService, IServiceProvider, InstantiationService } from "s
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, monitorDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
@@ -38,7 +38,8 @@ import { IContextService, ContextService } from "src/platform/context/common/con
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
 import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
+import { WorkspaceView } from "src/workbench/parts/workspace/workspace";
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -61,7 +62,7 @@ import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/na
 import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
-import { monitorEventEmitterListenerGC } from "src/base/common/event";
+import { monitorEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { IBrowserService, initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
@@ -71,6 +72,7 @@ import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -95,8 +97,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
-            monitorEventEmitterListenerGC({
-                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+            monitorDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
+            monitorEmitterListenerGC({
+                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
             });
             
             // ensure we handle almost every errors properly
@@ -165,7 +168,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IHostService, hostService);
 
         // lifecycle-service
-        const lifecycleService = new BrowserLifecycleService(logService, hostService);
+        const lifecycleService = instantiationService.createInstance(BrowserLifecycleService);
         instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-logger-service
@@ -207,10 +210,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
-        const i18nService = instantiationService.createInstance(I18nService, {
-            language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
-            localePath: URI.join(environmentService.appRootPath, 'assets', 'locale'),
-        });
+        const i18nService = instantiationService.createInstance(I18nService, 
+            WIN_CONFIGURATION.nlsConfiguration, 
+            URI.join(environmentService.appRootPath, 'assets', 'locale'),
+        );
         instantiationService.register(II18nService, i18nService);
 
         // singleton initializations
@@ -259,7 +262,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
-        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceComponent       , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceView            , []));
+        registerService(ITabBarService            , new ServiceDescriptor(TabBarView               , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));

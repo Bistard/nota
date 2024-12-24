@@ -11,7 +11,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services/outline/headingItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";

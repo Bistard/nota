@@ -250,7 +250,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
         disposables.register(addDisposableListener(tag, EventType.click, async () => {
-            const path = await this.dialogService.openDirectoryDialog({ title: 'open a directory' });
+            const path = await this.dialogService.openDirectoryDialog({ title: this.i18nService.localize('openDirectory', 'Open a Folder') });
             if (path.length > 0) {
                 this.open(URI.fromFile(path.at(-1)!));
             }

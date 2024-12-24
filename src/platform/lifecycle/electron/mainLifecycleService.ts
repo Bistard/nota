@@ -44,18 +44,6 @@ export const enum QuitReason {
     Kill,
 }
 
-export interface IBeforeQuitEvent<Reason extends number> {
-    /**
-     * The reason of the quit event.
-     */
-    readonly reason: Reason;
-
-    /**
-     * A method that allows the listener to join the whole process.
-     */
-    readonly join: (participant: PromiseLike<any>) => void;
-}
-
 /**
  * An interface only for {@link MainLifecycleService}.
  */
@@ -115,7 +103,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
         this.logService.debug('MainLifecycleService', 'kill()');
 
         // Give the other services a chance to be notified and complete their job.
-        await this.__fireOnBeforeQuit(QuitReason.Kill, exitcode);
+        await this.__fireOnWillQuit(QuitReason.Kill, exitcode);
 
         await Promise.race([
             // ensure wait no more than 1s.
@@ -170,7 +158,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             // Prevent the quit until the promise was resolved
             event.preventDefault();
 
-            this.__fireOnBeforeQuit(QuitReason.Quit)
+            this.__fireOnWillQuit(QuitReason.Quit)
                 .finally(async () => {
                     this.logService.info('MainLifecycleService', 'application is about to quit...');
 
@@ -226,7 +214,17 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             this._requestQuit = true;
 
             this.logService.debug('MainLifecycleService', 'onBeforeQuit.fire()');
-            this._onBeforeQuit.fire();
+
+            let veto = false;
+            this._onBeforeQuit.fire({
+                reason: QuitReason.Quit,
+                veto: (anyVeto) => veto ||= anyVeto
+            });
+
+            // vetoed, do nothing.
+            if (veto) {
+                return;
+            }
 
             /**
              * mac: can run without any window open. in that case we fire the 
@@ -234,7 +232,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
              * expected.
              */
             if (IS_MAC && !this._windowCount) {
-                this.__fireOnBeforeQuit(QuitReason.Quit);
+                this.__fireOnWillQuit(QuitReason.Quit);
             }
         };
         app.addListener('before-quit', onBeforeQuitAnyWindows);
@@ -247,7 +245,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      * @param exitcode The exit code.
      * @returns A promise to be wait until all the other listeners are completed.
      */
-    private __fireOnBeforeQuit(reason: QuitReason, exitcode: number = 0): Promise<void> {
+    private __fireOnWillQuit(reason: QuitReason, exitcode: number = 0): Promise<void> {
         this.logService.info('MainLifecycleService', 'Application is about to quit...', { 
             reason: parseQuitReason(reason), 
             exitcode: exitcode,
