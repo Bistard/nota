@@ -8,12 +8,10 @@ const { parseCLIArgv } = require('src/platform/environment/common/argument');
  * business handling of the application, instead of just doing some preparation.
  */
 
-/**
- * @typedef {import("./code/platform/environment/common/argument").ICLIArguments} ICLIArguments
- */
-
-
 (async function main() {
+    /**
+     * @typedef {import("./platform/environment/common/argument").ICLIArguments} ICLIArguments
+     */
 
     /** 
      * Parse command arguments.
