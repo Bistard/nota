@@ -134,6 +134,7 @@ export interface IComponent extends ICreatable {
     /**
      * @description Layout the component to the given dimension. This function
      * will modify {@link Component.prototype.dimension} attribute.
+     * 
      * @param width The width of dimension.
      * @param height The height of dimension.
      * @param preventDefault If sets to `true`, the {@link onDidLayout} event 
@@ -143,12 +144,12 @@ export interface IComponent extends ICreatable {
      *                      to do hacky thing.
      * @returns The new dimension of the component.
      * 
+     * @note This function will only mutate the {@link dimension} and do not 
+     *       actually change anything in DOM tree.
      * @note If no dimensions is provided, the component will try to be filled
      *       with the parent HTMLElement. If any dimensions is provided, the 
      *       component will layout the missing one either with the previous 
      *       value or just zero.
-     * @note This function will only mutate the {@link Component.prototype.dimension} and
-     *       will not actually change anything in the DOM tree.
      * @note Will trigger {@link onDidLayout} event.
      */
     layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension;

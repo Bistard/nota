@@ -317,6 +317,11 @@ export type AtLeastNArray<T, N extends number, R extends T[] = []> =
         : AtLeastNArray<T, N, [T, ...R]>;
 
 /**
+ * Represent an array of type T with at least length 1.
+ */
+export type AtLeastOneArray<T> = AtLeastNArray<T, 1>;
+
+/**
  * An alias for {@link TupleOf}.
  */
 export type FixedArray<T, S extends number> = TupleOf<T, S>;
