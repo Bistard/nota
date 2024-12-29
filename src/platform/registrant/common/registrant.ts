@@ -3,14 +3,12 @@ import type { ColorRegistrant} from "src/workbench/services/theme/colorRegistran
 import type { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import type { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import type { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
-import { ErrorHandler } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { executeOnce } from "src/base/common/utilities/function";
-import { panic } from "src/base/common/utilities/panic";
-import { Constructor } from "src/base/common/utilities/type";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 
 /**
  * An enumeration representing the different types of registrants.
@@ -26,7 +24,8 @@ export const enum RegistrantType {
     Command = 'Command',
     Reviver = 'Reviver',
     Color = 'Color',
-    Menu = 'Menu'
+    Menu = 'Menu',
+    EditorPane = 'EditorPane',
 }
 
 /**
@@ -59,11 +58,12 @@ export interface IRegistrant<TType extends RegistrantType> {
  */
 type RegistrantTypeMapping = {
     [RegistrantType.Configuration]: ConfigurationRegistrant;
-    [RegistrantType.Command]: CommandRegistrant;
-    [RegistrantType.Shortcut]: ShortcutRegistrant;
-    [RegistrantType.Reviver]: ReviverRegistrant;
-    [RegistrantType.Color]: ColorRegistrant;
-    [RegistrantType.Menu]: MenuRegistrant;
+    [RegistrantType.Command]      : CommandRegistrant;
+    [RegistrantType.Shortcut]     : ShortcutRegistrant;
+    [RegistrantType.Reviver]      : ReviverRegistrant;
+    [RegistrantType.Color]        : ColorRegistrant;
+    [RegistrantType.Menu]         : MenuRegistrant;
+    [RegistrantType.EditorPane]   : EditorPaneRegistrant;
 };
 
 /**

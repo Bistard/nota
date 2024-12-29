@@ -73,6 +73,7 @@ import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
+import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -296,6 +297,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
         registrant.registerRegistrant(service.createInstance(ColorRegistrant));
         registrant.registerRegistrant(service.createInstance(MenuRegistrant));
+        registrant.registerRegistrant(service.createInstance(EditorPaneRegistrant));
 
         // initialize all the registrations
         registrant.init(service);
