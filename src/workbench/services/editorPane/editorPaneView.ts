@@ -50,13 +50,13 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
 	 * @description Renders the editor in the parent HTMLElement for the first 
      * time. 
 	 */
-    onRender(parent: FastElement<HTMLElement>): void;
+    onRender(parent: HTMLElement): void;
 
     /**
      * @override Subclasses should implement this method.
      * @description Invoked when {@link shouldRerender()} returns true. 
      */
-    onRerender(parent: FastElement<HTMLElement>): Promise<void> | void;
+    onRerender(parent: HTMLElement): Promise<void> | void;
 
     /**
      * @override Subclasses should implement this method.
@@ -109,8 +109,8 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
 
     // [public - subclass implementation]
 
-	public abstract onRender(parent: FastElement<HTMLElement>): void;
-	public abstract onRerender(parent: FastElement<HTMLElement>): Promise<void> | void;
+	public abstract onRender(parent: HTMLElement): void;
+	public abstract onRerender(parent: HTMLElement): Promise<void> | void;
     public abstract shouldRerender(model: T): boolean;
     public abstract onInitialize(): void;
 

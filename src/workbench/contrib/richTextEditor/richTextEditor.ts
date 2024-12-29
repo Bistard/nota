@@ -1,4 +1,3 @@
-import { FastElement } from "src/base/browser/basic/fastElement";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Throttler } from "src/base/common/utilities/async";
@@ -11,9 +10,6 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { TextEditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { EditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 
-/**
- * // TODO
- */
 export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
     
     // [fields]
@@ -38,7 +34,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
 
     // [public methods]
 
-    public override onRender(parent: FastElement<HTMLElement>): void {
+    public override onRender(parent: HTMLElement): void {
         // TODO: should read editor configuration
         // const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
@@ -47,7 +43,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         // editor construction
         const editor = this.instantiationService.createInstance(
             EditorWidget, 
-            parent.raw,
+            parent,
             getBuiltInExtension(),
             {
                 mode: EditorType.Rich,
@@ -63,7 +59,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         this.logService.debug('EditorService', 'Editor constructed.');
     }
 
-    public override onRerender(parent: FastElement<HTMLElement>): void {
+    public override onRerender(parent: HTMLElement): void {
         const uri = this.model.resource;
 
         // queue an open request
