@@ -1,17 +1,21 @@
 import 'src/workbench/parts/workspace/tabBar/media/editorTabView.scss';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Disposable } from 'src/base/common/dispose';
-
+import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 
 /**
  * This interface is only for {@link EditorTabView}.
  */
-export interface IEditorTabView {
+export interface IEditorTabView extends Disposable {
     
+    openEditor(model: EditorPaneModel): Promise<void>;
 }
 
 /**
- * @note This is only for Windows-only user interfaces.
+ * Structure:
+ *     +====================================+
+ *     |   Tab 1   |   Tab 2   |   Tab 3    |
+ *     +====================================+
  */
 export class EditorTabView extends Disposable implements IEditorTabView {
 
@@ -34,5 +38,11 @@ export class EditorTabView extends Disposable implements IEditorTabView {
         // TODO: detailed rendering
 
         parent.appendChild(this._container);
+    }
+
+    // [public method]
+
+    public async openEditor(model: EditorPaneModel): Promise<void> {
+        // TODO
     }
 }

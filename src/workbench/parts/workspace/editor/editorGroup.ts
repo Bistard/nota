@@ -9,6 +9,7 @@ import { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorP
 import { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabView';
 import { Disposable } from 'src/base/common/dispose';
+import { EditorPaneCollection } from 'src/workbench/parts/workspace/editor/editorPane';
 
 /**
  * An interface only for {@link EditorGroupView}.
@@ -53,7 +54,8 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     private readonly _tabContainer: HTMLElement;
     private readonly _editorContainer: HTMLElement;
 
-    private readonly _tabView: EditorTabView;
+    private readonly _editorTabs: EditorTabView;
+    private readonly _editorPane: EditorPaneCollection;
     private _currEditor: IEditorPaneView | undefined; // todo: should not be undefined, use dashboard as default one.
 
     // [constructor]
@@ -67,23 +69,21 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
         super();
         this._registrant = registrantService.getRegistrant(RegistrantType.EditorPane);
         
-        this._tabContainer = document.createElement('div');
-        this._tabContainer.className = 'editor-tab-view-container';
-
-        this._currEditor = undefined;
-        this._editorContainer = document.createElement('div');
-        this._editorContainer.className = 'editor-pane-view-container';
-
         // entire container
         this._container = document.createElement('div');
         this._container.className = 'editor-group-view-container';
         
         // editor tab view
-        this._tabView = this.instantiationService.createInstance(EditorTabView, this._tabContainer);
+        this._tabContainer = document.createElement('div');
+        this._tabContainer.className = 'editor-tab-view-container';
+        this._editorTabs = this.instantiationService.createInstance(EditorTabView, this._tabContainer);
         this._container.appendChild(this._tabContainer);
 
         // editor pane view
-        // TODO: init editorPaneView based on options
+        this._currEditor = undefined;
+        this._editorContainer = document.createElement('div');
+        this._editorContainer.className = 'editor-pane-view-container';
+        this._editorPane = this.instantiationService.createInstance(EditorPaneCollection);
         this._container.appendChild(this._editorContainer);
         
         parent.appendChild(this._container);
@@ -92,7 +92,7 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     // [public methods]
 
     public override dispose(): void {
-        this._tabView?.dispose();
+        this._editorTabs?.dispose();
         this._currEditor?.dispose();
         this._container.remove();
         super.dispose();
