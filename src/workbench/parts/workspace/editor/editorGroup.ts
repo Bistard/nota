@@ -8,6 +8,7 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 import { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
+import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabView';
 
 /**
  * An interface only for {@link EditorGroupView}.
@@ -23,7 +24,9 @@ export class EditorGroupView extends Widget implements IEditorGroupView {
 
     private readonly _editorPaneRegistrant: IEditorPaneRegistrant;
 
+    private readonly _tabContainer: HTMLElement;
     private readonly _editorContainer: HTMLElement;
+
     private _currEditor: IEditorPaneView | undefined;
 
     // [constructor]
@@ -36,6 +39,9 @@ export class EditorGroupView extends Widget implements IEditorGroupView {
         super();
         this._editorPaneRegistrant = registrantService.getRegistrant(RegistrantType.EditorPane);
         
+        this._tabContainer = document.createElement('div');
+        this._tabContainer.className = 'editor-tab-view-container';
+
         this._currEditor = undefined;
         this._editorContainer = document.createElement('div');
         this._editorContainer.className = 'editor-pane-view-container';
@@ -53,8 +59,9 @@ export class EditorGroupView extends Widget implements IEditorGroupView {
 
     protected override __render(element: HTMLElement): void {
         
-        // editor tab bar
-        // TODO
+        // editor tab view
+        const tabView = this.instantiationService.createInstance(EditorTabView, this._tabContainer);
+        element.appendChild(this._tabContainer);
 
         // editor pane view
         element.appendChild(this._editorContainer);

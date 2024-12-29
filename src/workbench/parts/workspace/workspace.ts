@@ -1,6 +1,5 @@
 import 'src/workbench/parts/workspace/workspace.scss';
 import { Component } from "src/workbench/services/component/component";
-import { ITabBarService } from "src/workbench/parts/workspace/tabBar/tabBar";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
@@ -20,7 +19,6 @@ export class Workspace extends Component implements IWorkspaceService {
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        @ITabBarService private readonly tabBarService: ITabBarService,
         @IEditorService private readonly editorService: IEditorService,
     ) {
         super('workspace', null, instantiationService);
