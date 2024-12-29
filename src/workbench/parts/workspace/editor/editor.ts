@@ -16,6 +16,9 @@ import { Emitter } from 'src/base/common/event';
 import { IOutlineService } from 'src/workbench/services/outline/outlineService';
 import { Throttler } from 'src/base/common/utilities/async';
 
+/**
+ * // TODO: chris: refactor needed
+ */
 export class Editor extends Component implements IEditorService {
 
     declare _serviceMarker: undefined;

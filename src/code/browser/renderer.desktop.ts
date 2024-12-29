@@ -38,7 +38,7 @@ import { IContextService, ContextService } from "src/platform/context/common/con
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
 import { Editor } from "src/workbench/parts/workspace/editor/editor";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { WorkspaceView } from "src/workbench/parts/workspace/workspace";
+import { Workspace } from "src/workbench/parts/workspace/workspace";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
@@ -263,7 +263,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
-        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceView            , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(Workspace            , []));
         registerService(ITabBarService            , new ServiceDescriptor(TabBarView               , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
