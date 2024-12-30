@@ -1,5 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { safe } from "src/base/common/error";
+import { AsyncResult, Result } from "src/base/common/result";
 import { panic } from "src/base/common/utilities/panic";
 import { Constructor } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -11,7 +12,7 @@ import { EditorPaneView, IEditorPaneView } from "src/workbench/services/editorPa
 
 export interface IEditorPaneCollection extends Disposable {
     readonly container: HTMLElement;
-    openEditor(model: EditorPaneModel): Promise<void>;
+    openEditor(model: EditorPaneModel): AsyncResult<void, Error>;
 }
 
 /**
@@ -35,7 +36,7 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
 
     private readonly _container: HTMLElement;
     private readonly _editorPanes: IEditorPaneView[];
-    private _currEditor!: IEditorPaneView; // todo: should not be undefined, use dashboard as default one.
+    private _currEditor!: IEditorPaneView; // fix: should not be undefined, use dashboard as default one.
     
     private readonly _registrant: IEditorPaneRegistrant;
 
@@ -58,21 +59,27 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
 
     // [public methods]
 
-    public async openEditor(model: EditorPaneModel): Promise<void> {
-        const { reuse, editor } = this.__getEditor(model);
+    public openEditor(model: EditorPaneModel): AsyncResult<void, Error> {
+        return Result.fromPromise(async () => {
+            const { reuse, editor } = this.__getEditor(model);
 
-        const rerender = editor.setModel(model);
-        if (rerender) {
-            if (!reuse) {
-                await editor.onInitialize();
-                editor.onRender(this._container);
-            } else {
-                await editor.onRerender(this._container);
+            const rerender = editor.setModel(model);
+            if (rerender) {
+                if (!reuse) {
+                    await editor.onInitialize();
+                    editor.onRender(this._container);
+                } else {
+                    await editor.onRerender(this._container);
+                }
             }
-        }
-
-        this.__hideCurrEditor();
-        this.__setCurrEditor(editor);
+            
+            /**
+             * Only start hiding and showing after every potential-error 
+             * functions finished execution.
+             */
+            this.__hideCurrEditor();
+            this.__setCurrEditor(editor);
+        });
     }
 
     // [private helper methods]
@@ -111,7 +118,7 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
         }
 
         // construct new one
-        const newEditor = this.instantiationService.createInstance(ctor, []);
+        const newEditor = this.instantiationService.createInstance(ctor, ...[]);
         this._editorPanes.push(newEditor);
 
         return newEditor;

@@ -1,6 +1,4 @@
 import 'src/workbench/parts/workspace/editor/media/editorGroup.scss';
-import { ErrorHandler } from "src/base/common/error";
-import { Result } from "src/base/common/result";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
@@ -10,6 +8,7 @@ import { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneVie
 import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabView';
 import { Disposable } from 'src/base/common/dispose';
 import { EditorPaneCollection } from 'src/workbench/parts/workspace/editor/editorPane';
+import { ErrorHandler } from 'src/base/common/error';
 
 /**
  * An interface only for {@link EditorGroupView}.
@@ -99,9 +98,19 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     }
 
     public async openEditor(model: EditorPaneModel): Promise<void> {
-        
-        const result = this._editorPane.openEditor(model);
-        // todo: if ok, this._tabView.openEditor(model);
+        /**
+         * We open the editor first and open tab after only if it succeed. 
+         * Avoiding potential data misplacement.
+         */
+        return this._editorPane.openEditor(model)
+        .match(
+            async () => {
+                this._editorTabs.openEditor(model);
+            },
+            async err => {
+                ErrorHandler.onUnexpectedError(err);
+            }
+        );
     }
 
     // [private methods]
