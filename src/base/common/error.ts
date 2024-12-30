@@ -253,6 +253,16 @@ export function trySafe<T>(
 }
 
 /**
+ * @description Simpler version of {@link trySafe}.
+ */
+export function safe(fn: () => void | Promise<void>): void | Promise<void> {
+    return trySafe(
+        () => fn(),
+        { onError: err => ErrorHandler.onUnexpectedError(err) }
+    );
+}
+
+/**
  * @class A simple utility that make sure {@link InitProtector.init()} can only 
  * be invoked once.
  */

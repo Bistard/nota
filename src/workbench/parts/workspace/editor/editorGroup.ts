@@ -83,7 +83,7 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
         this._currEditor = undefined;
         this._editorContainer = document.createElement('div');
         this._editorContainer.className = 'editor-pane-view-container';
-        this._editorPane = this.instantiationService.createInstance(EditorPaneCollection);
+        this._editorPane = this.instantiationService.createInstance(EditorPaneCollection, this._editorContainer);
         this._container.appendChild(this._editorContainer);
         
         parent.appendChild(this._container);
@@ -99,54 +99,9 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     }
 
     public async openEditor(model: EditorPaneModel): Promise<void> {
-        const container = this._editorContainer;
-        const matchedCtor = this._registrant.getMatchEditor(model);
         
-        /**
-         * Case 1: Cannot find any registered matched panes that can handle this 
-         * model properly, we treat as unexpected error.
-         */
-        if (!matchedCtor) {
-            ErrorHandler.onUnexpectedError(new Error(`[Workspace] Cannot open editor with given editor pane model: ${model.getInfoString()}`));
-            return;
-        }
-
-        /**
-         * Case 2: The current editor is capable opening the new model, we open 
-         * it in the current editor.
-         */
-        if (this._currEditor && this._currEditor instanceof matchedCtor) {
-            const rerender = this._currEditor.setModel(model);
-            if (rerender) {
-                await this._currEditor.onRerender(container);
-                return;
-            }
-        }
-        
-        /**
-         * Case 3: First initiated or the current editor does not match, we 
-         * construct the matched one.
-         */
-        Result.fromThrowable(
-            () => this.instantiationService.createInstance(matchedCtor)
-        )
-        .map(newEditor => {
-            newEditor.setModel(model); // bind the model ASAP
-            newEditor.onInitialize();
-            newEditor.onRender(container);
-
-            // dispose the old one
-            if (this._currEditor) {
-                this._currEditor.dispose();
-            }
-
-            // replace with the new one
-            this._currEditor = newEditor;
-        })
-        .match(
-            () => {},
-            err => ErrorHandler.onUnexpectedError(err)
-        );
+        const result = this._editorPane.openEditor(model);
+        // todo: if ok, this._tabView.openEditor(model);
     }
 
     // [private methods]
