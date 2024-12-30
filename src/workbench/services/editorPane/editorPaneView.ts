@@ -43,6 +43,11 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      */
     readonly model: T;
 
+    /**
+     * Indicates the container of the entire editor pane view.
+     */
+    readonly container: HTMLElement | undefined;
+
     // [subclass implementation]
 
     /**
@@ -71,7 +76,14 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      * @description A function will only be called once right before first 
      * rendering.
      */
-    onInitialize(): void;
+    onInitialize(): Promise<void> | void;
+
+    /**
+     * @override Subclasses should implement this method.
+     * @description A function will be called when the visibility of the editor
+     * changes.
+     */
+    onVisibility(visibility: boolean): Promise<void> | void;
 
     // [client SHOULD NOT invoke these functions]
     
@@ -106,13 +118,15 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
     get model(): T {
         return this._model.get();
     }
-
+    
     // [public - subclass implementation]
-
+    
+    abstract get container(): HTMLElement | undefined;
 	public abstract onRender(parent: HTMLElement): void;
 	public abstract onRerender(parent: HTMLElement): Promise<void> | void;
     public abstract shouldRerender(model: T): boolean;
     public abstract onInitialize(): void;
+    public abstract onVisibility(visibility: boolean): Promise<void> | void;
 
     // [public - client SHOULD NOT invoke these functions]
 

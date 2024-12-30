@@ -32,6 +32,12 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         super('RichTextEditorPane');
     }
 
+    // [getter]
+
+    override get container(): HTMLElement | undefined {
+        return this._editorWidget?.view.editor.container;
+    }
+
     // [public methods]
 
     public override onRender(parent: HTMLElement): void {
@@ -85,6 +91,10 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
     
     public override onInitialize(): void {
         // TODO
+    }
+
+    public override onVisibility(visibility: boolean): void {
+        // todo
     }
 
     public override dispose(): void {
