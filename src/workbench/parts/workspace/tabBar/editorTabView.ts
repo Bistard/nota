@@ -2,12 +2,17 @@ import 'src/workbench/parts/workspace/tabBar/media/editorTabView.scss';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Disposable } from 'src/base/common/dispose';
 import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
+import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 
 /**
  * This interface is only for {@link EditorTabView}.
  */
 export interface IEditorTabView extends Disposable {
     
+    /**
+     * The rendering height in pixel of the entire tab view.
+     */
+    readonly height: number;
     openEditor(model: EditorPaneModel): Promise<void>;
 }
 
@@ -21,7 +26,7 @@ export class EditorTabView extends Disposable implements IEditorTabView {
 
     // [fields]
 
-    public static readonly TAB_BAR_HEIGHT = 29;
+    public readonly height: number;
     private readonly _container: HTMLElement;
 
     // [constructor]
@@ -29,13 +34,16 @@ export class EditorTabView extends Disposable implements IEditorTabView {
     constructor(
         parent: HTMLElement,
         @IInstantiationService instantiationService: IInstantiationService,
+        @IBrowserEnvironmentService environmentService: IBrowserEnvironmentService,
     ) {
         super();
+        this.height = environmentService.configuration.titleBarHeight;
+
         this._container = document.createElement('div');
         this._container.className = 'editor-tab-view';
-        this._container.style.setProperty('--nota-tab-view-height', `${EditorTabView.TAB_BAR_HEIGHT}px`);
+        this._container.style.setProperty('--nota-tab-view-height', `${this.height}px`);
 
-        // TODO: detailed rendering
+        // TODO: actual rendering
 
         parent.appendChild(this._container);
     }

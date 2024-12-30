@@ -368,7 +368,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             browserOption.titleBarStyle = 'hidden';
 
             if (shouldUseWindowControlOverlay()) {
-                browserOption.titleBarOverlay = resolveWindowControlOverlayOptions({});
+                browserOption.titleBarOverlay = resolveWindowControlOverlayOptions({ height: this.configuration.titleBarHeight });
             }
         }
 
