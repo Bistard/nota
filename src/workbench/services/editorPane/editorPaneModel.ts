@@ -1,6 +1,6 @@
-import type { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
-import type { EditorPaneView, IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
-import type { AtLeastOneArray, Constructor } from "src/base/common/utilities/type";
+import type { EditorPaneDescriptor, IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import type { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
+import type { AtLeastOneArray } from "src/base/common/utilities/type";
 import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
 
@@ -35,7 +35,7 @@ export abstract class EditorPaneModel extends Disposable {
      * 
      * @override Subclasses may overrides this method to customize behaviors.
 	 */
-    public prefersWhich(panels: Readonly<AtLeastOneArray<Constructor<EditorPaneView>>>): Constructor<EditorPaneView> {
+    public prefersWhich(panels: Readonly<AtLeastOneArray<EditorPaneDescriptor>>): EditorPaneDescriptor {
         return panels[0];
     }
 

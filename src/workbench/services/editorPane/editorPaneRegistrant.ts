@@ -4,6 +4,7 @@ import { IServiceProvider } from "src/platform/instantiation/common/instantiatio
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { registerRichTextEditor } from "src/workbench/contrib/richTextEditor/editorPane.register";
+import { IService } from "src/platform/instantiation/common/decorator";
 
 /**
  * {@link IEditorPaneRegistrant} is a central part of the editor pane system, 
@@ -33,7 +34,7 @@ export interface IEditorPaneRegistrant extends IRegistrant<RegistrantType.Editor
      * @param viewCtor The constructor of the editor view.
      * @param modelCtors An array of model constructors that can be handled by the given view.
      */
-    registerEditor(viewCtor: Constructor<EditorPaneView>, modelCtors: Constructor<EditorPaneModel>[]): void;
+    registerEditor(viewCtor: EditorPaneDescriptor, modelCtors: Constructor<EditorPaneModel>[]): void;
     /**
      * @description Matches an editor model to an appropriate editor view 
      * constructor.
@@ -42,11 +43,18 @@ export interface IEditorPaneRegistrant extends IRegistrant<RegistrantType.Editor
      * @returns The constructor of a matching `EditorPaneView`, or `undefined` 
      *          if no match is found.
      */
-    getMatchEditor<TModel extends EditorPaneModel>(model: TModel): Constructor<EditorPaneView> | undefined;
+    getMatchEditor<TModel extends EditorPaneModel>(model: TModel): EditorPaneDescriptor | undefined;
 
 
-    getAllEditors(): readonly Constructor<EditorPaneView>[];
-    getAllEditorsPair(): readonly Pair<Constructor<EditorPaneView>, Constructor<EditorPaneModel>[]>[];
+    getAllEditors(): readonly EditorPaneDescriptor[];
+    getAllEditorsPair(): readonly Pair<EditorPaneDescriptor, Constructor<EditorPaneModel>[]>[];
+}
+
+export class EditorPaneDescriptor<TServices extends IService[] = any[]> {
+
+    constructor(
+        public readonly ctor: Constructor<EditorPaneView, [...services: TServices]>,
+    ) {}
 }
 
 export class EditorPaneRegistrant implements IEditorPaneRegistrant {
@@ -54,7 +62,7 @@ export class EditorPaneRegistrant implements IEditorPaneRegistrant {
     // [fields]
 
     public readonly type =  RegistrantType.EditorPane;
-    private readonly _mapViewToModels = new Map<Constructor<EditorPaneView>, Constructor<EditorPaneModel>[]>();
+    private readonly _mapViewToModels = new Map<EditorPaneDescriptor, Constructor<EditorPaneModel>[]>();
 
     // [constructor]
 
@@ -67,12 +75,12 @@ export class EditorPaneRegistrant implements IEditorPaneRegistrant {
         // TODO: dashboard registers here
     }
 
-    public registerEditor(viewCtor: Constructor<EditorPaneView>, modelCtors: Constructor<EditorPaneModel>[]): void {
+    public registerEditor(viewCtor: EditorPaneDescriptor, modelCtors: Constructor<EditorPaneModel>[]): void {
         this._mapViewToModels.set(viewCtor, modelCtors);
     }
 
-    public getMatchEditor<TModel extends EditorPaneModel>(model: TModel): Constructor<EditorPaneView> | undefined {
-        const matched: Constructor<EditorPaneView>[] = [];
+    public getMatchEditor<TModel extends EditorPaneModel>(model: TModel): EditorPaneDescriptor | undefined {
+        const matched: EditorPaneDescriptor[] = [];
 
         for (const [viewCtor, modelCtors] of this._mapViewToModels.entries()) {
             for (const modelCtor of modelCtors) {
@@ -100,11 +108,11 @@ export class EditorPaneRegistrant implements IEditorPaneRegistrant {
         return model.prefersWhich(atLeastOne);
     }
 
-    public getAllEditors(): readonly Constructor<EditorPaneView>[] {
+    public getAllEditors(): readonly EditorPaneDescriptor[] {
         return [...this._mapViewToModels.keys()];
     }
 
-    public getAllEditorsPair(): readonly Pair<Constructor<EditorPaneView>, Constructor<EditorPaneModel>[]>[] {
+    public getAllEditorsPair(): readonly Pair<EditorPaneDescriptor, Constructor<EditorPaneModel>[]>[] {
         return [...this._mapViewToModels.entries()];
     }
 }
