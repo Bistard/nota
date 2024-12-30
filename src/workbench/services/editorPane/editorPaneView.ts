@@ -1,5 +1,4 @@
 import type { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
-import { FastElement } from "src/base/browser/basic/fastElement";
 import { AutoDisposable, Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
@@ -33,7 +32,9 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
     readonly onWillDispose: Register<void>;
     
     /**
-     * An identifier to this type of editor pane.
+     * Should be a human readable string identifier to this type of editor pane.
+     * Each instance of the same {@link IEditorPaneView} should shares the same 
+     * type.
      */
     readonly type: string;
 
@@ -114,25 +115,22 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
 
     // [fields]
 
-    public readonly type: string;
     private readonly _model: AutoDisposable<T>;
 
     // [constructor]
 
-    constructor(type: string) {
+    constructor() {
         super();
-        this.type = type;
         this._model = this.__register(new AutoDisposable());
     }
 
     // [getter/setter]
 
-    get model(): T {
-        return this._model.get();
-    }
+    get model(): T { return this._model.get(); }
     
     // [public - subclass implementation]
     
+    abstract get type(): string;
     abstract get container(): HTMLElement | undefined;
     public abstract onModel(candidate: T): boolean;
 	public abstract onRender(parent: HTMLElement): void;

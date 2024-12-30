@@ -29,10 +29,12 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
-        super('RichTextEditorPane');
+        super();
     }
 
     // [getter]
+
+    override get type(): string { return 'RichTextEditorPane'; }
 
     override get container(): HTMLElement | undefined {
         return this._editorWidget?.view.editor.container;
