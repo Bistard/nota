@@ -52,6 +52,18 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
 
     /**
      * @override Subclasses should implement this method.
+     * @description This method is called whenever a new editor model is about 
+     * opening. This determines if this view decides to take this model.
+     * @param candidate The model that
+     * 
+     * @note The model will always be one of the valid models when you 
+     * registered an editor pane view.
+     * @note Usually you may always return `true` in this method.
+     */
+    onModel(candidate: T): boolean;
+
+    /**
+     * @override Subclasses should implement this method.
 	 * @description Renders the editor in the parent HTMLElement for the first 
      * time. 
 	 */
@@ -122,6 +134,7 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
     // [public - subclass implementation]
     
     abstract get container(): HTMLElement | undefined;
+    public abstract onModel(candidate: T): boolean;
 	public abstract onRender(parent: HTMLElement): void;
 	public abstract onRerender(parent: HTMLElement): Promise<void> | void;
     public abstract shouldRerender(model: T): boolean;

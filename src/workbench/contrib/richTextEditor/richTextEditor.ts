@@ -40,6 +40,10 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
 
     // [public methods]
 
+    public override onModel(candidate: TextEditorPaneModel): boolean {
+        return true;
+    }
+
     public override onRender(parent: HTMLElement): void {
         // TODO: should read editor configuration
         // const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
