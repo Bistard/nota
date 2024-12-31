@@ -16,9 +16,9 @@ import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneMod
  *                              called arbitrary times.
  * 1. {@link onInitialize()}  : Editor gets initiated.
  * 2. {@link onRender()}      : Editor first rendering process (only invoked once).
- * 3. {@link shouldRerender()}: Whenever {@link setModel()} gets invoked (except-
+ * 3. {@link shouldUpdate()}: Whenever {@link setModel()} gets invoked (except-
  *                              first time), this gets invoked and decide whether should rerender.
- * 4. {@link onRerender()}    : Only invoked when {@link shouldRerender()} returns true.
+ * 4. {@link onUpdate()}    : Only invoked when {@link shouldUpdate()} returns true.
  * 5. {@link dispose()}       : Editor destructed.
  * 
  * @override Subclasses may extends this base class to override certain behaviors.
@@ -84,14 +84,8 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
     onRender(parent: HTMLElement): void;
 
     /**
-     * @override Subclasses should implement this method.
-     * @description Invoked whenever a new model is bonded with this editor 
-     * and {@link shouldRerender()} returns true.
-     */
-
-    /**
      * @description Called if and only if a new model is bound to this editor, 
-     * and {@link shouldRerender} returns `true`. It provides an opportunity to 
+     * and {@link shouldUpdate} returns `true`. It provides an opportunity to 
      * re-render or update the UI to accommodate the new model.
      * 
      * @override Subclasses must implement this method if they need to re-render 
@@ -99,7 +93,7 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      * @param parent The parent HTML element to re-render into (the same 
      *               container used in {@link onRender}).
      */
-    onRerender(parent: HTMLElement): Promise<void> | void;
+    onUpdate(parent: HTMLElement): Promise<void> | void;
 
     /**
      * @description Determines if the editor pane should re-render when a new 
@@ -107,11 +101,11 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      * 
      * @override Subclasses implement logic here to compare the incoming model 
      *           with the existing one or other state. If it returns `true`, 
-     *           {@link onRerender} will be invoked. Otherwise, the new model is 
+     *           {@link onUpdate} will be invoked. Otherwise, the new model is 
      *           accepted silently without re-rendering the UI.
      * @param model The new model being set.
      */
-    shouldRerender(model: T): boolean;
+    shouldUpdate(model: T): boolean;
 
     /**
      * @description Called only once, right before the first rendering. Use this 
@@ -147,7 +141,7 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      * 
      * @param newModel The new model to be set for this view.
      * @returns A boolean indicating whether a re-render is needed 
-     *          (`true` if {@link shouldRerender} says so).
+     *          (`true` if {@link shouldUpdate} says so).
      */
     setModel(newModel: T): boolean;
 }
@@ -180,8 +174,8 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
     abstract get container(): HTMLElement | undefined;
     public abstract onModel(candidate: T): boolean;
 	public abstract onRender(parent: HTMLElement): void;
-	public abstract onRerender(parent: HTMLElement): Promise<void> | void;
-    public abstract shouldRerender(model: T): boolean;
+	public abstract onUpdate(parent: HTMLElement): Promise<void> | void;
+    public abstract shouldUpdate(model: T): boolean;
     public abstract onInitialize(): void;
     public abstract onVisibility(visibility: boolean): Promise<void> | void;
 
@@ -195,9 +189,9 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
             return true;
         }
         
-        const rerender = this.shouldRerender(newModel);
+        const rerender = this.shouldUpdate(newModel);
         
-        // make sure only replace the old model after `shouldRerender`
+        // make sure only replace the old model after `shouldUpdate`
         this._model.set(newModel);
         
         return rerender;

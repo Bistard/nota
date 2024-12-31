@@ -69,7 +69,7 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
                     await editor.onInitialize();
                     editor.onRender(this._container);
                 } else {
-                    await editor.onRerender(this._container);
+                    await editor.onUpdate(this._container);
                 }
             }
             

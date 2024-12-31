@@ -66,12 +66,12 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         this._editorWidget = editor;
 
         // actual render
-        this.onRerender(parent);
+        this.onUpdate(parent);
 
         this.logService.debug('EditorService', 'Editor constructed.');
     }
 
-    public override onRerender(parent: HTMLElement): void {
+    public override onUpdate(parent: HTMLElement): void {
         const uri = this.model.resource;
 
         // queue an open request
@@ -87,7 +87,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         });
     }
     
-    public override shouldRerender(model: TextEditorPaneModel): boolean {
+    public override shouldUpdate(model: TextEditorPaneModel): boolean {
         // do not rerender on the same resource
         if (URI.equals(this.model.resource, model.resource)) {
             return false;
