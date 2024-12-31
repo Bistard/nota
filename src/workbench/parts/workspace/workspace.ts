@@ -4,7 +4,7 @@ import { IInstantiationService } from "src/platform/instantiation/common/instant
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
-import { EditorGroupView } from 'src/workbench/parts/workspace/editor/editorGroup';
+import { EditorGroupView } from 'src/workbench/parts/workspace/editor/editorGroupView';
 import { assert } from 'src/base/common/utilities/panic';
 
 export class Workspace extends Component implements IWorkspaceService {
