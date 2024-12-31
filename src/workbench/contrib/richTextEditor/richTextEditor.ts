@@ -1,3 +1,4 @@
+import { tryOrDefault } from "src/base/common/error";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Throttler } from "src/base/common/utilities/async";
@@ -37,7 +38,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
     override get type(): string { return 'RichTextEditorPane'; }
 
     override get container(): HTMLElement | undefined {
-        return this._editorWidget?.view.editor.container;
+        return tryOrDefault(undefined, () => this._editorWidget?.view.editor.container);
     }
 
     // [public methods]

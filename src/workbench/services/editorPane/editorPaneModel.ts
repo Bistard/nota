@@ -39,12 +39,16 @@ export abstract class EditorPaneModel extends Disposable {
         return panels[0];
     }
 
-    public getInfoString(): string {
-        return `EditorPaneModel "${this.type}" "${this.resource && URI.toString(this.resource)}"`;
+    /**
+     * @description Determines two model are the same.
+     * @override Subclasses may overrides this method to customize behaviors.
+     */
+    public equals(other: EditorPaneModel): boolean {
+        return this === other;
     }
 
-    public match(other: EditorPaneModel): boolean {
-        return this === other;
+    public getInfoString(): string {
+        return `EditorPaneModel "${this.type}" "${this.resource && URI.toString(this.resource)}"`;
     }
 }
 
@@ -60,5 +64,12 @@ export class TextEditorPaneModel extends EditorPaneModel {
     constructor(resource: URI) {
         super();
         this.resource = resource;
+    }
+
+    public override equals(other: EditorPaneModel): boolean {
+        if (!other.resource) {
+            return false;
+        }
+        return URI.equals(this.resource, other.resource);
     }
 }

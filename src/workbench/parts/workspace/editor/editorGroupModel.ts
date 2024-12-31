@@ -56,7 +56,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
     constructor() {
         super();
         this._editors = [];
-        this._mru = new MRU<EditorPaneModel>((a, b) => a.match(b), []);
+        this._mru = new MRU<EditorPaneModel>((a, b) => a.equals(b), []);
     }
     
     // [getter]
@@ -98,7 +98,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
         if (!first || !second) {
             return false;
         }
-        return first.match(second);
+        return first.equals(second);
     }
 }
 
