@@ -53,22 +53,4 @@ export class Workspace extends Component implements IWorkspaceService {
     }
     
     // [private helper methods]
-
-    // private __assembleParts(): void {
-    //     const layout: IAssembleComponentOpts[] = [];
-    //     layout.push({
-    //         component: this.tabBarService,
-    //         fixed: true,
-    //         fixedSize: TabBarView.TAB_BAR_HEIGHT,
-    //     });
-
-    //     layout.push({
-    //         component: this.editorService,
-    //         initSize: null,
-    //         maximumSize: null,
-    //         minimumSize: null,
-    //     });
-
-    //     this.assembleComponents(Orientation.Vertical, layout);
-    // }
 }

@@ -18,9 +18,9 @@ export interface IEditorTabView extends Disposable {
 
 /**
  * Structure:
- *     +====================================+
+ *     +------------------------------------+
  *     |   Tab 1   |   Tab 2   |   Tab 3    |
- *     +====================================+
+ *     +------------------------------------+
  */
 export class EditorTabView extends Disposable implements IEditorTabView {
 

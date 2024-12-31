@@ -42,6 +42,10 @@ export abstract class EditorPaneModel extends Disposable {
     public getInfoString(): string {
         return `EditorPaneModel "${this.type}" "${this.resource && URI.toString(this.resource)}"`;
     }
+
+    public match(other: EditorPaneModel): boolean {
+        return this === other;
+    }
 }
 
 /**
