@@ -27,81 +27,127 @@ import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneMod
 export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> extends Disposable {
 
     /**
+     * @event
      * Fires whenever the view is about to dispose.
      */
     readonly onWillDispose: Register<void>;
     
     /**
      * Should be a human readable string identifier to this type of editor pane.
-     * Each instance of the same {@link IEditorPaneView} should shares the same 
-     * type.
+     * All instances of a {@link IEditorPaneView} should shares the same type.
+     * 
+     * @example "TextEditor" or "PreviewEditor"
      */
     readonly type: string;
 
     /**
-     * Every view will bonded with an {@link EditorPaneModel}. 
-     * @note The model will share the same lifecycle with the {@link EditorPaneView}.
+     * The {@link EditorPaneModel} instance to which this view is currently 
+     * bound. The model contains all the state and data needed by this view.
+     *
+     * @note This model shares the same lifecycle as the view. Once the view
+     *       is disposed, its model will also be disposed.
      */
     readonly model: T;
 
     /**
-     * Indicates the container of the entire editor pane view.
+     * The primary container that encapsulates the entire editor pane UI. This 
+     * is the root element you attach DOM structures or components to.
      */
     readonly container: HTMLElement | undefined;
 
     // [subclass implementation]
-
+   
     /**
-     * @override Subclasses should implement this method.
-     * @description This method is called whenever a new editor model is about 
-     * opening. This determines if this view decides to take this model.
-     * @param candidate The model that
+     * @description Called when a new model candidate is proposed to this editor. 
+     * This method decides if the view accepts the model for display or processing.
      * 
+     * @param candidate The potential model to be set on this view.
+     * @returns A boolean indicating whether this candidate is acceptable.
+     * 
+     * @override Subclasses should implement this method to perform any
+     *           custom matching or pre-processing logic.
      * @note The model will always be one of the valid models when you 
-     * registered an editor pane view.
-     * @note Usually you may always return `true` in this method.
+     *       registered an editor pane view.
+     * @note In most cases, returning `true` is sufficient unless the editor
+     *       wants to explicitly reject certain models.
      */
     onModel(candidate: T): boolean;
 
     /**
-     * @override Subclasses should implement this method.
-	 * @description Renders the editor in the parent HTMLElement for the first 
-     * time. 
-	 */
+     * @description Called when the view is rendered for the first time. This is 
+     * where subclasses implement their initial UI construction or DOM manipulation.
+     * 
+     * @override Subclasses must implement this method to render content 
+     *           into the given parent element.
+     * @param parent The parent HTML element to render into.
+     */
     onRender(parent: HTMLElement): void;
 
     /**
      * @override Subclasses should implement this method.
-     * @description Invoked when {@link shouldRerender()} returns true. 
+     * @description Invoked whenever a new model is bonded with this editor 
+     * and {@link shouldRerender()} returns true.
+     */
+
+    /**
+     * @description Called if and only if a new model is bound to this editor, 
+     * and {@link shouldRerender} returns `true`. It provides an opportunity to 
+     * re-render or update the UI to accommodate the new model.
+     * 
+     * @override Subclasses must implement this method if they need to re-render 
+     *           the UI (either partially or fully) based on a new model.
+     * @param parent The parent HTML element to re-render into (the same 
+     *               container used in {@link onRender}).
      */
     onRerender(parent: HTMLElement): Promise<void> | void;
 
     /**
-     * @override Subclasses should implement this method.
-     * @description Whenever {@link EditorPaneView} binds to a new model, this
-     * function decides whether to invoke {@link onRerender()}.
-     * @param model The new model that will be bonded after.
+     * @description Determines if the editor pane should re-render when a new 
+     * model is set.
+     * 
+     * @override Subclasses implement logic here to compare the incoming model 
+     *           with the existing one or other state. If it returns `true`, 
+     *           {@link onRerender} will be invoked. Otherwise, the new model is 
+     *           accepted silently without re-rendering the UI.
+     * @param model The new model being set.
      */
     shouldRerender(model: T): boolean;
 
     /**
-     * @override Subclasses should implement this method.
-     * @description A function will only be called once right before first 
-     * rendering.
+     * @description Called only once, right before the first rendering. Use this 
+     * hook to perform one-time setups or asynchronous tasks that need to be 
+     * completed before rendering.
+     * 
+     * @override Subclasses may implement this if they have setup steps, 
+     *           especially asynchronous tasks.
+     * @example 
+     * Loading external resources or caching data needed for rendering.
      */
     onInitialize(): Promise<void> | void;
 
     /**
-     * @override Subclasses should implement this method.
-     * @description A function will be called when the visibility of the editor
-     * changes.
+     * @description Called whenever the editor's visibility changes, for example 
+     * when it's attached or detached from the DOM, or when switching tabs. Use 
+     * this hook to save resources, pause media, or refresh the view based on 
+     * visibility status.
+     * 
+     * @override Subclasses may implement this to handle visibility logic 
+     *           (e.g., pausing animations when hidden).
+     * @param visibility A boolean indicating whether the editor is becoming 
+     *                   visible (`true`) or hidden (`false`).
      */
     onVisibility(visibility: boolean): Promise<void> | void;
 
     // [client SHOULD NOT invoke these functions]
     
     /**
-     * // TODO
+     * @description Used internally to associate this view with a new model. 
+     * Clients should not directly call this method; it is usually managed by 
+     * the editor group.
+     * 
+     * @param newModel The new model to be set for this view.
+     * @returns A boolean indicating whether a re-render is needed 
+     *          (`true` if {@link shouldRerender} says so).
      */
     setModel(newModel: T): boolean;
 }
