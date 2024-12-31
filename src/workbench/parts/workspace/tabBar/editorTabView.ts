@@ -3,6 +3,7 @@ import { IInstantiationService } from 'src/platform/instantiation/common/instant
 import { Disposable } from 'src/base/common/dispose';
 import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
+import { IReadonlyEditorGroupModel } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 
 /**
  * This interface is only for {@link EditorTabView}.
@@ -33,6 +34,7 @@ export class EditorTabView extends Disposable implements IEditorTabView {
 
     constructor(
         parent: HTMLElement,
+        groupModel: IReadonlyEditorGroupModel,
         @IInstantiationService instantiationService: IInstantiationService,
         @IBrowserEnvironmentService environmentService: IBrowserEnvironmentService,
     ) {

@@ -9,6 +9,7 @@ import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabVie
 import { Disposable } from 'src/base/common/dispose';
 import { EditorPaneCollection } from 'src/workbench/parts/workspace/editor/editorPane';
 import { ErrorHandler } from 'src/base/common/error';
+import { EditorGroupModel } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 
 /**
  * An interface only for {@link EditorGroupView}.
@@ -53,6 +54,7 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     private readonly _tabContainer: HTMLElement;
     private readonly _editorContainer: HTMLElement;
 
+    private readonly _model: EditorGroupModel;
     private readonly _editorTabs: EditorTabView;
     private readonly _editorPane: EditorPaneCollection;
     private _currEditor: IEditorPaneView | undefined; // todo: should not be undefined, use dashboard as default one.
@@ -67,7 +69,8 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     ) {
         super();
         this._registrant = registrantService.getRegistrant(RegistrantType.EditorPane);
-        
+        this._model = this.__register(instantiationService.createInstance(EditorGroupModel));
+
         // entire container
         this._container = document.createElement('div');
         this._container.className = 'editor-group-view-container';
@@ -75,7 +78,7 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
         // editor tab view
         this._tabContainer = document.createElement('div');
         this._tabContainer.className = 'editor-tab-view-container';
-        this._editorTabs = this.instantiationService.createInstance(EditorTabView, this._tabContainer);
+        this._editorTabs = this.instantiationService.createInstance(EditorTabView, this._tabContainer, this._model);
         this._container.appendChild(this._tabContainer);
 
         // editor pane view
@@ -98,14 +101,18 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
     }
 
     public async openEditor(model: EditorPaneModel): Promise<void> {
+        
+        // update on model first
+        const { model: opened } = await this._model.openEditor(model);
+        
         /**
          * We open the editor first and open tab after only if it succeed. 
          * Avoiding potential data misplacement.
          */
-        return this._editorPane.openEditor(model)
+        return this._editorPane.openEditor(opened)
         .match(
             async () => {
-                this._editorTabs.openEditor(model);
+                this._editorTabs.openEditor(opened);
             },
             async err => {
                 ErrorHandler.onUnexpectedError(err);
