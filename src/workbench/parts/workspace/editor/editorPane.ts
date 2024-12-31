@@ -36,7 +36,7 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
 
     private readonly _container: HTMLElement;
     private readonly _editorPanes: IEditorPaneView[];
-    private _currEditor!: IEditorPaneView; // fix: should not be undefined, use dashboard as default one.
+    private _currEditor?: IEditorPaneView | undefined; // fix: should not be undefined, use dashboard as default one.
     
     private readonly _registrant: IEditorPaneRegistrant;
 
@@ -125,14 +125,14 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
     }
 
     private __hideCurrEditor(): void {
-        safe(() => this._currEditor.onVisibility(false));
-        this._currEditor.container?.remove();
+        safe(() => this._currEditor?.onVisibility(false));
+        this._currEditor?.container?.remove();
     }
 
     private __setCurrEditor(editor: IEditorPaneView): void {
         this._currEditor = editor;
-        safe(() => this._currEditor.onVisibility(true));
-        if (this._currEditor.container) {
+        safe(() => this._currEditor?.onVisibility(true));
+        if (this._currEditor?.container) {
             this._container.appendChild(this._currEditor.container);
         }
     }
