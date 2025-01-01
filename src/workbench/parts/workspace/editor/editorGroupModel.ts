@@ -1,6 +1,8 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
+import { Numbers } from "src/base/common/utilities/number";
+import { isDefined } from "src/base/common/utilities/type";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 
 /**
@@ -12,10 +14,11 @@ export interface IReadonlyEditorGroupModel extends Disposable {
      * The size of the editor group. Indicates how many editors the group is 
      * opening.
      */
-    readonly sizes: number;
+    readonly size: number;
 
     getEditors(order: 'sequential' | 'mru'): EditorPaneModel[];
     getEditorByIndex(index: number): EditorPaneModel | undefined;
+    find(model: EditorPaneModel): { model: EditorPaneModel, index: number } | undefined;
     indexOf(model: EditorPaneModel): number;
     contains(model: EditorPaneModel): boolean;
     isFirst(model: EditorPaneModel): boolean;
@@ -33,12 +36,29 @@ export interface IEditorGroupModel extends IReadonlyEditorGroupModel {
      */
     readonly onDidChangeModel: Register<void>;
 
-    openEditor(model: EditorPaneModel): IEditorGroupOpenResult;
+    openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult;
+    closeEditor(model: EditorPaneModel): IEditorGroupCloseResult | undefined;
+    moveEditor(model: EditorPaneModel, to: number): IEditorGroupMoveResult | undefined;
+}
+
+export interface IEditorGroupOpenOptions {
+    readonly index?: number;
 }
 
 export interface IEditorGroupOpenResult {
     readonly model: EditorPaneModel;
     readonly existed: boolean;
+}
+
+export interface IEditorGroupCloseResult {
+    readonly model: EditorPaneModel;
+    readonly index: number;
+}
+
+export interface IEditorGroupMoveResult {
+    readonly model: EditorPaneModel;
+    readonly from: number;
+    readonly to: number;
 }
 
 /**
@@ -48,8 +68,10 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     // [fields]
 
-    private readonly _editors: EditorPaneModel[];
-    private readonly _mru: MRU<EditorPaneModel>;
+    protected readonly _editors: EditorPaneModel[];
+    protected readonly _mru: MRU<EditorPaneModel>;
+
+    protected readonly _editorListeners: Set<IDisposable>;
 
     // [constructor]
     
@@ -57,11 +79,12 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
         super();
         this._editors = [];
         this._mru = new MRU<EditorPaneModel>((a, b) => a.equals(b), []);
+        this._editorListeners = new Set();
     }
     
     // [getter]
 
-    get sizes() { return this._editors.length; }
+    get size() { return this._editors.length; }
 
     // [public methods (readonly)]
 
@@ -74,6 +97,14 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     public getEditorByIndex(index: number): EditorPaneModel | undefined {
         return this._editors[index];
+    }
+
+    public find(model: EditorPaneModel): { model: EditorPaneModel, index: number } | undefined {
+        const index = this.indexOf(model);
+        if (index === -1) {
+            return undefined;
+        }
+        return { model: this.getEditorByIndex(index)!, index: index };
     }
 
     public indexOf(model: EditorPaneModel): number {
@@ -117,8 +148,111 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
 
     // [public methods (writable)]
 
-    public openEditor(model: EditorPaneModel): IEditorGroupOpenResult {
-        // TODO
-        return { model: model, existed: false };
+    public openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
+        const findResult = this.find(model);
+        if (!findResult) {
+            return this.__openNewEditor(model, options);
+        } else {
+            return this.__openExistEditor(findResult.model, options);
+        }
+    }
+
+    public closeEditor(model: EditorPaneModel): IEditorGroupCloseResult | undefined {
+        const existedIndex = this.indexOf(model);
+        if (existedIndex === -1) {
+            return undefined;
+        }
+        const existed = this.getEditorByIndex(existedIndex)!;
+        this.__splice(existedIndex, true);
+
+        return {
+            model: existed,
+            index: existedIndex,
+        };
+    }
+
+    public moveEditor(model: EditorPaneModel, to: number): IEditorGroupMoveResult | undefined {
+        const existedIndex = this.indexOf(model);
+        if (existedIndex === -1) {
+            return;
+        }
+        
+        const targetIndex = Numbers.clamp(to, 0, this.size);
+        if (existedIndex === targetIndex) {
+            return;
+        }
+
+        const existedModel = this.getEditorByIndex(existedIndex)!;
+        this.__splice(existedIndex, true);
+        this.__splice(targetIndex, false, existedModel);
+
+        return {
+            model: existedModel,
+            from: existedIndex,
+            to: targetIndex,
+        };
+    }
+
+    // [private methods]
+
+    private __openNewEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
+        const targetIndex = options.index ?? this.size;
+        
+        this.__splice(targetIndex, false, model);
+        this.__registerModelListeners(model);
+
+        this._onDidChangeModel.fire();
+
+        return { 
+            model, 
+            existed: false,
+        };
+    }
+
+    private __openExistEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
+        
+        this._mru.use(model);
+
+        // move to a new index if required
+        if (isDefined(options.index)) {
+            this.moveEditor(model, options.index);
+        }
+
+        return { 
+            model, 
+            existed: true,
+        };
+    }
+
+    private __splice(index: number, del: boolean, model?: EditorPaneModel): void {
+        if (!Numbers.isValidIndex(index, this.size + 1)) {
+            return;
+        }
+        const target = this.getEditorByIndex(index)!;
+        const delCount = del ? 1 : 0;
+
+        // splice to the sequential array
+        if (model) {
+            this._editors.splice(index, delCount, model);
+        } else {
+            this._editors.splice(index, delCount);
+        }
+
+        // splice to the mru
+        if (model) {
+            this._mru.use(model);
+        }
+        if (delCount) {
+            this._mru.remove(target);
+        }
+    }
+
+    private __registerModelListeners(model: EditorPaneModel): void {
+        const lifecycle = new DisposableManager();
+        this._editorListeners.add(lifecycle);
+
+        lifecycle.register(this.onDidChangeModel(e => {
+            // TODO: when editor closed, delete listeners from the set.
+        }));
     }
 }
