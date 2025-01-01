@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { suite, test } from 'mocha';
 import { TextEditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 import { URI } from 'src/base/common/files/uri';
-import { EditorGroupModel, IEditorGroupCloseResult } from 'src/workbench/parts/workspace/editor/editorGroupModel';
+import { EditorGroupChangeType, EditorGroupModel, IEditorGroupChangeEvent, IEditorGroupCloseResult } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 
 suite('EditorGroupModel - Read-only Test', () => {
 
@@ -212,8 +212,6 @@ suite('EditorGroupModel - Writable Test', () => {
             group.openEditor(editor, {});
             const result = group.moveEditor(editor, -1)!;
 
-            console.log(result);
-
             assert.strictEqual(result, undefined);
         });
 
@@ -233,5 +231,87 @@ suite('EditorGroupModel - Writable Test', () => {
             assert.strictEqual(result.to, 2);
             assert.strictEqual(result.model, editor1);
         });
+    });
+});
+
+suite('EditorGroupModel - Event Test', () => {
+
+    let group: EditorGroupModel;
+    let editor1: TextEditorPaneModel;
+    let editor2: TextEditorPaneModel;
+    let editor3: TextEditorPaneModel;
+
+    setup(() => {
+        group = new EditorGroupModel();
+        editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
+        editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
+        editor3 = new TextEditorPaneModel(URI.parse('file://test3'));
+    });
+
+    test('should fire EDITOR_OPEN event with correct data', () => {
+        let event!: IEditorGroupChangeEvent;
+        group.onDidChangeModel(e => {
+            event = e;
+        });
+
+        group.openEditor(editor1, { index: 0 });
+
+        assert.ok(event);
+        assert.strictEqual(event?.type, EditorGroupChangeType.EDITOR_OPEN);
+        assert.strictEqual(event?.model, editor1);
+        assert.strictEqual(event?.modelIndex, 0);
+    });
+
+    test('should fire EDITOR_CLOSE event with correct data', () => {
+        group.openEditor(editor1, {});
+        let event!: IEditorGroupChangeEvent;
+        group.onDidChangeModel(e => {
+            event = e;
+        });
+
+        group.closeEditor(editor1);
+
+        assert.ok(event);
+        assert.strictEqual(event?.type, EditorGroupChangeType.EDITOR_CLOSE);
+        assert.strictEqual(event?.model, editor1);
+        assert.strictEqual(event?.modelIndex, 0);
+    });
+
+    test('should fire EDITOR_MOVE event with correct data', () => {
+        group.openEditor(editor1, {});
+        group.openEditor(editor2, {});
+        let event!: IEditorGroupChangeEvent;
+        group.onDidChangeModel(e => {
+            event = e;
+        });
+
+        group.moveEditor(editor1, 1);
+
+        assert.ok(event);
+        assert.strictEqual(event?.type, EditorGroupChangeType.EDITOR_MOVE);
+        assert.strictEqual(event?.model, editor1);
+        assert.strictEqual(event?.modelIndex, 1);
+    });
+
+    test('should not fire an event for non-existent editor close', () => {
+        let eventFired = false;
+        group.onDidChangeModel(() => {
+            eventFired = true;
+        });
+
+        group.closeEditor(editor1);
+
+        assert.strictEqual(eventFired, false);
+    });
+
+    test('should not fire an event for non-existent editor move', () => {
+        let eventFired = false;
+        group.onDidChangeModel(() => {
+            eventFired = true;
+        });
+
+        group.moveEditor(editor1, 1);
+
+        assert.strictEqual(eventFired, false);
     });
 });

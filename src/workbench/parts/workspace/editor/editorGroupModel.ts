@@ -11,6 +11,12 @@ import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneMod
 export interface IReadonlyEditorGroupModel extends Disposable {
     
     /**
+     * @event
+     * Fires whenever the data of the model changes.
+     */
+    readonly onDidChangeModel: Register<IEditorGroupChangeEvent>;
+
+    /**
      * The size of the editor group. Indicates how many editors the group is 
      * opening.
      */
@@ -29,12 +35,6 @@ export interface IReadonlyEditorGroupModel extends Disposable {
  * // TODO
  */
 export interface IEditorGroupModel extends IReadonlyEditorGroupModel {
-
-    /**
-     * @event
-     * Fires whenever the data of the model changes.
-     */
-    readonly onDidChangeModel: Register<void>;
 
     openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult;
     closeEditor(model: EditorPaneModel): IEditorGroupCloseResult | undefined;
@@ -61,10 +61,33 @@ export interface IEditorGroupMoveResult {
     readonly to: number;
 }
 
+export const enum EditorGroupChangeType {
+    SELECTION, // TODO
+    SELECTION_ACTIVE, // TODO
+
+    EDITOR_OPEN,
+    EDITOR_CLOSE,
+    EDITOR_MOVE,
+}
+
+export interface IEditorGroupChangeEvent {
+	/**
+	 * The type of change that occurred in the group model.
+	 */
+	readonly type: EditorGroupChangeType;
+	readonly model: EditorPaneModel;
+	readonly modelIndex: number;
+}
+
 /**
  * @implements
  */
 class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGroupModel {
+
+    // [events]
+
+    protected readonly _onDidChangeModel = this.__register(new Emitter<IEditorGroupChangeEvent>());
+    public readonly onDidChangeModel = this._onDidChangeModel.registerListener;
 
     // [fields]
 
@@ -135,11 +158,6 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
 export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEditorGroupModel {
 
-    // [event]
-
-    private readonly _onDidChangeModel = this.__register(new Emitter<void>());
-    public readonly onDidChangeModel = this._onDidChangeModel.registerListener;
-    
     // [constructor]
 
     constructor() {
@@ -162,8 +180,11 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         if (existedIndex === -1) {
             return undefined;
         }
+        
         const existed = this.getEditorByIndex(existedIndex)!;
         this.__splice(existedIndex, true);
+
+        this.__fire(EditorGroupChangeType.EDITOR_CLOSE, model, existedIndex);
 
         return {
             model: existed,
@@ -186,6 +207,8 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         this.__splice(existedIndex, true);
         this.__splice(targetIndex, false, existedModel);
 
+        this.__fire(EditorGroupChangeType.EDITOR_MOVE, model, targetIndex);
+
         return {
             model: existedModel,
             from: existedIndex,
@@ -201,7 +224,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         this.__splice(targetIndex, false, model);
         this.__registerModelListeners(model);
 
-        this._onDidChangeModel.fire();
+        this.__fire(EditorGroupChangeType.EDITOR_OPEN, model, targetIndex);
 
         return { 
             model, 
@@ -251,8 +274,23 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         const lifecycle = new DisposableManager();
         this._editorListeners.add(lifecycle);
 
+        // Clean up listeners once the editor gets closed
         lifecycle.register(this.onDidChangeModel(e => {
-            // TODO: when editor closed, delete listeners from the set.
+            if (
+                e.model.equals(model) &&
+                e.type === EditorGroupChangeType.EDITOR_CLOSE
+            ) {
+                lifecycle.dispose();
+                this._editorListeners.delete(lifecycle);
+            }
         }));
+    }
+
+    private __fire(type: EditorGroupChangeType, model: EditorPaneModel, index: number): void {
+        this._onDidChangeModel.fire({
+            type: type,
+            model: model,
+            modelIndex: index,
+        });
     }
 }
