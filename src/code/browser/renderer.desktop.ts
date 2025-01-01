@@ -262,7 +262,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
-        registerService(IWorkspaceService         , new ServiceDescriptor(Workspace            , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(Workspace                , []));
         registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));

@@ -24,7 +24,7 @@ export interface IEditorPaneCollection extends Disposable {
  *             (focused)             (unfocused)
  *               Tab 1                  Tab 2
  *       +==================+    +==================+
- *       |     (Visible)    |    |    (Invisible)   |
+ *       |   (In the DOM)   |    |   (Not in DOM)   |
  *       |                  |    |                  |
  *       |      View 1      |    |      View 2      |
  *       |                  |    |                  |

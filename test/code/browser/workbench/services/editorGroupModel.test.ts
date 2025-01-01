@@ -52,16 +52,16 @@ suite('EditorGroupModel - Read-only Test', () => {
         });
     });
 
-    suite('find', () => {
+    suite('findEditor', () => {
         test('should return the editor and index if the editor exists', () => {
-            const result = group.find(editor2);
+            const result = group.findEditor(editor2);
             assert.strictEqual(result?.model, editor2);
             assert.strictEqual(result?.index, 1);
         });
 
         test('should return undefined if the editor does not exist', () => {
             const nonExistentEditor = new TextEditorPaneModel(URI.parse('file://nonexistent'));
-            const result = group.find(nonExistentEditor);
+            const result = group.findEditor(nonExistentEditor);
             assert.strictEqual(result, undefined);
         });
     });

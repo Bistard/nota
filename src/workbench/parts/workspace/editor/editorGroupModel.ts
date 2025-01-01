@@ -24,7 +24,7 @@ export interface IReadonlyEditorGroupModel extends Disposable {
 
     getEditors(order: 'sequential' | 'mru'): EditorPaneModel[];
     getEditorByIndex(index: number): EditorPaneModel | undefined;
-    find(model: EditorPaneModel): { model: EditorPaneModel, index: number } | undefined;
+    findEditor(model: EditorPaneModel): { model: EditorPaneModel, index: number } | undefined;
     indexOf(model: EditorPaneModel): number;
     contains(model: EditorPaneModel): boolean;
     isFirst(model: EditorPaneModel): boolean;
@@ -35,7 +35,6 @@ export interface IReadonlyEditorGroupModel extends Disposable {
  * // TODO
  */
 export interface IEditorGroupModel extends IReadonlyEditorGroupModel {
-
     openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult;
     closeEditor(model: EditorPaneModel): IEditorGroupCloseResult | undefined;
     moveEditor(model: EditorPaneModel, to: number): IEditorGroupMoveResult | undefined;
@@ -122,7 +121,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
         return this._editors[index];
     }
 
-    public find(model: EditorPaneModel): { model: EditorPaneModel, index: number } | undefined {
+    public findEditor(model: EditorPaneModel): { model: EditorPaneModel, index: number } | undefined {
         const index = this.indexOf(model);
         if (index === -1) {
             return undefined;
@@ -167,7 +166,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     // [public methods (writable)]
 
     public openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
-        const findResult = this.find(model);
+        const findResult = this.findEditor(model);
         if (!findResult) {
             return this.__openNewEditor(model, options);
         } else {
