@@ -1,11 +1,11 @@
 import 'src/workbench/parts/workspace/workspace.scss';
 import { Component } from "src/workbench/services/component/component";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 import { EditorGroupView } from 'src/workbench/parts/workspace/editor/editorGroupView';
 import { assert } from 'src/base/common/utilities/panic';
+import { IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 
 export class Workspace extends Component implements IWorkspaceService {
 
@@ -19,7 +19,6 @@ export class Workspace extends Component implements IWorkspaceService {
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        @IEditorService private readonly editorService: IEditorService,
     ) {
         super('workspace', null, instantiationService);
     }
@@ -47,9 +46,9 @@ export class Workspace extends Component implements IWorkspaceService {
 
     // [public methods]
 
-    public async openEditor(model: EditorPaneModel): Promise<void> {
+    public async openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): Promise<void> {
         const groupView = assert(this._groupView);
-        await groupView.openEditor(model);
+        await groupView.openEditor(model, options);
     }
     
     // [private helper methods]

@@ -274,7 +274,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
         // on opening file.
         disposables.register(this.fileTreeService.onSelect(e => {
-            this.workspaceService.openEditor(new TextEditorPaneModel(e.item.uri));
+            this.workspaceService.openEditor(new TextEditorPaneModel(e.item.uri), {});
         }));
     }
 }

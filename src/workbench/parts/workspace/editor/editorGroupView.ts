@@ -9,14 +9,14 @@ import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabVie
 import { Disposable } from 'src/base/common/dispose';
 import { EditorPaneCollection } from 'src/workbench/parts/workspace/editor/editorPane';
 import { ErrorHandler } from 'src/base/common/error';
-import { EditorGroupModel } from 'src/workbench/parts/workspace/editor/editorGroupModel';
+import { EditorGroupModel, IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 
 /**
  * An interface only for {@link EditorGroupView}.
  */
 export interface IEditorGroupView extends Disposable {
 
-    openEditor(model: EditorPaneModel): Promise<void>;
+    openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): Promise<void>;
 }
 
 /**
@@ -100,10 +100,10 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
         super.dispose();
     }
 
-    public async openEditor(model: EditorPaneModel): Promise<void> {
+    public async openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): Promise<void> {
         
         // update on model first
-        const { model: opened } = await this._model.openEditor(model);
+        const { model: opened } = this._model.openEditor(model, options);
         
         /**
          * We open the editor first and open tab after only if it succeed. 
