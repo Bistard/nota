@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, disposeAll, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
 import { Numbers } from "src/base/common/utilities/number";
@@ -151,6 +151,12 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     // [public methods (readonly)]
 
+    public override dispose(): void {
+        super.dispose();
+        disposeAll(Array.from(this._editorListeners));
+        this._editorListeners.clear();
+    }
+
     public getEditors(order: 'sequential' | 'mru'): EditorPaneModel[] {
         return order === 'sequential' 
             ? this._editors.slice(0) 
@@ -220,7 +226,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         super();
         // init and listen to config changes
         this.__onConfigurationUpdate(null);
-        configurationService.onDidConfigurationChange(e => this.__onConfigurationUpdate(e));
+        this.__register(configurationService.onDidConfigurationChange(e => this.__onConfigurationUpdate(e)));
     }
 
     // [public methods (writable)]
@@ -466,6 +472,8 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     private __registerModelListeners(model: EditorPaneModel): void {
         const lifecycle = new DisposableManager();
         this._editorListeners.add(lifecycle);
+
+        // todo: EDITOR_DIRTY bind
 
         // Clean up listeners once the editor gets closed
         lifecycle.register(this.onDidChangeModel(e => {

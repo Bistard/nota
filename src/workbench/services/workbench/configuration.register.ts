@@ -43,6 +43,7 @@ export const enum WorkbenchConfiguration {
  * {@link sharedWorkbenchConfigurationRegister}
  * {@link sharedNavigationViewConfigurationRegister}
  * {@link sharedWorkspaceConfigurationRegister}
+ * {@link sharedEditorConfigurationRegister}
  */
 
 export const sharedWorkbenchConfigurationRegister = createRegister(
