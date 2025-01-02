@@ -30,6 +30,7 @@ import { BrowserConfigurationService } from "src/platform/configuration/browser/
 import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
@@ -349,19 +350,22 @@ export function createNullHostService(): IHostService {
     return new NullHostService(statusService);
 }
 
-export function createTestConfigurationService(): IConfigurationService {
+export async function createTestConfigurationService(): Promise<IConfigurationService> {
     const instantiationService = new InstantiationService();
-    const logService = new NullLogger();
+    const logService = new ConsoleLogger();
     const fileService = new FileService(logService);
     fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
     const registrantService = new RegistrantService(logService);
     registrantService.registerRegistrant(new ConfigurationRegistrant());
-    registrantService.init(instantiationService);
     
     instantiationService.register(IInstantiationService, instantiationService);
     instantiationService.register(ILogService, logService);
     instantiationService.register(IFileService, fileService);
     instantiationService.register(IRegistrantService, registrantService);
     
-    return instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: URI.join(TestURI, APP_CONFIG_NAME) } });
+    registrantService.init(instantiationService);
+    
+    const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: URI.join(URI.parse('file:///temp'), APP_CONFIG_NAME) } });
+    await service.init().unwrap();
+    return service;
 }

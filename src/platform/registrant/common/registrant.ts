@@ -101,20 +101,18 @@ export function createRegister<T extends RegistrantType>(
     register: (registrant: GetRegistrantByType<T>) => void,
 ): (provider: IServiceProvider) => void 
 {
-    return executeOnce(
-        (provider: IServiceProvider) => {
-            const logService = provider.getOrCreateService(ILogService);
-            logService.trace('createRegister', `[${type}] registering: '${description}'...`);
+    return (provider: IServiceProvider) => {
+        const logService = provider.getOrCreateService(ILogService);
+        logService.trace('createRegister', `[${type}] registering: '${description}'...`);
 
-            const service = provider.getOrCreateService(IRegistrantService);
-            const registrant = service.getRegistrant(type);
-            try {
-                register(registrant);
-            } catch (error: any) {
-                logService.error('createRegister', 'failed registering.', error, { type: type, description: description });
-            }
-        },
-    );
+        const service = provider.getOrCreateService(IRegistrantService);
+        const registrant = service.getRegistrant(type);
+        try {
+            register(registrant);
+        } catch (error: any) {
+            logService.error('createRegister', 'failed registering.', error, { type: type, description: description });
+        }
+    };
 }
 
 

@@ -4,23 +4,27 @@ import { TextEditorPaneModel } from 'src/workbench/services/editorPane/editorPan
 import { URI } from 'src/base/common/files/uri';
 import { EditorGroupChangeType, EditorGroupModel, IEditorGroupChangeEvent } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 import { createTestConfigurationService } from 'test/utils/testService';
+import { ConfigurationModuleType, IConfigurationService } from 'src/platform/configuration/common/configuration';
+import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 
 suite('EditorGroupModel Test', () => {
     
-    function initEditorGroupModel(): EditorGroupModel {
-        return new EditorGroupModel(
-            createTestConfigurationService(),
-        );
+    async function initEditorGroupModel(): Promise<[EditorGroupModel, IConfigurationService]> {
+        const configurationService = await createTestConfigurationService();
+        return [
+            new EditorGroupModel(configurationService),
+            configurationService,
+        ];
     }
 
-    suite('Read-only Test', () => {
+    suite('Read-only APIs', () => {
         let group!: EditorGroupModel;
         let editor1!: TextEditorPaneModel;
         let editor2!: TextEditorPaneModel;
         let editor3!: TextEditorPaneModel;
     
-        suiteSetup(() => {
-            group = initEditorGroupModel();
+        suiteSetup(async () => {
+            group = (await initEditorGroupModel())[0];
             editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
             editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
             editor3 = new TextEditorPaneModel(URI.parse('file://test3'));
@@ -123,11 +127,11 @@ suite('EditorGroupModel Test', () => {
         });
     });
     
-    suite('Writable Test', () => {
+    suite('Writable APIs', () => {
     
         suite('openEditor', () => {
-            test('should add a new editor to the group', () => {
-                const group = initEditorGroupModel();
+            test('should add a new editor to the group', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor = new TextEditorPaneModel(URI.parse('file://test'));
     
                 assert.strictEqual(group.size, 0);
@@ -137,8 +141,8 @@ suite('EditorGroupModel Test', () => {
                 assert.strictEqual(result.existed, false);
             });
     
-            test('should not duplicate an existing editor', () => {
-                const group = initEditorGroupModel();
+            test('should not duplicate an existing editor', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor = new TextEditorPaneModel(URI.parse('file://test'));
     
                 group.openEditor(editor, {});
@@ -148,8 +152,8 @@ suite('EditorGroupModel Test', () => {
                 assert.strictEqual(result.existed, true);
             });
     
-            test('should move an existing editor to a new index if specified', () => {
-                const group = initEditorGroupModel();
+            test('should move an existing editor to a new index if specified', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
                 const editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
     
@@ -165,8 +169,8 @@ suite('EditorGroupModel Test', () => {
         });
     
         suite('closeEditor', () => {
-            test('should remove an existing editor from the group', () => {
-                const group = initEditorGroupModel();
+            test('should remove an existing editor from the group', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor = new TextEditorPaneModel(URI.parse('file://test'));
     
                 group.openEditor(editor, {});
@@ -177,8 +181,8 @@ suite('EditorGroupModel Test', () => {
                 assert.strictEqual(result.index, 0);
             });
     
-            test('should return undefined if the editor does not exist', () => {
-                const group = initEditorGroupModel();
+            test('should return undefined if the editor does not exist', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor = new TextEditorPaneModel(URI.parse('file://test'));
     
                 const result = group.closeEditor(editor, {});
@@ -187,8 +191,8 @@ suite('EditorGroupModel Test', () => {
         });
     
         suite('moveEditor', () => {
-            test('should move an editor to a specified index', () => {
-                const group = initEditorGroupModel();
+            test('should move an editor to a specified index', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
                 const editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
     
@@ -205,16 +209,16 @@ suite('EditorGroupModel Test', () => {
                 assert.strictEqual(group.getEditorByIndex(1), editor1);
             });
     
-            test('should return undefined if the editor does not exist', () => {
-                const group = initEditorGroupModel();
+            test('should return undefined if the editor does not exist', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor = new TextEditorPaneModel(URI.parse('file://test'));
     
                 const result = group.moveEditor(editor, 1);
                 assert.strictEqual(result, undefined);
             });
     
-            test('should move nothing when moving to the same position', () => {
-                const group = initEditorGroupModel();
+            test('should move nothing when moving to the same position', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor = new TextEditorPaneModel(URI.parse('file://test'));
     
                 group.openEditor(editor, {});
@@ -223,8 +227,8 @@ suite('EditorGroupModel Test', () => {
                 assert.strictEqual(result, undefined);
             });
     
-            test('should clamp the target index to valid bounds', () => {
-                const group = initEditorGroupModel();
+            test('should clamp the target index to valid bounds', async () => {
+                const group = (await initEditorGroupModel())[0];
                 const editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
                 const editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
     
@@ -242,15 +246,15 @@ suite('EditorGroupModel Test', () => {
         });
     });
     
-    suite('Event Test', () => {
+    suite('Event', () => {
     
         let group: EditorGroupModel;
         let editor1: TextEditorPaneModel;
         let editor2: TextEditorPaneModel;
         let editor3: TextEditorPaneModel;
     
-        setup(() => {
-            group = initEditorGroupModel();
+        setup(async () => {
+            group = (await initEditorGroupModel())[0];
             editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
             editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
             editor3 = new TextEditorPaneModel(URI.parse('file://test3'));
@@ -323,6 +327,226 @@ suite('EditorGroupModel Test', () => {
             group.moveEditor(editor1, 1);
     
             assert.strictEqual(eventFired, false);
+        });
+    });
+
+    suite('Selection and Focus', () => {
+        let group: EditorGroupModel;
+        let editor1: TextEditorPaneModel;
+        let editor2: TextEditorPaneModel;
+        let editor3: TextEditorPaneModel;
+
+        setup(async () => {
+            const [ groupModel ] = await initEditorGroupModel();
+            group = groupModel;
+            editor1 = new TextEditorPaneModel(URI.parse('file://test1'));
+            editor2 = new TextEditorPaneModel(URI.parse('file://test2'));
+            editor3 = new TextEditorPaneModel(URI.parse('file://test3'));
+        });
+
+        suite('setSelection', () => {
+            test('should update the focused editor and selection', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setSelection(editor1, [editor2]);
+
+                assert.strictEqual(group.focused, editor1);
+                assert.deepStrictEqual(group.selection, [editor1, editor2]);
+            });
+
+            test('should clear selection if focused editor is null', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setSelection(null, []);
+
+                assert.strictEqual(group.focused, undefined);
+                assert.deepStrictEqual(group.selection, []);
+            });
+
+            test('should not change selection if focused editor is not in group', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+
+                const prevFocused = group.focused;
+                const prevSelection = group.selection;
+                group.setSelection(editor3, [editor1]);
+
+                assert.strictEqual(group.focused, prevFocused);
+                assert.deepStrictEqual(group.selection, prevSelection);
+            });
+        });
+
+        suite('setFocused', () => {
+            test('should set only the focused editor', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setFocused(editor1);
+
+                assert.strictEqual(group.focused, editor1);
+                assert.deepStrictEqual(group.selection, [editor1]);
+            });
+
+            test('should clear selection if focused editor is null', () => {
+                group.openEditor(editor1, {});
+                group.setFocused(null);
+
+                assert.strictEqual(group.focused, undefined);
+                assert.deepStrictEqual(group.selection, []);
+            });
+        });
+
+        suite('isSelected', () => {
+            test('should return true for editors in the selection', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setSelection(editor1, [editor2]);
+
+                assert.strictEqual(group.isSelected(editor2), true);
+            });
+
+            test('should return false for editors not in the selection', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+
+                assert.strictEqual(group.isSelected(editor2), false);
+            });
+        });
+
+        suite('isFocused', () => {
+            test('should return true for the focused editor', () => {
+                group.openEditor(editor1, {});
+                group.setFocused(editor1);
+
+                assert.strictEqual(group.isFocused(editor1), true);
+            });
+
+            test('should return false for non-focused editors', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setFocused(editor1);
+
+                assert.strictEqual(group.isFocused(editor2), false);
+            });
+        });
+
+        suite('closeEditor with openAfterClose option', () => {
+            test('should focus next editor after close', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setFocused(editor1);
+
+                group.closeEditor(editor1, { openAfterClose: true });
+
+                assert.strictEqual(group.focused, editor2);
+                assert.deepStrictEqual(group.selection, [editor2]);
+            });
+
+            test('should focus previous editor if closing the last editor', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setFocused(editor2);
+
+                group.closeEditor(editor2, { openAfterClose: true });
+
+                assert.strictEqual(group.focused, editor1);
+                assert.deepStrictEqual(group.selection, [editor1]);
+            });
+
+            test('should clear selection if the last editor is closed', () => {
+                group.openEditor(editor1, {});
+                group.setFocused(editor1);
+
+                group.closeEditor(editor1, { openAfterClose: true });
+
+                assert.strictEqual(group.focused, undefined);
+                assert.deepStrictEqual(group.selection, []);
+            });
+
+            test('should not change selection if openAfterClose is false', () => {
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setFocused(editor1);
+
+                group.closeEditor(editor1, { openAfterClose: false });
+
+                assert.strictEqual(group.focused, undefined);
+                assert.deepStrictEqual(group.selection, []);
+            });
+        });
+
+        suite('configuration: focusRecentEditorAfterClose', () => {
+            test('should focus the most recently used editor after close when focusRecentEditorAfterClose is true', async () => {
+                const [ group, configurationService ] = await initEditorGroupModel();
+                configurationService.set(WorkbenchConfiguration.FocusRecentEditorAfterClose, true, { type: ConfigurationModuleType.User });
+        
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.openEditor(editor3, {});
+        
+                group.setFocused(editor2);
+                group.closeEditor(editor2, { openAfterClose: true });
+        
+                assert.strictEqual(group.focused, editor3);
+                assert.deepStrictEqual(group.selection, [editor3]);
+            });
+        
+            test('should focus the next sequential editor after close when focusRecentEditorAfterClose is false', async () => {
+                const [ group, configurationService ] = await initEditorGroupModel();
+                configurationService.set(WorkbenchConfiguration.FocusRecentEditorAfterClose, false, { type: ConfigurationModuleType.User });
+        
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.openEditor(editor3, {});
+        
+                group.setFocused(editor2);
+                group.closeEditor(editor2, { openAfterClose: true });
+        
+                assert.strictEqual(group.focused, editor3);
+                assert.deepStrictEqual(group.selection, [editor3]);
+            });
+        
+            test('should focus the previous sequential editor if closing the last editor and focusRecentEditorAfterClose is false', async () => {
+                const [ group, configurationService ] = await initEditorGroupModel();
+                configurationService.set(WorkbenchConfiguration.FocusRecentEditorAfterClose, false, { type: ConfigurationModuleType.User });
+        
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.openEditor(editor3, {});
+        
+                group.setFocused(editor3);
+                group.closeEditor(editor3, { openAfterClose: true });
+        
+                assert.strictEqual(group.focused, editor2);
+                assert.deepStrictEqual(group.selection, [editor2]);
+            });
+        
+            test('should clear focus and selection if the last editor is closed and focusRecentEditorAfterClose is true', async () => {
+                const [ group, configurationService ] = await initEditorGroupModel();
+                configurationService.set(WorkbenchConfiguration.FocusRecentEditorAfterClose, true, { type: ConfigurationModuleType.User });
+        
+                group.openEditor(editor1, {});
+                group.setFocused(editor1);
+        
+                group.closeEditor(editor1, { openAfterClose: true });
+        
+                assert.strictEqual(group.focused, undefined);
+                assert.deepStrictEqual(group.selection, []);
+            });
+        
+            test('should not change selection if openAfterClose is false, regardless of focusRecentEditorAfterClose setting', async () => {
+                const [ group, configurationService ] = await initEditorGroupModel();
+                configurationService.set(WorkbenchConfiguration.FocusRecentEditorAfterClose, true, { type: ConfigurationModuleType.User });
+        
+                group.openEditor(editor1, {});
+                group.openEditor(editor2, {});
+                group.setFocused(editor1);
+        
+                group.closeEditor(editor1, { openAfterClose: false });
+                assert.strictEqual(group.size, 1);
+        
+                assert.strictEqual(group.focused, undefined);
+                assert.deepStrictEqual(group.selection, []);
+            });
         });
     });
 });
