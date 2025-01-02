@@ -1,6 +1,7 @@
 import { CollapseState } from "src/base/browser/basic/dom";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { EditorGroupOpenPositioning } from "src/workbench/parts/workspace/editor/editorGroupModel";
 import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
@@ -28,7 +29,9 @@ export const enum WorkbenchConfiguration {
 
     RestorePrevious    = 'workspace.restorePrevious',
     OutlineToggleState = 'workspace.outline.toggleState',
+    
     FocusRecentEditorAfterClose = 'workspace.group.focusRecentEditorAfterClose',
+    EditorOpenPositioning       = 'workspace.group.editorOpenPositioning',
 
     // [editor]
     EditorAutoSave            = 'editor.autoSave',
@@ -172,7 +175,17 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
                                 ['focusRecentEditorAfterClose']: {
                                     type: 'boolean',
                                     default: false,
-                                }
+                                },
+                                ['editorOpenPositioning']: {
+                                    type: 'string',
+                                    default: EditorGroupOpenPositioning.Right,
+                                    enum: [
+                                        EditorGroupOpenPositioning.Right,
+                                        EditorGroupOpenPositioning.Left,
+                                        EditorGroupOpenPositioning.First,
+                                        EditorGroupOpenPositioning.Last,
+                                    ],
+                                },
                             }
                         },
                     }

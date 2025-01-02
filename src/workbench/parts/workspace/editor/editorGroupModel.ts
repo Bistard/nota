@@ -93,6 +93,17 @@ export const enum EditorGroupChangeType {
     EDITOR_MOVE,
 }
 
+/**
+ * Whenever open a new editor, indicates the position of the new editor relative
+ * to the focused or relative to the entire groups.
+ */
+export const enum EditorGroupOpenPositioning {
+    Left = 'left',
+    Right = 'right',
+    First = 'first',
+    Last = 'last',
+}
+
 export interface IEditorGroupChangeEvent {
 	/**
 	 * The type of change that occurred in the group model.
@@ -199,6 +210,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     // [fields]
 
     private _focusRecentEditorAfterClose!: boolean;
+    private _editorOpenPositioning!: EditorGroupOpenPositioning;
 
     // [constructor]
 
@@ -347,8 +359,8 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
             // case 2: more than one editor, chose which to open after close
             else if (options.openAfterClose) {
                 const newFocused = this._focusRecentEditorAfterClose 
-                    // mru case
-                    ? this._mru.getRecentItem()! 
+                    // mru case (choose the second recent used one)
+                    ? this._mru.getRecent(1)! 
                     // normal case
                     : this.isLast(model)
                         ? this.getEditorByIndex(index - 1)!
@@ -369,8 +381,35 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         }
     }
 
+    private __calcNewEditorIndex(options: IEditorGroupOpenOptions): number {
+        const focusedIndex = this.focused ? this.indexOf(this.focused) : 0;
+
+        // case 1: specified by options
+        if (isDefined(options.index)) {
+            return Numbers.clamp(options.index, 0, this.size);
+        }
+        // case 2: insert at the beginning
+        else if (this._editorOpenPositioning === EditorGroupOpenPositioning.First) {
+            return 0;
+        }
+        // case 3: insert at the end
+        else if (this._editorOpenPositioning === EditorGroupOpenPositioning.Last) {
+            return this.size;
+        }
+        // case 4: insert to the left
+        else if (this._editorOpenPositioning === EditorGroupOpenPositioning.Left) {
+            return focusedIndex;
+        }
+        // case 4: insert to the right
+        else if (this._editorOpenPositioning === EditorGroupOpenPositioning.Right) {
+            return focusedIndex + 1;
+        }
+
+        return 0;
+    }
+
     private __openNewEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
-        const targetIndex = options.index ?? this.size;
+        const targetIndex = this.__calcNewEditorIndex(options);
         const shouldFocused = options.focused || !this.focused;
         
         this.__splice(targetIndex, false, model);
@@ -405,9 +444,6 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     }
 
     private __splice(index: number, del: boolean, model?: EditorPaneModel): void {
-        if (!Numbers.isValidIndex(index, this.size + 1)) {
-            return;
-        }
         const target = this.getEditorByIndex(index)!;
         const delCount = del ? 1 : 0;
 
@@ -454,6 +490,10 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     private __onConfigurationUpdate(e: IConfigurationChangeEvent | null): void {
         if (!e || e.match(WorkbenchConfiguration.FocusRecentEditorAfterClose)) {
             this._focusRecentEditorAfterClose = this.configurationService.get(WorkbenchConfiguration.FocusRecentEditorAfterClose);
+        }
+
+        if (!e || e.match(WorkbenchConfiguration.EditorOpenPositioning)) {
+            this._editorOpenPositioning = this.configurationService.get(WorkbenchConfiguration.EditorOpenPositioning);
         }
     }
 }

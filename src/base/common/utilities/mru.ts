@@ -16,9 +16,11 @@ export interface IMRU<T> {
     getItems(): T[];
 
     /**
-     * @description Retrieves the most recent item in the MRU list.
+     * @description Retrieves the recent item in the MRU list.
+     * @param index Optional. Default to 0, which indicates the most recent one.
+     *              1 indicates the second recent one, and so on.
      */
-    getRecentItem(): T | undefined;
+    getRecent(index?: number): T | undefined;
 
     /**
      * @description Marks the given item as used, moving it to the most recently 
@@ -64,8 +66,8 @@ export class MRU<T> implements IMRU<T> {
         return [...this._items];
     }
 
-    public getRecentItem(): T | undefined {
-        return this._items[0];
+    public getRecent(index: number = 0): T | undefined {
+        return this._items[index];
     }
 
     public use(item: T): void {
