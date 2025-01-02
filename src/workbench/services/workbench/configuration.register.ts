@@ -28,6 +28,7 @@ export const enum WorkbenchConfiguration {
 
     RestorePrevious    = 'workspace.restorePrevious',
     OutlineToggleState = 'workspace.outline.toggleState',
+    FocusRecentEditorAfterClose = 'workspace.group.focusRecentEditorAfterClose',
 
     // [editor]
     EditorAutoSave            = 'editor.autoSave',
@@ -164,7 +165,16 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
                                     default: CollapseState.Expand
                                 }
                             }
-                        }
+                        },
+                        ['group']: {
+                            type: 'object',
+                            properties: {
+                                ['focusRecentEditorAfterClose']: {
+                                    type: 'boolean',
+                                    default: false,
+                                }
+                            }
+                        },
                     }
                 },
             },

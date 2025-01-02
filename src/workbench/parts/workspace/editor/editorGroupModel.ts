@@ -2,8 +2,11 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
 import { Numbers } from "src/base/common/utilities/number";
-import { isDefined } from "src/base/common/utilities/type";
+import { AtLeastOneArray, isDefined } from "src/base/common/utilities/type";
+import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
+import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 
 /**
  * // TODO
@@ -21,6 +24,18 @@ export interface IReadonlyEditorGroupModel extends Disposable {
      * opening.
      */
     readonly size: number;
+    
+    /**
+     * The current selection of the editor group. The first item will always be
+     * the focused one ({@link focused}).
+     */
+    readonly selection: EditorPaneModel[];
+
+    /**
+     * The focused editor of the editor group. Indicates the unique editor which 
+     * is currently being viewed or selected.
+     */
+    readonly focused: EditorPaneModel | undefined;
 
     getEditors(order: 'sequential' | 'mru'): EditorPaneModel[];
     getEditorByIndex(index: number): EditorPaneModel | undefined;
@@ -29,6 +44,8 @@ export interface IReadonlyEditorGroupModel extends Disposable {
     contains(model: EditorPaneModel): boolean;
     isFirst(model: EditorPaneModel): boolean;
 	isLast(model: EditorPaneModel): boolean;
+    isSelected(model: EditorPaneModel): boolean;
+    isFocused(model: EditorPaneModel): boolean;
 }
 
 /**
@@ -36,17 +53,24 @@ export interface IReadonlyEditorGroupModel extends Disposable {
  */
 export interface IEditorGroupModel extends IReadonlyEditorGroupModel {
     openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult;
-    closeEditor(model: EditorPaneModel): IEditorGroupCloseResult | undefined;
+    closeEditor(model: EditorPaneModel, options: IEditorGroupCloseOptions): IEditorGroupCloseResult | undefined;
     moveEditor(model: EditorPaneModel, to: number): IEditorGroupMoveResult | undefined;
+    setSelection(focused: EditorPaneModel | null, selection: EditorPaneModel[]): void;
+    setFocused(focused: EditorPaneModel | null): void;
 }
 
 export interface IEditorGroupOpenOptions {
     readonly index?: number;
+    readonly focused?: boolean;
 }
 
 export interface IEditorGroupOpenResult {
     readonly model: EditorPaneModel;
     readonly existed: boolean;
+}
+
+export interface IEditorGroupCloseOptions {
+    readonly openAfterClose?: boolean;
 }
 
 export interface IEditorGroupCloseResult {
@@ -61,8 +85,8 @@ export interface IEditorGroupMoveResult {
 }
 
 export const enum EditorGroupChangeType {
-    SELECTION, // TODO
-    SELECTION_ACTIVE, // TODO
+    SELECTION,
+    SELECTION_FOCUSED,
 
     EDITOR_OPEN,
     EDITOR_CLOSE,
@@ -74,8 +98,8 @@ export interface IEditorGroupChangeEvent {
 	 * The type of change that occurred in the group model.
 	 */
 	readonly type: EditorGroupChangeType;
-	readonly model: EditorPaneModel;
-	readonly modelIndex: number;
+	readonly model?: EditorPaneModel;
+	readonly modelIndex?: number;
 }
 
 /**
@@ -95,6 +119,9 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     protected readonly _editorListeners: Set<IDisposable>;
 
+    protected _focused?: EditorPaneModel;
+    protected _selection: EditorPaneModel[];
+
     // [constructor]
     
     constructor() {
@@ -102,11 +129,14 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
         this._editors = [];
         this._mru = new MRU<EditorPaneModel>((a, b) => a.equals(b), []);
         this._editorListeners = new Set();
+        this._selection = [];
     }
     
     // [getter]
 
     get size() { return this._editors.length; }
+    get focused() { return this._selection[0]; }
+    get selection() { return this._selection; }
 
     // [public methods (readonly)]
 
@@ -145,9 +175,18 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
         return this.__isEqual(this._editors[this._editors.length - 1], model);
     }
 
+    public isSelected(model: EditorPaneModel): boolean {
+        // excludes the focused
+        return this.selection.slice(1, undefined).some(each => this.__isEqual(each, model));
+    }
+    
+    public isFocused(model: EditorPaneModel): boolean {
+        return this.__isEqual(model, this.focused);
+    }
+
     // [private methods]
 
-    private __isEqual(first: EditorPaneModel | null | undefined, second: EditorPaneModel | null | undefined): boolean {
+    protected __isEqual(first: EditorPaneModel | null | undefined, second: EditorPaneModel | null | undefined): boolean {
         if (!first || !second) {
             return false;
         }
@@ -157,10 +196,19 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
 export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEditorGroupModel {
 
+    // [fields]
+
+    private _focusRecentEditorAfterClose!: boolean;
+
     // [constructor]
 
-    constructor() {
+    constructor(
+        @IConfigurationService private readonly configurationService: IConfigurationService,
+    ) {
         super();
+        // init and listen to config changes
+        this.__onConfigurationUpdate(null);
+        configurationService.onDidConfigurationChange(e => this.__onConfigurationUpdate(e));
     }
 
     // [public methods (writable)]
@@ -174,19 +222,21 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         }
     }
 
-    public closeEditor(model: EditorPaneModel): IEditorGroupCloseResult | undefined {
-        const existedIndex = this.indexOf(model);
-        if (existedIndex === -1) {
+    public closeEditor(model: EditorPaneModel, options: IEditorGroupCloseOptions): IEditorGroupCloseResult | undefined {
+        
+        // editor not found to close
+        const existed = this.findEditor(model);
+        if (!existed) {
             return undefined;
         }
-        
-        const existed = this.getEditorByIndex(existedIndex)!;
-        this.__splice(existedIndex, true);
+        const { model: existedModel, index: existedIndex } = existed;
 
-        this.__fire(EditorGroupChangeType.EDITOR_CLOSE, model, existedIndex);
+        this.__updateSelectionBeforeClose(existedModel, existedIndex, options);
+        this.__splice(existedIndex, true);
+        this.__fire(EditorGroupChangeType.EDITOR_CLOSE, existedModel, existedIndex);
 
         return {
-            model: existed,
+            model: existedModel,
             index: existedIndex,
         };
     }
@@ -215,15 +265,121 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         };
     }
 
+    public setSelection(focused: EditorPaneModel | null, selection: EditorPaneModel[]): void {
+        // clear selection
+        if (!focused) {
+            this.__setSelection(null, []);
+            return;
+        }
+        
+        // validate
+        const validation = this.__validateSelection(focused, selection);
+        if (validation === undefined) {
+            return;
+        }
+
+        // do set selection
+        const [focus, ...rest] = validation;
+        this.__setSelection(focus, rest);
+    }
+
+    public setFocused(focused: EditorPaneModel | null): void {
+        this.setSelection(focused, []);
+    }
+
     // [private methods]
+
+    private __validateSelection(focused: EditorPaneModel, selection: EditorPaneModel[]): AtLeastOneArray<EditorPaneModel> | undefined {
+        const focusedFind = this.findEditor(focused);
+        if (!focusedFind) {
+            return undefined;
+        }
+
+        const validSelection = new Set<EditorPaneModel>();
+        for (const each of selection) {
+            const selectionFind = this.findEditor(each);
+            if (!selectionFind) {
+                continue;
+            }
+            
+            if (this.__isEqual(focusedFind.model, selectionFind.model)) {
+                continue;
+            }
+
+            validSelection.add(selectionFind.model);
+        }
+
+        return [focusedFind.model, ...Array.from(validSelection)];
+    }
+
+    private __setSelection(focused: EditorPaneModel | null, selection: EditorPaneModel[]): void {
+        const prevFocused = this.focused;
+        const prevSelection = this.selection;
+
+        // update selection: only when focused is given.
+        this._selection = focused ? [focused, ...selection] : [];
+
+        // changed: focused editor
+        const focusedChange = prevFocused !== focused && focused && !this.__isEqual(prevFocused, focused);
+        if (focusedChange) {
+            this._mru.use(focused);
+            this.__fire(EditorGroupChangeType.SELECTION_FOCUSED, focused, this.indexOf(focused));
+        }
+
+        // changed: selection editors
+        if (
+            focusedChange ||
+            this._selection.length !== prevSelection.length ||
+            prevSelection.some(each => -1 !== this._selection.findIndex(curr => !this.__isEqual(each, curr)))
+        ) {
+            this.__fire(EditorGroupChangeType.SELECTION, undefined, undefined);
+        }
+    }
+
+    private __updateSelectionBeforeClose(model: EditorPaneModel, index: number, options: IEditorGroupCloseOptions): void {
+        
+        // case I: focused editor closed
+        if (this.isFocused(model)) {
+            // case 1: only one editor, clear selection.
+            if (this.size === 1) {
+                this.setSelection(null, []);
+            } 
+            // case 2: more than one editor, chose which to open after close
+            else if (options.openAfterClose) {
+                const newFocused = this._focusRecentEditorAfterClose 
+                    // mru case
+                    ? this._mru.getRecentItem()! 
+                    // normal case
+                    : this.isLast(model)
+                        ? this.getEditorByIndex(index - 1)!
+                        : this.getEditorByIndex(index + 1)!;
+
+                const newSelected = this.selection.filter(selected => !this.__isEqual(selected, model) && !this.__isEqual(selected, newFocused));
+                this.setSelection(newFocused, newSelected);
+            } 
+            // case 3: more than one editor, nothing to open, clear selection.
+            else {
+                this.setSelection(null, []);
+            }
+        }
+        // case II: selection editor closed
+        else if (this.isSelected(model)) {
+            const newSelected =this.selection.filter(selected => !this.__isEqual(selected, model) && !this.__isEqual(selected, this.focused));
+            this.setSelection(this.focused ?? null, newSelected);
+        }
+    }
 
     private __openNewEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
         const targetIndex = options.index ?? this.size;
+        const shouldFocused = options.focused || !this.focused;
         
         this.__splice(targetIndex, false, model);
         this.__registerModelListeners(model);
 
         this.__fire(EditorGroupChangeType.EDITOR_OPEN, model, targetIndex);
+
+        // update selection
+        this.setSelection(shouldFocused ? model : this.focused, []);
 
         return { 
             model, 
@@ -232,8 +388,10 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     }
 
     private __openExistEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): IEditorGroupOpenResult {
-        
-        this._mru.use(model);
+        const shouldFocused = options.focused || !this.focused;
+
+        // update selection
+        this.setSelection(shouldFocused ? model : this.focused, []);
 
         // move to a new index if required
         if (isDefined(options.index)) {
@@ -276,7 +434,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         // Clean up listeners once the editor gets closed
         lifecycle.register(this.onDidChangeModel(e => {
             if (
-                e.model.equals(model) &&
+                e.model?.equals(model) &&
                 e.type === EditorGroupChangeType.EDITOR_CLOSE
             ) {
                 lifecycle.dispose();
@@ -285,11 +443,17 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
         }));
     }
 
-    private __fire(type: EditorGroupChangeType, model: EditorPaneModel, index: number): void {
+    private __fire(type: EditorGroupChangeType, model: EditorPaneModel | undefined, index: number | undefined): void {
         this._onDidChangeModel.fire({
             type: type,
             model: model,
             modelIndex: index,
         });
+    }
+
+    private __onConfigurationUpdate(e: IConfigurationChangeEvent | null): void {
+        if (!e || e.match(WorkbenchConfiguration.FocusRecentEditorAfterClose)) {
+            this._focusRecentEditorAfterClose = this.configurationService.get(WorkbenchConfiguration.FocusRecentEditorAfterClose);
+        }
     }
 }
