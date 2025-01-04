@@ -66,11 +66,6 @@ export interface IComponent extends ICreatable {
     readonly onDidLayout: Register<IDimension>;
 
     /** 
-     * The parent {@link IComponent} of the current component. 
-     */
-    readonly parentComponent: IComponent | undefined;
-
-    /** 
      * The DOM element of the current component. 
      */
     readonly element: FastElement<HTMLElement>;
@@ -160,6 +155,7 @@ export interface IComponent extends ICreatable {
      * 
      * @panic Throws an error if the component has already been registered and
      *        override sets to false.
+     * @deprecated
      */
     registerComponent(component: IComponent, override?: boolean): void;
 
@@ -184,12 +180,14 @@ export interface IComponent extends ICreatable {
      * @description Unregister the component with the given id.
      * @param id The id of the component.
      * @note The corresponding component will not be disposed automatically.
+     * @deprecated
      */
     unregisterComponent(id: string): void;
 
     /**
      * @description Returns all the registered components that as the direct
      * children of the current component.
+     * @deprecated
      */
     getDirectComponents(): [string, IComponent][];
 
@@ -253,8 +251,6 @@ export abstract class Component extends Themable implements IComponent {
 
     // [field]
 
-    private _parentComponent?: IComponent;
-    
     /**
      * Client-provided parent that the component should be rendered under.
      */
@@ -323,8 +319,6 @@ export abstract class Component extends Themable implements IComponent {
 
     get id() { return this._element.getID(); }
 
-    get parentComponent() { return this._parentComponent; }
-
     get element() { return this._element; }
 
     get dimension() { return this._dimension; }
@@ -369,7 +363,6 @@ export abstract class Component extends Themable implements IComponent {
         check(this.isDisposed() === false, 'The component is already disposed.');
         
         if (parentComponent) {
-            this._parentComponent = parentComponent;
             parentComponent.registerComponent(this);
         }
 
@@ -468,7 +461,7 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public isCreated(): boolean {
-        return this._isInDom && this._created;
+        return this._isInDom && this._created && this._registered;
     }
 
     public setVisible(value: boolean): void {
