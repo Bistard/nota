@@ -13,7 +13,7 @@ import { getBuiltInExtension } from 'src/editor/contrib/builtInExtensionList';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { assert, panic } from 'src/base/common/utilities/panic';
 import { Emitter } from 'src/base/common/event';
-import { IOutlineService } from 'src/workbench/services/outline/outlineService';
+import { IOutlineService } from 'src/workbench/contrib/outline/outlineService';
 import { Throttler } from 'src/base/common/utilities/async';
 
 /**

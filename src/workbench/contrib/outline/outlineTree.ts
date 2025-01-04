@@ -11,7 +11,7 @@ import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { assert } from "src/base/common/utilities/panic";
 import { isNonNullable } from "src/base/common/utilities/type";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { HeadingItem } from "src/workbench/services/outline/headingItem";
+import { HeadingItem } from "src/workbench/contrib/outline/headingItem";
 
 /**
  * An interface only for {@link OutlineTree}.

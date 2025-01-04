@@ -1,4 +1,4 @@
-import "src/workbench/services/outline/outline.scss";
+import "src/workbench/contrib/outline/outline.scss";
 import { CollapseState, DirectionX, DirectionY } from "src/base/browser/basic/dom";
 import { ToggleCollapseButton } from "src/base/browser/secondary/toggleCollapseButton/toggleCollapseButton";
 import { Disposable } from "src/base/common/dispose";
@@ -12,12 +12,12 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
-import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/services/outline/headingItemRenderer";
+import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/contrib/outline/headingItemRenderer";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IOutlineTree, OutlineTree } from "src/workbench/services/outline/outlineTree";
+import { IOutlineTree, OutlineTree } from "src/workbench/contrib/outline/outlineTree";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";

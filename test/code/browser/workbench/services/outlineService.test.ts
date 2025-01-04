@@ -1,7 +1,7 @@
 import { suite, test } from 'mocha';
 import * as assert from 'assert';
-import { buildOutlineTree } from "src/workbench/services/outline/outlineTree";
-import { HeadingItem } from "src/workbench/services/outline/headingItem";
+import { buildOutlineTree } from "src/workbench/contrib/outline/outlineTree";
+import { HeadingItem } from "src/workbench/contrib/outline/headingItem";
 import { TreeLike } from 'src/base/common/utilities/type';
 import { isEqualTreeLike } from 'test/utils/helpers';
 
