@@ -8,7 +8,7 @@ import { ILogService } from "src/base/common/logger";
 import { noop } from "src/base/common/performance";
 import { Result, err, ok } from "src/base/common/result";
 import { ICommandService } from "src/platform/command/common/commandService";
-import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IService } from "src/platform/instantiation/common/decorator";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
@@ -21,8 +21,6 @@ import { IOutlineTree, OutlineTree } from "src/workbench/contrib/outline/outline
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { Time } from "src/base/common/date";
-
-export const IOutlineService = createService<IOutlineService>('outline-service');
 
 /**
  * An interface only for {@link OutlineService}.

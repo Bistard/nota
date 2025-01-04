@@ -13,7 +13,6 @@ import { getBuiltInExtension } from 'src/editor/contrib/builtInExtensionList';
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { assert, panic } from 'src/base/common/utilities/panic';
 import { Emitter } from 'src/base/common/event';
-import { IOutlineService } from 'src/workbench/contrib/outline/outlineService';
 import { Throttler } from 'src/base/common/utilities/async';
 
 /**
@@ -124,12 +123,6 @@ export class Editor extends Component implements IEditorService {
                 // this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
             });
         }
-
-        // listen to outline service click event
-        const outlineService = this.instantiationService.getOrCreateService(IOutlineService);
-        this.__register(outlineService.onDidClick(heading => {
-            console.log('[EditorService] heading clicked', heading); // TODO
-        }));
     }
 
     // [private helper methods]

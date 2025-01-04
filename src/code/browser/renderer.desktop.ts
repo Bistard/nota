@@ -59,7 +59,6 @@ import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigation
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
-import { IOutlineService, OutlineService } from "src/workbench/contrib/outline/outlineService";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
 import { monitorEmitterListenerGC } from "src/base/common/event";
@@ -269,7 +268,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
         registerService(IFileTreeMetadataService  , new ServiceDescriptor(FileTreeService          , []));
         registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
-        registerService(IOutlineService           , new ServiceDescriptor(OutlineService           , []));
     
         // utilities && tools
         registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
