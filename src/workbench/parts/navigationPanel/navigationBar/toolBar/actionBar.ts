@@ -95,12 +95,12 @@ export class ActionBar extends Component implements IActionBarService {
     
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this._buttonBar.render(this.element.raw);
         this.__register(this._buttonBar);
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
 
     }
 

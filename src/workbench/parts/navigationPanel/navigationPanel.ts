@@ -39,14 +39,14 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
     // [protected override methods]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         const navigationBarBuilder = new NavigationBarBuilder(this.actionBarService);
         navigationBarBuilder.registerButtons();
         
         this.__assemblyParts();
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         // noop
     }
 

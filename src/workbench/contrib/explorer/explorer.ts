@@ -123,7 +123,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         /**
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
@@ -139,8 +139,8 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         }
     }
 
-    protected override _registerListeners(): void {
-        super._registerListeners();
+    protected override __registerListeners(): void {
+        super.__registerListeners();
 
         /**
          * No need to register listeners initially, since `__loadCurrentView` 

@@ -102,9 +102,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     /**
-     * @description calls 'create()' and '_registerListeners()' for each component.
+     * @description calls 'create()' and '__registerListeners()' for each component.
      */
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this.__createLayout();
 
         // open the side view with default one
@@ -115,7 +115,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     /**
      * @description register renderer process global listeners.
      */
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
 
         // listen to layout changes
         this.__registerLayoutListeners();

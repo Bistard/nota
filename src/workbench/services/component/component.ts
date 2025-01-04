@@ -111,7 +111,7 @@ export interface IComponent extends ICreatable {
      * @description Renders the content of the component. This method is the 
      * second step in the 'create()' process, following the insertion of the 
      * component into the DOM. 
-     * @note It triggers the internal '_createContent' method to render the 
+     * @note It triggers the internal '__createContent' method to render the 
      *       component's actual contents.
      * @note `createInDom()` and `createContent()` are useful when you wish to
      *       have extra operations between those two operations. Otherwise you
@@ -237,8 +237,8 @@ export interface IComponent extends ICreatable {
  * 
  * @note It encapsulates element creation, layout management, focus tracking, 
  * and component registration. Subclasses should implement the abstract methods:
- *      1. `_createContent()` for content creation and
- *      2. `_registerListeners()` for event listener registration.
+ *      1. `__createContent()` for content creation and
+ *      2. `__registerListeners()` for event listener registration.
  * 
  * @note The class also offers methods for component lifecycle management, 
  * visibility control, and layout adjustments.
@@ -263,8 +263,8 @@ export abstract class Component extends Themable implements IComponent {
     private readonly _focusTracker: FocusTracker;
 
     private _isInDom: boolean;    // is rendered in DOM tree
-    private _created: boolean;    // is `_createContent` invoked
-    private _registered: boolean; // is `_registerListeners` invoked
+    private _created: boolean;    // is `__createContent` invoked
+    private _registered: boolean; // is `__registerListeners` invoked
     
     /** Relate to {@link assembleComponents()} */
     protected _splitView: ISplitView | undefined;
@@ -331,14 +331,14 @@ export abstract class Component extends Themable implements IComponent {
      * 
      * subclasses should override this function.
      */
-    protected abstract _createContent(): void;
+    protected abstract __createContent(): void;
 
     /**
      * @description to register listeners for the component and its content.
      * 
      * subclasses should override this function.
      */
-    protected abstract _registerListeners(): void;
+    protected abstract __registerListeners(): void;
 
     // [protected override method]
 
@@ -381,7 +381,7 @@ export abstract class Component extends Themable implements IComponent {
         check(this.isDisposed() === false, 'The component is already disposed.');
 
         this.logService.trace(`${this.id}`, 'Component is about to create content...');
-        this._createContent();
+        this.__createContent();
         
         this.logService.trace(`${this.id}`, 'Component content created successfully.');
         this._created = true;
@@ -416,7 +416,7 @@ export abstract class Component extends Themable implements IComponent {
         check(this.isDisposed() === false, 'The component is already disposed.');
 
         this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
-        this._registerListeners();
+        this.__registerListeners();
 
         // automatically re-layout
         {
@@ -535,7 +535,7 @@ export abstract class Component extends Themable implements IComponent {
     
         /**
          * Construct child components recursively. The children's 
-         * `this._createContent` will be invoked recursively.
+         * `this.__createContent` will be invoked recursively.
          */
         for (const { component } of options) {
             component.createContent();

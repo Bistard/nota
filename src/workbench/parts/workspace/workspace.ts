@@ -29,7 +29,7 @@ export class Workspace extends Component implements IWorkspaceService {
 
     // [protected override methods]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this._groupView = this.instantiationService.createInstance(
             EditorGroupView, 
             this.element.raw,
@@ -40,7 +40,7 @@ export class Workspace extends Component implements IWorkspaceService {
         );
     }
 
-    protected override _registerListeners(): void { 
+    protected override __registerListeners(): void { 
         /** noop */ 
     }
 

@@ -182,7 +182,7 @@ export class NavigationView extends Component implements INavigationViewService 
 
     // [protected override methods]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
 
         // empty navigation view at the beginning
         this._viewContainer = document.createElement('div');
@@ -190,7 +190,7 @@ export class NavigationView extends Component implements INavigationViewService 
         this.element.appendChild(this._viewContainer);
     }
 
-    protected _registerListeners(): void { }
+    protected __registerListeners(): void { }
 
     // [private helper methods]
 
@@ -280,5 +280,5 @@ export abstract class NavView extends Component implements INavView {
 
     public static readonly HEIGHT = 300;
 
-    protected _registerListeners(): void { }
+    protected __registerListeners(): void { }
 }

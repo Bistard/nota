@@ -86,7 +86,7 @@ export class Editor extends Component implements IEditorService {
 
     // [override protected methods]
 
-    protected override async _createContent(): Promise<void> {
+    protected override async __createContent(): Promise<void> {
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
@@ -113,7 +113,7 @@ export class Editor extends Component implements IEditorService {
         this.logService.debug('EditorService', 'Editor constructed.');
     }
 
-    protected override async _registerListeners(): Promise<void> {
+    protected override async __registerListeners(): Promise<void> {
 
         // building options
         const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
