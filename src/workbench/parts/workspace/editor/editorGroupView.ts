@@ -1,9 +1,6 @@
 import 'src/workbench/parts/workspace/editor/media/editorGroup.scss';
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { RegistrantType } from "src/platform/registrant/common/registrant";
-import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
-import { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 import { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabView';
 import { Disposable } from 'src/base/common/dispose';
@@ -48,8 +45,6 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
 
     // [fields]
 
-    private readonly _registrant: IEditorPaneRegistrant;
-
     private readonly _container: HTMLElement;
     private readonly _tabContainer: HTMLElement;
     private readonly _editorContainer: HTMLElement;
@@ -65,10 +60,8 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
         parent: HTMLElement,
         options: IEditorGroupViewOptions,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
-        this._registrant = registrantService.getRegistrant(RegistrantType.EditorPane);
         this._model = this.__register(instantiationService.createInstance(EditorGroupModel));
 
         // entire container
