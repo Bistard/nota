@@ -3,7 +3,6 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
@@ -301,7 +300,6 @@ export abstract class Component extends Themable implements IComponent {
     ) {
         const themeService = instantiationService.getOrCreateService(IThemeService);
         super(themeService);
-        const componentService = instantiationService.getOrCreateService(IComponentService);
         this.logService = instantiationService.getOrCreateService(ILogService);
         
         this._isInDom    = false;
@@ -318,8 +316,6 @@ export abstract class Component extends Themable implements IComponent {
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
         this._customParent = customParent ?? undefined;
-        componentService.register(this);
-
         this.logService.trace(`${this.id}`, 'UI component constructed.');
     }
 

@@ -3,7 +3,6 @@ import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
-import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable, monitorDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
@@ -204,9 +203,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
             },
         );
         instantiationService.register(IConfigurationService, configurationService);
-
-        // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
 
         // i18n-service
         const i18nService = instantiationService.createInstance(I18nService, 

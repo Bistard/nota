@@ -1,6 +1,5 @@
 import 'src/workbench/workbench.scss';
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { WorkbenchLayout } from "src/workbench/layout";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
@@ -46,7 +45,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ILogService logService: ILogService,
         @ILayoutService layoutService: ILayoutService,
         @IConfigurationService configurationService: IConfigurationService,
-        @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationPanelService navigationPanelService: INavigationPanelService,
         @INavigationBarService navigationBarService: INavigationBarService,
