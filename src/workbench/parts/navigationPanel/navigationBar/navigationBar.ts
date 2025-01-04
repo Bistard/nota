@@ -67,7 +67,6 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     protected override _registerListeners(): void {
         const searchBar = assert(this.quickAccessBarService.getSearchBar());
-        const toolBar = assert(this.toolBarService.getComponent);
         this.__register(searchBar.onDidFocus(() => {
             console.log("switching to filterBar");
             this.toolBarService.switchTo(ToolBarType.Filter);
