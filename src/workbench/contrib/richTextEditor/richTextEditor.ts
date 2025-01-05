@@ -54,8 +54,6 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         // TODO: should read editor configuration
         // const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
-        this.logService.debug('EditorService', 'Constructing editor...');
-
         // editor construction
         const editor = this.instantiationService.createInstance(
             EditorWidget, 
@@ -71,8 +69,6 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
 
         // actual render
         this.onUpdate(parent);
-
-        this.logService.debug('EditorService', 'Editor constructed.');
     }
 
     public override onUpdate(parent: HTMLElement): void {
@@ -83,9 +79,9 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
             const editorWidget = assert(this._editorWidget);
 
             // do open
-            this.logService.debug('EditorService', `Opening at: ${URI.toString(uri)}`);
+            this.logService.debug('RichTextEditor', `Opening at: ${URI.toString(uri)}`);
             await editorWidget.open(uri);
-            this.logService.debug('EditorService', `Open successfully at: ${URI.toString(uri)}`);
+            this.logService.debug('RichTextEditor', `Open successfully at: ${URI.toString(uri)}`);
 
             // todo: basic outline rendering, refactor later.
             this._outline?.dispose();

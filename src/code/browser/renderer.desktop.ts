@@ -35,8 +35,6 @@ import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
-import { Editor } from "src/workbench/parts/workspace/editor/editor";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { Workspace } from "src/workbench/parts/workspace/workspace";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
@@ -258,7 +256,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
         registerService(IWorkspaceService         , new ServiceDescriptor(Workspace                , []));
-        registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
