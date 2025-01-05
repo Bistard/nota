@@ -1,21 +1,16 @@
 import 'src/workbench/services/component/media.scss';
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
-import { Emitter, Event, Register } from "src/base/common/event";
-import { Dimension, IDimension } from "src/base/common/utilities/size";
-import { Themable } from "src/workbench/services/theme/theme";
+import { Orientation } from "src/base/browser/basic/dom";
+import { Emitter, Register } from "src/base/common/event";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { IThemeService } from "src/workbench/services/theme/themeService";
 import { assert, check } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { ILogService } from 'src/base/common/logger';
-import { isNonNullable } from 'src/base/common/utilities/type';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { IHostService } from 'src/platform/host/common/hostService';
-import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
+import { ILayoutable, Layoutable } from 'src/workbench/services/component/layoutable';
 
 export interface ICreatable {
     create(): void;
@@ -43,7 +38,7 @@ export type IAssembleComponentOpts = {
 /**
  * An interface only for {@link Component}.
  */
-export interface IComponent extends ICreatable {
+export interface IComponent extends ICreatable, ILayoutable {
 
     /**
      * @description Returns the string id of the component.
@@ -61,11 +56,6 @@ export interface IComponent extends ICreatable {
     readonly onDidVisibilityChange: Register<boolean>;
 
     /** 
-     * Fires the new dimension of the component when the component is re-layout(ing).
-     */
-    readonly onDidLayout: Register<IDimension>;
-
-    /** 
      * The DOM element of the current component. 
      */
     readonly element: FastElement<HTMLElement>;
@@ -75,11 +65,6 @@ export interface IComponent extends ICreatable {
      * true parent HTMLElement.
      */
     readonly parent: Component | undefined;
-
-    /**
-     * The current dimension of the component.
-     */
-    readonly dimension: Dimension | undefined;
 
     /**
      * @description Renders the component itself.
@@ -133,29 +118,6 @@ export interface IComponent extends ICreatable {
      * @description Registers any listeners in the component.
      */
     registerListeners(): void;
-
-    /**
-     * @description Layout the component to the given dimension. This function
-     * will modify {@link Component.prototype.dimension} attribute.
-     * 
-     * @param width The width of dimension.
-     * @param height The height of dimension.
-     * @param preventDefault If sets to `true`, the {@link onDidLayout} event 
-     *                       will not be triggered. Default sets to `true`.
-     * @param mockDimension If set, this dimension will be fired through the 
-     *                      emitters instead of the actual one. This allows you
-     *                      to do hacky thing.
-     * @returns The new dimension of the component.
-     * 
-     * @note This function will only mutate the {@link dimension} and do not 
-     *       actually change anything in DOM tree.
-     * @note If no dimensions is provided, the component will try to be filled
-     *       with the parent HTMLElement. If any dimensions is provided, the 
-     *       component will layout the missing one either with the previous 
-     *       value or just zero.
-     * @note Will trigger {@link onDidLayout} event.
-     */
-    layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension;
 
     /**
      * @description Returns the sub component by id.
@@ -227,7 +189,7 @@ export interface IComponent extends ICreatable {
  * also be disposed. The component cannot be disposed / create() / 
  * registerListener() twice.
  */
-export abstract class Component extends Themable implements IComponent {
+export abstract class Component extends Layoutable implements IComponent {
 
     // [field]
 
@@ -239,7 +201,6 @@ export abstract class Component extends Themable implements IComponent {
 
     private readonly _element: FastElement<HTMLElement>;
     private readonly _children: Map<string, IComponent>;
-    private _dimension?: Dimension;
 
     private readonly _focusTracker: FocusTracker;
 
@@ -259,9 +220,6 @@ export abstract class Component extends Themable implements IComponent {
     private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
-    private readonly _onDidLayout = this.__register(new Emitter<IDimension>());
-    public readonly onDidLayout = this._onDidLayout.registerListener;
-
     // [constructor]
 
     /**
@@ -273,10 +231,9 @@ export abstract class Component extends Themable implements IComponent {
     constructor(
         id: string,
         customParent: HTMLElement | null,
-        protected readonly instantiationService: IInstantiationService,
+        instantiationService: IInstantiationService,
     ) {
-        const themeService = instantiationService.getOrCreateService(IThemeService);
-        super(themeService);
+        super(instantiationService);
         this.logService = instantiationService.getOrCreateService(ILogService);
         
         this._isInDom    = false;
@@ -300,8 +257,11 @@ export abstract class Component extends Themable implements IComponent {
 
     get id() { return this._element.getID(); }
     get element() { return this._element; }
-    get dimension() { return this._dimension; }
     get parent() { return this._parent; }
+
+    public override getLayoutElement(): HTMLElement | null | undefined {
+        return this._element.raw;
+    }
 
     // [abstract method]
 
@@ -372,65 +332,21 @@ export abstract class Component extends Themable implements IComponent {
 
     public createContent(): void {
         check(this.isCreated() === false, 'Cannot "createContent()" twice.');
-
         this.logService.trace(`${this.id}`, 'Component is about to create content...');
+
         this.__createContent();
         
         this.logService.trace(`${this.id}`, 'Component content created successfully.');
         this._created = true;
     }
 
-    public layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension {
-        
-        // If no dimensions provided, we default to layout to fit to parent.
-        if (width === undefined && height === undefined) {
-            const actualParent = this._element.raw.parentElement;
-            const parent = assert(actualParent, 'layout() expect to have a parent HTMLElement when there is no provided dimension.');
-            check(DomUtility.Elements.ifInDomTree(parent), 'layout() expect the parent HTMLElement is rendered in the DOM tree.');
-            this._dimension = DomUtility.Positions.getClientDimension(parent);
-        }
-        // If any dimensions is provided, we force to follow it.
-        else {
-            this._dimension = isNonNullable(this._dimension)
-                ? this._dimension.clone(width, height)
-                : new Dimension(width ?? 0, height ?? 0);
-        }
-
-        if (preventDefault !== true) {
-            this._onDidLayout.fire(mockDimension ?? this._dimension);
-        }
-        
-        return this._dimension;
-    }
-
     public registerListeners(): void {
         check(this._registered === false, 'Cannot invoke "registerListeners()" twice.');
         check(this._created    === true, 'Must be invoked when the component is created.');
-
         this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
+
         this.__registerListeners();
-
-        // automatically re-layout
-        {
-            this.__register(addDisposableListener(window, EventType.resize, () => {
-                this.layout();
-            }));
-
-            const hostService = this.instantiationService.getOrCreateService(IHostService);
-            const environmentService = this.instantiationService.getOrCreateService(IBrowserEnvironmentService);
-            const anyEvents = Event.any([
-                hostService.onDidEnterFullScreenWindow,
-                hostService.onDidLeaveFullScreenWindow,
-                hostService.onDidMaximizeWindow,
-                hostService.onDidUnMaximizeWindow,
-            ]);
-            this.__register(anyEvents(windowID => {
-                if (windowID === environmentService.windowID) {
-                    this.layout();
-                }
-            }));
-        }
-        
+        this.registerAutoLayout();
 
         this.logService.trace(`${this.id}`, 'Component register listeners succeeded.');
         this._registered = true;
