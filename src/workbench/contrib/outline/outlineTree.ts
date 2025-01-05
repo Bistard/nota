@@ -1,3 +1,4 @@
+import "src/workbench/contrib/outline/outline.scss";
 import { EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
@@ -10,8 +11,8 @@ import { Stack } from "src/base/common/structures/stack";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { assert } from "src/base/common/utilities/panic";
 import { isNonNullable } from "src/base/common/utilities/type";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
 import { HeadingItem } from "src/workbench/contrib/outline/headingItem";
+import { IEditorWidget } from "src/editor/editorWidget";
 
 /**
  * An interface only for {@link OutlineTree}.
@@ -79,15 +80,18 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
     // [constructor]
 
     constructor(
-        container: HTMLElement,
+        parent: HTMLElement,
         renderers: ITreeListRenderer<HeadingItem, void, any>[], 
         itemProvider: IListItemProvider<HeadingItem>, 
         opts: IOutlineTreeOptions,
-        @IEditorService editorService: IEditorService,
+        editor: IEditorWidget,
     ) {
-        const editor = assert(editorService.editor, '`OutlineTree` cannot be initialized when the EditorService is not initialized.');
-        const model = assert(editor.model, '`OutlineTree` cannot be initialized when the editor is not built.');
-        
+        const container = document.createElement('div');
+        container.className = 'outline';
+        parent.appendChild(container);
+
+        const model = editor.model;
+
         // build the tree structure
         const content = model.getContent();
         const root = buildOutlineTree(content);

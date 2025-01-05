@@ -8,6 +8,8 @@ import { getBuiltInExtension } from "src/editor/contrib/builtInExtensionList";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { HeadingItemProvider, HeadingItemRenderer } from "src/workbench/contrib/outline/headingItemRenderer";
+import { OutlineTree } from "src/workbench/contrib/outline/outlineTree";
 import { TextEditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { EditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 
@@ -16,6 +18,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
     // [fields]
 
     private _editorWidget: IEditorWidget | undefined = undefined;
+    private _outline?: OutlineTree;
 
     /**
      * Stores editor open request. A throttler is needed to avoid excessive file
@@ -84,6 +87,23 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
             await editorWidget.open(uri);
             this.logService.debug('EditorService', `Open successfully at: ${URI.toString(uri)}`);
 
+            // todo: basic outline rendering, refactor later.
+            this._outline?.dispose();
+            this._outline = this.instantiationService.createInstance(
+                OutlineTree,
+                parent,
+                [new HeadingItemRenderer()],
+                new HeadingItemProvider(),
+                { 
+                    transformOptimization: true,
+                    collapsedByDefault: false,
+                    identityProvider: {
+                        getID: heading => heading.id.toString(),
+                    },
+                },
+                editorWidget,
+            );
+
             return uri;
         });
     }
@@ -106,6 +126,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
 
     public override dispose(): void {
         this._editorWidget?.dispose();
+        this._outline?.dispose();
         super.dispose();
     }
 }

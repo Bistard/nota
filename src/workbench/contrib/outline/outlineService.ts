@@ -254,7 +254,8 @@ export class OutlineService extends Disposable implements IOutlineService {
                     identityProvider: {
                         getID: heading => heading.id.toString(),
                     },
-                }
+                },
+                this.editorService.editor!,
             );
         })
         // after work
