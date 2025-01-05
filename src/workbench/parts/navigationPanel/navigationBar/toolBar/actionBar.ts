@@ -123,7 +123,7 @@ export class ActionBar extends Component implements IActionBarService {
         
         // register listener
         this.__register(button.onDidClick(() => {
-            this.clickButton(opts.id);
+            this.clickButton(button.id);
         }));
 
         return true;
