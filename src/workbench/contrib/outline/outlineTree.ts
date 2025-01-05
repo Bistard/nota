@@ -115,6 +115,11 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
         return this._fileURI;
     }
 
+    public override dispose(): void {
+        super.dispose();
+        this._container.remove();
+    }
+
     // [private helper methods]
 
     private __registerListeners(): void {

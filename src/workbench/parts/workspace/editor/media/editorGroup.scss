@@ -20,5 +20,9 @@
 
         justify-content: center;
         align-items: center;
+        
+        // mark this parent container as queryable (feature: Container Queries)
+        container-type: inline-size;
+        container-name: editor-pane-view-container;
     }
 }
