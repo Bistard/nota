@@ -6,7 +6,7 @@ import { Dimension, IDimension } from "src/base/common/utilities/size";
 import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IThemeService } from "src/workbench/services/theme/themeService";
-import { assert, check, panic } from "src/base/common/utilities/panic";
+import { assert, check } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
@@ -71,30 +71,34 @@ export interface IComponent extends ICreatable {
     readonly element: FastElement<HTMLElement>;
 
     /**
+     * The parent of this component. This does not necessarily indicates the
+     * true parent HTMLElement.
+     */
+    readonly parent: Component | undefined;
+
+    /**
      * The current dimension of the component.
      */
     readonly dimension: Dimension | undefined;
 
     /**
      * @description Renders the component itself.
-     * @param parentComponent If provided, the component will be registered 
-     *                        under this component. If no parentComponent is 
-     *                        provided, the component will be rendered under 
-     *                        this parent component.
+     * @param parent If provided, the component will be registered under this 
+     *               component. If no parent is provided, the component will be 
+     *               rendered under this parent component.
      * @note If both not provided, either renders under the constructor provided 
      *       HTMLElement, or `document.body`.
      * @panic
      */
-    create(parentComponent?: IComponent): void;
+    create(parent?: Component): void;
 
     /**
      * @description Appends the component to the DOM. This method represents the 
      * first step in the 'create()' process and solely handles the insertion of 
      * the component into the DOM tree.
-     * @param parentComponent If provided, the component will be registered 
-     *                        under this component. If no parentComponent is 
-     *                        provided, the component will be rendered under 
-     *                        this parent component.
+     * @param parent If provided, the component will be registered under this 
+     *               component. If no parent is provided, the component will be 
+     *               rendered under this parent component.
      * @param avoidRender If provided, this will force to avoid rendering the
      *                    component into the DOM tree. The client must handle
      *                    the rendering by themselves.
@@ -105,7 +109,12 @@ export interface IComponent extends ICreatable {
      *       may invoke `create()` for simplicity.
      * @panic
      */
-    createInDom(parentComponent?: IComponent, avoidRender?: boolean): void;
+    createInDom(parent?: Component, avoidRender?: boolean): void;
+
+    /**
+     * @description Reverse operation of {@link createInDom()}.
+     */
+    detachFromDom(): void;
 
     /**
      * @description Renders the content of the component. This method is the 
@@ -149,47 +158,18 @@ export interface IComponent extends ICreatable {
     layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension;
 
     /**
-     * @description Register a child {@link IComponent} into the current Component.
-     * @param override If sets to true, it will override the existed one which 
-     *                 has the same component id. Defaults to false.
-     * 
-     * @panic Throws an error if the component has already been registered and
-     *        override sets to false.
-     * @deprecated
-     */
-    registerComponent(component: IComponent, override?: boolean): void;
-
-    /**
-     * @description Determines if the component with the given id has been 
-     * registered in the current component.
-     * @param id The id of the component.
-     * 
-     * @returns If the component founded.
-     */
-    hasComponent(id: string): boolean;
-
-    /**
      * @description Returns the sub component by id.
      * @param id The string ID of the component.
      * @returns The required Component.
      * @panic If no such component exists, an error throws.
      */
-    getComponent<T extends IComponent>(id: string): T | undefined;
-
-    /**
-     * @description Unregister the component with the given id.
-     * @param id The id of the component.
-     * @note The corresponding component will not be disposed automatically.
-     * @deprecated
-     */
-    unregisterComponent(id: string): void;
+    getChild<T extends IComponent>(id: string): T | undefined;
 
     /**
      * @description Returns all the registered components that as the direct
      * children of the current component.
-     * @deprecated
      */
-    getDirectComponents(): [string, IComponent][];
+    getChildren(): [string, IComponent][];
 
     /**
      * @description Constructs and arranges child components within this 
@@ -254,7 +234,8 @@ export abstract class Component extends Themable implements IComponent {
     /**
      * Client-provided parent that the component should be rendered under.
      */
-    private _customParent?: HTMLElement;
+    private _parentContainer: HTMLElement | undefined;
+    private _parent?: Component;
 
     private readonly _element: FastElement<HTMLElement>;
     private readonly _children: Map<string, IComponent>;
@@ -303,6 +284,7 @@ export abstract class Component extends Themable implements IComponent {
         this._registered = false;
         this._children   = new Map();
         this._splitView  = undefined;
+        this._parentContainer = customParent ?? undefined;
 
         this._element = this.__register(new FastElement(document.createElement('div')));
         this._element.addClassList('component-ui');
@@ -311,17 +293,15 @@ export abstract class Component extends Themable implements IComponent {
         this._focusTracker = this.__register(new FocusTracker(this._element.raw, false));
         this.onDidFocusChange = this._focusTracker.onDidFocusChange;
 
-        this._customParent = customParent ?? undefined;
         this.logService.trace(`${this.id}`, 'UI component constructed.');
     }
 
     // [getter]
 
     get id() { return this._element.getID(); }
-
     get element() { return this._element; }
-
     get dimension() { return this._dimension; }
+    get parent() { return this._parent; }
 
     // [abstract method]
 
@@ -352,24 +332,38 @@ export abstract class Component extends Themable implements IComponent {
 
     // [public method]
 
-    public create(parentComponent?: IComponent): void {
-        this.createInDom(parentComponent);
+    public create(parent?: Component): void {
+        this.createInDom(parent);
         this.createContent();
     }
 
-    public createInDom(parentComponent?: IComponent, avoidRender: boolean = false): void {
-        check(this._isInDom     === false, 'Cannot "createInDom()" twice.');
-        check(this.isCreated()  === false, 'Must be called before "createContent()"');
-        check(this.isDisposed() === false, 'The component is already disposed.');
+    public detachFromDom(): void {
+        if (!this.isCreated()) {
+            return;
+        }
+
+        // remove from the DOM
+        this.element.remove();
+        this._isInDom = false;
+
+        // remove linking from the parent if needed
+        if (this.parent) {
+            this.parent._children.delete(this.id);
+        }
+    }
+
+    public createInDom(parent?: Component, avoidRender: boolean = false): void {
+        check(this._isInDom === false, 'Cannot "createInDom()" twice.');
         
-        if (parentComponent) {
-            parentComponent.registerComponent(this);
+        if (parent) {
+            this._parent = parent;
+            parent._children.set(this.id, this);
         }
 
         // actual rendering
         if (avoidRender === false) {
-            this._customParent = parentComponent?.element.raw ?? this._customParent ?? document.body;
-            this._customParent.appendChild(this._element.raw);
+            const actualParent = this._parentContainer ?? parent?.element.raw ?? document.body;
+            actualParent.appendChild(this._element.raw);
             this._isInDom = true;
         }
         
@@ -377,8 +371,7 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public createContent(): void {
-        check(this.isCreated()  === false, 'Cannot "createContent()" twice.');
-        check(this.isDisposed() === false, 'The component is already disposed.');
+        check(this.isCreated() === false, 'Cannot "createContent()" twice.');
 
         this.logService.trace(`${this.id}`, 'Component is about to create content...');
         this.__createContent();
@@ -411,9 +404,8 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public registerListeners(): void {
-        check(this._registered  === false, 'Cannot invoke "registerListeners()" twice.');
-        check(this._created      === true, 'Must be invoked after "createContent()".');
-        check(this.isDisposed() === false, 'The component is already disposed.');
+        check(this._registered === false, 'Cannot invoke "registerListeners()" twice.');
+        check(this._created    === true, 'Must be invoked when the component is created.');
 
         this.logService.trace(`${this.id}`, 'Component is about to register listeners...');
         this.__registerListeners();
@@ -444,24 +436,8 @@ export abstract class Component extends Themable implements IComponent {
         this._registered = true;
     }
 
-    public registerComponent(component: IComponent, override: boolean = false): void {
-        const id = component.id;
-        const registered = this._children.has(id);
-
-        if (registered) {
-            if (!override) {
-                panic('component has been already registered');
-            }
-            const deprecated = this._children.get(id)!;
-            deprecated.dispose();
-        }
-
-        this._children.set(id, component);
-        this.__register(component);
-    }
-
     public isCreated(): boolean {
-        return this._isInDom && this._created && this._registered;
+        return this._created && !this.isDisposed();
     }
 
     public setVisible(value: boolean): void {
@@ -479,11 +455,7 @@ export abstract class Component extends Themable implements IComponent {
         this._focusTracker.setFocusable(value);
     }
 
-    public hasComponent(id: string): boolean {
-        return this._children.has(id);
-    }
-
-    public getComponent<T extends IComponent>(id: string): T | undefined {
+    public getChild<T extends IComponent>(id: string): T | undefined {
         const component = this._children.get(id);
         if (!component) {
             return undefined;
@@ -491,11 +463,7 @@ export abstract class Component extends Themable implements IComponent {
         return <T>component;
     }
 
-    public unregisterComponent(id: string): void {
-        this._children.delete(id);
-    }
-
-    public getDirectComponents(): [string, IComponent][] {
+    public getChildren(): [string, IComponent][] {
         const result: [string, IComponent][] = [];
         for (const entry of this._children) {
             result.push(entry);
@@ -574,6 +542,7 @@ export abstract class Component extends Themable implements IComponent {
         for (const [id, child] of this._children) {
             child.dispose();
         }
+        this.detachFromDom();
         this._splitView?.dispose();
     }
 }
