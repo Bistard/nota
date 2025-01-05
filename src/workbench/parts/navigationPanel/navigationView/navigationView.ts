@@ -3,7 +3,7 @@ import { Component, IComponent } from 'src/workbench/services/component/componen
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
-import { Constructor} from 'src/base/common/utilities/type';
+import { Constructor } from 'src/base/common/utilities/type';
 
 export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
 
@@ -17,7 +17,7 @@ export interface INavigationViewChangeEvent {
     /**
      * The current displaying view.
      */
-    readonly view?: INavView;
+    readonly view?: NavView;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface INavigationViewService extends IComponent, IService {
      * @param id The id of the view for future look up.
      * @param viewCtor The navigation view.
      */
-    registerView(id: string, viewCtor: Constructor<INavView>): void;
+    registerView(id: string, viewCtor: Constructor<NavView>): void;
 
     /**
      * @description Unregister a view if ever registered.
@@ -57,16 +57,10 @@ export interface INavigationViewService extends IComponent, IService {
     closeView(): void;
 
     /**
-     * @description Returns the registered view by the given ID.
-     * @param id The id of the view.
-     */
-    getView<T extends INavView>(id: string): T | undefined;
-
-    /**
      * @description Returns the current displaying navigation view. Undefined is
      * returned if no views are displaying.
      */
-    currView<T extends INavView>(): T | undefined;
+    currView<T extends NavView>(): T | undefined;
 }
 
 /**
@@ -85,7 +79,7 @@ export class NavigationView extends Component implements INavigationViewService 
     /** The container that only contains the {@link INavigationView}. */
     private _viewContainer?: HTMLElement;
 
-    private readonly _viewCtors: Map<string, Constructor<INavView>>;
+    private readonly _cachedView: Map<string, Constructor<NavView> | NavView>;
 
     // [event]
 
@@ -98,20 +92,20 @@ export class NavigationView extends Component implements INavigationViewService 
         @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super('navigation-view', null, instantiationService);
-        this._viewCtors = new Map();
+        this._cachedView = new Map();
     }
 
     // [public method]
 
-    public registerView(id: string, viewCtor: Constructor<INavView>): void {
+    public registerView(id: string, viewCtor: Constructor<NavView>): void {
         this.logService.debug('NavigationViewService', `registers a view with ID: ${id}`);
 
-        if (this._viewCtors.get(id)) {
+        if (this._cachedView.get(id)) {
             this.logService.warn('NavigationViewService', `The navigation view with ID is already registered: ${id}`);
             return;
         }
 
-        this._viewCtors.set(id, viewCtor);
+        this._cachedView.set(id, viewCtor);
     }
 
     public unregisterView(id: string): boolean {
@@ -120,9 +114,9 @@ export class NavigationView extends Component implements INavigationViewService 
          * If the view is never constructed, we simply delete the registered 
          * constructor.
          */
-        const ctor = this._viewCtors.get(id);
+        const ctor = this._cachedView.get(id);
         if (ctor) {
-            this._viewCtors.delete(id);
+            this._cachedView.delete(id);
             return true;
         }
 
@@ -130,7 +124,7 @@ export class NavigationView extends Component implements INavigationViewService 
          * If the corresponding view does not exist, returns false indicates
          * the operation fails.
          */
-        const view = this.getComponent<INavView>(id);
+        const view = this.getChild<NavView>(id);
         if (!view) {
             return false;
         }
@@ -154,10 +148,6 @@ export class NavigationView extends Component implements INavigationViewService 
 
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
-        if (!view) {
-            this.logService.warn('NavigationViewService', `Cannot switch to view with ID: ${id}`);
-            return;
-        }
         this.__switchView(view);
     }
 
@@ -168,14 +158,9 @@ export class NavigationView extends Component implements INavigationViewService 
         this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
 
-    public getView<T extends INavView>(id: string): T | undefined {
-        const newView = this.__getOrConstructView<T>(id);
-        return newView;
-    }
-
-    public currView<T extends INavView>(): T | undefined {
+    public currView<T extends NavView>(): T | undefined {
         if (this._currView) {
-            return this.getComponent<T>(this._currView);
+            return this.getChild<T>(this._currView);
         }
         return undefined;
     }
@@ -194,29 +179,40 @@ export class NavigationView extends Component implements INavigationViewService 
 
     // [private helper methods]
 
-    private __getOrConstructView<T extends INavView>(id: string): T | undefined {
-        const view = this.getComponent<T>(id);
+    private __getOrConstructView<T extends NavView>(id: string): T | undefined {
+        const view = this.getChild<T>(id);
         if (view) {
             return view;
         }
 
-        const viewOrCtor = this._viewCtors.get(id);
+        const viewOrCtor = this._cachedView.get(id);
         if (!viewOrCtor) {
             return undefined;
         }
 
+        if (viewOrCtor instanceof NavView) {
+            return <T>viewOrCtor;
+        }
+
         const newView = this.instantiationService.createInstance(viewOrCtor, this._viewContainer);
-        this._viewCtors.delete(id);
+        this._cachedView.delete(id);
 
-        newView.create();
-        newView.registerListeners();
-        this.registerComponent(newView);
-
-        return newView as T;
+        return <T>newView;
     }
 
-    private __switchView(view: INavView): void {
+    private __switchView(view: NavView | undefined): void {
         if (!this._viewContainer) {
+            return;
+        }
+
+        // if no views provided, we treat it as close view.
+        if (view === undefined) {
+            this.closeView();
+            return;
+        }
+
+        // switch to the same view, do nothing.
+        if (this._currView === view.id) {
             return;
         }
 
@@ -226,7 +222,12 @@ export class NavigationView extends Component implements INavigationViewService 
         }
 
         // load the new view
-        this._viewContainer.appendChild(view.element.raw);
+        if (view.isCreated()) {
+            view.createInDom(this);
+        } else {
+            view.create(this);
+            view.registerListeners();
+        }
         this._currView = view.id;
 
         this._onDidViewChange.fire({ id: view.id, view: view });
@@ -237,25 +238,29 @@ export class NavigationView extends Component implements INavigationViewService 
             return;
         }
 
-        const currView = this.getComponent<INavView>(id)!;
-        this._viewContainer.removeChild(currView.element.raw);
+        const currView = this.getChild<NavView>(id);
+        if (!currView) {
+            return;
+        }
+
+        currView.detachFromDom();
+        this._cachedView.set(id, currView);
         this._currView = undefined;
     }
 
     private __destroyView(id: string): void {
-        const view = this.getComponent<INavView>(id);
+        const view = this.getChild<NavView>(id);
         if (view) {
-            this.unregisterComponent(id);
             view.dispose();
         }
     }
 
     private __getAnyAvailableView(): string | undefined {
-        const children = this.getDirectComponents();
-        if (children.length === 0) {
+        const children = this.getChildren();
+        if (children[0] === undefined) {
             return undefined;
         }
-        return children[0]![0];
+        return children[0][0];
     }
 }
 

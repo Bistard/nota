@@ -90,39 +90,39 @@ export class Editor extends Component implements IEditorService {
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options
-        const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
-        if (explorerView?.root) {
-            options.baseURI = URI.toFsPath(explorerView.root);
-        }
+        // const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
+        // if (explorerView?.root) {
+        //     options.baseURI = URI.toFsPath(explorerView.root);
+        // }
 
-        this.logService.debug('EditorService', 'Constructing editor...');
+        // this.logService.debug('EditorService', 'Constructing editor...');
 
-        // editor construction
-        const editor = this.instantiationService.createInstance(
-            EditorWidget, 
-            this.element.raw,
-            getBuiltInExtension(),
-            {
-                mode: EditorType.Rich,
-                writable: true,
-                dropAnimation: true,
-            },
-        );
-        this._editorWidget = editor;
+        // // editor construction
+        // const editor = this.instantiationService.createInstance(
+        //     EditorWidget, 
+        //     this.element.raw,
+        //     getBuiltInExtension(),
+        //     {
+        //         mode: EditorType.Rich,
+        //         writable: true,
+        //         dropAnimation: true,
+        //     },
+        // );
+        // this._editorWidget = editor;
 
-        this.logService.debug('EditorService', 'Editor constructed.');
+        // this.logService.debug('EditorService', 'Editor constructed.');
     }
 
     protected override async __registerListeners(): Promise<void> {
 
         // building options
-        const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
-        if (explorerView) {
-            explorerView.onDidOpen((e) => {
-                // FIX
-                // this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
-            });
-        }
+        // const explorerView = this.navigationViewService.getView<IExplorerViewService>(ExplorerViewID);
+        // if (explorerView) {
+        //     explorerView.onDidOpen((e) => {
+        //         // FIX
+        //         // this._editorWidget?.updateOptions({ baseURI: URI.toFsPath(e.path) });
+        //     });
+        // }
     }
 
     // [private helper methods]
