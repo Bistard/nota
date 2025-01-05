@@ -11,7 +11,7 @@ import { IHostService } from "src/platform/host/common/hostService";
 /**
  * An interface only for {@link Layoutable}.
  */
-export interface ILayoutable {
+export interface ILayoutable extends Themable {
     /**
      * The current dimension of the UI.
      */
@@ -96,10 +96,9 @@ export abstract class Layoutable extends Themable implements ILayoutable {
         if (width === undefined && height === undefined) {
             const element = this.getLayoutElement();
             if (!element || !DomUtility.Elements.ifInDomTree(element)) {
-                this._dimension = Dimension.None;
-            } else {
-                this._dimension = DomUtility.Positions.getClientDimension(element);
-            }
+                return (this._dimension = Dimension.None);
+            } 
+            this._dimension = DomUtility.Positions.getClientDimension(element);
         }
         // If any dimensions is provided, we force to follow it.
         else {
@@ -134,4 +133,6 @@ export abstract class Layoutable extends Themable implements ILayoutable {
             }
         }));
     }
+
+    protected override __updateStyles(): void { /** noop */ }
 }

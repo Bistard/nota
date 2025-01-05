@@ -6,7 +6,6 @@ import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { assert, check } from "src/base/common/utilities/panic";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { ISashOpts } from "src/base/browser/basic/sash/sash";
-import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { ILogService } from 'src/base/common/logger';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
@@ -279,16 +278,6 @@ export abstract class Component extends Layoutable implements IComponent {
      * subclasses should override this function.
      */
     protected abstract __registerListeners(): void;
-
-    // [protected override method]
-
-    protected override __onThemeChange(newTheme: IColorTheme): void {
-        if (this.isCreated()) {
-            super.__onThemeChange(newTheme);
-        }
-    }
-
-    protected override __updateStyles(): void { /** noop */ }
 
     // [public method]
 
