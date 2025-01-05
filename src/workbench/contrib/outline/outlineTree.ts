@@ -6,7 +6,6 @@ import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Time } from "src/base/common/date";
 import { Emitter, Register } from "src/base/common/event";
-import { URI } from "src/base/common/files/uri";
 import { Stack } from "src/base/common/structures/stack";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { assert } from "src/base/common/utilities/panic";
@@ -18,11 +17,6 @@ import { IEditorWidget } from "src/editor/editorWidget";
  * An interface only for {@link OutlineTree}.
  */
 export interface IOutlineTree extends IMultiTree<HeadingItem, void> {
-
-    /**
-     * The corresponding file.
-     */
-    readonly fileURI: URI;
 
     /**
      * Fires when the item has been hovered.
@@ -73,7 +67,6 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
     // [fields]
 
     private readonly _container: HTMLElement;
-    private readonly _fileURI: URI;
     private _hoverBox?: HTMLElement;
     private _hoverBoxScheduler!: UnbufferedScheduler<IOutlineHoverEvent>;
 
@@ -84,22 +77,15 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
         renderers: ITreeListRenderer<HeadingItem, void, any>[], 
         itemProvider: IListItemProvider<HeadingItem>, 
         opts: IOutlineTreeOptions,
-        editor: IEditorWidget,
     ) {
         const container = document.createElement('div');
         container.className = 'outline';
         parent.appendChild(container);
 
-        const model = editor.model;
-
-        // build the tree structure
-        const content = model.getContent();
-        const root = buildOutlineTree(content);
-
         // constructor
+        const root = buildOutlineTree([]);
         super(container, root.data, renderers, itemProvider, opts);
         this._container = container;
-        this._fileURI = model.source;
 
         // rendering
         this.splice(root.data, root.children);
@@ -111,8 +97,11 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
     // [public methods]
 
-    get fileURI(): URI {
-        return this._fileURI;
+    public render(editor: IEditorWidget): void {
+        const content = editor.model.getContent();
+        const root = buildOutlineTree(content);
+        this.splice(this.root, root.children);
+        this.layout();
     }
 
     public override dispose(): void {

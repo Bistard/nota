@@ -55,7 +55,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         // const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // editor construction
-        const editor = this.instantiationService.createInstance(
+        this._editorWidget = this.instantiationService.createInstance(
             EditorWidget, 
             parent,
             getBuiltInExtension(),
@@ -65,7 +65,23 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
                 dropAnimation: true,
             },
         );
-        this._editorWidget = editor;
+
+        // outline construction
+        this._outline = this.instantiationService.createInstance(
+            OutlineTree,
+            parent,
+            [new HeadingItemRenderer()],
+            new HeadingItemProvider(),
+            { 
+                transformOptimization: true,
+                collapsedByDefault: false,
+                identityProvider: {
+                    getID: heading => heading.id.toString(),
+                },
+            },
+        );
+
+        
 
         // actual render
         this.onUpdate(parent);
@@ -77,28 +93,15 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         // queue an open request
         this._pendingRequest.queue(async () => {
             const editorWidget = assert(this._editorWidget);
+            const outline = assert(this._outline);
 
             // do open
             this.logService.debug('RichTextEditor', `Opening at: ${URI.toString(uri)}`);
             await editorWidget.open(uri);
             this.logService.debug('RichTextEditor', `Open successfully at: ${URI.toString(uri)}`);
 
-            // todo: basic outline rendering, refactor later.
-            this._outline?.dispose();
-            this._outline = this.instantiationService.createInstance(
-                OutlineTree,
-                parent,
-                [new HeadingItemRenderer()],
-                new HeadingItemProvider(),
-                { 
-                    transformOptimization: true,
-                    collapsedByDefault: false,
-                    identityProvider: {
-                        getID: heading => heading.id.toString(),
-                    },
-                },
-                editorWidget,
-            );
+            // outline rendering
+            outline.render(editorWidget);
 
             return uri;
         });
