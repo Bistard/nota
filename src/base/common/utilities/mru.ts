@@ -39,6 +39,7 @@ export interface IMRU<T> {
 }
 
 export class MRU<T> implements IMRU<T> {
+    
     // [fields]
 
     private readonly _items: T[];
