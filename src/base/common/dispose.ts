@@ -355,7 +355,7 @@ class DisposableMonitor implements IDisposableMonitor {
 	private readonly _is_tracked = '$_is_disposable_tracked_';
 
 	public track(disposable: IDisposable): void {
-		const stack = new Error('[DisposableMonitor] POTENTIAL memory leak ()').stack;
+		const {stack} = new Error('[DisposableMonitor] POTENTIAL memory leak ()');
 		setTimeout(() => {
 			if (!(<any>disposable[this._is_tracked])) {
 				console.warn(stack);
