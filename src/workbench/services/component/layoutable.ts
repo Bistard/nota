@@ -2,7 +2,7 @@ import { Themable } from "src/workbench/services/theme/theme";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Dimension, IDimension } from "src/base/common/utilities/size";
-import { isNonNullable } from "src/base/common/utilities/type";
+import { isNonNullable, nullable } from "src/base/common/utilities/type";
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
@@ -51,7 +51,7 @@ export interface ILayoutable extends Themable {
      * act upon (e.g., to measure or set its dimensions). If `null` or `undefined` 
      * is returned, layout will fall back to empty dimension (width=0, height=0).
      */
-    getLayoutElement(): HTMLElement | null | undefined;
+    getLayoutElement(): HTMLElement | nullable;
 
     /**
      * @description Registers listeners (e.g., window resize, fullscreen toggle) 
@@ -88,7 +88,7 @@ export abstract class Layoutable extends Themable implements ILayoutable {
 
     // [public methods]
 
-    public abstract getLayoutElement(): HTMLElement | null | undefined;
+    public abstract getLayoutElement(): HTMLElement | nullable;
 
     public layout(width?: number, height?: number, preventDefault?: boolean, mockDimension?: IDimension): IDimension {
         

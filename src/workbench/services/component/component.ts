@@ -10,6 +10,7 @@ import { IFixedSplitViewItemOpts, IResizableSplitViewItemOpts, ISplitViewItemOpt
 import { ILogService } from 'src/base/common/logger';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { ILayoutable, Layoutable } from 'src/workbench/services/component/layoutable';
+import { nullable } from 'src/base/common/utilities/type';
 
 export interface ICreatable {
     create(): void;
@@ -258,7 +259,7 @@ export abstract class Component extends Layoutable implements IComponent {
     get element() { return this._element; }
     get parent() { return this._parent; }
 
-    public override getLayoutElement(): HTMLElement | null | undefined {
+    public override getLayoutElement(): HTMLElement | nullable {
         return this._element.raw;
     }
 

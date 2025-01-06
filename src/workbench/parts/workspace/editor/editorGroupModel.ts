@@ -2,7 +2,7 @@ import { Disposable, DisposableManager, disposeAll, IDisposable } from "src/base
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
 import { Numbers } from "src/base/common/utilities/number";
-import { AtLeastOneArray, isDefined } from "src/base/common/utilities/type";
+import { AtLeastOneArray, isDefined, nullable } from "src/base/common/utilities/type";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
@@ -203,7 +203,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     // [private methods]
 
-    protected __isEqual(first: EditorPaneModel | null | undefined, second: EditorPaneModel | null | undefined): boolean {
+    protected __isEqual(first: EditorPaneModel | nullable, second: EditorPaneModel | nullable): boolean {
         if (!first || !second) {
             return false;
         }

@@ -4,6 +4,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { ILayoutable, Layoutable } from "src/workbench/services/component/layoutable";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { nullable } from "src/base/common/utilities/type";
 
 /**
  * {@link IEditorPaneView}
@@ -55,7 +56,7 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      * The primary container that encapsulates the entire editor pane UI. This 
      * is the root element you attach DOM structures or components to.
      */
-    readonly container: HTMLElement | undefined;
+    readonly container: HTMLElement | nullable;
 
     // [subclass implementation]
    
@@ -164,7 +165,7 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
     // [public - subclass implementation]
     
     abstract get type(): string;
-    abstract get container(): HTMLElement | undefined;
+    abstract get container(): HTMLElement | nullable;
     public abstract onModel(candidate: T): boolean;
 	public abstract onRender(parent: HTMLElement): Promise<void> | void;
 	public abstract onUpdate(parent: HTMLElement): Promise<void> | void;
@@ -173,7 +174,7 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
 
     // [public - client SHOULD NOT invoke these functions]
 
-    public override getLayoutElement(): HTMLElement | null | undefined {
+    public override getLayoutElement(): HTMLElement | nullable {
         return this.container;
     }
 

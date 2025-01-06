@@ -3,6 +3,7 @@
  * Represents all the falsy value in JavaScript.
  */
 export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;
+export type nullable = null | undefined;
 
 /**
  * Represent any times that is other than falsy time.
