@@ -1,9 +1,20 @@
 
+// 1. outline width: 230px
+// 2. editor max width: 1000px
+// 3. only render outline when the container reach min width: 1000 + 230 * 2 = 1460px
+@container editor-pane-view-container (min-width: 1460px) {
+    .outline {
+        display: block !important;
+    }
+}
+
 .outline {
-    position: fixed;
-    
+    position: absolute;
+    display: none;
+
     width: 230px;
-    height: 100%; /* Adjust height to take into account the title bar */
+    height: 100%;
+    
     right: 0; /* Position on the right side of the screen */
     top: 45px;
     

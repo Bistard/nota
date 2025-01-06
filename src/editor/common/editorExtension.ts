@@ -4,6 +4,7 @@ import type { EditorSchema } from "src/editor/model/schema";
 import { Disposable } from "src/base/common/dispose";
 import { ProseDecorationSource, ProseEditorState, ProseEditorView, ProseExtension, ProseTransaction } from "src/editor/common/proseMirror";
 import { err, ok, Result } from "src/base/common/result";
+import { nullable } from "src/base/common/utilities/type";
 
 /**
  * An interface only for {@link EditorExtension}.
@@ -173,7 +174,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
      * @returns A decoration source object defining the visual modifications, or 
      * `null`/`undefined` if no decorations are to be applied.
      */
-    protected onDecoration?(state: ProseEditorState): ProseDecorationSource | null | undefined;
+    protected onDecoration?(state: ProseEditorState): ProseDecorationSource | nullable;
 
     // [public methods]
 

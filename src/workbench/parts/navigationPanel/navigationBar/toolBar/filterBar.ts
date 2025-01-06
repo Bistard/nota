@@ -34,12 +34,12 @@ export class FilterBar extends Component implements IFilterBarService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         const logo = this.__createLogo(); // TODO: test, delete later
         this.element.appendChild(logo.element);
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         
     }
 

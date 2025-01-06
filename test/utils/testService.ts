@@ -14,7 +14,7 @@ import { IBrowserEnvironmentService, IEnvironmentService, IMainEnvironmentServic
 import { ClientBase, IClientConnectEvent, ServerBase } from "src/platform/ipc/common/net";
 import { IProtocol } from "src/platform/ipc/common/protocol";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
-import { IWindowConfiguration } from "src/platform/window/common/window";
+import { IWindowConfiguration, IWindowCreationOptions } from "src/platform/window/common/window";
 import { nullObject } from "test/utils/helpers";
 import { IHostService } from "src/platform/host/common/hostService";
 import { Dictionary } from "src/base/common/utilities/type";
@@ -22,8 +22,15 @@ import { StatusKey } from "src/platform/status/common/status";
 import { panic } from "src/base/common/utilities/panic";
 import { IMainStatusService, MainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { FileService } from "src/platform/files/common/fileService";
+import { FileService, IFileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
+import { QuitReason } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
+import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
+import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
@@ -132,7 +139,7 @@ export class NullLifecycleService extends AbstractLifecycleService<number, numbe
     }
 
     public override async quit(): Promise<void> {
-        this._onBeforeQuit.fire();
+        this._onBeforeQuit.fire({ reason: QuitReason.Quit, veto: () => {} });
         this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
 }
@@ -143,7 +150,7 @@ export class NullMainLifecycleService extends AbstractLifecycleService<number, n
     }
 
     public override async quit(): Promise<void> {
-        this._onBeforeQuit.fire();
+        this._onBeforeQuit.fire({ reason: QuitReason.Quit, veto: () => {} });
         this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
 
@@ -313,6 +320,7 @@ export class NullHostService implements IHostService {
     public async toggleMaximizeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
     public async toggleFullScreenWindow(id?: number): Promise<void> { panic("Method not implemented."); }
     public async closeWindow(id?: number): Promise<void> { panic("Method not implemented."); }
+    public async reloadWindow(optionalConfiguration: Partial<IWindowCreationOptions>, id?: number): Promise<void> { panic("Method not implemented."); }
     public async showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue> { panic("Method not implemented."); }
     public async showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue> { panic("Method not implemented."); }
     public async showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue> { panic("Method not implemented."); }
@@ -340,4 +348,24 @@ export function createNullHostService(): IHostService {
     const lifecycleService = new NullMainLifecycleService();
     const statusService = new MainStatusService(fileService, logService, envService, lifecycleService);
     return new NullHostService(statusService);
+}
+
+export async function createTestConfigurationService(): Promise<IConfigurationService> {
+    const instantiationService = new InstantiationService();
+    const logService = new ConsoleLogger();
+    const fileService = new FileService(logService);
+    fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
+    const registrantService = new RegistrantService(logService);
+    registrantService.registerRegistrant(new ConfigurationRegistrant());
+    
+    instantiationService.register(IInstantiationService, instantiationService);
+    instantiationService.register(ILogService, logService);
+    instantiationService.register(IFileService, fileService);
+    instantiationService.register(IRegistrantService, registrantService);
+    
+    registrantService.init(instantiationService);
+    
+    const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: URI.join(URI.parse('file:///temp'), APP_CONFIG_NAME) } });
+    await service.init().unwrap();
+    return service;
 }

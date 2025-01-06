@@ -31,22 +31,16 @@ export const enum PresetColorTheme {
  */
 export abstract class Themable extends Disposable {
 
-    private _theme: IColorTheme;
-    protected readonly themeService: IThemeService;
-
-    constructor(themeService: IThemeService) {
+    constructor(protected readonly themeService: IThemeService) {
         super();
-        this.themeService = themeService;
-        this._theme = this.themeService.getCurrTheme();
         this.__register(themeService.onDidChangeTheme(newTheme => this.__onThemeChange(newTheme)));
     }
 
-    protected get theme() {
-        return this._theme;
+    protected get theme(): IColorTheme {
+        return this.themeService.getCurrTheme();
     }
 
     protected __onThemeChange(newTheme: IColorTheme): void {
-        this._theme = newTheme;
         this.__updateStyles();
     }
 

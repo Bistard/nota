@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require('fs');
-const { Times, Loggers, ScriptProcess } = require("../../../scripts/utility");
+const { ScriptProcess } = require("../../../scripts/utility");
 
 (async () => {
     let errCode = 0;
@@ -23,12 +23,7 @@ const { Times, Loggers, ScriptProcess } = require("../../../scripts/utility");
                     ['V8_VER', process.versions.v8 ?? 'N/A'],
                     ['NODE_VER', process.versions.node ?? 'N/A'],
                 ],
-                onStdout: (output) => {
-                    process.stdout.write(`${Times.getTime()} ${output}`);
-                },
-                onStderr: (error) => {
-                    Loggers.printRed(`${error}`);
-                }
+                stdio: "inherit",
             },
         );
         await webpack.waiting();
@@ -54,7 +49,7 @@ const { Times, Loggers, ScriptProcess } = require("../../../scripts/utility");
          */
         await (async function executeMain() {
             const executable = new ScriptProcess(
-                'executable',
+                'i18n integration executable (compiled test code)',
                 'node ./test/build/i18n/dist/main-bundle.js',
                 [],
                 [],
@@ -62,12 +57,7 @@ const { Times, Loggers, ScriptProcess } = require("../../../scripts/utility");
                     env: process.env,
                     cwd: cwd,
                     shell: true,
-                    onStdout: (output) => {
-                        process.stdout.write(`${Times.getTime()} ${output}`);
-                    },
-                    onStderr: (error) => {
-                        Loggers.printRed(`${error}`);
-                    }
+                    stdio: "inherit",
                 },
             );
             await executable.waiting();

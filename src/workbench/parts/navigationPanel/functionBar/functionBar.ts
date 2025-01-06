@@ -40,7 +40,7 @@ export class FunctionBar extends Component implements IFunctionBarService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
 
         // lower button group
         const secondaryContainer = document.createElement('div');
@@ -49,7 +49,7 @@ export class FunctionBar extends Component implements IFunctionBarService {
         this.element.appendChild(helpButton.element);
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         
     }
 

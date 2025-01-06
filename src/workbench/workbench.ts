@@ -1,10 +1,8 @@
 import 'src/workbench/workbench.scss';
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { WorkbenchLayout } from "src/workbench/layout";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
-import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { Disposable } from 'src/base/common/dispose';
 import { IContextService } from 'src/platform/context/common/contextService';
 import { IContextKey } from 'src/platform/context/common/contextKey';
@@ -27,6 +25,7 @@ import { INavigationBarService } from 'src/workbench/parts/navigationPanel/navig
 import { INavigationViewService } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFunctionBarService } from 'src/workbench/parts/navigationPanel/functionBar/functionBar';
 import { IActionBarService } from 'src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar';
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -46,7 +45,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ILogService logService: ILogService,
         @ILayoutService layoutService: ILayoutService,
         @IConfigurationService configurationService: IConfigurationService,
-        @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationPanelService navigationPanelService: INavigationPanelService,
         @INavigationBarService navigationBarService: INavigationBarService,
@@ -104,9 +102,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     /**
-     * @description calls 'create()' and '_registerListeners()' for each component.
+     * @description calls 'create()' and '__registerListeners()' for each component.
      */
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this.__createLayout();
 
         // open the side view with default one
@@ -117,7 +115,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     /**
      * @description register renderer process global listeners.
      */
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
 
         // listen to layout changes
         this.__registerLayoutListeners();

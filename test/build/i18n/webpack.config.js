@@ -1,7 +1,7 @@
 /* eslint-disable */
 const path = require('path');
 const WebpackBaseConfigurationProvider = require('../../../scripts/webpack/webpack.config.base');
-const { KeyToIndexTransformPlugin } = require('../../../scripts/build/i18n');
+const { KeyToIndexTransformPlugin } = require('../../../scripts/i18n/i18n.plugin');
 const { ScriptHelper } = require("../../../scripts/utility");
 
 
@@ -26,10 +26,12 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 watchMode: false,
                 plugins: [
                     new KeyToIndexTransformPlugin({
+                        logLevel: 'error',
                         sourceCodePath: path.resolve(this.#cwd, './test/build/i18n/src/'),
                         localeOutputPath: path.resolve(this.#cwd, './test/build/i18n/dist/locale/'),
                         localizationFileName: 'en.json',
                         lookupFileName: 'en_lookup_table.json',
+                        otherLocales: [],
                     })
                 ],
             })
@@ -43,7 +45,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
     #constructI18nIntegrationTest(baseConfiguration) {
         return Object.assign(baseConfiguration, {
             target: 'node',
-            entry: './test/build/i18n/src/main.ts',
+            entry: './test/build/i18n/src/i18nTestMain.ts',
             output: {
                 filename: '[name]-bundle.js',
                 path: path.resolve(this.#cwd, './test/build/i18n/dist/'),

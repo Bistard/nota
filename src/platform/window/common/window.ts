@@ -152,6 +152,12 @@ export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
      * If under any existed windows operation. If not, this will sets to -1.
      */
     readonly hostWindow: number;
+
+    /**
+     * Indicates the height of the title bar when frameless.
+     * @note ONLY useful in non-mac OS.
+     */
+    readonly titleBarHeight: number;
 }
 
 /**
@@ -183,7 +189,8 @@ export interface IWindowCreationOptions extends IWindowConfiguration {
 export type WindowInstanceIPCMessageMap = {
     [IpcChannel.rendererAlertError]: [error: any];
     [IpcChannel.rendererRunCommand]: [request: IWindowRunRendererCommandRequest];
-    
+    [IpcChannel.windowOnBeforeUnload]: [channels: { okChannel: string; vetoChannel: string; }];
+
     // if not predefined, fallback to general case.
     [key: string]: any[];
 };

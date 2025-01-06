@@ -1,3 +1,4 @@
+import { Time } from "src/base/common/date";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { isFunction, isObject } from "src/base/common/utilities/type";
 
@@ -7,7 +8,19 @@ import { isFunction, isObject } from "src/base/common/utilities/type";
  * functional.
  */
 export interface IDisposable {
+	/**
+	 * Ideally, this method should release all the memory hold by this object.
+	 */
 	dispose(): void;
+}
+
+export let disposableMonitor: IDisposableMonitor | undefined = undefined;
+export function monitorDisposableLeak(enable?: boolean): void {
+	if (!enable) {
+		return;
+    }
+	console.warn('[monitorDisposableLeak] enabled');
+	disposableMonitor = new DisposableMonitor();
 }
 
 export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
@@ -33,13 +46,17 @@ export class Disposable implements IDisposable {
 
 	private readonly _disposableManager = new DisposableManager();
 
-	constructor() {}
+	constructor() {
+		disposableMonitor?.track(this);
+		disposableMonitor?.bindToParent(this._disposableManager, this);
+	}
 
 	/** 
 	 * @description Disposes all the registered objects. If the object is already 
 	 * disposed, nothing will happen.
 	 */
 	public dispose(): void {
+		disposableMonitor?.markAsDisposed(this);
 		this._disposableManager.dispose();
 	}
 
@@ -71,17 +88,20 @@ export class DisposableManager implements IDisposable {
 	private readonly _disposables = new Set<IDisposable>();
 	private _disposed = false;
 
-	constructor() {}
+	constructor() {
+		disposableMonitor?.track(this);
+	}
 
 	/** 
 	 * @description Disposes all the registered objects and the current object. 
 	 */
 	public dispose(): void {
-		
 		// prevent double disposing
 		if (this._disposed) {
 			return;
 		}
+
+		disposableMonitor?.markAsDisposed(this);
 
 		// actual disposing
 		this._disposed = true;
@@ -106,6 +126,7 @@ export class DisposableManager implements IDisposable {
 			panic('cannot register the disposable object to itself');
 		}
 
+		disposableMonitor?.bindToParent(obj, this);
 		if (this._disposed) {
 			console.warn('cannot register a disposable object to a object which is already disposed');
 			return obj;
@@ -140,9 +161,14 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 }
 
 export function toDisposable(fn: () => any): IDisposable {
-	return {
-		dispose: fn
+	const disposable = {
+		dispose: () => {
+			disposableMonitor?.markAsDisposed(disposable);
+			fn();
+		}
 	};
+	disposableMonitor?.track(disposable);
+	return disposable;
 }
 
 export function isDisposable(obj: any): obj is IDisposable {
@@ -183,6 +209,9 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this._object = object ?? undefined;
 		this._children = children ?? [];
 		this._disposed = false;
+		
+		disposableMonitor?.track(this);
+		this.__trackDisposable(object, children);
 	}
 
 	// [public methods]
@@ -196,6 +225,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this._object = object;
 		
 		this.__cleanChildren();
+		this.__trackDisposable(object, undefined);
 	}
 
 	public get(): T {
@@ -203,6 +233,10 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 			panic('[SelfCleaningWrapper] no wrapping object.');
 		}
 		return this._object;
+	}
+
+	public isSet(): boolean {
+		return !!this._object;
 	}
 
 	public register(children: Disposable | Disposable[]): void {
@@ -215,6 +249,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		}
 
 		this._children.push(...children);
+		this.__trackDisposable(undefined, children);
 	}
 
 	public detach(): { obj: T, children: IDisposable[] } | undefined {
@@ -229,6 +264,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 			return;
 		}
 		this._disposed = true;
+		disposableMonitor?.markAsDisposed(this);
 		
 		this._object?.dispose();
 		this._object = undefined;
@@ -241,5 +277,119 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	private __cleanChildren(): void {
 		disposeAll(this._children);
 		this._children.length = 0;
+	}
+
+	private __trackDisposable(object?: any, children?: any[]): void {
+		object && disposableMonitor?.bindToParent(object, this);
+		children && disposableMonitor && children.forEach(child => disposableMonitor!.bindToParent(child, this));
+	}
+}
+
+/**
+ * A basic monitor to help detect potential memory leaks of {@link IDisposable} 
+ * objects.
+ * 
+ * By default, when an {@link IDisposable} is tracked via {@link track}, we 
+ * record its creation stack trace and schedule a check 5 seconds later. If at 
+ * that time the disposable has not been:
+ *   1. Marked as disposed (via {@link markAsDisposed}), or
+ *   2. Bound to a parent disposable (via {@link bindToParent}),
+ * we log the original stack trace to indicate a possible leaking disposable.
+ * 
+ * # Why Use a Delay?
+ * In many cases, disposables are properly bound or disposed shortly after they 
+ * are created. This may occur asynchronously or in a deferred manner. Using a 
+ * small time delay (5 seconds) helps avoid noisy false positives for cases 
+ * where we know the disposable will soon be disposed or registered under a parent.
+ * 
+ * # Tree-Like Hierarchy
+ * We can think of disposables forming a tree where each disposable may have 
+ * multiple child disposables that it manages. For instance:
+ * ```
+ *  rootDisposable
+ *  ├─ childDisposable1
+ *  │   └─ grandchildDisposable
+ *  ├─ childDisposable2
+ *  └─ childDisposable3
+ * ```
+ * - If the `rootDisposable` is disposed, all its children (and grandchildren, etc.) 
+ * 		are also disposed.
+ * - If a disposable is never attached to a parent and never disposed, it remains 
+ * 		“rooted” in memory and thus might cause a memory leak. This monitor 
+ * 		attempts to detect **EXACTLY** that scenario.
+ * - An untracked disposable doesn’t ALWAYS mean a true leak — sometimes it’s 
+ * 		expected that it lives for the duration of the application. You should 
+ * 		review all warnings manually.
+ * 
+ * @example
+ * // Usage:
+ * const monitor = new DisposableMonitor();
+ * 
+ * const d = toDisposable(() => console.log('clean up resources'));
+ * monitor.track(d); // start monitoring
+ * 
+ * // If d is not disposed or bound to a parent within 5s, a potential leak warning is logged.
+ */
+export interface IDisposableMonitor {
+	/**
+	 * Is called on construction of a disposable.
+	 */
+	track(disposable: IDisposable): void;
+
+	/**
+	 * Is called when a disposable is registered as child of another disposable (e.g. {@link DisposableStore}).
+	 */
+	bindToParent(child: IDisposable, parent: IDisposable | null): void;
+
+	/**
+	 * Is called after a disposable is disposed.
+	 */
+	markAsDisposed(disposable: IDisposable): void;
+}
+
+/**
+ * @internal
+ */
+class DisposableMonitor implements IDisposableMonitor {
+	
+	private readonly _is_tracked = '$_is_disposable_tracked_';
+
+	public track(disposable: IDisposable): void {
+		const {stack} = new Error('[DisposableMonitor] POTENTIAL memory leak ()');
+		setTimeout(() => {
+			if (!(<any>disposable[this._is_tracked])) {
+				console.warn(stack);
+			}
+		}, Time.sec(5).toMs().time);
+	}
+	
+	public bindToParent(child: IDisposable, parent: IDisposable | null): void {
+		this.__tryMarkTracked(child);
+	}
+	
+	public markAsDisposed(disposable: IDisposable): void {
+		this.__tryMarkTracked(disposable);
+	}
+
+	private __tryMarkTracked(disposable: IDisposable): void {
+		if (!disposable || disposable === Disposable.NONE) {
+			return;
+		}
+		
+		try {
+			(<any>disposable)[this._is_tracked] = true;
+		} catch {
+			/**
+			 * Sometimes, assigning a new property to an object can throw errors:
+			 *   - The object sealed/frozen (`Object.freeze`/`Object.seal`).
+			 *   - A native object or proxy that disallows new properties.
+			 *   - etc...
+			 * 
+			 * We use try/catch to ensure our diagnostic code doesn’t break the
+			 * application if assignment fails. If this property can’t be set,
+			 * we silently ignore it—this just means we might not be able to 
+			 * track this particular disposable’s status.
+			 */
+		}
 	}
 }
