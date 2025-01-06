@@ -5,6 +5,8 @@ import { Icons } from 'src/base/browser/icon/icons';
 import { Button } from 'src/base/browser/basic/button/button';
 import { OPERATING_SYSTEM, Platform } from 'src/base/common/platform';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IContextMenuService } from 'src/workbench/services/contextMenu/contextMenuService';
+import { MenuTypes } from 'src/platform/menu/common/menu';
 
 export const IQuickAccessBarService = createService<IQuickAccessBarService>('quick-access-bar-service');
 
@@ -25,6 +27,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
+        @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super('quick-access-bar', null, instantiationService);
     }
@@ -45,10 +48,26 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     // [private methods]
 
     private __createMenuButton(): Button {
+        const button = this.__renderMenuButton();
+        this.__registerMenuButton(button);
+        return button;
+    }
+
+    private __renderMenuButton(): Button {
         const button = new Button({
             id: 'menu', icon: Icons.Menu, classes: ['menu-button']
         });
         button.render(document.createElement('div'));
         return button;
+    }
+
+    private __registerMenuButton(button: Button): void {
+        this.__register(button.onDidClick(() => {
+            this.contextMenuService.showContextMenu({
+                getAnchor: () => button.element,
+                getContext: () => undefined,
+                menu: MenuTypes.TitleBar,
+            });
+        }));
     }
 }
