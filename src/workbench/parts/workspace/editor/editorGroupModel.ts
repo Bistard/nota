@@ -159,7 +159,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     public getEditors(order: 'sequential' | 'mru'): EditorPaneModel[] {
         return order === 'sequential' 
-            ? this._editors.slice(0) 
+            ? this._editors.slice() 
             : this._mru.getItems()
         ;
     }
