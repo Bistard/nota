@@ -3,6 +3,62 @@ import { IS_MAC } from "src/base/common/platform";
 import { MenuTypes, IMenuItemRegistration } from "src/platform/menu/common/menu";
 import { AllCommands } from "src/workbench/services/workbench/commandList";
 
+// Title Bar Menu
+export const menuTitleBarRegister = createRegister(
+    RegistrantType.Menu,
+    'menuTitleBarRegister',
+    (registrant) => {
+        const menuItems: IMenuItemRegistration[] = [
+            {
+                group: '_',
+                title: 'File',
+                submenu: MenuTypes.TitleBarFile,
+                command: { commandID: "", },
+            },
+            {
+                group: '_',
+                title: 'Edit',
+                submenu: MenuTypes.TitleBarEdit,
+                command: { commandID: "", },
+            },
+            {
+                group: '_',
+                title: 'Selection',
+                submenu: MenuTypes.TitleBarSelection,
+                command: { commandID: "", },
+            },
+            {
+                group: '_',
+                title: 'Insert',
+                submenu: MenuTypes.TitleBarInsert,
+                command: { commandID: "", },
+            },
+            {
+                group: '_',
+                title: 'Format',
+                submenu: MenuTypes.TitleBarFormat,
+                command: { commandID: "", },
+            },
+            {
+                group: '_',
+                title: 'View',
+                submenu: MenuTypes.TitleBarView,
+                command: { commandID: "", },
+            },
+            {
+                group: '_',
+                title: 'Help',
+                submenu: MenuTypes.TitleBarHelp,
+                command: { commandID: "", },
+            },
+        ];
+
+        for (const item of menuItems) {
+            registrant.registerMenuItem(MenuTypes.TitleBar, item);
+        }
+    }
+); 
+
 // Application Menu (For macOS)
 export const menuTitleApplicationRegister = createRegister(
     RegistrantType.Menu,
