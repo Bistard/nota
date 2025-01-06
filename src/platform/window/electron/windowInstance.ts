@@ -13,7 +13,8 @@ import { IMainStatusService } from "src/platform/status/electron/mainStatusServi
 import { StatusKey } from "src/platform/status/common/status";
 import { IScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { mixin } from "src/base/common/utilities/object";
-import { OngoingPromise } from "src/base/common/utilities/async";
+import { delayFor, OngoingPromise } from "src/base/common/utilities/async";
+import { Time } from "src/base/common/date";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -455,6 +456,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             SafeIpcMain.instance.once(okChannel, () => resolve(false));
 			/** veto from renderer */
             SafeIpcMain.instance.once(vetoChannel, () => resolve(true));
+
+            // max timeout: we treat the renderer did not veto.
+            delayFor(Time.sec(5), () => resolve(false));
 
             // notify renderer: onBeforeUnload
 			this.sendIPCMessage(IpcChannel.windowOnBeforeUnload, { okChannel, vetoChannel });
