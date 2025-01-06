@@ -66,8 +66,7 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
             const rerender = editor.setModel(model);
             if (rerender) {
                 if (!reuse) {
-                    await editor.onInitialize();
-                    editor.onRender(this._container);
+                    await editor.onRender(this._container);
                 } else {
                     await editor.onUpdate(this._container);
                 }

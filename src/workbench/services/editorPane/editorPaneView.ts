@@ -1,7 +1,9 @@
 import type { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
-import { AutoDisposable, Disposable } from "src/base/common/dispose";
+import { AutoDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
+import { ILayoutable, Layoutable } from "src/workbench/services/component/layoutable";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 /**
  * {@link IEditorPaneView}
@@ -24,7 +26,7 @@ import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneMod
  * @override Subclasses may extends this base class to override certain behaviors.
  * @see {@link IEditorPaneRegistrant}
  */
-export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> extends Disposable {
+export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> extends ILayoutable {
 
     /**
      * @event
@@ -74,14 +76,15 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
     onModel(candidate: T): boolean;
 
     /**
-     * @description Called when the view is rendered for the first time. This is 
-     * where subclasses implement their initial UI construction or DOM manipulation.
+     * @description Called when the view is rendered for the first time. Use 
+     * this hook to perform one-time rendering or asynchronous tasks that need 
+     * to be completed for the first time.
      * 
      * @override Subclasses must implement this method to render content 
      *           into the given parent element.
      * @param parent The parent HTML element to render into.
      */
-    onRender(parent: HTMLElement): void;
+    onRender(parent: HTMLElement): Promise<void> | void;
 
     /**
      * @description Called if and only if a new model is bound to this editor, 
@@ -106,18 +109,6 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
      * @param model The new model being set.
      */
     shouldUpdate(model: T): boolean;
-
-    /**
-     * @description Called only once, right before the first rendering. Use this 
-     * hook to perform one-time setups or asynchronous tasks that need to be 
-     * completed before rendering.
-     * 
-     * @override Subclasses may implement this if they have setup steps, 
-     *           especially asynchronous tasks.
-     * @example 
-     * Loading external resources or caching data needed for rendering.
-     */
-    onInitialize(): Promise<void> | void;
 
     /**
      * @description Called whenever the editor's visibility changes, for example 
@@ -146,7 +137,7 @@ export interface IEditorPaneView<T extends EditorPaneModel = EditorPaneModel> ex
     setModel(newModel: T): boolean;
 }
 
-export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel> extends Disposable implements IEditorPaneView<T> {
+export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel> extends Layoutable implements IEditorPaneView<T> {
 
     // [event]
 
@@ -159,8 +150,10 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
 
     // [constructor]
 
-    constructor() {
-        super();
+    constructor(
+        @IInstantiationService instantiationService: IInstantiationService,
+    ) {
+        super(instantiationService);
         this._model = this.__register(new AutoDisposable());
     }
 
@@ -173,13 +166,16 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
     abstract get type(): string;
     abstract get container(): HTMLElement | undefined;
     public abstract onModel(candidate: T): boolean;
-	public abstract onRender(parent: HTMLElement): void;
+	public abstract onRender(parent: HTMLElement): Promise<void> | void;
 	public abstract onUpdate(parent: HTMLElement): Promise<void> | void;
     public abstract shouldUpdate(model: T): boolean;
-    public abstract onInitialize(): void;
     public abstract onVisibility(visibility: boolean): Promise<void> | void;
 
     // [public - client SHOULD NOT invoke these functions]
+
+    public override getLayoutElement(): HTMLElement | null | undefined {
+        return this.container;
+    }
 
     public setModel(newModel: T): boolean {
         

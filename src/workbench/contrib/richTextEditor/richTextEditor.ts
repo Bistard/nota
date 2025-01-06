@@ -30,10 +30,10 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
 
     constructor(
         @ILogService private readonly logService: ILogService,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IInstantiationService instantiationService: IInstantiationService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
-        super();
+        super(instantiationService);
     }
 
     // [getter]
@@ -41,6 +41,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
     override get type(): string { return 'RichTextEditorPane'; }
 
     override get container(): HTMLElement | undefined {
+        // FIX: should not be editor, but a new container that includes outline
         return tryOrDefault(undefined, () => this._editorWidget?.view.editor.container);
     }
 
@@ -81,7 +82,10 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
             },
         );
 
-        
+        this.registerAutoLayout();
+        this.__register(this.onDidLayout(() => {
+            this._outline?.layout();
+        }));
 
         // actual render
         this.onUpdate(parent);
@@ -113,10 +117,6 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
             return false;
         }
         return true;
-    }
-    
-    public override onInitialize(): void {
-        // TODO
     }
 
     public override onVisibility(visibility: boolean): void {
