@@ -13,9 +13,7 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('button-background');
 
         // utility
-        registrant.registerTemplate('search-bar-border');
         registrant.registerTemplate('search-bar-icon');
-        registrant.registerTemplate('search-bar-placeholder');
         registrant.registerTemplate('menu-background');
         registrant.registerTemplate('menu-border');
         registrant.registerTemplate('menu-item-disabled');

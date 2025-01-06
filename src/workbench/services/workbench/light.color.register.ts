@@ -20,8 +20,6 @@ export const rendererLightThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.LightModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
-        registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-border', THEME_COLORS.mediumTeal);
-        registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.LightModern, 'search-bar-icon', THEME_COLORS.subtext); 
         registrant.registerColor(PresetColorTheme.LightModern, 'menu-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.LightModern, 'menu-border', THEME_COLORS.middle);
