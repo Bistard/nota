@@ -1,51 +1,55 @@
 import 'src/workbench/parts/workspace/workspace.scss';
-import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
-import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
+import { Component } from "src/workbench/services/component/component";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { Orientation } from 'src/base/browser/basic/dom';
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
+import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
+import { EditorGroupView } from 'src/workbench/parts/workspace/editor/editorGroupView';
+import { assert } from 'src/base/common/utilities/panic';
+import { IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editor/editorGroupModel';
 
-export class WorkspaceView extends Component implements IWorkspaceService {
+export class Workspace extends Component implements IWorkspaceService {
 
     declare _serviceMarker: undefined;
+
+    // [field]
+
+    private _groupView?: EditorGroupView;
 
     // [constructor]
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        @ITabBarService private readonly tabBarService: ITabBarService,
-        @IEditorService private readonly editorService: IEditorService,
     ) {
         super('workspace', null, instantiationService);
     }
 
-    // [protected override methods]
-
-    protected override _createContent(): void {
-        this.__assembleParts();
+    public override dispose(): void {
+        super.dispose();
     }
 
-    protected override _registerListeners(): void { 
+    // [protected override methods]
+
+    protected override __createContent(): void {
+        this._groupView = this.instantiationService.createInstance(
+            EditorGroupView, 
+            this.element.raw,
+            {
+                editorToOpen: [],
+                mostRecentUsed: 0,
+            }
+        );
+    }
+
+    protected override __registerListeners(): void { 
         /** noop */ 
+    }
+
+    // [public methods]
+
+    public async openEditor(model: EditorPaneModel, options: IEditorGroupOpenOptions): Promise<void> {
+        const groupView = assert(this._groupView);
+        await groupView.openEditor(model, options);
     }
     
     // [private helper methods]
-
-    private __assembleParts(): void {
-        const layout: IAssembleComponentOpts[] = [];
-        layout.push({
-            component: this.tabBarService,
-            fixed: true,
-            fixedSize: TabBarView.TAB_BAR_HEIGHT,
-        });
-        layout.push({
-            component: this.editorService,
-            initSize: null,
-            maximumSize: null,
-            minimumSize: null,
-        });
-
-        this.assembleComponents(Orientation.Vertical, layout);
-    }
 }

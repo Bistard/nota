@@ -1,6 +1,5 @@
 import 'src/workbench/workbench.scss';
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { IComponentService } from "src/workbench/services/component/componentService";
 import { WorkbenchLayout } from "src/workbench/layout";
 import { IWorkbenchService } from "src/workbench/services/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
@@ -46,7 +45,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ILogService logService: ILogService,
         @ILayoutService layoutService: ILayoutService,
         @IConfigurationService configurationService: IConfigurationService,
-        @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @INavigationPanelService navigationPanelService: INavigationPanelService,
         @INavigationBarService navigationBarService: INavigationBarService,
@@ -104,9 +102,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     /**
-     * @description calls 'create()' and '_registerListeners()' for each component.
+     * @description calls 'create()' and '__registerListeners()' for each component.
      */
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this.__createLayout();
 
         // open the side view with default one
@@ -117,7 +115,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     /**
      * @description register renderer process global listeners.
      */
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
 
         // listen to layout changes
         this.__registerLayoutListeners();

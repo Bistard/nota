@@ -3,7 +3,6 @@ import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
-import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
 import { Disposable, monitorDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
@@ -36,9 +35,7 @@ import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
-import { Editor } from "src/workbench/parts/workspace/editor/editor";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { WorkspaceView } from "src/workbench/parts/workspace/workspace";
+import { Workspace } from "src/workbench/parts/workspace/workspace";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
@@ -59,7 +56,6 @@ import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigation
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
-import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
 import { monitorEmitterListenerGC } from "src/base/common/event";
@@ -72,7 +68,7 @@ import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
-import { ITabBarService, TabBarView } from "src/workbench/parts/workspace/tabBar/tabBar";
+import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -206,9 +202,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         );
         instantiationService.register(IConfigurationService, configurationService);
 
-        // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
-
         // i18n-service
         const i18nService = instantiationService.createInstance(I18nService, 
             WIN_CONFIGURATION.nlsConfiguration, 
@@ -262,15 +255,12 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
-        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceView            , []));
-        registerService(ITabBarService            , new ServiceDescriptor(TabBarView               , []));
-        registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(Workspace                , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
         registerService(IFileTreeMetadataService  , new ServiceDescriptor(FileTreeService          , []));
         registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
-        registerService(IOutlineService           , new ServiceDescriptor(OutlineService           , []));
     
         // utilities && tools
         registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
@@ -296,6 +286,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
         registrant.registerRegistrant(service.createInstance(ColorRegistrant));
         registrant.registerRegistrant(service.createInstance(MenuRegistrant));
+        registrant.registerRegistrant(service.createInstance(EditorPaneRegistrant));
 
         // initialize all the registrations
         registrant.init(service);

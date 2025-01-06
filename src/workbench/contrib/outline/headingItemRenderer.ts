@@ -5,7 +5,7 @@ import { FuzzyScore } from "src/base/common/fuzzy";
 import { Icons } from "src/base/browser/icon/icons";
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { HeadingItem } from "src/workbench/services/outline/headingItem";
+import { HeadingItem } from "src/workbench/contrib/outline/headingItem";
 
 const HeadingItemRendererType = 'heading-item';
 

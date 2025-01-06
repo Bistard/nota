@@ -22,9 +22,15 @@ import { StatusKey } from "src/platform/status/common/status";
 import { panic } from "src/base/common/utilities/panic";
 import { IMainStatusService, MainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
-import { FileService } from "src/platform/files/common/fileService";
+import { FileService, IFileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
 import { QuitReason } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
+import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IRegistrantService, RegistrantService } from "src/platform/registrant/common/registrantService";
+import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
@@ -342,4 +348,24 @@ export function createNullHostService(): IHostService {
     const lifecycleService = new NullMainLifecycleService();
     const statusService = new MainStatusService(fileService, logService, envService, lifecycleService);
     return new NullHostService(statusService);
+}
+
+export async function createTestConfigurationService(): Promise<IConfigurationService> {
+    const instantiationService = new InstantiationService();
+    const logService = new ConsoleLogger();
+    const fileService = new FileService(logService);
+    fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
+    const registrantService = new RegistrantService(logService);
+    registrantService.registerRegistrant(new ConfigurationRegistrant());
+    
+    instantiationService.register(IInstantiationService, instantiationService);
+    instantiationService.register(ILogService, logService);
+    instantiationService.register(IFileService, fileService);
+    instantiationService.register(IRegistrantService, registrantService);
+    
+    registrantService.init(instantiationService);
+    
+    const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: URI.join(URI.parse('file:///temp'), APP_CONFIG_NAME) } });
+    await service.init().unwrap();
+    return service;
 }

@@ -44,7 +44,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
     
     // [protected methods]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         if (OPERATING_SYSTEM !== Platform.Mac) {
             this._menuButton = this.__register(this.__createMenuButton());
             this.element.appendChild(this._menuButton.element);
@@ -53,7 +53,7 @@ export class QuickAccessBar extends Component implements IQuickAccessBarService 
         this.element.appendChild(searchBar);
     }
 
-    protected override _registerListeners(): void {}
+    protected override __registerListeners(): void {}
 
     // [private methods]
 

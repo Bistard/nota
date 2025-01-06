@@ -218,6 +218,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             displayOptions: defaultDisplayState(this.screenMonitorService.getPrimaryMonitorInfo()),
             forceNewWindow: false,
             ownerWindow: undefined,
+            titleBarHeight: 40,
         };
 
         /**

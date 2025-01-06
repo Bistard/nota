@@ -11,11 +11,12 @@ import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/n
 import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
-import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
 import { FixedArray } from 'src/base/common/utilities/type';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { II18nService } from 'src/platform/i18n/browser/i18nService';
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
+import { TextEditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -57,7 +58,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IInstantiationService instantiationService: IInstantiationService,
         @IDialogService private readonly dialogService: IBrowserDialogService,
         @II18nService private readonly i18nService: II18nService,
-        @IEditorService private readonly editorService: IEditorService,
+        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
@@ -122,7 +123,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         /**
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
@@ -138,8 +139,8 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         }
     }
 
-    protected override _registerListeners(): void {
-        super._registerListeners();
+    protected override __registerListeners(): void {
+        super.__registerListeners();
 
         /**
          * No need to register listeners initially, since `__loadCurrentView` 
@@ -273,7 +274,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
         // on opening file.
         disposables.register(this.fileTreeService.onSelect(e => {
-            this.editorService.openSource(e.item.uri);
+            this.workspaceService.openEditor(new TextEditorPaneModel(e.item.uri), {});
         }));
     }
 }

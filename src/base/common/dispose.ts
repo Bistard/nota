@@ -235,6 +235,10 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		return this._object;
 	}
 
+	public isSet(): boolean {
+		return !!this._object;
+	}
+
 	public register(children: Disposable | Disposable[]): void {
 		if (!this._object) {
 			panic('[SelfCleaningWrapper] cannot bind children to no objects.');

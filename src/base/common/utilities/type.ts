@@ -3,6 +3,7 @@
  * Represents all the falsy value in JavaScript.
  */
 export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;
+export type nullable = null | undefined;
 
 /**
  * Represent any times that is other than falsy time.
@@ -315,6 +316,11 @@ export type AtLeastNArray<T, N extends number, R extends T[] = []> =
     R['length'] extends N 
         ? ConcatArray<R, T[]>
         : AtLeastNArray<T, N, [T, ...R]>;
+
+/**
+ * Represent an array of type T with at least length 1.
+ */
+export type AtLeastOneArray<T> = AtLeastNArray<T, 1>;
 
 /**
  * An alias for {@link TupleOf}.

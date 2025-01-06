@@ -1,3 +1,4 @@
+import "src/workbench/contrib/outline/outline.scss";
 import { EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
@@ -5,23 +6,17 @@ import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Time } from "src/base/common/date";
 import { Emitter, Register } from "src/base/common/event";
-import { URI } from "src/base/common/files/uri";
 import { Stack } from "src/base/common/structures/stack";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 import { assert } from "src/base/common/utilities/panic";
 import { isNonNullable } from "src/base/common/utilities/type";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { HeadingItem } from "src/workbench/services/outline/headingItem";
+import { HeadingItem } from "src/workbench/contrib/outline/headingItem";
+import { IEditorWidget } from "src/editor/editorWidget";
 
 /**
  * An interface only for {@link OutlineTree}.
  */
 export interface IOutlineTree extends IMultiTree<HeadingItem, void> {
-
-    /**
-     * The corresponding file.
-     */
-    readonly fileURI: URI;
 
     /**
      * Fires when the item has been hovered.
@@ -72,30 +67,25 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
     // [fields]
 
     private readonly _container: HTMLElement;
-    private readonly _fileURI: URI;
     private _hoverBox?: HTMLElement;
     private _hoverBoxScheduler!: UnbufferedScheduler<IOutlineHoverEvent>;
 
     // [constructor]
 
     constructor(
-        container: HTMLElement,
+        parent: HTMLElement,
         renderers: ITreeListRenderer<HeadingItem, void, any>[], 
         itemProvider: IListItemProvider<HeadingItem>, 
         opts: IOutlineTreeOptions,
-        @IEditorService editorService: IEditorService,
     ) {
-        const editor = assert(editorService.editor, '`OutlineTree` cannot be initialized when the EditorService is not initialized.');
-        const model = assert(editor.model, '`OutlineTree` cannot be initialized when the editor is not built.');
-        
-        // build the tree structure
-        const content = model.getContent();
-        const root = buildOutlineTree(content);
+        const container = document.createElement('div');
+        container.className = 'outline';
+        parent.appendChild(container);
 
         // constructor
+        const root = buildOutlineTree([]);
         super(container, root.data, renderers, itemProvider, opts);
         this._container = container;
-        this._fileURI = model.source;
 
         // rendering
         this.splice(root.data, root.children);
@@ -107,8 +97,16 @@ export class OutlineTree extends MultiTree<HeadingItem, void> implements IOutlin
 
     // [public methods]
 
-    get fileURI(): URI {
-        return this._fileURI;
+    public render(editor: IEditorWidget): void {
+        const content = editor.model.getContent();
+        const root = buildOutlineTree(content);
+        this.splice(this.root, root.children);
+        this.layout();
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this._container.remove();
     }
 
     // [private helper methods]

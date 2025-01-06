@@ -9,7 +9,7 @@ import { ServiceCollection } from "src/platform/instantiation/common/serviceColl
 export const IInstantiationService = createService<IInstantiationService>('instantiation-service');
 
 /**
- * NonServiceParameters
+ * {@link NonServiceParameters}
  * 
  * A utility type to extract non-service parameters from a given tuple. This 
  * recursively checks the tuple elements from right to left (because tuple types 
@@ -31,19 +31,18 @@ export type NonServiceParameters<TArgs extends any[]> =
 
 
 /**
- * InstantiationRequiredParameters
+ * {@link InstantiationRequiredParameters}
  * 
- * A utility type to extract non-service constructor parameters from a given abstract constructor type.
- * This type leverages `NonServiceParameters` to perform the extraction.
+ * A utility type to extract non-service constructor parameters from a given 
+ * abstract constructor type.
  * 
- * @template T - An abstract constructor whose parameter types are to be extracted.
+ * @template T An abstract constructor whose parameter types are to be extracted.
  * 
  * @example
  * ```typescript
  * abstract class MyClass {
  *     constructor(arg1: string, arg2: IService, arg3: number) {}
  * }
- * 
  * type RequiredParams = InstantiationRequiredParameters<typeof MyClass>;  // RequiredParams will be [string, number]
  * ```
  */

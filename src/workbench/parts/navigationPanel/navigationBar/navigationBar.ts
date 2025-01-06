@@ -44,7 +44,7 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
 
         // Register buttons along with future development
         // Now registered one in layout.ts - EXPLORE folder icon
@@ -65,9 +65,8 @@ export class NavigationBar extends Component implements INavigationBarService {
         this.assembleComponents(Orientation.Vertical, partConfigurations); 
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         const searchBar = assert(this.quickAccessBarService.getSearchBar());
-        const toolBar = assert(this.toolBarService.getComponent);
         this.__register(searchBar.onDidFocus(() => {
             console.log("switching to filterBar");
             this.toolBarService.switchTo(ToolBarType.Filter);
