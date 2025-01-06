@@ -51,13 +51,13 @@ export interface IContextMenuDelegateBase {
      * Determines the primary axis of positioning (either vertical or horizontal) 
      * when calculating the view's position.
      * 
-     * @default AnchorPrimaryAxisAlignment.Vertical
-     * 
      * For an example, when sets to horizontal, the program will first to decide 
      * either place the view on the left or right relative to the anchor（based 
      * on {@link AnchorHorizontalPosition}. If the view intersects with the 
      * anchor, the secondary positioning strategy (vertical) is applied to the 
      * vertical axis to avoid overlapping (based on {@link AnchorVerticalPosition}).
+     * 
+     * @default AnchorPrimaryAxisAlignment.Vertical
      */
     readonly primaryAlignment?: AnchorPrimaryAxisAlignment;
 
