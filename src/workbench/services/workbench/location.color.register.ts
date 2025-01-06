@@ -49,15 +49,7 @@ export const rendererThemeLocationRegister = createRegister(
         registrant.registerTemplate('explorer-item-selected-foreground');
         registrant.registerTemplate('explorer-item-selected-background');
         registrant.registerTemplate('explorer-item-hovered-background');
-        registrant.registerTemplate('explorer-item-grag-image-background');
-        registrant.registerTemplate('filter-by-tag-icon');
-        registrant.registerTemplate('filter-by-tag-text');
-        registrant.registerTemplate('file-button-background');
-        registrant.registerTemplate('file-button-background-hover');
-        registrant.registerTemplate('file-button-foreground');
-        registrant.registerTemplate('file-button-foreground-hover');
-        registrant.registerTemplate('file-button-foreground-active');
-        registrant.registerTemplate('file-button-box-shadow-active');
+        registrant.registerTemplate('explorer-item-drag-image-background');
 
         // Workspace
         registrant.registerTemplate('outline-primary-text');

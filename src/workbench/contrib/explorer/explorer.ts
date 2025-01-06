@@ -1,18 +1,14 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
+import { addDisposableListener, EventType } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
-import { Disposable, DisposableManager } from 'src/base/common/dispose';
-import { Icons } from 'src/base/browser/icon/icons';
+import { DisposableManager } from 'src/base/common/dispose';
 import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
-import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Button, IButton } from 'src/base/browser/basic/button/button';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
-import { FixedArray } from 'src/base/common/utilities/type';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { II18nService } from 'src/platform/i18n/browser/i18nService';
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
@@ -44,7 +40,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
-    private readonly _actionBar: FileActionBar;
 
     // [event]
 
@@ -64,8 +59,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
         super(ExplorerViewID, parentElement, instantiationService);
-        this._actionBar = new FileActionBar();
-        this.__register(this._actionBar);
     }
 
     // [getter]
@@ -231,9 +224,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
 
-        // renders file-button-bar
-        this._actionBar.render(view);
-
         return view;
     }
 
@@ -276,119 +266,5 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         disposables.register(this.fileTreeService.onSelect(e => {
             this.workspaceService.openEditor(new TextEditorPaneModel(e.item.uri), {});
         }));
-    }
-}
-
-class FileActionBar extends Disposable {
-
-    // [fields]
-
-    private readonly _element: HTMLElement;
-    private readonly _leftButtons: WidgetBar<IButton>;
-    private readonly _rightButtons: WidgetBar<IButton>;
-    private readonly _filterByTagButtons: WidgetBar<IButton>;
-
-    // [constructor]
-
-    constructor() {
-        super();
-
-        this._element = document.createElement('div');
-        this._element.className = 'file-button-bar';
-
-        const [left, right, filters] = this.__constructButtons({
-            orientation: Orientation.Horizontal,
-            render: false,
-        });
-
-        this._leftButtons = this.__register(left);
-        this._rightButtons = this.__register(right);
-        this._filterByTagButtons = this.__register(filters);
-    }
-
-    // [public methods]
-
-    public override dispose(): void {
-        super.dispose();
-        this._element.remove();
-    }
-
-    public render(parent: HTMLElement): void {
-        
-        // file-button-bar
-        {
-            const fileButtonBarContainer = document.createElement('div');
-            fileButtonBarContainer.className = 'file-button-bar-container';
-
-            this._leftButtons.render(fileButtonBarContainer);
-            this._rightButtons.render(fileButtonBarContainer);
-            this._element.appendChild(fileButtonBarContainer);
-        }
-
-        // filter-by-tag
-        {
-            const filterByTagContainer = document.createElement('div');
-            filterByTagContainer.className = 'filter-by-tag-container';
-
-            const filterByTagText = document.createElement('div');
-            filterByTagText.textContent = 'Filter by Tag';
-            filterByTagText.className = 'filter-by-tag-text';
-            
-            this._filterByTagButtons.render(filterByTagContainer);
-            filterByTagContainer.appendChild(filterByTagText);
-            this._element.appendChild(filterByTagContainer);
-        }
-        
-        parent.appendChild(this._element);
-    }
-
-    // [private method]
-
-    private __buttonOnClick(button: IButton): void {
-        button.element.classList.toggle('clicked');
-    }
-
-    private __constructButtons(buttonOpts: IWidgetBarOptions): FixedArray<WidgetBar<IButton>, 3> {
-        const leftButtons        = new WidgetBar<IButton>('left-buttons', buttonOpts);
-        const rightButtons       = new WidgetBar<IButton>('right-buttons', buttonOpts);
-        const filterByTagButtons = new WidgetBar<IButton>('filter-by-tag', buttonOpts);
-        
-        const buttonOnClick = (button: IButton) => this.__buttonOnClick(button);
-
-        [
-            {
-                group: leftButtons,
-                buttons: [
-                    { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: buttonOnClick },
-                    { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: buttonOnClick },
-                ],
-            },
-            {
-                group: rightButtons,
-                buttons: [
-                    { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: buttonOnClick },
-                    { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: buttonOnClick },
-                ],
-            },
-            {
-                group: filterByTagButtons,
-                buttons: [
-                    { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: undefined },
-                ],
-            },
-        ]
-        .forEach(({ group, buttons }) => {
-            for (const { id, icon, classes, fn } of buttons) {
-                const button = new Button({ id, icon, classes });
-                button.onDidClick(() => fn?.(button));
-                group.addItem({ 
-                    id: id, 
-                    data: button, 
-                    dispose: () => button.dispose()
-                });
-            }
-        });
-
-        return [leftButtons, rightButtons, filterByTagButtons];
     }
 }
