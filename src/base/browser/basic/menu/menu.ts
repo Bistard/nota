@@ -527,14 +527,14 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private _submenuContainer?: FastElement<HTMLElement>;
     private _submenu?: IMenu;
-    private _submenuDisposables: DisposableManager;
+    private _submenuLifecycle: DisposableManager;
 
     // [constructor]
 
     constructor(menu: IMenu, submenuCtor: Constructor<MenuDecorator> = MenuWithSubmenu) {
         super(menu);
         this._submenuCtor = submenuCtor;
-        this._submenuDisposables = new DisposableManager();
+        this._submenuLifecycle = new DisposableManager();
 
         this._menu.addActionItemProvider((action: MenuAction) => {
             if (action.type === MenuItemType.Submenu) {
@@ -571,8 +571,8 @@ export class MenuWithSubmenu extends MenuDecorator {
 
         this._submenuContainer?.dispose();
         this._submenuContainer = undefined;
-        this._submenuDisposables.dispose();
-        this._submenuDisposables = new DisposableManager();
+        this._submenuLifecycle.dispose();
+        this._submenuLifecycle = new DisposableManager();
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
@@ -682,17 +682,17 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
 
         // key-down
-        this._submenuContainer.onKeydown((e) => {
+        this._submenuLifecycle.register(this._submenuContainer.onKeydown((e) => {
             const event = createStandardKeyboardEvent(e);
 
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
             }
-        });
+        }));
 
         // key-up
-        this._submenuContainer.onKeyup((e) => {
+        this._submenuLifecycle.register(this._submenuContainer.onKeyup((e) => {
             const event = createStandardKeyboardEvent(e);
             
             // left-arrow
@@ -701,10 +701,10 @@ export class MenuWithSubmenu extends MenuDecorator {
                 this.__closeCurrSubmenu();
                 this.__focusParentMenu();
             }
-        });
+        }));
 
         // on-did-close
-        this._submenuDisposables.register(this._submenu.onDidClose(() => {
+        this._submenuLifecycle.register(this._submenu.onDidClose(() => {
             this.__closeCurrSubmenu();
         }));
     }

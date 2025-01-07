@@ -348,59 +348,59 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     protected __registerListeners(): void {
 
         // prevent default context menu event on each menu item
-        this.element.onContextmenu(e => {
+        this.__register(this.element.onContextmenu(e => {
             DomEventHandler.stop(e, true);
-        });
+        }));
 
         // mouseout event
-        this.element.onMouseover((e) => {
+        this.__register(this.element.onMouseover((e) => {
             if (!this._mouseover) {
                 this._onMouseover.fire(e);
                 this._mouseover = true;
             }
-        });
+        }));
 
         // mouseleave event
-        this.element.onMouseleave((e) => {
+        this.__register(this.element.onMouseleave((e) => {
             this._mouseover = false;
             this._onMouseleave.fire(e);
-        });
+        }));
 
         // hovering effect (mouseover)
-        this.onMouseover((e) => {
+        this.__register(this.onMouseover((e) => {
             this._onDidHover.fire({ event: e, hovering: true });
-        });
+        }));
 
         // hovering effect (mouseleave)
-        this.onMouseleave((e) => {
+        this.__register(this.onMouseleave((e) => {
             this._onDidHover.fire({ event: e, hovering: false });
-        });
+        }));
 
         // add 'active' properly
-        this.element.onMousedown(e => {
+        this.__register(this.element.onMousedown(e => {
             DomEventHandler.stop(e, true);
             if (DomEventHandler.isLeftClick(e)) {
                 this.element.addClassList('active');
             }
-        });
+        }));
 
         // handle click event
-        this.element.onClick(e => {
+        this.__register(this.element.onClick(e => {
             DomEventHandler.stop(e, true);            
             this.onClick(e);
-        });
+        }));
 
         // prevent double click
-        this.element.onDoubleClick(e => {
+        this.__register(this.element.onDoubleClick(e => {
             DomEventHandler.stop(e, true);
-        });
+        }));
 
         // remove 'active' properly
         [this.element.onMouseup, this.element.onMouseout].forEach(onEvent => {
-			onEvent.call(this.element, (e) => {
+			this.__register(onEvent.call(this.element, (e) => {
                 DomEventHandler.stop(e, true);
                 this.element.removeClassList('active');
-            });
+            }));
 		});
 
         /**
@@ -411,11 +411,11 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
          * quick access in quick navigation mode).
          */
         if (IS_MAC) {
-			this.element.onContextmenu(e => {
+			this.__register(this.element.onContextmenu(e => {
 				if (DomEventHandler.isLeftClick(e) && e.ctrlKey === true) {
 					this.onClick(e);
 				}
-			});
+			}));
 		}
     }
 }
@@ -610,28 +610,28 @@ export class SubmenuItem extends AbstractMenuItem {
         // keep the default behaviors too
         super.__registerListeners();
 
-        this.onMouseover(() => {
+        this.__register(this.onMouseover(() => {
             if (!this._mouseover || !this._delegate.isSubmenuActive()) {
                 this._hideScheduler.cancel();
                 this._showScheduler.schedule();
             }
-        });
+        }));
 
-        this.onMouseleave(() => {
+        this.__register(this.onMouseleave(() => {
             this._showScheduler.cancel();
             this._hideScheduler.schedule();
-        });
+        }));
 
         // capture right arrow to open the submenu
-        this.element.onKeydown(e => {
+        this.__register(this.element.onKeydown(e => {
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
 			}
-        });
+        }));
 
         // try to open the submenu when right arrowing
-        this.element.onKeyup(e => {
+        this.__register(this.element.onKeyup(e => {
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
@@ -640,7 +640,7 @@ export class SubmenuItem extends AbstractMenuItem {
                     this._showScheduler.schedule(undefined, INSTANT_TIME);
                 }
 			}
-        });
+        }));
     }
 
     // [private helper methods]
