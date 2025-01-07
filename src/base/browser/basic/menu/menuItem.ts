@@ -3,7 +3,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
-import { INSTANT_TIME, Time } from "src/base/common/date";
+import { Time } from "src/base/common/date";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -536,8 +536,22 @@ export class SubmenuItem extends AbstractMenuItem {
 
     declare public readonly action: SubmenuAction;
 
-    private readonly _showScheduler: UnbufferedScheduler<void>;
-    private readonly _hideScheduler: UnbufferedScheduler<void>;
+    /**
+     * Make sure schedulers are universal across different {@link SubmenuItem}s
+     * to ensure the only way to control show/hide submenu.
+     */
+    private static readonly _showScheduler = new UnbufferedScheduler<SubmenuItem>(SubmenuItem.SHOW_DELAY, menu => {
+        menu._delegate.closeCurrSubmenu();
+        menu._delegate.openNewSubmenu(menu.element.raw, menu.action.actions);
+    });
+    private static readonly _hideScheduler = new UnbufferedScheduler<SubmenuItem>(SubmenuItem.HIDE_DELAY, menu => {
+        const active = DomUtility.Elements.getActiveElement();
+        if (menu._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(menu.element.raw, active)) {
+            menu._delegate.closeCurrSubmenu();
+            menu._delegate.focusParentMenu();
+            menu._mouseover = false;
+        }
+    });
     private readonly _delegate: ISubmenuDelegate;
 
     // [constructor]
@@ -545,32 +559,12 @@ export class SubmenuItem extends AbstractMenuItem {
     constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
         super(action);
         this._delegate = delegate;
-        
-        // scheduling initialization
-        {
-            this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DELAY, () => {
-                this._delegate.closeCurrSubmenu();
-                this._delegate.openNewSubmenu(this.element.raw, this.action.actions);
-            });
-
-            this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DELAY, () => {
-                const active = DomUtility.Elements.getActiveElement();
-                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.raw, active)) {
-                    this._delegate.closeCurrSubmenu();
-                    this._delegate.focusParentMenu();
-                    this._mouseover = false;
-                }
-            });
-
-            this.__register(this._showScheduler);
-            this.__register(this._hideScheduler);
-        }
     }
 
     // [public methods]
 
     public override run(context?: unknown): void {
-        this._showScheduler.schedule(undefined, INSTANT_TIME);
+        SubmenuItem._showScheduler.schedule(this, Time.INSTANT);
     }
 
     /**
@@ -578,7 +572,7 @@ export class SubmenuItem extends AbstractMenuItem {
      */
     public override onClick(event: MouseEvent): void {
         DomEventHandler.stop(event, true);
-        this._showScheduler.schedule(undefined, INSTANT_TIME);
+        SubmenuItem._showScheduler.schedule(this, Time.INSTANT);
     }
 
     public override dispose(): void {
@@ -612,14 +606,14 @@ export class SubmenuItem extends AbstractMenuItem {
 
         this.__register(this.onMouseover(() => {
             if (!this._mouseover || !this._delegate.isSubmenuActive()) {
-                this._hideScheduler.cancel();
-                this._showScheduler.schedule();
+                SubmenuItem._hideScheduler.cancel();
+                SubmenuItem._showScheduler.schedule(this);
             }
         }));
-
+        
         this.__register(this.onMouseleave(() => {
-            this._showScheduler.cancel();
-            this._hideScheduler.schedule();
+            SubmenuItem._showScheduler.cancel();
+            SubmenuItem._hideScheduler.schedule(this);
         }));
 
         // capture right arrow to open the submenu
@@ -637,12 +631,9 @@ export class SubmenuItem extends AbstractMenuItem {
 				DomEventHandler.stop(event, true);
                 // prevent double opening
                 if (!this._delegate.isSubmenuActive()) {
-                    this._showScheduler.schedule(undefined, INSTANT_TIME);
+                    SubmenuItem._showScheduler.schedule(this, Time.INSTANT);
                 }
 			}
         }));
     }
-
-    // [private helper methods]
-
 }
