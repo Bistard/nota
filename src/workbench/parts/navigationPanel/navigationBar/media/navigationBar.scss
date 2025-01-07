@@ -8,6 +8,7 @@
     height: 100%;
 
     .split-view {
+        // FIX: weird number, need documentation.
         width: 98.5% !important;
         -webkit-app-region: drag; /* draggable */
     }
