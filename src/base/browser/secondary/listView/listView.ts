@@ -462,6 +462,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
                     renderer.dispose(item.row.metadata);
                 }
             }
+            item.dragStart?.dispose();
         }
         this._items = [];
 

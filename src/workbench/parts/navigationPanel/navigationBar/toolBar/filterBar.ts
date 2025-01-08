@@ -35,7 +35,7 @@ export class FilterBar extends Component implements IFilterBarService {
     // [protected override method]
 
     protected override __createContent(): void {
-        const logo = this.__createLogo(); // TODO: test, delete later
+        const logo = this.__register(this.__createLogo()); // TODO: test, delete later
         this.element.appendChild(logo.element);
     }
 

@@ -355,19 +355,20 @@ export class SplitView extends Disposable implements ISplitView {
                 sash.enable = false;
             }
             
-            // TODO: lifecycle maintenance
-            sash.onDidEnd(() => {
+            // listeners
+            sash.register(sash.onDidEnd(() => {
                 this.__onDidSashEnd(sash);
                 this._onDidSashEnd.fire({ sash, index: this.sashItems.indexOf(sash) });
-            });
-            sash.onDidMove(e => {
+            }));
+            sash.register(sash.onDidMove(e => {
                 this.__onDidSashMove(e, sash);
                 this._onDidSashMove.fire({ sash, index: this.sashItems.indexOf(sash) });
-            });
-            sash.onDidReset(() => {
+            }));
+            sash.register(sash.onDidReset(() => {
                 this._onDidSashReset.fire({ sash, index: this.sashItems.indexOf(sash) });
-            });
+            }));
 
+            // store the sash
             this.sashItems.splice(opt.index, 0, sash);
         }
 

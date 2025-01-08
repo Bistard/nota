@@ -14,13 +14,13 @@ export interface IDisposable {
 	dispose(): void;
 }
 
-export let disposableMonitor: IDisposableMonitor | undefined = undefined;
+export let monitor: IDisposableMonitor | undefined = undefined;
 export function monitorDisposableLeak(enable?: boolean): void {
 	if (!enable) {
 		return;
     }
 	console.warn('[monitorDisposableLeak] enabled');
-	disposableMonitor = new DisposableMonitor();
+	monitor = new DisposableMonitor();
 }
 
 export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
@@ -47,8 +47,8 @@ export class Disposable implements IDisposable {
 	private readonly _disposableManager = new DisposableManager();
 
 	constructor() {
-		disposableMonitor?.track(this);
-		disposableMonitor?.bindToParent(this._disposableManager, this);
+		monitor?.track(this);
+		monitor?.bindToParent(this._disposableManager, this);
 	}
 
 	/** 
@@ -56,7 +56,7 @@ export class Disposable implements IDisposable {
 	 * disposed, nothing will happen.
 	 */
 	public dispose(): void {
-		disposableMonitor?.markAsDisposed(this);
+		monitor?.markAsDisposed(this);
 		this._disposableManager.dispose();
 	}
 
@@ -80,6 +80,14 @@ export class Disposable implements IDisposable {
 		}
 		return this._disposableManager.register(obj);
 	}
+
+	/**
+	 * @description Make possible the client may also register disposable object
+	 * publicly, ensure they share the same lifecycle.
+	 */
+	public register<T extends IDisposable>(obj: T): T {
+		return this.__register(obj);
+	}
 }
 
 /** @description A manager to maintain all the registered disposables. */
@@ -89,7 +97,7 @@ export class DisposableManager implements IDisposable {
 	private _disposed = false;
 
 	constructor() {
-		disposableMonitor?.track(this);
+		monitor?.track(this);
 	}
 
 	/** 
@@ -101,7 +109,7 @@ export class DisposableManager implements IDisposable {
 			return;
 		}
 
-		disposableMonitor?.markAsDisposed(this);
+		monitor?.markAsDisposed(this);
 
 		// actual disposing
 		this._disposed = true;
@@ -126,7 +134,7 @@ export class DisposableManager implements IDisposable {
 			panic('cannot register the disposable object to itself');
 		}
 
-		disposableMonitor?.bindToParent(obj, this);
+		monitor?.bindToParent(obj, this);
 		if (this._disposed) {
 			console.warn('cannot register a disposable object to a object which is already disposed');
 			return obj;
@@ -163,11 +171,11 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 export function toDisposable(fn: () => any): IDisposable {
 	const disposable = {
 		dispose: () => {
-			disposableMonitor?.markAsDisposed(disposable);
+			monitor?.markAsDisposed(disposable);
 			fn();
 		}
 	};
-	disposableMonitor?.track(disposable);
+	monitor?.track(disposable);
 	return disposable;
 }
 
@@ -210,7 +218,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this._children = children ?? [];
 		this._disposed = false;
 		
-		disposableMonitor?.track(this);
+		monitor?.track(this);
 		this.__trackDisposable(object, children);
 	}
 
@@ -239,7 +247,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		return !!this._object;
 	}
 
-	public register(children: Disposable | Disposable[]): void {
+	public register(children: IDisposable | IDisposable[]): void {
 		if (!this._object) {
 			panic('[SelfCleaningWrapper] cannot bind children to no objects.');
 		}
@@ -264,7 +272,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 			return;
 		}
 		this._disposed = true;
-		disposableMonitor?.markAsDisposed(this);
+		monitor?.markAsDisposed(this);
 		
 		this._object?.dispose();
 		this._object = undefined;
@@ -280,8 +288,8 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	}
 
 	private __trackDisposable(object?: any, children?: any[]): void {
-		object && disposableMonitor?.bindToParent(object, this);
-		children && disposableMonitor && children.forEach(child => disposableMonitor!.bindToParent(child, this));
+		object && monitor?.bindToParent(object, this);
+		children && monitor && children.forEach(child => monitor!.bindToParent(child, this));
 	}
 }
 
@@ -352,12 +360,12 @@ export interface IDisposableMonitor {
  */
 class DisposableMonitor implements IDisposableMonitor {
 	
-	private readonly _is_tracked = '$_is_disposable_tracked_';
+	public static readonly IS_TRACKED = '$_is_disposable_tracked_';
 
 	public track(disposable: IDisposable): void {
-		const {stack} = new Error('[DisposableMonitor] POTENTIAL memory leak ()');
+		const { stack } = new Error('[DisposableMonitor] POTENTIAL memory leak');
 		setTimeout(() => {
-			if (!(<any>disposable[this._is_tracked])) {
+			if (!(<any>disposable[DisposableMonitor.IS_TRACKED])) {
 				console.warn(stack);
 			}
 		}, Time.sec(5).toMs().time);
@@ -377,7 +385,7 @@ class DisposableMonitor implements IDisposableMonitor {
 		}
 		
 		try {
-			(<any>disposable)[this._is_tracked] = true;
+			(<any>disposable)[DisposableMonitor.IS_TRACKED] = true;
 		} catch {
 			/**
 			 * Sometimes, assigning a new property to an object can throw errors:

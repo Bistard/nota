@@ -48,12 +48,12 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, instantiationService);
-        this._collapseController = new CollapseAnimationController(
+        this._collapseController = this.__register(new CollapseAnimationController(
             CollapseState.Expand, 
             this.element,
             () => assert(this._splitView),
             () => assert(this.dimension),
-        );
+        ));
     }
 
     // [public methods]
