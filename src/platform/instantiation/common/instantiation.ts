@@ -1,3 +1,4 @@
+import { Disposable } from "src/base/common/dispose";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
@@ -79,7 +80,7 @@ export interface IServiceProvider {
 /**
  * An interface only for {@link InstantiationService}.
  */
-export interface IInstantiationService extends IServiceProvider, IService {
+export interface IInstantiationService extends IServiceProvider, IService, Disposable {
     
     readonly serviceCollections: ServiceCollection;
     readonly parent?: InstantiationService;
@@ -157,7 +158,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
 }
 
 
-export class InstantiationService implements IInstantiationService {
+export class InstantiationService extends Disposable implements IInstantiationService {
 
     declare _serviceMarker: undefined;
 
@@ -176,7 +177,8 @@ export class InstantiationService implements IInstantiationService {
         serviceCollections?: ServiceCollection, 
         parent?: InstantiationService,
     ) {
-        this.serviceCollections = serviceCollections ?? new ServiceCollection();
+        super();
+        this.serviceCollections = this.__register(serviceCollections ?? new ServiceCollection());
         this.parent = parent;
     }
 
