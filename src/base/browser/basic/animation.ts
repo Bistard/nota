@@ -1,4 +1,4 @@
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { IDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { Callable } from "src/base/common/utilities/type";
 
 /**
@@ -45,13 +45,15 @@ export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDi
     );
     
     const token = doRequestAnimationFrame.call(window, callback);
-    return toDisposable(() => {
-        if (window) {
-            window.cancelAnimationFrame(token);
-        } else {
-            clearTimeout(token);
-        }
-    });
+    return untrackDisposable(
+        toDisposable(() => {
+            if (window) {
+                window.cancelAnimationFrame(token);
+            } else {
+                clearTimeout(token);
+            }
+        })
+    );
 };
 
 /**

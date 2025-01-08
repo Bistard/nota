@@ -690,7 +690,7 @@ export class ServerBase extends Disposable implements IChannelServer {
  * 
  * Built upon of a {@link ChannelClient}.
  */
-export class ClientBase implements IDisposable, IChannelClient {
+export class ClientBase extends Disposable implements IChannelClient {
 
     // [field]
 
@@ -699,6 +699,7 @@ export class ClientBase implements IDisposable, IChannelClient {
     // [constructor]
 
     constructor(protocol: IProtocol, id: string, connect: ITask<void>) {
+        super();
         connect();
 
         /**
@@ -709,17 +710,13 @@ export class ClientBase implements IDisposable, IChannelClient {
         serializer.serialize<true, true>(id);
         protocol.send(serializer.buffer);
 
-        this._channelClient = new ChannelClient(protocol);
+        this._channelClient = this.__register(new ChannelClient(protocol));
     }
 
     // [public methods]
 
     public getChannel(channel: ChannelType): IChannel {
         return this._channelClient.getChannel(channel);
-    }
-
-    public dispose(): void {
-        this._channelClient.dispose();
     }
 }
 

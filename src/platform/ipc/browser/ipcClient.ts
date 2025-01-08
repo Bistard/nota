@@ -25,8 +25,8 @@ export class IpcClient extends ClientBase {
     }
 
     public override dispose(): void {
-        IpcClient._disposable.dispose();
         super.dispose();
+        IpcClient._disposable.dispose();
     }
 
     // [private helper methods]

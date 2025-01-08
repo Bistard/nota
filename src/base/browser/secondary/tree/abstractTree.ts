@@ -902,7 +902,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._model = this.createModel(rootData, this._view, opts);
         
         // updates traits in the tree-level after each splice
-        this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider));
+        this.__register(this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider)));
 
         // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);

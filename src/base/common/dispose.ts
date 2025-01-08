@@ -14,12 +14,12 @@ export interface IDisposable {
 	dispose(): void;
 }
 
-export let monitor: IDisposableMonitor | undefined = undefined;
+let monitor: IDisposableMonitor | undefined = undefined;
 export function monitorDisposableLeak(enable?: boolean): void {
 	if (!enable) {
 		return;
     }
-	console.warn('[monitorDisposableLeak] enabled');
+	console.info('[monitorDisposableLeak] enabled');
 	monitor = new DisposableMonitor();
 
 	GlobalDisposable = untrackDisposable(new class extends Disposable {
