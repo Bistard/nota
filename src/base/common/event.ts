@@ -594,9 +594,13 @@ export namespace Event {
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
         const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
-            const allDisposables = registers.map(register => register(listener, disposables, thisArgs));
-            const parentDisposable = toDisposable(() => disposeAll(allDisposables));
-            return parentDisposable;            
+            const parent = new DisposableManager();
+            registers.map(register => {
+                const disposable = register(listener, disposables, thisArgs);
+                parent.register(disposable);
+                return disposable;
+            });
+            return parent;            
         };
         return newRegister;
     }
