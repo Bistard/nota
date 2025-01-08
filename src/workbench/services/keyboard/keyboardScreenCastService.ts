@@ -1,6 +1,6 @@
 import 'src/workbench/services/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -47,7 +47,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     private _prevEvent?: IStandardKeyboardEvent;
     private _visibilityController: VisibilityController;
 
-    private _disposables: DisposableManager;
+    private _disposables: DisposableBucket;
 
     // [constructor]
 
@@ -58,7 +58,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
         this._active = false;
         this._imeInput = false;
-        this._disposables = new DisposableManager();
+        this._disposables = new DisposableBucket();
     }
 
     // [public methods]
@@ -142,7 +142,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         }
 
         this._disposables.dispose();
-        this._disposables = new DisposableManager();
+        this._disposables = new DisposableBucket();
 
         this._active = false;
     }

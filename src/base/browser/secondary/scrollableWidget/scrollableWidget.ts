@@ -4,7 +4,7 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { assert } from "src/base/common/utilities/panic";
@@ -199,7 +199,7 @@ class TouchController implements IDisposable {
 
     private readonly _widget: ScrollableWidget;
     private readonly _scrollbar: AbstractScrollbar;
-    private readonly _disposables: DisposableManager;
+    private readonly _disposables: DisposableBucket;
     private _currPosition: number;
 
     // [event]
@@ -214,7 +214,7 @@ class TouchController implements IDisposable {
         this._widget = widget;
         this._scrollbar = scrollbar;
         this._currPosition = -1;
-        this._disposables = new DisposableManager();
+        this._disposables = new DisposableBucket();
         
         if (!widget.element) {
             return;
@@ -227,7 +227,7 @@ class TouchController implements IDisposable {
                 return;
             }
 
-            const disposables = new DisposableManager();
+            const disposables = new DisposableBucket();
             const touch = assert(event.changedTouches[0]);
             this._currPosition = this._scrollbar.getTouchPosition(touch);
 

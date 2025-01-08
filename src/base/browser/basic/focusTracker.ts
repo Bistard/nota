@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Event, Register } from "src/base/common/event";
 

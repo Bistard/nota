@@ -5,7 +5,7 @@ import { addDisposableListener, EventType } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
-import { DisposableManager } from 'src/base/common/dispose';
+import { DisposableBucket } from 'src/base/common/dispose';
 import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
@@ -39,7 +39,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * A disposable that contains all the UI related listeners of the current 
      * view.
      */
-    private _currentListeners = new DisposableManager();
+    private _currentListeners = new DisposableBucket();
 
     // [event]
 
@@ -155,7 +155,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         if (!this._currentView) {
             this._currentView = view;
             this.element.appendChild(view);
-            this._currentListeners = new DisposableManager();
+            this._currentListeners = new DisposableBucket();
 
             if (isEmpty) {
                 this.__registerEmptyViewListeners();

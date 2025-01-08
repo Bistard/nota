@@ -1,6 +1,6 @@
 import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
-import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
 import { createFinalizationRegistry } from "src/base/common/garbageCollection";
@@ -384,7 +384,7 @@ export class DelayableEmitter<T> extends Emitter<T> {
  */
 export class SignalEmitter<T, E> extends Emitter<E> { 
 
-    private disposables = new DisposableManager();
+    private disposables = new DisposableBucket();
     private logicHandler: (event: T) => E;
 
     constructor(events: Register<T>[], logicHandler: (event: T) => E) {
@@ -594,7 +594,7 @@ export namespace Event {
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
         const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
-            const parent = new DisposableManager();
+            const parent = new DisposableBucket();
             registers.map(register => {
                 const disposable = register(listener, disposables, thisArgs);
                 parent.register(disposable);

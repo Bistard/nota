@@ -1,6 +1,6 @@
 import "src/base/browser/basic/sash/sash.scss";
 import { AbstractSashController, HorizontalSashController, IAbstractSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
+import { Disposable, DisposableBucket } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/structures/range";
@@ -446,20 +446,20 @@ export class Sash extends Disposable implements ISash {
         })
         .catch(() => {}); // cath cancel error
 
-        const disposables = new DisposableManager();
+        const bucket = new DisposableBucket();
         
         let mouseenter = true;
         let mousedown = false;
 
-        disposables.register(addDisposableListener(this._element, EventType.mouseenter, () => mouseenter = true));
-        disposables.register(addDisposableListener(this._element, EventType.mousedown, () => mousedown = true));
-        disposables.register(addDisposableListener(window, EventType.mouseup, () => {
+        bucket.register(addDisposableListener(this._element, EventType.mouseenter, () => mouseenter = true));
+        bucket.register(addDisposableListener(this._element, EventType.mousedown, () => mousedown = true));
+        bucket.register(addDisposableListener(window, EventType.mouseup, () => {
             mousedown = false;
             if (!mouseenter) {
                 cleanup();
             }
         }));
-        disposables.register(addDisposableListener(this._element, EventType.mouseout, () => {
+        bucket.register(addDisposableListener(this._element, EventType.mouseout, () => {
             mouseenter = false;
             if (!mousedown) {
                 cleanup();
@@ -468,7 +468,7 @@ export class Sash extends Disposable implements ISash {
 
         const cleanup = () => {
             this._hovering = false;
-            disposables.dispose();
+            bucket.dispose();
             cancellable.cancel();
             this._element.classList.remove('hover');
         };

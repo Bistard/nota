@@ -1,6 +1,6 @@
 import { Color } from "src/base/common/color";
 import { INSTANT_TIME, Time } from "src/base/common/date";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { Shortcut } from "src/base/common/keyboard";
@@ -36,7 +36,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     private readonly _initProtector: InitProtector;
     private _currentListenTo?: InspectorDataType;
-    private _lifecycle: DisposableManager;
+    private _lifecycle: DisposableBucket;
     private readonly _syncScheduler: UnbufferedScheduler<InspectorDataType>;
 
     // [constructor]
@@ -51,7 +51,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
         this.shortcutRegistrant = this.registrantService.getRegistrant(RegistrantType.Shortcut);
         this.menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
-        this._lifecycle = new DisposableManager();
+        this._lifecycle = new DisposableBucket();
         this._initProtector = new InitProtector();
         this._syncScheduler = new UnbufferedScheduler(Time.ms(500), async listenToDataType => {
             const data = await this.__transformData(listenToDataType);
@@ -95,7 +95,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     public stopListenTo(): void {
         this._lifecycle.dispose();
-        this._lifecycle = new DisposableManager();
+        this._lifecycle = new DisposableBucket();
         this._currentListenTo = undefined;
     }
 
@@ -123,7 +123,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
     }
 
     private __registerChangeListeners(listenToDataType: InspectorDataType): IDisposable {
-        const listeners = new DisposableManager();
+        const listeners = new DisposableBucket();
         const schedule = () => this._syncScheduler.schedule(listenToDataType);
         switch (listenToDataType) {
             case InspectorDataType.Configuration:

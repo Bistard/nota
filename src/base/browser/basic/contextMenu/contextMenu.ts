@@ -2,7 +2,7 @@ import "src/base/browser/basic/contextMenu/contextMenu.scss";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { AnchorAbstractPosition, AnchorMode, calcViewPositionAlongAxis, IAnchorBox } from "src/base/browser/basic/view";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, LooseDisposableBucket, IDisposable } from "src/base/common/dispose";
 import { Range } from "src/base/common/structures/range";
 import { IDomBox, IPosition } from "src/base/common/utilities/size";
 
@@ -162,7 +162,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     /** The delegate that handles external business logics */
     private _currDelegate?: IContextMenuDelegate;
     
-    private _currContainerDisposables: IDisposable = Disposable.NONE;
+    private readonly _currContainerLifecycle: LooseDisposableBucket;
     private _currRenderContentDisposables: IDisposable = Disposable.NONE;
 
     // [constructor]
@@ -172,6 +172,8 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this._element = this.__register(new FastElement(document.createElement('div')));
         this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setPosition('absolute');
+
+        this._currContainerLifecycle = this.__register(new LooseDisposableBucket());
 
         DomUtility.Modifiers.hide(this._element.raw);
         this.setContainer(container);
@@ -183,7 +185,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         
         // remove the context menu from the old container
         if (this._currContainer) {
-            this._currContainerDisposables.dispose();
+            this._currContainerLifecycle.dispose();
             this._currContainer.removeChild(this._element.raw);
             this._currContainer = undefined;
         }
@@ -194,17 +196,13 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         
         // register the context menu events
         {
-            const disposables = new DisposableManager();
-        
-            disposables.register(
+            this._currContainerLifecycle.register(
                 addDisposableListener(this._element.raw, EventType.click, (e) => {
                     if (!DomUtility.Elements.isAncestor(this._element.raw, <Node>e.target)) {
                         this.destroy();
                     }
                 })
             );
-
-            this._currContainerDisposables = disposables;
         }
     }
 

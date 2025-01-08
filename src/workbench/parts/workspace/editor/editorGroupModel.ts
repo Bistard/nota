@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, disposeAll, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, disposeAll, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
 import { Numbers } from "src/base/common/utilities/number";
@@ -470,7 +470,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     }
 
     private __registerModelListeners(model: EditorPaneModel): void {
-        const lifecycle = new DisposableManager();
+        const lifecycle = new DisposableBucket();
         this._editorListeners.add(lifecycle);
 
         // todo: EDITOR_DIRTY bind

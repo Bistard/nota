@@ -9,7 +9,7 @@ import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type
 import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
-import { DisposableManager } from "src/base/common/dispose";
+import { DisposableBucket } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { panic } from "src/base/common/utilities/panic";
 
@@ -527,14 +527,14 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private _submenuContainer?: FastElement<HTMLElement>;
     private _submenu?: IMenu;
-    private _submenuLifecycle: DisposableManager;
+    private _submenuLifecycle: DisposableBucket;
 
     // [constructor]
 
     constructor(menu: IMenu, submenuCtor: Constructor<MenuDecorator> = MenuWithSubmenu) {
         super(menu);
         this._submenuCtor = submenuCtor;
-        this._submenuLifecycle = new DisposableManager();
+        this._submenuLifecycle = new DisposableBucket();
 
         this._menu.addActionItemProvider((action: MenuAction) => {
             if (action.type === MenuItemType.Submenu) {
@@ -572,7 +572,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         this._submenuContainer?.dispose();
         this._submenuContainer = undefined;
         this._submenuLifecycle.dispose();
-        this._submenuLifecycle = new DisposableManager();
+        this._submenuLifecycle = new DisposableBucket();
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {

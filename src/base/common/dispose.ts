@@ -44,11 +44,11 @@ export class Disposable implements IDisposable {
 
 	public static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
 
-	private readonly _disposableManager = new DisposableManager();
+	private readonly _bucket = new DisposableBucket();
 
 	constructor() {
 		monitor?.track(this);
-		monitor?.bindToParent(this._disposableManager, this);
+		monitor?.bindToParent(this._bucket, this);
 	}
 
 	/** 
@@ -57,14 +57,14 @@ export class Disposable implements IDisposable {
 	 */
 	public dispose(): void {
 		monitor?.markAsDisposed(this);
-		this._disposableManager.dispose();
+		this._bucket.dispose();
 	}
 
 	/** 
 	 * @description Determines if the current object is disposed already. 
 	 */
 	public isDisposed(): boolean {
-		return this._disposableManager.disposed;
+		return this._bucket.disposed;
 	}
 
 	/**
@@ -78,7 +78,7 @@ export class Disposable implements IDisposable {
 		if (obj && (obj as IDisposable) === this) {
 			panic('cannot register the disposable object to itself');
 		}
-		return this._disposableManager.register(obj);
+		return this._bucket.register(obj);
 	}
 
 	/**
@@ -90,6 +90,15 @@ export class Disposable implements IDisposable {
 	}
 }
 
+/**
+ * A lightweight container for managing multiple {@link IDisposable} objects.
+ * 
+ * @note
+ * This class is suitable for scenarios where you want to collect a set of
+ * disposables and dispose them all at once, without strictly preventing further
+ * registration or re-disposal attempts. For a stricter variant, see
+ * {@link DisposableBucket}.
+ */
 export class LooseDisposableBucket implements IDisposable {
 	
 	private readonly _disposables = new Set<IDisposable>();
@@ -122,10 +131,16 @@ export class LooseDisposableBucket implements IDisposable {
 	}
 }
 
-/** 
- * @description A manager to maintain all the registered disposables. 
+/**
+ * A stricter container for managing multiple {@link IDisposable} objects,
+ * extending {@link LooseDisposableBucket} by introducing a "disposed" state.
+ * 
+ * @remarks
+ * This class is ideal for scenarios where you want a one-time, all-or-nothing
+ * dispose action. After the first dispose call, no new disposables are accepted,
+ * ensuring there is a clear “end of life” for this bucket and all children.
  */
-export class DisposableManager extends LooseDisposableBucket {
+export class DisposableBucket extends LooseDisposableBucket {
 
 	private _disposed = false;
 
