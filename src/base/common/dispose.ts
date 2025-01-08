@@ -21,7 +21,21 @@ export function monitorDisposableLeak(enable?: boolean): void {
     }
 	console.warn('[monitorDisposableLeak] enabled');
 	monitor = new DisposableMonitor();
+
+	GlobalDisposable = untrackDisposable(new class extends Disposable {
+		public override dispose(): void { /** meant NOT be disposed */ }
+	});
 }
+
+/**
+ * A global (highest-level) disposable root that should bound with all the 
+ * child disposables that are meant to share the same lifecycle with the entire
+ * application.
+ * 
+ * @note Will be defined when the disposable memory leak check is on.
+ * @note This disposable meant NOT be disposed ever.
+ */
+let GlobalDisposable: Disposable | undefined = undefined;
 
 /**
  * @readonly The lifecycle of a disposable object is controlled by the client. A
@@ -228,14 +242,25 @@ export function isDisposable(obj: any): obj is IDisposable {
  * @description If you have a top-level (root) {@link IDisposable} whose 
  * lifecycle is:
  * 		1. manually controlled by your own logic (not registered under any other 
- * 		   {@link IDisposable}),
- * 		2. or meant to share the same lifecycle with the whole application and
- * 		   should never get disposed.
- * In either cases, use this function is a proper way to handle it and make sure 
+ * 		   {@link IDisposable}).
+ * Then use this function is a proper way to handle it and make sure 
  * memory-leak monitor does not catch this as false positive.
  */
 export function untrackDisposable<T extends IDisposable>(obj: T): T {
 	monitor?.untrack(obj);
+	return obj;
+}
+
+/**
+ * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is:
+ * 		1. meant to share the same lifecycle with the whole application and
+ * 		   should never get disposed.
+ * Then use this function is a proper way to handle it and make sure 
+ * memory-leak monitor does not catch this as false positive.
+ */
+export function asGlobalDisposable<T extends IDisposable>(obj: T): T {
+	GlobalDisposable?.register(obj);
 	return obj;
 }
 
