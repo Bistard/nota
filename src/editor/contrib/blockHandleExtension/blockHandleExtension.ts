@@ -140,7 +140,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             widget.addItem({
                 id: id,
                 data: button,
-                dispose: button.dispose.bind(button),
+                disposable: button,
             });
         }
 
@@ -149,7 +149,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         widget.addItem({
             id: dragButton.id,
             data: dragButton,
-            dispose: () => dragButtonLifecycle.dispose(),
+            disposable: dragButtonLifecycle,
         });
         this.__initDragButton(view, dragButton, dragButtonLifecycle);
 

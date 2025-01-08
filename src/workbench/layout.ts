@@ -166,14 +166,14 @@ class CollapseAnimationController extends Disposable {
         this._container = element;
         this._container.toggleClassName('collapsed', initState === CollapseState.Collapse);
 
-        this._button = new ToggleCollapseButton({
+        this._button = this.__register(new ToggleCollapseButton({
             initState: initState,
             positionX: {
                 position: DirectionX.Left,
                 offset: 12,
             },
             direction: DirectionX.Left,
-        });
+        }));
     }
 
     // [getter]

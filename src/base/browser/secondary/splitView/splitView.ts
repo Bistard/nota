@@ -1,7 +1,7 @@
 import "src/base/browser/secondary/splitView/splitView.scss";
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, disposeAll, untrackDisposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
@@ -239,8 +239,8 @@ export class SplitView extends Disposable implements ISplitView {
     
     public override dispose(): void {
         super.dispose();
-        this.viewItems.forEach(view => view.dispose());
-        this.sashItems.forEach(sash => sash.dispose());
+        disposeAll(this.viewItems);
+        disposeAll(this.sashItems);
     }
 
     public addView(opt: ISplitViewItemOpts): void {
@@ -339,11 +339,14 @@ export class SplitView extends Disposable implements ISplitView {
         // sash
 
         if (this.viewItems.length >= 2) {
-            const sash = new Sash(this.sashContainer, {
-                orientation: (this._orientation === Orientation.Vertical) 
-                    ? Orientation.Horizontal 
-                    : Orientation.Vertical
-            });
+            const sash = new Sash(
+                this.sashContainer, 
+                {
+                    orientation: (this._orientation === Orientation.Vertical) 
+                        ? Orientation.Horizontal 
+                        : Orientation.Vertical
+                }
+            );
             sash.registerListeners();
 
             /**
@@ -369,6 +372,7 @@ export class SplitView extends Disposable implements ISplitView {
             }));
 
             // store the sash
+            untrackDisposable(sash);
             this.sashItems.splice(opt.index, 0, sash);
         }
 

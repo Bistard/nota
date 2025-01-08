@@ -5,6 +5,7 @@ import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneMod
 import { ILayoutable, Layoutable } from "src/workbench/services/component/layoutable";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { nullable } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * {@link IEditorPaneView}
@@ -160,7 +161,7 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
 
     // [getter/setter]
 
-    get model(): T { return this._model.get(); }
+    get model(): T { return this._model.get() ?? panic('[EditorPaneView] cannot get model: not bound with any.'); }
     
     // [public - subclass implementation]
     

@@ -255,8 +255,8 @@ export class WorkbenchContextHub extends Disposable {
 
         // file tree
         this.visibleFileTree.set(this.fileTreeService.isOpened);
-        this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized));
-        this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused));
+        this.__register(this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized)));
+        this.__register(this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused)));
     }
 
     // [private update context helpers]

@@ -1,4 +1,4 @@
-import { Disposable } from "src/base/common/dispose";
+import { AutoDisposable, Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -288,19 +288,20 @@ export type BufferLoggerBufferType = { level: LogLevel, reporter: string, messag
 export class BufferLogger extends AbstractLogger implements ILogService {
 
     protected readonly _buffer: BufferLoggerBufferType[] = [];
-    private _logger?: ILogger;
+    private readonly _logger: AutoDisposable<ILogger>;
 
     constructor() {
         super();
+        this._logger = this.__register(new AutoDisposable());
     }
 
     public setLogger(logger: ILogger): void {
-        this._logger = logger;
-        this.__flushBuffer();
+        this._logger.set(logger);
+        this.__tryFlushBuffer();
     }
 
     public getLogger(): ILogger | undefined {
-        return this._logger;
+        return this._logger.get();
     }
 
     public trace(reporter: string, message: string, additional?: Additional): void {
@@ -328,22 +329,25 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     }
 
     public async flush(): Promise<void> {
-        this.__flushBuffer();
-        return this._logger?.flush();
+        this.__tryFlushBuffer();
+        return this._logger.get()?.flush();
     }
 
     // [protected helper methods]
 
     protected __log(level: LogLevel, reporter: string, message: string, error?: any, additional?: Additional): void {
         this._buffer.push({ level: level, reporter, message, error, additional });
-        if (this._logger) {
-            this.__flushBuffer();
-        }
+        this.__tryFlushBuffer();
     }
 
-    protected __flushBuffer(): void {
+    protected __tryFlushBuffer(): void {
+        const logger = this._logger.get();
+        if (!logger) {
+            return;
+        }
+        
         for (const { level, reporter, message, error, additional } of this._buffer) {
-            defaultLog(this._logger!, level, reporter, message, error, additional);
+            defaultLog(logger, level, reporter, message, error, additional);
         }
         this._buffer.length = 0;
     }

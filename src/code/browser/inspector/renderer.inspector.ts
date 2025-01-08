@@ -265,7 +265,7 @@ class InspectorWindow {
             navBar.addItem({
                 id: type,
                 data: button,
-                dispose: button.dispose.bind(button),
+                disposable: button,
             });
             button.onDidClick(() => {
                 if (currButton) {

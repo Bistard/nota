@@ -106,7 +106,7 @@ class __BrowserLogger extends BufferLogger implements ILogger {
                  * need to flush all the messages after that.
                  */
                 this._created = true;
-                this.__flushBuffer();
+                this.__tryFlushBuffer();
             });
     }
 
@@ -115,11 +115,11 @@ class __BrowserLogger extends BufferLogger implements ILogger {
     protected override __log(level: LogLevel, reporter: string, message: string, error?: Error, additional?: Additional): void {
         this._buffer.push({ level: level, reporter, message, error: toIPCTransferableError(error), additional });
         if (this._created) {
-            this.__flushBuffer();
+            this.__tryFlushBuffer();
         }
     }
 
-    protected override __flushBuffer(): void {
+    protected override __tryFlushBuffer(): void {
         if (!this._buffer.length) {
             return;
         }

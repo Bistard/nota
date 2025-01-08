@@ -118,7 +118,7 @@ export class ActionBar extends Component implements IActionBarService {
         widgetBar.addItem({
             id: opts.id,
             data: button,
-            dispose: button.dispose.bind(button),
+            disposable: button,
         });
         
         // register listener

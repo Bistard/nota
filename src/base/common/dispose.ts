@@ -278,14 +278,12 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 
 	private _object?: T;
 	private _children: IDisposable[];
-	private _disposed: boolean;
 
 	// [constructor]
 
 	constructor(object?: T, children?: IDisposable[]) {
 		this._object = object ?? undefined;
 		this._children = children ?? [];
-		this._disposed = false;
 		
 		monitor?.track(this);
 		this.__trackDisposable(object, children);
@@ -294,7 +292,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	// [public methods]
 
 	public set(object: T): void {
-		if (this._disposed || this._object === object) {
+		if (this._object === object) {
 			return;
 		}
 
@@ -305,10 +303,7 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		this.__trackDisposable(object, undefined);
 	}
 
-	public get(): T {
-		if (!this._object) {
-			panic('[SelfCleaningWrapper] no wrapping object.');
-		}
+	public get(): T | undefined {
 		return this._object;
 	}
 
@@ -337,15 +332,8 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 	}
 
 	public dispose(): void {
-		if (this._disposed) {
-			return;
-		}
-		this._disposed = true;
-		monitor?.markAsDisposed(this);
-		
 		this._object?.dispose();
 		this._object = undefined;
-		
 		this.__cleanChildren();
 	}
 

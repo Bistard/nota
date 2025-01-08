@@ -33,11 +33,14 @@ class __TreeIdentityProvider<T, TFilter> implements IIdentityProvider<ITreeNode<
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
-class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
+class __TreeListDragAndDropProvider<T, TFilter> extends Disposable implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
 
     constructor(
         private readonly dnd: IListDragAndDropProvider<T>
-    ) {}
+    ) {
+        super();
+        this.__register(dnd);
+    }
 
     public getDragData(node: ITreeNode<T, TFilter>): string | null {
         return this.dnd.getDragData(node.data);
