@@ -4,7 +4,7 @@ import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
-import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService, defaultLog } from "src/base/common/logger";
@@ -49,7 +49,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     private _toRefresh?: DelayableEmitter<void>;
 
     // synchronizes lifecycle of the above properties
-    private _treeCleanup: DisposableBucket;
+    private readonly _treeCleanup: LooseDisposableBucket;
 
     // [constructor]
 
@@ -64,7 +64,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IRecentOpenService private readonly recentOpenService: IRecentOpenService,
     ) {
         super();
-        this._treeCleanup = new DisposableBucket();
+        this._treeCleanup = this.__register(new LooseDisposableBucket());
 
         this.logService.debug('FileTreeService', 'FileTreeService constructed.');
     }
@@ -204,7 +204,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         this.logService.debug('FileTreeService', `closed at: ${this.root && URI.toString(this.root)}.`);
 
         this._treeCleanup.dispose();
-        this._treeCleanup = new DisposableBucket();
 
         this._tree.dispose();
         this._tree = undefined;

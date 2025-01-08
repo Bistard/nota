@@ -4,7 +4,7 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { DisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { assert } from "src/base/common/utilities/panic";
@@ -191,7 +191,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 /**
  * @internal
  */
-class TouchController implements IDisposable {
+class TouchController extends Disposable {
 
     // [field]
 
@@ -199,22 +199,20 @@ class TouchController implements IDisposable {
 
     private readonly _widget: ScrollableWidget;
     private readonly _scrollbar: AbstractScrollbar;
-    private readonly _disposables: DisposableBucket;
     private _currPosition: number;
 
     // [event]
 
-    private readonly _onDidTouchmove = new Emitter<number>();
+    private readonly _onDidTouchmove = this.__register(new Emitter<number>());
     public readonly onDidTouchmove = this._onDidTouchmove.registerListener;
 
     // [constructor]
 
     constructor(widget: ScrollableWidget, scrollbar: AbstractScrollbar) {
-        
+        super();
         this._widget = widget;
         this._scrollbar = scrollbar;
         this._currPosition = -1;
-        this._disposables = new DisposableBucket();
         
         if (!widget.element) {
             return;
@@ -236,14 +234,7 @@ class TouchController implements IDisposable {
             disposables.register(widget.onTouchend(element, () => disposables.dispose()));
         });
         
-        this._disposables.register(this._onDidTouchmove);
-        this._disposables.register(onTouchStart);
-    }
-
-    // [public method]
-     
-    public dispose(): void {
-        this._disposables.dispose();
+        this.__register(onTouchStart);
     }
 
     // [private helper methods]

@@ -163,7 +163,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     private _currDelegate?: IContextMenuDelegate;
     
     private readonly _currContainerLifecycle: LooseDisposableBucket;
-    private _currRenderContentDisposables: IDisposable = Disposable.NONE;
+    private readonly _currRenderContentLifecycle: LooseDisposableBucket;
 
     // [constructor]
 
@@ -174,6 +174,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this._element.setPosition('absolute');
 
         this._currContainerLifecycle = this.__register(new LooseDisposableBucket());
+        this._currRenderContentLifecycle = this.__register(new LooseDisposableBucket());
 
         DomUtility.Modifiers.hide(this._element.raw);
         this.setContainer(container);
@@ -226,7 +227,9 @@ export class ContextMenuView extends Disposable implements IContextMenu {
 
         // render the content of the context menu
         this._currDelegate = delegate;
-        this._currRenderContentDisposables = this._currDelegate.render(this._element.raw) || Disposable.NONE;
+        this._currRenderContentLifecycle.register(
+            this._currDelegate.render(this._element.raw) || Disposable.NONE
+        );
 
         // layout the context menu
         this.__layout(this._currDelegate);
@@ -245,7 +248,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         }
 
         // unrender
-        this._currRenderContentDisposables.dispose();
+        this._currRenderContentLifecycle.dispose();
 
         // hide the context menu
         DomUtility.Modifiers.hide(this._element.raw);

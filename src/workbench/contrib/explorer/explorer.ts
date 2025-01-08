@@ -5,7 +5,7 @@ import { addDisposableListener, EventType } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
-import { DisposableBucket } from 'src/base/common/dispose';
+import { LooseDisposableBucket } from 'src/base/common/dispose';
 import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
@@ -39,7 +39,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * A disposable that contains all the UI related listeners of the current 
      * view.
      */
-    private _currentListeners = new DisposableBucket();
+    private readonly _currViewBucket: LooseDisposableBucket;
 
     // [event]
 
@@ -59,6 +59,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
     ) {
         super(ExplorerViewID, parentElement, instantiationService);
+        this._currViewBucket = this.__register(new LooseDisposableBucket());
     }
 
     // [getter]
@@ -147,7 +148,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         if (this._currentView) {
             this._currentView.remove();
             this._currentView = undefined;
-            this._currentListeners.dispose();
+            this._currViewBucket.dispose();
         }
     }
 
@@ -155,7 +156,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         if (!this._currentView) {
             this._currentView = view;
             this.element.appendChild(view);
-            this._currentListeners = new DisposableBucket();
 
             if (isEmpty) {
                 this.__registerEmptyViewListeners();
@@ -232,38 +232,38 @@ export class ExplorerView extends NavView implements IExplorerViewService {
             return;
         }
 
-        const disposables = this._currentListeners;
-
         /**
          * Empty view opening directory dialog listener (only open the last 
          * selected one).
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(addDisposableListener(tag, EventType.click, async () => {
-            const path = await this.dialogService.openDirectoryDialog({ title: this.i18nService.localize('openDirectory', 'Open a Folder') });
-            if (path.length > 0) {
-                this.open(URI.fromFile(path.at(-1)!));
-            }
-        }));
+        
+        this._currViewBucket.register(
+            addDisposableListener(tag, EventType.click, async () => {
+                const path = await this.dialogService.openDirectoryDialog({ title: this.i18nService.localize('openDirectory', 'Open a Folder') });
+                if (path.length > 0) {
+                    this.open(URI.fromFile(path.at(-1)!));
+                }
+            })
+        );
     }
 
     private __registerNonEmptyViewListeners(view: HTMLElement): void {
         if (!this.isOpened || !this._currentView) {
             return;
         }
-        const disposables = this._currentListeners;
 
         /**
          * The tree model of the tree-service requires the correct height thus 
          * we need to update it every time we are resizing.
          */
-        disposables.register(this.navigationViewService.onDidLayout((e) => {
+        this._currViewBucket.register(this.navigationViewService.onDidLayout((e) => {
             this.fileTreeService.layout();
         }));
 
         // on opening file.
-        disposables.register(this.fileTreeService.onSelect(e => {
+        this._currViewBucket.register(this.fileTreeService.onSelect(e => {
             this.workspaceService.openEditor(new TextEditorPaneModel(e.item.uri), {});
         }));
     }

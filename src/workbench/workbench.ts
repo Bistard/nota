@@ -153,7 +153,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
                     if (ifEnable) {
                         screenCastService.start();
                     } else {
-                        screenCastService.dispose();
+                        screenCastService.stop();
                     }
                 }
             }));

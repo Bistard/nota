@@ -1,6 +1,6 @@
 import 'src/workbench/services/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
-import { DisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -24,14 +24,14 @@ export interface IKeyboardScreenCastService extends IDisposable, IService {
     /**
      * @description Stop listening to user's keypress.
      */
-    dispose(): void;
+    stop(): void;
 }
 
 /**
  * @class A microservice that provides functionalities that screenCasting user's
  * keyboard input.
  */
-export class KeyboardScreenCastService implements IKeyboardScreenCastService {
+export class KeyboardScreenCastService extends Disposable implements IKeyboardScreenCastService {
 
     declare _serviceMarker: undefined;
 
@@ -47,7 +47,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     private _prevEvent?: IStandardKeyboardEvent;
     private _visibilityController: VisibilityController;
 
-    private _disposables: DisposableBucket;
+    private readonly _bucket: LooseDisposableBucket;
 
     // [constructor]
 
@@ -55,10 +55,11 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         @IKeyboardService private readonly keyboardService: IKeyboardService,
         @ILayoutService private readonly layoutService: ILayoutService,
     ) {
+        super();
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
         this._active = false;
         this._imeInput = false;
-        this._disposables = new DisposableBucket();
+        this._bucket = this.__register(new LooseDisposableBucket());
     }
 
     // [public methods]
@@ -82,12 +83,12 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._container.appendChild(this._tagContainer);
         this.layoutService.parentContainer.appendChild(this._container);
 
-        const flushKeyScheduler = this._disposables.register(new Scheduler<void>(this._flushDelay, () => this.__onTimeUp()));
+        const flushKeyScheduler = this._bucket.register(new Scheduler<void>(this._flushDelay, () => this.__onTimeUp()));
 
         // events
         {
             // keydown
-            this._disposables.register(this.keyboardService.onKeydown(event => {
+            this._bucket.register(this.keyboardService.onKeydown(event => {
                 if (this.__ifAllowNewTag(event)) {
 
                     if (this.__excessMaxTags() || Keyboard.isEventModifier(event)) {
@@ -101,23 +102,23 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
                 flushKeyScheduler.schedule();
             }));
 
-            this._disposables.register(this.keyboardService.onCompositionStart(event => {
+            this._bucket.register(this.keyboardService.onCompositionStart(event => {
                 this._imeInput = true;
             }));
             
-            this._disposables.register(this.keyboardService.onCompositionUpdate(event => {
+            this._bucket.register(this.keyboardService.onCompositionUpdate(event => {
                 if (event.data !== '' && this._imeInput) {
                     this.__flushKeypress();
                     this.__appendTag(event.data);
                 }
             }));
             
-            this._disposables.register(this.keyboardService.onCompositionEnd(event => {
+            this._bucket.register(this.keyboardService.onCompositionEnd(event => {
                 this._imeInput = false;
             }));
 
             // mouseClick (ripple)
-            this._disposables.register(addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
+            this._bucket.register(addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
                 if (!DomEventHandler.isLeftClick(e)) {
                     return;
                 }
@@ -128,7 +129,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._active = true;
     }
 
-    public dispose(): void {
+    public stop(): void {
         if (!this._active) {
             return;
         }
@@ -141,10 +142,13 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._visibilityController.setDomNode(undefined);
         }
 
-        this._disposables.dispose();
-        this._disposables = new DisposableBucket();
-
+        this._bucket.dispose();
         this._active = false;
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this.stop();
     }
 
     // [private helper methods]

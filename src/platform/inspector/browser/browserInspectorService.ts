@@ -1,6 +1,6 @@
 import { Color } from "src/base/common/color";
 import { INSTANT_TIME, Time } from "src/base/common/date";
-import { DisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { Shortcut } from "src/base/common/keyboard";
@@ -24,7 +24,7 @@ import { IShortcutReference, IShortcutRegistrant } from "src/workbench/services/
 import { IColorTheme } from "src/workbench/services/theme/colorTheme";
 import { IThemeService } from "src/workbench/services/theme/themeService";
 
-export class BrowserInspectorService implements IBrowserInspectorService {
+export class BrowserInspectorService extends Disposable implements IBrowserInspectorService {
 
     declare _serviceMarker: undefined;
 
@@ -36,7 +36,7 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     private readonly _initProtector: InitProtector;
     private _currentListenTo?: InspectorDataType;
-    private _lifecycle: DisposableBucket;
+    private readonly _lifecycle: LooseDisposableBucket;
     private readonly _syncScheduler: UnbufferedScheduler<InspectorDataType>;
 
     // [constructor]
@@ -48,15 +48,16 @@ export class BrowserInspectorService implements IBrowserInspectorService {
         @IThemeService private readonly themeService: IThemeService,
         @IHostService private readonly hostService: IHostService,
     ) {
+        super();
         this.commandRegistrant = this.registrantService.getRegistrant(RegistrantType.Command);
         this.shortcutRegistrant = this.registrantService.getRegistrant(RegistrantType.Shortcut);
         this.menuRegistrant = this.registrantService.getRegistrant(RegistrantType.Menu);
-        this._lifecycle = new DisposableBucket();
+        this._lifecycle = this.__register(new LooseDisposableBucket());
         this._initProtector = new InitProtector();
-        this._syncScheduler = new UnbufferedScheduler(Time.ms(500), async listenToDataType => {
+        this._syncScheduler = this.__register(new UnbufferedScheduler(Time.ms(500), async listenToDataType => {
             const data = await this.__transformData(listenToDataType);
             ipcRenderer.send(IpcChannel.InspectorDataSync, WIN_CONFIGURATION.windowID, data);
-        });
+        }));
     }
 
     // [public methods]
@@ -95,7 +96,6 @@ export class BrowserInspectorService implements IBrowserInspectorService {
 
     public stopListenTo(): void {
         this._lifecycle.dispose();
-        this._lifecycle = new DisposableBucket();
         this._currentListenTo = undefined;
     }
 

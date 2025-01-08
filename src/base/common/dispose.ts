@@ -44,11 +44,11 @@ export class Disposable implements IDisposable {
 
 	public static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
 
-	private readonly _bucket = new DisposableBucket();
+	private readonly _$bucket$_ = new DisposableBucket();
 
 	constructor() {
 		monitor?.track(this);
-		monitor?.bindToParent(this._bucket, this);
+		monitor?.bindToParent(this._$bucket$_, this);
 	}
 
 	/** 
@@ -57,14 +57,14 @@ export class Disposable implements IDisposable {
 	 */
 	public dispose(): void {
 		monitor?.markAsDisposed(this);
-		this._bucket.dispose();
+		this._$bucket$_.dispose();
 	}
 
 	/** 
 	 * @description Determines if the current object is disposed already. 
 	 */
 	public isDisposed(): boolean {
-		return this._bucket.disposed;
+		return this._$bucket$_.disposed;
 	}
 
 	/**
@@ -78,7 +78,7 @@ export class Disposable implements IDisposable {
 		if (obj && (obj as IDisposable) === this) {
 			panic('cannot register the disposable object to itself');
 		}
-		return this._bucket.register(obj);
+		return this._$bucket$_.register(obj);
 	}
 
 	/**
@@ -128,6 +128,20 @@ export class LooseDisposableBucket implements IDisposable {
 		monitor?.bindToParent(obj, this);
 		this._disposables.add(obj);
 		return obj;
+	}
+
+	/**
+	 * @description Deletes a {@link IDisposable} from bucket and disposes of it. 
+	 */
+	public delete<T extends IDisposable>(obj: T): void {
+		if (!obj) {
+			return;
+		}
+		if ((obj as unknown) === this) {
+			return;
+		}
+		this._disposables.delete(obj);
+		obj.dispose();
 	}
 }
 
