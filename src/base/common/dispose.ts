@@ -90,29 +90,16 @@ export class Disposable implements IDisposable {
 	}
 }
 
-/** @description A manager to maintain all the registered disposables. */
-export class DisposableManager implements IDisposable {
-
+export class LooseDisposableBucket implements IDisposable {
+	
 	private readonly _disposables = new Set<IDisposable>();
-	private _disposed = false;
 
 	constructor() {
 		monitor?.track(this);
 	}
 
-	/** 
-	 * @description Disposes all the registered objects and the current object. 
-	 */
 	public dispose(): void {
-		// prevent double disposing
-		if (this._disposed) {
-			return;
-		}
-
 		monitor?.markAsDisposed(this);
-
-		// actual disposing
-		this._disposed = true;
 		try {
 			disposeAll(this._disposables.values());
 		} finally {
@@ -121,27 +108,50 @@ export class DisposableManager implements IDisposable {
 		}
 	}
 
-	get disposed(): boolean {
-		return this._disposed;
-	}
-
 	/**
 	 * @description Registers a disposable.
 	 */
 	public register<T extends IDisposable>(obj: T): T {
-		
 		if (obj && (obj as unknown) === this) {
 			panic('cannot register the disposable object to itself');
 		}
-
+		
 		monitor?.bindToParent(obj, this);
+		this._disposables.add(obj);
+		return obj;
+	}
+}
+
+/** 
+ * @description A manager to maintain all the registered disposables. 
+ */
+export class DisposableManager extends LooseDisposableBucket {
+
+	private _disposed = false;
+
+	constructor() {
+		super();
+	}
+
+	public override dispose(): void {
+		// prevent double disposing
+		if (this._disposed) {
+			return;
+		}
+		super.dispose();
+		this._disposed = true;
+	}
+
+	get disposed(): boolean {
+		return this._disposed;
+	}
+
+	public override register<T extends IDisposable>(obj: T): T {
 		if (this._disposed) {
 			console.warn('cannot register a disposable object to a object which is already disposed');
 			return obj;
 		}
-
-		this._disposables.add(obj);
-		return obj;
+		return super.register(obj);
 	}
 }
 

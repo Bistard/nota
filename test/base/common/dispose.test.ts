@@ -1,11 +1,5 @@
 import * as assert from 'assert';
-import { Disposable, DisposableManager, disposeAll, AutoDisposable, toDisposable } from 'src/base/common/dispose';
-
-/**
- * Two suites:
- * 1. dispose-test
- * 2. DisposableManager-test
- */
+import { Disposable, DisposableManager, disposeAll, AutoDisposable, toDisposable, LooseDisposableBucket } from 'src/base/common/dispose';
 
 suite('dispose-test', () => {
 
@@ -96,6 +90,67 @@ suite('dispose-test', () => {
 		assert.ok(disposedValues.has(1));
 		assert.ok(disposedValues.has(4));
 		assert.ok(thrownError instanceof Error);
+	});
+});
+
+suite('LooseDisposableBucket', () => {
+	test('dispose() should dispose all registered disposables', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable1 = new Disposable();
+		const disposable2 = new Disposable();
+
+		bucket.register(disposable1);
+		bucket.register(disposable2);
+
+		bucket.dispose();
+
+		assert.strictEqual(disposable1.isDisposed(), true);
+		assert.strictEqual(disposable2.isDisposed(), true);
+	});
+
+	test('dispose() should clear all disposables from the bucket', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable = new Disposable();
+
+		bucket.register(disposable);
+		bucket.dispose();
+
+		// Attempting to dispose again should not throw or affect already disposed objects
+		bucket.dispose();
+		assert.strictEqual(disposable.isDisposed(), true);
+	});
+
+	test('register() should add disposables to the bucket', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable = new Disposable();
+
+		bucket.register(disposable);
+
+		// Using reflection to check internal state
+		assert.strictEqual((bucket as any)._disposables.has(disposable), true);
+	});
+
+	test('register() should throw an error if attempting to register itself', () => {
+		const bucket = new LooseDisposableBucket();
+
+		assert.throws(() => bucket.register(bucket), {
+			message: 'cannot register the disposable object to itself',
+		});
+	});
+
+	test('register() should return the registered disposable', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable = new Disposable();
+
+		const returnedDisposable = bucket.register(disposable);
+
+		assert.strictEqual(returnedDisposable, disposable);
+	});
+
+	test('dispose() should not throw if bucket is empty', () => {
+		const bucket = new LooseDisposableBucket();
+
+		assert.doesNotThrow(() => bucket.dispose());
 	});
 });
 
