@@ -120,7 +120,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         super();
         this._defaultContainer = this.layoutService.parentContainer;
         this._currContainer = this._defaultContainer;
-        this._contextMenu = new ContextMenuView(this._currContainer);
+        this._contextMenu = this.__register(new ContextMenuView(this._currContainer));
     }
 
     // [public methods]

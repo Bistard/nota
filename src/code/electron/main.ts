@@ -33,7 +33,7 @@ import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
-import { monitorDisposableLeak } from 'src/base/common/dispose';
+import { Disposable, monitorDisposableLeak } from 'src/base/common/dispose';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -47,7 +47,7 @@ interface IMainProcess {
  *      3. Ensuring that this process is the only one running. If not, it 
  *         terminates as expected.
  */
-const main = new class extends class MainProcess implements IMainProcess {
+const main = new class extends class MainProcess extends Disposable implements IMainProcess {
 
     // [field]
 
@@ -64,7 +64,9 @@ const main = new class extends class MainProcess implements IMainProcess {
 
     // [constructor]
 
-    constructor() { }
+    constructor() {
+        super();
+    }
 
     // [public methods]
 
@@ -120,7 +122,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
                 await this.resolveSingleApplication(true);
 
-                const instance = this.instantiationService.createInstance(ApplicationInstance);
+                const instance = this.__register(this.instantiationService.createInstance(ApplicationInstance));
                 await instance.run();
             }
         }
@@ -136,7 +138,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     private createCoreServices(): void {
 
         // dependency injection (DI)
-        const instantiationService = new InstantiationService(new ServiceCollection(), undefined);
+        const instantiationService = this.__register(new InstantiationService(new ServiceCollection(), undefined));
         instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service

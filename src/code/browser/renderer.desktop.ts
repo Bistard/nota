@@ -113,13 +113,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
             ]);
 
             // create workbench UI
-            const workbench = instantiationService.createInstance(Workbench);
+            const workbench = this.__register(instantiationService.createInstance(Workbench));
             workbench.init();
             
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
-            browser.init();
             instantiationService.store(IBrowserService, browser);
+            browser.init();
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
@@ -133,7 +133,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private createCoreServices(): IInstantiationService {
 
         // instantiation-service (Dependency Injection)
-        const instantiationService = new InstantiationService(new ServiceCollection());
+        const instantiationService = this.__register(new InstantiationService(new ServiceCollection()));
         instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
