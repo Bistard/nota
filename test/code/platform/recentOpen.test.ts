@@ -123,7 +123,7 @@ suite('RecentOpenService', () => {
         const di = new InstantiationService();
         
         const registrantService = new RegistrantService(new NullLogger());
-        di.register(IRegistrantService, registrantService);
+        di.store(IRegistrantService, registrantService);
 
         menuRegistrant = new MenuRegistrant(new ContextService());
         registrantService.registerRegistrant(menuRegistrant);

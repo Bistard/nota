@@ -46,20 +46,20 @@ suite('commandRegistrant-test', () => {
 
     before(() => {
         instantiationService = new InstantiationService();
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         const testService = new TestService();
-        instantiationService.register(ITestService, testService);
+        instantiationService.store(ITestService, testService);
         
         const registrantService = new RegistrantService(new NullLogger());
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
         registrantService.registerRegistrant(new ShortcutRegistrant());
 
         commandRegistrant = new CommandRegistrant(new NullLogger(), registrantService);
         registrantService.registerRegistrant(commandRegistrant);
 
         const commandService = new CommandService(instantiationService, new NullLogger(), registrantService);
-        instantiationService.register(ICommandService, commandService);
+        instantiationService.store(ICommandService, commandService);
     });
 
     test('register-command', () => {

@@ -119,7 +119,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
             browser.init();
-            instantiationService.register(IBrowserService, browser);
+            instantiationService.store(IBrowserService, browser);
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
@@ -134,41 +134,41 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // instantiation-service (Dependency Injection)
         const instantiationService = new InstantiationService(new ServiceCollection());
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
         (<any>this.logService) = logService;
 
         // context-service
         const contextService = new ContextService();
-        instantiationService.register(IContextService, contextService);
+        instantiationService.store(IContextService, contextService);
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
         this.initRegistrant(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
-        instantiationService.register(IBrowserEnvironmentService, environmentService);
+        instantiationService.store(IBrowserEnvironmentService, environmentService);
 
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID, logService);
-        instantiationService.register(IIpcService, ipcService);
+        instantiationService.store(IIpcService, ipcService);
 
         // host-service
         const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
-        instantiationService.register(IHostService, hostService);
+        instantiationService.store(IHostService, hostService);
 
         // lifecycle-service
         const lifecycleService = instantiationService.createInstance(BrowserLifecycleService);
-        instantiationService.register(ILifecycleService, lifecycleService);
+        instantiationService.store(ILifecycleService, lifecycleService);
 
         // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService.getChannel(IpcChannel.Logger), environmentService.logLevel);
-        instantiationService.register(ILoggerService, loggerService);
+        instantiationService.store(ILoggerService, loggerService);
 
         // logger
         const logger = new PipelineLogger([
@@ -184,11 +184,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // file-service
         const fileService = instantiationService.createInstance(BrowserFileChannel);
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         // product-service
         const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
+        instantiationService.store(IProductService, productService);
 
         // configuration-service
         const configurationService = instantiationService.createInstance(
@@ -199,20 +199,20 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 } 
             },
         );
-        instantiationService.register(IConfigurationService, configurationService);
+        instantiationService.store(IConfigurationService, configurationService);
 
         // i18n-service
         const i18nService = instantiationService.createInstance(I18nService, 
             WIN_CONFIGURATION.nlsConfiguration, 
             URI.join(environmentService.appRootPath, 'assets', 'locale'),
         );
-        instantiationService.register(II18nService, i18nService);
+        instantiationService.store(II18nService, i18nService);
 
         // singleton initializations
         logService.debug('renderer', 'Registering singleton services descriptors...');
         for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
             logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
-            instantiationService.register(serviceIdentifier, serviceDescriptor);
+            instantiationService.store(serviceIdentifier, serviceDescriptor);
         }
 
         logService.debug('renderer', 'All core renderer services are constructed.');

@@ -39,18 +39,18 @@ suite('MainConfigurationService-test', () => {
         registrant = new ConfigurationRegistrant();
 
         instantiationService = new InstantiationService();
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         logService = new NullLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
 
         fileService = new FileService(logService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         const registrantService = instantiationService.createInstance(RegistrantService);
         registrantService.registerRegistrant(<ConfigurationRegistrant>registrant);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
     }));
 
     beforeEach(() => FakeAsync.run(async () => {
@@ -295,18 +295,18 @@ suite('BrowserConfigurationService', () => {
         registrant = new ConfigurationRegistrant();
 
         instantiationService = new InstantiationService();
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         logService = new NullLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
         
         fileService = new FileService(logService);
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
 
         const registrantService = instantiationService.createInstance(RegistrantService);
         registrantService.registerRegistrant(<ConfigurationRegistrant>registrant);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
     }));
 
     beforeEach(() => FakeAsync.run(async () => {

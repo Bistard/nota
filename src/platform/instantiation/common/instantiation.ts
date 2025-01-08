@@ -85,12 +85,12 @@ export interface IInstantiationService extends IServiceProvider, IService {
     readonly parent?: InstantiationService;
 
     /**
-     * @description Register a service either using an instance or the 
-     * ServiceDescriptor for delaying instantiation.
+     * @description Stores a service into DI system either using an instance or 
+     * the ServiceDescriptor for delaying instantiation.
      * @param serviceIdentifier decorator to the service which is created by `createService()`.
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
-    register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
+    store<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
 
     /**
      * @description Creates an instance of the given class described by the 
@@ -182,7 +182,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [public methods]
 
-    public register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void {
+    public store<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void {
         this.serviceCollections.set(serviceIdentifier, instanceOrDescriptor);
     }
 

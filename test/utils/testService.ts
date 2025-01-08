@@ -358,10 +358,10 @@ export async function createTestConfigurationService(): Promise<IConfigurationSe
     const registrantService = new RegistrantService(logService);
     registrantService.registerRegistrant(new ConfigurationRegistrant());
     
-    instantiationService.register(IInstantiationService, instantiationService);
-    instantiationService.register(ILogService, logService);
-    instantiationService.register(IFileService, fileService);
-    instantiationService.register(IRegistrantService, registrantService);
+    instantiationService.store(IInstantiationService, instantiationService);
+    instantiationService.store(ILogService, logService);
+    instantiationService.store(IFileService, fileService);
+    instantiationService.store(IRegistrantService, registrantService);
     
     registrantService.init(instantiationService);
     

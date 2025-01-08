@@ -98,48 +98,48 @@ new class InspectorRenderer {
         
         // instantiation-service (Dependency Injection)
         const instantiationService = new InstantiationService(new ServiceCollection());
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
         (<any>this.logService) = logService;
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
-        instantiationService.register(IBrowserEnvironmentService, environmentService);
+        instantiationService.store(IBrowserEnvironmentService, environmentService);
         
         // logger
         logService.setLogger(new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN));
 
         // registrant-service
         const registrantService = new RegistrantService(logService);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
         registrantService.registerRegistrant(instantiationService.createInstance(ConfigurationRegistrant));
         registrantService.registerRegistrant(instantiationService.createInstance(ReviverRegistrant));
         registrantService.init(instantiationService);
 
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID, logService);
-        instantiationService.register(IIpcService, ipcService);
+        instantiationService.store(IIpcService, ipcService);
 
         // host-service
         const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
-        instantiationService.register(IHostService, hostService);
+        instantiationService.store(IHostService, hostService);
 
         // lifecycle-service
         const lifecycleService = new BrowserLifecycleService(logService, hostService);
-        instantiationService.register(ILifecycleService, lifecycleService);
+        instantiationService.store(ILifecycleService, lifecycleService);
 
         // file-service
         const fileService = instantiationService.createInstance(BrowserFileChannel);
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         // configuration-service
         const configurationService = instantiationService.createInstance(BrowserConfigurationService, { 
             appConfiguration: { path: URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME) } 
         });
-        instantiationService.register(IConfigurationService, configurationService);
+        instantiationService.store(IConfigurationService, configurationService);
 
         return instantiationService;
     }

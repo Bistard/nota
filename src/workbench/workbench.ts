@@ -98,7 +98,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     protected initServices(): void {
 
         // workbench-service
-        this.instantiationService.register(IWorkbenchService, this);
+        this.instantiationService.store(IWorkbenchService, this);
     }
 
     /**
