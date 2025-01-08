@@ -23,8 +23,6 @@ export function monitorDisposableLeak(enable?: boolean): void {
 	monitor = new DisposableMonitor();
 }
 
-export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
-
 /**
  * @readonly The lifecycle of a disposable object is controlled by the client. A
  * disposable object can be registered into another disposable object.
@@ -44,6 +42,7 @@ export class Disposable implements IDisposable {
 
 	public static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
 
+	// ensure no name conflicts for inheritance
 	private readonly _$bucket$_ = new DisposableBucket();
 
 	constructor() {
@@ -184,7 +183,7 @@ export class DisposableBucket extends LooseDisposableBucket {
 	}
 }
 
-export function disposeAll<T extends IDisposable>(disposables: IterableDisposable<T>): void {
+export function disposeAll<T extends IDisposable>(disposables: Iterable<T>): void {
 	const errors: any[] = [];
 
 	/**
@@ -225,13 +224,19 @@ export function isDisposable(obj: any): obj is IDisposable {
 	return isFunction(obj['dispose']);
 }
 
-export function tryDispose(obj: any): void {
-	if (!isObject(obj)) {
-		return;
-	}
-	if (isDisposable(obj)) {
-		obj.dispose();
-	}
+/**
+ * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is:
+ * 		1. manually controlled by your own logic (not registered under any other 
+ * 		   {@link IDisposable}),
+ * 		2. or meant to share the same lifecycle with the whole application and
+ * 		   should never get disposed.
+ * In either cases, use this function is a proper way to handle it and make sure 
+ * memory-leak monitor does not catch this as false positive.
+ */
+export function untrackDisposable<T extends IDisposable>(obj: T): T {
+	monitor?.untrack(obj);
+	return obj;
 }
 
 /**
@@ -392,6 +397,12 @@ export interface IDisposableMonitor {
 	 * Is called after a disposable is disposed.
 	 */
 	markAsDisposed(disposable: IDisposable): void;
+
+	/**
+	 * Untrack the given disposable. This is hacky way and only used when you
+	 * know what you are doing.
+	 */
+	untrack(disposable: IDisposable): void;
 }
 
 /**
@@ -400,11 +411,17 @@ export interface IDisposableMonitor {
 class DisposableMonitor implements IDisposableMonitor {
 	
 	public static readonly IS_TRACKED = '$_is_disposable_tracked_';
+	public static readonly IS_TIMEOUT = '$_is_disposable_timeout_';
 
 	public track(disposable: IDisposable): void {
+		if (disposable === Disposable.NONE) {
+			return;
+		}
+
 		const { stack } = new Error('[DisposableMonitor] POTENTIAL memory leak');
-		setTimeout(() => {
-			if (!(<any>disposable[DisposableMonitor.IS_TRACKED])) {
+		disposable[DisposableMonitor.IS_TIMEOUT] = setTimeout(() => {
+			delete disposable[DisposableMonitor.IS_TIMEOUT];
+			if (!disposable[DisposableMonitor.IS_TRACKED]) {
 				console.warn(stack);
 			}
 		}, Time.sec(5).toMs().time);
@@ -418,13 +435,25 @@ class DisposableMonitor implements IDisposableMonitor {
 		this.__tryMarkTracked(disposable);
 	}
 
+	public untrack(disposable: IDisposable): void {
+		if (disposable === Disposable.NONE) {
+			return;
+		}
+
+		disposable[DisposableMonitor.IS_TRACKED] = true;
+		if (disposable[DisposableMonitor.IS_TIMEOUT]) {
+			clearTimeout(disposable[DisposableMonitor.IS_TIMEOUT]);
+			delete disposable[DisposableMonitor.IS_TIMEOUT];
+		}
+	}
+
 	private __tryMarkTracked(disposable: IDisposable): void {
 		if (!disposable || disposable === Disposable.NONE) {
 			return;
 		}
 		
 		try {
-			(<any>disposable)[DisposableMonitor.IS_TRACKED] = true;
+			disposable[DisposableMonitor.IS_TRACKED] = true;
 		} catch {
 			/**
 			 * Sometimes, assigning a new property to an object can throw errors:
