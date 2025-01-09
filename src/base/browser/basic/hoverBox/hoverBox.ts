@@ -148,11 +148,11 @@ function isCoordinate(pos: Direction | Coordinate | undefined): pos is Coordinat
     return !!pos && typeof (pos as Coordinate).x === 'number' && typeof (pos as Coordinate).y === 'number';
 }
 
-function computeRect(element: HTMLElement): { top: number, left: number, width: number, height: number } {
-    const top = DomUtility.Attrs.getViewportTop(element);
-    const left = DomUtility.Attrs.getViewportLeft(element);
-    const width = DomUtility.Attrs.getTotalWidth(element);
-    const height = DomUtility.Attrs.getTotalHeight(element);
+function computeRect(target: HTMLElement): { top: number, left: number, width: number, height: number } {
+    const top = DomUtility.Attrs.getViewportTop(target);
+    const left = DomUtility.Attrs.getViewportLeft(target);
+    const width = DomUtility.Attrs.getTotalWidth(target);
+    const height = DomUtility.Attrs.getTotalHeight(target);
     return { top, left, width, height };
 }
 
@@ -240,6 +240,7 @@ export class HoverBox extends Widget implements IHoverBox {
         } else {
             // Position relative to target
             const rect = getTargetRect(this.target);
+  
             const desiredPosition = this.positionOpts.hoverPosition ?? DirectionY.Top;
 
             // Checks overlap
@@ -268,7 +269,7 @@ export class HoverBox extends Widget implements IHoverBox {
                 x = rect.left;
             }
         }
-
+        
         // Adjust if out of viewport
         const maxX = view.width - hoverWidth;
         const maxY = view.height - hoverHeight;
@@ -303,6 +304,7 @@ export class HoverBox extends Widget implements IHoverBox {
     }
 
     protected override __render(element: HTMLElement): void {
+
         element.classList.add('monaco-hover', 'hover-box');
 
         if (!this.appearanceOpts.skipFadeInAnimation) {
