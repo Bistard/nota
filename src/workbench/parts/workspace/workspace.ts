@@ -30,14 +30,14 @@ export class Workspace extends Component implements IWorkspaceService {
     // [protected override methods]
 
     protected override __createContent(): void {
-        this._groupView = this.instantiationService.createInstance(
+        this._groupView = this.__register(this.instantiationService.createInstance(
             EditorGroupView, 
             this.element.raw,
             {
                 editorToOpen: [],
                 mostRecentUsed: 0,
             }
-        );
+        ));
     }
 
     protected override __registerListeners(): void { 

@@ -291,9 +291,9 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 
 	// [public methods]
 
-	public set(object: T): void {
+	public set(object: T): T {
 		if (this._object === object) {
-			return;
+			return object;
 		}
 
 		this._object?.dispose();
@@ -301,6 +301,8 @@ export class AutoDisposable<T extends IDisposable> implements IDisposable {
 		
 		this.__cleanChildren();
 		this.__trackDisposable(object, undefined);
+
+		return object;
 	}
 
 	public get(): T | undefined {

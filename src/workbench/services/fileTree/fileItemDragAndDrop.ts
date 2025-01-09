@@ -308,13 +308,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         setIndicatorBy(sortOrder);
 
         // configuration self update
-        this.configurationService.onDidConfigurationChange(e => {
+        this.__register(this.configurationService.onDidConfigurationChange(e => {
             if (!e.match(WorkbenchConfiguration.ExplorerFileSortType)) {
                 return;
             }
             const newSortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
             setIndicatorBy(newSortOrder);
-        });
+        }));
     }
 
     /**
