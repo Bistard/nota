@@ -102,7 +102,14 @@ export class Disposable implements IDisposable {
 		return this.__register(obj);
 	}
 
-	public release<T extends IDisposable>(obj: T): void {
+	/**
+	 * @description Removes the reference of a {@link IDisposable} from bucket 
+	 * and disposes of it. 
+	 */
+	public release<T extends IDisposable>(obj?: T): void {
+		if (!obj) {
+			return;
+		}
 		return this._$bucket$_.release(obj);
 	}
 }
@@ -134,9 +141,6 @@ export class LooseDisposableBucket implements IDisposable {
 		}
 	}
 
-	/**
-	 * @description Registers a disposable.
-	 */
 	public register<T extends IDisposable>(obj: T): T {
 		if (obj && (obj as unknown) === this) {
 			panic('cannot register the disposable object to itself');
@@ -147,9 +151,6 @@ export class LooseDisposableBucket implements IDisposable {
 		return obj;
 	}
 
-	/**
-	 * @description Releases a {@link IDisposable} from bucket and disposes of it. 
-	 */
 	public release<T extends IDisposable>(obj: T): void {
 		if (!obj) {
 			return;

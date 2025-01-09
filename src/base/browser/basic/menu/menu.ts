@@ -9,7 +9,7 @@ import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type
 import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
-import { Disposable, DisposableBucket, LooseDisposableBucket } from "src/base/common/dispose";
+import { Disposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { panic } from "src/base/common/utilities/panic";
 

@@ -1,4 +1,4 @@
-import { Disposable, DisposableBucket, disposeAll, IDisposable, LooseDisposableBucket } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, LooseDisposableBucket } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
 import { Numbers } from "src/base/common/utilities/number";

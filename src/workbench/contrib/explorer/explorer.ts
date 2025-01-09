@@ -148,8 +148,8 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         if (this._currentView) {
             this._currentView.remove();
             this._currentView = undefined;
-            this._currViewBucket.dispose();
         }
+        this._currViewBucket.dispose();
     }
 
     private __loadCurrentView(view: HTMLElement, isEmpty: boolean): void {
