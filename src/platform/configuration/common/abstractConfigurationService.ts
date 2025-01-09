@@ -95,6 +95,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
          * sure everything is updated.
          */
         .andThen(() => {
+            this.release(this._configurationHub);
             this._configurationHub = this.__reloadConfigurationHub();
             this.logService.debug('ConfigurationService', 'initialized successfully.');
             return ok();
@@ -132,9 +133,11 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     private __reloadConfigurationHub(): ConfigurationHub {
-        return new ConfigurationHub(
-            this._defaultConfiguration.getConfiguration(),
-            this._userConfiguration.getConfiguration(),
+        return this.__register(
+            new ConfigurationHub(
+                this._defaultConfiguration.getConfiguration(),
+                this._userConfiguration.getConfiguration(),
+            )
         );
     }
 }

@@ -101,6 +101,10 @@ export class Disposable implements IDisposable {
 	public register<T extends IDisposable>(obj: T): T {
 		return this.__register(obj);
 	}
+
+	public release<T extends IDisposable>(obj: T): void {
+		return this._$bucket$_.release(obj);
+	}
 }
 
 /**
@@ -144,9 +148,9 @@ export class LooseDisposableBucket implements IDisposable {
 	}
 
 	/**
-	 * @description Deletes a {@link IDisposable} from bucket and disposes of it. 
+	 * @description Releases a {@link IDisposable} from bucket and disposes of it. 
 	 */
-	public delete<T extends IDisposable>(obj: T): void {
+	public release<T extends IDisposable>(obj: T): void {
 		if (!obj) {
 			return;
 		}

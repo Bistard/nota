@@ -4,6 +4,7 @@ import { IRawConfigurationChangeEvent } from "src/platform/configuration/common/
 import { ConfigurationStorage, IConfigurationStorage, IReadonlyConfigurationStorage } from "src/platform/configuration/common/configurationStorage";
 import { ConfigurationModuleType, IConfigurationCompareResult, Section } from "src/platform/configuration/common/configuration";
 import { panic } from "src/base/common/utilities/panic";
+import { Disposable } from "src/base/common/dispose";
 
 interface IConfigurationHubBase {
 
@@ -32,7 +33,7 @@ interface IConfigurationHubBase {
     compareAndUpdateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage, changedKeys: Section[] | undefined): IRawConfigurationChangeEvent;
 }
 
-class ConfigurationHubBase implements IConfigurationHubBase {
+class ConfigurationHubBase extends Disposable implements IConfigurationHubBase {
 
     // [fields]
 
@@ -46,7 +47,9 @@ class ConfigurationHubBase implements IConfigurationHubBase {
         protected _userConfiguration: IConfigurationStorage,
         protected _memoryConfiguration: IConfigurationStorage = new ConfigurationStorage(),
     ) {
+        super();
         this._composedConfiguration = undefined;
+        this.__register(this._memoryConfiguration);
         this._configurationMapping = {
             [ConfigurationModuleType.Default]: '_defaultConfiguration',
             [ConfigurationModuleType.User]: '_userConfiguration',
@@ -85,18 +88,20 @@ class ConfigurationHubBase implements IConfigurationHubBase {
 
     protected __getComposedConfiguration(): IConfigurationStorage {
         if (!this._composedConfiguration) {
-            this._composedConfiguration = this._defaultConfiguration.clone();
-            
-            const userConfigurationWithMemory = this._userConfiguration.clone();
+            this._composedConfiguration = this.__register(this._defaultConfiguration.clone());
+            const userConfigurationWithMemory = this.__register(this._userConfiguration.clone());
             userConfigurationWithMemory.merge(this._memoryConfiguration, false);
-            
             this._composedConfiguration.merge(userConfigurationWithMemory, true);
+            this.release(userConfigurationWithMemory);
         }
         return this._composedConfiguration;
     }
 
     protected __dropComposedConfiguration(): void {
-        this._composedConfiguration = undefined;
+        if (this._composedConfiguration) {
+            this.release(this._composedConfiguration);
+            this._composedConfiguration = undefined;
+        }
     }
 
     // [private helper methods]

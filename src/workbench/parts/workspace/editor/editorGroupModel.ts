@@ -480,7 +480,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
                 e.model?.equals(model) &&
                 e.type === EditorGroupChangeType.EDITOR_CLOSE
             ) {
-                this._editorsListener.delete(lifecycle);
+                this._editorsListener.release(lifecycle);
             }
         }));
     }
