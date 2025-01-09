@@ -1,4 +1,4 @@
-import { AutoDisposable, Disposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -288,20 +288,22 @@ export type BufferLoggerBufferType = { level: LogLevel, reporter: string, messag
 export class BufferLogger extends AbstractLogger implements ILogService {
 
     protected readonly _buffer: BufferLoggerBufferType[] = [];
-    private readonly _logger: AutoDisposable<ILogger>;
+    private _logger?: ILogger;
 
     constructor() {
         super();
-        this._logger = this.__register(new AutoDisposable());
     }
 
     public setLogger(logger: ILogger): void {
-        this._logger.set(logger);
+        if (this._logger) {
+            this.release(this._logger);
+        }
+        this._logger = this.__register(logger);
         this.__tryFlushBuffer();
     }
 
     public getLogger(): ILogger | undefined {
-        return this._logger.get();
+        return this._logger;
     }
 
     public trace(reporter: string, message: string, additional?: Additional): void {
@@ -330,7 +332,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
 
     public async flush(): Promise<void> {
         this.__tryFlushBuffer();
-        return this._logger.get()?.flush();
+        return this._logger?.flush();
     }
 
     // [protected helper methods]
@@ -341,7 +343,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     }
 
     protected __tryFlushBuffer(): void {
-        const logger = this._logger.get();
+        const logger = this._logger;
         if (!logger) {
             return;
         }
