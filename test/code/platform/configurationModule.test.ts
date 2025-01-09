@@ -96,7 +96,7 @@ suite('ConfigurationModule-test', () => {
 
         before(() => {
             di = new InstantiationService();
-            di.register(IInstantiationService, di);
+            di.store(IInstantiationService, di);
         });
     
         /**
@@ -104,7 +104,7 @@ suite('ConfigurationModule-test', () => {
          */
         beforeEach(() => {
             service = new RegistrantService(new NullLogger());
-            di.register(IRegistrantService, service);
+            di.store(IRegistrantService, service);
             
             registrant = new ConfigurationRegistrant();
             registrant.registerConfigurations(unit1);
@@ -254,14 +254,14 @@ suite('ConfigurationModule-test', () => {
 
         before(async () => {
             di = new InstantiationService();
-            di.register(IInstantiationService, di);
+            di.store(IInstantiationService, di);
             
             const logService = new NullLogger();
-            di.register(ILogService, logService);
+            di.store(ILogService, logService);
 
             fileService = new FileService(logService);
             fileService.registerProvider('file', new InMemoryFileSystemProvider());
-            di.register(IFileService, fileService);
+            di.store(IFileService, fileService);
         });
     
         /**
@@ -269,7 +269,7 @@ suite('ConfigurationModule-test', () => {
          */
         beforeEach(() => {
             service = new RegistrantService(new NullLogger());
-            di.register(IRegistrantService, service);
+            di.store(IRegistrantService, service);
             
             registrant = new ConfigurationRegistrant();
             service.registerRegistrant(registrant as ConfigurationRegistrant);

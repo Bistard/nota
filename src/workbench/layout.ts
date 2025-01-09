@@ -1,6 +1,5 @@
 import { CollapseState, DirectionX, DomUtility, EventType, Orientation, addDisposableListener } from "src/base/browser/basic/dom";
 import { Component, IAssembleComponentOpts } from "src/workbench/services/component/component";
-import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
@@ -18,6 +17,7 @@ import { Priority } from "src/base/common/event";
 import { ISplitView } from "src/base/browser/secondary/splitView/splitView";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
 
 /**
  * @description A base class for Workbench to create and manage the behavior of
@@ -48,12 +48,12 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, instantiationService);
-        this._collapseController = new CollapseAnimationController(
+        this._collapseController = this.__register(new CollapseAnimationController(
             CollapseState.Expand, 
             this.element,
             () => assert(this._splitView),
             () => assert(this.dimension),
-        );
+        ));
     }
 
     // [public methods]
@@ -166,14 +166,14 @@ class CollapseAnimationController extends Disposable {
         this._container = element;
         this._container.toggleClassName('collapsed', initState === CollapseState.Collapse);
 
-        this._button = new ToggleCollapseButton({
+        this._button = this.__register(new ToggleCollapseButton({
             initState: initState,
             positionX: {
                 position: DirectionX.Left,
                 offset: 12,
             },
             direction: DirectionX.Left,
-        });
+        }));
     }
 
     // [getter]

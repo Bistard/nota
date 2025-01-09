@@ -1,8 +1,10 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
+import { PLATFORM } from "src/base/common/platform";
 import { createMenuRecentOpenTemplate } from "src/platform/app/common/menu.register";
 import { IRecentOpenedTarget, RecentOpenUtility } from "src/platform/app/common/recentOpen";
+import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
 import { IMenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
@@ -102,6 +104,7 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     constructor(
         @IHostService private readonly hostService: IHostService,
         @IRegistrantService registrantService: IRegistrantService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         super();
         this._menuRegistrant = registrantService.getRegistrant(RegistrantType.Menu);
@@ -118,7 +121,7 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
     }
 
     public async getRecentOpened(): Promise<IRecentOpenedTarget | undefined> {
-        return (await this.getRecentOpenedAll())[0];
+        return RecentOpenUtility.getRecentOpened(this.hostService);
     }
 
     public async getRecentOpenedDirectory(): Promise<IRecentOpenedTarget | undefined> {
@@ -159,7 +162,8 @@ export class RecentOpenService extends Disposable implements IRecentOpenService 
 
         // dynamic (recent opened)
         for (const { target } of recentOpened) {
-            const name = URI.toFsPath(target).replace(/^\/Users\/[^/]+/, '~');
+            const name = URI.tildify(target, { os: PLATFORM, tildify: { userHome: this.environmentService.userHomePath } });
+
             this._menuRegistrant.registerMenuItem(MenuTypes.FileRecentOpen, {
                 group: '2_recent_open',
                 title: name,

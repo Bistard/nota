@@ -1,6 +1,6 @@
 import { IListDragEvent, IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 import { requestAnimate } from "src/base/browser/basic/animation";
 import { Arrays } from "src/base/common/utilities/array";
@@ -28,7 +28,7 @@ export interface IDragOverResult {
 /**
  * An interface that provides drag and drop support (dnd).
  */
-export interface IListDragAndDropProvider<T> {
+export interface IListDragAndDropProvider<T> extends IDisposable {
 
     /**
      * @description Returns the user-defined data from the given item.
@@ -125,14 +125,15 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
  * @class A wrapper class for {@link IListWidget}.
  * @warn DO NOT USE DIRECTLY.
  */
-class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
+class ListWidgetDragAndDropProvider<T> extends Disposable implements IListWidgetDragAndDropProvider<T> {
 
     private readonly view: IListWidget<T>;
     private readonly dnd: IListDragAndDropProvider<T>;
 
     constructor(view: IListWidget<T>, dnd: IListDragAndDropProvider<T>) {
+        super();
         this.view = view;
-        this.dnd = dnd;
+        this.dnd = this.__register(dnd);
     }
 
     public getDragItems(currItem: T): T[] {
@@ -213,7 +214,7 @@ export class ListWidgetDragAndDropController<T> extends Disposable {
     ) {
         super();
         this._view = view;
-        this._provider = new ListWidgetDragAndDropProvider(view, dragAndDropProvider);
+        this._provider = this.__register(new ListWidgetDragAndDropProvider(view, dragAndDropProvider));
         this._scrollOnEdgeController = this.__register(new ScrollOnEdgeController(view, opts));
 
         this.__enableDragAndDropSupport(toListDragEvent);
@@ -259,7 +260,9 @@ export class ListWidgetDragAndDropController<T> extends Disposable {
 
         // add event listener
         if (userData) {
-            item.dragStart = addDisposableListener(row.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
+            item.dragStart = untrackDisposable(
+                addDisposableListener(row.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e))
+            );
         }
     }
     

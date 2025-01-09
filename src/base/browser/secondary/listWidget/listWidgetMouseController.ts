@@ -1,6 +1,6 @@
 import { DomEventHandler, DomUtility } from "src/base/browser/basic/dom";
 import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts } from "src/base/browser/secondary/listWidget/listWidget";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IS_MAC } from "src/base/common/platform";
 import { Arrays } from "src/base/common/utilities/array";
 
@@ -15,11 +15,10 @@ import { Arrays } from "src/base/common/utilities/array";
  * 
  * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
-export class ListWidgetMouseController<T> implements IDisposable {
+export class ListWidgetMouseController<T> extends Disposable implements IDisposable {
 
     // [fields]
 
-    private _disposables = new DisposableManager();
     private _view: IListWidget<T>;
 
     private _multiSelectionSupport: boolean = true;
@@ -27,6 +26,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
     // [constructor]
 
     constructor(view: IListWidget<T>, opts: IListWidgetOpts<T>) {
+        super();
         this._view = view;
 
         this._view.DOMElement.classList.add('mouse-support');
@@ -35,18 +35,12 @@ export class ListWidgetMouseController<T> implements IDisposable {
             this._multiSelectionSupport = opts.multiSelectionSupport;
         }
 
-        this._disposables.register(view.onMouseout((e) => this.__onMouseout(e)));
-        this._disposables.register(view.onMouseover(e => this.__onMouseover(e)));
-        this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
-        this._disposables.register(view.onTouchstart(e => this.__onMouseDown(e)));
-        this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
-        this._disposables.register(view.onDidChangeFocus(e => this.__onDidChangeFocus(e)));
-    }
-
-    // [public methods]
-
-    public dispose(): void {
-        this._disposables.dispose();
+        this.__register(view.onMouseout((e) => this.__onMouseout(e)));
+        this.__register(view.onMouseover(e => this.__onMouseover(e)));
+        this.__register(view.onMousedown(e => this.__onMouseDown(e)));
+        this.__register(view.onTouchstart(e => this.__onMouseDown(e)));
+        this.__register(view.onClick(e => this.__onMouseClick(e)));
+        this.__register(view.onDidChangeFocus(e => this.__onDidChangeFocus(e)));
     }
 
     // [protect methods]

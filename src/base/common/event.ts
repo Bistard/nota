@@ -1,6 +1,6 @@
 import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
-import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
 import { createFinalizationRegistry } from "src/base/common/garbageCollection";
@@ -21,9 +21,9 @@ import { Time } from "src/base/common/date";
  ******************************************************************************/
 
 let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
-export function monitorEventEmitterListenerGC(opts: { ListenerGCedWarning: boolean }): void {
-    if (opts.ListenerGCedWarning) {
-        
+export function monitorEmitterListenerGC(opts: { listenerGCedWarning: boolean }): void {
+    if (opts.listenerGCedWarning) {
+        console.info('[monitorEmitterListenerGC] enabled');
         _listenerFinalizer = createFinalizationRegistry({
             onGarbageCollectedInterval: (stacks: string[]) => {
                 console.warn('[MEMORY LEAKING] GC\'ed these event listeners that were NOT yet disposed:');
@@ -384,7 +384,7 @@ export class DelayableEmitter<T> extends Emitter<T> {
  */
 export class SignalEmitter<T, E> extends Emitter<E> { 
 
-    private disposables = new DisposableManager();
+    private disposables = new DisposableBucket();
     private logicHandler: (event: T) => E;
 
     constructor(events: Register<T>[], logicHandler: (event: T) => E) {
@@ -446,29 +446,29 @@ export class AsyncEmitter<T> extends Emitter<T> {
  * be switched to the input event T2 from the emitter E2 and all the listeners 
  * now are listening to emitter E2.
  */
-export class RelayEmitter<T> implements IDisposable {
+export class RelayEmitter<T> extends Disposable {
     
     // [field]
 
     /** The input emitter */
     private _inputRegister: Register<T> = Event.NONE;
     /** The disposable when the relay emitter listening to the input. */
-    private _inputUnregister: IDisposable = Disposable.NONE;
+    private readonly _inputUnregister = this.__register(new LooseDisposableBucket());
 
     /** Representing if any listeners are listening to this relay emitter. */
     private _listening: boolean = false;
 
     /** The relay (pipeline) emitter */
-    private readonly _relay = new Emitter<T>({
+    private readonly _relay = this.__register(new Emitter<T>({
         onFirstListenerAdd: () => {
-            this._inputUnregister = this._inputRegister(e => this._relay.fire(e));
+            this._inputUnregister.register(this._inputRegister(e => this._relay.fire(e)));
             this._listening = true;
         },
         onLastListenerDidRemove: () => {
             this._inputUnregister.dispose();
             this._listening = false;
         }
-    });
+    }));
 
     // [event]
 
@@ -476,7 +476,9 @@ export class RelayEmitter<T> implements IDisposable {
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+        super();
+    }
 
     // [method]
 
@@ -489,15 +491,9 @@ export class RelayEmitter<T> implements IDisposable {
          */
         if (this._listening) {
             this._inputUnregister.dispose();
-            this._inputUnregister = newInputRegister(e => this._relay.fire(e));
+            this._inputUnregister.register(newInputRegister(e => this._relay.fire(e)));
         }
     }
-
-    public dispose(): void {
-        this._inputUnregister.dispose();
-        this._relay.dispose();
-    }
-
 }
 
 export interface INodeEventEmitter {
@@ -594,9 +590,13 @@ export namespace Event {
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
         const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
-            const allDisposables = registers.map(register => register(listener, disposables, thisArgs));
-            const parentDisposable = toDisposable(() => disposeAll(allDisposables));
-            return parentDisposable;            
+            const parent = new DisposableBucket();
+            registers.map(register => {
+                const disposable = register(listener, disposables, thisArgs);
+                parent.register(disposable);
+                return disposable;
+            });
+            return parent;            
         };
         return newRegister;
     }

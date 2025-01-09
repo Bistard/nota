@@ -2,7 +2,7 @@ import "src/base/browser/basic/contextMenu/contextMenu.scss";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { AnchorAbstractPosition, AnchorMode, calcViewPositionAlongAxis, IAnchorBox } from "src/base/browser/basic/view";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, LooseDisposableBucket, IDisposable } from "src/base/common/dispose";
 import { Range } from "src/base/common/structures/range";
 import { IDomBox, IPosition } from "src/base/common/utilities/size";
 
@@ -51,13 +51,13 @@ export interface IContextMenuDelegateBase {
      * Determines the primary axis of positioning (either vertical or horizontal) 
      * when calculating the view's position.
      * 
-     * @default AnchorPrimaryAxisAlignment.Vertical
-     * 
      * For an example, when sets to horizontal, the program will first to decide 
      * either place the view on the left or right relative to the anchor（based 
      * on {@link AnchorHorizontalPosition}. If the view intersects with the 
      * anchor, the secondary positioning strategy (vertical) is applied to the 
      * vertical axis to avoid overlapping (based on {@link AnchorVerticalPosition}).
+     * 
+     * @default AnchorPrimaryAxisAlignment.Vertical
      */
     readonly primaryAlignment?: AnchorPrimaryAxisAlignment;
 
@@ -162,8 +162,8 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     /** The delegate that handles external business logics */
     private _currDelegate?: IContextMenuDelegate;
     
-    private _currContainerDisposables: IDisposable = Disposable.NONE;
-    private _currRenderContentDisposables: IDisposable = Disposable.NONE;
+    private readonly _currContainerLifecycle: LooseDisposableBucket;
+    private readonly _currRenderContentLifecycle: LooseDisposableBucket;
 
     // [constructor]
 
@@ -172,6 +172,9 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this._element = this.__register(new FastElement(document.createElement('div')));
         this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setPosition('absolute');
+
+        this._currContainerLifecycle = this.__register(new LooseDisposableBucket());
+        this._currRenderContentLifecycle = this.__register(new LooseDisposableBucket());
 
         DomUtility.Modifiers.hide(this._element.raw);
         this.setContainer(container);
@@ -183,7 +186,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         
         // remove the context menu from the old container
         if (this._currContainer) {
-            this._currContainerDisposables.dispose();
+            this._currContainerLifecycle.dispose();
             this._currContainer.removeChild(this._element.raw);
             this._currContainer = undefined;
         }
@@ -194,17 +197,13 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         
         // register the context menu events
         {
-            const disposables = new DisposableManager();
-        
-            disposables.register(
+            this._currContainerLifecycle.register(
                 addDisposableListener(this._element.raw, EventType.click, (e) => {
                     if (!DomUtility.Elements.isAncestor(this._element.raw, <Node>e.target)) {
                         this.destroy();
                     }
                 })
             );
-
-            this._currContainerDisposables = disposables;
         }
     }
 
@@ -228,7 +227,9 @@ export class ContextMenuView extends Disposable implements IContextMenu {
 
         // render the content of the context menu
         this._currDelegate = delegate;
-        this._currRenderContentDisposables = this._currDelegate.render(this._element.raw) || Disposable.NONE;
+        this._currRenderContentLifecycle.register(
+            this._currDelegate.render(this._element.raw) || Disposable.NONE
+        );
 
         // layout the context menu
         this.__layout(this._currDelegate);
@@ -247,7 +248,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         }
 
         // unrender
-        this._currRenderContentDisposables.dispose();
+        this._currRenderContentLifecycle.dispose();
 
         // hide the context menu
         DomUtility.Modifiers.hide(this._element.raw);

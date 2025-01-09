@@ -40,16 +40,16 @@ export class FunctionBar extends Component implements IFunctionBarService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
 
         // lower button group
         const secondaryContainer = document.createElement('div');
         secondaryContainer.className = 'function-bar-button-container';
-        const helpButton = this.__createHelpButton();
+        const helpButton = this.__register(this.__createHelpButton());
         this.element.appendChild(helpButton.element);
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         
     }
 

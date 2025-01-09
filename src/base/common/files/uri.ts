@@ -1,10 +1,10 @@
 import { CharCode } from "src/base/common/utilities/char";
 import * as paths from "src/base/common/files/path";
-import { IS_WINDOWS, OS_CASE_SENSITIVE } from "src/base/common/platform";
+import { IS_WINDOWS, OS_CASE_SENSITIVE, Platform } from "src/base/common/platform";
 import { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { isParentOf } from "src/base/common/files/glob";
 import { panic } from "src/base/common/utilities/panic";
-import { toForwardSlash, toPosixPath } from "src/base/common/files/extpath";
+import { ITildifyFormatter, normalizeDriveLetter, tildify, toForwardSlash, toPosixPath } from "src/base/common/files/extpath";
 import { Strings } from "src/base/common/utilities/string";
 
 /**
@@ -479,7 +479,8 @@ export class URI implements IURI {
 			&& authority === uri.authority
 			&& path === uri.path
 			&& query === uri.query
-			&& fragment === uri.fragment) {
+			&& fragment === uri.fragment
+		) {
 			return uri;
 		}
 
@@ -500,6 +501,48 @@ export class URI implements IURI {
 
 		const uri = registrant.revive<URI>(obj);
 		return uri;
+	}
+
+	/**
+	 * @description Gets the human readable label (in string) for a uri.
+	 */
+	public static tildify(uri: URI, formatter: ITildifyFormatter): string {
+		const { os, tildify: tildifyFormatter } = formatter;
+
+		/**
+		 * Try to resolve a absolute path label and apply target OS standard 
+		 * path separators if target OS differs from actual OS we are running in.
+		 */
+		let absolutePath = URI.toFsPath(uri);
+		if (os === Platform.Windows && !IS_WINDOWS) {
+			absolutePath = absolutePath.replace(/\//g, '\\');
+		} else if (os !== Platform.Windows && IS_WINDOWS) {
+			absolutePath = absolutePath.replace(/\\/g, '/');
+		}
+
+		// macOS/Linux: tildify with provided user home directory
+		if (os !== Platform.Windows && tildifyFormatter?.userHome) {
+			const userHome = URI.toFsPath(tildifyFormatter.userHome);
+
+			/**
+			 * This is a bit of a hack, but in order to figure out if the 
+			 * resource is in the user home, we need to make sure to convert it
+			 * to a user home resource. We cannot assume that the resource is
+			 * already a user home resource.
+			 */
+			let userHomeCandidate: string;
+			if (uri.scheme !== tildifyFormatter.userHome.scheme && uri.path[0] === paths.posix.sep && uri.path[1] !== paths.posix.sep) {
+				userHomeCandidate = URI.toFsPath(URI.with(tildifyFormatter.userHome, { path: uri.path }));
+			} else {
+				userHomeCandidate = absolutePath;
+			}
+
+			absolutePath = tildify(userHomeCandidate, userHome, os);
+		}
+
+		// normalize
+		const pathLib = os === Platform.Windows ? paths.win32 : paths.posix;
+		return pathLib.normalize(normalizeDriveLetter(absolutePath, os === Platform.Windows));
 	}
 }
 

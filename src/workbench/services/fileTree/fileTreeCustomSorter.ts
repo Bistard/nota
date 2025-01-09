@@ -7,7 +7,7 @@ import { IFileItem, IFileTarget } from "src/workbench/services/fileTree/fileItem
 /**
  * An interface only for {@link FileTreeCustomSorter}
  */
-export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> extends IDisposable {
+export interface IFileTreeCustomSorter<TItem extends IFileItem<TItem>> {
 
     /**
      * @description Compares two file tree items to determine their relative 
@@ -43,7 +43,7 @@ export interface IFileTreeCustomSorterOptions {
 }
 
 
-export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Disposable implements IFileTreeCustomSorter<TItem> {
+export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> implements IFileTreeCustomSorter<TItem> {
     
     // [fields]
 
@@ -56,7 +56,6 @@ export class FileTreeCustomSorter<TItem extends IFileItem<TItem>> extends Dispos
         opts: IFileTreeCustomSorterOptions,
         @ILogService private readonly logService: ILogService,
     ) {
-        super();
         this._defaultItemComparator = opts.defaultItemComparator;
         this._getMetadataFromCache = opts.getMetadataFromCache;
     }

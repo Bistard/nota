@@ -33,11 +33,14 @@ class __TreeIdentityProvider<T, TFilter> implements IIdentityProvider<ITreeNode<
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
-class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
+class __TreeListDragAndDropProvider<T, TFilter> extends Disposable implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
 
     constructor(
         private readonly dnd: IListDragAndDropProvider<T>
-    ) {}
+    ) {
+        super();
+        this.__register(dnd);
+    }
 
     public getDragData(node: ITreeNode<T, TFilter>): string | null {
         return this.dnd.getDragData(node.data);
@@ -902,7 +905,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         this._model = this.createModel(rootData, this._view, opts);
         
         // updates traits in the tree-level after each splice
-        this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider));
+        this.__register(this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider)));
 
         // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);

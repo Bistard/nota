@@ -46,7 +46,9 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.reloadWindow,
-                command: (provider) => { provider.getOrCreateService(IHostService).reloadWebPage(); },
+                command: (provider) => { 
+                    provider.getOrCreateService(IHostService).reloadWindow({});
+                },
             },
         );
     

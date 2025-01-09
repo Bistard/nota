@@ -14,6 +14,7 @@ export interface IMenuService extends IService {
 export const enum MenuTypes {
     CommandPalette = 'CommandPalette',
 
+    TitleBar = 'TitleBar',
     TitleBarApplication = 'TitleBarApplication',
     TitleBarFile = 'TitleBarFile',
     TitleBarEdit = 'TitleBarEdit',
@@ -57,6 +58,7 @@ export interface IMenuItemRegistration {
 
     /**
      * Defines the behavior when the item is interacted.
+     * // FIX: submenu should not need to provide `command`
      */
     readonly command: {
         /**

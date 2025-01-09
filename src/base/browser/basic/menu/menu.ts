@@ -9,7 +9,7 @@ import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type
 import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
-import { DisposableManager } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, LooseDisposableBucket } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { panic } from "src/base/common/utilities/panic";
 
@@ -411,7 +411,7 @@ export class Menu extends BaseMenu {
     }
 }
 
-export abstract class MenuDecorator implements IMenu {
+export abstract class MenuDecorator extends Disposable implements IMenu {
 
     // [fields]
 
@@ -428,7 +428,8 @@ export abstract class MenuDecorator implements IMenu {
     // [constructor]
 
     constructor(menu: IMenu) {
-        this._menu = menu;
+        super();
+        this._menu = this.__register(menu);
         this.onDidInsert = this._menu.onDidInsert;
         this.onBeforeRun = this._menu.onBeforeRun;
         this.onDidRun = this._menu.onDidRun;
@@ -509,10 +510,6 @@ export abstract class MenuDecorator implements IMenu {
     public size(): number {
         return this._menu.size();
     }
-
-    public dispose(): void {
-        this._menu.dispose();
-    }
 }
 
 /**
@@ -527,14 +524,14 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private _submenuContainer?: FastElement<HTMLElement>;
     private _submenu?: IMenu;
-    private _submenuDisposables: DisposableManager;
+    private readonly _submenuLifecycle: LooseDisposableBucket;
 
     // [constructor]
 
     constructor(menu: IMenu, submenuCtor: Constructor<MenuDecorator> = MenuWithSubmenu) {
         super(menu);
         this._submenuCtor = submenuCtor;
-        this._submenuDisposables = new DisposableManager();
+        this._submenuLifecycle = this.__register(new LooseDisposableBucket());
 
         this._menu.addActionItemProvider((action: MenuAction) => {
             if (action.type === MenuItemType.Submenu) {
@@ -571,8 +568,7 @@ export class MenuWithSubmenu extends MenuDecorator {
 
         this._submenuContainer?.dispose();
         this._submenuContainer = undefined;
-        this._submenuDisposables.dispose();
-        this._submenuDisposables = new DisposableManager();
+        this._submenuLifecycle.dispose();
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
@@ -682,17 +678,17 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
 
         // key-down
-        this._submenuContainer.onKeydown((e) => {
+        this._submenuLifecycle.register(this._submenuContainer.onKeydown((e) => {
             const event = createStandardKeyboardEvent(e);
 
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
             }
-        });
+        }));
 
         // key-up
-        this._submenuContainer.onKeyup((e) => {
+        this._submenuLifecycle.register(this._submenuContainer.onKeyup((e) => {
             const event = createStandardKeyboardEvent(e);
             
             // left-arrow
@@ -701,10 +697,10 @@ export class MenuWithSubmenu extends MenuDecorator {
                 this.__closeCurrSubmenu();
                 this.__focusParentMenu();
             }
-        });
+        }));
 
         // on-did-close
-        this._submenuDisposables.register(this._submenu.onDidClose(() => {
+        this._submenuLifecycle.register(this._submenu.onDidClose(() => {
             this.__closeCurrSubmenu();
         }));
     }

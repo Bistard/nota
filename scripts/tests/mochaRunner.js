@@ -1,6 +1,6 @@
 const childProcess = require("child_process");
 const fs = require('fs');
-const { ScriptProcess } = require("../utility");
+const { ScriptProcess, log } = require("../utility");
 
 (async function () {
     await runI18nIntegrationTest();
@@ -10,7 +10,7 @@ const { ScriptProcess } = require("../utility");
 async function runI18nIntegrationTest() {
     const i18n = new ScriptProcess(
         'i18nIntegrationTest',
-        `npm run script i18n_integration_test`,
+        `npm run script test-i18n`,
         [],
         [],
         {
@@ -33,7 +33,7 @@ async function runMocha() {
     const configurationPath = './scripts/tests/mochapack.json';
     const command = await buildCommandFromConfiguration('mochapack', cliArgs, configurationPath);
 
-    console.log(`Executing command: ${command}`);
+    log('info', `Executing command: ${command}`);
 
     const proc = childProcess.spawn(
         command, 

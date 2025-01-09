@@ -1,9 +1,9 @@
-#title-bar {
+.editor-tab-view {
     position: relative;
     
     width: 100%;
     height: 100%;
-    line-height: var(--nota-title-bar-height);
+    line-height: var(--nota-tab-view-height);
 
     display: flex;
     flex-direction: row;

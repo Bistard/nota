@@ -1,4 +1,4 @@
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { IDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { HashNumber } from "src/base/common/utilities/hash";
 import { panic } from "src/base/common/utilities/panic";
@@ -221,16 +221,18 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
 
         this._onDidRegister.fire(registration.shortcut);
 
-        return toDisposable(() => {
-            if (items) {
-                const itemIdx = items.findIndex((item) => item.uuid === uuid);
-                items.splice(itemIdx, 1);
-                if (items.length === 0) {
-                    this._shortcuts.delete(hashcode);
+        return untrackDisposable(
+            toDisposable(() => {
+                if (items) {
+                    const itemIdx = items.findIndex((item) => item.uuid === uuid);
+                    items.splice(itemIdx, 1);
+                    if (items.length === 0) {
+                        this._shortcuts.delete(hashcode);
+                    }
+                    this._onDidUnRegister.fire(registration.shortcut);
                 }
-                this._onDidUnRegister.fire(registration.shortcut);
-            }
-        });
+            })
+        );
     }
 
     public isRegistered(shortcut: Shortcut | ShortcutHash, commandID: string): boolean {

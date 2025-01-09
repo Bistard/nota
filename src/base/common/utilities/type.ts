@@ -3,6 +3,7 @@
  * Represents all the falsy value in JavaScript.
  */
 export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;
+export type nullable = null | undefined;
 
 /**
  * Represent any times that is other than falsy time.
@@ -317,6 +318,11 @@ export type AtLeastNArray<T, N extends number, R extends T[] = []> =
         : AtLeastNArray<T, N, [T, ...R]>;
 
 /**
+ * Represent an array of type T with at least length 1.
+ */
+export type AtLeastOneArray<T> = AtLeastNArray<T, 1>;
+
+/**
  * An alias for {@link TupleOf}.
  */
 export type FixedArray<T, S extends number> = TupleOf<T, S>;
@@ -374,6 +380,18 @@ export type DeepMutable<Immutable> = {
             ? DeepMutable<Immutable[TKey]>
         : Immutable[TKey];
 };
+
+/**
+ * Make all the properties optional recursively.
+ */
+export type DeepPartial<T> = T extends Callable
+    ? T
+    : T extends any[]
+        ? T
+        : T extends object
+            ? { [P in keyof T]?: DeepPartial<T[P]> }
+            : T;
+
 
 /**
  * Given a type T, maps each property with type `from` to type `to` that are

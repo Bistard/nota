@@ -1,14 +1,16 @@
 import { ILogService } from "src/base/common/logger";
-import { JoinablePromise } from "src/base/common/utilities/async";
+import { JoinablePromise, OngoingPromise } from "src/base/common/utilities/async";
+import { ipcRenderer, safeIpcRendererOn } from "src/platform/electron/browser/global";
 import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { createService } from "src/platform/instantiation/common/decorator";
+import { IpcChannel } from "src/platform/ipc/common/channel";
 import { AbstractLifecycleService } from "src/platform/lifecycle/common/abstractLifecycleService";
 import { ILifecycleService as ILifecycleServiceInterface } from "src/platform/lifecycle/common/lifecycle";
 
 export const ILifecycleService = createService<IBrowserLifecycleService>('browser-lifecycle-service');
 
-export interface IBrowserLifecycleService extends ILifecycleServiceInterface<LifecyclePhase, QuitReason> { }
+export interface IBrowserLifecycleService extends ILifecycleServiceInterface<LifecyclePhase, QuitReason> {}
 
 /**
  * Represents the different phases of the whole window (renderer process). 
@@ -70,7 +72,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
 
     // [field]
 
-    private _ongoingQuitParticipants?: Promise<void>;
+    private readonly _ongoingQuitParticipants = new OngoingPromise<void>();
 
     // [constructor]
 
@@ -85,64 +87,78 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
-        this.logService.debug('BrowserLifecycleService', 'quit');
-
-        this.logService.debug('BrowserLifecycleService', 'beforeQuit');
-        this._onBeforeQuit.fire();
-
-        await this.__fireWillQuit();
-
-        this.logService.debug('BrowserLifecycleService', 'Broadcasting the application is about to quit...');
-
-        /**
-         * Making sure all the logging message from the browser side is 
-         * correctly sending to the main process.
-         */
-        await this.logService.flush();
-
+        this.logService.debug('BrowserLifecycleService', 'quit...');
+        await this.__fireOnBeforeQuit(QuitReason.Quit);
         return this.hostService.closeWindow();
     }
 
     // [private helper methods]
 
-    private async __fireWillQuit(): Promise<void> {
+    private async __fireOnWillQuit(): Promise<void> {
+        return this._ongoingQuitParticipants.execute(async () => {
+            
+            // notify all listeners
+            this.logService.debug('BrowserLifecycleService', 'onWillQuit...');
+            const participants = new JoinablePromise();
+            this._onWillQuit.fire({
+                reason: QuitReason.Quit,
+                join: participant => participants.join(participant),
+            });
 
-        if (this._ongoingQuitParticipants) {
-            return this._ongoingQuitParticipants;
-        }
-
-        // notify all listeners
-        this.logService.debug('BrowserLifecycleService', 'willQuit');
-        const participants = new JoinablePromise();
-        this._onWillQuit.fire({
-            reason: QuitReason.Quit,
-            join: participant => participants.join(participant),
-        });
-
-        this._ongoingQuitParticipants = (async () => {
-            this.logService.debug('BrowserLifecycleService', 'willQuit settling ongoing participants before quit...');
-        
+            // settling all participants
+            this.logService.debug('BrowserLifecycleService', '"onWillQuit" settling ongoing participants before quit...');
             const results = await participants.allSettled();
             results.forEach(res => {
                 if (res.status === 'rejected') {
-                    this.logService.error('BrowserLifecycleService', '`onWillQuit` participant fails.', res.reason);
+                    this.logService.error('BrowserLifecycleService', '"onWillQuit" participant fails.', res.reason);
                 }
             });
 
-            this.logService.debug('BrowserLifecycleService', 'willQuit participants all settled.');
-        })();
-
-        await this._ongoingQuitParticipants;
-        this._ongoingQuitParticipants = undefined;
+            this.logService.debug('BrowserLifecycleService', '"onWillQuit" participants all settled.');
+        });
     }
 
-    private _preventedOnce = false;
+    private async __fireOnBeforeQuit(reason: QuitReason): Promise<boolean> {
+
+        // fire onBeforeQuit, see anyone will veto the decision.
+        let veto = false;
+        this.logService.debug('BrowserLifecycleService', 'onBeforeQuit...');
+        this._onBeforeQuit.fire({
+            reason: reason,
+            veto: (anyVeto) => veto ||= anyVeto,
+        });
+
+        // vetoed by someone, we do nothing.
+        if (veto) {
+            this.logService.debug('BrowserLifecycleService', 'onBeforeQuit vetoed.');
+            return true;
+        }
+
+        // not vetoed, we continue to notify will quit event.
+        await this.__fireOnWillQuit();
+
+        /**
+         * Making sure all the logging message from the browser side is 
+         * correctly sending to the main process.
+         */
+        this.logService.debug('BrowserLifecycleService', 'Application is about to quit...');
+        await this.logService.flush();
+        return false;
+    }
+
     private __registerListeners(): void {
-        window.addEventListener('beforeunload', e => {
-            if (!this._preventedOnce) {
-                e.preventDefault();
-                this._preventedOnce = true;
-                this.quit();
+
+        /**
+         * Listener 'onBeforeUnload', renderer has a chance to decide to veto
+         * this decision. Renderer also has a chance to save all the process
+         * before quit.
+         */
+        safeIpcRendererOn(IpcChannel.windowOnBeforeUnload, async (_, { okChannel, vetoChannel }) => {
+            const veto = await this.__fireOnBeforeQuit(QuitReason.Reload);
+            if (veto) {
+                ipcRenderer.send(vetoChannel, 'veto');
+            } else {
+                ipcRenderer.send(okChannel, 'ok');
             }
         });
     }

@@ -1,4 +1,4 @@
-import { DisposableManager } from "src/base/common/dispose";
+import { DisposableBucket } from "src/base/common/dispose";
 import { NodeEventEmitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { ipcRenderer } from "src/platform/electron/browser/global";
@@ -15,7 +15,7 @@ export class IpcClient extends ClientBase {
 
     // [field]
 
-    private static _disposable = new DisposableManager();
+    private static _disposable = new DisposableBucket();
 
     // [constructor]
 
@@ -25,8 +25,8 @@ export class IpcClient extends ClientBase {
     }
 
     public override dispose(): void {
-        IpcClient._disposable.dispose();
         super.dispose();
+        IpcClient._disposable.dispose();
     }
 
     // [private helper methods]

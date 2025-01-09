@@ -3,8 +3,7 @@ import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
-import { ComponentService, IComponentService } from "src/workbench/services/component/componentService";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, monitorDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
@@ -36,9 +35,8 @@ import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { ICommandService, CommandService } from "src/platform/command/common/commandService";
 import { IContextService, ContextService } from "src/platform/context/common/contextService";
 import { IDialogService, BrowserDialogService } from "src/platform/dialog/browser/browserDialogService";
-import { Editor } from "src/workbench/parts/workspace/editor/editor";
-import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IWorkspaceService, WorkspaceComponent } from "src/workbench/parts/workspace/workspace";
+import { Workspace } from "src/workbench/parts/workspace/workspace";
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { IContextMenuService, ContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
@@ -58,10 +56,9 @@ import { IFunctionBarService, FunctionBar } from "src/workbench/parts/navigation
 import { INavigationPanelService, NavigationPanel } from "src/workbench/parts/navigationPanel/navigationPanel";
 import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navigationPanel/navigationBar/quickAccessBar/quickAccessBar";
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
-import { IOutlineService, OutlineService } from "src/workbench/services/outline/outlineService";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
-import { monitorEventEmitterListenerGC } from "src/base/common/event";
+import { monitorEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { IBrowserService, initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
@@ -69,8 +66,8 @@ import { BrowserInspectorService } from "src/platform/inspector/browser/browserI
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
-import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -95,8 +92,9 @@ const renderer = new class extends class RendererInstance extends Disposable {
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
-            monitorEventEmitterListenerGC({
-                ListenerGCedWarning: toBoolean(WIN_CONFIGURATION.ListenerGCedWarning),
+            monitorDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
+            monitorEmitterListenerGC({
+                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
             });
             
             // ensure we handle almost every errors properly
@@ -115,13 +113,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
             ]);
 
             // create workbench UI
-            const workbench = instantiationService.createInstance(Workbench);
+            const workbench = this.__register(instantiationService.createInstance(Workbench));
             workbench.init();
             
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
+            instantiationService.store(IBrowserService, browser);
             browser.init();
-            instantiationService.register(IBrowserService, browser);
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
@@ -135,42 +133,42 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private createCoreServices(): IInstantiationService {
 
         // instantiation-service (Dependency Injection)
-        const instantiationService = new InstantiationService(new ServiceCollection());
-        instantiationService.register(IInstantiationService, instantiationService);
+        const instantiationService = this.__register(new InstantiationService(new ServiceCollection()));
+        instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
         (<any>this.logService) = logService;
 
         // context-service
         const contextService = new ContextService();
-        instantiationService.register(IContextService, contextService);
+        instantiationService.store(IContextService, contextService);
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
         this.initRegistrant(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
-        instantiationService.register(IBrowserEnvironmentService, environmentService);
+        instantiationService.store(IBrowserEnvironmentService, environmentService);
 
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID, logService);
-        instantiationService.register(IIpcService, ipcService);
+        instantiationService.store(IIpcService, ipcService);
 
         // host-service
         const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
-        instantiationService.register(IHostService, hostService);
+        instantiationService.store(IHostService, hostService);
 
         // lifecycle-service
-        const lifecycleService = new BrowserLifecycleService(logService, hostService);
-        instantiationService.register(ILifecycleService, lifecycleService);
+        const lifecycleService = instantiationService.createInstance(BrowserLifecycleService);
+        instantiationService.store(ILifecycleService, lifecycleService);
 
         // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService.getChannel(IpcChannel.Logger), environmentService.logLevel);
-        instantiationService.register(ILoggerService, loggerService);
+        instantiationService.store(ILoggerService, loggerService);
 
         // logger
         const logger = new PipelineLogger([
@@ -186,11 +184,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // file-service
         const fileService = instantiationService.createInstance(BrowserFileChannel);
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         // product-service
         const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
+        instantiationService.store(IProductService, productService);
 
         // configuration-service
         const configurationService = instantiationService.createInstance(
@@ -201,23 +199,20 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 } 
             },
         );
-        instantiationService.register(IConfigurationService, configurationService);
-
-        // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService, []));
+        instantiationService.store(IConfigurationService, configurationService);
 
         // i18n-service
-        const i18nService = instantiationService.createInstance(I18nService, {
-            language: WIN_CONFIGURATION.nlsConfiguration.resolvedLanguage as LanguageType,
-            localePath: URI.join(environmentService.appRootPath, 'assets', 'locale'),
-        });
-        instantiationService.register(II18nService, i18nService);
+        const i18nService = instantiationService.createInstance(I18nService, 
+            WIN_CONFIGURATION.nlsConfiguration, 
+            URI.join(environmentService.appRootPath, 'assets', 'locale'),
+        );
+        instantiationService.store(II18nService, i18nService);
 
         // singleton initializations
         logService.debug('renderer', 'Registering singleton services descriptors...');
         for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
             logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
-            instantiationService.register(serviceIdentifier, serviceDescriptor);
+            instantiationService.store(serviceIdentifier, serviceDescriptor);
         }
 
         logService.debug('renderer', 'All core renderer services are constructed.');
@@ -259,14 +254,12 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(INavigationViewService    , new ServiceDescriptor(NavigationView           , []));
         registerService(IFunctionBarService       , new ServiceDescriptor(FunctionBar              , []));
         registerService(INavigationPanelService   , new ServiceDescriptor(NavigationPanel          , []));
-        registerService(IWorkspaceService         , new ServiceDescriptor(WorkspaceComponent       , []));
-        registerService(IEditorService            , new ServiceDescriptor(Editor                   , []));
+        registerService(IWorkspaceService         , new ServiceDescriptor(Workspace                , []));
         registerService(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService, []));
         registerService(IThemeService             , new ServiceDescriptor(ThemeService             , []));
         registerService(IFileTreeService          , new ServiceDescriptor(FileTreeService          , []));
         registerService(IFileTreeMetadataService  , new ServiceDescriptor(FileTreeService          , []));
         registerService(IContextMenuService       , new ServiceDescriptor(ContextMenuService       , []));
-        registerService(IOutlineService           , new ServiceDescriptor(OutlineService           , []));
     
         // utilities && tools
         registerService(INotificationService      , new ServiceDescriptor(NotificationService      , []));
@@ -292,6 +285,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
         registrant.registerRegistrant(service.createInstance(ColorRegistrant));
         registrant.registerRegistrant(service.createInstance(MenuRegistrant));
+        registrant.registerRegistrant(service.createInstance(EditorPaneRegistrant));
 
         // initialize all the registrations
         registrant.init(service);

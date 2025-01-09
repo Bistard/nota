@@ -75,7 +75,7 @@ suite('LoggerService', () => {
             fileService = new FileService(new NullLogger());
             fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
 
-            instantiationService.register(IFileService, fileService);
+            instantiationService.store(IFileService, fileService);
 
             loggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
             assertLastLineLogMessage = createAssertLogMessage(fileService, URI.fromFile('base/test.log'), LogLevel.INFO);
@@ -119,7 +119,7 @@ suite('LoggerService', () => {
 
             fileService = new FileService(new NullLogger());
             fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
-            instantiationService.register(IFileService, fileService);
+            instantiationService.store(IFileService, fileService);
             loggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
 
             const testServer = new TestIPC.IpcServer();

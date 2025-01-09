@@ -1,15 +1,17 @@
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IService, ServiceIdentifier } from "src/platform/instantiation/common/decorator";
 import { Constructor } from "src/base/common/utilities/type";
-import { InstantiationRequiredParameters, NonServiceParameters } from "src/platform/instantiation/common/instantiation";
+import { InstantiationRequiredParameters } from "src/platform/instantiation/common/instantiation";
 import { panic } from "src/base/common/utilities/panic";
+import { Disposable, isDisposable } from "src/base/common/dispose";
 
-export class ServiceCollection {
+export class ServiceCollection extends Disposable {
 
 	// stores either T | ServiceDescriptor<T>
 	private readonly _services: Map<ServiceIdentifier<any>, any | ServiceDescriptor<any>>;
 
 	constructor(...services: [id: ServiceIdentifier<any>, serviceOrDescriptor: any][]) {
+		super();
 		this._services = new Map();
 		for (const [id, service] of services) {
 			this.set(id, service);
@@ -19,6 +21,12 @@ export class ServiceCollection {
 	public set<T extends IService, TCtor extends Constructor>(id: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): T | ServiceDescriptor<TCtor> | undefined {
 		const result = this._services.get(id);
 		this._services.set(id, instanceOrDescriptor);
+		
+		// bind lifecycle
+		if (isDisposable(instanceOrDescriptor)) {
+			this.__register(instanceOrDescriptor);
+		}
+
 		return result;
 	}
 

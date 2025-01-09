@@ -1,5 +1,5 @@
 import { ISash, ISashEvent } from "src/base/browser/basic/sash/sash";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/browser/basic/dom";
 
 export interface IAbstractSashController extends IDisposable {
@@ -22,7 +22,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     // [field]
 
-    private _disposables = new DisposableManager();
+    private _disposables = new DisposableBucket();
     protected readonly sash: ISash;
 
     /** The offset to the expected position (middle of the adjacent views). */
@@ -65,7 +65,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
     
     protected __onMouseUp(): void {
         this._disposables.dispose();
-        this._disposables = new DisposableManager();
+        this._disposables = new DisposableBucket();
         this._onDidEnd();
     }
 

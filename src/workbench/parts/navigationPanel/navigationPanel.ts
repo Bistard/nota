@@ -8,6 +8,7 @@ import { FunctionBar, IFunctionBarService } from "src/workbench/parts/navigation
 import { Icons } from "src/base/browser/icon/icons";
 import { IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
 
 export const INavigationPanelService = createService<INavigationPanelService>('navigation-panel-service');
 
@@ -39,14 +40,14 @@ export class NavigationPanel extends Component implements INavigationPanelServic
 
     // [protected override methods]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         const navigationBarBuilder = new NavigationBarBuilder(this.actionBarService);
         navigationBarBuilder.registerButtons();
         
         this.__assemblyParts();
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         // noop
     }
 
@@ -79,7 +80,7 @@ class NavigationBarBuilder {
 
     public registerButtons(): void {
         [
-            { id: 'folder-open', icon: Icons.FolderOpen, },
+            { id: ExplorerViewID, icon: Icons.FolderOpen, },
             { id: 'nota-ai-default', icon: Icons.NotaAiDefault, },
             { id: 'source-control-default', icon: Icons.SourceControlDefault, },
             { id: 'extension', icon: Icons.Extension, },

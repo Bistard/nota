@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import { toForwardSlash } from 'src/base/common/files/extpath';
 import { posix, win32 } from 'src/base/common/files/path';
 import { URI } from 'src/base/common/files/uri';
-import { IS_WINDOWS } from 'src/base/common/platform';
+import { IS_WINDOWS, Platform } from 'src/base/common/platform';
 import { ReviverRegistrant } from 'src/platform/ipc/common/revive';
 
 
@@ -161,7 +161,7 @@ suite('URI-test', () => {
         assert.strictEqual(URI.toFsPath(URI.fromFile('./c/win/path')), '/./c/win/path');
     });
 
-	test('toFsPath - no `fsPath` when no `path`', () => {
+	test('toFsPath - no `path` when no `path`', () => {
 		const value = URI.parse('file://%2Fhome%2Fticino%2Fdesktop%2Fcpluscplus%2Ftest.cpp');
 		assert.strictEqual(value.authority, '/home/ticino/desktop/cpluscplus/test.cpp');
 		assert.strictEqual(value.path, '/');
@@ -934,5 +934,55 @@ suite('URI-test', () => {
 		assert.strictEqual(distinct[0]!.uri.toString(), items[0]!.uri.toString());
 		assert.strictEqual(distinct[1]!.uri.toString(), items[3]!.uri.toString());
 		assert.strictEqual(distinct[2]!.uri.toString(), items[4]!.uri.toString());
+	});
+
+	suite('URI.tildify', () => {
+		const winFileUri = URI.fromFile('c:/some/folder/file.txt');
+		const nixFileUri = URI.fromFile('/some/folder/file.txt');
+		const nixBadFileUri = URI.from({ scheme: 'nota', authority: 'file', path: '//some/folder/file.txt' });
+		const uncFileUri = URI.with(winFileUri, { authority: 'auth' });
+		const remoteFileUri = URI.with(nixFileUri, { scheme: 'nota-test', authority: 'auth' });
+
+		test('basic', () => {
+			assert.strictEqual(URI.tildify(winFileUri, { os: Platform.Windows }), 'C:\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(winFileUri, { os: Platform.Mac }), 'c:/some/folder/file.txt');
+			assert.strictEqual(URI.tildify(winFileUri, { os: Platform.Linux }), 'c:/some/folder/file.txt');
+
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Windows }), '\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Mac }), '/some/folder/file.txt');
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Linux }), '/some/folder/file.txt');
+
+			assert.strictEqual(URI.tildify(uncFileUri, { os: Platform.Windows }), '\\\\auth\\c:\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(uncFileUri, { os: Platform.Mac }), '/auth/c:/some/folder/file.txt');
+			assert.strictEqual(URI.tildify(uncFileUri, { os: Platform.Linux }), '/auth/c:/some/folder/file.txt');
+
+			assert.strictEqual(URI.tildify(remoteFileUri, { os: Platform.Windows }), '\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(remoteFileUri, { os: Platform.Mac }), '/some/folder/file.txt');
+			assert.strictEqual(URI.tildify(remoteFileUri, { os: Platform.Linux }), '/some/folder/file.txt');
+		});
+
+		test('tildify', () => {
+			const nixUserHome = URI.fromFile('/some');
+			const remoteUserHome = URI.with(nixUserHome, { scheme: 'nota-test', authority: 'auth' });
+
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Windows, tildify: { userHome: nixUserHome } }), '\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Mac, tildify: { userHome: nixUserHome } }), '~/folder/file.txt');
+			assert.strictEqual(URI.tildify(nixBadFileUri, { os: Platform.Mac, tildify: { userHome: nixUserHome } }), '/some/folder/file.txt');
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Linux, tildify: { userHome: nixUserHome } }), '~/folder/file.txt');
+
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Windows, tildify: { userHome: remoteUserHome } }), '\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Mac, tildify: { userHome: remoteUserHome } }), '~/folder/file.txt');
+			assert.strictEqual(URI.tildify(nixFileUri, { os: Platform.Linux, tildify: { userHome: remoteUserHome } }), '~/folder/file.txt');
+
+			const nixUntitledUri = URI.with(nixFileUri, { scheme: 'untitled' });
+
+			assert.strictEqual(URI.tildify(nixUntitledUri, { os: Platform.Windows, tildify: { userHome: nixUserHome } }), '\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(nixUntitledUri, { os: Platform.Mac, tildify: { userHome: nixUserHome } }), '~/folder/file.txt');
+			assert.strictEqual(URI.tildify(nixUntitledUri, { os: Platform.Linux, tildify: { userHome: nixUserHome } }), '~/folder/file.txt');
+
+			assert.strictEqual(URI.tildify(nixUntitledUri, { os: Platform.Windows, tildify: { userHome: remoteUserHome } }), '\\some\\folder\\file.txt');
+			assert.strictEqual(URI.tildify(nixUntitledUri, { os: Platform.Mac, tildify: { userHome: remoteUserHome } }), '~/folder/file.txt');
+			assert.strictEqual(URI.tildify(nixUntitledUri, { os: Platform.Linux, tildify: { userHome: remoteUserHome } }), '~/folder/file.txt');
+		});
 	});
 });

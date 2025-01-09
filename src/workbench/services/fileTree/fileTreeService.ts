@@ -4,7 +4,7 @@ import { IFileTreeOpenEvent, FileTree, IFileTree } from "src/workbench/services/
 import { IFileService } from "src/platform/files/common/fileService";
 import { FileItemChildrenProvider, FileItem as FileItem, IFileItemResolveOptions } from "src/workbench/services/fileTree/fileItem";
 import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { FileItemProvider as FileItemProvider, FileItemRenderer as FileItemRenderer } from "src/workbench/services/fileTree/fileItemRenderer";
 import { FileItemDragAndDropProvider } from "src/workbench/services/fileTree/fileItemDragAndDrop";
 import { ILogService, defaultLog } from "src/base/common/logger";
@@ -30,7 +30,6 @@ import { IContextMenuService } from "src/workbench/services/contextMenu/contextM
 import { ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { AnchorHorizontalPosition, AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IAnchor } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuTypes } from "src/platform/menu/common/menu";
-import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 export class FileTreeService extends Disposable implements IFileTreeService, IFileTreeMetadataService {
@@ -50,7 +49,7 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
     private _toRefresh?: DelayableEmitter<void>;
 
     // synchronizes lifecycle of the above properties
-    private _treeCleanup: DisposableManager;
+    private readonly _treeCleanup: LooseDisposableBucket;
 
     // [constructor]
 
@@ -62,12 +61,10 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IRecentOpenService private readonly recentOpenService: IRecentOpenService,
     ) {
         super();
-        this._treeCleanup = new DisposableManager();
-        this.__registerListeners();
+        this._treeCleanup = this.__register(new LooseDisposableBucket());
 
         this.logService.debug('FileTreeService', 'FileTreeService constructed.');
     }
@@ -207,7 +204,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
         this.logService.debug('FileTreeService', `closed at: ${this.root && URI.toString(this.root)}.`);
 
         this._treeCleanup.dispose();
-        this._treeCleanup = new DisposableManager();
 
         this._tree.dispose();
         this._tree = undefined;
@@ -362,20 +358,6 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
             panic('[FileTreeService] file tree is not initialized yet.');
         }
         return this._metadataController;
-    }
-
-    private __registerListeners(): void {
-
-        // save the last opened workspace root path.
-        this.__register(this.lifecycleService.onWillQuit(e => e.join((async () => {
-            if (this.root) {
-                await this.recentOpenService.addToRecentOpened({ 
-                    target: this.root,
-                    targetType: FileType.DIRECTORY,
-                    pinned: false,
-                });
-            }
-        })())));
     }
 
     private __initTree(container: HTMLElement, root: URI): AsyncResult<IFileTree<FileItem, void>, FileOperationError> {

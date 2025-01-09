@@ -121,25 +121,25 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.logService.debug('App', 'constructing application services...');
 
         // main-window-service
-        this.mainInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
+        this.mainInstantiationService.store(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-service
-        this.mainInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
+        this.mainInstantiationService.store(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
-        this.mainInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
+        this.mainInstantiationService.store(IHostService, new ServiceDescriptor(MainHostService, []));
 
         // screen-monitor-service
-        this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
+        this.mainInstantiationService.store(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
 
         // menu-service
         if (IS_MAC) {
             const mainMenuService = this.mainInstantiationService.createInstance(MainMenuService);
-            this.mainInstantiationService.register(IMenuService, mainMenuService); 
+            this.mainInstantiationService.store(IMenuService, mainMenuService); 
         }
 
         // main-inspector-service
-        this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
+        this.mainInstantiationService.store(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
 
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;

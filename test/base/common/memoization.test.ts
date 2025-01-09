@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { memoize } from 'src/base/common/memoization';
+import { nullable } from 'src/base/common/utilities/type';
 
 suite('memoization', () => {
 
@@ -7,10 +8,10 @@ suite('memoization', () => {
         class Foo {
 			public count = 0;
 
-			constructor(private _answer: number | null | undefined) { }
+			constructor(private _answer: number | nullable) { }
 			
             @memoize 
-            public answer(): number | null | undefined {
+            public answer(): number | nullable {
 				this.count++;
 				return this._answer;
 			}
@@ -52,10 +53,10 @@ suite('memoization', () => {
         class Foo {
 			public count = 0;
 
-			constructor(private _answer: number | null | undefined) { }
+			constructor(private _answer: number | nullable) { }
 
 			@memoize
-			get answer(): number | null | undefined {
+			get answer(): number | nullable {
 				this.count++;
 				return this._answer;
 			}
