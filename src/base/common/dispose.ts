@@ -151,7 +151,7 @@ export class LooseDisposableBucket implements IDisposable {
 		return obj;
 	}
 
-	public release<T extends IDisposable>(obj: T): void {
+	public release<T extends IDisposable>(obj?: T): void {
 		if (!obj) {
 			return;
 		}
