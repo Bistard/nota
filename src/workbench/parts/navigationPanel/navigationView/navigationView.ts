@@ -73,12 +73,11 @@ export class NavigationView extends Component implements INavigationViewService 
 
     // [field]
 
-    /** The id of the current displaying view. */
-    private _currView?: string;
+    /** The current displaying view. */
+    private _currView?: NavView;
 
     /** The container that only contains the {@link INavigationView}. */
     private _viewContainer?: HTMLElement;
-
     private readonly _cachedView: Map<string, Constructor<NavView> | NavView>;
 
     // [event]
@@ -133,7 +132,7 @@ export class NavigationView extends Component implements INavigationViewService 
          * If the view is created and also displaying currently, switch to any
          * other available views if any, then destroy the view.
          */
-        if (id === this._currView) {
+        if (id === this._currView?.id) {
             const availableID = this.__getAnyAvailableView();
             if (availableID) {
                 this.switchView(availableID);
@@ -153,14 +152,14 @@ export class NavigationView extends Component implements INavigationViewService 
 
     public closeView(): void {
         if (this._currView) {
-            this.__unloadView(this._currView);
+            this.__unloadView(this._currView.id);
         }
         this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
 
     public currView<T extends NavView>(): T | undefined {
         if (this._currView) {
-            return this.getChild<T>(this._currView);
+            return this.getChild<T>(this._currView.id);
         }
         return undefined;
     }
@@ -212,13 +211,13 @@ export class NavigationView extends Component implements INavigationViewService 
         }
 
         // switch to the same view, do nothing.
-        if (this._currView === view.id) {
+        if (this._currView?.id === view.id) {
             return;
         }
 
         // if any view is displaying, unload it first.
         if (this._currView) {
-            this.__unloadView(this._currView);
+            this.__unloadView(this._currView.id);
         }
 
         // load the new view
@@ -228,8 +227,8 @@ export class NavigationView extends Component implements INavigationViewService 
             view.create(this);
             view.registerListeners();
         }
-        this._currView = view.id;
 
+        this._currView = this.__register(view);
         this._onDidViewChange.fire({ id: view.id, view: view });
     }
 

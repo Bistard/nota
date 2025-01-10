@@ -862,7 +862,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
 
         // wraps each tree list view renderer with a basic tree item renderer
-        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
+        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener, o => this.__register(o)));
 
         // tree view
         const createTreeWidgetArguments = <const>[
