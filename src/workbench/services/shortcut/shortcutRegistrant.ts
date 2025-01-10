@@ -225,10 +225,15 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
             toDisposable(() => {
                 if (items) {
                     const itemIdx = items.findIndex((item) => item.uuid === uuid);
+                    if (itemIdx === -1) {
+                        return;
+                    }
+
                     items.splice(itemIdx, 1);
                     if (items.length === 0) {
                         this._shortcuts.delete(hashcode);
                     }
+                    
                     this._onDidUnRegister.fire(registration.shortcut);
                 }
             })

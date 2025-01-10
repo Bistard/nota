@@ -1,6 +1,6 @@
 import { IListDragEvent, IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
-import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 import { requestAnimate } from "src/base/browser/basic/animation";
 import { Arrays } from "src/base/common/utilities/array";
@@ -247,9 +247,7 @@ export class ListWidgetDragAndDropController<T> extends Disposable {
     private __initItemWithDragStart(item: IViewItem<T>, index: number): void {
         
         // avoid weird stuff happens
-        if (item.dragStart) {
-            item.dragStart.dispose();
-        }
+        this.release(item.dragStart);
 
         // get the drag data
         const userData = this._provider.getDragData(item.data);
@@ -260,9 +258,8 @@ export class ListWidgetDragAndDropController<T> extends Disposable {
 
         // add event listener
         if (userData) {
-            item.dragStart = untrackDisposable(
-                addDisposableListener(row.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e))
-            );
+            item.dragStart = addDisposableListener(row.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
+            this.__register(item.dragStart);
         }
     }
     

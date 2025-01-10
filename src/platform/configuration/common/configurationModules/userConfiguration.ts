@@ -1,4 +1,4 @@
-import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { Emitter, Event } from "src/base/common/event";

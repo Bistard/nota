@@ -1,4 +1,4 @@
-import { Disposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { Result, err, ok } from "src/base/common/result";
 import { Emitter } from "src/base/common/event";
@@ -86,7 +86,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
      */
     public static createDefaultConfigurationStorage(registrant: IConfigurationRegistrant): IConfigurationStorage {
         // Default configuration not meant to be changed, we can safely untrack it.
-        const storage = untrackDisposable(new ConfigurationStorage());
+        const storage = new ConfigurationStorage();
         const schemas = registrant.getConfigurationSchemas();
         DefaultConfiguration.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);
         storage.refreshSections();
