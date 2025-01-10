@@ -12,6 +12,7 @@ import { parse, posix } from "src/base/common/files/path";
 import { Strings } from "src/base/common/utilities/string";
 import { assert } from "src/base/common/utilities/panic";
 import { Lazy } from "src/base/common/lazy";
+import { safeDisposable } from "src/base/common/dispose";
 
 export interface IFileTarget {
     readonly name: string;
@@ -241,14 +242,14 @@ export class FileItem implements IFileItem<FileItem> {
             this._isResolved = true;
         }
 
-        this._mapChildren = new Lazy(() => {
+        this._mapChildren = safeDisposable(new Lazy(() => {
             const cache = new Map();
             for (const child of this._children) {
                 const resolvedName = Strings.Smart.adjust(child.name);
                 cache.set(resolvedName, child);
             }
             return cache;
-        });
+        }));
     }
 
     // [get method]

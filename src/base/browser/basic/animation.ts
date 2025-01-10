@@ -1,4 +1,4 @@
-import { IDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
+import { IDisposable, safeDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { Callable } from "src/base/common/utilities/type";
 
 /**
@@ -45,7 +45,7 @@ export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDi
     );
     
     const token = doRequestAnimationFrame.call(window, callback);
-    return untrackDisposable(
+    return safeDisposable(
         toDisposable(() => {
             if (window) {
                 window.cancelAnimationFrame(token);

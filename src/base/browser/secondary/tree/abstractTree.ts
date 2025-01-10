@@ -4,7 +4,7 @@ import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, safeDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
@@ -111,7 +111,9 @@ class TreeTrait<T> implements IDisposable {
     // [constructor]
 
     constructor() {
-        this._nodesCache = new Lazy(() => Arrays.fromSet(this._nodes, node => node.data));
+        this._nodesCache = safeDisposable(new Lazy(
+            () => Arrays.fromSet(this._nodes, node => node.data)
+        ));
     }
 
     // [public methods]

@@ -258,6 +258,15 @@ export function untrackDisposable<T extends IDisposable>(obj: T): T {
 
 /**
  * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is guaranteed can be safely GCed without properly disposed.
+ */
+export function safeDisposable<T extends IDisposable>(obj: T): T {
+	monitor?.untrack(obj);
+	return obj;
+}
+
+/**
+ * @description If you have a top-level (root) {@link IDisposable} whose 
  * lifecycle is:
  * 		1. meant to share the same lifecycle with the whole application and
  * 		   should never get disposed.
