@@ -4,7 +4,7 @@ import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IDragOverResult, IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { Disposable, IDisposable, safeDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { IScrollEvent } from "src/base/common/scrollable";
@@ -96,7 +96,7 @@ class __TreeListDragAndDropProvider<T, TFilter> extends Disposable implements IL
  * @template T: The type of data in {@link AbstractTree}.
  * @note `trait` does not care about TFilter type.
  */
-class TreeTrait<T> implements IDisposable {
+class TreeTrait<T> extends Disposable {
 
     // [field]
 
@@ -105,13 +105,14 @@ class TreeTrait<T> implements IDisposable {
 
     // [event]
 
-    private readonly _onDidChange = new Emitter<ITreeTraitChangeEvent<T>>();
+    private readonly _onDidChange = this.__register(new Emitter<ITreeTraitChangeEvent<T>>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     // [constructor]
 
     constructor() {
-        this._nodesCache = safeDisposable(new Lazy(
+        super();
+        this._nodesCache = this.__register(new Lazy(
             () => Arrays.fromSet(this._nodes, node => node.data)
         ));
     }
@@ -182,11 +183,6 @@ class TreeTrait<T> implements IDisposable {
 
         // update the current traits
         this.set(currNodes);
-    }
-
-    public dispose(): void {
-        this._nodesCache.dispose();
-        this._onDidChange.dispose();
     }
 }
 

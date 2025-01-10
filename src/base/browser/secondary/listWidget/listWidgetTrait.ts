@@ -1,5 +1,5 @@
 import { IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { Disposable, IDisposable, safeDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { Lazy } from "src/base/common/lazy";
 import { Arrays } from "src/base/common/utilities/array";
@@ -53,12 +53,11 @@ export class ListTrait<T> extends Disposable {
         this.renderer = new ListTraitRenderer(this);
         this._indice = [];
 
-        this._queryCache = new Lazy(() => {
+        this._queryCache = this.__register(new Lazy(() => {
             const cache = new Set<number>();
             this._indice.forEach(index => cache.add(index));
             return cache;
-        });
-        safeDisposable(this.__register(this._queryCache));
+        }));
     }
 
     // [public method]
