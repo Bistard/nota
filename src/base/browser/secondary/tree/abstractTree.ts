@@ -838,6 +838,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     // [fields]
 
+    private readonly _onDidChangeCollapseState: RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>;
     protected readonly _model: ITreeModel<T, TFilter, TRef>;
     protected readonly _view: TreeWidget<T, TFilter, TRef>;
 
@@ -857,7 +858,8 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
          * to create the renderers first. After the model is created, we can 
          * have the chance to reset the input event emitter.
          */
-        const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+        const relayEmitter = this.__register(new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>());
+        this._onDidChangeCollapseState = this.__register(relayEmitter);
 
         // wraps each tree list view renderer with a basic tree item renderer
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener, o => this.__register(o)));
@@ -910,13 +912,12 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
         // dispose registration
         this.__register(this._view);
-        this.__register(relayEmitter);
     }
 
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._model.onDidSplice; }
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseState; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._onDidChangeCollapseState.registerListener; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }

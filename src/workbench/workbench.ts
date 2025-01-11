@@ -273,10 +273,10 @@ export class WorkbenchContextHub extends Disposable {
         this.inputFocused.set(isInputFocused);
 
         if (isInputFocused) {
-            const tracker = new FocusTracker(<HTMLElement>doc.activeElement, false);
+            const tracker = this.__register(new FocusTracker(<HTMLElement>doc.activeElement, false));
             Event.once(tracker.onDidBlur)(() => {
                 this.inputFocused.set(isActiveIsInput(doc));
-                tracker.dispose();
+                this.release(tracker);
             });
         }
     }
