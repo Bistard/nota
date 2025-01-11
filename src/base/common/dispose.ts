@@ -1,6 +1,6 @@
 import { Time } from "src/base/common/date";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
-import { isFunction, isObject } from "src/base/common/utilities/type";
+import { isFunction, isObject, nullable } from "src/base/common/utilities/type";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -106,7 +106,7 @@ export class Disposable implements IDisposable {
 	 * @description Removes the reference of a {@link IDisposable} from bucket 
 	 * and disposes of it. 
 	 */
-	public release<T extends IDisposable>(obj?: T): void {
+	public release<T extends IDisposable>(obj: T | nullable): void {
 		if (!obj) {
 			return;
 		}
