@@ -16,9 +16,10 @@ import { IContextKey } from "src/platform/context/common/contextKey";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
-import { assert } from "src/base/common/utilities/panic";
+import { assert, errorToMessage } from "src/base/common/utilities/panic";
 import { AsyncResult } from "src/base/common/result";
 import { EditorDragState } from "src/editor/common/cursorDrop";
+import { ErrorHandler } from "src/base/common/error";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -299,14 +300,25 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         // model
         this._model = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
-        const initState = await this._model.build(extensionList).unwrap();
+        const initState = await this._model.build(extensionList);
+        
+        // unexpected behavior, we need to let the user know.
+        if (initState.isErr()) {
+            const internal = initState.unwrapErr();
+            const err = new Error(`Editor: Cannot open editor at '${URI.toFsPath(source)}'. ${errorToMessage(internal, false)}`);
+            ErrorHandler.onUnexpectedError(err);
+            this._model.dispose();
+            return;
+        }
+
+        const initData = initState.unwrap();
 
         // view
         this._view = this.instantiationService.createInstance(
             EditorView,
             this._container.raw,
             this._model,
-            initState,
+            initData,
             extensionList,
             this._options.getOptions(),
         );

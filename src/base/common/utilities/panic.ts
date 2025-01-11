@@ -179,7 +179,7 @@ export function assertDefault<T>(obj: T, defaultValue: NonNullable<T>, message?:
 /**
  * @description Try to convert an error to a human readable message in string.
  * @param error The given error.
- * @param verbose If output the stack trace.
+ * @param verbose If output the stack trace. Defaults to `True`.
  * @returns A string formatted error message.
  *
  * @note This function never throws.

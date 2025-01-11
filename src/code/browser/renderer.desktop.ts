@@ -68,6 +68,7 @@ import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -98,7 +99,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
             });
             
             // ensure we handle almost every errors properly
-            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
+            initGlobalErrorHandler(() => undefined, WIN_CONFIGURATION, err => {
+                const commandService = instantiationService?.getOrCreateService(ICommandService);
+                if (!commandService) {
+                    return;
+                }
+                commandService.executeCommand(AllCommands.alertError, 'Renderer', err);
+            });
 
             // register microservices
             this.rendererServiceRegistrations();
