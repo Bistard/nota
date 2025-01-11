@@ -60,7 +60,7 @@ const configuration = {
     },
 
     "_run": {
-        command: "electron . --- --log=trace --open-devtools",
+        command: "electron . --- --log=trace --open-devtools --listenerGCedWarning --disposableLeakWarning",
         description: 'Run program in develop mode.'
     },
 
