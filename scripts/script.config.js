@@ -41,18 +41,10 @@ const configuration = {
                 ]
             },
             {
-                flags: ['--listenerGCedWarning'],
-                descriptions: [
-                    'Print warnings whenever a listener is garbage-collected without being disposed.',
-                    'Indicating a memory LEAK',
-                    'default = false'
-                ]
-            },
-            {
                 flags: ['--disposableLeakWarning'],
                 descriptions: [
                     'Print warnings (after the first 5 seconds) whenever a `IDisposable` is either: "not disposed" or "not bound to a parent IDisposable"',
-                    'It only means **POTENTIAL** memory leak.',
+                    'It only means **POTENTIAL** memory leak. Which means there might be a lot of false positives.',
                     'default = false'
                 ]
             }
@@ -60,7 +52,7 @@ const configuration = {
     },
 
     "_run": {
-        command: "electron . --- --log=trace --open-devtools --listenerGCedWarning --disposableLeakWarning",
+        command: "electron . --- --log=trace --open-devtools --disposableLeakWarning",
         description: 'Run program in develop mode.'
     },
 

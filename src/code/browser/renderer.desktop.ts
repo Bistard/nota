@@ -58,7 +58,6 @@ import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navi
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
-import { monitorEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { IBrowserService, initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
@@ -94,9 +93,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
             monitorDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
-            monitorEmitterListenerGC({
-                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
-            });
             
             // ensure we handle almost every errors properly
             initGlobalErrorHandler(() => undefined, WIN_CONFIGURATION, err => {

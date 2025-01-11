@@ -20,20 +20,6 @@ import { Time } from "src/base/common/date";
  *  - {@link Event}
  ******************************************************************************/
 
-let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
-export function monitorEmitterListenerGC(opts: { listenerGCedWarning: boolean }): void {
-    if (opts.listenerGCedWarning) {
-        console.info('[monitorEmitterListenerGC] enabled');
-        _listenerFinalizer = createFinalizationRegistry({
-            onGarbageCollectedInterval: (stacks: string[]) => {
-                console.warn('[MEMORY LEAKING] GC\'ed these event listeners that were NOT yet disposed:');
-                console.warn(stacks.join('\n'));
-            },
-            internalTime: Time.sec(3),
-        });
-    }
-}
-
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
  * the required event type will be returned as a parameter.
@@ -232,18 +218,11 @@ export class Emitter<T> extends Disposable implements IEmitter<T> {
 
                     listenerRemoving = false;
                     listenerRemoved = true;
-                    _listenerFinalizer?.unregister(unRegister);
                 }
             });
 
             if (disposables) {
                 disposables.push(unRegister);
-            }
-
-            if (_listenerFinalizer) {
-                // only select the top stack info
-                const stack = new Error().stack!.split('\n').slice(2, 3).join('\n').trim();
-                _listenerFinalizer.register(unRegister, stack, unRegister);
             }
 
             return unRegister;

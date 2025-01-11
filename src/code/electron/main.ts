@@ -2,7 +2,7 @@ import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir, unlink } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
-import { Event, monitorEmitterListenerGC } from 'src/base/common/event';
+import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/utilities/string';
@@ -91,9 +91,6 @@ const main = new class extends class MainProcess extends Disposable implements I
          */
 
         monitorDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
-        monitorEmitterListenerGC({
-            listenerGCedWarning: toBoolean(this.CLIArgv.listenerGCedWarning),
-        });
 
         // core services
         this.createCoreServices();
