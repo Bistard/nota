@@ -900,7 +900,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         }
 
         // create the tree model from abstraction, client may override it.
-        this._model = this.createModel(rootData, this._view, opts);
+        this._model = this.__register(this.createModel(rootData, this._view, opts));
         
         // updates traits in the tree-level after each splice
         this.__register(this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider)));

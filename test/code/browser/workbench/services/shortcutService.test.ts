@@ -79,7 +79,7 @@ suite('shortcutService-test', () => {
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         const precondition = CreateContextKeyExpr.Equal('value', true);
 
-        const unregister = shortcutRegistrant.register(
+        const unregister = shortcutRegistrant.register2(
             'test-shortcut', {
             shortcut: shortcut,
             when: precondition,

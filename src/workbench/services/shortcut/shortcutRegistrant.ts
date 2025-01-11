@@ -1,4 +1,4 @@
-import { IDisposable, safeDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, safeDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { HashNumber } from "src/base/common/utilities/hash";
 import { panic } from "src/base/common/utilities/panic";
@@ -115,7 +115,7 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
      * @param registration The shortcut registration information.
      * @returns A disposable to unregister the shortcut.
      */
-    register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable;
+    register2<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable;
     registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable;
 
     /**
@@ -141,14 +141,14 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
     getAllShortcutRegistrations(): Map<HashNumber, IShortcutReference[]>;
 }
 
-export class ShortcutRegistrant implements IShortcutRegistrant {
+export class ShortcutRegistrant extends Disposable implements IShortcutRegistrant {
 
     // [event]
 
-    private readonly _onDidRegister = new Emitter<Shortcut>();
+    private readonly _onDidRegister = this.__register(new Emitter<Shortcut>());
     public readonly onDidRegister = this._onDidRegister.registerListener;
 
-    private readonly _onDidUnRegister = new Emitter<Shortcut>();
+    private readonly _onDidUnRegister = this.__register(new Emitter<Shortcut>());
     public readonly onDidUnRegister = this._onDidUnRegister.registerListener;
 
     // [field]
@@ -171,6 +171,7 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
     // [constructor]
 
     constructor() {
+        super();
         this._shortcuts = new Map();
     }
 
@@ -189,10 +190,10 @@ export class ShortcutRegistrant implements IShortcutRegistrant {
             ...registration,
             shortcut: shortcut,
         };
-        return this.register(commandID, resolved);
+        return this.register2(commandID, resolved);
     }
 
-    public register<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable {
+    public register2<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable {
 
         const hashcode = registration.shortcut.toHashcode();
         let items = this._shortcuts.get(hashcode);
