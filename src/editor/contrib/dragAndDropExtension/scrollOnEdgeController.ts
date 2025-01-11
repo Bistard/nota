@@ -1,13 +1,13 @@
 import { RequestAnimateController } from "src/base/browser/basic/animation";
 import { DomUtility } from "src/base/browser/basic/dom";
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { IEditorWidget } from "src/editor/editorWidget";
 
 /**
  * @class Handles the automated scrolling behavior when the mouse hovers near 
  * the edge of an editor widget's viewport, enabling smoother interactions.
  */
-export class ScrollOnEdgeController implements IDisposable {
+export class ScrollOnEdgeController extends Disposable {
 
     // [fields]
 
@@ -18,10 +18,11 @@ export class ScrollOnEdgeController implements IDisposable {
     constructor(
         private readonly editorWidget: IEditorWidget,
     ) {
-        this._animateController = new RequestAnimateController(({ mouseTop }) => {
+        super();
+        this._animateController = this.__register(new RequestAnimateController(({ mouseTop }) => {
             const viewTop = DomUtility.Attrs.getViewportTop(this.editorWidget.view.editor.container);
             this.__animationOnEdge(mouseTop, viewTop);
-        });
+        }));
     }
 
     // [public methods]
@@ -34,7 +35,8 @@ export class ScrollOnEdgeController implements IDisposable {
         this._animateController.cancel();
     }
 
-    public dispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this.clearCache();
     }
 

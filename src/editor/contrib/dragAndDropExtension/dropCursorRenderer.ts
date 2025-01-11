@@ -1,5 +1,5 @@
 import type { IContextService } from "src/platform/context/common/contextService";
-import type { IDisposable } from "src/base/common/dispose";
+import { Disposable, type IDisposable } from "src/base/common/dispose";
 import { RequestAnimateController } from "src/base/browser/basic/animation";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { getDropExactPosition } from "src/editor/common/cursorDrop";
@@ -9,7 +9,7 @@ import { ProseEditorView } from "src/editor/common/proseMirror";
 /**
  * Responsible for rendering drop cursor.
  */
-export class DropCursorRenderer implements IDisposable {
+export class DropCursorRenderer extends Disposable {
 
     // [fields]
 
@@ -26,7 +26,8 @@ export class DropCursorRenderer implements IDisposable {
     constructor(
         private readonly contextService: IContextService,
     ) {
-        this._animateController = new RequestAnimateController(({ mouseEvent, view }) => {
+        super();
+        this._animateController = this.__register(new RequestAnimateController(({ mouseEvent, view }) => {
             if (view && view.isDestroyed) {
                 return;
             }
@@ -39,7 +40,7 @@ export class DropCursorRenderer implements IDisposable {
 
             this._cursorPosition = position;
             this.__updateOverlay(view);
-        });
+        }));
     }
 
     // [public methods]
@@ -49,13 +50,14 @@ export class DropCursorRenderer implements IDisposable {
     }
 
     public unrender(): void {
-        this._cursorElement?.remove();
+        this.release(this._cursorElement);
         this._cursorElement = null;
         this._cursorPosition = null;
         this._animateController.cancel();
     }
 
-    public dispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this.unrender();
     }
 
@@ -131,7 +133,7 @@ export class DropCursorRenderer implements IDisposable {
 
         const parent = editorDOM.offsetParent as HTMLElement;
         if (!this._cursorElement) {
-            this._cursorElement = new FastElement(parent.appendChild(document.createElement('div')));
+            this._cursorElement = this.__register(new FastElement(parent.appendChild(document.createElement('div'))));
             this._cursorElement.addClassList('editor-drop-cursor');
         }
     

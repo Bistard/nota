@@ -182,7 +182,6 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
         if (this._model === newModel) {
             return false;
         }
-        this.__register(newModel);
 
         // never set before.
         if (!this._model) {
@@ -193,7 +192,6 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
         const rerender = this.shouldUpdate(newModel);
         
         // make sure only replace the old model after `shouldUpdate`
-        this.release(this._model);
         this._model = newModel;
         
         return rerender;
