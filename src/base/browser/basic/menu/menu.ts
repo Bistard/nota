@@ -218,7 +218,6 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
             
             const fragment = <HTMLElement><unknown>document.createDocumentFragment();
             items.forEach((item, index) => {
-                this.__register(item);
 
                 // bind the item running environment to the action list
                 item.actionRunner = this.run.bind(this);
@@ -556,13 +555,13 @@ export class MenuWithSubmenu extends MenuDecorator {
     // [private helper methods]
 
     private __closeCurrSubmenu(): void {
-        
-        this._submenu?.dispose();
+        this.release(this._submenu);
         this._submenu = undefined;
 
-        this._submenuContainer?.dispose();
+        this.release(this._submenuContainer);
         this._submenuContainer = undefined;
-        this._submenuLifecycle.dispose();
+        
+        this.release(this._submenuLifecycle);
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
@@ -594,13 +593,15 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
-        this._submenu = this.__register(new this._submenuCtor(
-            new Menu(this._submenuContainer.raw, {
-                contextProvider: this._menu.getContext.bind(this._menu),
-                /** shares the same {@link IActionRunEvent} with the parent menu */
-                actionRunner: this._menu.actionRunner,
-            })
-        ));
+        this._submenu = this.__register(
+            new this._submenuCtor(
+                new Menu(this._submenuContainer.raw, {
+                    contextProvider: this._menu.getContext.bind(this._menu),
+                    /** shares the same {@link IActionRunEvent} with the parent menu */
+                    actionRunner: this._menu.actionRunner,
+                })
+            )
+        );
         
         this._submenu.build(actions);
         this._submenu.focus(-1);

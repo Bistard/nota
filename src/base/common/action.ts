@@ -323,6 +323,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
                 continue;
             }
 
+            this.__register(item);
             this._items.splice(index, 0, item);
             index++;
         }
