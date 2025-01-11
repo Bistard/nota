@@ -349,10 +349,9 @@ export class ChannelClient extends Disposable implements IChannelClient {
 
     private __requestEvent(channel: ChannelType, event: string, arg?: any): Register<any> {
         const requestID = this._requestID++;
-        const emitter = new Emitter<any>({
+        const emitter = this.__register(new Emitter<any>({
 
             onFirstListenerAdd: () => {
-                this.__register(emitter);
                 this._activeRequest.add(emitter);
                 this.__sendRequest(<IRegisterRequest>{
                     type: RequestType.Register,
@@ -364,14 +363,13 @@ export class ChannelClient extends Disposable implements IChannelClient {
             },
 
             onLastListenerDidRemove: () => {
-                this.release(emitter);
                 this._activeRequest.delete(emitter);
                 this.__sendRequest(<IUnregisterRequest>{
                     type: RequestType.Unregister,
                     id: requestID,
                 });
             },
-        });
+        }));
 
         this._onResponseCallback.set(requestID, (res: IResponse) => emitter.fire(res.dataOrError));
         return emitter.registerListener;
