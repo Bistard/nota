@@ -834,7 +834,7 @@ export interface IAbstractTreeOptions<T, TFilter> extends
  * TFilter: type of filter data for filtering nodes in the tree.
  * TRef: a reference leads to find the corresponding tree node.
  */
-export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implements IAbstractTree<T, TFilter, TRef>, IDisposable {
+export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implements IAbstractTree<T, TFilter, TRef> {
 
     // [fields]
 

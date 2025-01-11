@@ -586,25 +586,22 @@ export namespace DomUtility
  * 
  * @note LAZY: only start listening when there is one listener presents.
  */
-export class DomEmitter<T extends keyof DomEventMap> implements IDisposable {
+export class DomEmitter<T extends keyof DomEventMap> extends Disposable {
 
     private readonly emitter: Emitter<DomEventMap[T]>;
 
     constructor(element: EventTarget, type: T, useCapture: boolean = false) {
+		super();
 		const fn = (e: any) => this.emitter.fire(e);
 		// LAZY
-		this.emitter = new Emitter({
+		this.emitter = this.__register(new Emitter({
 			onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
 			onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
-		});
+		}));
     }
 
 	get registerListener(): Register<DomEventMap[T]> {
         return this.emitter.registerListener;
-    }
-
-    public dispose(): void {
-        this.emitter.dispose();
     }
 }
 

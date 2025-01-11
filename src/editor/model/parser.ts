@@ -244,7 +244,7 @@ export interface IDocumentParseState {
  * @class Use to maintain the parsing process for each parse request from the
  * {@link DocumentParser}.
  */
-class DocumentParseState implements IDocumentParseState, IDisposable {
+class DocumentParseState extends Disposable implements IDocumentParseState {
 
     // [field]
 
@@ -270,7 +270,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [event]
 
-    private readonly _onLog = new Emitter<ILogEvent>();
+    private readonly _onLog = this.__register(new Emitter<ILogEvent>());
     public readonly onLog = this._onLog.registerListener;
 
     // [constructor]
@@ -280,6 +280,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         schema: EditorSchema,
         provider: DocumentNodeProvider,
     ) {
+        super();
         this._parser = parser;
         this._nodeProvider = provider;
         this._defaultNodeType = schema.topNodeType;
@@ -498,9 +499,9 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         return this._activesTracker.anyAncestor(type);
     }
 
-    public dispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this.clean();
-        this._onLog.dispose();
     }
 
     // [private helper methods]

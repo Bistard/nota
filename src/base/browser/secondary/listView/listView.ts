@@ -386,7 +386,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             this._listContainer.style.transform = 'translate3d(0px, 0px, 0px)';
         }
         
-        this._scrollable = new Scrollable(options.scrollbarSize ?? 10, 0, 0, 0);
+        this._scrollable = this.__register(new Scrollable(options.scrollbarSize ?? 10, 0, 0, 0));
         this._scrollableWidget = new ScrollableWidget(
             this._scrollable, {
                 ...options,
@@ -428,7 +428,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         this._itemProvider = itemProvider;
 
-        this._cache = new ListViewCache(this._renderers);
+        this._cache = this.__register(new ListViewCache(this._renderers));
 
         // DOM rendering
         this._element.appendChild(this._listContainer);

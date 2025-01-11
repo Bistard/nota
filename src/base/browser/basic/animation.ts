@@ -1,4 +1,4 @@
-import { IDisposable, safeDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, safeDisposable, toDisposable } from "src/base/common/dispose";
 import { Callable } from "src/base/common/utilities/type";
 
 /**
@@ -80,7 +80,7 @@ export function requestAnimate(animateFn: () => void): IDisposable {
  *
  * @template TArgumentMap An object type representing the arguments for the animation callback.
  */
-export class RequestAnimateController<TArgumentMap extends Record<string, unknown>> implements IDisposable {
+export class RequestAnimateController<TArgumentMap extends Record<string, unknown>> extends Disposable {
 
     // [field]
 
@@ -97,6 +97,7 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
     constructor(
         callback: (argsObject: TArgumentMap) => void
     ) {
+        super();
         this._callback = callback;
     }
 
@@ -113,13 +114,13 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
         this._latestArguments = latestArguments;
         
         if (!this._animateDisposable) {
-            this._animateDisposable = requestAtNextAnimationFrame(() => {
+            this._animateDisposable = this.__register(requestAtNextAnimationFrame(() => {
                 this._animateDisposable = undefined;
                 if (!this._latestArguments) {
                     return;
                 }
                 this._callback(this._latestArguments);
-            });
+            }));
         }
     }
 
@@ -135,12 +136,12 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
         this._latestArguments = latestArguments;
 
         if (!this._animateDisposable) {
-            this._animateDisposable = requestAnimate(() => {
+            this._animateDisposable = this.__register(requestAnimate(() => {
                 if (!this._latestArguments) {
                     return;
                 }
                 this._callback(this._latestArguments);
-            });
+            }));
         }
     }
 
@@ -153,14 +154,16 @@ export class RequestAnimateController<TArgumentMap extends Record<string, unknow
      * `undefined` if none were set.
      */
     public cancel(): TArgumentMap | undefined {
-        this._animateDisposable?.dispose();
+        this.release(this._animateDisposable);
         this._animateDisposable = undefined;
+        
         const args = this._latestArguments;
         this._latestArguments = undefined;
         return args;
     }
 
-    public dispose(): void {
+    public override dispose(): void {
         this.cancel();
+        super.dispose();
     }
 }

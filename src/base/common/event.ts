@@ -511,7 +511,7 @@ export interface INodeEventEmitter {
  * 
  * @type T: Converting the receiving data to the generic type T.
  */
-export class NodeEventEmitter<T> implements IDisposable {
+export class NodeEventEmitter<T> extends Disposable {
 
     private _emitter: Emitter<T>;
 
@@ -520,20 +520,18 @@ export class NodeEventEmitter<T> implements IDisposable {
         channel: string, 
         dataWrapper: (...args: any[]) => T = (data) => data,
     ) {
+        super();
         const onData = (...args: any[]) => this._emitter.fire(dataWrapper(...args));
         const onFirstAdd = () => nodeEmitter.on(channel, onData);
 		const onLastRemove = () => nodeEmitter.removeListener(channel, onData);
-        this._emitter = new Emitter({ 
+        this._emitter = this.__register(new Emitter({ 
             onFirstListenerAdd: onFirstAdd, 
-            onLastListenerDidRemove: onLastRemove });
+            onLastListenerDidRemove: onLastRemove }
+        ));
     }
 
     get registerListener(): Register<T> {
         return this._emitter.registerListener;
-    }
-
-    public dispose(): void {
-        this._emitter.dispose();
     }
 }
 

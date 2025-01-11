@@ -15,7 +15,7 @@ import { Arrays } from "src/base/common/utilities/array";
  * 
  * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
-export class ListWidgetMouseController<T> extends Disposable implements IDisposable {
+export class ListWidgetMouseController<T> extends Disposable {
 
     // [fields]
 
