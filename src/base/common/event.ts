@@ -167,11 +167,9 @@ export interface IEmitterOptions {
  * 
  * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
  */
-export class Emitter<T> implements IDisposable, IEmitter<T> {
+export class Emitter<T> extends Disposable implements IEmitter<T> {
     
     // [field]
-
-    private _disposed: boolean = false;
 
     /** stores all the listeners to this event. */
     protected _listeners: LinkedList<__Listener<T>> = new LinkedList();
@@ -185,6 +183,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     // constructor
 
     constructor(opts?: IEmitterOptions) {
+        super();
         this._opts = opts;
     }
 
@@ -193,7 +192,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     get registerListener(): Register<T> {
         
         // cannot register to a disposed emitter
-        if (this._disposed) {
+        if (this.isDisposed()) {
             panic('emitter is already disposed, cannot register a new listener.');
         }
 
@@ -219,7 +218,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 
             // returns a disposable in order to decide when to stop listening (unregister)
             const unRegister = toDisposable(() => {
-                if (!this._disposed && !listenerRemoved && !listenerRemoving) {
+                if (!this.isDisposed() && !listenerRemoved && !listenerRemoving) {
                     listenerRemoving = true;
 
                     this._opts?.onListenerWillRemove?.();
@@ -267,20 +266,14 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         this._opts?.onDidFire?.();
 	}
 
-    public dispose(): void {
-		if (!this._disposed) {
-			this._disposed = true;
-            this._listeners.clear();
-            this._opts?.onLastListenerDidRemove?.();
-		}
+    public override dispose(): void {
+        super.dispose();
+		this._listeners.clear();
+        this._opts?.onLastListenerDidRemove?.();
 	}
 
     public hasListeners(): boolean {
         return this._listeners.size() > 0;
-    }
-
-    public isDisposed(): boolean {
-        return this._disposed;
     }
 }
 
