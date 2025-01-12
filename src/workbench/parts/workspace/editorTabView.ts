@@ -1,9 +1,9 @@
-import 'src/workbench/parts/workspace/tabBar/media/editorTabView.scss';
+import 'src/workbench/parts/workspace/editorTabView.scss';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Disposable } from 'src/base/common/dispose';
 import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
-import { IReadonlyEditorGroupModel } from 'src/workbench/parts/workspace/editor/editorGroupModel';
+import { IReadonlyEditorGroupModel } from 'src/workbench/parts/workspace/editorGroupModel';
 
 /**
  * This interface is only for {@link EditorTabView}.

@@ -3,9 +3,9 @@ import { Component } from "src/workbench/services/component/component";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
 import { EditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
-import { EditorGroupView } from 'src/workbench/parts/workspace/editor/editorGroupView';
+import { EditorGroupView } from 'src/workbench/parts/workspace/editorGroupView';
 import { assert } from 'src/base/common/utilities/panic';
-import { IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editor/editorGroupModel';
+import { IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editorGroupModel';
 
 export class Workspace extends Component implements IWorkspaceService {
 

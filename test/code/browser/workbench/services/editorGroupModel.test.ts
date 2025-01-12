@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { suite, test } from 'mocha';
 import { TextEditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 import { URI } from 'src/base/common/files/uri';
-import { EditorGroupChangeType, EditorGroupModel, EditorGroupOpenPositioning, IEditorGroupChangeEvent } from 'src/workbench/parts/workspace/editor/editorGroupModel';
+import { EditorGroupChangeType, EditorGroupModel, EditorGroupOpenPositioning, IEditorGroupChangeEvent } from 'src/workbench/parts/workspace/editorGroupModel';
 import { createTestConfigurationService } from 'test/utils/testService';
 import { ConfigurationModuleType, IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
