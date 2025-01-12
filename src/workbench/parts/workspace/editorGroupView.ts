@@ -1,12 +1,12 @@
-import 'src/workbench/parts/workspace/editor/media/editorGroup.scss';
+import 'src/workbench/parts/workspace/editorGroup.scss';
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
-import { EditorTabView } from 'src/workbench/parts/workspace/tabBar/editorTabView';
+import { EditorTabView } from 'src/workbench/parts/workspace/editorTabView';
 import { Disposable } from 'src/base/common/dispose';
-import { EditorPaneCollection } from 'src/workbench/parts/workspace/editor/editorPane';
+import { EditorPaneCollection } from 'src/workbench/parts/workspace/editorPane';
 import { ErrorHandler } from 'src/base/common/error';
-import { EditorGroupModel, IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editor/editorGroupModel';
+import { EditorGroupModel, IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editorGroupModel';
 
 /**
  * An interface only for {@link EditorGroupView}.
