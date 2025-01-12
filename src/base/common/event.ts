@@ -3,8 +3,6 @@ import { LinkedList } from "src/base/common/structures/linkedList";
 import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
-import { createFinalizationRegistry } from "src/base/common/garbageCollection";
-import { Time } from "src/base/common/date";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
