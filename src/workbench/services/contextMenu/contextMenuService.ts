@@ -312,7 +312,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         [
             menu.onDidBlur,
             menu.onDidClose,
-            new DomEmitter(window, EventType.blur).registerListener,
+            menuDisposables.register(new DomEmitter(window, EventType.blur)).registerListener,
         ]
         .forEach(onEvent => {
             menuDisposables.register(
