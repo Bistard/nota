@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
 import { toIPCTransferableError } from "src/base/common/error";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/files/buffer";
@@ -534,11 +534,13 @@ export class ChannelServer extends Disposable implements IChannelServer {
 
         const event = header[3]!;
         const register = channel.registerListener(this.id, event, data);
-        const unregister = register(eventData => this.__sendResponse({
-            type: ResponseType.EventFire,
-            requestID: requestID,
-            dataOrError: eventData
-        }));
+        const unregister = untrackDisposable(
+            register(eventData => this.__sendResponse({
+                type: ResponseType.EventFire,
+                requestID: requestID,
+                dataOrError: eventData
+            }))
+        );
 
         this._activeRequest.set(requestID, unregister);
     }

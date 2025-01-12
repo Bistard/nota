@@ -1,5 +1,5 @@
 import { IpcMainEvent, WebContents } from "electron";
-import { DisposableBucket, IDisposable, toDisposable } from "src/base/common/dispose";
+import { asGlobalDisposable, DisposableBucket, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event, NodeEventEmitter, Register, SignalEmitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { ILogService } from "src/base/common/logger";
@@ -26,7 +26,7 @@ export class IpcServer extends ServerBase {
      * Activated clients managed by the server, keyed by their unique ID.
      */
     private static readonly _activatedClients = new Map<number, IDisposable>();
-    private static _disposable = new DisposableBucket();
+    private static readonly _disposable = asGlobalDisposable(new DisposableBucket());
 
     // [constructor]
 
