@@ -58,7 +58,6 @@ import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navi
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
-import { monitorEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { IBrowserService, initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
@@ -66,9 +65,9 @@ import { BrowserInspectorService } from "src/platform/inspector/browser/browserI
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
-import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import { AllCommands } from "src/workbench/services/workbench/commandList";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -94,12 +93,15 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
             monitorDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
-            monitorEmitterListenerGC({
-                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
-            });
             
             // ensure we handle almost every errors properly
-            initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
+            initGlobalErrorHandler(() => undefined, WIN_CONFIGURATION, err => {
+                const commandService = instantiationService?.getOrCreateService(ICommandService);
+                if (!commandService) {
+                    return;
+                }
+                commandService.executeCommand(AllCommands.alertError, 'Renderer', err);
+            });
 
             // register microservices
             this.rendererServiceRegistrations();
@@ -114,13 +116,13 @@ const renderer = new class extends class RendererInstance extends Disposable {
             ]);
 
             // create workbench UI
-            const workbench = instantiationService.createInstance(Workbench);
+            const workbench = this.__register(instantiationService.createInstance(Workbench));
             workbench.init();
             
             // browser monitor
             const browser = instantiationService.createInstance(BrowserInstance);
+            instantiationService.store(IBrowserService, browser);
             browser.init();
-            instantiationService.register(IBrowserService, browser);
         }
         catch (error: any) {
             ErrorHandler.onUnexpectedError(error);
@@ -134,42 +136,42 @@ const renderer = new class extends class RendererInstance extends Disposable {
     private createCoreServices(): IInstantiationService {
 
         // instantiation-service (Dependency Injection)
-        const instantiationService = new InstantiationService(new ServiceCollection());
-        instantiationService.register(IInstantiationService, instantiationService);
+        const instantiationService = this.__register(new InstantiationService(new ServiceCollection()));
+        instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
         (<any>this.logService) = logService;
 
         // context-service
         const contextService = new ContextService();
-        instantiationService.register(IContextService, contextService);
+        instantiationService.store(IContextService, contextService);
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
         this.initRegistrant(instantiationService, registrantService);
 
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
-        instantiationService.register(IBrowserEnvironmentService, environmentService);
+        instantiationService.store(IBrowserEnvironmentService, environmentService);
 
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID, logService);
-        instantiationService.register(IIpcService, ipcService);
+        instantiationService.store(IIpcService, ipcService);
 
         // host-service
         const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
-        instantiationService.register(IHostService, hostService);
+        instantiationService.store(IHostService, hostService);
 
         // lifecycle-service
         const lifecycleService = instantiationService.createInstance(BrowserLifecycleService);
-        instantiationService.register(ILifecycleService, lifecycleService);
+        instantiationService.store(ILifecycleService, lifecycleService);
 
         // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService.getChannel(IpcChannel.Logger), environmentService.logLevel);
-        instantiationService.register(ILoggerService, loggerService);
+        instantiationService.store(ILoggerService, loggerService);
 
         // logger
         const logger = new PipelineLogger([
@@ -185,11 +187,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // file-service
         const fileService = instantiationService.createInstance(BrowserFileChannel);
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         // product-service
         const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
+        instantiationService.store(IProductService, productService);
 
         // configuration-service
         const configurationService = instantiationService.createInstance(
@@ -200,20 +202,20 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 } 
             },
         );
-        instantiationService.register(IConfigurationService, configurationService);
+        instantiationService.store(IConfigurationService, configurationService);
 
         // i18n-service
         const i18nService = instantiationService.createInstance(I18nService, 
             WIN_CONFIGURATION.nlsConfiguration, 
             URI.join(environmentService.appRootPath, 'assets', 'locale'),
         );
-        instantiationService.register(II18nService, i18nService);
+        instantiationService.store(II18nService, i18nService);
 
         // singleton initializations
         logService.debug('renderer', 'Registering singleton services descriptors...');
         for (const [serviceIdentifier, serviceDescriptor] of getSingletonServiceDescriptors()) {
             logService.trace('renderer', `Registering singleton service descriptor: '${serviceIdentifier.toString()}'.`);
-            instantiationService.register(serviceIdentifier, serviceDescriptor);
+            instantiationService.store(serviceIdentifier, serviceDescriptor);
         }
 
         logService.debug('renderer', 'All core renderer services are constructed.');

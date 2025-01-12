@@ -58,14 +58,15 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
             return err(initResult.error);
         }
 
-        this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
+        this._storage = this.__register(DefaultConfiguration.createDefaultConfigurationStorage(this._registrant));
         this.__register(this._registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
 
         return ok();
     }
 
     public reload(): Result<void, Error> {
-        this._storage = DefaultConfiguration.createDefaultConfigurationStorage(this._registrant);
+        this.release(this._storage);
+        this._storage = this.__register(DefaultConfiguration.createDefaultConfigurationStorage(this._registrant));
         return ok();
     }
 
@@ -84,6 +85,7 @@ export class DefaultConfiguration extends Disposable implements IDefaultConfigur
      * @description Create a new {@link IConfigurationStorage} that 
      */
     public static createDefaultConfigurationStorage(registrant: IConfigurationRegistrant): IConfigurationStorage {
+        // Default configuration not meant to be changed, we can safely untrack it.
         const storage = new ConfigurationStorage();
         const schemas = registrant.getConfigurationSchemas();
         DefaultConfiguration.__updateDefaultConfigurations(storage, Object.keys(schemas), schemas);

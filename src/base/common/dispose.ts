@@ -1,6 +1,6 @@
 import { Time } from "src/base/common/date";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
-import { isFunction, isObject } from "src/base/common/utilities/type";
+import { isFunction, isObject, nullable } from "src/base/common/utilities/type";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -14,16 +14,28 @@ export interface IDisposable {
 	dispose(): void;
 }
 
-export let disposableMonitor: IDisposableMonitor | undefined = undefined;
+let monitor: IDisposableMonitor | undefined = undefined;
 export function monitorDisposableLeak(enable?: boolean): void {
 	if (!enable) {
 		return;
     }
-	console.warn('[monitorDisposableLeak] enabled');
-	disposableMonitor = new DisposableMonitor();
+	console.info('[monitorDisposableLeak] enabled');
+	monitor = new DisposableMonitor();
+
+	GlobalDisposable = untrackDisposable(new class extends Disposable {
+		public override dispose(): void { /** meant NOT be disposed */ }
+	});
 }
 
-export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
+/**
+ * A global (highest-level) disposable root that should bound with all the 
+ * child disposables that are meant to share the same lifecycle with the entire
+ * application.
+ * 
+ * @note Will be defined when the disposable memory leak check is on.
+ * @note This disposable meant NOT be disposed ever.
+ */
+let GlobalDisposable: Disposable | undefined = undefined;
 
 /**
  * @readonly The lifecycle of a disposable object is controlled by the client. A
@@ -44,11 +56,12 @@ export class Disposable implements IDisposable {
 
 	public static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
 
-	private readonly _disposableManager = new DisposableManager();
+	// ensure no name conflicts for inheritance
+	private readonly _$bucket$_ = new DisposableBucket();
 
 	constructor() {
-		disposableMonitor?.track(this);
-		disposableMonitor?.bindToParent(this._disposableManager, this);
+		monitor?.track(this);
+		monitor?.bindToParent(this._$bucket$_, this);
 	}
 
 	/** 
@@ -56,15 +69,15 @@ export class Disposable implements IDisposable {
 	 * disposed, nothing will happen.
 	 */
 	public dispose(): void {
-		disposableMonitor?.markAsDisposed(this);
-		this._disposableManager.dispose();
+		monitor?.markAsDisposed(this);
+		this._$bucket$_.dispose();
 	}
 
 	/** 
 	 * @description Determines if the current object is disposed already. 
 	 */
 	public isDisposed(): boolean {
-		return this._disposableManager.disposed;
+		return this._$bucket$_.disposed;
 	}
 
 	/**
@@ -78,33 +91,48 @@ export class Disposable implements IDisposable {
 		if (obj && (obj as IDisposable) === this) {
 			panic('cannot register the disposable object to itself');
 		}
-		return this._disposableManager.register(obj);
+		return this._$bucket$_.register(obj);
+	}
+
+	/**
+	 * @description Make possible the client may also register disposable object
+	 * publicly, ensure they share the same lifecycle.
+	 */
+	public register<T extends IDisposable>(obj: T): T {
+		return this.__register(obj);
+	}
+
+	/**
+	 * @description Removes the reference of a {@link IDisposable} from bucket 
+	 * and disposes of it. 
+	 */
+	public release<T extends IDisposable>(obj: T | nullable): void {
+		if (!obj) {
+			return;
+		}
+		return this._$bucket$_.release(obj);
 	}
 }
 
-/** @description A manager to maintain all the registered disposables. */
-export class DisposableManager implements IDisposable {
-
+/**
+ * A lightweight container for managing multiple {@link IDisposable} objects.
+ * 
+ * @note
+ * This class is suitable for scenarios where you want to collect a set of
+ * disposables and dispose them all at once, without strictly preventing further
+ * registration or re-disposal attempts. For a stricter variant, see
+ * {@link DisposableBucket}.
+ */
+export class LooseDisposableBucket implements IDisposable {
+	
 	private readonly _disposables = new Set<IDisposable>();
-	private _disposed = false;
 
 	constructor() {
-		disposableMonitor?.track(this);
+		monitor?.track(this);
 	}
 
-	/** 
-	 * @description Disposes all the registered objects and the current object. 
-	 */
 	public dispose(): void {
-		// prevent double disposing
-		if (this._disposed) {
-			return;
-		}
-
-		disposableMonitor?.markAsDisposed(this);
-
-		// actual disposing
-		this._disposed = true;
+		monitor?.markAsDisposed(this);
 		try {
 			disposeAll(this._disposables.values());
 		} finally {
@@ -113,31 +141,68 @@ export class DisposableManager implements IDisposable {
 		}
 	}
 
+	public register<T extends IDisposable>(obj: T): T {
+		if (obj && (obj as unknown) === this) {
+			panic('cannot register the disposable object to itself');
+		}
+		
+		monitor?.bindToParent(obj, this);
+		this._disposables.add(obj);
+		return obj;
+	}
+
+	public release<T extends IDisposable>(obj?: T): void {
+		if (!obj) {
+			return;
+		}
+		if ((obj as unknown) === this) {
+			return;
+		}
+		this._disposables.delete(obj);
+		obj.dispose();
+	}
+}
+
+/**
+ * A stricter container for managing multiple {@link IDisposable} objects,
+ * extending {@link LooseDisposableBucket} by introducing a "disposed" state.
+ * 
+ * @remarks
+ * This class is ideal for scenarios where you want a one-time, all-or-nothing
+ * dispose action. After the first dispose call, no new disposables are accepted,
+ * ensuring there is a clear “end of life” for this bucket and all children.
+ */
+export class DisposableBucket extends LooseDisposableBucket {
+
+	private _disposed = false;
+
+	constructor() {
+		super();
+	}
+
+	public override dispose(): void {
+		// prevent double disposing
+		if (this._disposed) {
+			return;
+		}
+		super.dispose();
+		this._disposed = true;
+	}
+
 	get disposed(): boolean {
 		return this._disposed;
 	}
 
-	/**
-	 * @description Registers a disposable.
-	 */
-	public register<T extends IDisposable>(obj: T): T {
-		
-		if (obj && (obj as unknown) === this) {
-			panic('cannot register the disposable object to itself');
-		}
-
-		disposableMonitor?.bindToParent(obj, this);
+	public override register<T extends IDisposable>(obj: T): T {
 		if (this._disposed) {
 			console.warn('cannot register a disposable object to a object which is already disposed');
 			return obj;
 		}
-
-		this._disposables.add(obj);
-		return obj;
+		return super.register(obj);
 	}
 }
 
-export function disposeAll<T extends IDisposable>(disposables: IterableDisposable<T>): void {
+export function disposeAll<T extends IDisposable>(disposables: Iterable<T>): void {
 	const errors: any[] = [];
 
 	/**
@@ -163,11 +228,11 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 export function toDisposable(fn: () => any): IDisposable {
 	const disposable = {
 		dispose: () => {
-			disposableMonitor?.markAsDisposed(disposable);
+			monitor?.markAsDisposed(disposable);
 			fn();
 		}
 	};
-	disposableMonitor?.track(disposable);
+	monitor?.track(disposable);
 	return disposable;
 }
 
@@ -178,111 +243,39 @@ export function isDisposable(obj: any): obj is IDisposable {
 	return isFunction(obj['dispose']);
 }
 
-export function tryDispose(obj: any): void {
-	if (!isObject(obj)) {
-		return;
-	}
-	if (isDisposable(obj)) {
-		obj.dispose();
-	}
+/**
+ * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is:
+ * 		1. manually controlled by your own logic (not registered under any other 
+ * 		   {@link IDisposable}).
+ * Then use this function is a proper way to handle it and make sure 
+ * memory-leak monitor does not catch this as false positive.
+ */
+export function untrackDisposable<T extends IDisposable>(obj: T): T {
+	monitor?.untrack(obj);
+	return obj;
 }
 
 /**
- * @class A disposable object that automatically cleans up its internal object 
- * upon disposal. This ensures that when the disposable value is changed, the 
- * previously held disposable is disposed of.
- * 
- * @note You may also register disposable children to the current object, those
- * children will be disposed along with the current object.
+ * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is guaranteed can be safely GCed without properly disposed.
  */
-export class AutoDisposable<T extends IDisposable> implements IDisposable {
+export function safeDisposable<T extends IDisposable>(obj: T): T {
+	monitor?.untrack(obj);
+	return obj;
+}
 
-	// [fields]
-
-	private _object?: T;
-	private _children: IDisposable[];
-	private _disposed: boolean;
-
-	// [constructor]
-
-	constructor(object?: T, children?: IDisposable[]) {
-		this._object = object ?? undefined;
-		this._children = children ?? [];
-		this._disposed = false;
-		
-		disposableMonitor?.track(this);
-		this.__trackDisposable(object, children);
-	}
-
-	// [public methods]
-
-	public set(object: T): void {
-		if (this._disposed || this._object === object) {
-			return;
-		}
-
-		this._object?.dispose();
-		this._object = object;
-		
-		this.__cleanChildren();
-		this.__trackDisposable(object, undefined);
-	}
-
-	public get(): T {
-		if (!this._object) {
-			panic('[SelfCleaningWrapper] no wrapping object.');
-		}
-		return this._object;
-	}
-
-	public isSet(): boolean {
-		return !!this._object;
-	}
-
-	public register(children: Disposable | Disposable[]): void {
-		if (!this._object) {
-			panic('[SelfCleaningWrapper] cannot bind children to no objects.');
-		}
-		
-		if (!Array.isArray(children)) {
-			children = [children];
-		}
-
-		this._children.push(...children);
-		this.__trackDisposable(undefined, children);
-	}
-
-	public detach(): { obj: T, children: IDisposable[] } | undefined {
-		const obj = this._object;
-		this._object = undefined;
-		this._children = [];
-		return obj ? { obj, children: this._children } : undefined;
-	}
-
-	public dispose(): void {
-		if (this._disposed) {
-			return;
-		}
-		this._disposed = true;
-		disposableMonitor?.markAsDisposed(this);
-		
-		this._object?.dispose();
-		this._object = undefined;
-		
-		this.__cleanChildren();
-	}
-
-	// [private helper methods]
-
-	private __cleanChildren(): void {
-		disposeAll(this._children);
-		this._children.length = 0;
-	}
-
-	private __trackDisposable(object?: any, children?: any[]): void {
-		object && disposableMonitor?.bindToParent(object, this);
-		children && disposableMonitor && children.forEach(child => disposableMonitor!.bindToParent(child, this));
-	}
+/**
+ * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is:
+ * 		1. meant to share the same lifecycle with the whole application and
+ * 		   should never get disposed.
+ * Then use this function is a proper way to handle it and make sure 
+ * memory-leak monitor does not catch this as false positive.
+ */
+export function asGlobalDisposable<T extends IDisposable>(obj: T): T {
+	GlobalDisposable?.register(obj);
+	return obj;
 }
 
 /**
@@ -345,6 +338,12 @@ export interface IDisposableMonitor {
 	 * Is called after a disposable is disposed.
 	 */
 	markAsDisposed(disposable: IDisposable): void;
+
+	/**
+	 * Untrack the given disposable. This is hacky way and only used when you
+	 * know what you are doing.
+	 */
+	untrack(disposable: IDisposable): void;
 }
 
 /**
@@ -352,12 +351,18 @@ export interface IDisposableMonitor {
  */
 class DisposableMonitor implements IDisposableMonitor {
 	
-	private readonly _is_tracked = '$_is_disposable_tracked_';
+	public static readonly IS_TRACKED = '$_is_disposable_tracked_';
+	public static readonly IS_TIMEOUT = '$_is_disposable_timeout_';
 
 	public track(disposable: IDisposable): void {
-		const {stack} = new Error('[DisposableMonitor] POTENTIAL memory leak ()');
-		setTimeout(() => {
-			if (!(<any>disposable[this._is_tracked])) {
+		if (disposable === Disposable.NONE) {
+			return;
+		}
+
+		const { stack } = new Error('[DisposableMonitor] POTENTIAL memory leak');
+		disposable[DisposableMonitor.IS_TIMEOUT] = setTimeout(() => {
+			delete disposable[DisposableMonitor.IS_TIMEOUT];
+			if (!disposable[DisposableMonitor.IS_TRACKED]) {
 				console.warn(stack);
 			}
 		}, Time.sec(5).toMs().time);
@@ -371,13 +376,25 @@ class DisposableMonitor implements IDisposableMonitor {
 		this.__tryMarkTracked(disposable);
 	}
 
+	public untrack(disposable: IDisposable): void {
+		if (disposable === Disposable.NONE) {
+			return;
+		}
+
+		disposable[DisposableMonitor.IS_TRACKED] = true;
+		if (disposable[DisposableMonitor.IS_TIMEOUT]) {
+			clearTimeout(disposable[DisposableMonitor.IS_TIMEOUT]);
+			delete disposable[DisposableMonitor.IS_TIMEOUT];
+		}
+	}
+
 	private __tryMarkTracked(disposable: IDisposable): void {
 		if (!disposable || disposable === Disposable.NONE) {
 			return;
 		}
 		
 		try {
-			(<any>disposable)[this._is_tracked] = true;
+			disposable[DisposableMonitor.IS_TRACKED] = true;
 		} catch {
 			/**
 			 * Sometimes, assigning a new property to an object can throw errors:

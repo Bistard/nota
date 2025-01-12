@@ -33,11 +33,14 @@ class __TreeIdentityProvider<T, TFilter> implements IIdentityProvider<ITreeNode<
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
-class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
+class __TreeListDragAndDropProvider<T, TFilter> extends Disposable implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
 
     constructor(
         private readonly dnd: IListDragAndDropProvider<T>
-    ) {}
+    ) {
+        super();
+        this.__register(dnd);
+    }
 
     public getDragData(node: ITreeNode<T, TFilter>): string | null {
         return this.dnd.getDragData(node.data);
@@ -93,7 +96,7 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
  * @template T: The type of data in {@link AbstractTree}.
  * @note `trait` does not care about TFilter type.
  */
-class TreeTrait<T> implements IDisposable {
+class TreeTrait<T> extends Disposable {
 
     // [field]
 
@@ -102,13 +105,16 @@ class TreeTrait<T> implements IDisposable {
 
     // [event]
 
-    private readonly _onDidChange = new Emitter<ITreeTraitChangeEvent<T>>();
+    private readonly _onDidChange = this.__register(new Emitter<ITreeTraitChangeEvent<T>>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     // [constructor]
 
     constructor() {
-        this._nodesCache = new Lazy(() => Arrays.fromSet(this._nodes, node => node.data));
+        super();
+        this._nodesCache = this.__register(new Lazy(
+            () => Arrays.fromSet(this._nodes, node => node.data)
+        ));
     }
 
     // [public methods]
@@ -177,11 +183,6 @@ class TreeTrait<T> implements IDisposable {
 
         // update the current traits
         this.set(currNodes);
-    }
-
-    public dispose(): void {
-        this._nodesCache.dispose();
-        this._onDidChange.dispose();
     }
 }
 
@@ -833,10 +834,11 @@ export interface IAbstractTreeOptions<T, TFilter> extends
  * TFilter: type of filter data for filtering nodes in the tree.
  * TRef: a reference leads to find the corresponding tree node.
  */
-export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implements IAbstractTree<T, TFilter, TRef>, IDisposable {
+export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implements IAbstractTree<T, TFilter, TRef> {
 
     // [fields]
 
+    private readonly _onDidChangeCollapseState: RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>;
     protected readonly _model: ITreeModel<T, TFilter, TRef>;
     protected readonly _view: TreeWidget<T, TFilter, TRef>;
 
@@ -856,10 +858,11 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
          * to create the renderers first. After the model is created, we can 
          * have the chance to reset the input event emitter.
          */
-        const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+        const relayEmitter = this.__register(new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>());
+        this._onDidChangeCollapseState = this.__register(relayEmitter);
 
         // wraps each tree list view renderer with a basic tree item renderer
-        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
+        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener, o => this.__register(o)));
 
         // tree view
         const createTreeWidgetArguments = <const>[
@@ -899,23 +902,22 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         }
 
         // create the tree model from abstraction, client may override it.
-        this._model = this.createModel(rootData, this._view, opts);
+        this._model = this.__register(this.createModel(rootData, this._view, opts));
         
         // updates traits in the tree-level after each splice
-        this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider));
+        this.__register(this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider)));
 
         // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
 
         // dispose registration
         this.__register(this._view);
-        this.__register(relayEmitter);
     }
 
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._model.onDidSplice; }
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseState; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._onDidChangeCollapseState.registerListener; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }

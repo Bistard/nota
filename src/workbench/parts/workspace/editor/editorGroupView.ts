@@ -71,14 +71,14 @@ export class EditorGroupView extends Disposable implements IEditorGroupView {
         // editor tab view
         this._tabContainer = document.createElement('div');
         this._tabContainer.className = 'editor-tab-view-container';
-        this._editorTabs = this.instantiationService.createInstance(EditorTabView, this._tabContainer, this._model);
+        this._editorTabs = this.__register(this.instantiationService.createInstance(EditorTabView, this._tabContainer, this._model));
         this._container.appendChild(this._tabContainer);
 
         // editor pane view
         this._currEditor = undefined;
         this._editorContainer = document.createElement('div');
         this._editorContainer.className = 'editor-pane-view-container';
-        this._editorPane = this.instantiationService.createInstance(EditorPaneCollection, this._editorContainer);
+        this._editorPane = this.__register(this.instantiationService.createInstance(EditorPaneCollection, this._editorContainer));
         this._container.appendChild(this._editorContainer);
         
         parent.appendChild(this._container);

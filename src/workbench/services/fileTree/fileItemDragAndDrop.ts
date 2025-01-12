@@ -279,7 +279,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     public override dispose(): void {
         super.dispose();
-        this._insertionController?.dispose();
+        this.release(this._insertionController);
+        this._insertionController = undefined;
     }
 
     // [public helper methods]
@@ -296,9 +297,9 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // only enable insertion indicator during custom sorting
         const setIndicatorBy = (order: FileSortType) => {
             if (order === FileSortType.Custom) {
-                this._insertionController ??= new RowInsertionController();
+                this._insertionController ??= this.__register(new RowInsertionController());
             } else {
-                this._insertionController?.dispose();
+                this.release(this._insertionController);
                 this._insertionController = undefined;
             }
         };
@@ -308,13 +309,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         setIndicatorBy(sortOrder);
 
         // configuration self update
-        this.configurationService.onDidConfigurationChange(e => {
+        this.__register(this.configurationService.onDidConfigurationChange(e => {
             if (!e.match(WorkbenchConfiguration.ExplorerFileSortType)) {
                 return;
             }
             const newSortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
             setIndicatorBy(newSortOrder);
-        });
+        }));
     }
 
     /**

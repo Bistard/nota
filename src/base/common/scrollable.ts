@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 
 /**
@@ -75,7 +75,7 @@ const MIN_SLIDER_SIZE = 20; // pixels
  *  2) scroll size 
  *  3) scroll position
  */
-export class Scrollable implements IScrollable, IDisposable {
+export class Scrollable extends Disposable implements IScrollable {
 
     // [fields]
 
@@ -129,12 +129,13 @@ export class Scrollable implements IScrollable, IDisposable {
     /**
      * fires when scroll happens.
      */
-    private readonly _onDidScroll = new Emitter<IScrollEvent>();
+    private readonly _onDidScroll = this.__register(new Emitter<IScrollEvent>());
     public readonly onDidScroll = this._onDidScroll.registerListener;
 
     // [constructor]
 
     constructor(scrollbarSize: number, viewportSize: number, scrollSize: number, scrollPosition: number) {
+        super();
         this._scrollbarSize = scrollbarSize;
         this._viewportSize = viewportSize;
         this._scrollSize = scrollSize;
@@ -162,7 +163,7 @@ export class Scrollable implements IScrollable, IDisposable {
             this.__validateValue();
             this.__recalculate();
 
-            this._onDidScroll.fire(this.__createScrollEvent(prev));
+            this.__fireOnDidScroll(prev);
         }
     }
 
@@ -174,7 +175,7 @@ export class Scrollable implements IScrollable, IDisposable {
             this.__validateValue();
             this.__recalculate();
 
-            this._onDidScroll.fire(this.__createScrollEvent(prev));
+            this.__fireOnDidScroll(prev);
         }
     }
 
@@ -186,7 +187,7 @@ export class Scrollable implements IScrollable, IDisposable {
             this.__validateValue();
             this.__onlyRecalculateSliderPosition();
 
-            this._onDidScroll.fire(this.__createScrollEvent(prev));
+            this.__fireOnDidScroll(prev);
         }
     }
 
@@ -230,10 +231,6 @@ export class Scrollable implements IScrollable, IDisposable {
 
 	// [methods]
 
-    public dispose(): void {
-        this._onDidScroll.dispose();
-    }
-
     public clone():  Scrollable {
         return new Scrollable(this._scrollbarSize, this._viewportSize, this._scrollSize, this._scrollPosition);
     }
@@ -249,7 +246,7 @@ export class Scrollable implements IScrollable, IDisposable {
     // [private methods]
 
     /**
-     * @description Everytime when the {@link Scrollable} changes its fields, 
+     * @description Every time when the {@link Scrollable} changes its fields, 
 	 * this method will be invoked to recalculate all the numerated data to 
 	 * display the correct scrollbar and its slider.
      */
@@ -342,4 +339,8 @@ export class Scrollable implements IScrollable, IDisposable {
 		};
 	}
 
+    private __fireOnDidScroll(prev: Scrollable): void {
+        this._onDidScroll.fire(this.__createScrollEvent(prev));
+        prev.dispose();
+    }
 }

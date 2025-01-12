@@ -1,3 +1,4 @@
+import { Disposable } from "src/base/common/dispose";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
 import { AbstractConstructor, Constructor } from "src/base/common/utilities/type";
 import { createService, ServiceIdentifier, IService, getDependencyTreeFor } from "src/platform/instantiation/common/decorator";
@@ -79,18 +80,18 @@ export interface IServiceProvider {
 /**
  * An interface only for {@link InstantiationService}.
  */
-export interface IInstantiationService extends IServiceProvider, IService {
+export interface IInstantiationService extends IServiceProvider, IService, Disposable {
     
     readonly serviceCollections: ServiceCollection;
     readonly parent?: InstantiationService;
 
     /**
-     * @description Register a service either using an instance or the 
-     * ServiceDescriptor for delaying instantiation.
+     * @description Stores a service into DI system either using an instance or 
+     * the ServiceDescriptor for delaying instantiation.
      * @param serviceIdentifier decorator to the service which is created by `createService()`.
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
-    register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
+    store<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void;
 
     /**
      * @description Creates an instance of the given class described by the 
@@ -157,7 +158,7 @@ export interface IInstantiationService extends IServiceProvider, IService {
 }
 
 
-export class InstantiationService implements IInstantiationService {
+export class InstantiationService extends Disposable implements IInstantiationService {
 
     declare _serviceMarker: undefined;
 
@@ -176,13 +177,14 @@ export class InstantiationService implements IInstantiationService {
         serviceCollections?: ServiceCollection, 
         parent?: InstantiationService,
     ) {
-        this.serviceCollections = serviceCollections ?? new ServiceCollection();
+        super();
+        this.serviceCollections = this.__register(serviceCollections ?? new ServiceCollection());
         this.parent = parent;
     }
 
     // [public methods]
 
-    public register<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void {
+    public store<T extends IService, TCtor extends Constructor>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<TCtor>): void {
         this.serviceCollections.set(serviceIdentifier, instanceOrDescriptor);
     }
 

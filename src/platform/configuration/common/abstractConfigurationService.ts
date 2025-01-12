@@ -26,8 +26,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
 
     protected readonly _defaultConfiguration: DefaultConfiguration;
     protected readonly _userConfiguration: UserConfiguration;
-
-    protected readonly _configurationHub: ConfigurationHub;
+    protected _configurationHub: ConfigurationHub;
 
     // [event]
 
@@ -43,20 +42,14 @@ export abstract class AbstractConfigurationService extends Disposable implements
         @IRegistrantService private readonly registrantService: IRegistrantService,
     ) {
         super();
-        this.logService.debug('ConfigurationService', 'Constructing...');
 
         // initialization
         {
             this._registrant = this.registrantService.getRegistrant(RegistrantType.Configuration);
-
             this._initProtector = new InitProtector();
 
-            this.logService.debug('ConfigurationService', 'Constructing `DefaultConfiguration`...');
-            this._defaultConfiguration = this.instantiationService.createInstance(DefaultConfiguration);
-            
-            this.logService.debug('ConfigurationService', 'Constructing `UserConfiguration`...');
-            this._userConfiguration = this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath);
-
+            this._defaultConfiguration = this.__register(this.instantiationService.createInstance(DefaultConfiguration));
+            this._userConfiguration = this.__register(this.instantiationService.createInstance(UserConfiguration, this.appConfigurationPath));
             this._configurationHub = this.__reloadConfigurationHub();
         }
 
@@ -102,7 +95,8 @@ export abstract class AbstractConfigurationService extends Disposable implements
          * sure everything is updated.
          */
         .andThen(() => {
-            (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
+            this.release(this._configurationHub);
+            this._configurationHub = this.__reloadConfigurationHub();
             this.logService.debug('ConfigurationService', 'initialized successfully.');
             return ok();
         });
@@ -139,9 +133,11 @@ export abstract class AbstractConfigurationService extends Disposable implements
     }
 
     private __reloadConfigurationHub(): ConfigurationHub {
-        return new ConfigurationHub(
-            this._defaultConfiguration.getConfiguration(),
-            this._userConfiguration.getConfiguration(),
+        return this.__register(
+            new ConfigurationHub(
+                this._defaultConfiguration.getConfiguration(),
+                this._userConfiguration.getConfiguration(),
+            )
         );
     }
 }

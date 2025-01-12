@@ -1,9 +1,9 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { menuTitleApplicationRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleFormatRegister, menuTitleHelpRegister, menuTitleInsertRegister, menuTitleSelectionRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
+import { menuTitleApplicationRegister, menuTitleBarRegister, menuTitleEditRegister, menuTitleFileRegister, menuTitleFormatRegister, menuTitleHelpRegister, menuTitleInsertRegister, menuTitleSelectionRegister, menuTitleViewRegister } from "src/platform/menu/common/menu.register";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { menuFileTreeContextRegister } from "src/workbench/services/fileTree/menu.register";
 import { MenuTypes, IMenuItemRegistration, IMenuItemRegistrationResolved } from "src/platform/menu/common/menu";
@@ -49,7 +49,7 @@ export interface IMenuRegistrant extends IRegistrant<RegistrantType.Menu> {
     clearMenuItems(menu: MenuTypes): void;
 }
 
-export class MenuRegistrant implements IMenuRegistrant {
+export class MenuRegistrant extends Disposable implements IMenuRegistrant {
 
     // [fields]
 
@@ -58,20 +58,23 @@ export class MenuRegistrant implements IMenuRegistrant {
 
     // [event]
 
-    private readonly _onDidMenuChange = new Emitter<MenuTypes>();
+    private readonly _onDidMenuChange = this.__register(new Emitter<MenuTypes>());
     public readonly onDidMenuChange = this._onDidMenuChange.registerListener;
     
     // [constructor]
 
     constructor(
         @IContextService private readonly contextService: IContextService
-    ) {}
+    ) {
+        super();
+    }
 
     // [public methods]
 
     public initRegistrations(provider: IServiceProvider): void {
         [
             // title
+            menuTitleBarRegister,
             menuTitleApplicationRegister,
             menuTitleFileRegister,
             menuTitleEditRegister,

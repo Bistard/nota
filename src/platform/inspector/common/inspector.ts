@@ -1,6 +1,7 @@
 import type { IWindowInstance } from "src/platform/window/electron/windowInstance";
 import type { IpcChannel } from "src/platform/ipc/common/channel";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
+import { Disposable } from "src/base/common/dispose";
 
 export const IMainInspectorService = createService<IMainInspectorService>('main-inspector-service');
 export const IBrowserInspectorService = createService<IBrowserInspectorService>('browser-inspector-service');
@@ -31,7 +32,7 @@ export interface IMainInspectorService extends IService {
     isInspectorWindow(windowID: number): boolean;
 }
 
-export interface IBrowserInspectorService extends IService {
+export interface IBrowserInspectorService extends IService, Disposable {
     /**
      * @description Once invoked, will listen to the following channel:
      *  1. {@link IpcChannel.InspectorReady}

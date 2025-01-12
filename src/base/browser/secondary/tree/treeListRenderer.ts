@@ -3,6 +3,7 @@ import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/bro
 import { Register } from "src/base/common/event";
 import { check } from "src/base/common/utilities/panic";
 import { requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
+import { IDisposable } from "src/base/common/dispose";
 
 /**
  * A basic type of renderer in {@link IListView} that manages to render tree 
@@ -93,16 +94,19 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     constructor(
         nestedRenderer: ITreeListRenderer<T, TFilter, TMetadata>,
         onDidChangeCollapseState: Register<ITreeCollapseStateChangeEvent<T, TFilter>>,
+        registerDisposable: (o: IDisposable) => void,
     ) {
         this._renderer = nestedRenderer;
         this.type = this._renderer.type;
         this._eachIndentSize = TreeItemRenderer.defaultIndentation;
 
         // listen to the outer event
-        onDidChangeCollapseState(e => this.__doDidChangeCollapseState(e.node));
+        registerDisposable(onDidChangeCollapseState(e => this.__doDidChangeCollapseState(e.node)));
 
         // listen to the nested renderer
-        nestedRenderer.onDidChangeCollapseState?.((e) => this.__didChangeCollapseStateByData(e));
+        if (nestedRenderer.onDidChangeCollapseState) {
+            registerDisposable(nestedRenderer.onDidChangeCollapseState(e => this.__didChangeCollapseStateByData(e)));
+        }
     }
 
     // [public method]

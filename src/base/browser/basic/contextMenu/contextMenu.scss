@@ -3,4 +3,7 @@
 .context-menu {
     z-index: const.$z-index-medium;
     box-shadow: 5px 0px 10px 0px #e2e2e2;
+    
+    // https://github.com/electron/electron/issues/741#issuecomment-60480286
+    -webkit-app-region: no-drag;
 }

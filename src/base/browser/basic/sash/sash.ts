@@ -1,6 +1,6 @@
 import "src/base/browser/basic/sash/sash.scss";
 import { AbstractSashController, HorizontalSashController, IAbstractSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
+import { Disposable, DisposableBucket } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/structures/range";
@@ -281,7 +281,7 @@ export class Sash extends Disposable implements ISash {
         this._visible = opts.visible ?? false;
         this._hovering = false;
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade', false);
-        this._controller = new Lazy<AbstractSashController>(() => {
+        this._controller = this.__register(new Lazy<AbstractSashController>(() => {
             const ctorOptions = <const>[
                 (e: ISashEvent) => this._onDidStart.fire(e),
                 (e: ISashEvent) => this._onDidMove.fire(e),
@@ -295,9 +295,7 @@ export class Sash extends Disposable implements ISash {
             } else {
                 return new HorizontalSashController(this, ...ctorOptions);
             }
-        });
-        this.__register(this._controller);
-
+        }));
         this.__render();
 
         this._visibilityController.setDomNode(this._element);
@@ -441,25 +439,25 @@ export class Sash extends Disposable implements ISash {
 
         const cancellable = cancellableTimeout(this._hoverDelay);
         cancellable
-        .then(() => {
-            this._element.classList.add('hover');
-        })
-        .catch(() => {}); // cath cancel error
+            .then(() => {
+                this._element.classList.add('hover');
+            })
+            .catch(() => {}); // cath cancel error
 
-        const disposables = new DisposableManager();
+        const bucket = this.__register(new DisposableBucket());
         
         let mouseenter = true;
         let mousedown = false;
 
-        disposables.register(addDisposableListener(this._element, EventType.mouseenter, () => mouseenter = true));
-        disposables.register(addDisposableListener(this._element, EventType.mousedown, () => mousedown = true));
-        disposables.register(addDisposableListener(window, EventType.mouseup, () => {
+        bucket.register(addDisposableListener(this._element, EventType.mouseenter, () => mouseenter = true));
+        bucket.register(addDisposableListener(this._element, EventType.mousedown, () => mousedown = true));
+        bucket.register(addDisposableListener(window, EventType.mouseup, () => {
             mousedown = false;
             if (!mouseenter) {
                 cleanup();
             }
         }));
-        disposables.register(addDisposableListener(this._element, EventType.mouseout, () => {
+        bucket.register(addDisposableListener(this._element, EventType.mouseout, () => {
             mouseenter = false;
             if (!mousedown) {
                 cleanup();
@@ -468,7 +466,7 @@ export class Sash extends Disposable implements ISash {
 
         const cleanup = () => {
             this._hovering = false;
-            disposables.dispose();
+            this.release(bucket);
             cancellable.cancel();
             this._element.classList.remove('hover');
         };

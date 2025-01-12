@@ -44,8 +44,8 @@ suite('fileTreeCustomSorter-test', () => {
         };
 
         const di = new InstantiationService();
-        di.register(ILogService, new NullLogger());
-        di.register(IFileService, fileService);
+        di.store(ILogService, new NullLogger());
+        di.store(IFileService, fileService);
 
         // build the file tree hierarchy
         sorter?.dispose();

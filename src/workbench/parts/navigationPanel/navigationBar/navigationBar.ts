@@ -34,7 +34,6 @@ export class NavigationBar extends Component implements INavigationBarService {
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
         @IQuickAccessBarService private readonly quickAccessBarService: IQuickAccessBarService,
-        @IBrowserZoomService private readonly browserZoomService: IBrowserZoomService,
         @IToolBarService private readonly toolBarService: IToolBarService,
     ) {
         super('navigation-bar', null, instantiationService);
@@ -66,23 +65,6 @@ export class NavigationBar extends Component implements INavigationBarService {
     }
 
     protected override __registerListeners(): void {
-        const searchBar = assert(this.quickAccessBarService.getSearchBar());
-        this.__register(searchBar.onDidFocus(() => {
-            console.log("switching to filterBar");
-            this.toolBarService.switchTo(ToolBarType.Filter);
-        }));
-
-        this.__register(searchBar.onDidBlur(() => {
-            console.log("switching to actionBar");
-            this.toolBarService.switchTo(ToolBarType.Action);
-        }));
-
-        this.__register(this.browserZoomService.onDidZoomLevelChange((zoomLevel: number) => {
-            if (zoomLevel < -1) {
-                searchBar.element.style.display = 'none';
-            } else {
-                searchBar.element.style.display = '';
-            }
-        }));
+        
     }
 }

@@ -2,7 +2,7 @@ import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir, unlink } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
-import { Event, monitorEmitterListenerGC } from 'src/base/common/event';
+import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/utilities/string';
@@ -33,7 +33,7 @@ import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
-import { monitorDisposableLeak } from 'src/base/common/dispose';
+import { Disposable, monitorDisposableLeak } from 'src/base/common/dispose';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -47,7 +47,7 @@ interface IMainProcess {
  *      3. Ensuring that this process is the only one running. If not, it 
  *         terminates as expected.
  */
-const main = new class extends class MainProcess implements IMainProcess {
+const main = new class extends class MainProcess extends Disposable implements IMainProcess {
 
     // [field]
 
@@ -64,7 +64,9 @@ const main = new class extends class MainProcess implements IMainProcess {
 
     // [constructor]
 
-    constructor() { }
+    constructor() {
+        super();
+    }
 
     // [public methods]
 
@@ -89,9 +91,6 @@ const main = new class extends class MainProcess implements IMainProcess {
          */
 
         monitorDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
-        monitorEmitterListenerGC({
-            listenerGCedWarning: toBoolean(this.CLIArgv.listenerGCedWarning),
-        });
 
         // core services
         this.createCoreServices();
@@ -120,7 +119,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
                 await this.resolveSingleApplication(true);
 
-                const instance = this.instantiationService.createInstance(ApplicationInstance);
+                const instance = this.__register(this.instantiationService.createInstance(ApplicationInstance));
                 await instance.run();
             }
         }
@@ -136,42 +135,42 @@ const main = new class extends class MainProcess implements IMainProcess {
     private createCoreServices(): void {
 
         // dependency injection (DI)
-        const instantiationService = new InstantiationService(new ServiceCollection(), undefined);
-        instantiationService.register(IInstantiationService, instantiationService);
+        const instantiationService = this.__register(new InstantiationService(new ServiceCollection(), undefined));
+        instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
 
         logService.debug('MainProcess', 'Start constructing core services...');
         logService.info('MainProcess', 'Command line arguments:', { CLI: this.CLIArgv });
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
 
         this.initRegistrant(instantiationService, registrantService);
 
         // file-service
         const fileService = new FileService(logService);
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         // product-service
         const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
+        instantiationService.store(IProductService, productService);
 
         // diagnostics-service
         const diagnosticsService = new DiagnosticsService(productService);
-        instantiationService.register(IDiagnosticsService, diagnosticsService);
+        instantiationService.store(IDiagnosticsService, diagnosticsService);
 
         // environment-service
         const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService, productService);
-        instantiationService.register(IEnvironmentService, environmentService);
+        instantiationService.store(IEnvironmentService, environmentService);
 
         // logger-service
         const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
-        instantiationService.register(ILoggerService, fileLoggerService);
+        instantiationService.store(ILoggerService, fileLoggerService);
 
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
@@ -184,7 +183,7 @@ const main = new class extends class MainProcess implements IMainProcess {
 
         // life-cycle-service
         const lifecycleService = new MainLifecycleService(logService);
-        instantiationService.register(IMainLifecycleService, lifecycleService);
+        instantiationService.store(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
         const configurationService = instantiationService.createInstance(
@@ -195,11 +194,11 @@ const main = new class extends class MainProcess implements IMainProcess {
                 } 
             },
         );
-        instantiationService.register(IConfigurationService, configurationService);
+        instantiationService.store(IConfigurationService, configurationService);
 
         // status-service
         const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
-        instantiationService.register(IMainStatusService, statusService);
+        instantiationService.store(IMainStatusService, statusService);
 
         (<any>this.instantiationService) = instantiationService;
         (<any>this.environmentService) = environmentService;

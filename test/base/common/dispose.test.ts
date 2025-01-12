@@ -1,14 +1,7 @@
 import * as assert from 'assert';
-import { Disposable, DisposableManager, disposeAll, AutoDisposable, toDisposable } from 'src/base/common/dispose';
-
-/**
- * Two suites:
- * 1. dispose-test
- * 2. DisposableManager-test
- */
+import { Disposable, DisposableBucket, disposeAll, toDisposable, LooseDisposableBucket } from 'src/base/common/dispose';
 
 suite('dispose-test', () => {
-
 	test('toDisposable', () => {
 		let disposed: boolean = false;
 
@@ -59,10 +52,10 @@ suite('dispose-test', () => {
 	});
 
 	test('dispose recursively', () => {
-		const mainDisposable = new DisposableManager();
+		const mainDisposable = new DisposableBucket();
 		
 		const disposable2 = new Disposable();
-		const disposable3 = new DisposableManager();
+		const disposable3 = new DisposableBucket();
 
 		mainDisposable.register(disposable2);
 		mainDisposable.register(disposable3);
@@ -99,19 +92,80 @@ suite('dispose-test', () => {
 	});
 });
 
-suite('DisposableManager-test', () => {
+suite('LooseDisposableBucket-test', () => {
+	test('dispose() should dispose all registered disposables', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable1 = new Disposable();
+		const disposable2 = new Disposable();
+
+		bucket.register(disposable1);
+		bucket.register(disposable2);
+
+		bucket.dispose();
+
+		assert.strictEqual(disposable1.isDisposed(), true);
+		assert.strictEqual(disposable2.isDisposed(), true);
+	});
+
+	test('dispose() should clear all disposables from the bucket', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable = new Disposable();
+
+		bucket.register(disposable);
+		bucket.dispose();
+
+		// Attempting to dispose again should not throw or affect already disposed objects
+		bucket.dispose();
+		assert.strictEqual(disposable.isDisposed(), true);
+	});
+
+	test('register() should add disposables to the bucket', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable = new Disposable();
+
+		bucket.register(disposable);
+
+		// Using reflection to check internal state
+		assert.strictEqual((bucket as any)._disposables.has(disposable), true);
+	});
+
+	test('register() should throw an error if attempting to register itself', () => {
+		const bucket = new LooseDisposableBucket();
+
+		assert.throws(() => bucket.register(bucket), {
+			message: 'cannot register the disposable object to itself',
+		});
+	});
+
+	test('register() should return the registered disposable', () => {
+		const bucket = new LooseDisposableBucket();
+		const disposable = new Disposable();
+
+		const returnedDisposable = bucket.register(disposable);
+
+		assert.strictEqual(returnedDisposable, disposable);
+	});
+
+	test('dispose() should not throw if bucket is empty', () => {
+		const bucket = new LooseDisposableBucket();
+
+		assert.doesNotThrow(() => bucket.dispose());
+	});
+});
+
+suite('DisposableBucket-test', () => {
 	
 	test('dispose should call all child disposes even if a child throws on dispose', () => {
 		const disposedValues = new Set<number>();
 
-		const store = new DisposableManager();
-		store.register(toDisposable(() => { disposedValues.add(1); }));
-		store.register(toDisposable(() => { throw new Error('I am error'); }));
-		store.register(toDisposable(() => { disposedValues.add(3); }));
+		const bucket = new DisposableBucket();
+		bucket.register(toDisposable(() => { disposedValues.add(1); }));
+		bucket.register(toDisposable(() => { throw new Error('I am error'); }));
+		bucket.register(toDisposable(() => { disposedValues.add(3); }));
 
 		let thrownError: any;
 		try {
-			store.dispose();
+			bucket.dispose();
 		} catch (e) {
 			thrownError = e;
 		}
@@ -124,15 +178,15 @@ suite('DisposableManager-test', () => {
 	test('dispose should throw composite error if multiple children throw on dispose', () => {
 		const disposedValues = new Set<number>();
 
-		const store = new DisposableManager();
-		store.register(toDisposable(() => { disposedValues.add(1); }));
-		store.register(toDisposable(() => { throw new Error('I am error 1'); }));
-		store.register(toDisposable(() => { throw new Error('I am error 2'); }));
-		store.register(toDisposable(() => { disposedValues.add(4); }));
+		const bucket = new DisposableBucket();
+		bucket.register(toDisposable(() => { disposedValues.add(1); }));
+		bucket.register(toDisposable(() => { throw new Error('I am error 1'); }));
+		bucket.register(toDisposable(() => { throw new Error('I am error 2'); }));
+		bucket.register(toDisposable(() => { disposedValues.add(4); }));
 
 		let thrownError: any;
 		try {
-			store.dispose();
+			bucket.dispose();
 		} catch (e) {
 			thrownError = e;
 		}
@@ -142,63 +196,67 @@ suite('DisposableManager-test', () => {
 		assert.ok(thrownError instanceof Error);
 	});
 
-	test('AutoDisposable - basics', () => {
-		const obj1 = new Disposable();
-		const obj2 = new Disposable();
-		const obj3 = new Disposable();
+	test('dispose() should dispose all registered disposables', () => {
+        const bucket = new DisposableBucket();
+        const disposable1 = new Disposable();
+        const disposable2 = new Disposable();
 
-		const wrapper = new AutoDisposable();
-		wrapper.set(obj1);
-		
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
+        bucket.register(disposable1);
+        bucket.register(disposable2);
 
-		wrapper.detach();
+        bucket.dispose();
 
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
+        assert.strictEqual(disposable1.isDisposed(), true);
+        assert.strictEqual(disposable2.isDisposed(), true);
+    });
 
-		wrapper.set(obj1);
+    test('dispose() should set disposed to true', () => {
+        const bucket = new DisposableBucket();
 
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
+        bucket.dispose();
 
-		wrapper.set(obj2);
+        assert.strictEqual(bucket.disposed, true);
+    });
 
-		assert.ok(obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
+    test('dispose() should not allow double disposing', () => {
+        const bucket = new DisposableBucket();
+        const disposable = new Disposable();
 
-		wrapper.set(obj3);
+        bucket.register(disposable);
+        bucket.dispose();
+        bucket.dispose(); // Attempting to dispose again
 
-		assert.ok(obj1.isDisposed());
-		assert.ok(obj2.isDisposed());
+        assert.strictEqual(disposable.isDisposed(), true);
+        assert.strictEqual(bucket.disposed, true);
+    });
 
-		wrapper.dispose();
+    test('register() should prevent registration after disposal', () => {
+        const bucket = new DisposableBucket();
+        const disposable = new Disposable();
 
-		assert.ok(obj3.isDisposed());
-	});
+        bucket.dispose();
+        const returnedDisposable = bucket.register(disposable);
 
-	test('AutoDisposable - binding children to the current object', () => {
+        assert.strictEqual(returnedDisposable, disposable);
+        assert.strictEqual((bucket as any)._disposables.size, 0); // No new disposables added
+    });
 
-		const obj1 = new Disposable();
-		const obj2 = new Disposable();
-		const child1 = new Disposable();
-		const child2 = new Disposable();
+    test('register() should add disposables before disposal', () => {
+        const bucket = new DisposableBucket();
+        const disposable = new Disposable();
 
-		const wrapper = new AutoDisposable();
-		wrapper.set(obj1);
-		wrapper.register(child1);
-		wrapper.register(child2);
-		
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!child1.isDisposed());
-		assert.ok(!child2.isDisposed());
+        bucket.register(disposable);
 
-		wrapper.set(obj2);
+        assert.strictEqual((bucket as any)._disposables.has(disposable), true);
+    });
 
-		assert.ok(obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
-		assert.ok(child1.isDisposed());
-		assert.ok(child2.isDisposed());
-	});
+    test('disposed getter should correctly reflect disposal state', () => {
+        const bucket = new DisposableBucket();
+
+        assert.strictEqual(bucket.disposed, false);
+
+        bucket.dispose();
+
+        assert.strictEqual(bucket.disposed, true);
+    });
 });

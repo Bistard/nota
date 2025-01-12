@@ -1,7 +1,6 @@
 import type { EditorPaneDescriptor, IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 import type { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 import type { AtLeastOneArray } from "src/base/common/utilities/type";
-import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/files/uri";
 
 /**
@@ -11,7 +10,7 @@ import { URI } from "src/base/common/files/uri";
  * @override Subclasses may extends this base class to override certain behaviors.
  * @see {@link IEditorPaneRegistrant}
  */
-export abstract class EditorPaneModel extends Disposable {
+export abstract class EditorPaneModel {
 
     /**
 	 * Unique type identifier for this editor model. All the same models shares 

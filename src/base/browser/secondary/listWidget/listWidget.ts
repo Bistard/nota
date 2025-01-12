@@ -89,7 +89,7 @@ export interface IListContextmenuEvent<T> {
 /**
  * The interface for {@link ListWidget}.
  */
-export interface IListWidget<T> extends IList<T>, IDisposable {
+export interface IListWidget<T> extends IList<T>, Disposable {
     
     // [events / getter]
     

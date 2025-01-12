@@ -1,10 +1,10 @@
 import type { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
-import { AutoDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { ILayoutable, Layoutable } from "src/workbench/services/component/layoutable";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { nullable } from "src/base/common/utilities/type";
+import { panic } from "src/base/common/utilities/panic";
 
 /**
  * {@link IEditorPaneView}
@@ -147,7 +147,7 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
 
     // [fields]
 
-    private readonly _model: AutoDisposable<T>;
+    private _model?: T;
 
     // [constructor]
 
@@ -155,12 +155,12 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
         @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super(instantiationService);
-        this._model = this.__register(new AutoDisposable());
+        this._model = undefined;
     }
 
     // [getter/setter]
 
-    get model(): T { return this._model.get(); }
+    get model(): T { return this._model ?? panic('[EditorPaneView] cannot get model: not bound with any.'); }
     
     // [public - subclass implementation]
     
@@ -179,17 +179,20 @@ export abstract class EditorPaneView<T extends EditorPaneModel = EditorPaneModel
     }
 
     public setModel(newModel: T): boolean {
-        
+        if (this._model === newModel) {
+            return false;
+        }
+
         // never set before.
-        if (!this._model.isSet()) {
-            this._model.set(newModel);
+        if (!this._model) {
+            this._model = newModel;
             return true;
         }
         
         const rerender = this.shouldUpdate(newModel);
         
         // make sure only replace the old model after `shouldUpdate`
-        this._model.set(newModel);
+        this._model = newModel;
         
         return rerender;
     }

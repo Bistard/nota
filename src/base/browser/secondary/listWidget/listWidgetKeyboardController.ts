@@ -17,7 +17,7 @@ import { memoize } from "src/base/common/memoization";
  *  - page down
  *  - escape
  */
-export class ListWidgetKeyboardController<T> extends Disposable implements IDisposable {
+export class ListWidgetKeyboardController<T> extends Disposable {
 
     // [field]
 

@@ -29,7 +29,11 @@ export const enum TimeUnit {
  */
 export class Time {
 
-    // [fields]
+    // [public fields]
+
+    public static readonly INSTANT = new Time(TimeUnit.Milliseconds, 0);
+
+    // [private fields]
 
     private readonly _unit: TimeUnit;
     private readonly _time: number;
@@ -115,4 +119,4 @@ export class Time {
     }
 }
 
-export const INSTANT_TIME = new Time(TimeUnit.Milliseconds, 0);
+export const INSTANT_TIME = Time.INSTANT;

@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { InitProtector, tryOrDefault } from "src/base/common/error";
 import { AsyncResult, err, ok } from "src/base/common/result";
 import { Emitter, Event } from "src/base/common/event";
@@ -180,7 +180,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 
     private __setupConfiguration(result: SetupConfigurationResult): void {
         // dispose the old configuration
-        this._configuration.dispose();
+        this.release(this._configuration);
 
         // fill into the new configuration
         let configuration: IConfigurationStorage;
@@ -190,7 +190,7 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
             configuration = result.validated;
         }
 
-        this._configuration = configuration;
+        this._configuration = this.__register(configuration);
         this.__syncConfigurationToFileOnChange(configuration);
     }
 
@@ -233,14 +233,14 @@ export class UserConfiguration extends Disposable implements IUserConfigurationM
 /**
  * @class Validates whether the given object fits the configuration schema.
  */
-class UserConfigurationValidator implements IDisposable {
+class UserConfigurationValidator extends Disposable {
 
     // [fields]
 
-    private readonly _onUnknownConfiguration = new Emitter<string>();
+    private readonly _onUnknownConfiguration = this.__register(new Emitter<string>());
     public readonly onUnknownConfiguration = this._onUnknownConfiguration.registerListener;
 
-    private readonly _onInvalidConfiguration = new Emitter<IJsonSchemaValidateResult>();
+    private readonly _onInvalidConfiguration = this.__register(new Emitter<IJsonSchemaValidateResult>());
     public readonly onInvalidConfiguration = this._onInvalidConfiguration.registerListener;
 
     private readonly _registrant: IConfigurationRegistrant;
@@ -248,6 +248,7 @@ class UserConfigurationValidator implements IDisposable {
     // [constructor]
 
     constructor(registrant: IConfigurationRegistrant) {
+        super();
         this._registrant = registrant;
     }
 
@@ -257,10 +258,6 @@ class UserConfigurationValidator implements IDisposable {
         const schemas = this._registrant.getConfigurationSchemas();
         const validatedConfiguration = this.__validate(rawConfiguration, schemas);
         return validatedConfiguration;
-    }
-
-    public dispose(): void {
-        this._onUnknownConfiguration.dispose();
     }
 
     // [private helper methods]

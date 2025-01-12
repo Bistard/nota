@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, disposeAll, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, LooseDisposableBucket } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { MRU } from "src/base/common/utilities/mru";
 import { Numbers } from "src/base/common/utilities/number";
@@ -128,7 +128,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
     protected readonly _editors: EditorPaneModel[];
     protected readonly _mru: MRU<EditorPaneModel>;
 
-    protected readonly _editorListeners: Set<IDisposable>;
+    protected readonly _editorsListener: LooseDisposableBucket;
 
     protected _focused?: EditorPaneModel;
     protected _selection: EditorPaneModel[];
@@ -139,7 +139,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
         super();
         this._editors = [];
         this._mru = new MRU<EditorPaneModel>((a, b) => a.equals(b), []);
-        this._editorListeners = new Set();
+        this._editorsListener = this.__register(new LooseDisposableBucket());
         this._selection = [];
     }
     
@@ -153,8 +153,7 @@ class ReadonlyEditorGroupModel extends Disposable implements IReadonlyEditorGrou
 
     public override dispose(): void {
         super.dispose();
-        disposeAll(Array.from(this._editorListeners));
-        this._editorListeners.clear();
+        this._editorsListener.dispose();
     }
 
     public getEditors(order: 'sequential' | 'mru'): EditorPaneModel[] {
@@ -470,8 +469,8 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
     }
 
     private __registerModelListeners(model: EditorPaneModel): void {
-        const lifecycle = new DisposableManager();
-        this._editorListeners.add(lifecycle);
+        const lifecycle = new DisposableBucket();
+        this._editorsListener.register(lifecycle);
 
         // todo: EDITOR_DIRTY bind
 
@@ -481,8 +480,7 @@ export class EditorGroupModel extends ReadonlyEditorGroupModel implements IEdito
                 e.model?.equals(model) &&
                 e.type === EditorGroupChangeType.EDITOR_CLOSE
             ) {
-                lifecycle.dispose();
-                this._editorListeners.delete(lifecycle);
+                this._editorsListener.release(lifecycle);
             }
         }));
     }

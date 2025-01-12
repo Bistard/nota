@@ -68,9 +68,8 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
      * @description Registers a {@link ICommandBasicSchema} which includes a set 
      * of basic metadata to describe a command.
      * @param schema A set of metadata that describes the command.
-     * @returns A disposable for un-registration.
      */
-    registerCommandBasic(schema: ICommandBasicSchema): IDisposable;
+    registerCommandBasic(schema: ICommandBasicSchema): void;
 
     /**
      * @description Registers a concrete {@link Command} instance.  
@@ -78,9 +77,8 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
      *       shortcut options are provided in the command schema.
      * 
      * @param command The concrete command to register.
-     * @returns A disposable for un-registration.
      */
-    registerCommand(command: Command): IDisposable;
+    registerCommand(command: Command): void;
 
     /**
      * @description Unregister the command by the given ID.
@@ -105,14 +103,14 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
  * 
  * @note Make sure 'CommandRegistrant' is constructed after 'ShortcutRegistrant'.
  */
-export class CommandRegistrant implements ICommandRegistrant {
+export class CommandRegistrant extends Disposable implements ICommandRegistrant {
 
     // [event]
 
-    private readonly _onDidRegister = new Emitter<string>();
+    private readonly _onDidRegister = this.__register(new Emitter<string>());
     public readonly onDidRegister = this._onDidRegister.registerListener;
 
-    private readonly _onDidUnRegister = new Emitter<string>();
+    private readonly _onDidUnRegister = this.__register(new Emitter<string>());
     public readonly onDidUnRegister = this._onDidUnRegister.registerListener;
 
     // [fields]
@@ -128,6 +126,7 @@ export class CommandRegistrant implements ICommandRegistrant {
         @ILogService private readonly logService: ILogService,
         @IRegistrantService registrantService: IRegistrantService,
     ) {
+        super();
         this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
     }
 
@@ -142,7 +141,7 @@ export class CommandRegistrant implements ICommandRegistrant {
          */
     }
 
-    public registerCommandBasic(schema: ICommandBasicSchema): IDisposable {
+    public registerCommandBasic(schema: ICommandBasicSchema): void {
         const id = schema.id;
         const cmd: Mutable<ICommandBasicSchema> = schema;
 
@@ -156,13 +155,13 @@ export class CommandRegistrant implements ICommandRegistrant {
             this._commands.set(id, cmd);
             this.logService.trace('CommandRegistrant', `Command registered: '${id}'`);
             this._onDidRegister.fire(id);
-            return this.__toUnregister(id);
+            return;
         }
 
-        return Disposable.NONE;
+        return;
     }
 
-    public registerCommand(command: Command): IDisposable {
+    public registerCommand(command: Command): void {
         
         // command registration
         this.registerCommandBasic({
@@ -173,13 +172,11 @@ export class CommandRegistrant implements ICommandRegistrant {
 
         // shortcut registration
         if (command.schema.shortcutOptions) {
-            this._shortcutRegistrant.register(command.id, {
+            this._shortcutRegistrant.register2(command.id, {
                 ...command.schema.shortcutOptions,
                 when: CreateContextKeyExpr.And(command.when, command.schema.shortcutOptions.when),
             });
         }
-        
-        return this.__toUnregister(command.id);
     }
 
     public unregisterCommand(id: string): void {
@@ -195,13 +192,5 @@ export class CommandRegistrant implements ICommandRegistrant {
 
     public getAllCommands(): Map<string, ICommandBasicSchema> {
         return this._commands;
-    }
-
-    // [private helper methods]
-
-    private __toUnregister(id: string): IDisposable {
-        return toDisposable(() => {
-            this.unregisterCommand(id);
-        });
     }
 }

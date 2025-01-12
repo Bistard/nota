@@ -48,12 +48,12 @@ export abstract class WorkbenchLayout extends Component {
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, instantiationService);
-        this._collapseController = new CollapseAnimationController(
+        this._collapseController = this.__register(new CollapseAnimationController(
             CollapseState.Expand, 
             this.element,
             () => assert(this._splitView),
             () => assert(this.dimension),
-        );
+        ));
     }
 
     // [public methods]
@@ -166,14 +166,14 @@ class CollapseAnimationController extends Disposable {
         this._container = element;
         this._container.toggleClassName('collapsed', initState === CollapseState.Collapse);
 
-        this._button = new ToggleCollapseButton({
+        this._button = this.__register(new ToggleCollapseButton({
             initState: initState,
             positionX: {
                 position: DirectionX.Left,
                 offset: 12,
             },
             direction: DirectionX.Left,
-        });
+        }));
     }
 
     // [getter]

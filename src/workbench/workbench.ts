@@ -98,7 +98,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     protected initServices(): void {
 
         // workbench-service
-        this.instantiationService.register(IWorkbenchService, this);
+        this.instantiationService.store(IWorkbenchService, this);
     }
 
     /**
@@ -153,7 +153,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
                     if (ifEnable) {
                         screenCastService.start();
                     } else {
-                        screenCastService.dispose();
+                        screenCastService.stop();
                     }
                 }
             }));
@@ -255,8 +255,8 @@ export class WorkbenchContextHub extends Disposable {
 
         // file tree
         this.visibleFileTree.set(this.fileTreeService.isOpened);
-        this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized));
-        this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused));
+        this.__register(this.fileTreeService.onDidInitOrClose(isInitialized => this.visibleFileTree.set(isInitialized)));
+        this.__register(this.fileTreeService.onDidChangeFocus(isFocused => this.focusedFileTree.set(isFocused)));
     }
 
     // [private update context helpers]
@@ -273,10 +273,10 @@ export class WorkbenchContextHub extends Disposable {
         this.inputFocused.set(isInputFocused);
 
         if (isInputFocused) {
-            const tracker = new FocusTracker(<HTMLElement>doc.activeElement, false);
+            const tracker = this.__register(new FocusTracker(<HTMLElement>doc.activeElement, false));
             Event.once(tracker.onDidBlur)(() => {
                 this.inputFocused.set(isActiveIsInput(doc));
-                tracker.dispose();
+                this.release(tracker);
             });
         }
     }

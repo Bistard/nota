@@ -170,9 +170,9 @@ suite('instantiationService-test', () => {
 	test('@Param - simple classes', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IService2, new Service2());
-		service.register(IService3, new Service3());
+		service.store(IService1, new Service1());
+		service.store(IService2, new Service2());
+		service.store(IService3, new Service3());
 
 		service.createInstance(Service1Consumer);
 	});
@@ -180,9 +180,9 @@ suite('instantiationService-test', () => {
 	test('@Param - fixed args', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IService2, new Service2());
-		service.register(IService3, new Service3());
+		service.store(IService1, new Service1());
+		service.store(IService2, new Service2());
+		service.store(IService3, new Service3());
 
 		service.createInstance(TargetWithStaticParam, true);
 	});
@@ -190,8 +190,8 @@ suite('instantiationService-test', () => {
 	test('@Param - two dependencies', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IService2, new Service2());
+		service.store(IService1, new Service1());
+		service.store(IService2, new Service2());
 
 		service.createInstance(Target2Dep);
 	});
@@ -199,8 +199,8 @@ suite('instantiationService-test', () => {
 	test('@Param - service descriptor', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.store(IService1, new Service1());
+		service.store(IDependentService, new ServiceDescriptor(DependentService, []));
 
 		service.createInstance(DependentServiceTarget);
 		service.createInstance(DependentServiceTarget2);
@@ -209,8 +209,8 @@ suite('instantiationService-test', () => {
 	test('instantiation inheritence', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.store(IService1, new Service1());
+		service.store(IDependentService, new ServiceDescriptor(DependentService, []));
 
 		service.createInstance(DependentServiceTarget3);
 	});
@@ -218,9 +218,9 @@ suite('instantiationService-test', () => {
 	test('@Param - inheritence dependency descriptor', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
-		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3, []));
+		service.store(IService1, new Service1());
+		service.store(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.store(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3, []));
 
 		service.createInstance(DependentServiceTarget4);
 	});
@@ -228,11 +228,11 @@ suite('instantiationService-test', () => {
 	test('@Param - inheritence dependency instance', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.store(IService1, new Service1());
+		service.store(IDependentService, new ServiceDescriptor(DependentService, []));
 
 		const dependentServiceTarget3 = service.createInstance(DependentServiceTarget3);
-		service.register(IDependentServiceTarget3, dependentServiceTarget3);
+		service.store(IDependentServiceTarget3, dependentServiceTarget3);
 
 		service.createInstance(DependentServiceTarget4);
 	});
@@ -240,10 +240,10 @@ suite('instantiationService-test', () => {
 	test('@Param - recursive inheritence dependency', () => {
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(IService1, new Service1());
-		service.register(IDependentService, new ServiceDescriptor(DependentService, []));
-		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3, []));
-		service.register(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4, []));
+		service.store(IService1, new Service1());
+		service.store(IDependentService, new ServiceDescriptor(DependentService, []));
+		service.store(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3, []));
+		service.store(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4, []));
 
 		service.createInstance(DependentServiceTarget5);
 	});
@@ -268,7 +268,7 @@ suite('instantiationService-test', () => {
 
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
+		service.store(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
 		service.createInstance(CreateOnlyOnceClass);
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 		service.createInstance(CreateOnlyOnceClass);
@@ -280,7 +280,7 @@ suite('instantiationService-test', () => {
 
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
+		service.store(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
 
 		service.getOrCreateService(ICreateOnlyOnceClass);
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
@@ -294,7 +294,7 @@ suite('instantiationService-test', () => {
 
 		const collection = new ServiceCollection();
 		const service = new InstantiationService(collection);
-		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
+		service.store(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass, []));
 
 		service.getOrCreateService1((provider) => {
 			return provider.getOrCreateService(ICreateOnlyOnceClass);
@@ -311,7 +311,7 @@ suite('instantiationService-test', () => {
 		const parent = new InstantiationService(new ServiceCollection());
 		const child = new InstantiationService(new ServiceCollection(), parent);
 
-		parent.register(IService1, new ServiceDescriptor(Service1, []));
+		parent.store(IService1, new ServiceDescriptor(Service1, []));
 
 		const childService = child.createInstance(DependentService) as DependentService;
 		assert.strictEqual(childService.name, 'farboo');
@@ -323,7 +323,7 @@ suite('instantiationService-test', () => {
 
 		const parentService = new Service1();
 		parentService.c = 2;
-		parent.register(IService1, parentService);
+		parent.store(IService1, parentService);
 
 		let service = child.getService(IService1);
 		assert.strictEqual(service.c, 2);

@@ -1,3 +1,4 @@
+import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 
 /**
@@ -131,7 +132,7 @@ export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
  * TRef: represents the equivalent way representing node in the tree, default is
  *       `number[]` which representing the location of a node.
  */
-export interface ITreeModel<T, TFilter, TRef = number[]> {
+export interface ITreeModel<T, TFilter, TRef = number[]> extends IDisposable {
 
     /**
      * Represents the root of the tree.

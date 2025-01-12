@@ -295,8 +295,11 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     }
 
     public setLogger(logger: ILogger): void {
-        this._logger = logger;
-        this.__flushBuffer();
+        if (this._logger) {
+            this.release(this._logger);
+        }
+        this._logger = this.__register(logger);
+        this.__tryFlushBuffer();
     }
 
     public getLogger(): ILogger | undefined {
@@ -328,7 +331,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     }
 
     public async flush(): Promise<void> {
-        this.__flushBuffer();
+        this.__tryFlushBuffer();
         return this._logger?.flush();
     }
 
@@ -336,14 +339,17 @@ export class BufferLogger extends AbstractLogger implements ILogService {
 
     protected __log(level: LogLevel, reporter: string, message: string, error?: any, additional?: Additional): void {
         this._buffer.push({ level: level, reporter, message, error, additional });
-        if (this._logger) {
-            this.__flushBuffer();
-        }
+        this.__tryFlushBuffer();
     }
 
-    protected __flushBuffer(): void {
+    protected __tryFlushBuffer(): void {
+        const logger = this._logger;
+        if (!logger) {
+            return;
+        }
+        
         for (const { level, reporter, message, error, additional } of this._buffer) {
-            defaultLog(this._logger!, level, reporter, message, error, additional);
+            defaultLog(logger, level, reporter, message, error, additional);
         }
         this._buffer.length = 0;
     }

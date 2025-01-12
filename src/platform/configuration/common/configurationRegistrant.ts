@@ -1,3 +1,4 @@
+import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IJsonSchema } from "src/base/common/json";
 import { Arrays } from "src/base/common/utilities/array";
@@ -144,16 +145,16 @@ export interface IConfigurationRegistrant extends IRegistrant<RegistrantType.Con
  * 
  * The actual values of configurations are managed by {@link ConfigurationService}.
  */
-export class ConfigurationRegistrant implements IConfigurationRegistrant {
+export class ConfigurationRegistrant extends Disposable implements IConfigurationRegistrant {
 
     public readonly type = RegistrantType.Configuration;
 
     // [event]
 
-    private readonly _onDidConfigurationChange = new Emitter<IRawSetConfigurationChangeEvent>();
+    private readonly _onDidConfigurationChange = this.__register(new Emitter<IRawSetConfigurationChangeEvent>());
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
 
-    private readonly _onErrorRegistration = new Emitter<IConfigurationRegisterErrorEvent>();
+    private readonly _onErrorRegistration = this.__register(new Emitter<IConfigurationRegisterErrorEvent>());
     public readonly onErrorRegistration = this._onErrorRegistration.registerListener;
 
     // [field]
@@ -168,6 +169,7 @@ export class ConfigurationRegistrant implements IConfigurationRegistrant {
     // [constructor]
 
     constructor() {
+        super();
         this._registeredUnits = [];
         this._allConfigurations = {};
         this._applicationScopedConfigurations = {};

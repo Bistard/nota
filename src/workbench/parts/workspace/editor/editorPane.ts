@@ -81,6 +81,10 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
         });
     }
 
+    public override dispose(): void {
+        super.dispose();
+    }
+
     // [private helper methods]
 
     private __getEditor(model: EditorPaneModel): { reuse: boolean, editor: IEditorPaneView } {
@@ -118,7 +122,7 @@ export class EditorPaneCollection extends Disposable implements IEditorPaneColle
 
         // construct new one
         const newEditor = this.instantiationService.createInstance(ctor, ...[]);
-        this._editorPanes.push(newEditor);
+        this._editorPanes.push(this.__register(newEditor));
 
         return newEditor;
     }

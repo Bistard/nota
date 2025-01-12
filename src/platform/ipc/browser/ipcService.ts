@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { ILogService } from "src/base/common/logger";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IpcClient } from "src/platform/ipc/browser/ipcClient";
@@ -16,7 +16,7 @@ export interface IIpcService extends IDisposable, IService {
  * 
  * A wrapper of {@link IpcClient}.
  */
-export class IpcService implements IIpcService {
+export class IpcService extends Disposable implements IIpcService {
 
     declare _serviceMarker: undefined;
 
@@ -26,17 +26,13 @@ export class IpcService implements IIpcService {
         windowID: number,
         @ILogService logService: ILogService,
     ) {
+        super();
         logService.debug('IpcClient', 'Constructing...');
-        this.connection = new IpcClient(`window:${windowID}`);
+        this.connection = this.__register(new IpcClient(`window:${windowID}`));
         logService.debug('IpcClient', `Constructed with window ID: ${windowID}`);
     }
 
     public getChannel(channel: ChannelType): IChannel {
         return this.connection.getChannel(channel);
     }
-
-    public dispose(): void {
-        this.connection.dispose();
-    }
-
 }

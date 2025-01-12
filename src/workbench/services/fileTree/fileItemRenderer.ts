@@ -63,7 +63,7 @@ export class FileItemProvider implements IListItemProvider<FileItem> {
     /**
      * The height in pixels for every file item.
      */
-    public static readonly Size = 30;
+    public static readonly Size = 28;
 
     public getSize(data: FileItem): number {
         return FileItemProvider.Size;

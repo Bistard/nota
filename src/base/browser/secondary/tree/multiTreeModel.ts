@@ -3,6 +3,7 @@ import { ISpliceable } from "src/base/common/structures/range";
 import { IIndexTreeModelOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceOptions, IIndexTreeModelBase, IFlexIndexTreeModel, FlexIndexTreeModel } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { panic } from "src/base/common/utilities/panic";
+import { Disposable } from "src/base/common/dispose";
 
 /**
  * An interface only for {@link IMultiTreeModelBase}.
@@ -64,7 +65,7 @@ export interface IMultiTreeModelOptions<T, TFilter> extends IIndexTreeModelOptio
  * Integrated all the functionalities except modifying the tree structure (
  * `splice` or `refresh` methods).
  */
-abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, TFilter> {
+abstract class MultiTreeModelBase<T, TFilter> extends Disposable implements IMultiTreeModelBase<T, TFilter> {
     
     // [field]
 
@@ -77,7 +78,8 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
     // [constructor]
 
     constructor(rootData: T, model: IIndexTreeModelBase<T, TFilter>) {
-        this._model = model;
+        super();
+        this._model = this.__register(model);
         this.rootNode = this._model.rootNode;
         this.root = rootData;
         this._nodes = new Map();

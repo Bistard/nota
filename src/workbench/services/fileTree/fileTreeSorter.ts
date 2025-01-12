@@ -96,6 +96,8 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
     /**
      * A scheduler that prevent potential extra calculations if the 
      * {@link FileSortType} is switching frequently within a given time.
+     * 
+     * // TODO: chris (2025/1/8) i don't think this require a delay cleanup, it requires so tiny memory, might remove this.
      */
     private readonly _pendingCustomSorterDisposable: UnbufferedScheduler<void>;
     
@@ -110,7 +112,6 @@ export class FileTreeSorter<TItem extends IFileItem<TItem>> extends Disposable i
         super();
         this._customSorterOpts = customSorterOpts;
         this._pendingCustomSorterDisposable = new UnbufferedScheduler(Time.sec(10), () => {
-            this._customSorter?.dispose();
             this._customSorter = undefined;
         });
         

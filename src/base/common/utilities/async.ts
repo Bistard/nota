@@ -1086,11 +1086,13 @@ export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
  * @description A timer that runs at a set interval, and can be cancelled or 
  * disposed of.
  */
-export class IntervalTimer implements IDisposable {
+export class IntervalTimer extends Disposable {
 
     private _handle?: any = undefined;
 
-    constructor() {}
+    constructor() {
+		super();
+	}
 
 	/**
      * @description Sets the timer with a new callback and interval duration. If 
@@ -1114,7 +1116,7 @@ export class IntervalTimer implements IDisposable {
         }
     }
 
-    public dispose(): void {
+    public override dispose(): void {
         this.cancel();
     }
 }

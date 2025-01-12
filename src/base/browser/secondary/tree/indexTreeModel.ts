@@ -1,5 +1,6 @@
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
+import { Disposable } from "src/base/common/dispose";
 import { DelayableEmitter, Emitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/structures/range";
 import { Arrays } from "src/base/common/utilities/array";
@@ -99,7 +100,7 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
  * Integrated all the functionalities except modifying the tree structure (
  * `splice` or `refresh` methods).
  */
-abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TFilter> {
+abstract class IndexTreeModelBase<T, TFilter> extends Disposable implements IIndexTreeModelBase<T, TFilter> {
     
     // [fields]
 
@@ -121,6 +122,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         view: ISpliceable<ITreeNode<T, TFilter>>,
         opt: IIndexTreeModelOptions<T, TFilter> = {}
     ) {
+        super();
         this._view = view;
         
         this._root = {
@@ -140,14 +142,14 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
 
     // [events]
 
-    protected readonly _onDidSplice = new Emitter<ITreeSpliceEvent<T, TFilter>>();
+    protected readonly _onDidSplice = this.__register(new Emitter<ITreeSpliceEvent<T, TFilter>>());
 	public readonly onDidSplice = this._onDidSplice.registerListener;
 
     /**
      * During the process of updating collapse state, we wish to fire the event
      * once all the recursive nodes are updated.
      */
-    protected readonly _onDidChangeCollapseState = new DelayableEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+    protected readonly _onDidChangeCollapseState = this.__register(new DelayableEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>());
     public readonly onDidChangeCollapseState = this._onDidChangeCollapseState.registerListener;
 
     // [getters]
