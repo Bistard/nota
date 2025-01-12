@@ -108,7 +108,7 @@ const main = new class extends class MainProcess extends Disposable implements I
 
             // application run
             {
-                Event.once(this.lifecycleService.onWillQuit)(e => {
+                Event.onceSafe(this.lifecycleService.onWillQuit)(e => {
                     // release all the watching resources
                     e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
                     this.fileService.dispose();
@@ -276,7 +276,7 @@ const main = new class extends class MainProcess extends Disposable implements I
                     resolve(tcpServer);
                 });
             });
-            Event.once(this.lifecycleService.onWillQuit)(async p => {
+            Event.onceSafe(this.lifecycleService.onWillQuit)(async p => {
                 const blocker = new Blocker<void>();
                 server.close(() => blocker.resolve());
                 p.join(blocker.waiting());
