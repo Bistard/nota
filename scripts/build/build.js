@@ -1,5 +1,5 @@
 const path = require("path");
-const { ScriptProcess, ScriptHelper } = require("../utility");
+const { ScriptProcess, ScriptHelper, log } = require("../utility");
 
 (async () => {
     const cwd     = process.cwd();
@@ -23,7 +23,9 @@ const { ScriptProcess, ScriptHelper } = require("../utility");
         }
     });
 
-    // compile codicon
+    /**
+     * compile codicon
+     */
     const codicon = new ScriptProcess(
         'codicon',
         `node ${path.join(cwd, './scripts/icons/codicon.js')}`,
@@ -43,7 +45,26 @@ const { ScriptProcess, ScriptHelper } = require("../utility");
         process.exit(1);
     }
 
-    // build with webpack
+    /**
+     * "product.js"
+     */
+    const product = new ScriptProcess(
+        'product',
+        `node ${path.join(cwd, './scripts/build/product.js')}`,
+        [],
+        [],
+        {
+            env: process.env,
+            cwd: cwd,
+            shell: true,
+            stdio: "inherit"
+        },
+    );
+    await product.spawning().catch(err => log('error', err));
+
+    /**
+     * build with webpack
+     */
     const webpack = new ScriptProcess(
         'webpack',
         'webpack',
