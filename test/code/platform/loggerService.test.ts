@@ -137,14 +137,14 @@ suite('LoggerService', () => {
 
         test('basics', async () => {
 
-            // consturct logger from client side
+            // construct logger from client side
             const browserLogger = browserLoggerService.createLogger(
                 URI.join(URI.fromFile('base'), 'test.log'), 
                 { description: 'test.log' }
             );
             await delayFor(INSTANT_TIME);
             assert.ok((await fileService.exist(URI.fromFile('base/test.log')).unwrap()));
-            const mainLogger = loggerService.getLogger(URI.fromFile('base'));
+            const mainLogger = loggerService.getLogger(URI.fromFile('base/test.log'));
             assert.ok(mainLogger);
 
             // log from client side
