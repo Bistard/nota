@@ -176,6 +176,7 @@ export class FileService extends Disposable implements IFileService {
         this.__register(provider.onDidResourceClose(uri => {
             this.logService.debug('FileService', `stop watching at: ${URI.toString(uri)}`);
 
+            this.release(this._activeWatchers.get(uri));
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
 
@@ -333,29 +334,17 @@ export class FileService extends Disposable implements IFileService {
         }
 
         this.logService.debug('FileService', `Start watching on file (${URI.toString(uri)})...`);
-
-        const get = this.__getProvider(uri);
-        if (get.isErr()) {
-            return AsyncResult.err(get.error);
-        }
-        const provider = get.unwrap();
-
-        const result = Result.fromThrowable(
-            () => provider.watch(uri, opts),
-            error => new FileOperationError(errorToMessage(error), getFileErrorCode(error)),
-        );
-        
-        if (result.isErr()) {
-            return AsyncResult.err(result.error);
-        }
-
-        return Result.fromPromise(
-            () => result.unwrap(),
-            error => new FileOperationError(`Cannot watch at target: '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, FileOperationErrorType.UNKNOWN))
-        .andThen(disposable => {
-            this._activeWatchers.set(uri, disposable);
-            return ok(disposable);
-        });
+        return this.__getProvider(uri).toAsync()
+            .andThen(provider => {
+                return provider.watch(uri, opts);
+            })
+            .andThen(async disposable => {
+                this._activeWatchers.set(uri, this.__register(disposable));
+                return disposable;
+            })
+            .mapErr(error => 
+                new FileOperationError(`Cannot watch at target: '${URI.toString(uri)}'. Reason: ${errorToMessage(error)}`, FileOperationErrorType.UNKNOWN)
+            );
     }
 
     public override dispose(): void {
@@ -369,7 +358,7 @@ export class FileService extends Disposable implements IFileService {
         }
         
         for (const active of this._activeWatchers.values()) {
-            active.dispose();
+            this.release(active);
         }
     }
 
