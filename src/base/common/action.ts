@@ -316,14 +316,13 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
                 panic(`Action list cannot create item with action id '${action.id}'`);
             }
 
-            items.push(item);
+            items.push(this.__register(item));
         
             if (isNullable(index)) {
                 this._items.push(item);
                 continue;
             }
 
-            this.__register(item);
             this._items.splice(index, 0, item);
             index++;
         }

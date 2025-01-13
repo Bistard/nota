@@ -216,6 +216,7 @@ class ScriptProcess {
      * @type {boolean}
      */
     #spawned = false;
+    #spawnPromise;
 
     /**
      * @type {Promise<number>}
@@ -273,13 +274,19 @@ class ScriptProcess {
             procReject  = rej;
         });
 
+        let spawnResolve;
+        this.#spawnPromise = new Promise((res, rej) => {
+            spawnResolve = res;
+        });
+
         // listeners
         {
             /**
              * Event fires once the child process has spawned successfully.
              */
-            p.on('spawn', () => {
+            p.once('spawn', () => {
                 this.#spawned = true;
+                spawnResolve();
             });
 
             /**
@@ -342,6 +349,13 @@ class ScriptProcess {
     /** Is the process spawned successfully. */
     get isSpawned() {
         return this.#spawned;
+    }
+
+    /**
+     * @description You may await this method to wait the process has spawned successfully. 
+     */
+    async spawning() {
+        return this.#spawnPromise;
     }
 
     /**

@@ -178,10 +178,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // console-logger
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
-            loggerService.createLogger(environmentService.logPath, {
-                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
-                description: `renderer`,
-            }),
+            loggerService.createLogger(
+                URI.join(environmentService.logPath, `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`), 
+                {
+                    description: `renderer`,
+                }),
         ]);
         logService.setLogger(logger);
 
