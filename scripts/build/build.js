@@ -46,7 +46,9 @@ const { ScriptProcess, ScriptHelper, log } = require("../utility");
     }
 
     /**
-     * "product.js"
+     * @description A simple Node.js script to monitor the root `package.json` 
+     * for changes. When `package.json` updates, it regenerates a corresponding 
+     * `product.json` file.
      */
     const product = new ScriptProcess(
         'product',

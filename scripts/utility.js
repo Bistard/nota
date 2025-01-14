@@ -158,15 +158,14 @@ class ScriptHelper {
      */
     static setEnv(newEnv) {
         const envPair = [];
-        Object
-        .entries(newEnv)
-        .forEach(([envName, { value, defaultValue }]) => {
-            if (process.env[envName] !== null && process.env[envName] !== undefined) {
-                console.log(Colors.yellow(`    Overwriting the existing environment: ${envName}`));
-            }
-            process.env[envName] = value ?? defaultValue;
-            envPair.push([envName, value ?? defaultValue]);
-        });
+        Object.entries(newEnv)
+            .forEach(([envName, { value, defaultValue }]) => {
+                if (process.env[envName] !== null && process.env[envName] !== undefined) {
+                    log('warn', `[ScriptHelper] Overwriting the existing environment: ${envName}`);
+                }
+                process.env[envName] = value ?? defaultValue;
+                envPair.push([envName, value ?? defaultValue]);
+            });
         return envPair;
     }
     

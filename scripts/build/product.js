@@ -1,14 +1,14 @@
-const fs = require('fs');
-const chokidar = require('chokidar');
-const path = require('path');
-const { log, ScriptHelper } = require('../utility');
-
 /**
  * @file product.js
  * @description A simple Node.js script to monitor the root `package.json` for 
  * changes. When `package.json` updates, it regenerates a corresponding 
  * `product.json` file.
  */
+
+const fs = require('fs');
+const chokidar = require('chokidar');
+const path = require('path');
+const { log, ScriptHelper } = require('../utility');
 
 const cwd = process.cwd();
 const PACKAGE_JSON_PATH = path.join(cwd, 'package.json');
