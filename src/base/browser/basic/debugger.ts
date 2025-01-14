@@ -6,10 +6,19 @@ import { panic } from "src/base/common/utilities/panic";
 import { ICoordinate } from "src/base/common/utilities/size";
 
 /**
- * {@link UIDebugger}
- * Provides debugging capabilities for visualizing points and lines
- * on the UI. It allows developers to specify elements or coordinates for debugging
- * purposes.
+ * The {@link UIDebugger} singleton is a debugging tool designed for visualizing
+ * points and lines on the UI.
+ * 
+ * This tool is particularly useful when rendering errors occur, and simply 
+ * logging incorrect coordinates (x/y) in the console does not provide enough 
+ * context. By passing the problematic coordinates or elements to 
+ * {@link UIDebugger}, developers can better understand and debug the issue 
+ * through visual feedback.
+ * 
+ * Example Use Case
+ * If a UI element appears misaligned or misplaced, you can use {@link UIDebugger}
+ * to mark the expected and actual positions of the element for easier 
+ * troubleshooting.
  */
 export interface IUIDebugger {
     
