@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { beforeEach } from 'mocha';
 import { IRange, IRangeList, Range, RangeTable } from 'src/base/common/structures/range';
 
 function createRange(start: number, end: number): IRange {
@@ -527,7 +526,6 @@ suite('Range-test extra', () => {
         });
     });
 });
-
 
 suite('RangeTable-test', () => {
 	let rangeMap: RangeTable;

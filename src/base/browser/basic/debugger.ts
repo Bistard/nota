@@ -75,7 +75,8 @@ export type PointRepresentation = BaseRepresentationOptions &
         }
     );
 
-export type LineRepresentation = BaseRepresentationOptions & ({ 
+export type LineRepresentation = BaseRepresentationOptions & (
+{ 
     // alternative 1
 
     /**
@@ -86,7 +87,8 @@ export type LineRepresentation = BaseRepresentationOptions & ({
      * Specifies the ending coordinates of the line.
      */
     readonly coordinate2: ICoordinate;
-} | { 
+} | 
+{ 
     // alternative 2
     
     /**
@@ -101,7 +103,8 @@ export type LineRepresentation = BaseRepresentationOptions & ({
      * The angle of the line relative to the X-axis (not in radians).
      */
     readonly angle: number;
-} | {
+} | 
+{
     // alternative 3
 
     /**
@@ -168,7 +171,7 @@ export const UIDebugger: IUIDebugger = new class {
         Object.assign(marker.style, {
             position: 'absolute',
             pointerEvents: 'none',
-            zIndex: 100,
+            zIndex: 1000,
             borderRadius: '50%',
             backgroundColor: '#1493dc', // blue
         });
@@ -212,7 +215,7 @@ export const UIDebugger: IUIDebugger = new class {
         Object.assign(lineEl.style, {
             position: 'absolute',
             pointerEvents: 'none',
-            zIndex: 100,
+            zIndex: 1000,
             backgroundColor: '#1493dc', // blue
         });
 
@@ -233,6 +236,8 @@ export const UIDebugger: IUIDebugger = new class {
         else if ('length' in line && 'angle' in line) {
             const { coordinate, length, angle } = line;
             const rad = angle * Math.PI / 180;
+            x1 = coordinate.x;
+            y1 = coordinate.y;
             x2 = coordinate.x + length * Math.cos(rad);
             y2 = coordinate.y + length * Math.sin(rad);
         } 
@@ -301,11 +306,7 @@ export const UIDebugger: IUIDebugger = new class {
         }
 
         // unrender
-        const unrender = untrackDisposable(toDisposable(() => {
-            this.__unrender(id);
-            lineEl.remove();
-        }));
-        this._actives.set(id, unrender);
+        const unrender = this.__genUnregister(id, lineEl);
         return unrender;
     }
 
