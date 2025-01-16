@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 
 /**
@@ -340,7 +340,8 @@ export class Scrollable extends Disposable implements IScrollable {
 	}
 
     private __fireOnDidScroll(prev: Scrollable): void {
+        // this `Scrollable` only for the internal usage, safe to untrack.
+        untrackDisposable(prev);
         this._onDidScroll.fire(this.__createScrollEvent(prev));
-        prev.dispose();
     }
 }
