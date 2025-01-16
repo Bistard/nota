@@ -1,4 +1,5 @@
 import { Direction, DirectionX, DirectionY } from "src/base/browser/basic/dom";
+import { Color } from "src/base/common/color";
 import { Time } from "src/base/common/date";
 import { IDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { delayFor } from "src/base/common/utilities/async";
@@ -129,6 +130,11 @@ type BaseRepresentationOptions = {
      * disposed or {@link clearAll()} is called.
      */
     readonly timeout?: Time;
+
+    /**
+     * Indicates the color of the marker.
+     */
+    readonly color?: Color;
 };
 
 export const UIDebugger: IUIDebugger = new class {
@@ -173,7 +179,7 @@ export const UIDebugger: IUIDebugger = new class {
             pointerEvents: 'none',
             zIndex: 1000,
             borderRadius: '50%',
-            backgroundColor: '#1493dc', // blue
+            backgroundColor: point.color?.toString() ?? Color.random().toString(),
         });
 
         const radius = point.radius || 5;
@@ -216,7 +222,7 @@ export const UIDebugger: IUIDebugger = new class {
             position: 'absolute',
             pointerEvents: 'none',
             zIndex: 1000,
-            backgroundColor: '#1493dc', // blue
+            backgroundColor: line.color?.toString() ?? Color.random().toString(),
         });
 
         /**
