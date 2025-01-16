@@ -144,7 +144,10 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         this.__derenderDropOnRootEffect();
 
         /**
-         * Row insertion need to be checked on every single 'onDragOver'.
+         * Even the `targetOver` is not changing, but mouse moving nearing 
+         * top/bottom to the same `targetOver` might result different rendering 
+         * effect. Thus, row insertion need to be checked on every single 
+         * 'onDragOver'. 
          */
         const insertionResult = this._insertionController?.attemptInsert(event, targetIndex);
         if (insertionResult) {
@@ -279,7 +282,8 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     public override dispose(): void {
         super.dispose();
-        this._insertionController?.dispose();
+        this.release(this._insertionController);
+        this._insertionController = undefined;
     }
 
     // [public helper methods]
@@ -296,9 +300,9 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         // only enable insertion indicator during custom sorting
         const setIndicatorBy = (order: FileSortType) => {
             if (order === FileSortType.Custom) {
-                this._insertionController ??= new RowInsertionController();
+                this._insertionController ??= this.__register(new RowInsertionController());
             } else {
-                this._insertionController?.dispose();
+                this.release(this._insertionController);
                 this._insertionController = undefined;
             }
         };
@@ -308,13 +312,13 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
         setIndicatorBy(sortOrder);
 
         // configuration self update
-        this.configurationService.onDidConfigurationChange(e => {
+        this.__register(this.configurationService.onDidConfigurationChange(e => {
             if (!e.match(WorkbenchConfiguration.ExplorerFileSortType)) {
                 return;
             }
             const newSortOrder = this.configurationService.get<FileSortType>(WorkbenchConfiguration.ExplorerFileSortType);
             setIndicatorBy(newSortOrder);
-        });
+        }));
     }
 
     /**
@@ -344,7 +348,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
 
     private __isDroppable(event: DragEvent, currentDragItems: FileItem[], targetOver?: FileItem): IDragOverResult {
 
-        // dropping on no targets, meaning we are dropping at the parent.
+        // dropping on no targets, meaning we are dropping at the root.
         if (!targetOver) {
             targetOver = assert(this.fileTreeService.rootItem);
         }
@@ -357,7 +361,7 @@ export class FileItemDragAndDropProvider extends Disposable implements IListDrag
             return this.__isDroppable(event, currentDragItems, targetOver.parent ?? undefined);
         }
 
-        // copy operation is always allowed
+        // copy operation is always allowed dropping effect
         if (__isCopyOperation(event)) {
             return { allowDrop: true, effect: DragOverEffect.Copy };
         }

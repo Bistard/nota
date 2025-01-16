@@ -1,6 +1,7 @@
 import { CollapseState } from "src/base/browser/basic/dom";
-import { LanguageType } from "src/platform/i18n/common/i18n";
+import { LanguageType } from "src/platform/i18n/common/localeTypes";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
+import { EditorGroupOpenPositioning } from "src/workbench/parts/workspace/editorGroupModel";
 import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
@@ -28,6 +29,9 @@ export const enum WorkbenchConfiguration {
 
     RestorePrevious    = 'workspace.restorePrevious',
     OutlineToggleState = 'workspace.outline.toggleState',
+    
+    FocusRecentEditorAfterClose = 'workspace.group.focusRecentEditorAfterClose',
+    EditorOpenPositioning       = 'workspace.group.editorOpenPositioning',
 
     // [editor]
     EditorAutoSave            = 'editor.autoSave',
@@ -39,6 +43,7 @@ export const enum WorkbenchConfiguration {
  * {@link sharedWorkbenchConfigurationRegister}
  * {@link sharedNavigationViewConfigurationRegister}
  * {@link sharedWorkspaceConfigurationRegister}
+ * {@link sharedEditorConfigurationRegister}
  */
 
 export const sharedWorkbenchConfigurationRegister = createRegister(
@@ -56,8 +61,8 @@ export const sharedWorkbenchConfigurationRegister = createRegister(
                     properties: {
                         ['language']: {
                             type: 'string',
-                            enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
-                            default: LanguageType.en,
+                            enum: [LanguageType.preferOS, LanguageType.en, LanguageType.zhCN, LanguageType.zhTW],
+                            default: LanguageType.preferOS,
                         },
                         ['colorTheme']: {
                             type: 'string',
@@ -153,6 +158,7 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
                         ['restorePrevious']: {
                             type: 'boolean',
                             default: true,
+                            description: 'Whether application should restore to previous opened directory.'
                         },
                         ['outline']: {
                             type: 'object',
@@ -163,7 +169,26 @@ export const sharedWorkspaceConfigurationRegister = createRegister(
                                     default: CollapseState.Expand
                                 }
                             }
-                        }
+                        },
+                        ['group']: {
+                            type: 'object',
+                            properties: {
+                                ['focusRecentEditorAfterClose']: {
+                                    type: 'boolean',
+                                    default: false,
+                                },
+                                ['editorOpenPositioning']: {
+                                    type: 'string',
+                                    default: EditorGroupOpenPositioning.Right,
+                                    enum: [
+                                        EditorGroupOpenPositioning.Right,
+                                        EditorGroupOpenPositioning.Left,
+                                        EditorGroupOpenPositioning.First,
+                                        EditorGroupOpenPositioning.Last,
+                                    ],
+                                },
+                            }
+                        },
                     }
                 },
             },

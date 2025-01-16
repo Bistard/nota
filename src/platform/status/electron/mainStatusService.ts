@@ -5,18 +5,19 @@ import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/platform/environment/common/environment";
-import { AsyncDiskStorage } from "src/platform/files/common/diskStorage";
+import { DiskStorage } from "src/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
 import { StatusKey } from "src/platform/status/common/status";
 import { APP_DIR_NAME } from "src/platform/configuration/common/configuration";
 import { FileOperationError } from "src/base/common/files/file";
 import { AsyncResult, ok } from "src/base/common/result";
+import { Dictionary } from "src/base/common/utilities/type";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
 /**
  * An interface only for {@link MainStatusService}. The API are mainly just a
- * wrapper of a {@link AsyncDiskStorage}. You may check the more detailed 
+ * wrapper of a {@link DiskStorage}. You may check the more detailed 
  * document from there.
  */
 export interface IMainStatusService extends Disposable, IService {
@@ -28,6 +29,7 @@ export interface IMainStatusService extends Disposable, IService {
     has(key: StatusKey): boolean;
     init(): AsyncResult<void, FileOperationError>;
     close(): AsyncResult<void, FileOperationError>;
+    getAllStatus(): Dictionary<string, any>;
 }
 
 /**
@@ -56,7 +58,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     // [field]
 
     public static readonly FILE_NAME = 'status.nota.json';
-    private _storage: AsyncDiskStorage;
+    private _storage: DiskStorage;
 
     // [constructor]
 
@@ -68,7 +70,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     ) {
         super();
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), APP_DIR_NAME, MainStatusService.FILE_NAME));
-        this._storage = new AsyncDiskStorage(path, this.fileService);
+        this._storage = new DiskStorage(path, this.fileService);
         this.__registerListeners();
         this.logService.debug('MainStatusService', 'MainStatusService constructed.');
     }
@@ -113,7 +115,11 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         return this._storage.close();
     }
 
+    public getAllStatus(): Dictionary<string, any> {
+        return this._storage.getStorage();
+    }
+
     private __registerListeners(): void {
-        this.lifecycleService.onWillQuit((e) => e.join(this.close()));
+        this.__register(this.lifecycleService.onWillQuit((e) => e.join(this.close())));
     }
 }

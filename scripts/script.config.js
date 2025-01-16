@@ -41,9 +41,10 @@ const configuration = {
                 ]
             },
             {
-                flags: ['--ListenerGCedWarning'],
+                flags: ['--disposableLeakWarning'],
                 descriptions: [
-                    'Print warnings whenever a listener is garbage-collected without being disposed, indicating a potential memory leak.',
+                    'Print warnings (after the first 5 seconds) whenever a `IDisposable` is either: "not disposed" or "not bound to a parent IDisposable"',
+                    'It only means **POTENTIAL** memory leak. Which means there might be a lot of false positives.',
                     'default = false'
                 ]
             }
@@ -51,7 +52,7 @@ const configuration = {
     },
 
     "_run": {
-        command: "electron . --- --log=trace --open-devtools",
+        command: "electron . --- --log=trace --open-devtools --disposableLeakWarning",
         description: 'Run program in develop mode.'
     },
 
@@ -78,6 +79,13 @@ const configuration = {
                 descriptions: [
                     'Choose the building mode. The value can be either "development", "production" or "none".',
                     'default = "development"',
+                ]
+            },
+            {
+                flags: ['--i18nError'],
+                descriptions: [
+                    'Turn on localization validation as necessary check during compilation.',
+                    'default = false'
                 ]
             }
         ]
@@ -153,10 +161,15 @@ const configuration = {
         description: 'Compiles the all project-related icons from svg format into a font file. All the icons are stored at "https://github.com/Bistard/nota-codicons.git". The command will fetch the latest version and compile them. The more detailed configuration is at "src/base/browser/icon/.fantasticonrc.js".'
     },
 
-    "benchmark": {
-        command: "node benchmark/benchmark.js",
-        description: 'Run the benchmark tests.'
+    "test-i18n": {
+        command: "node ./test/build/i18n/testRunner.js",
+        description: "Run the i18n integration test."
     },
+
+    "validate-i18n": {
+        command: "node ./scripts/i18n/validate-i18n.js",
+        description: "Generate and validate localization files and lookup tables."
+    }
 }
 
 module.exports = configuration;

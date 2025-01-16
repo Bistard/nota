@@ -630,6 +630,7 @@ export namespace Arrays {
      * @returns The new created array.
      * 
      * @complexity O(n)
+     * @note Order remains the same in the same array.
      */
     export function unique<T>(array: ReadonlyArray<T>, valueFn: (value: T) => any = value => value): T[] {
         const visited = new Set<T>();

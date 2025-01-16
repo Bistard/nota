@@ -60,7 +60,7 @@ export interface ICommand {
  * @class Represents a command that encapsulates the executable logic by
  * implement the method 'run'. 
  * 
- * @note Should be registered through {@link ICommandRegistrant.registerCommand}.
+ * @note Should be registered through {@link ICommandRegistrant['registerCommand']}.
  *       It gives the {@link Command} able to have access to a {@link IServiceProvider}
  *       inside the 'run' parameter.
  * @note Use this class to define commands with complex logic or those that 

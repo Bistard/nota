@@ -3,7 +3,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
-import { INSTANT_TIME, Time } from "src/base/common/date";
+import { Time } from "src/base/common/date";
 import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -11,7 +11,7 @@ import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
 import { UnbufferedScheduler } from "src/base/common/utilities/async";
 
-export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeparatorAction | CheckMenuAction;
+export type MenuAction = SimpleMenuAction | MenuSeparatorAction | SubmenuAction | CheckMenuAction;
 
 export const enum MenuItemType {
     General,
@@ -348,59 +348,59 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     protected __registerListeners(): void {
 
         // prevent default context menu event on each menu item
-        this.element.onContextmenu(e => {
+        this.__register(this.element.onContextmenu(e => {
             DomEventHandler.stop(e, true);
-        });
+        }));
 
         // mouseout event
-        this.element.onMouseover((e) => {
+        this.__register(this.element.onMouseover((e) => {
             if (!this._mouseover) {
                 this._onMouseover.fire(e);
                 this._mouseover = true;
             }
-        });
+        }));
 
         // mouseleave event
-        this.element.onMouseleave((e) => {
+        this.__register(this.element.onMouseleave((e) => {
             this._mouseover = false;
             this._onMouseleave.fire(e);
-        });
+        }));
 
         // hovering effect (mouseover)
-        this.onMouseover((e) => {
+        this.__register(this.onMouseover((e) => {
             this._onDidHover.fire({ event: e, hovering: true });
-        });
+        }));
 
         // hovering effect (mouseleave)
-        this.onMouseleave((e) => {
+        this.__register(this.onMouseleave((e) => {
             this._onDidHover.fire({ event: e, hovering: false });
-        });
+        }));
 
         // add 'active' properly
-        this.element.onMousedown(e => {
+        this.__register(this.element.onMousedown(e => {
             DomEventHandler.stop(e, true);
             if (DomEventHandler.isLeftClick(e)) {
                 this.element.addClassList('active');
             }
-        });
+        }));
 
         // handle click event
-        this.element.onClick(e => {
+        this.__register(this.element.onClick(e => {
             DomEventHandler.stop(e, true);            
             this.onClick(e);
-        });
+        }));
 
         // prevent double click
-        this.element.onDoubleClick(e => {
+        this.__register(this.element.onDoubleClick(e => {
             DomEventHandler.stop(e, true);
-        });
+        }));
 
         // remove 'active' properly
         [this.element.onMouseup, this.element.onMouseout].forEach(onEvent => {
-			onEvent.call(this.element, (e) => {
+			this.__register(onEvent.call(this.element, (e) => {
                 DomEventHandler.stop(e, true);
                 this.element.removeClassList('active');
-            });
+            }));
 		});
 
         /**
@@ -411,11 +411,11 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
          * quick access in quick navigation mode).
          */
         if (IS_MAC) {
-			this.element.onContextmenu(e => {
+			this.__register(this.element.onContextmenu(e => {
 				if (DomEventHandler.isLeftClick(e) && e.ctrlKey === true) {
 					this.onClick(e);
 				}
-			});
+			}));
 		}
     }
 }
@@ -536,8 +536,22 @@ export class SubmenuItem extends AbstractMenuItem {
 
     declare public readonly action: SubmenuAction;
 
-    private readonly _showScheduler: UnbufferedScheduler<void>;
-    private readonly _hideScheduler: UnbufferedScheduler<void>;
+    /**
+     * Make sure schedulers are universal across different {@link SubmenuItem}s
+     * to ensure the only way to control show/hide submenu.
+     */
+    private static readonly _showScheduler = new UnbufferedScheduler<SubmenuItem>(SubmenuItem.SHOW_DELAY, menu => {
+        menu._delegate.closeCurrSubmenu();
+        menu._delegate.openNewSubmenu(menu.element.raw, menu.action.actions);
+    });
+    private static readonly _hideScheduler = new UnbufferedScheduler<SubmenuItem>(SubmenuItem.HIDE_DELAY, menu => {
+        const active = DomUtility.Elements.getActiveElement();
+        if (menu._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(menu.element.raw, active)) {
+            menu._delegate.closeCurrSubmenu();
+            menu._delegate.focusParentMenu();
+            menu._mouseover = false;
+        }
+    });
     private readonly _delegate: ISubmenuDelegate;
 
     // [constructor]
@@ -545,32 +559,12 @@ export class SubmenuItem extends AbstractMenuItem {
     constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
         super(action);
         this._delegate = delegate;
-        
-        // scheduling initialization
-        {
-            this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DELAY, () => {
-                this._delegate.closeCurrSubmenu();
-                this._delegate.openNewSubmenu(this.element.raw, this.action.actions);
-            });
-
-            this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DELAY, () => {
-                const active = DomUtility.Elements.getActiveElement();
-                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.raw, active)) {
-                    this._delegate.closeCurrSubmenu();
-                    this._delegate.focusParentMenu();
-                    this._mouseover = false;
-                }
-            });
-
-            this.__register(this._showScheduler);
-            this.__register(this._hideScheduler);
-        }
     }
 
     // [public methods]
 
     public override run(context?: unknown): void {
-        this._showScheduler.schedule(undefined, INSTANT_TIME);
+        SubmenuItem._showScheduler.schedule(this, Time.INSTANT);
     }
 
     /**
@@ -578,7 +572,7 @@ export class SubmenuItem extends AbstractMenuItem {
      */
     public override onClick(event: MouseEvent): void {
         DomEventHandler.stop(event, true);
-        this._showScheduler.schedule(undefined, INSTANT_TIME);
+        SubmenuItem._showScheduler.schedule(this, Time.INSTANT);
     }
 
     public override dispose(): void {
@@ -610,39 +604,36 @@ export class SubmenuItem extends AbstractMenuItem {
         // keep the default behaviors too
         super.__registerListeners();
 
-        this.onMouseover(() => {
+        this.__register(this.onMouseover(() => {
             if (!this._mouseover || !this._delegate.isSubmenuActive()) {
-                this._hideScheduler.cancel();
-                this._showScheduler.schedule();
+                SubmenuItem._hideScheduler.cancel();
+                SubmenuItem._showScheduler.schedule(this);
             }
-        });
-
-        this.onMouseleave(() => {
-            this._showScheduler.cancel();
-            this._hideScheduler.schedule();
-        });
+        }));
+        
+        this.__register(this.onMouseleave(() => {
+            SubmenuItem._showScheduler.cancel();
+            SubmenuItem._hideScheduler.schedule(this);
+        }));
 
         // capture right arrow to open the submenu
-        this.element.onKeydown(e => {
+        this.__register(this.element.onKeydown(e => {
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
 			}
-        });
+        }));
 
         // try to open the submenu when right arrowing
-        this.element.onKeyup(e => {
+        this.__register(this.element.onKeyup(e => {
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
                 // prevent double opening
                 if (!this._delegate.isSubmenuActive()) {
-                    this._showScheduler.schedule(undefined, INSTANT_TIME);
+                    SubmenuItem._showScheduler.schedule(this, Time.INSTANT);
                 }
 			}
-        });
+        }));
     }
-
-    // [private helper methods]
-
 }

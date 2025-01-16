@@ -11,7 +11,7 @@ import { RequestAnimateController, requestAtNextAnimationFrame } from "src/base/
 import { Event } from "src/base/common/event";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
-import { DisposableManager } from "src/base/common/dispose";
+import { DisposableBucket } from "src/base/common/dispose";
 
 /**
  * An interface only for {@link EditorBlockHandleExtension}.
@@ -47,7 +47,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         }));
 
         // RENDER LOGIC
-        this._renderController = new RequestAnimateController(({ event: e }) => {
+        this._renderController = this.__register(new RequestAnimateController(({ event: e }) => {
             /**
              * If hovering outside the editor (hovering overlay), we still can
              * try to render the widget.
@@ -70,15 +70,15 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
             this.__unrenderWidget();
             this.__renderWidget(editorWidget.view.editor.overlayContainer, e.target.resolvedPosition, e.target.nodeElement);
-        });
+        }));
     }
 
     protected override onViewInit(view: ProseEditorView): void {
-        this._widget = this.__initWidget(view);
+        this._widget = this.__register(this.__initWidget(view));
     }
 
     protected override onViewDestroy(view: ProseEditorView): void {
-        this._widget?.dispose();
+        this.release(this._widget);
         this._widget = undefined;
         this._currPosition = undefined;
         this._renderController.cancel();
@@ -140,23 +140,23 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             widget.addItem({
                 id: id,
                 data: button,
-                dispose: button.dispose.bind(button),
+                disposable: button,
             });
         }
 
-        const dragButtonLifecycle = new DisposableManager();
+        const dragButtonLifecycle = new DisposableBucket();
         const dragButton = dragButtonLifecycle.register(new DragHandleButton());
         widget.addItem({
             id: dragButton.id,
             data: dragButton,
-            dispose: () => dragButtonLifecycle.dispose(),
+            disposable: dragButtonLifecycle,
         });
         this.__initDragButton(view, dragButton, dragButtonLifecycle);
 
         return widget;
     }
 
-    private __initDragButton(view: ProseEditorView, button: DragHandleButton, lifecycle: DisposableManager): void {
+    private __initDragButton(view: ProseEditorView, button: DragHandleButton, lifecycle: DisposableBucket): void {
         
         // tell the browser the button is draggable
         button.element.draggable = true;

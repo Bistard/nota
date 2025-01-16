@@ -1,6 +1,7 @@
 import { ErrorHandler } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { Strings } from "src/base/common/utilities/string";
+import { createService, IService } from "src/platform/instantiation/common/decorator";
 import { IWindowConfiguration } from "src/platform/window/common/window";
 
 export function initGlobalErrorHandler(getLogService: () => ILogService | undefined, windowConfiguration: IWindowConfiguration, onError?: (err: any) => void): void {
@@ -53,4 +54,13 @@ export function initGlobalErrorHandler(getLogService: () => ILogService | undefi
             onUnexpectedError(reason, 'unhandled promise rejection');
         });
     }
+}
+
+export const IBrowserService = createService<IBrowserService>('browser-service');
+
+/**
+ * An interface only for {@link BrowserInstance}.
+ */
+export interface IBrowserService extends IService {
+    init(): void;
 }

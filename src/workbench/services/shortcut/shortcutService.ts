@@ -240,7 +240,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         // Register the shortcut into the memory
         try {
             const deserializedWhen = ContextKeyDeserializer.deserialize(when);
-            this._shortcutRegistrant.register(
+            this._shortcutRegistrant.register2(
                 commandID, {
                 shortcut: shortcut,
                 when: deserializedWhen,

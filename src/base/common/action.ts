@@ -229,7 +229,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         this._contextProvider = opts.contextProvider;
         this._itemProviders = [...(opts.actionItemProviders ?? [])];
         
-        this._actionRunner = opts.actionRunner ?? new ActionRunner();
+        this._actionRunner = this.__register(opts.actionRunner ?? new ActionRunner());
         this.onBeforeRun = this._actionRunner.onBeforeRun;
         this.onDidRun = this._actionRunner.onDidRun;
         
@@ -316,7 +316,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
                 panic(`Action list cannot create item with action id '${action.id}'`);
             }
 
-            items.push(item);
+            items.push(this.__register(item));
         
             if (isNullable(index)) {
                 this._items.push(item);

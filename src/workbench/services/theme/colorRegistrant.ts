@@ -10,7 +10,7 @@ import { rendererThemeLocationRegister } from "src/workbench/services/workbench/
 /**
  * An interface only for {@link ColorRegistrant}
  */
-export interface IColorRegistrant extends IRegistrant<RegistrantType> {
+export interface IColorRegistrant extends IRegistrant<RegistrantType.Color> {
     
     /**
      * @description Registers a color associated with a specific location within 
@@ -42,7 +42,7 @@ export interface IColorRegistrant extends IRegistrant<RegistrantType> {
     getTemplate(): Set<string>;
 }
 
-export class ColorRegistrant implements IColorRegistrant{
+export class ColorRegistrant implements IColorRegistrant {
 
     // [field]
 

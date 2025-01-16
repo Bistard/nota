@@ -6,7 +6,7 @@ import { DataBuffer } from 'src/base/common/files/buffer';
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
-import { ConfigurationRegistrant, IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ConfigurationRegistrant, IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/platform/configuration/common/configurationRegistrant";
 import { ConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
 import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
 import { FileService, IFileService } from "src/platform/files/common/fileService";
@@ -39,18 +39,18 @@ suite('MainConfigurationService-test', () => {
         registrant = new ConfigurationRegistrant();
 
         instantiationService = new InstantiationService();
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         logService = new NullLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
 
         fileService = new FileService(logService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         const registrantService = instantiationService.createInstance(RegistrantService);
         registrantService.registerRegistrant(<ConfigurationRegistrant>registrant);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
     }));
 
     beforeEach(() => FakeAsync.run(async () => {
@@ -195,7 +195,20 @@ suite('MainConfigurationService-test', () => {
 
     suite('ConfigurationChangeEvent', () => {
 
-        test('Should correctly initialize and check `affect` / `match` method', () => {
+        suite('constructor', () => {
+            test('should initialize properties correctly from IRawConfigurationChangeEvent', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.properties.size, 2);
+                assert.ok(event.properties.has('section1'));
+                assert.ok(event.properties.has('section2'));
+            });
+        });
+
+        test('simple case', () => {
             const changeEvent = new ConfigurationChangeEvent({ properties: ["section1.section2"] }, ConfigurationModuleType.Default);
             assert.ok(changeEvent);
 
@@ -206,6 +219,62 @@ suite('MainConfigurationService-test', () => {
             assert.strictEqual(changeEvent.match("section1"), false);
             assert.strictEqual(changeEvent.match("section1.section2"), true);
             assert.strictEqual(changeEvent.match("section1.section2.section3"), false);
+        });
+
+        suite('match', () => {
+            test('should return true if section matches exactly in properties', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.match('section1'), true);
+                assert.strictEqual(event.match('section2'), true);
+            });
+    
+            test('should return false if section does not match exactly in properties', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.match(''), false);
+                assert.strictEqual(event.match('section3'), false);
+                assert.strictEqual(event.match('section1.section2'), false);
+                assert.strictEqual(event.match('section1.section3'), false);
+            });
+        });
+    
+        suite('affect', () => {
+            test('should return true if section starts with any property key', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.affect('section1.subsection'), true);
+                assert.strictEqual(event.affect('section2.subsection'), true);
+            });
+    
+            test('should return false if section does not start with any property key', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.affect('section3.subsection'), false);
+                assert.strictEqual(event.affect('unrelatedSection'), false);
+            });
+    
+            test('should return true if section matches exactly with any property key', () => {
+                const rawEvent: IRawConfigurationChangeEvent = {
+                    properties: ['section1', 'section2']
+                };
+                const event = new ConfigurationChangeEvent(rawEvent, ConfigurationModuleType.Default);
+    
+                assert.strictEqual(event.affect('section1'), true);
+                assert.strictEqual(event.affect('section2'), true);
+            });
         });
     });
 });
@@ -226,18 +295,18 @@ suite('BrowserConfigurationService', () => {
         registrant = new ConfigurationRegistrant();
 
         instantiationService = new InstantiationService();
-        instantiationService.register(IInstantiationService, instantiationService);
+        instantiationService.store(IInstantiationService, instantiationService);
 
         logService = new NullLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
         
         fileService = new FileService(logService);
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
         fileService.registerProvider('file', new InMemoryFileSystemProvider());
 
         const registrantService = instantiationService.createInstance(RegistrantService);
         registrantService.registerRegistrant(<ConfigurationRegistrant>registrant);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
     }));
 
     beforeEach(() => FakeAsync.run(async () => {
@@ -391,7 +460,7 @@ suite('BrowserConfigurationService', () => {
 
         // file is also updated
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.strictEqual(configuration['section'], undefined);
+        assert.strictEqual(configuration['section'], 'default value');
 
         await resetUserConfiguration();
     }));
@@ -416,7 +485,7 @@ suite('BrowserConfigurationService', () => {
 
         // file is also updated (browser-side)
         const configuration = JSON.parse(((await fileService.readFile(userConfigURI).unwrap())).toString());
-        assert.strictEqual(configuration['section'], undefined);
+        assert.strictEqual(configuration['section'], 'default value');
 
         // in-memory is updated (main-side)
         await delayFor(INSTANT_TIME);

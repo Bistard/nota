@@ -1,27 +1,18 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { II18nService } from 'src/platform/i18n/common/i18n';
-import { Section } from 'src/platform/section';
-import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
+import { addDisposableListener, EventType } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
-import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { URI } from 'src/base/common/files/uri';
-import { IHostService } from 'src/platform/host/common/hostService';
-import { StatusKey } from 'src/platform/status/common/status';
-import { Disposable, DisposableManager } from 'src/base/common/dispose';
-import { Icons } from 'src/base/browser/icon/icons';
-import { INavigationViewService, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
-import { IWidgetBarOptions, WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Button, IButton } from 'src/base/browser/basic/button/button';
+import { LooseDisposableBucket } from 'src/base/common/dispose';
+import { INavigationViewService, INavView, NavView } from 'src/workbench/parts/navigationPanel/navigationView/navigationView';
 import { IFileOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
-import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
 import { IFileTreeService } from 'src/workbench/services/fileTree/treeService';
-import { FixedArray } from 'src/base/common/utilities/type';
-import { IConfigurationService } from 'src/platform/configuration/common/configuration';
-import { WorkbenchConfiguration } from 'src/workbench/services/workbench/configuration.register';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { II18nService } from 'src/platform/i18n/browser/i18nService';
+import { IWorkspaceService } from 'src/workbench/parts/workspace/workspaceService';
+import { TextEditorPaneModel } from 'src/workbench/services/editorPane/editorPaneModel';
 
 /**
  * @class Represents an Explorer view within a workbench, providing a UI 
@@ -48,8 +39,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
      * A disposable that contains all the UI related listeners of the current 
      * view.
      */
-    private _currentListeners = new DisposableManager();
-    private readonly _actionBar: FileActionBar;
+    private readonly _currViewBucket: LooseDisposableBucket;
 
     // [event]
 
@@ -63,20 +53,13 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         @IInstantiationService instantiationService: IInstantiationService,
         @IDialogService private readonly dialogService: IBrowserDialogService,
         @II18nService private readonly i18nService: II18nService,
-        @IEditorService private readonly editorService: IEditorService,
+        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
         @INavigationViewService private readonly navigationViewService: INavigationViewService,
-        @ILifecycleService lifecycleService: IBrowserLifecycleService,
-        @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileTreeService private readonly fileTreeService: IFileTreeService,
-        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super(ExplorerViewID, parentElement, instantiationService);
-
-        this._actionBar = new FileActionBar();
-        this.__register(this._actionBar);
-
-        this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
+        this._currViewBucket = this.__register(new LooseDisposableBucket());
     }
 
     // [getter]
@@ -87,6 +70,12 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     get root(): URI | undefined {
         return this.fileTreeService.root;
+    }
+
+    // [static methods]
+
+    public static is(view: INavView): view is ExplorerView {
+        return view.id === ExplorerViewID;
     }
 
     // [public method]
@@ -128,14 +117,14 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         /**
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
          */
         const uriToOpen = this.environmentService.configuration.uriOpenConfiguration;
         if (uriToOpen.directory) {
-            this.open(uriToOpen.directory);
+            this.open(uriToOpen.directory.target);
         }
         // we simply put an empty view
         else {
@@ -144,8 +133,8 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         }
     }
 
-    protected override _registerListeners(): void {
-        super._registerListeners();
+    protected override __registerListeners(): void {
+        super.__registerListeners();
 
         /**
          * No need to register listeners initially, since `__loadCurrentView` 
@@ -155,29 +144,18 @@ export class ExplorerView extends NavView implements IExplorerViewService {
 
     // [private helper method]
 
-    private async __onApplicationClose(): Promise<void> {
-        
-        // save the last opened workspace root path.
-        const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
-        const openedWorkspace = (this.fileTreeService.root && shouldRestore) 
-            ? URI.toString(URI.join(this.fileTreeService.root, '|directory'))
-            : '';
-        await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, openedWorkspace);
-    }
-
     private __unloadCurrentView(): void {
         if (this._currentView) {
             this._currentView.remove();
             this._currentView = undefined;
-            this._currentListeners.dispose();
         }
+        this._currViewBucket.dispose();
     }
 
     private __loadCurrentView(view: HTMLElement, isEmpty: boolean): void {
         if (!this._currentView) {
             this._currentView = view;
             this.element.appendChild(view);
-            this._currentListeners = new DisposableManager();
 
             if (isEmpty) {
                 this.__registerEmptyViewListeners();
@@ -235,7 +213,7 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
-        tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
+        tag.textContent = this.i18nService.localize('openDirectory', 'Open a Folder');
         view.appendChild(tag);
 
         return view;
@@ -246,9 +224,6 @@ export class ExplorerView extends NavView implements IExplorerViewService {
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
 
-        // renders file-button-bar
-        this._actionBar.render(view);
-
         return view;
     }
 
@@ -257,153 +232,39 @@ export class ExplorerView extends NavView implements IExplorerViewService {
             return;
         }
 
-        const disposables = this._currentListeners;
-
         /**
          * Empty view opening directory dialog listener (only open the last 
          * selected one).
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        disposables.register(addDisposableListener(tag, EventType.click, async () => {
-            const path = await this.dialogService.openDirectoryDialog({ title: 'open a directory' });
-            if (path.length > 0) {
-                this.open(URI.fromFile(path.at(-1)!));
-            }
-        }));
+        
+        this._currViewBucket.register(
+            addDisposableListener(tag, EventType.click, async () => {
+                const path = await this.dialogService.openDirectoryDialog({ title: this.i18nService.localize('openDirectory', 'Open a Folder') });
+                if (path.length > 0) {
+                    this.open(URI.fromFile(path.at(-1)!));
+                }
+            })
+        );
     }
 
     private __registerNonEmptyViewListeners(view: HTMLElement): void {
         if (!this.isOpened || !this._currentView) {
             return;
         }
-        const disposables = this._currentListeners;
 
         /**
          * The tree model of the tree-service requires the correct height thus 
          * we need to update it every time we are resizing.
          */
-        disposables.register(this.navigationViewService.onDidLayout((e) => {
+        this._currViewBucket.register(this.navigationViewService.onDidLayout((e) => {
             this.fileTreeService.layout();
         }));
 
         // on opening file.
-        disposables.register(this.fileTreeService.onSelect(e => {
-            this.editorService.openSource(e.item.uri);
+        this._currViewBucket.register(this.fileTreeService.onSelect(e => {
+            this.workspaceService.openEditor(new TextEditorPaneModel(e.item.uri), {});
         }));
-    }
-}
-
-class FileActionBar extends Disposable {
-
-    // [fields]
-
-    private readonly _element: HTMLElement;
-    private readonly _leftButtons: WidgetBar<IButton>;
-    private readonly _rightButtons: WidgetBar<IButton>;
-    private readonly _filterByTagButtons: WidgetBar<IButton>;
-
-    // [constructor]
-
-    constructor() {
-        super();
-
-        this._element = document.createElement('div');
-        this._element.className = 'file-button-bar';
-
-        const [left, right, filters] = this.__constructButtons({
-            orientation: Orientation.Horizontal,
-            render: false,
-        });
-
-        this._leftButtons = this.__register(left);
-        this._rightButtons = this.__register(right);
-        this._filterByTagButtons = this.__register(filters);
-    }
-
-    // [public methods]
-
-    public override dispose(): void {
-        super.dispose();
-        this._element.remove();
-    }
-
-    public render(parent: HTMLElement): void {
-        
-        // file-button-bar
-        {
-            const fileButtonBarContainer = document.createElement('div');
-            fileButtonBarContainer.className = 'file-button-bar-container';
-
-            this._leftButtons.render(fileButtonBarContainer);
-            this._rightButtons.render(fileButtonBarContainer);
-            this._element.appendChild(fileButtonBarContainer);
-        }
-
-        // filter-by-tag
-        {
-            const filterByTagContainer = document.createElement('div');
-            filterByTagContainer.className = 'filter-by-tag-container';
-
-            const filterByTagText = document.createElement('div');
-            filterByTagText.textContent = 'Filter by Tag';
-            filterByTagText.className = 'filter-by-tag-text';
-            
-            this._filterByTagButtons.render(filterByTagContainer);
-            filterByTagContainer.appendChild(filterByTagText);
-            this._element.appendChild(filterByTagContainer);
-        }
-        
-        parent.appendChild(this._element);
-    }
-
-    // [private method]
-
-    private __buttonOnClick(button: IButton): void {
-        button.element.classList.toggle('clicked');
-    }
-
-    private __constructButtons(buttonOpts: IWidgetBarOptions): FixedArray<WidgetBar<IButton>, 3> {
-        const leftButtons        = new WidgetBar<IButton>('left-buttons', buttonOpts);
-        const rightButtons       = new WidgetBar<IButton>('right-buttons', buttonOpts);
-        const filterByTagButtons = new WidgetBar<IButton>('filter-by-tag', buttonOpts);
-        
-        const buttonOnClick = (button: IButton) => this.__buttonOnClick(button);
-
-        [
-            {
-                group: leftButtons,
-                buttons: [
-                    { id: 'create-new-folder', icon: Icons.CreateNewFolder, classes: [], fn: buttonOnClick },
-                    { id: 'create-new-note', icon: Icons.CreateNewNote, classes: [], fn: buttonOnClick },
-                ],
-            },
-            {
-                group: rightButtons,
-                buttons: [
-                    { id: 'sort-by-alpha', icon: Icons.SortByAlpha, classes: [], fn: buttonOnClick },
-                    { id: 'collapse-all', icon: Icons.CollapseAll, classes: [], fn: buttonOnClick },
-                ],
-            },
-            {
-                group: filterByTagButtons,
-                buttons: [
-                    { id: 'minimize-window', icon: Icons.MinimizeWindow, classes: [], fn: undefined },
-                ],
-            },
-        ]
-        .forEach(({ group, buttons }) => {
-            for (const { id, icon, classes, fn } of buttons) {
-                const button = new Button({ id, icon, classes });
-                button.onDidClick(() => fn?.(button));
-                group.addItem({ 
-                    id: id, 
-                    data: button, 
-                    dispose: () => button.dispose()
-                });
-            }
-        });
-
-        return [leftButtons, rightButtons, filterByTagButtons];
     }
 }

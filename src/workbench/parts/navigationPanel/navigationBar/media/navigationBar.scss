@@ -6,9 +6,9 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    background-color: var(--nota-navigation-panel-background);
 
     .split-view {
+        // FIX: weird number, need documentation.
         width: 98.5% !important;
         -webkit-app-region: drag; /* draggable */
     }

@@ -11,6 +11,11 @@ import { IpcChannel } from "src/platform/ipc/common/channel";
 import { StatusKey } from "src/platform/status/common/status";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
+import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { Dictionary } from "src/base/common/utilities/type";
+import { IRecentOpenedTarget } from "src/platform/app/common/recentOpen";
+import { FileType } from "src/base/common/files/file";
+import { IWindowCreationOptions } from "src/platform/window/common/window";
 
 /**
  * An interface only for {@link MainHostService}.
@@ -66,14 +71,15 @@ export class MainHostService extends Disposable implements IMainHostService {
     public readonly onDidLeaveFullScreenWindow = this._onDidLeaveFullScreenWindow.registerListener;
 
     @memoize
-    public get onDidOpenWindow() { return Event.map(this.windowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
+    public get onDidOpenWindow() { return Event.map(this.mainWindowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
 
     // [constructor]
 
     constructor(
-        @IMainWindowService private readonly windowService: IMainWindowService,
+        @IMainWindowService private readonly mainWindowService: IMainWindowService,
         @IMainDialogService private readonly dialogService: IMainDialogService,
         @IMainStatusService private readonly statusService: IMainStatusService,
+        @IMainInspectorService private readonly mainInspectorService: IMainInspectorService,
     ) {
         super();
     }
@@ -124,6 +130,11 @@ export class MainHostService extends Disposable implements IMainHostService {
     public async closeWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
         window?.close();
+    }
+
+    public async reloadWindow(optionalConfiguration: Partial<IWindowCreationOptions>, id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.reload(optionalConfiguration);
     }
 
     public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
@@ -178,12 +189,16 @@ export class MainHostService extends Disposable implements IMainHostService {
         if (!window) {
             return;
         }
-        const inspectorWindow = this.windowService.getInspectorWindowByOwnerID(window.id);
+        const inspectorWindow = this.mainInspectorService.getInspectorWindowByOwnerID(window.id);
         if (inspectorWindow) {
             inspectorWindow.close();
         } else {
-            this.windowService.openInspector(window.id);
+            this.mainInspectorService.start(window.id);
         }
+    }
+
+    public async getApplicationStatus<T>(key: StatusKey): Promise<T | undefined> {
+        return this.statusService.get<T>(key);
     }
 
     public setApplicationStatus(key: StatusKey, val: any): Promise<void> {
@@ -198,6 +213,10 @@ export class MainHostService extends Disposable implements IMainHostService {
         return this.statusService.delete(key).unwrap();
     }
 
+    public async getAllApplicationStatus(): Promise<Dictionary<string, any>> {
+        return this.statusService.getAllStatus();
+    }
+
     public async showItemInFolder(path: string): Promise<void> {
         shell.showItemInFolder(path);
     }
@@ -208,16 +227,23 @@ export class MainHostService extends Disposable implements IMainHostService {
         if (typeof id === 'undefined') {
             return undefined;
         }
-        return this.windowService.getWindowByID(id);
+        return this.mainWindowService.getWindowByID(id);
     }
 
     private async __openDialogAndOpen(opts: IOpenDialogOptions, windowID?: number): Promise<void> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
-        const uriToOpen = picked.map(path => URI.fromFile(path));
+        const filesToOpen = picked.map<IRecentOpenedTarget>(path => ({
+            target: URI.fromFile(path),
+            targetType: FileType.FILE,
+            pinned: false,
+        }));
 
-        this.windowService.open({
-            uriToOpen: uriToOpen,
+        this.mainWindowService.open({
+            uriOpenConfiguration: {
+                directory: undefined,
+                files: filesToOpen,
+            },
             forceNewWindow: opts.forceNewWindow,
             hostWindow: windowID ?? -1,
         });

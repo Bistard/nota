@@ -3,6 +3,7 @@ import { IWidget } from "src/base/browser/basic/widget";
 import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { Arrays } from "src/base/common/utilities/array";
 
 export interface IWidgetBar<T extends IWidget> extends IDisposable {
     
@@ -95,9 +96,13 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
 /**
  * An interface that stores widget and will be stored inside the widget bar.
  */
-interface IWidgetBarItem<T> extends IDisposable {
+interface IWidgetBarItem<T> {
     readonly id: string;
     readonly data: T;
+    /**
+     * Client-provided disposable when the item is removed from the widget bar.
+     */
+    readonly disposable?: IDisposable;
 }
 
 /** 
@@ -205,6 +210,9 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     }
 
     public addItem(item: IWidgetBarItem<T>, index?: number): void {
+        if (item.disposable) {
+            this.__register(item.disposable);
+        }
 
         // create a new view HTMLElement
         const newViewElement = document.createElement('li');
@@ -239,7 +247,10 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
         // remove the viewElement and the corresponding view.
         this._itemContainer.removeChild(this._itemContainer.childNodes[index]!);
-        disposeAll(this._items.splice(index, 1));
+        
+        // dispose data if needed
+        const toRemove = this._items.splice(index, 1)[0]!;
+        this.release(toRemove.disposable);
 
         return true;
     }
@@ -266,8 +277,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     }
 
     public clear(): number {
-        disposeAll(this._items);
-        this._items = [];
+        this.__clearItems();
         return DomUtility.Modifiers.clearChildrenNodes(this._itemContainer);
     }
 
@@ -280,8 +290,12 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     }
 
     public override dispose(): void {
-        disposeAll(this._items);
-        this._items = [];
         super.dispose();
+        this.__clearItems();
+    }
+
+    private __clearItems(): void {
+        disposeAll(Arrays.coalesce(this._items.map(each => each.disposable)));
+        this._items = [];
     }
 }

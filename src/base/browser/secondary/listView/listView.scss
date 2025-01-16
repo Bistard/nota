@@ -83,12 +83,42 @@
 		cursor: pointer;
 		touch-action: none;
 	}
+
+	// scrollable-top gradient indicator
+    &:before {
+        content: '';
+        display: var(--nota-file-tree-gradient-top, none);
+        pointer-events: none;
+
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 30px;
+
+        z-index: const.$z-index-medium;
+        background: linear-gradient(to bottom, var(--nota-navigation-panel-background), rgba(255, 255, 255, 0));
+    }
+
+    // scrollable-bottom gradient indicator
+    &:after {
+        content: '';
+        display: var(--nota-file-tree-gradient-bottom, none);
+        pointer-events: none;
+
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 30px;
+        
+        z-index: const.$z-index-medium;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--nota-navigation-panel-background));
+    }
 }
 
 .list-drag-image {
 	position: absolute;
 	display: inline-block;
-	background-color: var(--nota-explorer-item-grag-image-background);
+	background-color: var(--nota-explorer-item-drag-image-background);
 	font-size: 12px;
 	padding: 1px 7px;
 	border-radius: 10px;

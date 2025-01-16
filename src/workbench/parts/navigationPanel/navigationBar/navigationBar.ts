@@ -34,7 +34,6 @@ export class NavigationBar extends Component implements INavigationBarService {
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
         @IQuickAccessBarService private readonly quickAccessBarService: IQuickAccessBarService,
-        @IBrowserZoomService private readonly browserZoomService: IBrowserZoomService,
         @IToolBarService private readonly toolBarService: IToolBarService,
     ) {
         super('navigation-bar', null, instantiationService);
@@ -44,7 +43,7 @@ export class NavigationBar extends Component implements INavigationBarService {
 
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
 
         // Register buttons along with future development
         // Now registered one in layout.ts - EXPLORE folder icon
@@ -65,25 +64,7 @@ export class NavigationBar extends Component implements INavigationBarService {
         this.assembleComponents(Orientation.Vertical, partConfigurations); 
     }
 
-    protected override _registerListeners(): void {
-        const searchBar = assert(this.quickAccessBarService.getSearchBar());
-        const toolBar = assert(this.toolBarService.getComponent);
-        this.__register(searchBar.onDidFocus(() => {
-            console.log("switching to filterBar");
-            this.toolBarService.switchTo(ToolBarType.Filter);
-        }));
-
-        this.__register(searchBar.onDidBlur(() => {
-            console.log("switching to actionBar");
-            this.toolBarService.switchTo(ToolBarType.Action);
-        }));
-
-        this.__register(this.browserZoomService.onDidZoomLevelChange((zoomLevel: number) => {
-            if (zoomLevel < -1) {
-                searchBar.element.style.display = 'none';
-            } else {
-                searchBar.element.style.display = '';
-            }
-        }));
+    protected override __registerListeners(): void {
+        
     }
 }

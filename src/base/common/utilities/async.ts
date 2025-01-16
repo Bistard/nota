@@ -10,6 +10,7 @@ import { isNullable } from "src/base/common/utilities/type";
 /**
  * @function {@link repeat} 
  * @function {@link delayFor} 
+ * @class    {@link OngoingPromise}
  * @class    {@link JoinablePromise}
  * @class 	 {@link CancellablePromise}
  * @function {@link cancellableTimeout}
@@ -63,6 +64,38 @@ export async function delayFor(time: Time, callback?: ITask<void>): Promise<void
 			resolve();
 		}, time.toMs().time)
 	);
+}
+
+/**
+ * @class Ensures that only one promise task is executed at a time.
+ */
+export class OngoingPromise<T> {
+    
+	private _task?: Promise<T>;
+	constructor() {}
+
+    /**
+     * @description Executes the task if it's not already pending. If a task is 
+	 * already pending, returns the pending task.
+     * 
+     * @param taskFn A function that returns a promise.
+     * @returns The promise of the task.
+     */
+    public execute(taskFn: () => Promise<T>): Promise<T> {
+        if (!this._task) {
+            this._task = taskFn().finally(() => {
+                this._task = undefined;
+            });
+        }
+        return this._task;
+    }
+
+    /**
+     * @description Checks if a task is currently pending.
+     */
+    public isPending(): boolean {
+        return !!this._task;
+    }
 }
 
 /**
@@ -895,7 +928,7 @@ export interface IDebouncer<T> extends IDisposable {
  * 
  * @template T The type of the return value of the queued tasks.
  */
-export class Debouncer<T> implements IDebouncer<T> {
+export class Debouncer<T> extends Disposable implements IDebouncer<T> {
 
 	// [field]
 
@@ -907,6 +940,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 	// [constructor]
 
 	constructor(defaultDelay: DelayType) {
+		super();
 		this._defaultDelay = defaultDelay;
 	}
 
@@ -952,7 +986,8 @@ export class Debouncer<T> implements IDebouncer<T> {
 		this._blocker = undefined;
 	}
 
-	public dispose(): void {
+	public override dispose(): void {
+		super.dispose();
 		this.unschedule();
 	}
 
@@ -1014,13 +1049,14 @@ export interface IThrottleDebouncer<T> extends IDisposable {
  * 
  * @template T The type of the return value of the queued tasks.
  */
-export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
+export class ThrottleDebouncer<T> extends Disposable implements IThrottleDebouncer<T> {
 	
 	private readonly debouncer: Debouncer<Promise<T>>;
 	private readonly throttler: Throttler;
 
 	constructor(defaultDelay: Time) {
-		this.debouncer = new Debouncer(defaultDelay);
+		super();
+		this.debouncer = this.__register(new Debouncer(defaultDelay));
 		this.throttler = new Throttler();
 	}
 
@@ -1043,21 +1079,19 @@ export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
 	public unschedule(): void {
 		this.debouncer.unschedule();
 	}
-
-	public dispose(): void {
-		this.debouncer.dispose();
-	}
 }
 
 /**
  * @description A timer that runs at a set interval, and can be cancelled or 
  * disposed of.
  */
-export class IntervalTimer implements IDisposable {
+export class IntervalTimer extends Disposable {
 
     private _handle?: any = undefined;
 
-    constructor() {}
+    constructor() {
+		super();
+	}
 
 	/**
      * @description Sets the timer with a new callback and interval duration. If 
@@ -1081,7 +1115,7 @@ export class IntervalTimer implements IDisposable {
         }
     }
 
-    public dispose(): void {
+    public override dispose(): void {
         this.cancel();
     }
 }

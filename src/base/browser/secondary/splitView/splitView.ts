@@ -1,7 +1,7 @@
 import "src/base/browser/secondary/splitView/splitView.scss";
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, disposeAll } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/utilities/size";
@@ -239,8 +239,8 @@ export class SplitView extends Disposable implements ISplitView {
     
     public override dispose(): void {
         super.dispose();
-        this.viewItems.forEach(view => view.dispose());
-        this.sashItems.forEach(sash => sash.dispose());
+        disposeAll(this.viewItems);
+        disposeAll(this.sashItems);
     }
 
     public addView(opt: ISplitViewItemOpts): void {
@@ -333,17 +333,20 @@ export class SplitView extends Disposable implements ISplitView {
         const newView = document.createElement('div');
         newView.className = 'split-view-item';
         
-        const view = new SplitViewItem(newView, opt);
+        const view = this.__register(new SplitViewItem(newView, opt));
         this.viewItems.splice(opt.index, 0, view);
     
         // sash
 
         if (this.viewItems.length >= 2) {
-            const sash = new Sash(this.sashContainer, {
-                orientation: (this._orientation === Orientation.Vertical) 
-                    ? Orientation.Horizontal 
-                    : Orientation.Vertical
-            });
+            const sash = new Sash(
+                this.sashContainer, 
+                {
+                    orientation: (this._orientation === Orientation.Vertical) 
+                        ? Orientation.Horizontal 
+                        : Orientation.Vertical
+                }
+            );
             sash.registerListeners();
 
             /**
@@ -355,19 +358,21 @@ export class SplitView extends Disposable implements ISplitView {
                 sash.enable = false;
             }
             
-            // TODO: lifecycle maintenance
-            sash.onDidEnd(() => {
+            // listeners
+            sash.register(sash.onDidEnd(() => {
                 this.__onDidSashEnd(sash);
                 this._onDidSashEnd.fire({ sash, index: this.sashItems.indexOf(sash) });
-            });
-            sash.onDidMove(e => {
+            }));
+            sash.register(sash.onDidMove(e => {
                 this.__onDidSashMove(e, sash);
                 this._onDidSashMove.fire({ sash, index: this.sashItems.indexOf(sash) });
-            });
-            sash.onDidReset(() => {
+            }));
+            sash.register(sash.onDidReset(() => {
                 this._onDidSashReset.fire({ sash, index: this.sashItems.indexOf(sash) });
-            });
+            }));
 
+            // store the sash
+            this.__register(sash);
             this.sashItems.splice(opt.index, 0, sash);
         }
 
@@ -382,30 +387,29 @@ export class SplitView extends Disposable implements ISplitView {
 
     /**
      * @description Remove the view from the split-view by the given index.
-     * @note This
      */
-    private __doRemoveView(index: number): ISplitViewItemOpts {
-        index = Math.min(Math.max(index, 0), this.viewItems.length - 1);
+    private __doRemoveView(viewIndex: number): ISplitViewItemOpts {
+        viewIndex = Numbers.clamp(viewIndex, 0, this.viewItems.length - 1);
 
-        const toRemoveView = this.viewItems.splice(index, 1)[0]!;
+        const toRemoveView = this.viewItems.splice(viewIndex, 1)[0]!;
         const toRemoveViewOpts = {
             ID: toRemoveView.ID,
             element: toRemoveView.getElement(),
             minimumSize: toRemoveView.getMinSize(),
             maximumSize: toRemoveView.getMaxSize(),
             priority: toRemoveView.getResizePriority(),
-            index: index, initSize: toRemoveView.getSize(),
+            index: viewIndex, initSize: toRemoveView.getSize(),
         };
-        toRemoveView.dispose();
+        this.release(toRemoveView);
 
-        if (this.sashItems.length === index) {
-            const toRemoveSash = this.sashItems.splice(index - 1, 1)[0]!;
-            toRemoveSash.dispose();
+        const isLastView = this.sashItems.length === viewIndex;
+        const sashIndex = isLastView ? viewIndex - 1 : viewIndex;
+
+        if (sashIndex >= 0 && sashIndex < this.sashItems.length) {
+            const removedSash = this.sashItems.splice(sashIndex, 1)[0];
+            this.release(removedSash);
         }
-        else if (this.sashItems.length >= 1) {
-            const toRemoveSash = this.sashItems.splice(index, 1)[0]!;
-            toRemoveSash.dispose();
-        }
+    
         return toRemoveViewOpts;
     }
 

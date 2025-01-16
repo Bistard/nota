@@ -1,7 +1,7 @@
 import type { IpcRenderer } from "electron";
 import type { Mutable } from "src/base/common/utilities/type";
 import type { ISandboxProcess, IWebFrame } from "src/platform/electron/common/electronType";
-import type { IWindowConfiguration } from "src/platform/window/common/window";
+import type { IWindowConfiguration, WindowInstanceIPCMessageMap } from "src/platform/window/common/window";
 import { executeOnce } from "src/base/common/utilities/function";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { ErrorHandler } from "src/base/common/error";
@@ -43,7 +43,7 @@ export const initExposedElectronAPIs = executeOnce(function () {
  * instead of `preload.js`. See: https://github.com/electron/electron/issues/43705
  * @note This function should only be used in the renderer process.
  */
-export function safeIpcRendererOn(channel: IpcChannel, listener: (event: Electron.IpcRendererEvent, ...args: any[]) => void | Promise<void>): void {
+export function safeIpcRendererOn<TChannel extends string>(channel: TChannel, listener: (event: Electron.IpcRendererEvent, ...args: WindowInstanceIPCMessageMap[TChannel]) => void | Promise<void>): void {
     ipcRenderer.on(channel, async (e, ...args) => {
         try {
             await listener(e, ...args);

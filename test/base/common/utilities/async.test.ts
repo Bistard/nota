@@ -3,7 +3,7 @@ import { afterEach, beforeEach, setup } from 'mocha';
 import { INSTANT_TIME, Time, TimeUnit } from 'src/base/common/date';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter, Event } from 'src/base/common/event';
-import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, TimeoutPromise, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/utilities/async';
+import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, IntervalTimer, JoinablePromise, MicrotaskDelay, TimeoutPromise, repeat, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler, OngoingPromise } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('async-test', () => {
@@ -16,6 +16,67 @@ suite('async-test', () => {
         });
         assert.equal(count, 5);
     });
+
+	suite('OngoingPromise', () => {
+		test('execute should execute the task when no task is pending', async () => {
+			const ongoingPromise = new OngoingPromise<string>();
+			const taskFn = () => Promise.resolve('task result');
+			
+			const result = await ongoingPromise.execute(taskFn);
+	
+			assert.strictEqual(result, 'task result');
+		});
+	
+		test('execute should not execute a new task if one is already pending', async () => {
+			const ongoingPromise = new OngoingPromise<string>();
+			let callCount = 0;
+	
+			const taskFn = async () => {
+				callCount++;
+				return new Promise<string>(resolve => setTimeout(() => resolve('task result'), 100));
+			};
+	
+			const promise1 = ongoingPromise.execute(taskFn);
+			const promise2 = ongoingPromise.execute(taskFn);
+	
+			assert.strictEqual(promise1, promise2);
+	
+			const result = await promise1;
+	
+			assert.strictEqual(result, 'task result');
+			assert.strictEqual(callCount, 1);
+		});
+	
+		test('execute should reset after the task completes', async () => {
+			const ongoingPromise = new OngoingPromise<string>();
+			const taskFn = () => Promise.resolve('task result');
+	
+			await ongoingPromise.execute(taskFn);
+			
+			const isPending = ongoingPromise.isPending();
+	
+			assert.strictEqual(isPending, false);
+		});
+	
+		test('isPending should return true when a task is pending', async () => {
+			const ongoingPromise = new OngoingPromise<string>();
+			const taskFn = () => new Promise<string>(resolve => setTimeout(() => resolve('task result'), 100));
+	
+			ongoingPromise.execute(taskFn);
+	
+			const isPending = ongoingPromise.isPending();
+	
+			assert.strictEqual(isPending, true);
+		});
+	
+		test('isPending should return false when no task is pending', async () => {
+			const ongoingPromise = new OngoingPromise<string>();
+	
+			const isPending = ongoingPromise.isPending();
+	
+			assert.strictEqual(isPending, false);
+		});
+	});
 
 	suite('JoinablePromise', () => {
 		

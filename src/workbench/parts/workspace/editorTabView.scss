@@ -1,0 +1,15 @@
+.editor-tab-view {
+    position: relative;
+    
+    width: 100%;
+    height: 100%;
+    line-height: var(--nota-tab-view-height);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    overflow: hidden;
+    box-sizing: border-box;
+    
+    -webkit-app-region: drag; /* draggable */
+}

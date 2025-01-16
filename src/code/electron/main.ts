@@ -2,13 +2,13 @@ import * as electron from 'electron';
 import * as net from 'net';
 import { mkdir, unlink } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError, tryOrDefault } from 'src/base/common/error';
-import { Event, monitorEventEmitterListenerGC } from 'src/base/common/event';
+import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/files/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/utilities/string';
 import { DiskFileSystemProvider } from 'src/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/platform/instantiation/common/serviceCollection';
 import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
@@ -33,6 +33,7 @@ import { IS_WINDOWS } from 'src/base/common/platform';
 import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnosticsService';
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
+import { Disposable, monitorDisposableLeak } from 'src/base/common/dispose';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -46,7 +47,7 @@ interface IMainProcess {
  *      3. Ensuring that this process is the only one running. If not, it 
  *         terminates as expected.
  */
-const main = new class extends class MainProcess implements IMainProcess {
+const main = new class extends class MainProcess extends Disposable implements IMainProcess {
 
     // [field]
 
@@ -63,7 +64,9 @@ const main = new class extends class MainProcess implements IMainProcess {
 
     // [constructor]
 
-    constructor() { }
+    constructor() {
+        super();
+    }
 
     // [public methods]
 
@@ -87,9 +90,7 @@ const main = new class extends class MainProcess implements IMainProcess {
          * necessary for future works.
          */
 
-        monitorEventEmitterListenerGC({
-            ListenerGCedWarning: toBoolean(this.CLIArgv.ListenerGCedWarning),
-        });
+        monitorDisposableLeak(toBoolean(this.CLIArgv.disposableLeakWarning));
 
         // core services
         this.createCoreServices();
@@ -107,18 +108,15 @@ const main = new class extends class MainProcess implements IMainProcess {
 
             // application run
             {
-                Event.once(this.lifecycleService.onWillQuit)(e => {
+                Event.onceSafe(this.lifecycleService.onWillQuit)(e => {
                     // release all the watching resources
                     e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
                     this.fileService.dispose();
-
-                    // flush all the logging messages before we quit
-                    e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
 
                 await this.resolveSingleApplication(true);
 
-                const instance = this.instantiationService.createInstance(ApplicationInstance);
+                const instance = this.__register(this.instantiationService.createInstance(ApplicationInstance));
                 await instance.run();
             }
         }
@@ -134,54 +132,60 @@ const main = new class extends class MainProcess implements IMainProcess {
     private createCoreServices(): void {
 
         // dependency injection (DI)
-        const instantiationService = new InstantiationService(new ServiceCollection(), undefined);
-        instantiationService.register(IInstantiationService, instantiationService);
+        const instantiationService = this.__register(new InstantiationService(new ServiceCollection(), undefined));
+        instantiationService.store(IInstantiationService, instantiationService);
 
         // log-service
         const logService = new BufferLogger();
-        instantiationService.register(ILogService, logService);
+        instantiationService.store(ILogService, logService);
 
         logService.debug('MainProcess', 'Start constructing core services...');
         logService.info('MainProcess', 'Command line arguments:', { CLI: this.CLIArgv });
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
-        instantiationService.register(IRegistrantService, registrantService);
+        instantiationService.store(IRegistrantService, registrantService);
+
         this.initRegistrant(instantiationService, registrantService);
 
         // file-service
         const fileService = new FileService(logService);
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
-        instantiationService.register(IFileService, fileService);
+        instantiationService.store(IFileService, fileService);
 
         // product-service
         const productService = new ProductService(fileService, logService);
-        instantiationService.register(IProductService, productService);
+        instantiationService.store(IProductService, productService);
 
         // diagnostics-service
         const diagnosticsService = new DiagnosticsService(productService);
-        instantiationService.register(IDiagnosticsService, diagnosticsService);
+        instantiationService.store(IDiagnosticsService, diagnosticsService);
 
         // environment-service
         const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService, productService);
-        instantiationService.register(IEnvironmentService, environmentService);
+        instantiationService.store(IEnvironmentService, environmentService);
 
         // logger-service
         const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
-        instantiationService.register(ILoggerService, fileLoggerService);
+        instantiationService.store(ILoggerService, fileLoggerService);
 
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
             // console-logger
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
-            fileLoggerService.createLogger(environmentService.logPath, { description: 'main', name: `main-${getFormatCurrTimeStamp()}.txt` }),
+            fileLoggerService.createLogger(
+                URI.join(environmentService.logPath, `main-${getFormatCurrTimeStamp()}.txt`), 
+                { 
+                    description: 'main'
+                }
+            ),
         ]);
         logService.setLogger(pipelineLogger);
 
         // life-cycle-service
         const lifecycleService = new MainLifecycleService(logService);
-        instantiationService.register(IMainLifecycleService, lifecycleService);
+        instantiationService.store(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
         const configurationService = instantiationService.createInstance(
@@ -192,11 +196,11 @@ const main = new class extends class MainProcess implements IMainProcess {
                 } 
             },
         );
-        instantiationService.register(IConfigurationService, configurationService);
+        instantiationService.store(IConfigurationService, configurationService);
 
         // status-service
         const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
-        instantiationService.register(IMainStatusService, statusService);
+        instantiationService.store(IMainStatusService, statusService);
 
         (<any>this.instantiationService) = instantiationService;
         (<any>this.environmentService) = environmentService;
@@ -272,7 +276,7 @@ const main = new class extends class MainProcess implements IMainProcess {
                     resolve(tcpServer);
                 });
             });
-            Event.once(this.lifecycleService.onWillQuit)(async p => {
+            Event.onceSafe(this.lifecycleService.onWillQuit)(async p => {
                 const blocker = new Blocker<void>();
                 server.close(() => blocker.resolve());
                 p.join(blocker.waiting());

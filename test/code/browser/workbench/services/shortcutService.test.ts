@@ -40,18 +40,18 @@ suite('shortcutService-test', () => {
         commandRegistrant = new CommandRegistrant(new NullLogger(), registrantService);
         registrantService.registerRegistrant(commandRegistrant);
 
-        DI.register(IRegistrantService, registrantService);
+        DI.store(IRegistrantService, registrantService);
 
         const commandService = new CommandService(DI, logService, registrantService);
 
-        DI.register(IInstantiationService, DI);
-        DI.register(IKeyboardService, keyboardService);
-        DI.register(ILogService, logService);
-        DI.register(IFileService, fileService);
-        DI.register(IContextService, contextService);
-        DI.register(ICommandService, commandService);
-        DI.register(ILifecycleService, new NullLifecycleService());
-        DI.register(IEnvironmentService, new NullEnvironmentService());
+        DI.store(IInstantiationService, DI);
+        DI.store(IKeyboardService, keyboardService);
+        DI.store(ILogService, logService);
+        DI.store(IFileService, fileService);
+        DI.store(IContextService, contextService);
+        DI.store(ICommandService, commandService);
+        DI.store(ILifecycleService, new NullLifecycleService());
+        DI.store(IEnvironmentService, new NullEnvironmentService());
 
         shortcutService = DI.createInstance(ShortcutService);
     });
@@ -79,7 +79,7 @@ suite('shortcutService-test', () => {
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         const precondition = CreateContextKeyExpr.Equal('value', true);
 
-        const unregister = shortcutRegistrant.register(
+        const unregister = shortcutRegistrant.register2(
             'test-shortcut', {
             shortcut: shortcut,
             when: precondition,

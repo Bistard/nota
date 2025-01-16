@@ -15,6 +15,9 @@ import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/
 import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
+import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
+import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
+import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -43,7 +46,9 @@ export const rendererWorkbenchCommandRegister = createRegister(
         registrant.registerCommandBasic(
             {
                 id: AllCommands.reloadWindow,
-                command: (provider) => { provider.getOrCreateService(IHostService).reloadWebPage(); },
+                command: (provider) => { 
+                    provider.getOrCreateService(IHostService).reloadWindow({});
+                },
             },
         );
     
@@ -114,6 +119,38 @@ export const rendererWorkbenchCommandRegister = createRegister(
                     }
 
                     clipboardService.write(ClipboardType.Text, relativePath ?? 'RelativePath Error');
+                }
+            }
+        );
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeCloseCurrentFolder,
+                command: (provider) => {
+                    const navViewService = provider.getOrCreateService(INavigationViewService);
+                    const currentView = navViewService.currView();
+
+                    if (currentView && ExplorerView.is(currentView)) {
+                        currentView.close();
+                    }
+                }
+            }
+        );
+        registrant.registerCommandBasic({
+            id: AllCommands.fileTreeOpenFolder,
+            command: (provider, target: URI) => {
+                const navViewService = provider.getOrCreateService(INavigationViewService);
+                const currentView = navViewService.currView();
+                if (currentView && ExplorerView.is(currentView)) {
+                    currentView.open(target);
+                }
+            }
+        });
+        registrant.registerCommandBasic(
+            {
+                id: AllCommands.fileTreeClearRecentOpened,
+                command: async (provider) => {
+                    const recentOpenService = provider.getOrCreateService(IRecentOpenService);
+                    recentOpenService.clearRecentOpened();
                 }
             }
         );

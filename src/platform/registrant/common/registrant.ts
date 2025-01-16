@@ -1,15 +1,14 @@
-import { ErrorHandler } from "src/base/common/error";
+import type { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
+import type { ColorRegistrant} from "src/workbench/services/theme/colorRegistrant";
+import type { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
+import type { ReviverRegistrant } from "src/platform/ipc/common/revive";
+import type { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { ILogService } from "src/base/common/logger";
 import { executeOnce } from "src/base/common/utilities/function";
-import { panic } from "src/base/common/utilities/panic";
-import { Constructor } from "src/base/common/utilities/type";
-import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
-import { ShortcutRegistrant } from "src/workbench/services/shortcut/shortcutRegistrant";
-import { ColorRegistrant} from "src/workbench/services/theme/colorRegistrant";
+import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 
 /**
  * An enumeration representing the different types of registrants.
@@ -24,7 +23,9 @@ export const enum RegistrantType {
     Shortcut = 'Shortcut',
     Command = 'Command',
     Reviver = 'Reviver',
-    Color = 'Color'
+    Color = 'Color',
+    Menu = 'Menu',
+    EditorPane = 'EditorPane',
 }
 
 /**
@@ -57,10 +58,12 @@ export interface IRegistrant<TType extends RegistrantType> {
  */
 type RegistrantTypeMapping = {
     [RegistrantType.Configuration]: ConfigurationRegistrant;
-    [RegistrantType.Command]: CommandRegistrant;
-    [RegistrantType.Shortcut]: ShortcutRegistrant;
-    [RegistrantType.Reviver]: ReviverRegistrant;
-    [RegistrantType.Color]: ColorRegistrant;
+    [RegistrantType.Command]      : CommandRegistrant;
+    [RegistrantType.Shortcut]     : ShortcutRegistrant;
+    [RegistrantType.Reviver]      : ReviverRegistrant;
+    [RegistrantType.Color]        : ColorRegistrant;
+    [RegistrantType.Menu]         : MenuRegistrant;
+    [RegistrantType.EditorPane]   : EditorPaneRegistrant;
 };
 
 /**
@@ -98,113 +101,18 @@ export function createRegister<T extends RegistrantType>(
     register: (registrant: GetRegistrantByType<T>) => void,
 ): (provider: IServiceProvider) => void 
 {
-    return executeOnce(
-        (provider: IServiceProvider) => {
-            const logService = provider.getOrCreateService(ILogService);
-            logService.trace('createRegister', `[${type}] registering: '${description}'...`);
+    return (provider: IServiceProvider) => {
+        const logService = provider.getOrCreateService(ILogService);
+        logService.trace('createRegister', `[${type}] registering: '${description}'...`);
 
-            const service = provider.getOrCreateService(IRegistrantService);
-            const registrant = service.getRegistrant(type);
-            try {
-                register(registrant);
-            } catch (error: any) {
-                logService.error('createRegister', 'failed registering.', error, { type: type, description: description });
-            }
-        },
-    );
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * The type of built-in registrants.
- * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
- */
-export const enum RegistrantTypeDeprecated {
-    Test = 'test',
-    Command = 'command',
-    Configuration = 'configuration',
-    Shortcut = 'shortcut',
-    Reviver = 'reviver',
-    Color = 'color',
-    DocumentNode = 'document-node',
-    EditorExtension = 'editor-extension',
-}
-
-/**
- * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
- */
-export interface IRegistrantIdentifier<T> {
-    (...args: any[]): void;
-	type: T;
-}
-
-const _identifiers = new Map<RegistrantTypeDeprecated, IRegistrantIdentifier<any>>();
-const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
-
-/**
- * @description Generates a registrant decorator. The idea of `registrant` is a 
- * global singleton that has ability to register various of `things`. Most of 
- * registrations are usually completed once scanning all the javascript files
- * are done.
- * @returns A class decorator that can be only used once. Once the registrant 
- * class is decorated, the class will be automatically created and stored in
- * {@link REGISTRANTS}.
- * 
- * @note `Registrant` can only be accessed through {@link REGISTRANTS}.
- * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
- */
-export function createRegistrant<T>(registrantID: RegistrantTypeDeprecated, ...args: any[]): IRegistrantIdentifier<T> {
-    const registrantIdentifier = _identifiers.get(registrantID);
-    
-    if (registrantIdentifier) {
-        return registrantIdentifier;
-    }
-
-    const newIdentifier = <any>(function<Ctor extends Constructor<any>> (ctor: Ctor) {
-        const existed = _registarnts.get(newIdentifier);
-        if (existed) {
-            ErrorHandler.onUnexpectedError(new Error('Registering duplicate registrants'));
+        const service = provider.getOrCreateService(IRegistrantService);
+        const registrant = service.getRegistrant(type);
+        try {
+            register(registrant);
+        } catch (error: any) {
+            logService.error('createRegister', 'failed registering.', error, { type: type, description: description });
         }
-
-        const registrant = <T>new ctor(...args);
-        _registarnts.set(newIdentifier, registrant);
-    });
-
-    _identifiers.set(registrantID, newIdentifier);
-    return newIdentifier;
+    };
 }
 
-/**
- * This is a universal registrant. It is the only way to get all the other
- * registrants which are registered into this universal registrant through the
- * decorator that are created by {@link createRegistrant}.
- * @deprecated SHOULD BE DELETED WHEN THE EDITOR IS REFACTORED
- */
-export const REGISTRANTS = new class {
 
-    /**
-     * @description Get desired registrant.
-     * @param id The identifier that is generated through {@link createRegistrant}.
-     * @throws An exception will be thrown if the registrant is never registrant.
-     */
-    public get<T>(id: IRegistrantIdentifier<T>): T {
-        const registrant = _registarnts.get(id);
-        if (!registrant) {
-            panic(`Unknown registrant: ${id}`);
-        }
-        return registrant;
-    }
-};

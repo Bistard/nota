@@ -20,8 +20,6 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'button-background', THEME_COLORS.lightstroke);
 
         // utility
-        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-border', THEME_COLORS.mediumTeal);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-placeholder', THEME_COLORS.subtext);
         registrant.registerColor(PresetColorTheme.DarkModern, 'search-bar-icon', THEME_COLORS.subtext); 
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-background', THEME_COLORS.white);
         registrant.registerColor(PresetColorTheme.DarkModern, 'menu-border', THEME_COLORS.middle);
@@ -56,16 +54,7 @@ export const rendererDarkThemeColorRegister = createRegister(
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-selected-foreground', THEME_COLORS.primary);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-selected-background', THEME_COLORS.lightTeal);
         registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-hovered-background', THEME_COLORS.lighterTeal);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-grag-image-background', THEME_COLORS.stroke);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'filter-by-tag-icon', THEME_COLORS.subtext);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'filter-by-tag-text', THEME_COLORS.secondary);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-background', THEME_COLORS.lightstroke);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-background-hover', THEME_COLORS.lightTeal);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-background-active', THEME_COLORS.lightTeal);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-foreground', THEME_COLORS.ternary);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-foreground-hover', THEME_COLORS.secondary);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-foreground-active', THEME_COLORS.secondary);
-        registrant.registerColor(PresetColorTheme.DarkModern, 'file-button-box-shadow-active', THEME_COLORS.mediumTeal);
+        registrant.registerColor(PresetColorTheme.DarkModern, 'explorer-item-drag-image-background', THEME_COLORS.stroke);
 
         // Workspace
         registrant.registerColor(PresetColorTheme.DarkModern, 'outline-primary-text', THEME_COLORS.ternary);

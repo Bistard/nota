@@ -1,5 +1,5 @@
 const path = require("path");
-const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
+const { ScriptProcess, ScriptHelper, log } = require("../utility");
 
 (async () => {
     const cwd     = process.cwd();
@@ -16,10 +16,16 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
         BUILD_MODE: {
             value: CLIArgv.mode,
             defaultValue: 'development',
+        },
+        i18n_error: {
+            value: CLIArgv.i18nError,
+            defaultValue: 'false',
         }
     });
 
-    // compile codicon
+    /**
+     * compile codicon
+     */
     const codicon = new ScriptProcess(
         'codicon',
         `node ${path.join(cwd, './scripts/icons/codicon.js')}`,
@@ -39,7 +45,28 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
         process.exit(1);
     }
 
-    // build with webpack
+    /**
+     * @description A simple Node.js script to monitor the root `package.json` 
+     * for changes. When `package.json` updates, it regenerates a corresponding 
+     * `product.json` file.
+     */
+    const product = new ScriptProcess(
+        'product',
+        `node ${path.join(cwd, './scripts/build/product.js')}`,
+        [],
+        [],
+        {
+            env: process.env,
+            cwd: cwd,
+            shell: true,
+            stdio: "inherit"
+        },
+    );
+    await product.spawning().catch(err => log('error', err));
+
+    /**
+     * build with webpack
+     */
     const webpack = new ScriptProcess(
         'webpack',
         'webpack',
@@ -56,13 +83,7 @@ const { Times, Loggers, ScriptProcess, ScriptHelper } = require("../utility");
                 ['NODE_VER', process.versions.node ?? 'N/A'],
                 ...envPair,
             ],
-            // stdio: "inherit"
-            onStdout: (output) => {
-                process.stdout.write(`${Times.getTime()} ${output}`);
-            },
-            onStderr: (error) => {
-                Loggers.printRed(`${error}`);
-            }
+            stdio: "inherit"
         },
     );
 

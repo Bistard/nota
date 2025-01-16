@@ -20,7 +20,7 @@ import { MainLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/platform/dialog/electron/mainDialogService";
 import { MainHostService } from "src/platform/host/electron/mainHostService";
 import { IHostService } from "src/platform/host/common/hostService";
-import { DEFAULT_HTML } from "src/platform/window/common/window";
+import { DEFAULT_HTML, IUriToOpenConfiguration } from "src/platform/window/common/window";
 import { URI } from "src/base/common/files/uri";
 import { MainFileChannel } from "src/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/utilities/string";
@@ -29,10 +29,14 @@ import { IRegistrantService } from "src/platform/registrant/common/registrantSer
 import { IScreenMonitorService, ScreenMonitorService } from "src/platform/screen/electron/screenMonitorService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
-import { toBoolean } from "src/base/common/utilities/type";
+import { Mutable, toBoolean } from "src/base/common/utilities/type";
 import { IProductService } from "src/platform/product/common/productService";
+import { MainMenuService } from "src/platform/menu/electron/mainMenuService";
+import { IMenuService } from "src/platform/menu/common/menu";
 import { MainInspectorService } from "src/platform/inspector/electron/mainInspectorService";
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
+import { IS_MAC } from "src/base/common/platform";
+import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -86,16 +90,16 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
 
         // open first window
-        const firstWindow = this.openFirstWindow(appInstantiationService);
+        const firstWindow = await this.openFirstWindow(appInstantiationService);
 
         // post work
-        this.afterFirstWindow(appInstantiationService, firstWindow.id);
+        await this.afterFirstWindow(appInstantiationService, firstWindow.id);
     }
 
     // [private methods]
 
     private registerListeners(): void {
-        Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
+        Event.onceSafe(this.lifecycleService.onWillQuit)(() => this.dispose());
 
         // interrupt unexpected errors so that the error will not go back to `main.ts`
         process.on('uncaughtException', err => ErrorHandler.onUnexpectedError(err));
@@ -117,19 +121,25 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.logService.debug('App', 'constructing application services...');
 
         // main-window-service
-        this.mainInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
+        this.mainInstantiationService.store(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-service
-        this.mainInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
+        this.mainInstantiationService.store(IMainDialogService, new ServiceDescriptor(MainDialogService, []));
 
         // host-service
-        this.mainInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService, []));
+        this.mainInstantiationService.store(IHostService, new ServiceDescriptor(MainHostService, []));
 
         // screen-monitor-service
-        this.mainInstantiationService.register(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
+        this.mainInstantiationService.store(IScreenMonitorService, new ServiceDescriptor(ScreenMonitorService, []));
+
+        // menu-service
+        if (IS_MAC) {
+            const mainMenuService = this.mainInstantiationService.createInstance(MainMenuService);
+            this.mainInstantiationService.store(IMenuService, mainMenuService); 
+        }
 
         // main-inspector-service
-        this.mainInstantiationService.register(IMainInspectorService, new ServiceDescriptor(MainInspectorService,[]));
+        this.mainInstantiationService.store(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
 
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
@@ -163,26 +173,24 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         this.logService.debug('App', 'IPC channels registered successfully.');
     }
 
-    private openFirstWindow(provider: IServiceProvider): IWindowInstance {
+    private async openFirstWindow(provider: IServiceProvider): Promise<IWindowInstance> {
         this.logService.debug('App', 'Opening the first window...');
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
+        const hostService = provider.getOrCreateService(IHostService);
 
         // retrieve last saved opened window status
-        const uriToOpen: URI[] = [];
+        const uriOpen: Mutable<IUriToOpenConfiguration> = { directory: undefined, files: undefined, };
         const shouldRestore = this.configurationService.get<boolean>(WorkbenchConfiguration.RestorePrevious);
         if (shouldRestore) {
-            const lastOpened = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
-            if (lastOpened) {
-                uriToOpen.push(URI.parse(lastOpened));
-            }
+            uriOpen.directory = await RecentOpenUtility.getRecentOpenedDirectory(hostService);
         }
 
         // open the first window
-        const window: IWindowInstance = mainWindowService.open({
+        const window: IWindowInstance = await mainWindowService.open({
             applicationName: this.productService.profile.applicationName,
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
-            uriToOpen: uriToOpen,
+            uriOpenConfiguration: uriOpen,
             displayOptions: {
                 frameless: true,
             },
@@ -191,12 +199,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         return window;
     }
 
-    private afterFirstWindow(provider: IServiceProvider, firstWindowID: number): void {
+    private async afterFirstWindow(provider: IServiceProvider, firstWindowID: number): Promise<void> {
         
         // inspector mode
         if (toBoolean(this.environmentService.CLIArguments.inspector)) {
-            const mainWindowService = provider.getOrCreateService(IMainWindowService);
-            mainWindowService.openInspector(firstWindowID);
+            const mainInspectorService = provider.getOrCreateService(IMainInspectorService);
+            await mainInspectorService.start(firstWindowID);
         }
     }
 

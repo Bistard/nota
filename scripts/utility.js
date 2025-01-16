@@ -1,9 +1,27 @@
-const path = require("path");
-const fs = require('fs');
 const minimist = require("minimist");
 const childProcess = require("child_process");
 
-const _perfRecord = [];
+function log(type, message) {
+    const color = (function getColor() {
+        switch (type) {
+            case 'info': return '';
+            case 'warn': return fgColor.LightYellow;
+            case 'error': return fgColor.LightRed;
+            case 'ok': return fgColor.LightGreen;
+            default: return '';
+        }
+    })();
+    const strType = Colors.setANSIColor(centerAlign(type, 6), color);
+    console.log(`[${strType}] ${Times.getTime()} ${color}${message}\x1b[0m`);
+}
+
+function centerAlign(str, totalLength) {
+    if (str.length >= totalLength) {
+        return str;
+    }
+    const leftPadding = Math.floor((totalLength - str.length) / 2);
+    return str.padStart(str.length + leftPadding, ' ').padEnd(totalLength, ' ');
+}
 
 /**
  * ANSI escape color codes for foreground color.
@@ -119,46 +137,18 @@ class Times {
     }
 }
 
-class Loggers {
-
-    /**
-     * @description Print the given text with the color (if provided) with a 
-     * time prefix.
-     * @param {string} text
-     * @param {string} fgColor 
-     * @param {string} bgColor 
-     */
-    static print(text, fgColor, bgColor) {
-        console.log(`${Times.getTime()} ${fgColor ?? ''}${bgColor ?? ''}${text}\x1b[0m`);
-    }
-
-    static printGreen(text) {
-        this.print(text, fgColor.Green);
-    }
-
-    static printRed(text) {
-        this.print(text, fgColor.Red);
-    }
-
-    static printYellow(text) {
-        this.print(text, fgColor.Yellow);
-    }
-
-    static printGray(text) {
-        this.print(text, fgColor.Gray);
-    }
-}
-
 class ScriptHelper {
     
     /**
      * @param {string} name The script name
      * @return {import('minimist').ParsedArgs}
+     * 
+     * @deprecated
      */
     static init(name) {
-        Loggers.print(`🚀 Executing '${name}'...`);
+        log('info', `Executing '${name}'...`);
         const args = this.parseCLI();
-        console.log(`   📝 Script arguments: ${JSON.stringify(args)}`);
+        log('info', `Script arguments: ${JSON.stringify(args)}`);
         return args;
     }
 
@@ -168,15 +158,14 @@ class ScriptHelper {
      */
     static setEnv(newEnv) {
         const envPair = [];
-        Object
-        .entries(newEnv)
-        .forEach(([envName, { value, defaultValue }]) => {
-            if (process.env[envName] !== null && process.env[envName] !== undefined) {
-                console.log(Colors.yellow(`    Overwriting the existing environment: ${envName}`));
-            }
-            process.env[envName] = value ?? defaultValue;
-            envPair.push([envName, value ?? defaultValue]);
-        });
+        Object.entries(newEnv)
+            .forEach(([envName, { value, defaultValue }]) => {
+                if (process.env[envName] !== null && process.env[envName] !== undefined) {
+                    log('warn', `[ScriptHelper] Overwriting the existing environment: ${envName}`);
+                }
+                process.env[envName] = value ?? defaultValue;
+                envPair.push([envName, value ?? defaultValue]);
+            });
         return envPair;
     }
     
@@ -226,6 +215,7 @@ class ScriptProcess {
      * @type {boolean}
      */
     #spawned = false;
+    #spawnPromise;
 
     /**
      * @type {Promise<number>}
@@ -256,19 +246,21 @@ class ScriptProcess {
         const procArgsString = procArgs.join(' ');
         const actualCommand = `${scriptCommand} ${cmdArgsString}`;
 
-        Loggers.print(`\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
-        console.log(`   🔧 Script: ${scriptCommand}`);
-        console.log(`   🔨 Argument: ${cmdArgsString || 'N/A'}`);
-        console.log(`   🛠️ Command: ${actualCommand}`);
-        console.log(`   📦 Process argument: ${procArgsString || 'N/A'}`);
-        console.log(`   🌍 Process configuration`);
-        console.log(`       📂 CWD: ${procOpts.cwd || 'N/A'}`);
-        console.log(`       📂 shell: ${procOpts.shell || 'N/A'}`);
-        console.log(`       📂 stdio: ${procOpts.stdio || 'N/A'}`);
+        console.log('===========================================================');
+        console.log(`\x1B[4m${fgColor.LightGreen}${scriptName}\x1b[0m`);
+        console.log(this.#formatKeyValue('Script', scriptCommand));
+        console.log(this.#formatKeyValue('Argument', cmdArgsString || 'N/A'));
+        console.log(this.#formatKeyValue('Command', actualCommand));
+        console.log(this.#formatKeyValue('Process argument', procArgsString || 'N/A'));
+        console.log('   Process Environment:');
+        console.log(this.#formatKeyValue('CWD', procOpts.cwd || 'N/A', 22));
+        console.log(this.#formatKeyValue('shell', procOpts.shell || 'N/A', 22));
+        console.log(this.#formatKeyValue('stdio', procOpts.stdio || 'N/A', 22));
+
         for (const [configName, configValue] of procOpts.logConfiguration ?? []) {
-            console.log(`       📂 ${configName}: ${configValue || 'N/A'}`);
+            console.log(this.#formatKeyValue(configName, configValue || 'N/A', 22));
         }
-        console.log('\n');
+        console.log('');
 
         // create the actual process
         const startTime = performance.now();
@@ -281,13 +273,19 @@ class ScriptProcess {
             procReject  = rej;
         });
 
+        let spawnResolve;
+        this.#spawnPromise = new Promise((res, rej) => {
+            spawnResolve = res;
+        });
+
         // listeners
         {
             /**
              * Event fires once the child process has spawned successfully.
              */
-            p.on('spawn', () => {
+            p.once('spawn', () => {
                 this.#spawned = true;
+                spawnResolve();
             });
 
             /**
@@ -295,16 +293,18 @@ class ScriptProcess {
              * process have been closed.
              */
             p.on('close', code => {
+                const type = code ? 'error' : 'ok';
                 let finishMessage = code
-                    ? `❌ The script '${scriptName}' exits with error code ${code}.`
-                    : `✅ The script '${scriptName}' finished.`;
+                    ? `The script '${scriptName}' exits with error code ${code}.`
+                    : `The script '${scriptName}' finished.`;
 
                 // perf log
                 const endTime = performance.now();
                 const spentInSec = (endTime - startTime) / 1000;
                 finishMessage += ` Executed in ${Math.round(spentInSec * 100) / 100} seconds.`;
 
-                Loggers.print(`${finishMessage}\n\n`, code ? fgColor.Red : '');
+
+                log(type, `${finishMessage}`);
                 if (code) {
                     procReject(code);
                 } else {
@@ -320,7 +320,7 @@ class ScriptProcess {
              *  - The child proc was aborted via the `signal` option.
              */
             p.on('error', error => {
-                Loggers.printRed(`⚠️ Script error encounters:`);
+                log('warn', `Script error encounters:`);
                 console.log(error);
             });
 
@@ -351,6 +351,13 @@ class ScriptProcess {
     }
 
     /**
+     * @description You may await this method to wait the process has spawned successfully. 
+     */
+    async spawning() {
+        return this.#spawnPromise;
+    }
+
+    /**
      * @description You may await this method to wait the process to complete.
      */
     async waiting() {
@@ -364,6 +371,10 @@ class ScriptProcess {
         if (this.#spawned) {
             this.#proc.kill();
         }
+    }
+
+    #formatKeyValue(key, value, width = 18) {
+        return `   ${key.padEnd(width, ' ')}: ${value}`;
     }
 }
 
@@ -385,6 +396,7 @@ class Git {
                     env: process.env,
                     cwd: process.cwd(),
                     shell: true,
+                    stdio: "inherit",
                 }
             );
             return proc.waiting();
@@ -392,134 +404,8 @@ class Git {
     }
 }
 
-/**
- * @deprecated
- */
-const utils = new (class UtilCollection {
-   
-    // predefined color
-    c = {
-        Reset: "\x1b[0m",
-        Gray: "\x1b[90m",
-        Bright: "\x1b[1m",
-        Dim: "\x1b[2m",
-        Underscore: "\x1b[4m",
-        Blink: "\x1b[5m",
-        Reverse: "\x1b[7m",
-        Hidden: "\x1b[8m",
-    
-        FgBlack: "\x1b[30m",
-        FgRed: "\x1b[31m",
-        FgGreen: "\x1b[32m",
-        FgYellow: "\x1b[33m",
-        FgBlue: "\x1b[34m",
-        FgMagenta: "\x1b[35m",
-        FgCyan: "\x1b[36m",
-        FgWhite: "\x1b[37m",
-    
-        BgBlack: "\x1b[40m",
-        BgRed: "\x1b[41m",
-        BgGreen: "\x1b[42m",
-        BgYellow: "\x1b[43m",
-        BgBlue: "\x1b[44m",
-        BgMagenta: "\x1b[45m",
-        BgCyan: "\x1b[46m",
-        BgWhite: "\x1b[47m",
-    };
-
-    constructor() {}
-
-    /**
-     * @description Returns the current time in a standard format.
-     * @example 2022-08-24 00:33:58.226
-     */
-    getCurrTimeStamp() {
-        const currentTime = new Date();
-        return `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')} ${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}:${(currentTime.getSeconds()).toString().padStart(2, '0')}.${(currentTime.getMilliseconds()).toString().padStart(3, '0')}`;
-    }
-
-    /**
-     * @description Parses the command line interface of the current script.
-     * @returns Returning an object that contains all the command line 
-     * arguments. Already processed by minimist.
-     * 
-     * @example
-     * ```
-     * > node ./scripts/script.js "a" "-b" "--c=d" "---e"
-     * { _: [ 'a' ], b: true, c: 'd', '-e': true }
-     * ```
-     */
-    parseCLI() {
-        const CLIArgv = minimist(process.argv.slice(2));
-        return CLIArgv;
-    }
-
-    color(color, text) {
-        return `${color}${text}\x1b[0m`;
-    }
-
-    getTime(color) {
-        if (!color) {
-            return `${this.c.Gray}[${this.getCurrTimeStamp()}]\x1b[0m`;
-        }
-        return `${color}[${this.getCurrTimeStamp()}]\x1b[0m`;
-    }
-
-    perf(stage) {
-        _perfRecord.push(stage, Date.now());
-    }
-
-    getPerf() {
-        const marks = [];
-        let i = 0;
-        for (i = 0; i < _perfRecord.length; i += 2) {
-            marks.push({
-                stage: _perfRecord[i],
-                time: _perfRecord[i + 1],
-            });
-        }
-        return marks;
-    }
-
-    setCharAt(str, index, c) {
-        if(index > str.length - 1) {
-            return str;
-        }
-        return str.substring(0, index) + c + str.substring(index + 1);
-    }
-
-    async ifMissingFile(root, name) {
-        try {
-            await fs.promises.stat(path.resolve(root, name));
-            return false;
-        } catch {
-            return true;
-        }
-    }
-
-    async spawnChildProcess(command, args, opts) {
-        return new Promise((res, rej) => {
-            const proc = childProcess.spawn(command, args ?? [], opts ?? {});
-            
-            proc.on('close', (code) => {
-                let fail = false;
-                
-                if (code) {
-                    fail = true;
-                    process.stdout.write(`${Times.getTime()} ${Colors.red(`child process exited with error code ${code}`)}`);
-                }
-                
-                if (fail) {
-                    rej(code);
-                } else {
-                    res(0);
-                }
-            });
-        });
-    }
-});
-
 // export
-module.exports = { utils, fgColor, bgColor, 
-    Colors, Times, Loggers, ScriptProcess, ScriptHelper, Git 
+module.exports = { 
+    log, fgColor, bgColor, 
+    Colors, Times, ScriptProcess, ScriptHelper, Git 
 };

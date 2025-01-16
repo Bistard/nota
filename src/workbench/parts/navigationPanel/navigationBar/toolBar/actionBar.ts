@@ -43,7 +43,7 @@ export class ActionBar extends Component implements IActionBarService {
     
     // [event]
     
-    private readonly _onDidClick = new Emitter<IActionBarClickEvent>();
+    private readonly _onDidClick = this.__register(new Emitter<IActionBarClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
@@ -95,12 +95,12 @@ export class ActionBar extends Component implements IActionBarService {
     
     // [protected override method]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this._buttonBar.render(this.element.raw);
         this.__register(this._buttonBar);
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
 
     }
 
@@ -118,12 +118,12 @@ export class ActionBar extends Component implements IActionBarService {
         widgetBar.addItem({
             id: opts.id,
             data: button,
-            dispose: button.dispose.bind(button),
+            disposable: button,
         });
         
         // register listener
         this.__register(button.onDidClick(() => {
-            this.clickButton(opts.id);
+            this.clickButton(button.id);
         }));
 
         return true;

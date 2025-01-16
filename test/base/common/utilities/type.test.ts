@@ -1,9 +1,10 @@
+/* eslint-disable local/code-interface-check */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/ban-types */
 
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean, ReplaceType, DeepPartial } from 'src/base/common/utilities/type';
 
 suite('type-test', () => {
 
@@ -674,4 +675,242 @@ suite('typescript-types-test', () => {
         const promisified: Promisified = { a: () => Promise.resolve(1) };
         // no counter example as assigning another value would be a compile error
     });
+
+    suite('ReplaceType utility type', () => {
+        test('should replace ContextKeyExpr with boolean in a nested object', () => {
+            interface ContextKeyExpr { num?: number; }
+            interface Example {
+                key1: string;
+                key2: ContextKeyExpr;
+                key3: {
+                    nestedKey: ContextKeyExpr;
+                    anotherKey: number;
+                };
+            }
+
+            type ResolvedExample = ReplaceType<Example, ContextKeyExpr, boolean>;
+            const valid: ResolvedExample = {
+                key1: "test",
+                key2: true,
+                key3: {
+                    nestedKey: false,
+                    anotherKey: 123,
+                },
+            }; // Should pass
+
+            const invalidKey2: ResolvedExample = {
+                key1: "test",
+                // @ts-expect-error: key2 must be a boolean
+                key2: {},
+                key3: {
+                    nestedKey: false,
+                    anotherKey: 123,
+                },
+            };
+            
+            const invalidNestedKey: ResolvedExample = {
+                key1: "test",
+                key2: true,
+                key3: {
+                    // @ts-expect-error: nestedKey must be a boolean
+                    nestedKey: {},
+                    anotherKey: 123,
+                },
+            };
+        });
+
+        test('should replace string with number in a nested object', () => {
+            interface Example {
+                key1: string;
+                key2: {
+                    nestedString: string;
+                    otherValue: boolean;
+                };
+            }
+
+            type ReplaceStringWithNumber = ReplaceType<Example, string, number>;
+
+            const valid: ReplaceStringWithNumber = {
+                key1: 123,
+                key2: {
+                    nestedString: 456,
+                    otherValue: true,
+                },
+            }; // Should pass
+
+            const invalidKey1: ReplaceStringWithNumber = {
+                // @ts-expect-error: key1 must be a number
+                key1: "invalid",
+                key2: {
+                    nestedString: 456,
+                    otherValue: true,
+                },
+            };
+
+            const invalidNestedString: ReplaceStringWithNumber = {
+                key1: 123,
+                key2: {
+                    // @ts-expect-error: nestedString must be a number
+                    nestedString: "invalid",
+                    otherValue: true,
+                },
+            };
+        });
+
+        test('should replace multiple occurrences of ContextKeyExpr with boolean', () => {
+            interface ContextKeyExpr { num?: number; }
+            interface Example {
+                key1: ContextKeyExpr;
+                key2: ContextKeyExpr;
+                key3: {
+                    nestedKey: ContextKeyExpr;
+                };
+            }
+
+            type ResolvedExample = ReplaceType<Example, ContextKeyExpr, boolean>;
+
+            const valid: ResolvedExample = {
+                key1: true,
+                key2: false,
+                key3: {
+                    nestedKey: true,
+                },
+            }; // Should pass
+
+            const invalidKey1: ResolvedExample = {
+                // @ts-expect-error: key1 must be a boolean
+                key1: {},
+                key2: false,
+                key3: {
+                    nestedKey: true,
+                },
+            };
+
+            const invalidKey2: ResolvedExample = {
+                key1: true,
+                // @ts-expect-error: key2 must be a boolean
+                key2: {},
+                key3: {
+                    nestedKey: true,
+                },
+            };
+        });
+
+        test('should replace primitive type in an array', () => {
+            type Example = string[];
+            type ResolvedExample = ReplaceType<Example, string, number>;
+
+            const valid: ResolvedExample = [1, 2, 3]; // Should pass
+
+            // @ts-expect-error: array elements must be numbers
+            const invalid: ResolvedExample = ["invalid"];
+        });
+
+        test('should handle deeply nested structures', () => {
+            interface ContextKeyExpr { num?: number; }
+            interface Example {
+                key1: {
+                    nestedKey: {
+                        deepNestedKey: ContextKeyExpr;
+                    };
+                };
+            }
+
+            type ResolvedExample = ReplaceType<Example, ContextKeyExpr, boolean>;
+            const valid: ResolvedExample = {
+                key1: {
+                    nestedKey: {
+                        deepNestedKey: true,
+                    },
+                },
+            }; // Should pass
+
+            const invalidDeepNestedKey: ResolvedExample = {
+                key1: {
+                    nestedKey: {
+                        // @ts-expect-error: deepNestedKey must be a boolean
+                        deepNestedKey: {},
+                    },
+                },
+            };
+        });
+
+        test('should preserve non-matching types and replace only the target type', () => {
+            interface ContextKeyExpr { num?: number; }
+            interface Example {
+                key1: string;
+                key2: ContextKeyExpr;
+                key3: number;
+            }
+
+            type ResolvedExample = ReplaceType<Example, ContextKeyExpr, boolean>;
+            const valid: ResolvedExample = {
+                key1: "unchanged",
+                key2: true,
+                key3: 42,
+            }; // Should pass
+
+            const invalidKey2: ResolvedExample = {
+                key1: "unchanged",
+                // @ts-expect-error: key2 must be a boolean
+                key2: {},
+                key3: 42,
+            };
+        });
+    });
+
+    test('DeepPartial type', () => {
+        type OriginalType = {
+            a: number;
+            b: {
+                c: string;
+                d: {
+                    e: boolean;
+                };
+            };
+            f: () => void;
+        };
+    
+        type ExpectedType = {
+            a?: number;
+            b?: {
+                c?: string;
+                d?: {
+                    e?: boolean;
+                };
+            };
+            f?: () => void;
+        };
+
+        checkTrue<AreEqual<DeepPartial<OriginalType>, ExpectedType>>();
+        checkTrue<AreEqual<DeepPartial<{ a: string }>, { a?: string }>>();
+        checkTrue<AreEqual<DeepPartial<{ a: string }[]>, { a: string }[]>>();
+        checkTrue<AreEqual<DeepPartial<string>, string>>();
+        checkTrue<AreEqual<DeepPartial<number>, number>>();
+        checkTrue<AreEqual<DeepPartial<undefined>, undefined>>();
+        checkTrue<AreEqual<DeepPartial<null>, null>>();
+        checkTrue<AreEqual<DeepPartial<never>, never>>();
+    
+        type ComplexType = {
+            arr: { id: number; name: string }[];
+            nested: {
+                optional?: {
+                    inner: string;
+                };
+            };
+        };
+    
+        type ExpectedComplexType = {
+            arr?: { id: number; name: string }[];
+            nested?: {
+                optional?: {
+                    inner?: string;
+                };
+            };
+        };
+    
+        checkTrue<AreEqual<DeepPartial<ComplexType>, ExpectedComplexType>>();
+        checkTrue<AreEqual<DeepPartial<number[][]>, number[][]>>();
+    });
+    
 });

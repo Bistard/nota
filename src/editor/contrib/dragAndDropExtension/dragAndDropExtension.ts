@@ -11,6 +11,7 @@ import { IEditorDragEvent } from "src/editor/view/proseEventBroadcaster";
 import { Numbers } from "src/base/common/utilities/number";
 import { DropBlinkRenderer } from "src/editor/contrib/dragAndDropExtension/dropBlinkRenderer";
 import { ScrollOnEdgeController } from "src/editor/contrib/dragAndDropExtension/scrollOnEdgeController";
+import { nullable } from "src/base/common/utilities/type";
 
 export interface IEditorDragAndDropExtension extends IEditorExtension {
     readonly id: EditorExtensionIDs.DragAndDrop;
@@ -51,7 +52,7 @@ export class EditorDragAndDropExtension extends EditorExtension implements IEdit
         this._cursorRenderer.unrender();
     }
 
-    protected override onDecoration(state: ProseEditorState): ProseDecorationSource | null | undefined {
+    protected override onDecoration(state: ProseEditorState): ProseDecorationSource | nullable {
         return this._dropBlinkRenderer.getDecorations();
     }
 

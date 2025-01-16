@@ -1,5 +1,5 @@
 import { ISash, ISashEvent } from "src/base/browser/basic/sash/sash";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/browser/basic/dom";
 
 export interface IAbstractSashController extends IDisposable {
@@ -18,17 +18,18 @@ export interface IAbstractSashController extends IDisposable {
  *      - {@link EventType.mousemove}
  *      - {@link EventType.mouseup}
  */
-export abstract class AbstractSashController implements IAbstractSashController {
+export abstract class AbstractSashController extends Disposable implements IAbstractSashController {
 
     // [field]
 
-    private _disposables = new DisposableManager();
     protected readonly sash: ISash;
 
     /** The offset to the expected position (middle of the adjacent views). */
     protected readonly posOffset: number;
     /** Save the previous mouse event. */
     protected prevEvent: ISashEvent;
+
+    private readonly _bucket: LooseDisposableBucket;
 
     // [constructor]
     
@@ -38,6 +39,9 @@ export abstract class AbstractSashController implements IAbstractSashController 
         private readonly _onDidMove: (event: ISashEvent) => void,
         private readonly _onDidEnd: () => void,
     ) {
+        super();
+        this._bucket = this.__register(new LooseDisposableBucket());
+
         this.sash = sash;
         this.posOffset = Math.round(sash.size / 2);
 
@@ -51,11 +55,9 @@ export abstract class AbstractSashController implements IAbstractSashController 
          * edge of the sash range but still wish the cursor style to be 
          * consistent. This will be removed once the mouse-up event happens.
          */
-        const cursorStyleDisposable = createStyleInCSS(this.sash.element);
+        const cursorStyleDisposable = this._bucket.register(createStyleInCSS(this.sash.element));
         const cursor = (this.sash.orientation === Orientation.Vertical) ? 'ew-resize' : 'ns-resize';
         cursorStyleDisposable.style.textContent = `* { cursor: ${cursor} !important; }`;
-
-        this._disposables.register(cursorStyleDisposable);
     }
 
     // [abstraction]
@@ -64,8 +66,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
     protected abstract __onMouseStart(): void;
     
     protected __onMouseUp(): void {
-        this._disposables.dispose();
-        this._disposables = new DisposableManager();
+        this._bucket.dispose();
         this._onDidEnd();
     }
 
@@ -74,13 +75,14 @@ export abstract class AbstractSashController implements IAbstractSashController 
     public onMouseStart(): void {
         this.__onMouseStart();
 
-        this._disposables.register(addDisposableListener(window, EventType.mousemove, e => this.__onMouseMove(e)));
-        this._disposables.register(addDisposableListener(window, EventType.mouseup, () => this.__onMouseUp()));
+        this._bucket.register(addDisposableListener(window, EventType.mousemove, e => this.__onMouseMove(e)));
+        this._bucket.register(addDisposableListener(window, EventType.mouseup, () => this.__onMouseUp()));
 
         this._onDidStart(this.prevEvent);
     }
 
-    public dispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this.__onMouseUp();
     }
 

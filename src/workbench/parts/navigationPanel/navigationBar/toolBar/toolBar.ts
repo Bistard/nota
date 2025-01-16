@@ -79,13 +79,13 @@ export class ToolBar extends Component implements IToolBarService {
 
     // [protected]
 
-    protected override _createContent(): void {
+    protected override __createContent(): void {
         this.actionBarService.create(this);
         this.filterBarService.create(this);
         this.switchTo(ToolBarType.Action);
     }
 
-    protected override _registerListeners(): void {
+    protected override __registerListeners(): void {
         // Can add more listeners if needed
     }
 }

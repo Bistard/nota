@@ -15,7 +15,7 @@ export const IContextService = createService<IContextService>('context-service')
 export interface IContextService extends IDisposable, IService {
 
     /**
-     * Fires when the bind context has changed.
+     * Fires when any contexts has changed.
      */
     readonly onDidContextChange: Register<IContextChangeEvent>;
 
@@ -43,7 +43,7 @@ export interface IContextService extends IDisposable, IService {
      * @description Given a context key expression ({@link ContextKeyExpr}), 
      * check if the expression evaluates to true to the current {@link IContext}.
      * @param expression The given context key expression.
-     * @returns A boolean indicates the evluation result.
+     * @returns A boolean indicates the evaluation result.
      */
     contextMatchExpr(expression: ContextKeyExpr | null): boolean;
 

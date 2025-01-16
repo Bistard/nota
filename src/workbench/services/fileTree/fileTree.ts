@@ -98,7 +98,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
 
     // [event]
 
-    private readonly _onSelect = new Emitter<IFileTreeOpenEvent<T>>();
+    private readonly _onSelect = this.__register(new Emitter<IFileTreeOpenEvent<T>>());
     public readonly onSelect = this._onSelect.registerListener;
 
     // [constructor]
