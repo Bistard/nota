@@ -1,8 +1,9 @@
 import "src/base/browser/basic/hoverBox/hoverBox.scss";
-import {  DirectionY, type Direction, DomUtility, addDisposableListener, EventType } from "src/base/browser/basic/dom";
+import {  DirectionY, type Direction, DomUtility, addDisposableListener, EventType, DirectionX } from "src/base/browser/basic/dom";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
-import { Coordinate } from "src/base/common/utilities/size";
+import { Coordinate, IRect, ISize } from "src/base/common/utilities/size";
 import { Emitter } from "src/base/common/event";
+import CrossProcessExports from "electron";
 
 /**
  * A construction option for {@link HoverBox}.
@@ -137,7 +138,7 @@ function isHoverTarget(x: HTMLElement | IHoverTarget): x is IHoverTarget {
 /**
  * Get the viewport size using the window's inner dimensions.
  */
-function getViewportSize(): { width: number; height: number } {
+function getViewportSize(): ISize {
     return {
         width: window.innerWidth,
         height: window.innerHeight
@@ -181,7 +182,7 @@ function computeCombinedRect(elements: HTMLElement[]): { top: number; left: numb
     };
 }
 
-function getTargetRect(target: HTMLElement | IHoverTarget): { top: number; left: number; width: number; height: number } {
+function getTargetRect(target: HTMLElement | IHoverTarget): IRect {
     if (isHoverTarget(target)) {
         return computeCombinedRect(target.targetElements as HTMLElement[]);
     } else {
@@ -223,60 +224,30 @@ export class HoverBox extends Widget implements IHoverBox {
     // [private methods]
 
     public layout(): void {
+
         if (!this.rendered) return;
         const element = this.element;
-        const view = getViewportSize();
+        const viewSize = getViewportSize();
 
         // Measure the hover itself
-        const hoverWidth = DomUtility.Attrs.getTotalWidth(element);
-        const hoverHeight = DomUtility.Attrs.getTotalHeight(element);
-
-        let x = 0;
-        let y = 0;
-
-        if (isCoordinate(this.positionOpts.hoverPosition)) {
-            x = this.positionOpts.hoverPosition.x;
-            y = this.positionOpts.hoverPosition.y;
-        } else {
-            // Position relative to target
-            const rect = getTargetRect(this.target);
-  
-            const desiredPosition = this.positionOpts.hoverPosition ?? DirectionY.Top;
-
-            // Checks overlap
-            const fitsAbove = (rect.top - hoverHeight) >= 0;
-            const fitsBelow = (rect.top + rect.height + hoverHeight) <= view.height;
-            const force = !!this.positionOpts.forcePosition;
-
-            let finalPos = desiredPosition as DirectionY;
-            if (!force) {
-                if (finalPos === DirectionY.Top && !fitsAbove && fitsBelow) {
-                    finalPos = DirectionY.Bottom;
-                } else if (finalPos === DirectionY.Bottom && !fitsBelow && fitsAbove) {
-                    finalPos = DirectionY.Top;
-                }
-            }
-
-            if (finalPos === DirectionY.Top) {
-                y = rect.top - hoverHeight;
-                x = rect.left + (rect.width - hoverWidth) / 2;
-            } else if (finalPos === DirectionY.Bottom) {
-                y = rect.top + rect.height;
-                x = rect.left + (rect.width - hoverWidth) / 2;
-            } else {
-                // fallback
-                y = rect.top - hoverHeight;
-                x = rect.left;
-            }
-        }
+        const hoverSize = this.__getHoverSize();
         
+        // x, y coordinate
+        const untailoredHoverXY = this.__determineHoverXY(hoverSize, viewSize);
+
+
         // Adjust if out of viewport
-        const maxX = view.width - hoverWidth;
-        const maxY = view.height - hoverHeight;
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
-        if (x > maxX) x = maxX;
-        if (y > maxY) y = maxY;
+        let x = untailoredHoverXY.x;
+        let y = untailoredHoverXY.y;
+
+        const maxX = viewSize.width - hoverSize.width;
+        const maxY = viewSize.height - hoverSize.height;
+
+        x = Math.max(0, x);
+        y = Math.max(0, y);
+
+        x = Math.min(x , maxX);
+        y = Math.min(y , maxY);
 
         element.style.left = `${x}px`;
         element.style.top = `${y}px`;
@@ -363,5 +334,84 @@ export class HoverBox extends Widget implements IHoverBox {
         if (hideOnHover && !this.mouseInHover && !this.mouseInTarget) {
             this.hide();
         }
+    }
+    
+    private __getHoverSize(): ISize {
+        const width: number = DomUtility.Attrs.getTotalWidth(this.element);
+        const height: number = DomUtility.Attrs.getTotalHeight(this.element); 
+        return {width, height};
+    }
+    
+    private __determineHoverXY(hoverSize: ISize, viewSize: ISize): Coordinate {
+        let x, y: number = 0;
+
+        // Position relative to target
+        const targetRect = getTargetRect(this.target);
+
+        if (isCoordinate(this.positionOpts.hoverPosition)) {
+            x = this.positionOpts.hoverPosition.x;
+            y = this.positionOpts.hoverPosition.y;
+            return new Coordinate(x, y);
+        }
+
+       
+        this.__determineHoverDirection(targetRect, hoverSize, viewSize);
+
+        const direction = this.__determineHoverDirection(targetRect, hoverSize, viewSize);
+
+        if (direction === DirectionY.Top) {
+            y = targetRect.top - hoverSize.height;
+            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
+        } else if (direction === DirectionY.Bottom) {
+            y = targetRect.top + targetRect.height;
+            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
+        } else if (direction === DirectionX.Left) {
+            y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
+            x = targetRect.left - hoverSize.width;
+        } else if (direction === DirectionX.Right) {
+            y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
+            x = targetRect.left + targetRect.width;
+        } else {
+            // fallback
+            y = targetRect.top - hoverSize.height;
+            x = targetRect.left;
+        }
+        
+        return new Coordinate(x, y);
+    }
+
+    private __determineHoverDirection(targetRect: IRect, hoverSize: ISize, viewSize: ISize): Direction {
+         
+        
+        // default Direction is Top(above the target)
+        const desiredPosition = this.positionOpts.hoverPosition ?? DirectionY.Top;
+         
+        const force = !!this.positionOpts.forcePosition;
+        let finalPos = desiredPosition as Direction;
+
+        if (force) {
+            return finalPos as Direction;
+        }
+        
+        // No force determine fits
+        const fitsAbove = (targetRect.top - hoverSize.height) >= 0;
+        const fitsBelow = (targetRect.top + targetRect.height + hoverSize.height) <= viewSize.height;
+        const fitsLeft =  (targetRect.left - hoverSize.width) >= 0;
+        const fitsRight = (targetRect.left + targetRect.width + hoverSize.width) <= viewSize.width;
+        const fits: Record<Direction, boolean> = {
+            [DirectionY.Top]: fitsAbove,
+            [DirectionY.Bottom]: fitsBelow,
+            [DirectionX.Left]: fitsLeft,
+            [DirectionX.Right]: fitsRight,
+        };
+        
+        if (!fits[finalPos]) {
+            for (const [direction, fit] of Object.entries(fits)) {
+                if (fit) {
+                    finalPos = direction as Direction;
+                }
+            }
+        }
+        return finalPos;
     }
 }
