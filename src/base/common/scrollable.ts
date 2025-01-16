@@ -64,7 +64,7 @@ export interface IScrollable extends IDisposable {
 const MIN_SLIDER_SIZE = 20; // pixels
 
 /**
- * @class A class for storing the numerated data of {@link AbstractScrollbar}.
+ * @class A class for storing the numerated data of scrolling action. 
  * Self-recalculating the correct data of a slider if needed.
  * 
  * A {@link Scrollable} only specifies one type of direction, either vertical or
