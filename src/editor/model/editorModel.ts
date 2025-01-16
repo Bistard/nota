@@ -17,6 +17,7 @@ import { buildSchema, EditorSchema } from "src/editor/model/schema";
 import { MarkdownSerializer } from "src/editor/model/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
 import { history } from "prosemirror-history";
+import { IOnDidContentChangeEvent } from "src/editor/view/proseEventBroadcaster";
 
 export class EditorModel extends Disposable implements IEditorModel {
 
@@ -187,6 +188,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     public __onDidStateChange(event: IOnDidContentChangeEvent): void {
         const newState = event.view.state;
+        console.log(event.transaction);
         this._editorState = newState;
         this._onDidStateChange.fire();
     }
