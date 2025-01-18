@@ -400,7 +400,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         this._scrollAnimate = this.__register(new RequestAnimateController(() => {
             this._scrollable.setScrollSize(this._rangeTable.size());
-            console.log(this._scrollable);
         }));
         
         // scroll rendering
