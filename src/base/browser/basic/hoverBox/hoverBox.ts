@@ -2,8 +2,10 @@ import "src/base/browser/basic/hoverBox/hoverBox.scss";
 import {  DirectionY, type Direction, DomUtility, addDisposableListener, EventType, DirectionX } from "src/base/browser/basic/dom";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { Coordinate, IRect, ISize } from "src/base/common/utilities/size";
-import { Emitter } from "src/base/common/event";
-import CrossProcessExports from "electron";
+import { Pair } from "src/base/common/utilities/type";
+import { off } from "process";
+
+
 
 /**
  * A construction option for {@link HoverBox}.
@@ -73,6 +75,11 @@ export interface IHoverPositionOptions {
      * Force the hover position.
      */
     readonly forcePosition?: boolean;
+
+    readonly offest?: {
+        x: number,
+        y: number,
+    };
 }
 
 export interface IHoverPersistenceOptions {
@@ -235,11 +242,12 @@ export class HoverBox extends Widget implements IHoverBox {
         // x, y coordinate
         const untailoredHoverXY = this.__determineHoverXY(hoverSize, viewSize);
 
-
+        const offset = this.positionOpts.offest ?? {x: 0, y: 0};
+        
+        let x = untailoredHoverXY.x + offset.x;
+        let y = untailoredHoverXY.y + offset.y;
+        
         // Adjust if out of viewport
-        let x = untailoredHoverXY.x;
-        let y = untailoredHoverXY.y;
-
         const maxX = viewSize.width - hoverSize.width;
         const maxY = viewSize.height - hoverSize.height;
 
@@ -354,10 +362,8 @@ export class HoverBox extends Widget implements IHoverBox {
             return new Coordinate(x, y);
         }
 
-       
-        this.__determineHoverDirection(targetRect, hoverSize, viewSize);
-
         const direction = this.__determineHoverDirection(targetRect, hoverSize, viewSize);
+        console.log('direction:', direction);
 
         if (direction === DirectionY.Top) {
             y = targetRect.top - hoverSize.height;
