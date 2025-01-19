@@ -1,5 +1,8 @@
+import { ErrorHandler } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/files/buffer";
+import { URI } from "src/base/common/files/uri";
 import { Mutable } from "src/base/common/utilities/type";
+import { IFileService } from "src/platform/files/common/fileService";
 
 /**
  * @file Contains a series of helpers that detect/guess the encoding of a file.
@@ -19,6 +22,8 @@ export const UTF8_with_bom = 'utf8bom';
 export const UTF16be = 'utf16be';
 export const UTF16le = 'utf16le';
 
+const NO_ENCODING_GUESS_MIN_BYTES = 512;       // when not auto guessing the encoding, small number of bytes are enough
+const AUTO_ENCODING_GUESS_MIN_BYTES = 512 * 8; // with auto guessing we want a lot more content to be read for guessing
 const ZERO_BYTE_DETECTION_BUFFER_MAX_LEN = 512; // number of bytes to look at to decide about a file being binary or not
 
 export interface IDetectEncodingResult {
@@ -31,6 +36,21 @@ export interface IDetectEncodingResult {
      * e.g. UTF-8, UTF-16, UTF-32, etc...
      */
     readonly encoding?: string;
+}
+
+export async function detectEncodingFromFile(fileService: IFileService, uri: URI): Promise<IDetectEncodingResult> {
+    const bufferLength = NO_ENCODING_GUESS_MIN_BYTES;
+    return (await fileService.readFile(uri, { length: bufferLength }))
+    .match(
+        buffer => detectEncoding(buffer, bufferLength),
+        err => {
+            ErrorHandler.onUnexpectedError(err);
+            return {
+                seemsBinary: false,
+                encoding: undefined,
+            };
+        }
+    );
 }
 
 /**
