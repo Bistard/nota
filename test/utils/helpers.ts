@@ -1,53 +1,13 @@
-import * as assert from 'assert';
+import * as fs from 'fs';
 import { DataBuffer } from 'src/base/common/files/buffer';
-import { FileType, IResolvedFileStat } from 'src/base/common/files/file';
+import { FileType } from 'src/base/common/files/file';
 import { URI } from 'src/base/common/files/uri';
-import { AsyncResult } from "src/base/common/result";
-import { panic } from "src/base/common/utilities/panic";
 import { repeat } from "src/base/common/utilities/async";
 import { Random } from "src/base/common/utilities/random";
 import { NestedArray, TreeLike } from "src/base/common/utilities/type";
 import { IFileService } from 'src/platform/files/common/fileService';
 import { FileItem, IFileItemResolveOptions } from 'src/workbench/services/fileTree/fileItem';
 import { printNaryTreeLike } from 'src/base/common/utilities/string';
-
-let _hitCount = 0;
-
-/**
- * @description Simple printing debug strategy.
- */
-export function hit(): number {
-    console.log(_hitCount++);
-    return _hitCount;
-}
-
-export function resetHit(): void {
-    _hitCount = 0;
-}
-
-export namespace Context {
-
-    const _context = new Set<number>();
-
-    export function toggleContext(id: number): void {
-        const exist = _context.has(id);
-        if (exist) {
-            _context.delete(id);
-        } else {
-            _context.add(id);
-        }
-    }
-
-    export function ifExist(id: number): boolean {
-        return _context.has(id);
-    }
-    
-    export function print(id: number, message: any): void {
-        if (_context.has(id)) {
-            console.log(message);
-        }
-    }
-}
 
 /**
  * @description Returns a useless but simple object except that whatever you do 
@@ -58,29 +18,6 @@ export function nullObject<T = any>(): T {
         get: () => nullObject,
 		set: () => true,
     });
-}
-
-/**
- * @description Executes a function and throws an error if the function does not 
- * throw an exception.
- * @param fn - The function to be tested for exception throwing.
- * @throws Will throw an error if the function does not throw an exception.
- * 
- * @deprecated Use {@link assert.throws} instead.
- */
-export function shouldThrow(fn: () => void): void {
-    let noThrow = false;
-    
-    try {
-        fn();
-        noThrow = true;
-    } catch (err) {
-        // noop
-    }
-
-    if (noThrow) {
-        panic(`The function "${fn}" should throws an exception.`);
-    }
 }
 
 /**
