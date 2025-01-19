@@ -8,6 +8,7 @@ import { IFileService } from "src/platform/files/common/fileService";
  * @file Contains a series of helpers that detect/guess the encoding of a file.
  * Useful for cases such as: detecting if a file is a binary file.
  * 
+ * {@link detectEncodingFromFile}
  * {@link detectEncoding}
  * {@link detectEncodingByBOM}
  * {@link detectEncodingByZeroByte}
