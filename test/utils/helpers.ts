@@ -353,3 +353,78 @@ export function findFileItemByPath(item: FileItem, location: number[]): FileItem
 
     return item;
 }
+
+/**
+ * @description Read a file using {@link fs}.
+ * @param {string | URI} file - The path to the file as a string or a URI object.
+ * @param {number | undefined} totalBytes - Optional total bytes to read from the file.
+ * @returns {Promise<{ buffer?: DataBuffer, bufferLength: number }>} A promise that resolves with the read data and byte count.
+ */
+export function readFile(file: string | URI, totalBytes?: number): Promise<{ buffer?: DataBuffer, bufferLength: number }> {
+    const path = typeof file === 'string' ? file : URI.toFsPath(file);
+    
+    return new Promise((resolve, reject) => {
+        fs.open(path, 'r', null, (err, fd) => {
+            if (err) {
+                return reject(err);
+            }
+
+            function end(err: Error | null, buffer: Buffer | null, bufferLength: number): void {
+                fs.close(fd, closeError => {
+                    if (closeError) {
+                        return reject(closeError);
+                    }
+
+                    if (err && (<any>err).code === 'EISDIR') {
+                        return reject(err); // we want to bubble this error up (file is actually a folder)
+                    }
+
+                    return resolve({
+                        buffer: buffer ? DataBuffer.wrap(buffer.slice(0, bufferLength)) : undefined,
+                        bufferLength,
+                    });
+                });
+            }
+
+            // If `totalBytes` is not provided, calculate it based on file size
+            if (typeof totalBytes === 'undefined') {
+                return fs.fstat(fd, (statErr, stats) => {
+                    if (statErr) {
+                        return end(statErr, null, 0);
+                    }
+                    totalBytes = stats.size;
+                    processRead(totalBytes);
+                });
+            }
+
+            // general case
+            processRead(totalBytes);
+            function processRead(totalBytes: number) {
+                const buffer = Buffer.allocUnsafe(totalBytes);
+                let offset = 0;
+
+                function readChunk(): void {
+                    fs.read(fd, buffer, offset, totalBytes - offset, null, (err, bufferLength) => {
+                        if (err) {
+                            return end(err, null, 0);
+                        }
+
+                        if (bufferLength === 0) {
+                            return end(null, buffer, offset);
+                        }
+
+                        offset += bufferLength;
+
+                        if (offset === totalBytes) {
+                            return end(null, buffer, offset);
+                        }
+
+                        return readChunk();
+                    });
+                }
+
+                readChunk();
+            }
+        });
+    });
+}
