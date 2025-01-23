@@ -179,6 +179,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         const menuItems = registrant.getMenuitems(menuType);
 
         const actions: IMenuAction[] = menuItems.map((item) => {
+            const providedArgs = (item.command.args ?? []);
+            
             // check box
             if (item.command.checked !== undefined) {
                 return new CheckMenuAction({
@@ -189,7 +191,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                     mac: item.command.mac,
                     extraClassName: 'toggle-item',
                     onChecked: (checked) => {
-                        this.commandService.executeCommand(item.command.commandID, { checked });
+                        this.commandService.executeCommand(item.command.commandID, ...providedArgs, { checked });
                     },
                 });
             }
@@ -211,7 +213,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                 key: item.command.keybinding,
                 mac: item.command.mac,
                 callback: (ctx: unknown) => {
-                    this.commandService.executeCommand(item.command.commandID, ctx);
+                    this.commandService.executeCommand(item.command.commandID, ...providedArgs, ctx);
                 },
             });
         });

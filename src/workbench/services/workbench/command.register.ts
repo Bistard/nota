@@ -16,9 +16,8 @@ import { IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IS_WINDOWS } from "src/base/common/platform";
 import { IBrowserInspectorService } from "src/platform/inspector/common/inspector";
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
-import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
+import { ExplorerView, openFolderAtExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
-import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
 import { IDialogService } from "src/platform/dialog/browser/browserDialogService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
@@ -149,12 +148,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
         );
         registrant.registerCommandBasic({
             id: AllCommands.fileTreeOpenFolder,
-            command: (provider, target: URI) => {
-                const navViewService = provider.getOrCreateService(INavigationViewService);
-                const currentView = navViewService.currView();
-                if (currentView && ExplorerView.is(currentView)) {
-                    currentView.open(target);
-                }
+            command: async (provider, target: URI) => {
+                return openFolderAtExplorerView(provider, target);
             }
         });
         registrant.registerCommandBasic(
@@ -185,14 +180,7 @@ export const rendererTitleBarFileCommandRegister = createRegister(
                     return;
                 }
                 const uri = URI.fromFile(paths.at(-1)!);
-
-                const navigationView = provider.getOrCreateService(INavigationViewService);
-                const explorerView = <ExplorerView>navigationView.switchView(ExplorerViewID);
-                
-                if (explorerView.isOpened) {
-                    await explorerView.close();
-                }
-                await explorerView.open(uri);
+                await openFolderAtExplorerView(provider, uri);
             }
         });
     }
