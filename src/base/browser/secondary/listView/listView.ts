@@ -297,6 +297,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     /** Invoked when every scroll happens */
     private readonly _scrollAnimate: RequestAnimateController<{}>;
 
+    /**
+     * position: `top` pixels of each row
+     * index: the index of the row
+     */
     private _rangeTable: RangeTable;
 
     private readonly _renderers: Map<RendererType, IListViewRenderer<T, any>>;
@@ -396,7 +400,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         this._scrollAnimate = this.__register(new RequestAnimateController(() => {
             this._scrollable.setScrollSize(this._rangeTable.size());
-            console.log(this._scrollable);
         }));
         
         // scroll rendering

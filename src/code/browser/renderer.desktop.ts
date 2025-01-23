@@ -44,7 +44,7 @@ import { ILayoutService, LayoutService } from "src/workbench/services/layout/lay
 import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
-import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
+import { rendererTitleBarFileCommandRegister, rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
 import { FileTreeService } from "src/workbench/services/fileTree/fileTreeService";
 import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
@@ -305,6 +305,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 super.initRegistrations(provider);
                 [
                     rendererWorkbenchCommandRegister,
+                    rendererTitleBarFileCommandRegister,
                 ]
                 .forEach(register => register(provider));
             }
