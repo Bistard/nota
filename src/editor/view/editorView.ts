@@ -151,7 +151,6 @@ export class EditorView extends Disposable implements IEditorView {
         }));
 
         this.__register(viewModel.onDidChangeModelState(tr => {
-            console.log('[view] dispatching');
             this._view.internalView.dispatch(tr);
         }));
     }

@@ -188,7 +188,6 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     public __onDidStateChange(event: IOnDidContentChangeEvent): void {
         const newState = event.view.state;
-        console.log(event.transaction);
         this._editorState = newState;
         this._onDidStateChange.fire();
     }
