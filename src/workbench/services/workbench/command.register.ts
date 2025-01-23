@@ -18,6 +18,8 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { ExplorerViewID } from "src/workbench/contrib/explorer/explorerService";
+import { IDialogService } from "src/platform/dialog/browser/browserDialogService";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
@@ -165,6 +167,35 @@ export const rendererWorkbenchCommandRegister = createRegister(
             }
         );
     },
+);
+
+export const rendererTitleBarFileCommandRegister = createRegister(
+    RegistrantType.Command, 
+    'rendererTitleBar',
+    (registrant) => {
+        registrant.registerCommandBasic({
+            id: AllCommands.openFolderDialog, 
+            command: async (provider) => {
+                const dialogService = provider.getOrCreateService(IDialogService);
+                const paths = await dialogService.openDirectoryDialog({ 
+                    title: 'Open a Folder', // todo: i18n
+                });
+
+                if (paths.length === 0) {
+                    return;
+                }
+                const uri = URI.fromFile(paths.at(-1)!);
+
+                const navigationView = provider.getOrCreateService(INavigationViewService);
+                const explorerView = <ExplorerView>navigationView.switchView(ExplorerViewID);
+                
+                if (explorerView.isOpened) {
+                    await explorerView.close();
+                }
+                await explorerView.open(uri);
+            }
+        });
+    }
 );
 
 class AlertError extends Command {
