@@ -23,6 +23,16 @@ export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
     'rendererWorkbench',
     (registrant) => {
+        // debugger: allow to execute command with empty string.
+        registrant.registerCommandBasic(
+            {
+                id: '',
+                command: (provider) => {
+                    provider.getOrCreateService(ILogService).warn('CommandService', 'Executing command with empty id (``), make sure this is expected.');
+                },
+            },
+        );
+
         registrant.registerCommandBasic(
             {
                 id: AllCommands.toggleDevTool,

@@ -1,4 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
 import { panic } from "src/base/common/utilities/panic";
@@ -252,9 +253,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
 
         if (isNumber(arg)) {
             action = this._items[arg]?.action;
-        }
-        
-        else {
+        } else {
             const id = isString(arg) ? arg : arg.id;
             action = this.get(id);
         }
@@ -400,6 +399,7 @@ export class ActionRunner extends Disposable {
             await action.run(context);
         } catch (error: any) {
             err = error;
+            ErrorHandler.onUnexpectedError(err);
         }
 
         this._onDidRun.fire({ action: action, error: err });
