@@ -7,6 +7,7 @@ import { DocumentNode, DocumentMark } from "src/editor/model/documentNode/docume
 import { Codespan } from "src/editor/model/documentNode/mark/codespan";
 import { Emphasis } from "src/editor/model/documentNode/mark/emphasis";
 import { Link } from "src/editor/model/documentNode/mark/link";
+import { MathInline } from "src/editor/model/documentNode/mark/mathInline";
 import { Strong } from "src/editor/model/documentNode/mark/strong";
 import { Blockquote } from "src/editor/model/documentNode/node/blockquote";
 import { CodeBlock } from "src/editor/model/documentNode/node/codeBlock";
@@ -17,6 +18,7 @@ import { HTML, InlineHTML } from "src/editor/model/documentNode/node/html";
 import { Image } from "src/editor/model/documentNode/node/image";
 import { LineBreak } from "src/editor/model/documentNode/node/lineBreak";
 import { List, ListItem } from "src/editor/model/documentNode/node/list";
+import { MathBlock } from "src/editor/model/documentNode/node/mathBlock";
 import { Paragraph } from "src/editor/model/documentNode/node/paragraph";
 import { Space } from "src/editor/model/documentNode/node/space";
 import { Text } from "src/editor/model/documentNode/node/text";
@@ -68,6 +70,8 @@ export class DocumentNodeProvider {
                 provider.registerNode(new Image());
                 provider.registerNode(new HTML());
                 provider.registerNode(new InlineHTML());
+                provider.registerNode(new MathBlock());
+                provider.registerNode(new MathInline());
 
                 // marks
                 provider.registerMark(new Link());
