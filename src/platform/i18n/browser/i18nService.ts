@@ -4,7 +4,7 @@ import { IService, createService } from "src/platform/instantiation/common/decor
 import { ILogService } from "src/base/common/logger";
 import { AsyncResult } from "src/base/common/result";
 import { FileOperationError } from "src/base/common/files/file";
-import { LanguageType, validateLanguageType } from "src/platform/i18n/common/localeTypes";
+import { LanguageType, validateLanguageType } from "src/platform/i18n/common/i18n";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
