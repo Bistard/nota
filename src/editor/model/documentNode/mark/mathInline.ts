@@ -4,7 +4,7 @@ const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1(?=[\s?
 const inlineRuleNonStandard = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1/; // Non-standard, even if there are no spaces before and after $ or $$, try to parse
 
 export function createMathInlineTokenizer(options: { nonStandard: boolean }): TokenizerAndRendererExtension {
-    const nonStandard = options.nonStandard;
+    const {nonStandard} = options;
     const ruleReg = nonStandard ? inlineRuleNonStandard : inlineRule;
     return {
         name: 'mathInline',
