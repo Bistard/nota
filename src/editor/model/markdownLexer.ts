@@ -60,9 +60,9 @@ export class MarkdownLexer implements IMarkdownLexer {
         this._marked = new Marked({
             async: false,
             silent: false,
-            pedantic: true, // TODO: suggest to set to false.
+            pedantic: false,
             
-            gfm: true,
+            gfm: false, // TODO: set it to `true`
             breaks: false,
 
             extensions: [
