@@ -596,6 +596,7 @@ class RowInsertionController extends Disposable {
         const currentItemTop = this._tree.getItemRenderTop(index);        
         const currentItemBottom = currentItemTop + this._tree.getItemHeight(index);
 
+        // FIX: when the editor has tons of elements, this function gets really slow.
         const mouseY = event.clientY - DomUtility.Attrs.getViewportTop(this._tree.DOMElement);
         
         const threshold = this.DETECT_THRESHOLD;
