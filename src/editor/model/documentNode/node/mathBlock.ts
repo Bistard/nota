@@ -1,20 +1,32 @@
 import katex from "katex";
 import { TokenizerAndRendererExtension } from "marked";
+import { SmartRegExp } from "src/base/common/utilities/regExp";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { II18nService } from "src/platform/i18n/browser/i18nService";
 
-const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
+export const mathBlockRule = 
+    new SmartRegExp(/^(dollars)\s*\n(content)(?:dollars)\s*(?:optionalEnd)/)
+    .replace('dollars', /\${2}/)
+    .replace('content', /(?:singleLine\n)*/) // multiple line: allow to be empty
+    .replace('singleLine', /(?!\$\$)[^\n]*/) // single line: not allow occurrence of `$$`
+    .replace('optionalEnd', /\n|$/)
+    .get();
 
 export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
     return {
         name: 'mathBlock',
         level: 'block',
+        start: (src: string) => {
+            const index = src.indexOf('$$');
+            return index !== -1 ? index : undefined;
+        },
         tokenizer: (src: string, tokens: any) => {
-            const match = src.match(blockRule);
+            const match = src.match(mathBlockRule);
             if (match) {
                 return {
                     type: 'mathBlock',

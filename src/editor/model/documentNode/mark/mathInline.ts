@@ -65,6 +65,7 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('span');
+                dom.classList.add('math-inline');
                 
                 katex.render(text, dom, {
                     displayMode: false,
