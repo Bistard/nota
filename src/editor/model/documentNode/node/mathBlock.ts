@@ -28,7 +28,6 @@ export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
         tokenizer: (src: string, tokens: any) => {
             const match = src.match(mathBlockRule);
             if (match) {
-                console.log(match);
                 return {
                     type: 'mathBlock',
                     raw: match[0],
