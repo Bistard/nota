@@ -10,6 +10,16 @@ import { If, Pair } from "src/base/common/utilities/type";
 const BODY = document.body;
 const DocElement = document.documentElement;
 
+export function initGlobalCssVariables(): void {
+	if (!document) {
+		return;
+	}
+
+	document.body.style.setProperty('--z-index-low', '2');
+	document.body.style.setProperty('--z-index-medium', '10');
+	document.body.style.setProperty('--z-index-high', '100');
+}
+
 /**
  * @namespace DomStyle A series of types for DOM styling purpose.
  */
